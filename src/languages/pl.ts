@@ -611,6 +611,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Wartość',
         downloadFailedTitle: 'Pobieranie nie powiodło się',
         downloadFailedDescription: 'Nie udało się zakończyć pobierania. Spróbuj ponownie później.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Nie możesz eksportować pustego raportu.',
+            other: () => 'Nie możesz eksportować pustych raportów.',
+        }),
         filterLogs: 'Filtruj logi',
         network: 'Sieć',
         reportID: 'ID raportu',

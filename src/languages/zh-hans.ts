@@ -611,6 +611,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: '值',
         downloadFailedTitle: '下载失败',
         downloadFailedDescription: '您的下载未能完成。请稍后再试。',
+        downloadFailedEmptyReportDescription: () => ({
+            one: '您无法导出空报告。',
+            other: () => '您无法导出空报告。',
+        }),
         filterLogs: '筛选日志',
         network: '网络',
         reportID: '报告 ID',

@@ -610,6 +610,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Wert',
         downloadFailedTitle: 'Download fehlgeschlagen',
         downloadFailedDescription: 'Ihr Download konnte nicht abgeschlossen werden. Bitte versuchen Sie es später noch einmal.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Sie können keinen leeren Bericht exportieren.',
+            other: () => 'Sie können keine leeren Berichte exportieren.',
+        }),
         filterLogs: 'Protokolle filtern',
         network: 'Netzwerk',
         reportID: 'Berichts-ID',

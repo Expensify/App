@@ -611,6 +611,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: '値',
         downloadFailedTitle: 'ダウンロードに失敗しました',
         downloadFailedDescription: 'ダウンロードを完了できませんでした。後でもう一度お試しください。',
+        downloadFailedEmptyReportDescription: () => ({
+            one: '空のレポートはエクスポートできません。',
+            other: () => '空のレポートはエクスポートできません。',
+        }),
         filterLogs: 'ログをフィルター',
         network: 'ネットワーク',
         reportID: 'レポート ID',

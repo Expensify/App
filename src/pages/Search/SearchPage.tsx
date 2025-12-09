@@ -119,6 +119,7 @@ function SearchPage({route}: SearchPageProps) {
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
+    const [emptyReportsCount, setEmptyReportsCount] = useState<number>(0);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
     > | null>(null);
@@ -370,6 +371,22 @@ function SearchPage({route}: SearchPageProps) {
                             return;
                         }
 
+                        const emptyReports =
+                            selectedReports?.filter((selectedReport) => {
+                                if (!selectedReport) {
+                                    return false;
+                                }
+                                const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
+                                return (fullReport?.transactionCount ?? 0) === 0;
+                            }) ?? [];
+                        const hasOnlyEmptyReports = selectedReports.length > 0 && emptyReports.length === selectedReports.length;
+
+                        if (hasOnlyEmptyReports) {
+                            setEmptyReportsCount(emptyReports.length);
+                            setIsDownloadErrorModalVisible(true);
+                            return;
+                        }
+
                         exportSearchItemsToCSV(
                             {
                                 query: status,
@@ -378,6 +395,7 @@ function SearchPage({route}: SearchPageProps) {
                                 transactionIDList: selectedTransactionsKeys,
                             },
                             () => {
+                                setEmptyReportsCount(0);
                                 setIsDownloadErrorModalVisible(true);
                             },
                         );
@@ -1082,7 +1100,7 @@ function SearchPage({route}: SearchPageProps) {
             )}
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
+                prompt={emptyReportsCount ? translate('common.downloadFailedEmptyReportDescription', {count: emptyReportsCount}) : translate('common.downloadFailedDescription')}
                 isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={handleDownloadErrorModalClose}
                 secondOptionText={translate('common.buttonConfirm')}

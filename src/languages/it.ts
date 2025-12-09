@@ -611,6 +611,10 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valore',
         downloadFailedTitle: 'Download non riuscito',
         downloadFailedDescription: 'Il download non può essere completato. Riprova più tardi.',
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Non puoi esportare un rapporto vuoto.',
+            other: () => 'Non puoi esportare rapporti vuoti.',
+        }),
         filterLogs: 'Filtra registri',
         network: 'Rete',
         reportID: 'ID rapporto',
