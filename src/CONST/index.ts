@@ -451,8 +451,6 @@ const CONST = {
         SHORT_DATE_FORMAT: 'MM-dd',
         MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
         MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
-        MONTH_DAY_WEEKDAY_ABBR_FORMAT: 'EEEE, MMM d',
-        MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT: 'EEEE, MMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
@@ -1030,7 +1028,7 @@ const CONST = {
     COLLECT_UPGRADE_HELP_URL: 'https://help.expensify.com/Hidden/collect-upgrade',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
-    DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain',
+    DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Verify-a-Domain',
     SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
@@ -1686,6 +1684,7 @@ const CONST = {
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
+        SPAN_SKELETON: 'ManualSkeleton',
         SPAN_BOOTSPLASH: {
             ROOT: 'BootsplashVisible',
             NAVIGATION: 'BootsplashVisibleNavigation',
@@ -1701,6 +1700,11 @@ const CONST = {
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
+        ATTRIBUTE_MIN_DURATION: 'min_duration',
+        ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
+        CONFIG: {
+            SKELETON_MIN_DURATION: 10_000,
+        },
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -7472,6 +7476,21 @@ const CONST = {
     MODAL_EVENTS: {
         CLOSED: 'modalClosed',
     },
+
+    LIST_BEHAVIOR: {
+        REGULAR: 'regular',
+        INVERTED: 'inverted',
+    },
+
+    SENTRY_LABEL: {
+        NAVIGATION_TAB_BAR: {
+            EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
+            INBOX: 'NavigationTabBar-Inbox',
+            REPORTS: 'NavigationTabBar-Reports',
+            WORKSPACES: 'NavigationTabBar-Workspaces',
+            ACCOUNT: 'NavigationTabBar-Account',
+        },
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
@@ -7511,20 +7530,6 @@ const FRAUD_PROTECTION_EVENT = {
     NEW_EMAILS_INVITED: 'NewEmailsInvited',
 };
 
-const DATE_TIME_FORMAT_OPTIONS: Record<string, Intl.DateTimeFormatOptions> = {
-    [CONST.DATE.FNS_FORMAT_STRING]: {year: 'numeric', month: '2-digit', day: '2-digit'},
-    [CONST.DATE.LOCAL_TIME_FORMAT]: {timeStyle: 'short'},
-    [CONST.DATE.MONTH_FORMAT]: {month: 'long'},
-    [CONST.DATE.WEEKDAY_TIME_FORMAT]: {weekday: 'long'},
-    [CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]: {weekday: 'long', month: 'short', day: 'numeric'},
-    [CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]: {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'},
-    [CONST.DATE.MONTH_DAY_YEAR_FORMAT]: {dateStyle: 'long'},
-    [CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]: {month: 'short', day: 'numeric', year: 'numeric'},
-    [CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY]: {dateStyle: 'full'},
-    FNS_DATE_WITH_LOCAL_TIME_FORMAT: {year: 'numeric', month: '2-digit', day: '2-digit', hour: 'numeric', minute: '2-digit'},
-    SHORT_DATE_WITH_LOCAL_TIME_FORMAT: {month: '2-digit', day: '2-digit', hour: 'numeric', minute: '2-digit'},
-};
-
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
@@ -7538,6 +7543,6 @@ type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, DATE_TIME_FORMAT_OPTIONS};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT};
 
 export default CONST;
