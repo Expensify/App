@@ -35,6 +35,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {
     canJoinChat,
     canUserPerformWriteAction,
@@ -45,7 +46,7 @@ import {
     getPolicyDescriptionText,
     getPolicyName,
     getReportDescription,
-    getReportName,
+    getReportName as getReportNameDeprecated,
     hasReportNameError,
     isAdminRoom,
     isArchivedReport,
@@ -137,7 +138,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const title = getReportNameDeprecated(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived);
     const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, isParentReportHeaderDataArchived);
