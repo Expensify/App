@@ -50,9 +50,9 @@ import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, openPolicyCategoriesPage, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -199,7 +199,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         <View style={[styles.flex1]}>
                             <Text
                                 numberOfLines={1}
-                                style={[styles.alignSelfStart, styles.textBold]}
+                                style={[styles.alignSelfStart]}
                             >
                                 {value['GL Code']}
                             </Text>
