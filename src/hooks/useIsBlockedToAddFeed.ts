@@ -1,3 +1,4 @@
+import {useEffect, useState} from 'react';
 import {getCompanyFeeds} from '@libs/CardUtils';
 import {isCollectPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -25,21 +26,28 @@ function useIsBlockedToAddFeed(policyID?: string) {
     const companyFeeds = getCompanyFeeds(cardFeeds, true, false);
     const isCollect = isCollectPolicy(policy);
     const isAllFeedsResultLoading = isLoadingOnyxValue(allFeedsResult);
+    const [prevCompanyFeedsLength, setPrevCompanyFeedsLength] = useState(0);
 
     const isLoading = !cardFeeds || !!defaultFeed?.isLoading;
 
-    // Count feeds excluding CSV uploads from Classic and Expensify Cards
-    // Include pending feeds in the count to enforce the limit
-    const nonCSVFeeds = Object.entries(companyFeeds ?? {}).filter(([feedKey]) => {
-        const lowerFeedKey = feedKey.toLowerCase();
-        // Exclude CSV feeds (feed types starting with "csv" or "ccupload", or containing "ccupload")
-        // Also exclude Expensify Cards which don't count toward the limit
-        return !lowerFeedKey.startsWith('csv') && !lowerFeedKey.startsWith('ccupload') && !feedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) && feedKey !== 'Expensify Card';
-    });
-    const connectedFeeds = nonCSVFeeds.length;
+    useEffect(() => {
+        if (isLoading) {
+            return;
+        }
+        // Count feeds excluding CSV uploads from Classic and Expensify Cards
+        // Include pending feeds in the count to enforce the limit
+        const nonCSVFeeds = Object.entries(companyFeeds ?? {}).filter(([feedKey]) => {
+            const lowerFeedKey = feedKey.toLowerCase();
+            // Exclude CSV feeds (feed types starting with "csv" or "ccupload", or containing "ccupload")
+            // Also exclude Expensify Cards which don't count toward the limit
+            return !lowerFeedKey.startsWith('csv') && !lowerFeedKey.startsWith('ccupload') && !feedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) && feedKey !== 'Expensify Card';
+        });
+        const connectedFeeds = nonCSVFeeds.length;
+        setPrevCompanyFeedsLength(connectedFeeds);
+    }, [isLoading, companyFeeds]);
 
     return {
-        isBlockedToAddNewFeeds: isCollect && !isLoading && connectedFeeds >= 1,
+        isBlockedToAddNewFeeds: isCollect && !isLoading && prevCompanyFeedsLength >= 1,
         isAllFeedsResultLoading: isCollect && (isLoading || isAllFeedsResultLoading),
     };
 }
