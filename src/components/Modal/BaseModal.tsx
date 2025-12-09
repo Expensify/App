@@ -152,6 +152,10 @@ function BaseModal({
                 return;
             }
             hideModalCallbackRef.current?.(true);
+
+            // Fallback: Ensure setReadyToFocus is called if modal is unmounted quickly
+            // before handleDismissModal could execute, preventing stuck focus promises
+            ComposerFocusManager.setReadyToFocus(uniqueModalId);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
