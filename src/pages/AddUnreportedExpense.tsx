@@ -131,7 +131,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             const searchableFields: string[] = [];
 
             const merchant = getMerchant(transaction);
-            if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) {
+            if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
                 searchableFields.push(merchant);
             }
 

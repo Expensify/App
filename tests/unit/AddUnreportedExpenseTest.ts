@@ -80,10 +80,9 @@ describe('AddUnreportedExpense', () => {
             const unreportedExpenses = createUnreportedExpenses(transactions);
 
             expect(unreportedExpenses).toHaveLength(3);
-            // eslint-disable-next-line unicorn/no-array-for-each
-            unreportedExpenses.forEach((transaction) => {
+            for (const transaction of unreportedExpenses ?? []) {
                 expect(transaction.isDisabled).toBe(false);
-            });
+            }
         });
 
         it('should handle transaction list with only deleted transactions', () => {
@@ -105,11 +104,10 @@ describe('AddUnreportedExpense', () => {
             const unreportedExpenses = createUnreportedExpenses(transactions);
 
             expect(unreportedExpenses).toHaveLength(2);
-            // eslint-disable-next-line unicorn/no-array-for-each
-            unreportedExpenses.forEach((transaction) => {
+            for (const transaction of unreportedExpenses ?? []) {
                 expect(transaction.isDisabled).toBe(true);
                 expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-            });
+            }
         });
 
         it('should filter out undefined transactions', () => {
