@@ -55,8 +55,9 @@ const ROUTES = {
 
     SEARCH_ROOT: {
         route: 'search',
-        getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => {
-            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}` as const;
+        getRoute: ({query, rawQuery, name}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string}) => {
+            const rawQuerySegment = rawQuery ? `&rawQuery=${encodeURIComponent(rawQuery)}` : '';
+            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}` as const;
         },
     },
     SEARCH_ROOT_VERIFY_ACCOUNT: `search/${VERIFY_ACCOUNT}`,
@@ -110,6 +111,7 @@ const ROUTES = {
         },
     },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
+    SEARCH_REJECT_REASON_RHP: 'search/reject',
     MOVE_TRANSACTIONS_SEARCH_RHP: 'search/move-transactions',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
@@ -281,6 +283,10 @@ const ROUTES = {
     SETTINGS_WALLET_CARD_MISSING_DETAILS: {
         route: 'settings/wallet/card/:cardID/missing-details',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/missing-details` as const,
+    },
+    SETTINGS_WALLET_CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE: {
+        route: 'settings/wallet/card/:cardID/missing-details/confirm-magic-code',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/missing-details/confirm-magic-code` as const,
     },
     SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
@@ -491,6 +497,18 @@ const ROUTES = {
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
+        },
+    },
+    REPORT_CARD_ACTIVATE: {
+        route: 'r/:reportID/:reportActionID?/card/:cardID/activate',
+        getRoute: (cardID: number, reportID?: string, reportActionID?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_CARD_ACTIVATE route');
+            }
+            if (!reportActionID) {
+                return `r/${reportID}/card/${cardID}/activate` as const;
+            }
+            return `r/${reportID}/${reportActionID}/card/${cardID}/activate` as const;
         },
     },
     REPORT_ATTACHMENTS: {
@@ -2274,6 +2292,11 @@ const ROUTES = {
         getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
             `workspaces/${policyID}/distance-rates/new${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
     },
+    WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE: {
+        route: 'workspaces/:policyID/distance-rates/new/upgrade',
+        getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
+            `workspaces/${policyID}/distance-rates/new/upgrade${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
+    },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
         route: 'workspaces/:policyID/distance-rates/settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings` as const,
@@ -3374,6 +3397,16 @@ const ROUTES = {
     WORKSPACES_DOMAIN_VERIFIED: {
         route: 'workspaces/domain-verified/:accountID',
         getRoute: (accountID: number) => `workspaces/domain-verified/${accountID}` as const,
+    },
+    WORKSPACES_ADD_DOMAIN: 'workspaces/add-domain',
+    WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: `workspaces/add-domain/${VERIFY_ACCOUNT}`,
+    WORKSPACES_DOMAIN_ADDED: {
+        route: 'workspaces/domain-added/:accountID',
+        getRoute: (accountID: number) => `workspaces/domain-added/${accountID}` as const,
+    },
+    WORKSPACES_DOMAIN_ACCESS_RESTRICTED: {
+        route: 'workspaces/domain-access-restricted/:accountID',
+        getRoute: (accountID: number) => `workspaces/domain-access-restricted/${accountID}` as const,
     },
     DOMAIN_INITIAL: {
         route: 'domain/:accountID',

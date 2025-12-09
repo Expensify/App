@@ -9,8 +9,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
 import {
+    canAddOrDeleteTransactions,
     canDeleteCardTransactionByLiabilityType,
-    canDeleteTransaction,
     canEditFieldOfMoneyRequest,
     canHoldUnholdReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
@@ -120,7 +120,7 @@ function useSelectedTransactionsActions({
         }
 
         return false;
-    }, [selectedTransactionsList, selectedTransactionsMeta, selectedTransactionIDs]);
+    }, [selectedTransactionsList, selectedTransactionsMeta, selectedTransactionIDs.length]);
 
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -313,7 +313,7 @@ function useSelectedTransactionsActions({
             return canRemoveTransaction && isIOUActionOwner && !isActionDeleted;
         });
 
-        const canRemoveReportTransaction = canDeleteTransaction(report, isReportArchived);
+        const canRemoveReportTransaction = canAddOrDeleteTransactions(report, policy, isReportArchived);
 
         if (canRemoveReportTransaction && canAllSelectedTransactionsBeRemoved) {
             options.push({

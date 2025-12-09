@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CardFeeds, Domain} from '@src/types/onyx';
 
@@ -8,9 +9,11 @@ const domainSamlSettingsStateSelector = (domain: OnyxEntry<Domain>) =>
         ? {
               isSamlEnabledLoading: domain.isSamlEnabledLoading,
               samlEnabledError: domain.samlEnabledError,
-              isSamlRequiredLoading: domain.isSamlEnabledLoading,
+              isSamlRequiredLoading: domain.isSamlRequiredLoading,
               samlRequiredError: domain.samlRequiredError,
           }
         : undefined;
 
-export {domainMemberSamlSettingsSelector, domainSamlSettingsStateSelector};
+const domainNameSelector = (domain: OnyxEntry<Domain>) => (domain?.email ? Str.extractEmailDomain(domain.email) : undefined);
+
+export {domainMemberSamlSettingsSelector, domainSamlSettingsStateSelector, domainNameSelector};

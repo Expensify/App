@@ -63,8 +63,8 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     const textInputOptions = useMemo(
         () => ({
             headerMessage: timezoneInputText.trim() && !timezoneOptions.length ? translate('common.noResultsFound') : '',
-            value: timezoneInputText,
             label: translate('timezonePage.timezone'),
+            value: timezoneInputText,
             onChangeText: filterShownTimezones,
         }),
         [filterShownTimezones, timezoneInputText, timezoneOptions.length, translate],
@@ -81,13 +81,14 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
             />
             <SelectionList
                 data={timezoneOptions}
-                textInputOptions={textInputOptions}
-                onSelectRow={saveSelectedTimezone}
-                shouldSingleExecuteRowSelect
-                initiallyFocusedItemKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
-                showScrollIndicator
-                shouldShowTooltips={false}
                 ListItem={RadioListItem}
+                onSelectRow={saveSelectedTimezone}
+                textInputOptions={textInputOptions}
+                initiallyFocusedItemKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
+                isDisabled={timezone.automatic}
+                shouldShowTooltips={false}
+                shouldSingleExecuteRowSelect
+                showScrollIndicator
             />
         </ScreenWrapper>
     );
