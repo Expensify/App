@@ -82,6 +82,9 @@ function SearchChangeApproverPage() {
             if (onyxReports?.has(selectedReport.reportID)) {
                 continue;
             }
+
+            // Load the report into Onyx, because data from SearchContext contains only a subset of report properties.
+            // Alternatively, remove this and make sure the backend returns all required properties and SearchContext keeps all of them.
             openReport(selectedReport.reportID);
         }
     }, [hasLoadedApp, onyxReports, selectedReports]);
