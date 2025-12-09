@@ -7895,6 +7895,27 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             fetchError: 'Impossible de récupérer les détails de la configuration SAML',
             setMetadataGenericError: 'Impossible de définir les métadonnées SAML',
         },
+        accessRestricted: {
+            title: 'Accès restreint',
+            subtitle: (domainName: string) =>
+                `Veuillez vous authentifier en tant qu’administrateur d’entreprise autorisé pour <strong>${domainName}</strong> si vous avez besoin d’avoir le contrôle sur :`,
+            companyCardManagement: 'Gestion des cartes d’entreprise',
+            accountCreationAndDeletion: 'Création et suppression de compte',
+            workspaceCreation: "Création d'espace de travail",
+            samlSSO: 'SSO SAML',
+        },
+        addDomain: {
+            title: 'Ajouter un domaine',
+            subtitle: 'Saisissez le nom du domaine privé auquel vous souhaitez accéder (par exemple expensify.com).',
+            domainName: 'Nom de domaine',
+            newDomain: 'Nouveau domaine',
+        },
+        domainAdded: {title: 'Domaine ajouté', description: 'Ensuite, vous devrez vérifier la propriété du domaine et ajuster vos paramètres de sécurité.', configure: 'Configurer'},
+        enhancedSecurity: {
+            title: 'Sécurité renforcée',
+            subtitle: "Exiger que les membres de votre domaine se connectent via l'authentification unique, restreindre la création d'espaces de travail, et plus encore.",
+            enable: 'Activer',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

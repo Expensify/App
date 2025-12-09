@@ -610,6 +610,7 @@ type CreateDistanceRequestInformation = {
     backToReport?: string;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -627,6 +628,7 @@ type CreateSplitsAndOnyxDataParams = {
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type TrackExpenseTransactionParams = {
@@ -759,6 +761,7 @@ type StartSplitBilActionParams = {
     taxAmount: number;
     shouldPlaySound?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type UpdateSplitTransactionsParams = {
@@ -6958,6 +6961,7 @@ function createSplitsAndOnyxData({
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
+    quickAction,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7040,7 +7044,7 @@ function createSplitsAndOnyxData({
             value: {
                 action: iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? CONST.QUICK_ACTIONS.SPLIT_DISTANCE : CONST.QUICK_ACTIONS.SPLIT_MANUAL,
                 chatReportID: splitChatReport.reportID,
-                isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
+                isFirstQuickAction: isEmptyObject(quickAction),
             },
         },
         existingSplitChatReport
@@ -7124,7 +7128,7 @@ function createSplitsAndOnyxData({
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: deprecatedQuickAction ?? null,
+            value: quickAction ?? null,
         },
     ];
 
@@ -7448,6 +7452,7 @@ type SplitBillActionsParams = {
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 /**
@@ -7475,6 +7480,7 @@ function splitBill({
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
+    quickAction,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7500,6 +7506,7 @@ function splitBill({
         policyRecentlyUsedCategories,
         isASAPSubmitBetaEnabled,
         transactionViolations,
+        quickAction,
     });
 
     const parameters: SplitBillParams = {
@@ -7558,6 +7565,7 @@ function splitBillAndOpenReport({
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
+    quickAction,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7583,6 +7591,7 @@ function splitBillAndOpenReport({
         },
         policyRecentlyUsedCategories,
         transactionViolations,
+        quickAction,
     });
 
     const parameters: SplitBillParams = {
@@ -7637,6 +7646,7 @@ function startSplitBill({
     taxAmount = 0,
     shouldPlaySound = true,
     policyRecentlyUsedCategories,
+    quickAction,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7701,7 +7711,7 @@ function startSplitBill({
             value: {
                 action: CONST.QUICK_ACTIONS.SPLIT_SCAN,
                 chatReportID: splitChatReport.reportID,
-                isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
+                isFirstQuickAction: isEmptyObject(quickAction),
             },
         },
         existingSplitChatReport
@@ -7783,7 +7793,7 @@ function startSplitBill({
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: deprecatedQuickAction ?? null,
+            value: quickAction ?? null,
         },
     ];
 
@@ -7801,6 +7811,7 @@ function startSplitBill({
         currency,
         taxCode,
         taxAmount,
+        quickAction,
     };
 
     if (existingSplitChatReport) {
@@ -8292,6 +8303,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         backToReport,
         isASAPSubmitBetaEnabled,
         transactionViolations,
+        quickAction,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -8360,6 +8372,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyRecentlyUsedCategories,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            quickAction,
         });
         onyxData = splitOnyxData;
 
