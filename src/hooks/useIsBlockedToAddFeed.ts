@@ -1,4 +1,3 @@
-import {useEffect, useState} from 'react';
 import {getCompanyFeeds} from '@libs/CardUtils';
 import {isCollectPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -21,30 +20,25 @@ import usePolicy from './usePolicy';
 function useIsBlockedToAddFeed(policyID?: string) {
     const policy = usePolicy(policyID);
     const [cardFeeds, allFeedsResult, defaultFeed] = useCardFeeds(policyID);
-    const companyFeeds = getCompanyFeeds(cardFeeds, true);
+    // Exclude pending feeds from the count - pending feeds are still being set up and shouldn't count toward the limit
+    const companyFeeds = getCompanyFeeds(cardFeeds, true, true);
     const isCollect = isCollectPolicy(policy);
     const isAllFeedsResultLoading = isLoadingOnyxValue(allFeedsResult);
-    const [prevCompanyFeedsLength, setPrevCompanyFeedsLength] = useState(0);
 
     const isLoading = !cardFeeds || !!defaultFeed?.isLoading;
 
-    useEffect(() => {
-        if (isLoading) {
-            return;
-        }
-        // Count feeds excluding CSV uploads from Classic
-        const nonCSVFeeds = Object.entries(companyFeeds ?? {}).filter(([feedKey]) => {
-            const lowerFeedKey = feedKey.toLowerCase();
-            // Exclude CSV feeds (feed types starting with "csv" or "ccupload", or containing "ccupload")
-            return !lowerFeedKey.startsWith('csv') && !lowerFeedKey.startsWith('ccupload') && !feedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
-        });
-        const connectedFeeds = nonCSVFeeds.length;
-        setPrevCompanyFeedsLength(connectedFeeds);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [isLoading]);
+    // Count feeds excluding CSV uploads from Classic and Expensify Cards
+    // Note: Pending feeds are already excluded by getCompanyFeeds above
+    const nonCSVFeeds = Object.entries(companyFeeds ?? {}).filter(([feedKey]) => {
+        const lowerFeedKey = feedKey.toLowerCase();
+        // Exclude CSV feeds (feed types starting with "csv" or "ccupload", or containing "ccupload")
+        // Also exclude Expensify Cards which don't count toward the limit
+        return !lowerFeedKey.startsWith('csv') && !lowerFeedKey.startsWith('ccupload') && !feedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) && feedKey !== 'Expensify Card';
+    });
+    const connectedFeeds = nonCSVFeeds.length;
 
     return {
-        isBlockedToAddNewFeeds: isCollect && !isLoading && prevCompanyFeedsLength >= 1,
+        isBlockedToAddNewFeeds: isCollect && !isLoading && connectedFeeds >= 1,
         isAllFeedsResultLoading: isCollect && (isLoading || isAllFeedsResultLoading),
     };
 }
