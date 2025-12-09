@@ -696,7 +696,7 @@ function printResults(
 
     if (hasEnforcedAddedComponentFailures) {
         log();
-        logError(`These newly added component files were enforced to be automatically memoized with React Compiler:`);
+        logError(`The following newly added components should rely on React Compiler’s automatic memoization (manual memoization is not allowed):`);
         log();
 
         for (const [filePath, {manualMemoizationMatches, compilerFailures}] of enforcedAddedComponentFailures) {
