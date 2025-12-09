@@ -379,6 +379,18 @@ describe('getViolationsOnyxData', () => {
                 expect.arrayContaining([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}, missingCategoryViolation]),
             );
         });
+
+        it('should not add smartscanFailed when scan failed but required fields are filled', () => {
+            const transactionWithEnteredDetails = {
+                ...transaction,
+                amount: 10000,
+                merchant: 'Coffee Shop',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transactionWithEnteredDetails, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.SMARTSCAN_FAILED}));
+        });
     });
 
     describe('policy does not require Categories', () => {
