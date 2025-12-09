@@ -527,7 +527,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         // If there is one transaction thread that has not yet been created, we should create it.
-        if (reportMetadata?.hasOnceLoadedReportActions && transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
+        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
             createOneTransactionThreadReport();
             return;
         }
@@ -535,12 +535,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // Legacy transactions (created before NewDot) don't have IOU actions.
         // For single-transaction expense reports, create the missing IOU actions and transaction thread here.
         // Only check after report actions have loaded to avoid false positives on fresh app load.
-        if (reportMetadata?.hasOnceLoadedReportActions || isOffline) {
-            const currentReportTransaction = getReportTransactions(report?.reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-            const firstTransaction = currentReportTransaction.at(0);
-            const iouAction = getIOUActionForReportID(report?.reportID, firstTransaction?.transactionID);
-            if (currentReportTransaction.length === 1 && !iouAction && !transactionThreadReport) {
-                createTransactionThreadReport(report, undefined, firstTransaction);
+        if (visibleTransactions.length === 1 && !transactionThreadReportID) {
+            const transaction = visibleTransactions.at(0);
+            if (transaction && !transaction.moneyRequestReportActionID) {
+                createTransactionThreadReport(report, undefined, transaction);
                 return;
             }
         }
@@ -573,7 +571,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         introSelected,
         isOnboardingCompleted,
         isInviteOnboardingComplete,
-        reportMetadata?.hasOnceLoadedReportActions,
+        visibleTransactions,
     ]);
 
     useEffect(() => {
