@@ -15,8 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import defaultWideRHPContextValue from './default';
-import getIsWideRHPOpenedBelow from './getIsWideRHPOpenedBelow';
-import getVisibleWideRHPKeys from './getVisibleRHPRouteKeys';
+import getVisibleRHPKeys from './getVisibleRHPRouteKeys';
 import type {WideRHPContextType} from './types';
 import useShouldRenderOverlay from './useShouldRenderOverlay';
 
@@ -104,40 +103,43 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     }, [focusedRoute?.key, allWideRHPRouteKeys]);
 
     // Whether Wide RHP is displayed below the currently displayed screen
-    const isWideRHPBelow = useMemo(() => getIsWideRHPOpenedBelow(focusedRoute, allWideRHPRouteKeys), [allWideRHPRouteKeys, focusedRoute]);
+    const {isWideRHPBelow, isSuperWideRHPBelow} = useMemo(() => {
+        const {visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys} = getVisibleRHPKeys(allSuperWideRHPRouteKeys, allWideRHPRouteKeys);
 
-    // Whether Super Wide RHP is displayed below the currently displayed screen
-    const isSuperWideRHPBelow = useMemo(() => getIsWideRHPOpenedBelow(focusedRoute, allSuperWideRHPRouteKeys), [allSuperWideRHPRouteKeys, focusedRoute]);
+        if (!focusedRoute?.key) {
+            return {
+                isWideRHPBelow: false,
+                isSuperWideRHPBelow: false,
+            };
+        }
+
+        return {
+            isWideRHPBelow: visibleWideRHPRouteKeys.length > 0 && !visibleWideRHPRouteKeys.includes(focusedRoute?.key),
+            isSuperWideRHPBelow: visibleSuperWideRHPRouteKeys.length > 0 && !visibleSuperWideRHPRouteKeys.includes(focusedRoute?.key),
+        };
+    }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys, focusedRoute?.key]);
 
     // Updates the Wide RHP visible keys table from the all keys table
-    const syncWideRHPKeys = useCallback(() => {
-        setWideRHPRouteKeys(getVisibleWideRHPKeys(allWideRHPRouteKeys));
-    }, [allWideRHPRouteKeys]);
-
-    // Updates the Super Wide RHP visible keys table from the all keys table
-    const syncSuperWideRHPKeys = useCallback(() => {
-        setSuperWideRHPRouteKeys(getVisibleWideRHPKeys(allSuperWideRHPRouteKeys));
-    }, [allSuperWideRHPRouteKeys]);
+    const syncRHPKeys = useCallback(() => {
+        const {visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys} = getVisibleRHPKeys(allSuperWideRHPRouteKeys, allWideRHPRouteKeys);
+        setWideRHPRouteKeys(visibleWideRHPRouteKeys);
+        setSuperWideRHPRouteKeys(visibleSuperWideRHPRouteKeys);
+    }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys]);
 
     const clearWideRHPKeys = useCallback(() => {
         setWideRHPRouteKeys([]);
         setSuperWideRHPRouteKeys([]);
     }, []);
 
-    // Once we have updated the array of all Wide RHP keys, we should sync it with the array of RHP keys visible on the screen
-    useEffect(() => {
-        syncWideRHPKeys();
-    }, [allWideRHPRouteKeys, syncWideRHPKeys]);
-
     // Once we have updated the array of all Super Wide RHP keys, we should sync it with the array of RHP keys visible on the screen
     useEffect(() => {
-        syncSuperWideRHPKeys();
-    }, [allSuperWideRHPRouteKeys, syncSuperWideRHPKeys]);
+        syncRHPKeys();
+    }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys, syncRHPKeys]);
 
     /**
      * Effect that manages the secondary overlay animation for single RHP displayed on Super Wide RHP and rendering state.
      */
-    const shouldRenderSecondaryOverlayForRHPOnSuperWideRHP = useShouldRenderOverlay(isSuperWideRHPBelow && !isWideRHPBelow, secondOverlayRHPOnSuperWideRHPProgress);
+    const shouldRenderSecondaryOverlayForRHPOnSuperWideRHP = useShouldRenderOverlay(isSuperWideRHPBelow && !isWideRHPBelow && !isWideRHPFocused, secondOverlayRHPOnSuperWideRHPProgress);
 
     /**
      * Effect that manages the secondary overlay animation for single RHP displayed on Wide RHP and rendering state.
@@ -322,8 +324,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
-            syncWideRHPKeys,
-            syncSuperWideRHPKeys,
+            syncRHPKeys,
             clearWideRHPKeys,
         }),
         [
@@ -343,8 +344,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
-            syncWideRHPKeys,
-            syncSuperWideRHPKeys,
+            syncRHPKeys,
             clearWideRHPKeys,
         ],
     );

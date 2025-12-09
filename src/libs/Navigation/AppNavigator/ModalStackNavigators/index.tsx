@@ -15,6 +15,7 @@ import {
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -64,6 +65,7 @@ import type {
     WorkspaceDuplicateNavigatorParamList,
     WorkspacesDomainModalNavigatorParamList,
 } from '@navigation/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -111,40 +113,27 @@ function isWideRHPRouteName(routeName: string) {
     return routeName === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
 }
 
+function getModalStackLastRoute(modalStackRouteKey: string) {
+    const rootState = navigationRef.getRootState();
+    const lastRHPState = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
+    const modalStackRoute = lastRHPState?.routes?.find((innerRoute) => innerRoute.key === modalStackRouteKey);
+    return modalStackRoute?.state?.routes?.at(-1)?.key;
+}
+
 function SecondaryOverlay() {
     const {shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForWideRHP, superWideRHPRouteKeys, wideRHPRouteKeys} =
         useContext(WideRHPContext);
-    const route = useRoute();
+    const modalStackRoute = useRoute();
+    const routeKey = getModalStackLastRoute(modalStackRoute?.key);
 
-    // It's an additional check for isRHPDisplayedOnWideRHP, wide rhp route (SearchReport) can be displayed as a single rhp on super wide rhp route displayed as wide rhp.
-    // In this case, we need to prevent from rendering secondary overlay from the top rhp route.
-    const isExpenseDisplayedInSingleRHPOnWideRHP = useMemo(
-        () =>
-            isWideRHPRouteName(route.name) &&
-            wideRHPRouteKeys.length === 1 &&
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (wideRHPRouteKeys.at(0)?.startsWith(SCREENS.SEARCH.MONEY_REQUEST_REPORT) || wideRHPRouteKeys.at(0)?.startsWith(SCREENS.EXPENSE_REPORT_RHP)),
-        [route.name, wideRHPRouteKeys],
-    );
+    const isWide = useMemo(() => routeKey && wideRHPRouteKeys.includes(routeKey), [routeKey, wideRHPRouteKeys]);
+    const isSuperWide = useMemo(() => routeKey && superWideRHPRouteKeys.includes(routeKey), [routeKey, superWideRHPRouteKeys]);
 
-    const isRHPDisplayedOnWideRHP = useMemo(
-        () =>
-            !isExpenseDisplayedInSingleRHPOnWideRHP &&
-            shouldRenderSecondaryOverlayForRHPOnWideRHP &&
-            // Here it's checked if the super wide rhp route is displayed as a wide rhp
-            ((isSuperWideRHPRouteName(route.name) && superWideRHPRouteKeys.length === 0) || isWideRHPRouteName(route.name)),
-        [isExpenseDisplayedInSingleRHPOnWideRHP, route.name, shouldRenderSecondaryOverlayForRHPOnWideRHP, superWideRHPRouteKeys.length],
-    );
+    const isRHPDisplayedOnWideRHP = useMemo(() => shouldRenderSecondaryOverlayForRHPOnWideRHP && isWide, [isWide, shouldRenderSecondaryOverlayForRHPOnWideRHP]);
 
-    const isRHPDisplayedOnSuperWideRHP = useMemo(
-        () => shouldRenderSecondaryOverlayForRHPOnSuperWideRHP && isSuperWideRHPRouteName(route.name),
-        [route.name, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP],
-    );
+    const isRHPDisplayedOnSuperWideRHP = useMemo(() => shouldRenderSecondaryOverlayForRHPOnSuperWideRHP && isSuperWide, [isSuperWide, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP]);
 
-    const isWideRHPDisplayedOnSuperWideRHP = useMemo(
-        () => shouldRenderSecondaryOverlayForWideRHP && isSuperWideRHPRouteName(route.name),
-        [route.name, shouldRenderSecondaryOverlayForWideRHP],
-    );
+    const isWideRHPDisplayedOnSuperWideRHP = useMemo(() => shouldRenderSecondaryOverlayForWideRHP && isSuperWide, [shouldRenderSecondaryOverlayForWideRHP, isSuperWide]);
 
     if (isRHPDisplayedOnWideRHP) {
         return (
@@ -188,7 +177,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {shouldRenderTertiaryOverlay, syncWideRHPKeys, syncSuperWideRHPKeys} = useContext(WideRHPContext);
+        const {shouldRenderTertiaryOverlay, syncRHPKeys} = useContext(WideRHPContext);
         const route = useRoute();
 
         // This hook handles the case when a wider RHP is displayed above a narrower one.
@@ -200,10 +189,9 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                         return;
                     }
 
-                    syncWideRHPKeys();
-                    syncSuperWideRHPKeys();
+                    syncRHPKeys();
                 },
-                [route.name, syncSuperWideRHPKeys, syncWideRHPKeys],
+                [route.name, syncRHPKeys],
             ),
         );
 

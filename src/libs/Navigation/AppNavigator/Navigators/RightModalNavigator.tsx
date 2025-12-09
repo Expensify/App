@@ -86,7 +86,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {shouldRenderTertiaryOverlay, clearWideRHPKeys, syncWideRHPKeys, syncSuperWideRHPKeys} = useContext(WideRHPContext);
+    const {shouldRenderTertiaryOverlay, clearWideRHPKeys, syncRHPKeys} = useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const styles = useThemeStyles();
@@ -152,12 +152,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     useFocusEffect(
         useCallback(() => {
             // When we open a second RightModalNavigator while the previous one is covered by a fullscreen navigator, we need to synchronize the keys.
-            syncWideRHPKeys();
-            syncSuperWideRHPKeys();
+            syncRHPKeys();
 
             // Super wide and wide route keys have to be cleared when the RightModalNavigator is not closed and a new navigator is opened above it.
             return () => clearWideRHPKeysAfterTabChanged();
-        }, [syncWideRHPKeys, syncSuperWideRHPKeys, clearWideRHPKeysAfterTabChanged]),
+        }, [syncRHPKeys, clearWideRHPKeysAfterTabChanged]),
     );
 
     useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
