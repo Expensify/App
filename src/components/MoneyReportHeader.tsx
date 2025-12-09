@@ -44,6 +44,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
 import {
+    buildOptimisticNextStepForDEWOfflineSubmission,
     buildOptimisticNextStepForDynamicExternalWorkflowError,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
@@ -51,7 +52,7 @@ import {
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getIOUActionForReportID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID, getOriginalMessage, getReportAction, hasPendingDEWSubmit, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -232,7 +233,6 @@ function MoneyReportHeader({
         'Export',
         'Document',
         'Feed',
-        'DotIndicator',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
@@ -447,7 +447,7 @@ function MoneyReportHeader({
     const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
     let optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
 
-    // Check for DEW submit failed - if the report has a DEW_SUBMIT_FAILED action, show the custom next step
+    // Check for DEW submit failed or pending - show appropriate next step
     if (isDEWBetaEnabled && hasDynamicExternalWorkflow(policy) && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
         const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
             if (action.reportActionID) {
@@ -457,7 +457,9 @@ function MoneyReportHeader({
         }, {});
         const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
         if (errors?.dewSubmitFailed) {
-            optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowError();
+            optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowError(theme.danger);
+        } else if (hasPendingDEWSubmit(reportActions)) {
+            optimisticNextStep = buildOptimisticNextStepForDEWOfflineSubmission();
         }
     }
 

@@ -512,14 +512,14 @@ describe('getReportPreviewAction', () => {
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
 
-            // When getReportPreviewAction is called with hasDEWSubmitFailed = true
+            // When getReportPreviewAction is called with hasDEWSubmitPendingOrFailed = true
             const result = getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, true);
 
             // Then it should return VIEW because DEW submission failed and the report cannot be submitted
             expect(result).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
 
-        it('should return APPROVE action when DEW submit has failed but report is already SUBMITTED', async () => {
+        it('should return VIEW action when DEW submit has failed even if report is already SUBMITTED', async () => {
             // Given a submitted expense report where DEW submit has failed
             const report: Report = {
                 ...createRandomReport(REPORT_ID, undefined),
@@ -544,11 +544,11 @@ describe('getReportPreviewAction', () => {
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
 
-            // When getReportPreviewAction is called with hasDEWSubmitFailed = true but report is already submitted
+            // When getReportPreviewAction is called with hasDEWSubmitPendingOrFailed = true
             const result = getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, true);
 
-            // Then it should return APPROVE because the DEW check only applies to OPEN reports
-            expect(result).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+            // Then it should return VIEW because DEW submission is pending/failed regardless of report status
+            expect(result).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
 
         it('should return SUBMIT action when DEW submit has not failed and report is OPEN', async () => {
@@ -576,7 +576,7 @@ describe('getReportPreviewAction', () => {
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
 
-            // When getReportPreviewAction is called with hasDEWSubmitFailed = false
+            // When getReportPreviewAction is called with hasDEWSubmitPendingOrFailed = false
             const result = getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, false);
 
             // Then it should not return VIEW because DEW submit did not fail and regular logic applies
@@ -604,8 +604,8 @@ describe('getReportPreviewAction', () => {
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
 
-            // When getReportPreviewAction is called with hasPendingDEWSubmit = true
-            const result = getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, false, true);
+            // When getReportPreviewAction is called with hasDEWSubmitPendingOrFailed = true (for pending)
+            const result = getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, true);
 
             // Then it should return VIEW because DEW submission is in progress
             expect(result).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);

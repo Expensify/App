@@ -43,7 +43,7 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getMostRecentActiveDEWSubmitFailedAction, hasPendingSubmittedAction} from '@libs/ReportActionsUtils';
+import {hasDEWSubmitPendingOrFailed} from '@libs/ReportActionsUtils';
 import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
@@ -490,9 +490,8 @@ function MoneyRequestReportPreviewContent({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
-    const hasDEWSubmitFailed = useMemo(() => !!getMostRecentActiveDEWSubmitFailedAction(reportActions), [reportActions]);
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
-    const hasPendingDEWSubmit = useMemo(() => isDEWPolicy && hasPendingSubmittedAction(reportActions), [isDEWPolicy, reportActions]);
+    const isDEWSubmitPendingOrFailed = useMemo(() => hasDEWSubmitPendingOrFailed(reportActions, isDEWPolicy), [reportActions, isDEWPolicy]);
     const reportPreviewAction = useMemo(() => {
         return getReportPreviewAction(
             isIouReportArchived || isChatReportArchived,
@@ -504,8 +503,7 @@ function MoneyRequestReportPreviewContent({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
-            hasDEWSubmitFailed,
-            hasPendingDEWSubmit,
+            isDEWSubmitPendingOrFailed,
         );
     }, [
         isPaidAnimationRunning,
@@ -518,8 +516,7 @@ function MoneyRequestReportPreviewContent({
         invoiceReceiverPolicy,
         isChatReportArchived,
         currentUserDetails.accountID,
-        hasDEWSubmitFailed,
-        hasPendingDEWSubmit,
+        isDEWSubmitPendingOrFailed,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
