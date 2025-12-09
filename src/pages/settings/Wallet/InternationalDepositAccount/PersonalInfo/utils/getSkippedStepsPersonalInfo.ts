@@ -1,4 +1,5 @@
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+import CONST from '@src/CONST';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 /**
@@ -11,7 +12,10 @@ function getSkippedStepsPersonalInfo(data?: Partial<PrivatePersonalDetails>): nu
         skippedSteps.push(1);
     }
 
-    if (!!currentAddress?.street && !!currentAddress?.city && currentAddress?.state && !!currentAddress?.zip) {
+    const isUsOrCanada = currentAddress?.country === CONST.COUNTRY.US || currentAddress?.country === CONST.COUNTRY.CA;
+    const hasValidState = !isUsOrCanada || !!currentAddress?.state;
+
+    if (!!currentAddress?.street && !!currentAddress?.city && hasValidState && !!currentAddress?.zip) {
         skippedSteps.push(2);
     }
 
