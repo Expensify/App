@@ -6,7 +6,6 @@ const WRITE_COMMANDS = {
     AUTHORIZE_TRANSACTION: 'AuthorizeTransaction',
     RESEND_VALIDATE_CODE: 'ResendValidateCode',
     REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS: 'RevokeMultifactorAuthenticationKeys',
-    SEND_OTP: 'SendOTP',
 } as const;
 
 const READ_COMMANDS = {
@@ -32,25 +31,20 @@ const API_ROUTES: {
         ResendValidateCode: 'POST:/resend_validate_code',
         RegisterBiometrics: 'POST:/register_biometrics',
         AuthorizeTransaction: 'POST:/authorize_transaction',
-        SendOTP: 'POST:/send_otp',
         RevokeMultifactorAuthenticationKeys: 'POST:/revoke_public_keys',
     },
 };
 
 const FALLBACK_EMAIL = 'user@example.com';
-const PHONE_NUMBER = '+48512332053';
-const MOCKED_AUTHENTICATOR_CODE = 777799;
 const FALLBACK_ACCOUNT_ID = 18023156;
 
 const STORAGE: {
     publicKeys: Record<string, string[]>;
     validateCodes: Record<string, number[]>;
-    OTPs: Record<string, number[]>;
     challenges: Record<string, MultifactorAuthenticationChallengeObject>;
 } = {
     publicKeys: {},
     validateCodes: {},
-    OTPs: {},
     challenges: {},
 };
 
@@ -89,11 +83,6 @@ const RESPONSE = {
         status: 409,
         response: undefined,
     },
-
-    OTP_REQUIRED: {
-        status: 202,
-        response: undefined,
-    },
 };
 
-export {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS, READ_COMMANDS, API_ROUTES, FALLBACK_EMAIL, PHONE_NUMBER, MOCKED_AUTHENTICATOR_CODE, FALLBACK_ACCOUNT_ID, STORAGE, ROUTER, RESPONSE};
+export {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS, READ_COMMANDS, API_ROUTES, FALLBACK_EMAIL, FALLBACK_ACCOUNT_ID, STORAGE, ROUTER, RESPONSE};

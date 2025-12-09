@@ -2776,8 +2776,6 @@ type TestToolsModalModalNavigatorParamList = {
 
 type MultifactorAuthenticationParamList = {
     [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: undefined;
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHENTICATOR]: undefined;
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.SMS_OTP]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.NOTIFICATION]: {
         notificationType: AllMultifactorAuthenticationNotificationType;

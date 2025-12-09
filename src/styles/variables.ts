@@ -395,6 +395,4 @@ export default {
     runOutOfTimeHeight: 200,
     humptyDumptyWidth: 245,
     humptyDumptyHeight: 165,
-    simpleSmartScanWidth: 204,
-    simpleSmartScanHeight: 204,
 } as const;

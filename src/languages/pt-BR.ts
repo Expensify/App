@@ -813,12 +813,6 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: 'continuar para o aplicativo web',
     },
     multifactorAuthentication: {
-        smsOtpForm: {
-            error: {
-                pleaseFillSmsOtp: 'Por favor, insira o código enviado por SMS',
-                incorrectSmsOtp: 'Código incorreto. Por favor, tente novamente.',
-            },
-        },
         approveTransaction: {
             headerButtonTitle: 'Aprovar transação',
             pageTitle: 'Por favor, aprove esta transação',
@@ -832,11 +826,8 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsRegistered: 'Biometria (Registrada)',
             biometricsTest: 'Testando biometria',
             notificationTitle: 'Autenticação bem-sucedida',
-            notificationFallbackContent: 'Você foi autenticado com sucesso usando código mágico + 2FA.',
-            fallbackPageTitle: 'Vamos verificar se é você',
-            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod}.`,
-            fallbackPage2FAContent: 'Por favor, insira seu código de autenticação.',
-            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código enviado para ${contactMethod}.`,
+            additionalFactorPageTitle: 'Vamos verificar se é você',
+            additionalFactorMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod}.`,
         },
         revokePage: {
             headerTitle: 'Verificação facial/impressão digital',
@@ -904,11 +895,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 challengeIsAlreadySigned: 'O desafio já foi assinado',
                 challengeRejected: 'Desafio rejeitado pela API',
                 validateCodeMissing: 'Código de verificação em falta',
-                otpMissing: 'Código OTP em falta',
                 keyMissingOnTheBE: 'A chave está guardada localmente, mas não foi encontrada no servidor',
                 multifactorAuthenticationNotSupported: 'Este dispositivo não suporta autenticação multifator',
                 badRequest: 'Pedido inválido',
-                fallbackNotAllowed: 'Este dispositivo não suporta biometria e não é permitido o método alternativo',
                 biometricsNotAllowed: 'As ações biométricas não são permitidas neste cenário',
             },
             /** Error messages specific to Expo's SecureStore */
@@ -937,8 +926,6 @@ const translations: TranslationDeepObject<typeof en> = {
             keyAlreadyRegistered: 'Esta chave pública já está registada',
             validationCodeRequired: 'Por favor, introduz um código de verificação',
             validationCodeInvalid: 'Código de verificação inválido',
-            otpCodeInvalid: 'Código OTP inválido',
-            otpCodeRequired: 'Por favor, introduz um código OTP',
             multifactorAuthenticationSuccess: 'Registo de autenticação multifator concluído com sucesso',
             noTransactionID: 'ID da transação não fornecido',
             userNotRegistered: 'Registo de utilizador não encontrado',
@@ -952,7 +939,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         /** User input prompts during multifactorial authentication flows */
         provideValidateCode: 'Introduz o teu código de verificação para continuar',
-        provideOTPCode: 'Introduz a tua palavra-passe única para continuar',
         softPromptTitle: 'Verifica a tua identidade com o rosto ou impressão digital',
         softPromptDescription: 'Ativa uma verificação rápida e segura usando o rosto ou a impressão digital — sem necessidade de palavras-passe ou códigos.',
     },

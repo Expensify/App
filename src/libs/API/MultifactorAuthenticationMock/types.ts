@@ -30,11 +30,7 @@ type WriteCommands = {
         route: typeof API_ROUTES.Write.AuthorizeTransaction;
         parameters: {
             transactionID: string;
-            // this one:
-            signedChallenge?: SignedChallenge; // JWT
-            // or these two together:
-            validateCode?: number; // validate code
-            otp?: number; // 2FA / SMS OTP
+            signedChallenge: SignedChallenge;
         };
         returns: APIResponse;
     };
@@ -47,13 +43,6 @@ type WriteCommands = {
         route: typeof API_ROUTES.Write.ResendValidateCode;
         parameters: {
             email: string;
-        };
-        returns: APIResponse;
-    };
-    SendOTP: {
-        route: typeof API_ROUTES.Write.SendOTP;
-        parameters: {
-            phoneNumber: string;
         };
         returns: APIResponse;
     };

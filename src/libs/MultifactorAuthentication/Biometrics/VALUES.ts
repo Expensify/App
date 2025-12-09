@@ -31,24 +31,22 @@ const RESPONSE_TRANSLATION_PATH = {
         409: 'unableToAuthorize',
         200: 'userAuthorized',
         400: 'badRequest',
-        202: 'otpCodeRequired',
     },
 } as const;
 /* eslint-enable @typescript-eslint/naming-convention */
 
 /**
- * Defines the origin of the authentication factor, either from multifactorial authentication or fallback authentication.
+ * Defines the origin of the authentication factor, either from biometrics authentication or additional authentication.
  */
 const MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN = {
-    MULTIFACTOR_AUTHENTICATION: 'MultifactorAuthentication',
-    FALLBACK: 'Fallback',
+    BIOMETRICS: 'Biometrics',
+    ADDITIONAL: 'Additional',
 } as const;
 
 /** All possible authentication factors that can be used in the multifactorial authentication process */
 const MULTIFACTOR_AUTHENTICATION_FACTORS = {
     SIGNED_CHALLENGE: 'SIGNED_CHALLENGE',
     VALIDATE_CODE: 'VALIDATE_CODE',
-    OTP: 'OTP',
 } as const;
 
 const EXPO_ERRORS = {
@@ -67,13 +65,11 @@ const MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS = {
     /** Maps authentication factors to their missing error translation paths */
     FACTOR_MISSING_REASONS: {
         [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE]: 'multifactorAuthentication.reason.error.validateCodeMissing',
-        [MULTIFACTOR_AUTHENTICATION_FACTORS.OTP]: 'multifactorAuthentication.reason.error.otpMissing',
         [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE]: 'multifactorAuthentication.reason.error.signatureMissing',
     },
     /** Maps authentication factors to their invalid error translation paths */
     FACTOR_INVALID_REASONS: {
         [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE]: 'multifactorAuthentication.apiResponse.validationCodeInvalid',
-        [MULTIFACTOR_AUTHENTICATION_FACTORS.OTP]: 'multifactorAuthentication.apiResponse.otpCodeInvalid',
         [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE]: 'multifactorAuthentication.apiResponse.signatureInvalid',
     },
     EXPO_ERROR_MAPPINGS: {
@@ -103,7 +99,6 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     SCENARIO_TYPE: {
         NONE: 'None',
         AUTHORIZATION: 'Authorization',
-        AUTHORIZATION_FALLBACK: 'AuthorizationFallback',
         AUTHENTICATION: 'Authentication',
     },
     TRIGGER: {
@@ -125,7 +120,7 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
      * - The parameter name expected by the API
      * - The data type (string or number)
      * - Length requirements if applicable
-     * - Whether it originates from multifactorial authentication or fallback authentication
+     * - Whether it originates from biometrics authentication or additional authentication
      */
     FACTORS_REQUIREMENTS: {
         SIGNED_CHALLENGE: {
@@ -133,34 +128,27 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
             name: 'Signed Challenge',
             parameter: 'signedChallenge',
             length: undefined,
-            origin: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN.MULTIFACTOR_AUTHENTICATION,
+            origin: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN.BIOMETRICS,
         },
         VALIDATE_CODE: {
             id: MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE,
             name: 'Email One-Time Password',
             parameter: 'validateCode',
             length: 6,
-            origin: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN.FALLBACK,
-        },
-        OTP: {
-            id: MULTIFACTOR_AUTHENTICATION_FACTORS.OTP,
-            name: 'Two-Factor Authentication or SMS One-Time Password',
-            parameter: 'otp',
-            length: 6,
-            origin: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN.FALLBACK,
+            origin: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN.ADDITIONAL,
         },
     },
     FACTOR_COMBINATIONS: {
         REGISTRATION: [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE],
-        FALLBACK: [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE, MULTIFACTOR_AUTHENTICATION_FACTORS.OTP],
         BIOMETRICS_AUTHENTICATION: [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE],
     },
     RAN_OUT_OF_TIME_NOTIFICATION: 'YOU_RAN_OUT_OF_TIME',
     FACTORS_ORIGIN: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN,
     SCENARIO,
-    SECURITY_LEVEL: {
-        BIOMETRICS_WITH_FALLBACK: 'BIOMETRICS_WITH_FALLBACK',
-        FALLBACK_ONLY: 'FALLBACK_ONLY',
+    TYPE: {
+        BIOMETRICS_OR_PASSKEYS: 'BIOMETRICS_OR_PASSKEYS',
+        BIOMETRICS: 'BIOMETRICS',
+        PASSKEYS: 'PASSKEYS',
     },
     FACTORS: MULTIFACTOR_AUTHENTICATION_FACTORS,
     RESPONSE_TRANSLATION_PATH,

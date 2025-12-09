@@ -28,16 +28,6 @@ type MultifactorAuthorization<T extends MultifactorAuthenticationScenario> = (
 ) => Promise<MultifactorAuthenticationStatus<boolean>>;
 
 /**
- * Function type for authorizing transactions when multifactorial authentication is not available.
- * Uses provided factors as alternative authentication factors.
- * Returns a status containing the first verified factor.
- */
-type AuthorizeUsingFallback<T extends MultifactorAuthenticationScenario> = (
-    scenario: T,
-    params: MultifactorAuthenticationScenarioParams<T>,
-) => Promise<MultifactorAuthenticationStatus<number | undefined>>;
-
-/**
  * Base type for the register function that handles multifactorial authentication setup.
  * Takes a validate code and additional params, returns a MultifactorAuthenticationStatus.
  */
@@ -182,7 +172,6 @@ export type {
     UseMultifactorAuthenticationStatus,
     UseBiometricsSetup,
     Register,
-    AuthorizeUsingFallback,
     MultifactorAuthorization,
     UseMultifactorAuthentication,
     MultifactorAuthenticationScenarioStatus,

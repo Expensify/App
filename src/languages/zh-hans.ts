@@ -809,12 +809,6 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: '继续前往网页版应用',
     },
     multifactorAuthentication: {
-        smsOtpForm: {
-            error: {
-                pleaseFillSmsOtp: '请输入通过短信发送的代码',
-                incorrectSmsOtp: '代码不正确。请重试。',
-            },
-        },
         approveTransaction: {
             headerButtonTitle: '批准交易',
             pageTitle: '请批准此交易',
@@ -828,11 +822,8 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsRegistered: '生物识别（已注册）',
             biometricsTest: '测试生物识别',
             notificationTitle: '身份验证成功',
-            notificationFallbackContent: '您已使用魔法代码 + 2FA成功进行身份验证。',
-            fallbackPageTitle: '让我们验证是否是您本人',
-            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `请输入发送至${contactMethod}的魔法代码。`,
-            fallbackPage2FAContent: '请输入您的身份验证器代码。',
-            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `请输入发送至${contactMethod}的代码。`,
+            additionalFactorPageTitle: '让我们验证是否是您本人',
+            additionalFactorMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `请输入发送至${contactMethod}的魔法代码。`,
         },
         revokePage: {
             headerTitle: '面部/指纹验证',
@@ -897,11 +888,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 challengeIsAlreadySigned: '挑战已被签名',
                 challengeRejected: 'API 拒绝了挑战请求',
                 validateCodeMissing: '缺少验证码',
-                otpMissing: '缺少一次性密码 (OTP)',
                 keyMissingOnTheBE: '密钥已保存在本地，但在服务器上未找到',
                 multifactorAuthenticationNotSupported: '此设备不支持多因素身份验证',
                 badRequest: '请求无效',
-                fallbackNotAllowed: '此设备不支持生物识别，且不允许使用替代方式',
                 biometricsNotAllowed: '此场景不允许使用生物识别操作',
             },
             /** Error messages specific to Expo's SecureStore */
@@ -930,8 +919,6 @@ const translations: TranslationDeepObject<typeof en> = {
             keyAlreadyRegistered: '该公钥已注册',
             validationCodeRequired: '请输入验证码',
             validationCodeInvalid: '验证码无效',
-            otpCodeInvalid: '一次性密码无效',
-            otpCodeRequired: '请输入一次性密码',
             multifactorAuthenticationSuccess: '多因素身份验证注册成功',
             noTransactionID: '未提供交易 ID',
             userNotRegistered: '未找到用户注册信息',
@@ -945,7 +932,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         /** User input prompts during multifactorial authentication flows */
         provideValidateCode: '请输入您的验证码以继续',
-        provideOTPCode: '请输入一次性密码以继续',
         softPromptTitle: '请通过人脸或指纹验证身份',
         softPromptDescription: '启用人脸或指纹验证，实现快速、安全的身份确认，无需密码或验证码。',
     },

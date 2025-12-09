@@ -53,16 +53,15 @@ async function requestBiometricChallenge() {
  * Authorize transaction using:
  * - signedChallenge when multifactorial authentication is available and configured
  * - signedChallenge and validateCode when multifactorial authentication is available but not configured
- * - or validateCode and otp when multifactorial authentication is not available or not configured
  * All parameters except transactionID are optional,
  * but at least one of the combinations listed above must be provided.
- *
- * Note: If the transaction should be authorized using otp + validateCode,
- * we actually need to make one call with validateCode only,
- * and then another one with otp + validateCode.
  */
-async function authorizeTransaction({transactionID, signedChallenge, validateCode, otp}: {transactionID: string; signedChallenge?: SignedChallenge; validateCode?: number; otp?: number}) {
-    const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHORIZE_TRANSACTION, {transactionID, signedChallenge, validateCode, otp}, {});
+async function authorizeTransaction({transactionID, signedChallenge}: {transactionID: string; signedChallenge?: SignedChallenge}) {
+    if (!signedChallenge) {
+        return parseHttpCode(400, CONST.MULTIFACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.AUTHORIZE_TRANSACTION);
+    }
+
+    const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHORIZE_TRANSACTION, {transactionID, signedChallenge}, {});
 
     const {jsonCode} = response ?? {};
 

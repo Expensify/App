@@ -814,12 +814,6 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: 'doorgaan naar de webapp',
     },
     multifactorAuthentication: {
-        smsOtpForm: {
-            error: {
-                pleaseFillSmsOtp: 'Voer de via SMS verzonden code in',
-                incorrectSmsOtp: 'Onjuiste code. Probeer het opnieuw.',
-            },
-        },
         approveTransaction: {
             headerButtonTitle: 'Transactie goedkeuren',
             pageTitle: 'Goedkeur deze transactie alstublieft',
@@ -833,11 +827,8 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsRegistered: 'Biometrie (Geregistreerd)',
             biometricsTest: 'Biometrie testen',
             notificationTitle: 'Verificatie geslaagd',
-            notificationFallbackContent: 'U heeft zich succesvol geverifieerd met magic code + 2FA.',
-            fallbackPageTitle: 'Laten we verifiëren dat u het bent',
-            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Voer alstublieft de magic code in die is verzonden naar ${contactMethod}.`,
-            fallbackPage2FAContent: 'Voer alstublieft uw authenticatorcode in.',
-            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `Voer alstublieft de code in die is verzonden naar ${contactMethod}.`,
+            additionalFactorPageTitle: 'Laten we verifiëren dat u het bent',
+            additionalFactorMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Voer alstublieft de magic code in die is verzonden naar ${contactMethod}.`,
         },
         revokePage: {
             headerTitle: 'Gezicht/vingerafdruk verificatie',
@@ -905,11 +896,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 challengeIsAlreadySigned: 'Uitdaging is al ondertekend',
                 challengeRejected: 'Uitdaging afgewezen door de API',
                 validateCodeMissing: 'Verificatiecode ontbreekt',
-                otpMissing: 'OTP-code ontbreekt',
                 keyMissingOnTheBE: 'Sleutel lokaal opgeslagen maar niet gevonden op de server',
                 multifactorAuthenticationNotSupported: 'Dit apparaat ondersteunt geen multifactorauthenticatie',
                 badRequest: 'Ongeldig verzoek',
-                fallbackNotAllowed: 'Dit apparaat ondersteunt geen biometrie en terugval is niet toegestaan',
                 biometricsNotAllowed: 'Biometrische acties zijn niet toegestaan voor dit scenario',
             },
             /** Error messages specific to Expo's SecureStore */
@@ -938,8 +927,6 @@ const translations: TranslationDeepObject<typeof en> = {
             keyAlreadyRegistered: 'Deze openbare sleutel is al geregistreerd',
             validationCodeRequired: 'Voer een verificatiecode in',
             validationCodeInvalid: 'Ongeldige verificatiecode',
-            otpCodeInvalid: 'Ongeldige OTP-code',
-            otpCodeRequired: 'Voer een OTP-code in',
             multifactorAuthenticationSuccess: 'Multifactorauthenticatie succesvol geregistreerd',
             noTransactionID: 'Transactie-ID niet opgegeven',
             userNotRegistered: 'Gebruikersregistratie niet gevonden',
@@ -953,7 +940,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         /** User input prompts during multifactorial authentication flows */
         provideValidateCode: 'Voer je verificatiecode in om door te gaan',
-        provideOTPCode: 'Voer je eenmalig wachtwoord in om door te gaan',
         softPromptTitle: 'Verifieer jezelf met je gezicht of vingerafdruk',
         softPromptDescription: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk – geen wachtwoorden of codes nodig.',
     },

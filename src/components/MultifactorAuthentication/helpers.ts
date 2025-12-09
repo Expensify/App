@@ -170,18 +170,6 @@ function createCancelStatus(wasRecentStepSuccessful?: boolean) {
     });
 }
 
-function createCancelStatusWithNoValue(wasRecentStepSuccessful?: boolean) {
-    return <T>(prevStatus: MultifactorAuthenticationStatus<T>): MultifactorAuthenticationStatus<T | undefined> => ({
-        ...prevStatus,
-        value: undefined,
-        step: {
-            isRequestFulfilled: true,
-            wasRecentStepSuccessful,
-            requiredFactorForNextStep: undefined,
-        },
-    });
-}
-
 /**
  * Creates a status reflecting whether multifactorial authentication is configured.
  * Only updates the configuration flag while preserving other status fields.
@@ -221,11 +209,11 @@ const extractAdditionalParameters = <T extends MultifactorAuthenticationScenario
     return newParams;
 };
 
-const shouldAllowFallback = (securityLevel: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.SECURITY_LEVEL>) =>
-    securityLevel === CONST.MULTIFACTOR_AUTHENTICATION.SECURITY_LEVEL.FALLBACK_ONLY || securityLevel === CONST.MULTIFACTOR_AUTHENTICATION.SECURITY_LEVEL.BIOMETRICS_WITH_FALLBACK;
+// const shouldAllowPasskeys = (allowedAuthentication: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>) =>
+//     allowedAuthentication === CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS || allowedAuthentication === CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_OR_PASSKEYS;
 
-const shouldAllowBiometrics = (securityLevel: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.SECURITY_LEVEL>) =>
-    securityLevel === CONST.MULTIFACTOR_AUTHENTICATION.SECURITY_LEVEL.BIOMETRICS_WITH_FALLBACK;
+const shouldAllowBiometrics = (allowedAuthentication: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>) =>
+    allowedAuthentication === CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS || allowedAuthentication === CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_OR_PASSKEYS;
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const createBiometricsNotAllowedStatus = <T extends MultifactorAuthenticationScenario>(
@@ -260,26 +248,6 @@ const createEmptyStatus = <T>(initialValue: T, defaultText: string): Multifactor
     },
 });
 
-// eslint-disable-next-line rulesdir/no-negated-variables
-const createFallbackNotAllowedStatus = <T extends MultifactorAuthenticationScenario>(
-    scenario: T,
-    params: MultifactorAuthenticationScenarioParams<T>,
-): [MultifactorAuthenticationPartialStatus<MultifactorAuthenticationScenarioStatus>, MultifactorAuthenticationStatusKeyType] => {
-    return [
-        {
-            step: {
-                ...failedStep,
-            },
-            value: {
-                scenario,
-                payload: extractAdditionalParameters<T>(params),
-            },
-            reason: 'multifactorAuthentication.reason.error.fallbackNotAllowed',
-        },
-        CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION_FALLBACK,
-    ];
-};
-
 const isProtectedRoute = (route: string) => Object.values(MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES).some((protectedRoute) => route.startsWith(`/${protectedRoute}`));
 
 const isOnProtectedRoute = () => isProtectedRoute(Navigation.getActiveRouteWithoutParams());
@@ -309,28 +277,12 @@ const getCancelStatus = (
     type: MultifactorAuthenticationScenarioStatus['type'],
     wasRecentStepSuccessful: boolean | undefined,
     nativeBiometricsCancel: (wasRecentStepSuccessful?: boolean) => MultifactorAuthenticationStatus<boolean>,
-    fallbackCancel: (wasRecentStepSuccessful?: boolean) => MultifactorAuthenticationStatus<number | undefined>,
     setupCancel: (wasRecentStepSuccessful?: boolean) => MultifactorAuthenticationStatus<BiometricsStatus>,
 ) => {
     if (type === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION) {
         return nativeBiometricsCancel(wasRecentStepSuccessful);
     }
-    if (type === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION_FALLBACK) {
-        return fallbackCancel(wasRecentStepSuccessful);
-    }
     return setupCancel(wasRecentStepSuccessful);
-};
-
-const navigateToOTPRoute = (is2FAEnabled: boolean) => {
-    if (is2FAEnabled && !Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_AUTHENTICATOR)) {
-        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_AUTHENTICATOR);
-        return true;
-    }
-    if (!is2FAEnabled && !Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_SMS_OTP)) {
-        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_SMS_OTP);
-        return true;
-    }
-    return false;
 };
 
 function convertResultIntoMultifactorAuthenticationStatus<T extends MultifactorAuthenticationScenario>(
@@ -385,13 +337,11 @@ const Status = {
     createCancelStatus,
     createBaseStep,
     createRefreshStatusStatus,
-    createCancelStatusWithNoValue,
     createEmptyStatus,
 } as const;
 
 const MergedHooksStatus = {
     createBiometricsNotAllowedStatus,
-    createFallbackNotAllowedStatus,
     badRequestStatus,
 } as const;
 
@@ -402,14 +352,12 @@ export {
     isBiometryConfigured,
     resetKeys,
     createAuthorizeErrorStatus,
-    shouldAllowFallback,
     shouldAllowBiometrics,
     convertResultIntoMultifactorAuthenticationStatus,
     getNotificationRoute,
     getNotificationPath,
     isOnProtectedRoute,
     isProtectedRoute,
-    navigateToOTPRoute,
     getCancelStatus,
     EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS,
     MergedHooksStatus,

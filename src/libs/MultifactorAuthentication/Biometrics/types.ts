@@ -13,7 +13,6 @@ import type VALUES from './VALUES';
 type BasicMultifactorAuthenticationRequirementTypes = {
     [VALUES.FACTORS.SIGNED_CHALLENGE]: SignedChallenge;
     [VALUES.FACTORS.VALIDATE_CODE]: number;
-    [VALUES.FACTORS.OTP]: number;
 };
 
 type MultifactorAuthenticationNotificationConfig = {
@@ -141,24 +140,24 @@ type MultifactorAuthenticationFactor = ValueOf<typeof VALUES.FACTORS>;
 
 type MultifactorAuthenticationFactors = {
     [K in MultifactorAuthenticationFactorsRequirements as K extends {
-        origin: typeof VALUES.FACTORS_ORIGIN.FALLBACK;
+        origin: typeof VALUES.FACTORS_ORIGIN.ADDITIONAL;
     }
         ? never
         : K['parameter']]: BasicMultifactorAuthenticationRequirementTypes[K['id']];
 };
 
 /**
- * Maps fallback scenarios to their required factors
+ * Maps scenarios to their additional factors
  */
-type MultifactorAuthorizationFallbackFactors = {
+type MultifactorAuthorizationAdditionalFactors = {
     [K in MultifactorAuthenticationFactorsRequirements as K extends {
-        origin: typeof VALUES.FACTORS_ORIGIN.FALLBACK;
+        origin: typeof VALUES.FACTORS_ORIGIN.ADDITIONAL;
     }
         ? K['parameter']
         : never]?: BasicMultifactorAuthenticationRequirementTypes[K['id']];
 };
 
-type AllMultifactorAuthenticationFactors = Simplify<MultifactorAuthenticationFactors & MultifactorAuthorizationFallbackFactors>;
+type AllMultifactorAuthenticationFactors = Simplify<MultifactorAuthenticationFactors & MultifactorAuthorizationAdditionalFactors>;
 
 /**
  * Represents the step of the multifactorial authentication operation.
@@ -193,7 +192,7 @@ type MultifactorAuthenticationScenarioMethod<T extends MultifactorAuthentication
 
 type MultifactorAuthenticationScenarioData<T extends MultifactorAuthenticationScenario> = {
     action: MultifactorAuthenticationScenarioMethod<T>;
-    securityLevel: ValueOf<typeof VALUES.SECURITY_LEVEL>;
+    allowedAuthentication: ValueOf<typeof VALUES.TYPE>;
     route: Route;
 };
 
@@ -225,7 +224,6 @@ export type {
     MultifactorAuthenticationFactor,
     MultifactorAuthenticationStep,
     MultifactorAuthenticationScenarioParams,
-    MultifactorAuthorizationFallbackFactors,
     MultifactorAuthenticationResponseTranslationPath,
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioResponse,

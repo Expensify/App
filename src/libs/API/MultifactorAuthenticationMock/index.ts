@@ -51,6 +51,6 @@ const triggerOnyxConnect = () => {
     fetch('/trigger', {method: 'GET'});
 };
 
-export {WRITE_COMMANDS, READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, PHONE_NUMBER} from './config';
+export {WRITE_COMMANDS, READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from './config';
 export {requestValidateCodeAction, makeRequestWithSideEffects, triggerOnyxConnect};
 export type {WriteCommands, ReadCommands};

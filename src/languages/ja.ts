@@ -815,12 +815,6 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: 'Webアプリに進む',
     },
     multifactorAuthentication: {
-        smsOtpForm: {
-            error: {
-                pleaseFillSmsOtp: 'SMSで送信されたコードを入力してください',
-                incorrectSmsOtp: 'コードが間違っています。もう一度お試しください。',
-            },
-        },
         approveTransaction: {
             headerButtonTitle: 'トランザクションを承認',
             pageTitle: 'このトランザクションを承認してください',
@@ -834,11 +828,8 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsRegistered: '生体認証（登録済み）',
             biometricsTest: '生体認証のテスト',
             notificationTitle: '認証成功',
-            notificationFallbackContent: 'マジックコード + 2FAを使用して正常に認証しました。',
-            fallbackPageTitle: '本人確認をさせてください',
-            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。`,
-            fallbackPage2FAContent: '認証アプリのコードを入力してください。',
-            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたコードを入力してください。`,
+            additionalFactorPageTitle: '本人確認をさせてください',
+            additionalFactorMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。`,
         },
         revokePage: {
             headerTitle: '顔/指紋認証',
@@ -904,11 +895,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 challengeIsAlreadySigned: 'このチャレンジはすでに署名されています',
                 challengeRejected: 'チャレンジがAPIによって拒否されました',
                 validateCodeMissing: '検証コードが見つかりません',
-                otpMissing: 'OTPコードが見つかりません',
                 keyMissingOnTheBE: 'キーはローカルに保存されていますが、サーバー上に見つかりません',
                 multifactorAuthenticationNotSupported: 'このデバイスは多要素認証をサポートしていません',
                 badRequest: '無効なリクエストです',
-                fallbackNotAllowed: 'このデバイスは生体認証をサポートしておらず、代替手段は許可されていません',
                 biometricsNotAllowed: 'このシナリオでは生体認証は許可されていません',
             },
             /** Error messages specific to Expo's SecureStore */
@@ -937,8 +926,6 @@ const translations: TranslationDeepObject<typeof en> = {
             keyAlreadyRegistered: 'この公開鍵はすでに登録されています',
             validationCodeRequired: '検証コードを入力してください',
             validationCodeInvalid: '無効な検証コードです',
-            otpCodeInvalid: '無効なOTPコードです',
-            otpCodeRequired: 'OTPコードを入力してください',
             multifactorAuthenticationSuccess: '多要素認証の登録が正常に完了しました',
             noTransactionID: 'トランザクションIDが指定されていません',
             userNotRegistered: 'ユーザー登録が見つかりません',
@@ -952,7 +939,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         /** User input prompts during multifactorial authentication flows */
         provideValidateCode: '続行するには検証コードを入力してください',
-        provideOTPCode: '続行するにはワンタイムパスワードを入力してください',
         softPromptTitle: '顔認証または指紋で本人確認を行ってください',
         softPromptDescription: '顔認証または指紋を使用して、パスワードやコードなしで迅速かつ安全に本人確認を行えます。',
     },

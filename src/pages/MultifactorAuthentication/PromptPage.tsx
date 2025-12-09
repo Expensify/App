@@ -53,8 +53,9 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationPromptPage.displayName}>
+            {/* TODO: MFA/Dev Change the behavior of back button */}
             <HeaderWithBackButton
-                title={translate('multifactorAuthentication.biometrics.fallbackPageTitle')}
+                title={translate('multifactorAuthentication.biometrics.additionalFactorPageTitle')}
                 onBackButtonPress={showConfirmModal}
                 shouldShowBackButton
             />

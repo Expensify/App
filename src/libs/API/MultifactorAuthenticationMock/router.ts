@@ -4,7 +4,7 @@ import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAu
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {FALLBACK_ACCOUNT_ID, FALLBACK_EMAIL, MOCKED_AUTHENTICATOR_CODE, PHONE_NUMBER, RESPONSE, ROUTER, STORAGE} from './config';
+import {FALLBACK_ACCOUNT_ID, FALLBACK_EMAIL, RESPONSE, ROUTER, STORAGE} from './config';
 import type {ReadCommands, WriteCommands} from './index';
 import Logger from './Logger';
 import {base64URL, generateSixDigitNumber, isChallengeValid} from './utils';
@@ -66,28 +66,6 @@ ROUTER.post['/revoke_public_keys'] = (): WriteCommands['RevokeMultifactorAuthent
     return {
         ...RESPONSE.REQUEST_SUCCESSFUL,
         message: `Revoked all public keys for email ${emailWithFallback}`,
-    };
-};
-
-ROUTER.post['/send_otp'] = ({phoneNumber}: Partial<WriteCommands['SendOTP']['parameters']>): WriteCommands['SendOTP']['returns'] => {
-    Logger.m('Generating new validation code');
-
-    if (!phoneNumber) {
-        return {
-            ...RESPONSE.MISSING_PARAMETER,
-            message: Logger.w('Phone parameter is missing in the request'),
-        };
-    }
-
-    const randomCode = generateSixDigitNumber();
-
-    STORAGE.OTPs[phoneNumber] ??= [];
-    STORAGE.OTPs[phoneNumber].push(randomCode);
-    Logger.m('Generated new OTP code:', randomCode, 'for phone number', phoneNumber);
-
-    return {
-        ...RESPONSE.REQUEST_SUCCESSFUL,
-        message: `Validate code sent to phone number ${phoneNumber}`,
     };
 };
 
@@ -186,13 +164,8 @@ ROUTER.post['/register_biometrics'] = ({publicKey, validateCode}: Partial<WriteC
 
 ROUTER.post['/authorize_transaction'] = ({
     transactionID,
-    validateCode,
-    otp,
     signedChallenge,
 }: Partial<WriteCommands['AuthorizeTransaction']['parameters']>): WriteCommands['AuthorizeTransaction']['returns'] => {
-    const validateCodes = STORAGE.validateCodes[sessionData.email ?? FALLBACK_EMAIL] ?? [];
-    const OTPs = STORAGE.OTPs[PHONE_NUMBER] ?? [];
-
     if (!transactionID) {
         return {
             ...RESPONSE.MISSING_PARAMETER,
@@ -202,7 +175,7 @@ ROUTER.post['/authorize_transaction'] = ({
 
     const userPublicKeys = STORAGE.publicKeys[sessionData.email ?? FALLBACK_EMAIL];
 
-    if (!userPublicKeys?.length && (!validateCode || signedChallenge)) {
+    if (!userPublicKeys?.length) {
         return {
             ...RESPONSE.UNAUTHORIZED,
             message: Logger.w('User is not registered'),
@@ -222,43 +195,6 @@ ROUTER.post['/authorize_transaction'] = ({
             : {
                   ...RESPONSE.CONFLICT,
                   message: Logger.w('Unable to authorize user using challenge'),
-              };
-    }
-
-    if (validateCode && !!validateCodes.at(-1)) {
-        Logger.m('Authorizing transaction', transactionID, 'with validate code', validateCode);
-
-        const isValidateCodeCorrect = validateCodes.at(-1) === validateCode;
-
-        if (isValidateCodeCorrect && !otp) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            ROUTER.post['/send_otp']({phoneNumber: PHONE_NUMBER});
-
-            return {
-                ...RESPONSE.OTP_REQUIRED,
-                message: Logger.w('OTP required to authorize transaction'),
-            };
-        }
-
-        // eslint-disable-next-line rulesdir/no-negated-variables
-        const areOTPsNotNull = !!OTPs.at(-1) && !!otp;
-        const isOTPCorrect = otp === MOCKED_AUTHENTICATOR_CODE || (areOTPsNotNull && OTPs.at(-1) === otp);
-
-        const isEverythingOK = isValidateCodeCorrect && isOTPCorrect;
-
-        if (isEverythingOK) {
-            validateCodes.pop();
-            OTPs.pop();
-        }
-
-        return isEverythingOK
-            ? {
-                  ...RESPONSE.REQUEST_SUCCESSFUL,
-                  message: Logger.m('User authorized successfully using validate code and OTP'),
-              }
-            : {
-                  ...RESPONSE.CONFLICT,
-                  message: Logger.w('Unable to authorize user using validate code and OTP'),
               };
     }
 

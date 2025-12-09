@@ -1012,9 +1012,7 @@ const WorkspacesDomainModalStackNavigator = createModalStackNavigator<Workspaces
 });
 
 const MultifactorAuthenticationStackNavigator = createModalStackNavigator<MultifactorAuthenticationParamList>({
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/FactorMagicCodePage').default,
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHENTICATOR]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/FactorAuthenticatorPage').default,
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.SMS_OTP]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/FactorSmsOtpPage').default,
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/ValidateCodePage').default,
     [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/BiometricsTestPage').default,
     [SCREENS.MULTIFACTOR_AUTHENTICATION.NOTIFICATION]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/NotificationPage').default,
     [SCREENS.MULTIFACTOR_AUTHENTICATION.APPROVE_TRANSACTION]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/ApproveTransactionPage').default,

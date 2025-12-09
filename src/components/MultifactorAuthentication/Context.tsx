@@ -2,7 +2,6 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo, useRe
 import type {ReactNode} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import {requestValidateCodeAction, triggerOnyxConnect} from '@libs/API/MultifactorAuthenticationMock';
 import type {
     AllMultifactorAuthenticationFactors,
@@ -17,13 +16,11 @@ import type {
 import {MultifactorAuthenticationCallbacks} from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {MULTIFACTOR_AUTHENTICATION_SCENARIOS} from './config';
 import {MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP} from './config/ui';
 import {
-    areMultifactorAuthorizationParamsValid,
     convertResultIntoMultifactorAuthenticationStatus,
     EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS,
     getCancelStatus,
@@ -31,14 +28,11 @@ import {
     getNotificationRoute,
     isOnProtectedRoute,
     MergedHooksStatus,
-    navigateToOTPRoute,
     resetKeys,
     shouldAllowBiometrics,
-    shouldAllowFallback,
 } from './helpers';
 import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenarioStatus, MultifactorTriggerArgument, Register, UseMultifactorAuthentication} from './types';
 import useMultifactorAuthenticationStatus from './useMultifactorAuthenticationStatus';
-import useMultifactorAuthorizationFallback from './useMultifactorAuthorizationFallback';
 import useNativeBiometrics from './useNativeBiometrics';
 
 const MultifactorAuthenticationContext = createContext<UseMultifactorAuthentication>({
@@ -68,7 +62,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     // TODO: MFA/Release Remove this when mocked API is no longer used
     triggerOnyxConnect();
 
-    const MultifactorAuthorizationFallback = useMultifactorAuthorizationFallback();
     const NativeBiometrics = useNativeBiometrics();
     const [mergedStatus, setMergedStatus] = useMultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>(
         {
@@ -99,8 +92,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         validateCode: undefined,
     });
     const {accountID} = useCurrentUserPersonalDetails();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const is2FAEnabled = !!account?.requiresTwoFactorAuth && false;
     const overriddenScreens = useRef<{
         success: AllMultifactorAuthenticationNotificationType | undefined;
         failure: AllMultifactorAuthenticationNotificationType | undefined;
@@ -148,14 +139,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return;
             }
 
-            if (requiredFactorForNextStep === CONST.MULTIFACTOR_AUTHENTICATION.FACTORS.OTP) {
-                const navigated = navigateToOTPRoute(is2FAEnabled);
-                if (navigated) {
-                    success.current = undefined;
-                    return;
-                }
-            }
-
             if (!isRequestFulfilled) {
                 return;
             }
@@ -186,7 +169,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 success.current = undefined;
             }
         },
-        [is2FAEnabled, getNotificationPaths],
+        [getNotificationPaths],
     );
 
     const setStatus = useCallback(
@@ -205,13 +188,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     const allowedMethods = useCallback(
         <T extends MultifactorAuthenticationScenario>(scenario: T) => {
-            const {securityLevel} = MULTIFACTOR_AUTHENTICATION_SCENARIOS[scenario];
-            const canUseBiometrics = shouldAllowBiometrics(securityLevel);
+            const {allowedAuthentication} = MULTIFACTOR_AUTHENTICATION_SCENARIOS[scenario];
+            const canUseBiometrics = shouldAllowBiometrics(allowedAuthentication);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const isBiometricsAllowed = canUseBiometrics && (NativeBiometrics.setup.isLocalPublicKeyInAuth || softPromptStore.current.accepted);
 
             return {
-                fallback: shouldAllowFallback(securityLevel),
+                // passkeys: shouldAllowPasskeys(allowedAuthentication),
                 biometrics: isBiometricsAllowed,
             };
         },
@@ -241,17 +224,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         [NativeBiometrics.setup, allowedMethods, setStatus],
     ) as Register<MultifactorAuthenticationScenarioStatus>;
 
-    const authorizeFallback = useCallback(
-        async <T extends MultifactorAuthenticationScenario>(scenario: T, params: MultifactorAuthenticationScenarioParams<T>) => {
-            if (!allowedMethods(scenario).fallback) {
-                return setStatus(...MergedHooksStatus.createFallbackNotAllowedStatus(scenario, params));
-            }
-            const result = await MultifactorAuthorizationFallback.authorize(scenario, params);
-            return setStatus(convertResultIntoMultifactorAuthenticationStatus(result, scenario, CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION_FALLBACK, params));
-        },
-        [MultifactorAuthorizationFallback, allowedMethods, setStatus],
-    );
-
     const authorize = useCallback(
         async <T extends MultifactorAuthenticationScenario>(
             scenario: T,
@@ -280,12 +252,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             softPromptStore.current.accepted = undefined;
             softPromptStore.current.validateCode = undefined;
 
-            const cancelStatus = getCancelStatus(type, wasRecentStepSuccessful, NativeBiometrics.cancel, MultifactorAuthorizationFallback.cancel, NativeBiometrics.setup.cancel);
+            const cancelStatus = getCancelStatus(type, wasRecentStepSuccessful, NativeBiometrics.cancel, NativeBiometrics.setup.cancel);
             const scenarioType = type ?? CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION;
 
             return setStatus(convertResultIntoMultifactorAuthenticationStatus(cancelStatus, scenario, scenarioType, false));
         },
-        [NativeBiometrics.cancel, NativeBiometrics.setup, MultifactorAuthorizationFallback.cancel, mergedStatus.value, setStatus],
+        [NativeBiometrics.cancel, NativeBiometrics.setup, mergedStatus.value, setStatus],
     );
 
     const process = useCallback(
@@ -341,15 +313,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return setStatus((prevStatus) => MergedHooksStatus.badRequestStatus(prevStatus));
             }
 
-            const shouldUseFallback = !NativeBiometrics.setup.deviceSupportBiometrics || !allowedMethods(scenario).biometrics;
-            if (shouldUseFallback) {
-                const areParamsValid = areMultifactorAuthorizationParamsValid<typeof scenario>(params);
-                if (!areParamsValid) {
-                    return setStatus((prevStatus) => MergedHooksStatus.badRequestStatus(prevStatus));
-                }
-                return authorizeFallback(scenario, params);
-            }
-
             if (!NativeBiometrics.setup.isLocalPublicKeyInAuth) {
                 /** Multifactor authentication is not configured, let's do that first */
                 /** Run the setup method */
@@ -371,7 +334,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             return result;
         },
-        [NativeBiometrics.setup, accountID, allowedMethods, authorize, authorizeFallback, register, setStatus],
+        [NativeBiometrics.setup, accountID, authorize, register, setStatus],
     );
 
     const update = useCallback(

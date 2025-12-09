@@ -15,6 +15,7 @@ function MultifactorAuthenticationPromptActions({onGoBackPress, onConfirm}: Mult
 
     return (
         <FixedFooter style={[styles.flexColumn, styles.gap3]}>
+            {/* TODO: MFA/Dev Remove not now button */}
             <Button
                 onPress={onGoBackPress}
                 text={translate('common.notNow')}

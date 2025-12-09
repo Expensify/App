@@ -6,6 +6,8 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthentication/Context';
+import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -21,46 +23,12 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {useMultifactorAuthenticationContext} from './Context';
-import MultifactorAuthenticationValidateCodeResendButton from './ValidateCodeResendButton';
 
 type FormError = {
     inputCode?: TranslationPaths;
 };
 
-type MultifactorAuthenticationValidateCodePageProps = {
-    // Configuration
-    title: TranslationPaths;
-    description: TranslationPaths;
-    contactMethod: string;
-    autoComplete: AutoCompleteVariant;
-
-    // Error messages
-    errorMessages: {
-        empty: TranslationPaths;
-        invalid: TranslationPaths;
-    };
-
-    // Resend button text
-    resendButtonText: TranslationPaths;
-
-    // Submit handler from context
-    onSubmit: (code: string) => void;
-
-    // Optional: external loading state (from context)
-    isVerifying?: boolean;
-};
-
-function MultifactorAuthenticationValidateCodePage({
-    title,
-    description,
-    contactMethod,
-    autoComplete,
-    errorMessages,
-    resendButtonText,
-    onSubmit,
-    isVerifying = false,
-}: MultifactorAuthenticationValidateCodePageProps) {
+function MultifactorAuthenticationValidateCodePage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -69,13 +37,23 @@ function MultifactorAuthenticationValidateCodePage({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
+    const title: TranslationPaths = 'multifactorAuthentication.biometrics.additionalFactorPageTitle';
+    const description: TranslationPaths = 'multifactorAuthentication.biometrics.additionalFactorMagicCodeContent';
+    const contactMethod = account?.primaryLogin ?? '';
+    const autoComplete: AutoCompleteVariant = 'one-time-code';
+    const resendButtonText: TranslationPaths = 'validateCodeForm.magicCodeNotReceived';
+    const errorMessages = {
+        empty: 'validateCodeForm.error.pleaseFillMagicCode',
+        invalid: 'validateCodeForm.error.incorrectMagicCode',
+    } as const satisfies Record<string, TranslationPaths>;
+
     // Local state
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
-    const {trigger} = useMultifactorAuthenticationContext();
+    const {trigger, update} = useMultifactorAuthenticationContext();
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
@@ -167,7 +145,7 @@ function MultifactorAuthenticationValidateCodePage({
      */
     const validateAndSubmitForm = useCallback(() => {
         // Check if already loading
-        if (account?.isLoading || isVerifying) {
+        if (account?.isLoading) {
             return;
         }
 
@@ -198,8 +176,8 @@ function MultifactorAuthenticationValidateCodePage({
         setFormError({});
 
         // Call the submit callback (from context)
-        onSubmit(inputCode);
-    }, [account?.isLoading, account?.errors, inputCode, errorMessages.empty, errorMessages.invalid, onSubmit, isVerifying]);
+        update({validateCode: Number(inputCode)});
+    }, [account?.isLoading, account?.errors, inputCode, errorMessages.empty, errorMessages.invalid, update]);
 
     const onGoBackPress = useCallback(() => {
         trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE);
@@ -214,12 +192,7 @@ function MultifactorAuthenticationValidateCodePage({
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
-                <Text style={[styles.m5, styles.mt3, styles.textNormal]}>
-                    {
-                        // @ts-expect-error translation can have parameters
-                        translate(description, {contactMethod})
-                    }
-                </Text>
+                <Text style={[styles.m5, styles.mt3, styles.textNormal]}>{translate(description, {contactMethod})}</Text>
                 <View style={[styles.mh5]}>
                     <MagicCodeInput
                         isDisableKeyboard
@@ -249,7 +222,7 @@ function MultifactorAuthenticationValidateCodePage({
                     style={[styles.w100, styles.p5, styles.mtAuto]}
                     onPress={validateAndSubmitForm}
                     text={translate('common.verify')}
-                    isLoading={isValidateCodeFormSubmitting || isVerifying}
+                    isLoading={isValidateCodeFormSubmitting}
                     isDisabled={isOffline}
                 />
             </FullPageOfflineBlockingView>

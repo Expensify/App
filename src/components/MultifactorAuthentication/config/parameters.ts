@@ -14,7 +14,6 @@ import SCENARIO from './scenarios';
  * Each scenario requires specific parameters:
  * - Regular transaction authorization needs a transaction ID
  * - Authorization with validation code needs a transaction ID
- * - Fallback authorization needs a transaction ID
  * - Multifactor authentication setup needs a public key
  */
 type MultifactorAuthenticationScenarioParameters = {
@@ -25,12 +24,10 @@ type MultifactorAuthenticationScenarioParameters = {
 
 /**
  * Maps each multifactorial authentication scenario to its implementation details.
- * Regular scenarios just need a scenario method.
- * The fallback scenario includes additional post-processing and validation code storage.
  */
 const MULTIFACTOR_AUTHENTICATION_SCENARIOS = {
     [SCENARIO.AUTHORIZE_TRANSACTION]: {
-        securityLevel: VALUES.SECURITY_LEVEL.BIOMETRICS_WITH_FALLBACK,
+        allowedAuthentication: VALUES.TYPE.BIOMETRICS,
         action: authorizeTransaction,
         route: ROUTES.MULTIFACTOR_AUTHENTICATION_APPROVE_TRANSACTION.route,
     },

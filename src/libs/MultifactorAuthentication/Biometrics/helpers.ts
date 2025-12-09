@@ -54,19 +54,17 @@ function createUnsuccessfulStep(requiredFactor: MultifactorAuthenticationFactor)
 /**
  * Validates that all required authentication factors are present and of the correct type/format.
  * Checks each factor's presence, type, and length requirements.
- * Skips OTP validation if the validation code hasn't been verified yet.
  */
 function areMultifactorAuthenticationFactorsSufficient(
     factors: Partial<AllMultifactorAuthenticationFactors>,
     factorsCombination: ValueOf<typeof VALUES.FACTOR_COMBINATIONS>,
     isStoredFactorVerified = true,
-    is2FAEnabled = false,
 ): MultifactorAuthenticationPartialStatus<true | string> {
     const requiredFactors = factorsCombination.map((id) => VALUES.FACTORS_REQUIREMENTS[id]);
 
     for (const {id, parameter, name, length} of requiredFactors) {
         // Skip validation if factor is not VALIDATE_CODE and stored factor is not verified
-        if (id !== VALUES.FACTORS.VALIDATE_CODE && !isStoredFactorVerified && !is2FAEnabled) {
+        if (id !== VALUES.FACTORS.VALIDATE_CODE && !isStoredFactorVerified) {
             continue;
         }
 
@@ -108,10 +106,8 @@ function areMultifactorAuthenticationFactorsSufficient(
 /**
  * Handles the post-processing of an authorization attempt when multifactorial authentication is not available.
  * Takes the authorization result and request parameters and determines:
- * - If an OTP (one-time password) is required based on the HTTP response code
  * - The appropriate error message to display based on which codes were invalid
  * - Whether to store the validation code for future use
- * - The next required authentication factor (OTP if needed)
  * - Whether the overall request was successful and is now complete
  */
 const authorizeMultifactorAuthenticationPostMethod = <T extends MultifactorAuthenticationScenario>(
@@ -119,29 +115,25 @@ const authorizeMultifactorAuthenticationPostMethod = <T extends MultifactorAuthe
     params: MultifactorAuthenticationScenarioParams<T>,
     failedFactor?: MultifactorAuthenticationFactor,
 ) => {
-    const {successful, httpCode} = status.value;
-    const {otp, validateCode} = params;
-
-    const isOTPRequired = httpCode === VALUES.NEED_SECOND_FACTOR_HTTP_CODE;
+    const {successful} = status.value;
+    const {validateCode} = params;
 
     // Determine the appropriate error reason
     let reason = status.reason;
 
     if (status.reason !== 'multifactorAuthentication.apiResponse.unableToAuthorize') {
         reason = status.reason;
-    } else if (!!otp && !!validateCode) {
-        reason = 'multifactorAuthentication.apiResponse.otpCodeInvalid';
-    } else if (!otp && !!validateCode) {
+    } else if (!validateCode) {
         reason = 'multifactorAuthentication.apiResponse.validationCodeInvalid';
     }
 
     return {
         ...status,
-        value: validateCode && isOTPRequired && successful ? validateCode : undefined,
+        value: validateCode && successful ? validateCode : undefined,
         step: {
-            requiredFactorForNextStep: isOTPRequired ? VALUES.FACTORS.OTP : failedFactor,
+            requiredFactorForNextStep: failedFactor,
             wasRecentStepSuccessful: successful,
-            isRequestFulfilled: !failedFactor && !isOTPRequired,
+            isRequestFulfilled: !failedFactor,
         },
         reason,
     };

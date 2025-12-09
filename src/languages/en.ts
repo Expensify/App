@@ -799,12 +799,6 @@ const translations = {
         continueInWeb: 'continue to the web app',
     },
     multifactorAuthentication: {
-        smsOtpForm: {
-            error: {
-                pleaseFillSmsOtp: 'Please enter the code sent via SMS',
-                incorrectSmsOtp: 'Incorrect code. Please try again.',
-            },
-        },
         approveTransaction: {
             headerButtonTitle: 'Approve transaction',
             pageTitle: 'Please approve this transaction',
@@ -818,11 +812,8 @@ const translations = {
             biometricsRegistered: 'Biometrics (Registered)',
             biometricsTest: 'Testing Biometrics',
             notificationTitle: 'Authentication successful',
-            notificationFallbackContent: 'You’ve successfully authenticated using magic code + 2FA.',
-            fallbackPageTitle: "Let's verify it's you",
-            fallbackPageMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}.`,
-            fallbackPage2FAContent: 'Please enter your authenticator code.',
-            fallbackPageSmsOtpContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the code sent to ${contactMethod}.`,
+            additionalFactorPageTitle: "Let's verify it's you",
+            additionalFactorMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}.`,
         },
         revokePage: {
             headerTitle: 'Face/fingerprint verification',
@@ -889,11 +880,9 @@ const translations = {
                 challengeIsAlreadySigned: 'Challenge has already been signed',
                 challengeRejected: 'Challenge rejected by API',
                 validateCodeMissing: 'Validation code is missing',
-                otpMissing: 'OTP code is missing',
                 keyMissingOnTheBE: 'Key is stored locally but not found on server',
                 multifactorAuthenticationNotSupported: 'This device does not support multifactorial authentication',
                 badRequest: 'Bad request',
-                fallbackNotAllowed: 'This device does not support biometrics and fallback is not allowed',
                 biometricsNotAllowed: 'The biometrics actions are not allowed for this scenario',
             },
             /** Error messages specific to Expo's SecureStore */
@@ -922,8 +911,6 @@ const translations = {
             keyAlreadyRegistered: 'This public key is already registered',
             validationCodeRequired: 'Please provide a validation code',
             validationCodeInvalid: 'Invalid validation code',
-            otpCodeInvalid: 'Invalid OTP code',
-            otpCodeRequired: 'Please provide an OTP code',
             multifactorAuthenticationSuccess: 'Multifactor authentication registration successful',
             noTransactionID: 'Transaction ID not provided',
             userNotRegistered: 'User registration not found',
@@ -937,7 +924,6 @@ const translations = {
         },
         /** User input prompts during multifactorial authentication flows */
         provideValidateCode: 'Enter your verification code to continue',
-        provideOTPCode: 'Enter your one-time password to continue',
         softPromptTitle: 'Verify yourself with your face or fingerprint',
         softPromptDescription: 'Enable quick, secure verification using your face or fingerprint - no passwords or codes required.',
     },

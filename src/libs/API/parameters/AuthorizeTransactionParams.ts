@@ -2,11 +2,7 @@ import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/E
 
 type AuthorizeTransactionParams = {
     transactionID: string;
-    // this one:
-    signedChallenge?: SignedChallenge; // JWT
-    // or these two together:
-    validateCode?: number; // validate code
-    otp?: number; // 2FA / SMS OTP
+    signedChallenge: SignedChallenge;
 };
 
 export default AuthorizeTransactionParams;

@@ -54,9 +54,8 @@ export default function useMultifactorAuthenticationStatus<T>(
 
             const success = successSource.current ? successSource.current(state) : !!state.step.wasRecentStepSuccessful;
 
-            const isAuthorization = !![CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION, CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION_FALLBACK].find(
-                (scType) => scenarioType === scType,
-            );
+            const isAuthorization = scenarioType === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION;
+
             const isAuthentication = scenarioType === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION;
             const isAuthAction = isAuthentication || isAuthorization;
 
