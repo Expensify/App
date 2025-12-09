@@ -10828,18 +10828,23 @@ function approveMoneyRequest(
 
     // Remove duplicates violations if we approve the report
     if (hasDuplicates) {
-        const transactions = getReportTransactions(expenseReport.reportID);
+        let transactions = getReportTransactions(expenseReport.reportID).filter((transaction) =>
+            isDuplicate(
+                transaction,
+                currentUserEmailParam,
+                currentUserAccountIDParam,
+                expenseReport,
+                policy,
+                allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
+            ),
+        );
         if (!full) {
-            transactions.filter((transaction) => !isOnHold(transaction));
+            transactions = transactions.filter((transaction) => !isOnHold(transaction));
         }
 
         for (const transaction of transactions) {
             const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
-            const newTransactionViolations = transactionViolations.filter(
-                (violation) =>
-                    violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION &&
-                    isDuplicate(transaction, currentUserEmailParam, currentUserAccountIDParam, expenseReport, policy, transactionViolations),
-            );
+            const newTransactionViolations = transactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
