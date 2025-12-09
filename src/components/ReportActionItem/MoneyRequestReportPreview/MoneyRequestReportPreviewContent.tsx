@@ -93,7 +93,6 @@ import type {MoneyRequestReportPreviewContentProps} from './types';
 
 const reportAttributesSelector = (c: OnyxEntry<ReportAttributesDerivedValue>) => c?.reports;
 
-const onScrollToIndexFailed = () => {};
 function MoneyRequestReportPreviewContent({
     iouReportID,
     newTransactionIDs,
@@ -418,6 +417,19 @@ function MoneyRequestReportPreviewContent({
     const viewabilityConfig = useMemo(() => {
         return {itemVisiblePercentThreshold: 100};
     }, []);
+    const numberOfScrollToIndexFailed = useRef(0);
+    const onScrollToIndexFailed: (info: {index: number; highestMeasuredFrameIndex: number; averageItemLength: number}) => void = useCallback(({index}) => {
+        // There is a probability of infinite loop so we want to make sure that it is not called more than 5 times.
+        if (numberOfScrollToIndexFailed.current > 4) {
+            return;
+        }
+
+        // Sometimes scrollToIndex might be called before the item is rendered so we will re-call scrollToIndex after a small delay.
+        setTimeout(() => {
+            carouselRef.current?.scrollToIndex({index, animated: true});
+        }, 100);
+        numberOfScrollToIndexFailed.current++;
+    }, []);
 
     useEffect(() => {
         const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.includes(transaction.transactionID));
@@ -426,7 +438,8 @@ function MoneyRequestReportPreviewContent({
             return;
         }
         setTimeout(() => {
-            carouselRef.current?.scrollToIndex({index, viewOffset: 15});
+            numberOfScrollToIndexFailed.current = 0;
+            carouselRef.current?.scrollToIndex({index, viewOffset: 15, animated: true});
         }, CONST.ANIMATED_TRANSITION);
 
         // eslint-disable-next-line react-compiler/react-compiler
