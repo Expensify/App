@@ -349,10 +349,10 @@ function IOURequestStepConfirmation({
         }
 
         startMoneyRequest(
-            CONST.IOU.TYPE.CREATE,
-            // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-            // for all of the routes in the creation flow.
-            generateReportID(),
+            iouType ?? CONST.IOU.TYPE.CREATE,
+            // When starting to create an expense from the global FAB, there is not an existing report yet.
+            // A random optimistic reportID is generated and used for all routes in the creation flow.
+            reportID ?? generateReportID(),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [isLoadingTransaction]);
