@@ -28,6 +28,7 @@ import type {
     AssignedCardParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardOnDisputeParams,
@@ -960,7 +961,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Deze chatruimte is voor alles wat met <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> te maken heeft.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `Deze chat is voor facturen tussen <strong>${invoicePayer}</strong> en <strong>${invoiceReceiver}</strong>. Gebruik de knop + om een factuur te versturen.`,
-        beginningOfChatHistory: 'Deze chat is met',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `Deze chat is met ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `Dit is waar <strong>${submitterDisplayName}</strong> declaraties zal indienen bij <strong>${workspaceName}</strong>. Gebruik gewoon de +‑knop.`,
         beginningOfChatHistorySelfDM: 'Dit is je persoonlijke ruimte. Gebruik het voor notities, taken, concepten en herinneringen.',
@@ -6858,6 +6859,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Weet je zeker dat je een ander rapport wilt maken in ${workspaceName}? Je hebt toegang tot je lege rapporten in`,
             emptyReportConfirmationPromptLink: 'Rapporten',
+            emptyReportConfirmationDontShowAgain: 'Niet meer weergeven',
             genericWorkspaceName: 'deze workspace',
         },
         genericCreateReportFailureMessage: 'Onverwachte fout bij het maken van deze chat. Probeer het later opnieuw.',
@@ -7851,6 +7853,30 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             revealToken: 'Token weergeven',
             fetchError: 'Kan SAML-configuratiedetails niet ophalen',
             setMetadataGenericError: 'Kon SAML-metagegevens niet instellen',
+        },
+        accessRestricted: {
+            title: 'Toegang beperkt',
+            subtitle: (domainName: string) => `Bevestig dat u een geautoriseerde bedrijfsbeheerder bent voor <strong>${domainName}</strong> als u controle nodig hebt over:`,
+            companyCardManagement: 'Beheer van bedrijfskaarten',
+            accountCreationAndDeletion: 'Accountaanmaak en -verwijdering',
+            workspaceCreation: 'Werkruimte aanmaken',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Domein toevoegen',
+            subtitle: 'Voer de naam in van het privédomein waartoe je toegang wilt krijgen (bijv. expensify.com).',
+            domainName: 'Domeinnaam',
+            newDomain: 'Nieuw domein',
+        },
+        domainAdded: {
+            title: 'Domein toegevoegd',
+            description: 'Vervolgens moet je het eigendom van het domein verifiëren en je beveiligingsinstellingen aanpassen.',
+            configure: 'Configureren',
+        },
+        enhancedSecurity: {
+            title: 'Verbeterde beveiliging',
+            subtitle: 'Verplicht leden van je domein om in te loggen via single sign-on, beperk het aanmaken van werkruimten en meer.',
+            enable: 'Inschakelen',
         },
     },
     desktopAppRetiredPage: {

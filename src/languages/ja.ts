@@ -28,6 +28,7 @@ import type {
     AssignedCardParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardOnDisputeParams,
@@ -960,7 +961,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `このチャットルームは、<strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> に関するあらゆる内容のためのものです。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `このチャットは<strong>${invoicePayer}</strong>と<strong>${invoiceReceiver}</strong>の間の請求書用です。+ ボタンを使って請求書を送信してください。`,
-        beginningOfChatHistory: 'このチャットの相手は',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `このチャットは${users}とのチャットです。`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `ここは、<strong>${submitterDisplayName}</strong> が <strong>${workspaceName}</strong> に経費を提出する場所です。+ ボタンを使用してください。`,
         beginningOfChatHistorySelfDM: 'これはあなたの個人スペースです。メモ、タスク、下書き、リマインダーとして使用してください。',
@@ -6822,6 +6823,7 @@ ${reportName}
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `${workspaceName} で別のレポートを作成してもよろしいですか？ 空のレポートには次からアクセスできます`,
             emptyReportConfirmationPromptLink: 'レポート',
             genericWorkspaceName: 'このワークスペース',
+            emptyReportConfirmationDontShowAgain: '今後表示しない',
         },
         genericCreateReportFailureMessage: 'このチャットの作成中に予期しないエラーが発生しました。後でもう一度お試しください。',
         genericAddCommentFailureMessage: 'コメントの投稿中に予期しないエラーが発生しました。後でもう一度お試しください。',
@@ -7813,6 +7815,26 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             revealToken: 'トークンを表示',
             fetchError: 'SAML 設定の詳細を取得できませんでした',
             setMetadataGenericError: 'SAMLメタデータを設定できませんでした',
+        },
+        accessRestricted: {
+            title: 'アクセスが制限されています',
+            subtitle: (domainName: string) => `以下を管理する必要がある場合は、<strong>${domainName}</strong> の認可された会社管理者であることを確認してください:`,
+            companyCardManagement: '法人カードの管理',
+            accountCreationAndDeletion: 'アカウントの作成と削除',
+            workspaceCreation: 'ワークスペースの作成',
+            samlSSO: 'SAML シングルサインオン',
+        },
+        addDomain: {
+            title: 'ドメインを追加',
+            subtitle: 'アクセスしたいプライベートドメイン名を入力してください（例：expensify.com）。',
+            domainName: 'ドメイン名',
+            newDomain: '新しいドメイン',
+        },
+        domainAdded: {title: 'ドメインが追加されました', description: '次に、ドメインの所有権を確認し、セキュリティ設定を調整する必要があります。', configure: '設定'},
+        enhancedSecurity: {
+            title: '強化されたセキュリティ',
+            subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須化し、ワークスペースの作成を制限するなど、さらに多くのことができます。',
+            enable: '有効にする',
         },
     },
     desktopAppRetiredPage: {

@@ -55,7 +55,6 @@ const transactionItemBaseMock: TransactionListItemType = {
     policy: policyBaseMock,
     reportAction: reportActionBaseMock,
     holdReportAction: undefined,
-    canDelete: true,
     cardID: undefined,
     cardName: undefined,
     category: '',
