@@ -8,6 +8,7 @@ import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
+import type {ReplacementReason} from './libs/actions/Card';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
@@ -340,6 +341,10 @@ const ROUTES = {
     SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
         route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged` as const,
+    },
+    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: {
+        route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged/:reason/confirm-magic-code',
+        getRoute: (cardID: string, reason: ReplacementReason) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged/${reason}/confirm-magic-code` as const,
     },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
@@ -1078,6 +1083,12 @@ const ROUTES = {
         getRoute: (policyID: string, categoryName: string, backTo = '') =>
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}/gl-code` as const, backTo),
+    },
+    MONEY_REQUEST_STEP_CURRENCY: {
+        route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex = '', currency = '', backTo = '') =>
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/currency/${transactionID}/${reportID}/${pageIndex}?currency=${currency}`, backTo),
     },
     MONEY_REQUEST_STEP_DATE: {
         route: ':action/:iouType/date/:transactionID/:reportID/:reportActionID?',
@@ -3391,6 +3402,16 @@ const ROUTES = {
     WORKSPACES_DOMAIN_VERIFIED: {
         route: 'workspaces/domain-verified/:accountID',
         getRoute: (accountID: number) => `workspaces/domain-verified/${accountID}` as const,
+    },
+    WORKSPACES_ADD_DOMAIN: 'workspaces/add-domain',
+    WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: `workspaces/add-domain/${VERIFY_ACCOUNT}`,
+    WORKSPACES_DOMAIN_ADDED: {
+        route: 'workspaces/domain-added/:accountID',
+        getRoute: (accountID: number) => `workspaces/domain-added/${accountID}` as const,
+    },
+    WORKSPACES_DOMAIN_ACCESS_RESTRICTED: {
+        route: 'workspaces/domain-access-restricted/:accountID',
+        getRoute: (accountID: number) => `workspaces/domain-access-restricted/${accountID}` as const,
     },
     DOMAIN_INITIAL: {
         route: 'domain/:accountID',
