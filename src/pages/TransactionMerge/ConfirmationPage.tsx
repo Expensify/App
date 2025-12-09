@@ -18,6 +18,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import {buildMergedTransactionData} from '@libs/MergeTransactionUtils';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
@@ -74,13 +75,21 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             isASAPSubmitBetaEnabled,
         });
 
-        // If the kept transaction is unreported, there's no report to navigate to.
-        if (reportID === '0') {
-            Navigation.dismissModal();
-        } else if (hash) {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID}));
-        } else {
+        if (reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+            // Navigate to search money report screen if we're on Reports
+            if (isSearchTopmostFullScreenRoute()) {
+                // Close the current modal screen
+                Navigation.dismissModal();
+                // Ensure the dismiss completes first
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    // Navigate to the money request report in search results
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
+                });
+                return;
+            }
             Navigation.dismissModalWithReport({reportID});
+        } else {
+            Navigation.dismissModal();
         }
     }, [
         targetTransaction,
@@ -93,7 +102,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
-        hash,
     ]);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
