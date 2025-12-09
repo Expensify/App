@@ -66,12 +66,6 @@ Onyx.connect({
     callback: (value) => (amountOwed = value),
 });
 
-let billingStatus: OnyxEntry<BillingStatus>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_BILLING_STATUS,
-    callback: (value) => (billingStatus = value),
-});
-
 let ownerBillingGraceEndPeriod: OnyxEntry<number>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
@@ -144,14 +138,14 @@ function hasBillingDisputePending(billingDisputePending: number | undefined) {
 /**
  * @returns Whether there is a card expired error.
  */
-function hasCardExpiredError() {
+function hasCardExpiredError(billingStatus: OnyxEntry<BillingStatus>) {
     return billingStatus?.declineReason === 'expired_card' && amountOwed !== 0;
 }
 
 /**
  * @returns Whether there is an insufficient funds error.
  */
-function hasInsufficientFundsError() {
+function hasInsufficientFundsError(billingStatus: OnyxEntry<BillingStatus>) {
     return billingStatus?.declineReason === 'insufficient_funds' && getAmountOwed() !== 0;
 }
 
@@ -172,7 +166,7 @@ function getCardForSubscriptionBilling(fundList: OnyxEntry<FundList>): Fund | un
 /**
  * @returns Whether the card is due to expire soon.
  */
-function hasCardExpiringSoon(fundList: OnyxEntry<FundList>): boolean {
+function hasCardExpiringSoon(fundList: OnyxEntry<FundList>, billingStatus: OnyxEntry<BillingStatus>): boolean {
     if (!isEmptyObject(billingStatus)) {
         return false;
     }
@@ -283,6 +277,7 @@ function getSubscriptionStatus(
     billingDisputePending: number | undefined,
     retryBillingFailed: boolean | undefined,
     fundList: OnyxEntry<FundList>,
+    billingStatus: OnyxEntry<BillingStatus>,
 ): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
@@ -336,7 +331,7 @@ function getSubscriptionStatus(
     }
 
     // 7. Insufficient funds
-    if (hasInsufficientFundsError()) {
+    if (hasInsufficientFundsError(billingStatus)) {
         return {
             status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
             isError: true,
@@ -344,7 +339,7 @@ function getSubscriptionStatus(
     }
 
     // 8. Card expired
-    if (hasCardExpiredError()) {
+    if (hasCardExpiredError(billingStatus)) {
         return {
             status: PAYMENT_STATUS.CARD_EXPIRED,
             isError: true,
@@ -352,7 +347,7 @@ function getSubscriptionStatus(
     }
 
     // 9. Card due to expire soon
-    if (hasCardExpiringSoon(fundList)) {
+    if (hasCardExpiringSoon(fundList, billingStatus)) {
         return {
             status: PAYMENT_STATUS.CARD_EXPIRE_SOON,
         };
@@ -386,8 +381,9 @@ function hasSubscriptionRedDotError(
     billingDisputePending: number | undefined,
     retryBillingFailed: boolean | undefined,
     fundList: OnyxEntry<FundList>,
+    billingStatus: OnyxEntry<BillingStatus>,
 ): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList)?.isError ?? false;
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)?.isError ?? false;
 }
 
 /**
@@ -399,8 +395,9 @@ function hasSubscriptionGreenDotInfo(
     billingDisputePending: number | undefined,
     retryBillingFailed: boolean | undefined,
     fundList: OnyxEntry<FundList>,
+    billingStatus: OnyxEntry<BillingStatus>,
 ): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList)?.isError === false;
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)?.isError === false;
 }
 
 /**

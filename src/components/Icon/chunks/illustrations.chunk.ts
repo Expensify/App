@@ -11,6 +11,7 @@ import Computer from '@assets/images/computer.svg';
 import DeniedTransactionHand from '@assets/images/denied-transaction-hand.svg';
 // Educational Illustrations
 import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
+// Expensify Card
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
@@ -61,6 +62,7 @@ import Shutter from '@assets/images/shutter.svg';
 // Simple Illustrations - Bucket 3 (Common)
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
+// Simple Illustrations - Original core ones
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
@@ -73,6 +75,7 @@ import Car from '@assets/images/simple-illustrations/simple-illustration__car.sv
 import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
+import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
@@ -277,6 +280,7 @@ const Illustrations = {
     LockOpen,
     Mailbox,
     ShieldYellow,
+    Clock,
 
     // Multifactor Authentication Illustrations
     OpenPadlock,
