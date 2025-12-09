@@ -14,6 +14,7 @@ import {clearErrorFields, clearErrors} from '@userActions/FormActions';
 import {rejectMoneyRequest} from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {getReportPolicyID} from '@src/selectors/Report';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 import type {Report} from '@src/types/onyx';
 import RejectReasonFormView from './RejectReasonFormView';
@@ -22,15 +23,13 @@ type RejectReasonPageProps =
     | PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.REJECT>
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
 
-const reportPolicySelector = (report: OnyxEntry<Report>) => ({policyID: report?.policyID});
-
 function RejectReasonPage({route}: RejectReasonPageProps) {
     const {translate} = useLocalize();
 
     const {transactionID, reportID, backTo} = route.params;
     const {removeTransaction} = useSearchContext();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false, selector: reportPolicySelector});
-    const policy = usePolicy(report?.policyID);
+    const [reportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false, selector: getReportPolicyID});
+    const policy = usePolicy(reportPolicyID);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, policy);
