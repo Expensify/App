@@ -327,7 +327,7 @@ type GetSectionsParams = {
 function getSuggestedSearches(
     accountID: number = CONST.DEFAULT_NUMBER_ID,
     defaultFeedID?: string,
-    icons?: Record<'Document', IconAsset>,
+    icons?: Record<'Document' | 'Pencil', IconAsset>,
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
@@ -382,7 +382,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
             translationPath: 'common.submit',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: Expensicons.Pencil,
+            icon: icons?.Pencil,
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
@@ -1394,7 +1394,7 @@ function createAndOpenSearchTransactionThread(
     shouldNavigate = true,
 ) {
     const iouReportAction = getIOUActionForReportID(item.reportID, item.transactionID);
-    const moneyRequestReportActionID = item.moneyRequestReportActionID !== '0' ? item.moneyRequestReportActionID : undefined;
+    const moneyRequestReportActionID = item.reportAction?.reportActionID ?? undefined;
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
@@ -2058,10 +2058,20 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+type OverflowMenuIconsType = Record<'Pencil', IconAsset>;
+
 /**
  * Constructs and configures the overflow menu for search items, handling interactions such as renaming or deleting items.
  */
-function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void, isMobileMenu?: boolean, closeMenu?: () => void) {
+function getOverflowMenu(
+    icons: OverflowMenuIconsType,
+    itemName: string,
+    hash: number,
+    inputQuery: string,
+    showDeleteModal: (hash: number) => void,
+    isMobileMenu?: boolean,
+    closeMenu?: () => void,
+) {
     return [
         {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2072,7 +2082,7 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
                 }
                 Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: encodeURIComponent(itemName), jsonQuery: inputQuery}));
             },
-            icon: Expensicons.Pencil,
+            icon: icons.Pencil,
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,
             shouldCallAfterModalHide: true,
@@ -2104,7 +2114,7 @@ function isCorrectSearchUserName(displayName?: string) {
 
 // eslint-disable-next-line @typescript-eslint/max-params
 function createTypeMenuSections(
-    icons: Record<'Document', IconAsset>,
+    icons: Record<'Document' | 'Pencil', IconAsset>,
     currentUserEmail: string | undefined,
     currentUserAccountID: number | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
@@ -2656,8 +2666,6 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
         isTaxAmountColumnWide,
         violations,
         hash,
-        moneyRequestReportActionID,
-        canDelete,
         accountID,
         policyID,
         ...transaction

@@ -11,7 +11,6 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -33,8 +32,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
-import {openWorkspace} from '@libs/actions/Policy/Policy';
-import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, openReport, searchInServer} from '@libs/actions/Report';
+import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -62,8 +60,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
-    canRejectReportAction,
-    checkBulkRejectHydration,
     generateReportID,
     getPolicyExpenseChat,
     getReportOrDraftReport,
@@ -75,7 +71,6 @@ import {
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getTransactionViolationsOfTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {dismissRejectUseExplanation, initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -190,58 +185,6 @@ function SearchPage({route}: SearchPageProps) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
-
-    // Check hydration status and prefetch missing data for bulk reject
-    const bulkRejectHydrationStatus = useMemo(() => {
-        if (Object.keys(selectedTransactions).length === 0) {
-            return {areHydrated: true, missingReportIDs: [], missingPolicyIDs: []};
-        }
-        return checkBulkRejectHydration(selectedTransactions, policies);
-    }, [selectedTransactions, policies]);
-
-    // Prefetch missing report and policy data when items are selected
-    const lastPrefetchKeyRef = useRef('');
-    useEffect(() => {
-        const {areHydrated, missingReportIDs, missingPolicyIDs} = bulkRejectHydrationStatus;
-
-        // If hydrated or nothing selected, clear and exit
-        if (areHydrated) {
-            lastPrefetchKeyRef.current = '';
-            return;
-        }
-        if (isOffline) {
-            return;
-        }
-
-        const key = `${[...missingReportIDs].sort().join(',')}|${[...missingPolicyIDs].sort().join(',')}`;
-        if (key === lastPrefetchKeyRef.current) {
-            return;
-        }
-
-        // Prefetch once per unique set of missing IDs
-        for (const id of missingReportIDs) {
-            if (id) {
-                openReport(id);
-            }
-        }
-
-        for (const id of missingPolicyIDs) {
-            if (id) {
-                openWorkspace(id, []);
-            }
-        }
-
-        lastPrefetchKeyRef.current = key;
-    }, [bulkRejectHydrationStatus, isOffline]);
-
-    // Allow retry on reconnect
-    const prevIsOffline = usePrevious(isOffline);
-    useEffect(() => {
-        if (isOffline || !prevIsOffline) {
-            return;
-        }
-        lastPrefetchKeyRef.current = '';
-    }, [isOffline, prevIsOffline]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -562,63 +505,6 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        // Check if any items are explicitly not rejectable (only when data is hydrated)
-        // If data is not hydrated, we don't treat it as "not rejectable" - instead we'll disable the button
-        const login = currentUserPersonalDetails?.login ?? '';
-        const areAllExplicitlyRejectable =
-            selectedTransactionReportIDs.length > 0 &&
-            selectedTransactionReportIDs.every((id) => {
-                const report = getReportOrDraftReport(id);
-                if (!report) {
-                    return false;
-                }
-                const policyForReport = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                if (!policyForReport) {
-                    return false;
-                }
-                return canRejectReportAction(login, report, policyForReport);
-            });
-
-        const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => {
-            const transactionViolations = getTransactionViolationsOfTransaction(id) ?? [];
-            return !transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
-        });
-
-        // Check if all selected items have hydrated Onyx data for rejection
-        const {areHydrated: areItemsHydratedForReject} = bulkRejectHydrationStatus;
-
-        // Show the Reject option unless we know for sure it's not allowed
-        const shouldShowRejectOption = !isOffline && areAllExplicitlyRejectable && hasNoRejectedTransaction;
-
-        // Disabled if not hydrated
-        const isRejectDisabled = !areItemsHydratedForReject;
-
-        if (shouldShowRejectOption) {
-            options.push({
-                icon: Expensicons.ThumbsDown,
-                text: translate('search.bulkActions.reject'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
-                shouldCloseModalOnSelect: true,
-                disabled: isRejectDisabled,
-                onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
-                    if (!areItemsHydratedForReject) {
-                        return;
-                    }
-
-                    if (dismissedRejectUseExplanation) {
-                        Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
-                    } else {
-                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
-                    }
-                },
-            });
-        }
-
         const shouldShowSubmitOption =
             !isOffline &&
             areSelectedTransactionsIncludedInReports &&
@@ -821,7 +707,6 @@ function SearchPage({route}: SearchPageProps) {
         dismissedHoldUseExplanation,
         dismissedRejectUseExplanation,
         areAllTransactionsFromSubmitter,
-        bulkRejectHydrationStatus,
         currentUserPersonalDetails?.login,
     ]);
 
@@ -1058,8 +943,7 @@ function SearchPage({route}: SearchPageProps) {
                 Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
             }
         } else {
-            dismissRejectUseExplanation();
-            Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+            // TODO: Add reject
         }
         setRejectModalAction(null);
     }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
