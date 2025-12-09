@@ -526,7 +526,7 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        if (!isPolicyExpenseChat) {
+                        if (!isPolicyExpenseChat && (!isTrackExpense || !policyForMovingExpensesID)) {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                     action,

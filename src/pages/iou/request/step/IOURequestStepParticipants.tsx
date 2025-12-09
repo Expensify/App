@@ -7,6 +7,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -21,7 +22,7 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getRequestType, isCorporateCardTransaction, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
     navigateToStartStepIfScanFileCannotBeRead,
@@ -77,6 +78,7 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
@@ -170,7 +172,7 @@ function IOURequestStepParticipants({
     // because we want to first check if the p2p rate exists on the workspace.
     // If it doesn't exist - we'll show an error message to force the user to choose a valid rate from the workspace.
     useEffect(() => {
-        if (!isMovingTransactionFromTrackExpense) {
+        if (!isMovingTransactionFromTrackExpense || !isFocused) {
             return;
         }
 
@@ -199,8 +201,13 @@ function IOURequestStepParticipants({
             return;
         }
 
-        const rateID = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
         for (const transaction of transactions) {
+            const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: selfDMReportID,
+                isTrackDistanceExpense: isDistanceRequest(transaction),
+                policy: policyForMovingExpenses,
+                isPolicyExpenseChat: false,
+            });
             setCustomUnitRateID(transaction.transactionID, rateID);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(
@@ -225,7 +232,19 @@ function IOURequestStepParticipants({
                 });
             }
         });
-    }, [selfDMReportID, transactions, action, initialTransactionID, waitForKeyboardDismiss, iouType, selfDMReport, currentUserPersonalDetails.accountID, isActivePolicyRequest, backTo]);
+    }, [
+        selfDMReportID,
+        transactions,
+        action,
+        initialTransactionID,
+        waitForKeyboardDismiss,
+        iouType,
+        selfDMReport,
+        currentUserPersonalDetails.accountID,
+        isActivePolicyRequest,
+        backTo,
+        policyForMovingExpenses,
+    ]);
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
