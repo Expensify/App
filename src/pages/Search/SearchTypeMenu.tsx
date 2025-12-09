@@ -59,13 +59,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
         !!typeMenuSections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle') && isFocused,
     );
-<<<<<<< HEAD
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark'] as const);
-    const {showDeleteModal} = useDeleteSavedSearch();
-=======
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil'] as const);
-    const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
->>>>>>> main
+    const {showDeleteModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});

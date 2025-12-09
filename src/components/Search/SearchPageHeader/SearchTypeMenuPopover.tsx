@@ -14,8 +14,6 @@ type SearchTypeMenuNarrowProps = {
 function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const styles = useThemeStyles();
     const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, windowHeight} = useSearchTypeMenu(queryJSON);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Menu'] as const);
-
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
 
