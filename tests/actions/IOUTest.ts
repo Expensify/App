@@ -7076,6 +7076,7 @@ describe('actions/IOU', () => {
                         parentReport: fakeParentReport,
                         currentDate,
                         currentUserPersonalDetails,
+                        hasOnlyPersonalPolicies: false,
                     });
                 })
                 .then(async () => {
@@ -7096,6 +7097,7 @@ describe('actions/IOU', () => {
                         parentReport: fakeParentReport,
                         currentDate,
                         currentUserPersonalDetails,
+                        hasOnlyPersonalPolicies: false,
                     });
                 })
                 .then(async () => {
@@ -7116,6 +7118,7 @@ describe('actions/IOU', () => {
                         parentReport: fakeParentReport,
                         currentDate,
                         currentUserPersonalDetails,
+                        hasOnlyPersonalPolicies: false,
                     });
                 })
                 .then(async () => {
@@ -8087,7 +8090,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // When the receipt is replaced
-            replaceReceipt({transactionID, file, source});
+            replaceReceipt({transactionID, file, source, transactionPolicy: undefined});
             await waitForBatchedUpdates();
 
             // Then the transaction should have the new receipt source
@@ -8144,7 +8147,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // When the receipt is replaced
-            replaceReceipt({transactionID, file, source});
+            replaceReceipt({transactionID, file, source, transactionPolicy: undefined});
             await waitForBatchedUpdates();
 
             // Then the transaction should have the new receipt source
@@ -10136,7 +10139,7 @@ describe('actions/IOU', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            const result = rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment);
+            const result = rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy);
 
             // Then: Should return navigation route to chat report
             expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
@@ -10152,7 +10155,7 @@ describe('actions/IOU', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment);
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is added

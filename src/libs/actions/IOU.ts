@@ -90,7 +90,6 @@ import {
     getPolicy,
     getSubmitToAccountID,
     hasDependentTags,
-    hasOnlyPersonalPolicies,
     isControlPolicy,
     isDelayedSubmissionEnabled,
     isPaidGroupPolicy,
@@ -299,6 +298,7 @@ type InitMoneyRequestParams = {
     currentDate: string | undefined;
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
+    hasOnlyPersonalPolicies: boolean;
 };
 
 type MoneyRequestInformation = {
@@ -354,6 +354,7 @@ type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | '
 };
 
 type TrackedExpensePolicyParams = {
+    policy: OnyxEntry<OnyxTypes.Policy>;
     policyID: string | undefined;
     isDraftPolicy?: boolean;
 };
@@ -790,6 +791,7 @@ type ReplaceReceipt = {
     file?: File;
     source: string;
     transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    transactionPolicy: OnyxEntry<OnyxTypes.Policy>;
 };
 
 type GetSearchOnyxUpdateParams = {
@@ -874,22 +876,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allNextSteps = value ?? {};
-    },
-});
-
-const allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        if (val === null || val === undefined) {
-            delete allPolicies[key];
-            return;
-        }
-
-        allPolicies[key] = val;
     },
 });
 
@@ -1057,6 +1043,7 @@ function initMoneyRequest({
     currentDate = '',
     lastSelectedDistanceRates,
     currentUserPersonalDetails,
+    hasOnlyPersonalPolicies,
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -1097,7 +1084,7 @@ function initMoneyRequest({
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
             const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
             comment.customUnit = {customUnitRateID};
-        } else if (hasOnlyPersonalPolicies(allPolicies)) {
+        } else if (hasOnlyPersonalPolicies) {
             comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID};
         }
         if (comment.customUnit) {
@@ -6086,7 +6073,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     successData?.push(...shareTrackedExpenseSuccessData);
     failureData?.push(...shareTrackedExpenseFailureData);
 
-    const policyEmployeeList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyParams?.policyID}`]?.employeeList;
+    const policyEmployeeList = policyParams?.policy?.employeeList;
     if (!policyEmployeeList?.[accountantEmail]) {
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, false, false));
         const {
@@ -6774,6 +6761,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
+                policy,
                 isDraftPolicy,
             };
             const reportInformation: TrackedExpenseReportInformation = {
@@ -6824,6 +6812,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
+                policy,
             };
             const reportInformation: TrackedExpenseReportInformation = {
                 moneyRequestPreviewReportActionID: iouAction?.reportActionID,
@@ -11928,13 +11917,12 @@ function payInvoice(
     API.write(WRITE_COMMANDS.PAY_INVOICE, params, {optimisticData, successData, failureData});
 }
 
-function detachReceipt(transactionID: string | undefined, transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>) {
+function detachReceipt(transactionID: string | undefined, transactionPolicy: OnyxEntry<OnyxTypes.Policy>, transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>) {
     if (!transactionID) {
         return;
     }
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
     const newTransaction = transaction
         ? {
               ...transaction,
@@ -11980,16 +11968,16 @@ function detachReceipt(transactionID: string | undefined, transactionPolicyCateg
         },
     ];
 
-    if (policy && isPaidGroupPolicy(policy) && newTransaction) {
-        const policyTagList = getPolicyTagsData(policy.id);
+    if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
+        const policyTagList = getPolicyTagsData(transactionPolicy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             newTransaction,
             currentTransactionViolations,
-            policy,
+            transactionPolicy,
             policyTagList ?? {},
             transactionPolicyCategories ?? {},
-            hasDependentTags(policy, policyTagList ?? {}),
+            hasDependentTags(transactionPolicy, policyTagList ?? {}),
             isInvoiceReportReportUtils(expenseReport),
         );
         optimisticData.push(violationsOnyxData);
@@ -12048,14 +12036,13 @@ function detachReceipt(transactionID: string | undefined, transactionPolicyCateg
     API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
 
-function replaceReceipt({transactionID, file, source, transactionPolicyCategories}: ReplaceReceipt) {
+function replaceReceipt({transactionID, file, source, transactionPolicy, transactionPolicyCategories}: ReplaceReceipt) {
     if (!file) {
         return;
     }
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
         source,
@@ -12063,7 +12050,7 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
         filename: file.name,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
-    const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicyCategories};
+    const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicy, transactionPolicyCategories};
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticData: OnyxUpdate[] = [
@@ -12106,16 +12093,16 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
         },
     ];
 
-    if (policy && isPaidGroupPolicy(policy) && newTransaction) {
-        const policyTagList = getPolicyTagsData(policy.id);
+    if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
+        const policyTagList = getPolicyTagsData(transactionPolicy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             newTransaction,
             currentTransactionViolations,
-            policy,
+            transactionPolicy,
             policyTagList ?? {},
             transactionPolicyCategories ?? {},
-            hasDependentTags(policy, policyTagList ?? {}),
+            hasDependentTags(transactionPolicy, policyTagList ?? {}),
             isInvoiceReportReportUtils(expenseReport),
         );
         optimisticData.push(violationsOnyxData);
@@ -13337,6 +13324,7 @@ function prepareRejectMoneyRequestData(
     transactionID: string,
     reportID: string,
     comment: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
     options?: {sharedRejectedToReportID?: string},
     shouldUseBulkAction?: boolean,
 ): RejectMoneyRequestData | undefined {
@@ -13344,7 +13332,6 @@ function prepareRejectMoneyRequestData(
     const transactionAmount = getAmount(transaction);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policyExpenseChat = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
     const isIOU = isIOUReport(report);
     const searchFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
@@ -14062,8 +14049,8 @@ function prepareRejectMoneyRequestData(
     return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
 }
 
-function rejectMoneyRequest(transactionID: string, reportID: string, comment: string, options?: {sharedRejectedToReportID?: string}): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, options);
+function rejectMoneyRequest(transactionID: string, reportID: string, comment: string, policy: OnyxEntry<OnyxTypes.Policy>, options?: {sharedRejectedToReportID?: string}): Route | undefined {
+    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, options);
     if (!data) {
         return;
     }
