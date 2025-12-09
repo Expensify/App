@@ -224,7 +224,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 });
             }
         });
-    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt?.type, transactionPolicy]);
+    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt?.type, policy]);
 
     const shouldShowRotateReceiptButton = useMemo(
         () =>
