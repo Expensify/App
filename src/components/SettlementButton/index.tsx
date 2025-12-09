@@ -104,6 +104,8 @@ function SettlementButton({
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`, {canBeMissing: true});
+
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
@@ -143,6 +145,8 @@ function SettlementButton({
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
     const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || !!policy?.achAccount) && !lastPaymentMethod;
     const {isBetaEnabled} = usePermissions();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, accountID, email ?? '');
@@ -343,7 +347,12 @@ function SettlementButton({
                         return activePolicy.id;
                     }
 
-                    return createWorkspace().policyID;
+                    return createWorkspace({
+                        introSelectedParam: introSelected,
+                        activePolicyIDParam: activePolicyID,
+                        currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                        currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                    }).policyID;
                 };
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
@@ -429,7 +438,7 @@ function SettlementButton({
             if (confirmApproval) {
                 confirmApproval();
             } else {
-                approveMoneyRequest(iouReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, false);
+                approveMoneyRequest(iouReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, false);
             }
             return;
         }
@@ -501,9 +510,7 @@ function SettlementButton({
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && (isExpenseReport || isInvoiceReport))) {
             if (isInvoiceReport) {
                 const isBusinessBankAccount = bankAccountToDisplay?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
-                return translate(isBusinessBankAccount ? 'iou.invoiceBusinessBank' : 'iou.invoicePersonalBank', {
-                    lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4) ?? '',
-                });
+                return translate(isBusinessBankAccount ? 'iou.invoiceBusinessBank' : 'iou.invoicePersonalBank', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4) ?? '');
             }
             if (!personalBankAccountList.length) {
                 return;
@@ -514,18 +521,18 @@ function SettlementButton({
 
         if ((lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA || hasIntentToPay) && !!policy?.achAccount) {
             if (policy?.achAccount?.accountNumber) {
-                return translate('paymentMethodList.bankAccountLastFour', {lastFour: policy?.achAccount?.accountNumber?.slice(-4)});
+                return translate('paymentMethodList.bankAccountLastFour', policy?.achAccount?.accountNumber?.slice(-4));
             }
 
             if (!bankAccountToDisplay?.accountData?.accountNumber) {
                 return;
             }
 
-            return translate('paymentMethodList.bankAccountLastFour', {lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4)});
+            return translate('paymentMethodList.bankAccountLastFour', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4));
         }
 
         if (bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && isExpenseReportUtil(iouReport)) {
-            return translate('paymentMethodList.bankAccountLastFour', {lastFour: bankAccount?.accountData?.accountNumber?.slice(-4) ?? ''});
+            return translate('paymentMethodList.bankAccountLastFour', bankAccount?.accountData?.accountNumber?.slice(-4) ?? '');
         }
 
         return undefined;
