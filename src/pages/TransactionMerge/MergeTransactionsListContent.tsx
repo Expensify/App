@@ -117,7 +117,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
                 targetTransactionID: newTargetTransaction?.transactionID,
                 sourceTransactionID: newSourceTransaction?.transactionID,
             });
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID));
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         } else {
             const mergedReceipt = newTargetTransaction?.receipt?.receiptID ? newTargetTransaction.receipt : newSourceTransaction?.receipt;
             setMergeTransactionKey(transactionID, {
@@ -130,10 +130,10 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
             if (!conflictFields.length) {
                 // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
                 setMergeTransactionKey(transactionID, mergeableData);
-                Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID));
+                Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
                 return;
             }
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID));
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         }
     }, [transactionID, targetTransaction, sourceTransaction, localeCompare]);
 

@@ -103,7 +103,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, hash));
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute(), hash));
         }
     }, [mergeTransaction, conflictFields, hash, transactionID]);
 

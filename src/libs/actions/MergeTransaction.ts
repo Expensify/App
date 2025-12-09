@@ -48,7 +48,7 @@ function setupMergeTransactionDataAndNavigate(transactions: Transaction[], hash?
         const transaction = transactions.at(0);
         if (transaction) {
             setupMergeTransactionData(transaction.transactionID, {targetTransactionID: transaction.transactionID});
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID));
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute()));
             return;
         }
     }
@@ -61,14 +61,14 @@ function setupMergeTransactionDataAndNavigate(transactions: Transaction[], hash?
     setupMergeTransactionData(targetTransaction.transactionID, {targetTransactionID: targetTransaction?.transactionID, sourceTransactionID: sourceTransaction?.transactionID});
     if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
         // Navigate to the receipt review page if both transactions have a receipt
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(targetTransaction.transactionID, hash));
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute(), hash));
     } else {
         // Only one transaction has a receipt, choose it by default
         const receipt = targetTransaction.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction.receipt;
         setMergeTransactionKey(targetTransaction.transactionID, {
             receipt,
         });
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(targetTransaction.transactionID, hash));
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute(), hash));
     }
 }
 
