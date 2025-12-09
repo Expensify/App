@@ -17,7 +17,6 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName} from '@src/types/onyx/Policy';
 import type en from './en';
 import type {
     AddedOrDeletedPolicyReportFieldParams,
@@ -44,6 +43,7 @@ import type {
     ChangeReportPolicyParams,
     ChangeTypeParams,
     CharacterLengthLimitParams,
+    ConnectionNameParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -3820,11 +3820,11 @@ ${
                 content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
                     `このQRコードを共有するか、下のリンクをコピーすると、メンバーがあなたのワークスペースへのアクセスを簡単にリクエストできるようになります。ワークスペースへの参加リクエストはすべて、あなたが確認できるように <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> ルームに表示されます。`,
             },
-            connectTo: (connectionName: AllConnectionName) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} に接続`,
+            connectTo: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} に接続`,
             createNewConnection: '新しい接続を作成',
             reuseExistingConnection: '既存の接続を再利用',
             existingConnections: '既存の接続',
-            existingConnectionsDescription: (connectionName: AllConnectionName) =>
+            existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `以前に ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} に接続したことがあるため、既存の接続を再利用するか、新しい接続を作成するかを選択できます。`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 最終同期日 ${formattedDate}`,
             authenticationError: (connectionName: string) => `認証エラーのため、${connectionName} に接続できません。`,
@@ -5454,7 +5454,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             talkYourAccountManager: 'アカウントマネージャーとチャットする',
             talkToConcierge: 'Conciergeとチャットする',
             needAnotherAccounting: '別の会計ソフトが必要ですか？',
-            connectionName: (connectionName: AllConnectionName) => {
+            connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'QuickBooks Online';
@@ -5482,12 +5482,12 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             syncNow: '今すぐ同期',
             disconnect: '切断',
             reinstall: 'コネクタを再インストール',
-            disconnectTitle: (connectionName?: AllConnectionName) => {
+            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName = connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : '連携';
                 return `${integrationName} を切断`;
             },
-            connectTitle: (connectionName: AllConnectionName) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '会計連携'} を接続`,
-            syncError: (connectionName: AllConnectionName) => {
+            connectTitle: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '会計連携'} を接続`,
+            syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'QuickBooks Online に接続できません';
@@ -5516,12 +5516,12 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'レポートフィールドとしてインポート済み',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite 従業員のデフォルト',
             },
-            disconnectPrompt: (connectionName?: AllConnectionName) => {
+            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'この連携';
                 return `本当に${integrationName}との連携を解除しますか？`;
             },
-            connectPrompt: (connectionName: AllConnectionName) =>
+            connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'この会計統合'} を接続してもよろしいですか？これにより、既存の会計連携はすべて削除されます。`,
             enterCredentials: '認証情報を入力してください',
             connections: {
@@ -6875,8 +6875,8 @@ ${reportName}
                 },
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} がワークスペースを退出しました`,
                 removeMember: ({email, role}: AddEmployeeParams) => `${role} ${email} を削除しました`,
-                removedConnection: (connectionName: AllConnectionName) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} への接続を削除しました`,
-                addedConnection: (connectionName: AllConnectionName) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} に接続済み`,
+                removedConnection: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} への接続を削除しました`,
+                addedConnection: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} に接続済み`,
                 leftTheChat: 'チャットを退出しました',
             },
             error: {

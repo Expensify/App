@@ -17,7 +17,6 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName} from '@src/types/onyx/Policy';
 import type en from './en';
 import type {
     AddedOrDeletedPolicyReportFieldParams,
@@ -44,6 +43,7 @@ import type {
     ChangeReportPolicyParams,
     ChangeTypeParams,
     CharacterLengthLimitParams,
+    ConnectionNameParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -3824,11 +3824,11 @@ ${
                 content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
                     `Udostępnij ten kod QR lub skopiuj poniższy link, aby ułatwić członkom proszenie o dostęp do Twojej przestrzeni roboczej. Wszystkie prośby o dołączenie do przestrzeni roboczej pojawią się w pokoju <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> do Twojej weryfikacji.`,
             },
-            connectTo: (connectionName: AllConnectionName) => `Połącz z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            connectTo: ({connectionName}: ConnectionNameParams) => `Połącz z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Utwórz nowe połączenie',
             reuseExistingConnection: 'Użyj istniejącego połączenia',
             existingConnections: 'Istniejące połączenia',
-            existingConnectionsDescription: (connectionName: AllConnectionName) =>
+            existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `Ponieważ wcześniej połączyłeś(-aś) się z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, możesz ponownie użyć istniejącego połączenia lub utworzyć nowe.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} – Ostatnia synchronizacja ${formattedDate}`,
             authenticationError: (connectionName: string) => `Nie można połączyć z ${connectionName} z powodu błędu uwierzytelniania.`,
@@ -5465,7 +5465,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             talkYourAccountManager: 'Porozmawiaj ze swoim opiekunem klienta.',
             talkToConcierge: 'Czatuj z Concierge.',
             needAnotherAccounting: 'Potrzebujesz innego oprogramowania księgowego?',
-            connectionName: (connectionName: AllConnectionName) => {
+            connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'QuickBooks Online';
@@ -5493,13 +5493,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             syncNow: 'Synchronizuj teraz',
             disconnect: 'Odłącz',
             reinstall: 'Zainstaluj ponownie łącznik',
-            disconnectTitle: (connectionName?: AllConnectionName) => {
+            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'Integracja';
                 return `Odłącz ${integrationName}`;
             },
-            connectTitle: (connectionName: AllConnectionName) => `Połącz ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'integracja księgowa'}`,
-            syncError: (connectionName: AllConnectionName) => {
+            connectTitle: ({connectionName}: ConnectionNameParams) => `Połącz ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'integracja księgowa'}`,
+            syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'Nie można połączyć się z QuickBooks Online';
@@ -5528,12 +5528,12 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Zaimportowano jako pola raportu',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Domyślne ustawienia pracownika NetSuite',
             },
-            disconnectPrompt: (connectionName?: AllConnectionName) => {
+            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'ta integracja';
                 return `Czy na pewno chcesz odłączyć ${integrationName}?`;
             },
-            connectPrompt: (connectionName: AllConnectionName) =>
+            connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Czy na pewno chcesz połączyć ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'to połączenie z systemem księgowym'}? Spowoduje to usunięcie wszystkich istniejących połączeń księgowych.`,
             enterCredentials: 'Wprowadź swoje dane logowania',
             connections: {
@@ -6902,8 +6902,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 },
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} opuścił(-a) przestrzeń roboczą`,
                 removeMember: ({email, role}: AddEmployeeParams) => `usunięto ${role} ${email}`,
-                removedConnection: (connectionName: AllConnectionName) => `usunięto połączenie z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
-                addedConnection: (connectionName: AllConnectionName) => `połączono z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                removedConnection: ({connectionName}: ConnectionNameParams) => `usunięto połączenie z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                addedConnection: ({connectionName}: ConnectionNameParams) => `połączono z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'opuścił czat',
             },
             error: {

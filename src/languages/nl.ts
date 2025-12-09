@@ -17,7 +17,6 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName} from '@src/types/onyx/Policy';
 import type en from './en';
 import type {
     AddedOrDeletedPolicyReportFieldParams,
@@ -44,6 +43,7 @@ import type {
     ChangeReportPolicyParams,
     ChangeTypeParams,
     CharacterLengthLimitParams,
+    ConnectionNameParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -3828,11 +3828,11 @@ ${
                 content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
                     `Deel deze QR-code of kopieer de onderstaande link om het leden gemakkelijk te maken toegang tot je werkruimte aan te vragen. Alle verzoeken om deel te nemen aan de werkruimte verschijnen in de <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a>-ruimte voor jouw beoordeling.`,
             },
-            connectTo: (connectionName: AllConnectionName) => `Verbind met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            connectTo: ({connectionName}: ConnectionNameParams) => `Verbind met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Nieuwe verbinding maken',
             reuseExistingConnection: 'Bestaande verbinding hergebruiken',
             existingConnections: 'Bestaande verbindingen',
-            existingConnectionsDescription: (connectionName: AllConnectionName) =>
+            existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `Omdat je eerder verbinding hebt gemaakt met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, kun je ervoor kiezen een bestaande verbinding opnieuw te gebruiken of een nieuwe aan te maken.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Laatst gesynchroniseerd ${formattedDate}`,
             authenticationError: (connectionName: string) => `Kan geen verbinding maken met ${connectionName} vanwege een authenticatiefout.`,
@@ -5474,7 +5474,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             talkYourAccountManager: 'Chat met je accountmanager.',
             talkToConcierge: 'Chatten met Concierge.',
             needAnotherAccounting: 'Nog een andere boekhoudsoftware nodig?',
-            connectionName: (connectionName: AllConnectionName) => {
+            connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'QuickBooks Online';
@@ -5502,13 +5502,13 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             syncNow: 'Nu synchroniseren',
             disconnect: 'Verbinding verbreken',
             reinstall: 'Connector opnieuw installeren',
-            disconnectTitle: (connectionName?: AllConnectionName) => {
+            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integratie';
                 return `Verbinding met ${integrationName} verbreken`;
             },
-            connectTitle: (connectionName: AllConnectionName) => `Verbinden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'boekhoudkoppeling'}`,
-            syncError: (connectionName: AllConnectionName) => {
+            connectTitle: ({connectionName}: ConnectionNameParams) => `Verbinden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'boekhoudkoppeling'}`,
+            syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'Kan geen verbinding maken met QuickBooks Online';
@@ -5537,12 +5537,12 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Geïmporteerd als rapportvelden',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Standaard NetSuite-medewerker',
             },
-            disconnectPrompt: (connectionName?: AllConnectionName) => {
+            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'deze integratie';
                 return `Weet je zeker dat je de verbinding met ${integrationName} wilt verbreken?`;
             },
-            connectPrompt: (connectionName: AllConnectionName) =>
+            connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Weet je zeker dat je ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'deze boekhoudkundige integratie'} wilt verbinden? Hierdoor worden alle bestaande boekhoudkoppelingen verwijderd.`,
             enterCredentials: 'Voer je inloggegevens in',
             connections: {
@@ -6913,8 +6913,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 },
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} heeft de werkruimte verlaten`,
                 removeMember: ({email, role}: AddEmployeeParams) => `${role} ${email} verwijderd`,
-                removedConnection: (connectionName: AllConnectionName) => `verbinding met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} verwijderd`,
-                addedConnection: (connectionName: AllConnectionName) => `verbonden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                removedConnection: ({connectionName}: ConnectionNameParams) => `verbinding met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} verwijderd`,
+                addedConnection: ({connectionName}: ConnectionNameParams) => `verbonden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'heeft de chat verlaten',
             },
             error: {

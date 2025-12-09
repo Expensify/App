@@ -17,7 +17,6 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName} from '@src/types/onyx/Policy';
 import type en from './en';
 import type {
     AddedOrDeletedPolicyReportFieldParams,
@@ -44,6 +43,7 @@ import type {
     ChangeReportPolicyParams,
     ChangeTypeParams,
     CharacterLengthLimitParams,
+    ConnectionNameParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -3768,11 +3768,11 @@ ${
                 content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
                     `分享此二维码或复制下面的链接，方便成员请求访问您的工作区。所有加入工作区的请求都会显示在 <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> 聊天室中供您审核。`,
             },
-            connectTo: (connectionName: AllConnectionName) => `连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            connectTo: ({connectionName}: ConnectionNameParams) => `连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: '创建新连接',
             reuseExistingConnection: '重复使用现有连接',
             existingConnections: '现有连接',
-            existingConnectionsDescription: (connectionName: AllConnectionName) =>
+            existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `由于您之前已连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}，您可以选择复用现有连接或创建新连接。`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 上次同步时间：${formattedDate}`,
             authenticationError: (connectionName: string) => `由于身份验证错误，无法连接到 ${connectionName}。`,
@@ -5373,7 +5373,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             talkYourAccountManager: '与您的客户经理聊天。',
             talkToConcierge: '与 Concierge 聊天。',
             needAnotherAccounting: '需要其他会计软件？',
-            connectionName: (connectionName: AllConnectionName) => {
+            connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'QuickBooks Online';
@@ -5401,12 +5401,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncNow: '立即同步',
             disconnect: '断开连接',
             reinstall: '重新安装连接器',
-            disconnectTitle: (connectionName?: AllConnectionName) => {
+            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName = connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : '集成';
                 return `断开连接 ${integrationName}`;
             },
-            connectTitle: (connectionName: AllConnectionName) => `连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '会计集成'}`,
-            syncError: (connectionName: AllConnectionName) => {
+            connectTitle: ({connectionName}: ConnectionNameParams) => `连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '会计集成'}`,
+            syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return '无法连接到 QuickBooks Online';
@@ -5435,12 +5435,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: '已作为报表字段导入',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite 员工默认值',
             },
-            disconnectPrompt: (connectionName?: AllConnectionName) => {
+            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : '此集成';
                 return `您确定要断开与 ${integrationName} 的连接吗？`;
             },
-            connectPrompt: (connectionName: AllConnectionName) =>
+            connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `您确定要连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '此会计集成'} 吗？这将移除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
             connections: {
@@ -6773,8 +6773,8 @@ ${reportName}
                 },
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} 离开了工作区`,
                 removeMember: ({email, role}: AddEmployeeParams) => `已移除 ${role} ${email}`,
-                removedConnection: (connectionName: AllConnectionName) => `已移除与 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 的连接`,
-                addedConnection: (connectionName: AllConnectionName) => `已连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                removedConnection: ({connectionName}: ConnectionNameParams) => `已移除与 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 的连接`,
+                addedConnection: ({connectionName}: ConnectionNameParams) => `已连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: '已离开聊天',
             },
             error: {

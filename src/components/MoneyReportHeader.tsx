@@ -973,7 +973,7 @@ function MoneyReportHeader({
         return getSecondaryExportReportActions(moneyRequestReport, policy, exportTemplates);
     }, [moneyRequestReport, policy, exportTemplates]);
 
-    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', connectedIntegration) : '';
+    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
     const unapproveWarningText = useMemo(
         () => (
             <Text>

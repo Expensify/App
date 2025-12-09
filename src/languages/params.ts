@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
-import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 type TagSelectionParams = {
@@ -430,6 +430,10 @@ type IssueVirtualCardParams = {
 type ApprovalWorkflowErrorParams = {
     name1: string;
     name2: string;
+};
+
+type ConnectionNameParams = {
+    connectionName: AllConnectionName;
 };
 
 type LastSyncDateParams = {
@@ -993,6 +997,7 @@ export type {
     StripePaidParams,
     RemoveMembersWarningPrompt,
     ApprovalWorkflowErrorParams,
+    ConnectionNameParams,
     LastSyncDateParams,
     CustomersOrJobsLabelParams,
     ExportAgainModalDescriptionParams,

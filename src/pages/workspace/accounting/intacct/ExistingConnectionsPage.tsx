@@ -57,12 +57,12 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             testID={ExistingConnectionsPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.common.connectTo', CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)}
+                title={translate('workspace.common.connectTo', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT})}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView style={[styles.flex1]}>
-                <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)}</Text>
+                <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT})}</Text>
                 <MenuItem
                     title={translate('workspace.common.createNewConnection')}
                     icon={LinkCopy}
