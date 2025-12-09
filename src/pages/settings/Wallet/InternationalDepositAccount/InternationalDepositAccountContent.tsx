@@ -155,7 +155,6 @@ function InternationalDepositAccountContent({
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={InternationalDepositAccountContent.displayName}
-            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             shouldShowOfflineIndicatorInWideScreen={screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
             <HeaderWithBackButton
