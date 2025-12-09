@@ -13,7 +13,7 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPreferredExporter,
 } from './PolicyUtils';
-import {getAllReportActions, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, hasPendingSubmittedAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {getAllReportActions, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, hasDEWSubmitPendingOrFailed, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     canAddTransaction as canAddTransactionUtil,
     canHoldUnholdReportAction,
@@ -82,14 +82,14 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
         return false;
     }
 
-    // Don't show submit button if there's already a pending SUBMITTED action on DEW policy (DEW submission in progress)
-    if (hasDynamicExternalWorkflow(policy) && hasPendingSubmittedAction(reportActions ?? [])) {
-        return false;
-    }
-
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isOpenReport = isOpenReportUtils(report);
+
+    // Don't show submit button if DEW submit has failed or is pending
+    if (hasDEWSubmitPendingOrFailed(reportActions ?? [], hasDynamicExternalWorkflow(policy))) {
+        return false;
+    }
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
     if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
