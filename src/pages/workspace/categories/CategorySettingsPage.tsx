@@ -1,18 +1,19 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Trashcan} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePolicyData from '@hooks/usePolicyData';
@@ -52,18 +53,17 @@ function CategorySettingsPage({
 }: CategorySettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
     const {environmentURL} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories).find((category) => category.previousCategoryName === categoryName);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
     const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
 
-    const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
@@ -127,13 +127,44 @@ function CategorySettingsPage({
         return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
     }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
 
-    if (!policyCategory) {
-        return <NotFoundPage />;
-    }
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const showCannotDeleteOrDisableLastCategoryModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
+            prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
+
+    const showDeleteCategoryModal = () => {
+        showConfirmModal({
+            title: translate('workspace.categories.deleteCategory'),
+            prompt: translate('workspace.categories.deleteCategoryPrompt'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            deleteWorkspaceCategories(
+                policyData,
+                [categoryName],
+                isSetupCategoryTaskParentReportArchived,
+                setupCategoryTaskReport,
+                setupCategoryTaskParentReport,
+                currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
+            );
+            navigateBack();
+        });
+    };
 
     const updateWorkspaceCategoryEnabled = (value: boolean) => {
         if (shouldPreventDisableOrDelete) {
-            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+            showCannotDeleteOrDisableLastCategoryModal();
             return;
         }
         setWorkspaceCategoryEnabled(
@@ -154,20 +185,9 @@ function CategorySettingsPage({
         );
     };
 
-    const deleteCategory = () => {
-        deleteWorkspaceCategories(
-            policyData,
-            [categoryName],
-            isSetupCategoryTaskParentReportArchived,
-            setupCategoryTaskReport,
-            setupCategoryTaskParentReport,
-            currentUserPersonalDetails.accountID,
-            hasOutstandingChildTask,
-            parentReportAction,
-        );
-        setDeleteCategoryConfirmModalVisible(false);
-        navigateBack();
-    };
+    if (!policyCategory) {
+        return <NotFoundPage />;
+    }
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
@@ -187,25 +207,6 @@ function CategorySettingsPage({
                 <HeaderWithBackButton
                     title={decodedCategoryName}
                     onBackButtonPress={navigateBack}
-                />
-                <ConfirmModal
-                    isVisible={deleteCategoryConfirmModalVisible}
-                    onConfirm={deleteCategory}
-                    onCancel={() => setDeleteCategoryConfirmModalVisible(false)}
-                    title={translate('workspace.categories.deleteCategory')}
-                    prompt={translate('workspace.categories.deleteCategoryPrompt')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
-                <ConfirmModal
-                    isVisible={isCannotDeleteOrDisableLastCategoryModalVisible}
-                    onConfirm={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
-                    onCancel={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
-                    title={translate('workspace.categories.cannotDeleteOrDisableAllCategories.title')}
-                    prompt={translate('workspace.categories.cannotDeleteOrDisableAllCategories.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
                 />
                 <ScrollView
                     contentContainerStyle={[styles.flexGrow1]}
@@ -374,14 +375,14 @@ function CategorySettingsPage({
                     )}
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
-                            icon={Trashcan}
+                            icon={expensifyIcons.Trashcan}
                             title={translate('common.delete')}
                             onPress={() => {
                                 if (shouldPreventDisableOrDelete) {
-                                    setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                                    showCannotDeleteOrDisableLastCategoryModal();
                                     return;
                                 }
-                                setDeleteCategoryConfirmModalVisible(true);
+                                showDeleteCategoryModal();
                             }}
                         />
                     )}

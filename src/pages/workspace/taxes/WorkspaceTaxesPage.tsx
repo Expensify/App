@@ -4,11 +4,11 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -18,6 +18,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -65,8 +66,8 @@ function WorkspaceTaxesPage({
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
@@ -245,13 +246,28 @@ function WorkspaceTaxesPage({
             return;
         }
         deletePolicyTaxes(policy, selectedTaxesIDs, localeCompare);
-        setIsDeleteModalVisible(false);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedTaxesIDs([]);
         });
     }, [policy, selectedTaxesIDs, localeCompare]);
+
+    const showDeleteTaxesModal = useCallback(() => {
+        const isMultiple = selectedTaxesIDs.length > 1;
+        showConfirmModal({
+            title: translate('workspace.taxes.actions.delete'),
+            prompt: isMultiple ? translate('workspace.taxes.deleteMultipleTaxConfirmation', {taxAmount: selectedTaxesIDs.length}) : translate('workspace.taxes.deleteTaxConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            deleteTaxes();
+        });
+    }, [selectedTaxesIDs, translate, showConfirmModal, deleteTaxes]);
 
     const toggleTaxes = useCallback(
         (isEnabled: boolean) => {
@@ -283,7 +299,7 @@ function WorkspaceTaxesPage({
                 icon: Expensicons.Trashcan,
                 text: isMultiple ? translate('workspace.taxes.actions.deleteMultiple') : translate('workspace.taxes.actions.delete'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setIsDeleteModalVisible(true),
+                onSelected: showDeleteTaxesModal,
             });
         }
 
@@ -307,7 +323,7 @@ function WorkspaceTaxesPage({
             });
         }
         return options;
-    }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate, enabledRatesCount, disabledRatesCount]);
+    }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate, enabledRatesCount, disabledRatesCount, showDeleteTaxesModal]);
 
     const shouldShowBulkActionsButton = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedTaxesIDs.length > 0;
 
@@ -439,20 +455,6 @@ function WorkspaceTaxesPage({
                     showScrollIndicator={false}
                     addBottomSafeAreaPadding
                     shouldShowRightCaret
-                />
-                <ConfirmModal
-                    title={translate('workspace.taxes.actions.delete')}
-                    isVisible={isDeleteModalVisible}
-                    onConfirm={deleteTaxes}
-                    onCancel={() => setIsDeleteModalVisible(false)}
-                    prompt={
-                        selectedTaxesIDs.length > 1
-                            ? translate('workspace.taxes.deleteMultipleTaxConfirmation', {taxAmount: selectedTaxesIDs.length})
-                            : translate('workspace.taxes.deleteTaxConfirmation')
-                    }
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
