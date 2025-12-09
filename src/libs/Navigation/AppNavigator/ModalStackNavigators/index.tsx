@@ -196,7 +196,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {shouldRenderTertiaryOverlay, syncRHPKeys} = useContext(WideRHPContext);
+        const {syncRHPKeys} = useContext(WideRHPContext);
         const route = useRoute();
 
         // This hook handles the case when a wider RHP is displayed above a narrower one.
