@@ -30,6 +30,9 @@ type WorkspaceResetBankAccountModalProps = {
 
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
+
+    /** Method to set the state of isResettingBankAccount */
+    setIsResettingBankAccount?: (isResetting: boolean) => void;
 };
 
 function WorkspaceResetBankAccountModal({
@@ -39,6 +42,7 @@ function WorkspaceResetBankAccountModal({
     setNonUSDBankAccountStep,
     isNonUSDWorkspace,
     setShouldShowContinueSetupButton,
+    setIsResettingBankAccount,
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

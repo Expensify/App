@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import type {DomainItem} from '@components/Domain/DomainMenuItem';
 import DomainMenuItem from '@components/Domain/DomainMenuItem';
+import DomainsEmptyStateComponent from '@components/DomainsEmptyStateComponent';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {MenuItemProps} from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -19,7 +20,6 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
@@ -47,7 +47,6 @@ import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace,
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -75,6 +74,7 @@ import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import WorkspacesListPageHeaderButton from './WorkspacesListPageHeaderButton';
 import WorkspacesListRow from './WorkspacesListRow';
 
 type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
@@ -90,7 +90,7 @@ type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
         isJoinRequestPending?: boolean;
     };
 
-type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'domains-header' | 'workspaces-empty-state'};
+type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'domains-header' | 'workspaces-empty-state' | 'domains-empty-state'};
 
 type GetWorkspaceMenuItem = {item: WorkspaceItem; index: number};
 
@@ -123,7 +123,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar', 'Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
@@ -540,7 +540,10 @@ function WorkspacesListPage() {
         [shouldUseNarrowLayout],
     );
 
-    const navigateToDomain = useCallback((accountID: number) => {
+    const navigateToDomain = useCallback(({accountID, isAdmin}: {accountID: number; isAdmin: boolean}) => {
+        if (!isAdmin) {
+            return Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.getRoute(accountID));
+        }
         Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID));
     }, []);
 
@@ -628,7 +631,7 @@ function WorkspacesListPage() {
                 listItemType: 'domain',
                 accountID: domain.accountID,
                 title: Str.extractEmailDomain(domain.email),
-                action: () => navigateToDomain(domain.accountID),
+                action: () => navigateToDomain({accountID: domain.accountID, isAdmin}),
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
@@ -696,20 +699,13 @@ function WorkspacesListPage() {
         </>
     );
 
-    const getHeaderButton = () => {
-        if (isRestrictedPolicyCreation || workspaces.length === 0) {
-            return null;
-        }
-        return (
-            <Button
-                accessibilityLabel={translate('workspace.new.newWorkspace')}
-                text={translate('workspace.new.newWorkspace')}
-                onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
-                icon={icons.Plus}
-                style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
-            />
-        );
-    };
+    const headerButton = (
+        <WorkspacesListPageHeaderButton
+            shouldShowNewWorkspaceButton={!isRestrictedPolicyCreation && (!!domains.length || !!workspaces.length)}
+            shouldShowNewDomainButton={!!domains.length}
+        />
+    );
+
     const onBackButtonPress = () => {
         Navigation.goBack(route.params?.backTo);
         return true;
@@ -717,8 +713,8 @@ function WorkspacesListPage() {
 
     useHandleBackButton(onBackButtonPress);
 
-    const data = useMemo(() => {
-        const shouldShowDomainsSection = !inputValue.trim().length && domains.length;
+    const data: WorkspaceOrDomainListItem[] = useMemo(() => {
+        const shouldShowDomainsSection = !inputValue.trim().length;
 
         return [
             // workspaces empty state
@@ -727,6 +723,8 @@ function WorkspacesListPage() {
             filteredWorkspaces,
             // domains header and domains
             shouldShowDomainsSection ? [{listItemType: 'domains-header' as const}, ...domains] : [],
+            // domains empty state
+            shouldShowDomainsSection && !domains.length ? [{listItemType: 'domains-empty-state' as const}] : [],
         ].flat();
     }, [domains, filteredWorkspaces, workspaces.length, inputValue]);
 
@@ -737,7 +735,6 @@ function WorkspacesListPage() {
                 case 'workspace': {
                     return getWorkspaceMenuItem({item, index});
                 }
-
                 case 'domain': {
                     return (
                         <DomainMenuItem
@@ -746,7 +743,6 @@ function WorkspacesListPage() {
                         />
                     );
                 }
-
                 case 'domains-header': {
                     return (
                         <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5, styles.pv3, styles.mt0, styles.mb0]}>
@@ -754,19 +750,18 @@ function WorkspacesListPage() {
                         </View>
                     );
                 }
-
                 case 'workspaces-empty-state': {
                     return <WorkspacesEmptyStateComponent />;
                 }
-
+                case 'domains-empty-state': {
+                    return <DomainsEmptyStateComponent />;
+                }
                 default:
                     return null;
             }
         },
         [getWorkspaceMenuItem, styles, translate],
     );
-
-    const shouldShowEmptyState = !workspaces.length && !domains.length;
 
     return (
         <ScreenWrapper
@@ -782,27 +777,15 @@ function WorkspacesListPage() {
                     />
                 )
             }
-            shouldEnableMaxHeight={shouldShowEmptyState}
         >
-            {shouldShowEmptyState ? (
-                <>
-                    <View style={styles.topBarWrapper}>
-                        <TopBar breadcrumbLabel={translate('common.workspaces')} />
+            <View style={styles.flex1}>
+                <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={styles.pr2}>{headerButton}</View>}</TopBar>
+                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
+                {shouldShowLoadingIndicator ? (
+                    <View style={[styles.flex1]}>
+                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     </View>
-                    {shouldShowLoadingIndicator ? (
-                        <View style={[styles.flex1]}>
-                            <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-                        </View>
-                    ) : (
-                        <ScrollView contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}>
-                            <WorkspacesEmptyStateComponent />
-                        </ScrollView>
-                    )}
-                </>
-            ) : (
-                <View style={styles.flex1}>
-                    <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
-                    {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
+                ) : (
                     <FlatList
                         ref={flatlistRef}
                         data={data}

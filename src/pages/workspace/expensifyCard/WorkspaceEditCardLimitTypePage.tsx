@@ -101,7 +101,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         if (shouldShowConfirmModal) {
             const result = await showConfirmModal({
                 title: translate('workspace.expensifyCard.changeCardLimitType'),
-                prompt: translate(promptTranslationKey, {limit: convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)}),
+                prompt: translate(promptTranslationKey, convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)),
                 confirmText: translate('workspace.expensifyCard.changeLimitType'),
                 cancelText: translate('common.cancel'),
                 danger: true,
