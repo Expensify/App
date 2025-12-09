@@ -3486,7 +3486,7 @@ function buildOptimisticRecentlyUsedCurrencies(currency?: string) {
 // eslint-disable-next-line rulesdir/no-call-actions-from-actions
 function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
-    if (!ReportUtils.isIOUReportUsingReport(iouReport)) {
+    if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
         return;
     }
 
@@ -3496,7 +3496,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     const employeeAccountID = iouReport?.ownerAccountID;
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency);
     const oldPersonalPolicyID = iouReport?.policyID;
-    const iouReportID = iouReport?.reportID ?? '';
+    const iouReportID = iouReport?.reportID;
 
     const {
         adminsChatReportID,
@@ -3763,18 +3763,16 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         type: CONST.REPORT.TYPE.EXPENSE,
         total: -(iouReport?.total ?? 0),
     };
-    if (iouReport) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-            value: expenseReport,
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-            value: iouReport,
-        });
-    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+        value: expenseReport,
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+        value: iouReport,
+    });
 
     // The expense report transactions need to have the amount reversed to negative values
     const reportTransactions = ReportUtils.getReportTransactions(iouReportID);
