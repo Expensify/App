@@ -108,7 +108,7 @@ import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
+import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
