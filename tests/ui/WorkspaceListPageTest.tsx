@@ -125,4 +125,48 @@ describe('WorkspaceListPage', () => {
         const newWorkspaceButton = screen.queryByAccessibilityHint('New workspace');
         expect(newWorkspaceButton).toBeOnTheScreen();
     });
+
+    it('should show a "new" dropdown button when workspaces and domains are present', async () => {
+        const TEST_DOMAIN_ACCOUNT_ID = 123;
+        const TEST_POLICY_ID = 'test-policy-id';
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${TEST_DOMAIN_ACCOUNT_ID}`, {
+            accountID: TEST_DOMAIN_ACCOUNT_ID,
+            email: '+@test.com',
+        });
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {
+            id: TEST_POLICY_ID,
+            name: 'Test Policy',
+            role: 'admin',
+        });
+
+        renderPage();
+
+        await waitForBatchedUpdatesWithAct();
+
+        const newDropdownButton = screen.getByTestId('dropdown-button-new');
+        expect(newDropdownButton).toBeOnTheScreen();
+    });
+
+    it('should show a "New workspace" button when there are workspaces but no domains', async () => {
+        const TEST_POLICY_ID = 'test-policy-id';
+
+        await Onyx.clear();
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {
+            id: TEST_POLICY_ID,
+            name: 'Test Policy',
+            role: 'admin',
+        });
+
+        renderPage();
+
+        await waitForBatchedUpdatesWithAct();
+
+        const newDropdownButton = screen.queryByTestId('dropdown-button-new');
+        expect(newDropdownButton).not.toBeOnTheScreen();
+
+        const newWorkspaceButton = screen.queryByAccessibilityHint('New workspace');
+        expect(newWorkspaceButton).toBeOnTheScreen();
+    });
 });
