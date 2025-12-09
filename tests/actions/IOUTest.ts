@@ -1165,7 +1165,7 @@ describe('actions/IOU', () => {
                             attendees: [],
                             currency: CONST.CURRENCY.USD,
                             created: '',
-                            merchant: '(none)',
+                            merchant: '',
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,
@@ -1482,7 +1482,7 @@ describe('actions/IOU', () => {
                                     expect(newTransaction?.reportID).toBe(iouReportID);
                                     expect(newTransaction?.amount).toBe(amount);
                                     expect(newTransaction?.comment?.comment).toBe(comment);
-                                    expect(newTransaction?.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                    expect(newTransaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
                                     expect(newTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
@@ -1660,7 +1660,7 @@ describe('actions/IOU', () => {
                                         expect(transaction?.reportID).toBe(iouReportID);
                                         expect(transaction?.amount).toBe(amount);
                                         expect(transaction?.comment?.comment).toBe(comment);
-                                        expect(transaction?.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                        expect(transaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                         // The transactionID on the iou action should match the one from the transactions collection
@@ -2196,6 +2196,7 @@ describe('actions/IOU', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
+                quickAction: undefined,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2215,11 +2216,56 @@ describe('actions/IOU', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
+                quickAction: undefined,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
-    });
 
+        it('correctly sets quickAction', async () => {
+            createDistanceRequest({
+                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
+                iouType: CONST.IOU.TYPE.SPLIT,
+                participants: [],
+                transactionParams: {
+                    amount: 1,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+
+                    created: '',
+                    merchant: '',
+                    comment: '',
+                    validWaypoints: {},
+                },
+                isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                quickAction: undefined,
+            });
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
+            createDistanceRequest({
+                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
+                iouType: CONST.IOU.TYPE.SPLIT,
+                participants: [],
+                transactionParams: {
+                    amount: 1,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: '',
+                    comment: '',
+                    validWaypoints: {},
+                },
+                isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
+            });
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toMatchObject({
+                action: CONST.QUICK_ACTIONS.SPLIT_DISTANCE,
+                isFirstQuickAction: false,
+            });
+        });
+    });
     describe('split expense', () => {
         it('creates and updates new chats and IOUs as needed', () => {
             jest.setTimeout(10 * 1000);
@@ -2389,6 +2435,7 @@ describe('actions/IOU', () => {
                             existingSplitChatReportID: '',
                             isASAPSubmitBetaEnabled: false,
                             transactionViolations: {},
+                            quickAction: undefined,
                         },
                     );
                     return waitForBatchedUpdates();
@@ -2723,6 +2770,7 @@ describe('actions/IOU', () => {
                 existingSplitChatReportID: workspaceReportID,
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2750,6 +2798,52 @@ describe('actions/IOU', () => {
             });
         });
 
+        it('correctly sets quickAction', async () => {
+            // Given a expense chat with no expenses
+            const workspaceReportID = '1';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
+
+            splitBill({
+                participants: [{reportID: workspaceReportID}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                comment: '',
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'test',
+                created: '',
+                existingSplitChatReportID: workspaceReportID,
+                isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                quickAction: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
+
+            splitBill({
+                participants: [{reportID: workspaceReportID}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                comment: '',
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'test',
+                created: '',
+                existingSplitChatReportID: workspaceReportID,
+                isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
+            });
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toMatchObject({
+                action: CONST.QUICK_ACTIONS.SPLIT_MANUAL,
+                isFirstQuickAction: false,
+            });
+        });
+
         it('should update split chat report lastVisibleActionCreated to the latest IOU action when split bill in a DM', async () => {
             // Given a DM chat with no expenses
             const reportID = '1';
@@ -2772,6 +2866,7 @@ describe('actions/IOU', () => {
                 existingSplitChatReportID: reportID,
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2788,6 +2883,7 @@ describe('actions/IOU', () => {
                 existingSplitChatReportID: reportID,
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2843,6 +2939,7 @@ describe('actions/IOU', () => {
                 comment: '',
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2888,6 +2985,7 @@ describe('actions/IOU', () => {
                 existingSplitChatReportID: reportID,
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2930,6 +3028,7 @@ describe('actions/IOU', () => {
                 tag: undefined,
                 taxCode: '',
                 taxAmount: 0,
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -6598,7 +6697,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(0),
                 reportID,
                 amount: 0,
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -6610,7 +6709,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID,
                 amount: 0,
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -6660,7 +6759,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID,
                 amount: 0,
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -6952,7 +7051,7 @@ describe('actions/IOU', () => {
             reportID: fakeReport.reportID,
             transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
             isFromGlobalCreate: true,
-            merchant: 'Expense',
+            merchant: '(none)',
         };
 
         const currentDate = '2025-04-01';
@@ -7002,7 +7101,6 @@ describe('actions/IOU', () => {
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
                         ...transactionResult,
-                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                     });
                 });
@@ -7153,7 +7251,7 @@ describe('actions/IOU', () => {
                     },
                 });
             });
-            expect(updatedTransaction?.modifiedAmount).toBe('');
+            expect(updatedTransaction?.modifiedAmount).toBe(0);
         });
     });
 
