@@ -2980,7 +2980,7 @@ describe('ReportUtils', () => {
             });
         });
 
-        describe('return multiple expense options', () => {
+        describe('return multiple expense options if', () => {
             it('it is a 1:1 DM', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
