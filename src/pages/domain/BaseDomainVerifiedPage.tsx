@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type BaseDomainVerifiedPageProps = {
@@ -64,7 +65,7 @@ function BaseDomainVerifiedPage({accountID, redirectTo}: BaseDomainVerifiedPageP
                 innerContainerStyle={styles.p10}
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
-                onButtonPress={() => Navigation.dismissModal()}
+                onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID))}
             />
         </ScreenWrapper>
     );
