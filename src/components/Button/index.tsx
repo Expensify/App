@@ -179,6 +179,9 @@ type ButtonProps = Partial<ChildrenProps> & {
      * Whether the button should stay visually normal even when disabled.
      */
     shouldStayNormalOnDisable?: boolean;
+
+    /** Label for Sentry tracking. On web, this will be added as data-sentry-label attribute. */
+    sentryLabel?: string;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -286,6 +289,7 @@ function Button({
     secondLineText = '',
     shouldBlendOpacity = false,
     shouldStayNormalOnDisable = false,
+    sentryLabel,
     ref,
     ...rest
 }: ButtonProps) {
@@ -532,6 +536,7 @@ function Button({
                 hoverDimmingValue={1}
                 onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}
                 onHoverOut={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(false) : undefined}
+                sentryLabel={sentryLabel}
             >
                 {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 {renderContent()}
