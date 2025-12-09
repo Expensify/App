@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -41,6 +42,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type Policy from '@src/types/onyx/Policy';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import IOURequestStepCurrencyModal from './IOURequestStepCurrencyModal';
@@ -61,6 +63,26 @@ type IOURequestStepAmountProps = WithWritableReportOrNotFoundProps<typeof SCREEN
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
 };
+
+function shouldAutoNavigateToDefaultWorkspace(
+    iouType: ValueOf<typeof CONST.IOU.TYPE>,
+    defaultExpensePolicy: Policy | null | undefined,
+    personalPolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
+): boolean {
+    if (!defaultExpensePolicy?.id) {
+        return false;
+    }
+
+    const hasAutoReporting = !!(defaultExpensePolicy?.autoReporting && personalPolicy?.autoReporting);
+
+    return (
+        iouType === CONST.IOU.TYPE.CREATE &&
+        isPaidGroupPolicy(defaultExpensePolicy) &&
+        defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+        hasAutoReporting &&
+        !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
+    );
+}
 
 function IOURequestStepAmount({
     report,
@@ -87,6 +109,7 @@ function IOURequestStepAmount({
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
@@ -185,10 +208,10 @@ function IOURequestStepAmount({
             if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        sendMoneyWithWallet(report, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
+                        sendMoneyWithWallet(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
                         return;
                     }
-                    sendMoneyElsewhere(report, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
+                    sendMoneyElsewhere(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
@@ -247,13 +270,8 @@ function IOURequestStepAmount({
 
         // Starting from global + menu means no participant context exists yet,
         // so we need to handle participant selection based on available workspace settings
-        if (
-            iouType === CONST.IOU.TYPE.CREATE &&
-            isPaidGroupPolicy(defaultExpensePolicy) &&
-            defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-            !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
-        ) {
-            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
+        if (shouldAutoNavigateToDefaultWorkspace(iouType, defaultExpensePolicy, personalPolicy)) {
+            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
             const isReturningFromConfirmationPage = !!transaction?.participants?.length;
@@ -390,7 +408,6 @@ function IOURequestStepAmount({
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
-                isP2P={isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))}
             />
         </StepScreenWrapper>
     );
@@ -411,4 +428,4 @@ const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNot
 const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound, true);
 
 export default IOURequestStepAmountWithFullTransactionOrNotFound;
-export {isParticipantP2P};
+export {isParticipantP2P, shouldAutoNavigateToDefaultWorkspace};
