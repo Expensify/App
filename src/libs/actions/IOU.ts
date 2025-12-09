@@ -202,7 +202,7 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
+import {getSnapshotKeys, getSuggestedSearches} from '@libs/SearchUIUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -253,7 +253,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
+import type SearchResults from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
@@ -812,6 +812,7 @@ type DeleteTrackExpenseParams = {
     isSingleTransactionView: boolean | undefined;
     isChatReportArchived: boolean | undefined;
     isChatIOUReportArchived: boolean | undefined;
+    allSnapshots?: OnyxCollection<SearchResults>;
 };
 
 type DeleteMoneyRequestFunctionParams = {
@@ -826,6 +827,7 @@ type DeleteMoneyRequestFunctionParams = {
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
     hash?: number;
+    allSnapshots?: OnyxCollection<SearchResults>;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -9009,19 +9011,22 @@ function cleanUpMoneyRequest(
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function deleteMoneyRequest({
-    transactionID,
-    reportAction,
-    transactions,
-    violations,
-    iouReport,
-    chatReport,
-    isChatIOUReportArchived,
-    isSingleTransactionView = false,
-    transactionIDsPendingDeletion,
-    selectedTransactionIDs,
-    hash,
-}: DeleteMoneyRequestFunctionParams) {
+function deleteMoneyRequest(params: DeleteMoneyRequestFunctionParams): Route | undefined {
+    const {
+        transactionID,
+        reportAction,
+        transactions,
+        violations,
+        iouReport,
+        chatReport,
+        isChatIOUReportArchived,
+        allSnapshots,
+        isSingleTransactionView = false,
+        transactionIDsPendingDeletion,
+        selectedTransactionIDs,
+        hash,
+    } = params;
+
     if (!transactionID) {
         return;
     }
@@ -9181,6 +9186,35 @@ function deleteMoneyRequest({
                   },
               },
     ];
+
+    const allSnapshotKeys = getSnapshotKeys(allSnapshots);
+
+    if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
+        for (const key of allSnapshotKeys) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        },
+                    } as Partial<OnyxTypes.Transaction>,
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                            pendingAction: null,
+                        },
+                    } as Partial<OnyxTypes.Transaction>,
+                },
+            });
+        }
+    }
 
     if (reportPreviewAction?.reportActionID) {
         successData.push({
@@ -9353,6 +9387,7 @@ function deleteTrackExpense({
     isSingleTransactionView = false,
     isChatReportArchived,
     isChatIOUReportArchived,
+    allSnapshots,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -9380,6 +9415,7 @@ function deleteTrackExpense({
             chatReport: chatIOUReport,
             isChatIOUReportArchived,
             isSingleTransactionView,
+            allSnapshots,
         });
         return urlToNavigateBack;
     }
@@ -10519,7 +10555,7 @@ function canIOUBePaid(
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transactions?: OnyxTypes.Transaction[] | SearchTransaction[],
+    transactions?: OnyxTypes.Transaction[],
     onlyShowPayElsewhere = false,
     chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
     invoiceReceiverPolicy?: OnyxTypes.Policy,
@@ -10594,7 +10630,7 @@ function canSubmitReport(
     report: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transactions: OnyxTypes.Transaction[] | SearchTransaction[],
+    transactions: OnyxTypes.Transaction[],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
     isReportArchived: boolean,
     currentUserEmailParam: string,
