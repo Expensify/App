@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
 import {getCompanyFeeds} from '@libs/CardUtils';
 import {isCollectPolicy} from '@libs/PolicyUtils';
+import CONST from '@src/CONST';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCardFeeds from './useCardFeeds';
 import usePolicy from './usePolicy';
@@ -10,6 +11,7 @@ import usePolicy from './usePolicy';
  *
  * Collect plan workspaces are limited to one company card feed. This hook checks if the workspace already has
  * a feed and returns whether users should be blocked from adding more feeds.
+ * CSV uploads from Classic should not count toward this limit.
  *
  * @param policyID - The ID of the workspace/policy to check
  * @returns An object containing:
@@ -30,7 +32,13 @@ function useIsBlockedToAddFeed(policyID?: string) {
         if (isLoading) {
             return;
         }
-        const connectedFeeds = Object.entries(companyFeeds)?.length;
+        // Count feeds excluding CSV uploads from Classic
+        const nonCSVFeeds = Object.entries(companyFeeds ?? {}).filter(([feedKey]) => {
+            const lowerFeedKey = feedKey.toLowerCase();
+            // Exclude CSV feeds (feed types starting with "csv" or "ccupload", or containing "ccupload")
+            return !lowerFeedKey.startsWith('csv') && !lowerFeedKey.startsWith('ccupload') && !feedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
+        });
+        const connectedFeeds = nonCSVFeeds.length;
         setPrevCompanyFeedsLength(connectedFeeds);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [isLoading]);

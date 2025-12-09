@@ -826,6 +826,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
+                        shouldShowRightCaret
                     />
                 </>
             )}
