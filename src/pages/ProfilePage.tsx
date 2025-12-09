@@ -17,6 +17,7 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,6 +68,8 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, chatReportSelector);
 
 function ProfilePage({route}: ProfilePageProps) {
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil', 'Phone'] as const);
+
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector, canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
@@ -84,7 +87,8 @@ function ProfilePage({route}: ProfilePageProps) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-    }, [accountID, isCurrentUser, reports, session]);
+    }, [accountID, isCurrentUser, reports, session?.accountID]);
+
     const [report] = useOnyx(reportKey, {canBeMissing: true});
 
     const styles = useThemeStyles();
@@ -253,7 +257,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             <MenuItem
                                 shouldShowRightIcon
                                 title={translate('common.editYourProfile')}
-                                icon={Expensicons.Pencil}
+                                icon={expensifyIcons.Pencil}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
                             />
                         )}
@@ -269,7 +273,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             <MenuItem
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
-                                icon={Expensicons.Pencil}
+                                icon={expensifyIcons.Pencil}
                                 onPress={() => navigateToPrivateNotes(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, navigateBackTo)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
@@ -279,7 +283,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         {isConcierge && !!guideCalendarLink && (
                             <MenuItem
                                 title={translate('videoChatButtonAndMenu.tooltip')}
-                                icon={Expensicons.Phone}
+                                icon={expensifyIcons.Phone}
                                 isAnonymousAction={false}
                                 onPress={callFunctionIfActionIsAllowed(() => {
                                     openExternalLink(guideCalendarLink);
