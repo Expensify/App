@@ -546,7 +546,16 @@ function MoneyRequestReportPreviewContent({
                 fullAmount={fullAmount}
                 onApprove={(isFullApproval) => {
                     startApprovedAnimation();
-                    approveMoneyRequest(iouReport, activePolicy, currentUserDetails.accountID, currentUserDetails.email ?? '', hasViolations, isASAPSubmitBetaEnabled, isFullApproval);
+                    approveMoneyRequest(
+                        iouReport,
+                        activePolicy,
+                        currentUserDetails.accountID,
+                        currentUserDetails.email ?? '',
+                        hasViolations,
+                        isASAPSubmitBetaEnabled,
+                        iouReportNextStep,
+                        isFullApproval,
+                    );
                 }}
             />
         ),
