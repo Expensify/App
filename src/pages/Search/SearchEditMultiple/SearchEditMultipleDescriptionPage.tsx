@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,7 +28,7 @@ function SearchEditMultipleDescriptionPage() {
 
     const saveDescription = useCallback((value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM>) => {
         const newDescription = value.description?.trim() ?? '';
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+        updateBulkEditDraftTransaction({
             comment: {comment: newDescription},
         });
         Navigation.goBack();

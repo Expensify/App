@@ -35,7 +35,7 @@ function SearchEditMultiplePage() {
             return activePolicyID;
         }
 
-        const firstPolicyID = transactionValues[0]?.policyID;
+        const firstPolicyID = transactionValues.at(0)?.policyID;
         const allSamePolicy = transactionValues.every((t) => t.policyID === firstPolicyID);
 
         if (allSamePolicy && firstPolicyID) {
@@ -100,7 +100,7 @@ function SearchEditMultiplePage() {
             return;
         }
 
-        updateMultipleMoneyRequests(selectedTransactionIDs, changes, policy, policyTags, policyCategories);
+        updateMultipleMoneyRequests(selectedTransactionIDs, changes, policy);
 
         Navigation.dismissModal();
     };
@@ -160,7 +160,18 @@ function SearchEditMultiplePage() {
         ];
 
         return allFields;
-    }, [draftTransaction, translate, displayCurrency, attendeesTitle]);
+    }, [
+        draftTransaction?.amount,
+        draftTransaction?.comment?.comment,
+        draftTransaction?.merchant,
+        draftTransaction?.created,
+        draftTransaction?.category,
+        draftTransaction?.tag,
+        draftTransaction?.reportID,
+        translate,
+        displayCurrency,
+        attendeesTitle,
+    ]);
 
     return (
         <ScreenWrapper testID={SearchEditMultiplePage.displayName}>

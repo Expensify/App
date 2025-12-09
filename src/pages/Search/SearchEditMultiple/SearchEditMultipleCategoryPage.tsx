@@ -8,6 +8,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
+import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -24,7 +25,7 @@ function SearchEditMultipleCategoryPage() {
             return activePolicyID;
         }
 
-        const firstPolicyID = transactionValues[0]?.policyID;
+        const firstPolicyID = transactionValues.at(0)?.policyID;
         const allSamePolicy = transactionValues.every((t) => t.policyID === firstPolicyID);
 
         if (allSamePolicy && firstPolicyID) {
@@ -37,7 +38,7 @@ function SearchEditMultipleCategoryPage() {
     const currentCategory = draftTransaction?.category ?? '';
 
     const saveCategory = useCallback((item: ListItem) => {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+        updateBulkEditDraftTransaction({
             category: item.searchText,
         });
         Navigation.goBack();

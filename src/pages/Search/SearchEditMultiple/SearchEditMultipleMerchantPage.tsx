@@ -13,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidInputLength} from '@libs/ValidationUtils';
+import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SearchEditMultipleMerchantForm';
@@ -44,7 +45,7 @@ function SearchEditMultipleMerchantPage() {
 
     const saveMerchant = useCallback((value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM>) => {
         const newMerchant = value.merchant?.trim() ?? '';
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+        updateBulkEditDraftTransaction({
             merchant: newMerchant,
         });
         Navigation.goBack();

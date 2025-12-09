@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +22,7 @@ function SearchEditMultipleAmountPage() {
 
     const saveAmount = useCallback((currentMoney: CurrentMoney) => {
         const newAmount = convertToBackendAmount(Number.parseFloat(currentMoney.amount));
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+        updateBulkEditDraftTransaction({
             amount: newAmount,
             currency: currentMoney.currency,
         });

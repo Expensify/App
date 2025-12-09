@@ -15068,14 +15068,8 @@ function addReportApprover(
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
 }
 
-function updateMultipleMoneyRequests(
-    transactionIDs: string[],
-    transactionChanges: TransactionChanges,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
-    transactionIDs.forEach((transactionID) => {
+function updateMultipleMoneyRequests(transactionIDs: string[], transactionChanges: TransactionChanges, policy: OnyxEntry<OnyxTypes.Policy>) {
+    for (const transactionID of transactionIDs) {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
             return;
@@ -15207,7 +15201,7 @@ function updateMultipleMoneyRequests(
         };
 
         API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, params, {optimisticData, successData, failureData});
-    });
+    }
 }
 
 /**
@@ -15225,6 +15219,13 @@ function initBulkEditDraftTransaction(currency: string) {
  */
 function clearBulkEditDraftTransaction() {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, null);
+}
+
+/**
+ * Updates the draft transaction for bulk editing multiple expenses
+ */
+function updateBulkEditDraftTransaction(transactionChanges: Partial<OnyxTypes.Transaction>) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, transactionChanges);
 }
 
 export {
@@ -15358,6 +15359,7 @@ export {
     updateMultipleMoneyRequests,
     initBulkEditDraftTransaction,
     clearBulkEditDraftTransaction,
+    updateBulkEditDraftTransaction,
 };
 export type {
     GPSPoint as GpsPoint,
