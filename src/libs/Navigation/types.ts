@@ -175,6 +175,10 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
+    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
         /** cardID of selected card */
         cardID: string;
@@ -2084,6 +2088,14 @@ type WorkspacesDomainModalNavigatorParamList = {
         accountID: number;
     };
     [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: {
+        accountID: number;
+    };
+    [SCREENS.WORKSPACES_ADD_DOMAIN]: undefined;
+    [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.WORKSPACES_DOMAIN_ADDED]: {
+        accountID: number;
+    };
+    [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: {
         accountID: number;
     };
 };

@@ -152,7 +152,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
@@ -870,9 +870,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        // Check if it's a legacy transaction from:
-        // - IOU action exists
-        // - Transaction is pending addition
+        // Skip legacy transaction handling if:
+        // - IOU action already exists (not a legacy transaction)
+        // - Transaction is pending addition (new transaction, not legacy)
         const iouAction = getIOUActionForReportID(reportID, transaction.transactionID);
         if (iouAction || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             return;
@@ -960,7 +960,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     onClose={dismissBanner}
                                     onButtonPress={chatWithAccountManager}
                                     shouldShowCloseButton
-                                    icon={Expensicons.Lightbulb}
+                                    icon={expensifyIcons.Lightbulb}
                                     shouldShowIcon
                                     shouldShowButton
                                 />
@@ -1007,6 +1007,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             hasOlderActions={hasOlderActions}
                                             hasNewerActions={hasNewerActions}
                                             showReportActionsLoadingState={showReportActionsLoadingState}
+                                            reportPendingAction={reportPendingAction}
                                         />
                                     ) : null}
                                     {isCurrentReportLoadedFromOnyx ? (
