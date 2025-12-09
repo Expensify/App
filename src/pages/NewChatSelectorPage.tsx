@@ -6,7 +6,6 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setNewRoomFormLoading} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
