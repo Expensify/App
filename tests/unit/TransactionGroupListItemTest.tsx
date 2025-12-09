@@ -27,7 +27,6 @@ const mockTransaction: TransactionListItemType = {
     accountID: 1,
     amount: 0,
     canDelete: true,
-    canReject: false,
     category: '',
     groupAmount: 1284,
     groupCurrency: 'USD',

@@ -93,7 +93,6 @@ const mockReportItemWithHold = {
             allActions: ['view'],
             amount: -1200,
             canDelete: true,
-            canReject: false,
             category: '',
             comment: {
                 comment: '',
@@ -183,7 +182,6 @@ const mockReportItemWithHold = {
             allActions: ['view'],
             amount: -12300,
             canDelete: true,
-            canReject: false,
             category: '',
             comment: {
                 comment: '',
