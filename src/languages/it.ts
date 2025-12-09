@@ -28,6 +28,7 @@ import type {
     AssignedCardParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardOnDisputeParams,
@@ -961,7 +962,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Questa chat è dedicata a tutto ciò che riguarda <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Usa il pulsante + per inviare una fattura.`,
-        beginningOfChatHistory: 'Questa chat è con',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `Questa chat è con ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `Qui è dove <strong>${submitterDisplayName}</strong> invierà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante +.`,
         beginningOfChatHistorySelfDM: 'Questo è il tuo spazio personale. Usalo per note, attività, bozze e promemoria.',
@@ -7885,6 +7886,30 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             revealToken: 'Mostra token',
             fetchError: 'Impossibile recuperare i dettagli della configurazione SAML',
             setMetadataGenericError: 'Impossibile impostare i metadati SAML',
+        },
+        accessRestricted: {
+            title: 'Accesso limitato',
+            subtitle: (domainName: string) => `Verificati come amministratore aziendale autorizzato per <strong>${domainName}</strong> se hai bisogno di gestire:`,
+            companyCardManagement: 'Gestione delle carte aziendali',
+            accountCreationAndDeletion: "Creazione e cancellazione dell'account",
+            workspaceCreation: 'Creazione dello spazio di lavoro',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Aggiungi dominio',
+            subtitle: 'Inserisci il nome del dominio privato a cui desideri accedere (ad esempio expensify.com).',
+            domainName: 'Nome di dominio',
+            newDomain: 'Nuovo dominio',
+        },
+        domainAdded: {
+            title: 'Dominio aggiunto',
+            description: 'Successivamente, dovrai verificare la proprietà del dominio e regolare le tue impostazioni di sicurezza.',
+            configure: 'Configura',
+        },
+        enhancedSecurity: {
+            title: 'Sicurezza avanzata',
+            subtitle: 'Richiedi ai membri del tuo dominio di accedere tramite Single Sign-On, limita la creazione di spazi di lavoro e altro ancora.',
+            enable: 'Abilita',
         },
     },
 };

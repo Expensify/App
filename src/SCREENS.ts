@@ -289,6 +289,7 @@ const SCREENS = {
         STEP_UPGRADE: 'Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
         STEP_CATEGORY: 'Money_Request_Step_Category',
+        STEP_CURRENCY: 'Money_Request_Step_Currency',
         STEP_DATE: 'Money_Request_Step_Date',
         STEP_DESCRIPTION: 'Money_Request_Step_Description',
         STEP_DISTANCE: 'Money_Request_Step_Distance',
@@ -840,6 +841,10 @@ const SCREENS = {
     },
     WORKSPACES_VERIFY_DOMAIN: 'Workspaces_Verify_Domain',
     WORKSPACES_DOMAIN_VERIFIED: 'Workspaces_Domain_Verified',
+    WORKSPACES_ADD_DOMAIN: 'Workspaces_Add_Domain',
+    WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: 'Workspaces_Add_Domain_VerifyAccount',
+    WORKSPACES_DOMAIN_ADDED: 'Workspaces_Domain_Added',
+    WORKSPACES_DOMAIN_ACCESS_RESTRICTED: 'Workspaces_Domain_Access_Restricted',
     DOMAIN: {
         VERIFY: 'Domain_Verify',
         VERIFIED: 'Domain_Verified',
