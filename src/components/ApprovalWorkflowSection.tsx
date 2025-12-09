@@ -14,8 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsByEmailSelector} from '@src/selectors/PersonalDetails';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
@@ -32,7 +30,7 @@ type ApprovalWorkflowSectionProps = {
 };
 
 function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CURRENCY.USD}: ApprovalWorkflowSectionProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Users', 'UserCheck'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Users', 'UserCheck'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
@@ -69,7 +67,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                 {approvalWorkflow.isDefault && (
                     <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.pb1, styles.pt1]}>
                         <Icon
-                            src={Expensicons.Lightbulb}
+                            src={icons.Lightbulb}
                             fill={theme.icon}
                             additionalStyles={styles.mr2}
                             small
@@ -121,7 +119,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                 ))}
             </View>
             <Icon
-                src={Expensicons.ArrowRight}
+                src={icons.ArrowRight}
                 fill={theme.icon}
                 additionalStyles={[styles.alignSelfCenter]}
             />
