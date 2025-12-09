@@ -1777,6 +1777,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACES_DOMAIN_VERIFIED.route,
                             exact: true,
                         },
+                        [SCREENS.WORKSPACES_ADD_DOMAIN]: ROUTES.WORKSPACES_ADD_DOMAIN,
+                        [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: ROUTES.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT,
+                        [SCREENS.WORKSPACES_DOMAIN_ADDED]: {
+                            path: ROUTES.WORKSPACES_DOMAIN_ADDED.route,
+                            exact: true,
+                        },
+                        [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: {
+                            path: ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.route,
+                            exact: true,
+                        },
                     },
                 },
             },
