@@ -67,12 +67,12 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
     };
 
-    const onDowngradeToTeam = useCallback(async () => {
+    const onDowngradeToTeam = useCallback(() => {
         if (!canPerformDowngrade || !policy) {
             return;
         }
         if (Object.keys(companyFeeds).length > 1) {
-            const result = await showConfirmModal({
+            showConfirmModal({
                 title: translate('workspace.moreFeatures.companyCards.downgradeTitle'),
                 prompt: (
                     <View style={styles.flexRow}>
@@ -85,11 +85,11 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                 confirmText: translate('common.buttonConfirm'),
                 cancelText: translate('common.cancel'),
                 danger: true,
+            }).then((result) => {
+                if (result.action === ModalActions.CONFIRM && policyID) {
+                    dismissModalAndNavigate(policyID);
+                }
             });
-
-            if (result.action === ModalActions.CONFIRM && policyID) {
-                dismissModalAndNavigate(policyID);
-            }
             return;
         }
         downgradeToTeam(policy.id);

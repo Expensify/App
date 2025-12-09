@@ -181,35 +181,35 @@ function WorkspacesListPage() {
 
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
-    const continueDeleteWorkspace = useCallback(async () => {
-        const result = await showConfirmModal({
+    const continueDeleteWorkspace = useCallback(() => {
+        showConfirmModal({
             title: translate('workspace.common.delete'),
             prompt: hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
-        });
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !policyIDToDelete || !policyNameToDelete) {
+                return;
+            }
 
-        if (result.action !== ModalActions.CONFIRM || !policyIDToDelete || !policyNameToDelete) {
-            return;
-        }
-
-        deleteWorkspace({
-            policyID: policyIDToDelete,
-            activePolicyID,
-            policyName: policyNameToDelete,
-            lastAccessedWorkspacePolicyID,
-            policyCardFeeds: defaultCardFeeds,
-            reportsToArchive,
-            transactionViolations,
-            reimbursementAccountError,
-            bankAccountList,
-            lastUsedPaymentMethods: lastPaymentMethod,
+            deleteWorkspace({
+                policyID: policyIDToDelete,
+                activePolicyID,
+                policyName: policyNameToDelete,
+                lastAccessedWorkspacePolicyID,
+                policyCardFeeds: defaultCardFeeds,
+                reportsToArchive,
+                transactionViolations,
+                reimbursementAccountError,
+                bankAccountList,
+                lastUsedPaymentMethods: lastPaymentMethod,
+            });
+            if (isOffline) {
+                setPolicyIDToDelete(undefined);
+                setPolicyNameToDelete(undefined);
+            }
         });
-        if (isOffline) {
-            setPolicyIDToDelete(undefined);
-            setPolicyNameToDelete(undefined);
-        }
     }, [
         hasCardFeedOrExpensifyCard,
         showConfirmModal,
@@ -295,12 +295,12 @@ function WorkspacesListPage() {
         return translate('common.leaveWorkspaceConfirmation');
     }, [policyToLeave, personalDetails, policies, policyIDToLeave, session?.email, translate]);
 
-    const handleLeave = useCallback(async () => {
+    const handleLeave = useCallback(() => {
         const isReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
         const prompt = confirmModalPrompt();
 
         if (isReimburser) {
-            await showConfirmModal({
+            showConfirmModal({
                 title: translate('common.leaveWorkspace'),
                 prompt,
                 confirmText: translate('common.buttonConfirm'),
@@ -310,17 +310,17 @@ function WorkspacesListPage() {
             return;
         }
 
-        const result = await showConfirmModal({
+        showConfirmModal({
             title: translate('common.leaveWorkspace'),
             prompt,
             confirmText: translate('common.leaveWorkspace'),
             cancelText: translate('common.cancel'),
             danger: true,
+        }).then((result) => {
+            if (result.action === ModalActions.CONFIRM && policyIDToLeave) {
+                leaveWorkspace(policyIDToLeave);
+            }
         });
-
-        if (result.action === ModalActions.CONFIRM && policyIDToLeave) {
-            leaveWorkspace(policyIDToLeave);
-        }
     }, [policies, policyIDToLeave, session?.email, confirmModalPrompt, showConfirmModal, translate]);
 
     const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade);

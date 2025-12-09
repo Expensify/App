@@ -139,7 +139,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
             cancelText: translate('common.cancel'),
         }).then((result) => {
-            // eslint-disable-next-line rulesdir/prefer-early-return
             if (result.action === ModalActions.CONFIRM && policyID) {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
             }
@@ -156,7 +155,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             confirmText: translate('workspace.moreFeatures.workflowWarningModal.confirmText'),
             cancelText: translate('common.cancel'),
         }).then((result) => {
-            // eslint-disable-next-line rulesdir/prefer-early-return
             if (result.action === ModalActions.CONFIRM) {
                 Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
             }
@@ -426,7 +424,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
                     cancelText: translate('common.cancel'),
                 }).then((result) => {
-                    // eslint-disable-next-line rulesdir/prefer-early-return
                     if (result.action === ModalActions.CONFIRM && policyID) {
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
                     }
