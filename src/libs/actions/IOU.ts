@@ -1,6 +1,7 @@
 /* eslint-disable max-lines */
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
+import {deepEqual} from 'fast-equals';
 import cloneDeep from 'lodash/cloneDeep';
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
@@ -3501,6 +3502,20 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             participantList: [payerAccountID, payeeAccountID],
             optimisticReportID: optimisticChatReportID,
         });
+    }
+
+    // If the participant is not a policy expense chat, we need to ensure the chatReport matches the participant.
+    // This can happen when submit frequency is disabled and the user selects a different participant on the confirm page.
+    // We verify that the chatReport participants match the expected participants. If it's a workspace chat or
+    // the participants don't match, we'll find/create the correct 1:1 DM chat report.
+    if (chatReport && !isPolicyExpenseChat) {
+        const parentChatReportParticipants = Object.keys(chatReport.participants ?? {}).map(Number);
+        const expectedParticipants = [payerAccountID, payeeAccountID].sort();
+        const sortedParentChatReportParticipants = parentChatReportParticipants.sort();
+
+        if (!deepEqual(expectedParticipants, sortedParentChatReportParticipants)) {
+            chatReport = null;
+        }
     }
 
     // STEP 2: Get the Expense/IOU report. If the existingIOUReport or moneyRequestReportID has been provided, we want to add the transaction to this specific report.
