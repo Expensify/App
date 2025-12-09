@@ -50,6 +50,7 @@ function SearchAddApproverPage() {
         const firstWorkspaceEmployees = employeeLists.at(0);
         const intersectedEmployees = firstWorkspaceEmployees ? lodashPick(firstWorkspaceEmployees, lodashIntersection(...employeeLists.map(Object.keys))) : {};
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, true, false);
+        // We get the intersection here as we only want to show members who belong to all workspaces when adding an additional approver
         return Object.values(intersectedEmployees)
             .map((employee): SelectionListApprover | null => {
                 const isAdmin = employee?.role === CONST.REPORT.ROLE.ADMIN;
@@ -143,6 +144,7 @@ function SearchAddApproverPage() {
             );
         }
 
+        // This actually clears selected reports as well
         clearSelectedTransactions();
     }, [
         allApprovers,
