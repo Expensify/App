@@ -2317,7 +2317,7 @@ function getPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<Rep
     const role = translateLocal('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
     const formattedEmail = formatPhoneNumber(email);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('report.actions.type.addEmployee', {email: formattedEmail, role});
+    return translateLocal('report.actions.type.addEmployee', formattedEmail, role);
 }
 
 function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> {
@@ -2766,11 +2766,7 @@ function getWorkspaceReportFieldAddMessage(action: ReportAction): string {
 
     if (fieldName && fieldType) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.addedReportField', {
-            fieldName,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            fieldType: translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(),
-        });
+        return translateLocal('workspaceActions.addedReportField', fieldName, translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase());
     }
 
     return getReportActionText(action);
@@ -2831,11 +2827,7 @@ function getWorkspaceReportFieldDeleteMessage(action: ReportAction): string {
 
     if (fieldType && fieldName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.deleteReportField', {
-            fieldName,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            fieldType: translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(),
-        });
+        return translateLocal('workspaceActions.deleteReportField', fieldName, translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase());
     }
 
     return getReportActionText(action);
@@ -3050,12 +3042,7 @@ function getAddedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
 
     if (name && approverAccountID && approverEmail && field && approverName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.addApprovalRule', {
-            approverEmail,
-            approverName,
-            field,
-            name,
-        });
+        return translateLocal('workspaceActions.addApprovalRule', approverEmail, approverName, field, name);
     }
 
     return getReportActionText(reportAction);
@@ -3067,12 +3054,7 @@ function getDeletedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
 
     if (name && approverAccountID && approverEmail && field && approverName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.deleteApprovalRule', {
-            approverEmail,
-            approverName,
-            field,
-            name,
-        });
+        return translateLocal('workspaceActions.deleteApprovalRule', approverEmail, approverName, field, name);
     }
 
     return getReportActionText(reportAction);
