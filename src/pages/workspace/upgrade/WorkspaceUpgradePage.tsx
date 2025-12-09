@@ -176,16 +176,18 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             default:
         }
     }, [
-        policyID,
+        categoryId,
         feature,
-        featureNameAlias,
-        route.params.featureName,
         perDiemCustomUnit?.customUnitID,
-        defaultApprover,
+        policy?.connections?.xero?.config,
+        policy?.connections?.xero?.data,
+        policyID,
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
-        categoryId,
+        route.params?.featureName,
+        featureNameAlias,
+        defaultApprover,
     ]);
 
     useFocusEffect(
