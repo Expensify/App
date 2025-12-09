@@ -347,11 +347,11 @@ function MoneyRequestConfirmationList({
     // Update the tax code when the default changes (for example, because the transaction currency changed)
     const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
     useEffect(() => {
-        if (!transactionID || isReadOnly) {
+        if (!transactionID || isReadOnly || !shouldShowTax) {
             return;
         }
         setMoneyRequestTaxRate(transactionID, defaultTaxCode);
-    }, [defaultTaxCode, transactionID, isReadOnly]);
+    }, [defaultTaxCode, transactionID, isReadOnly, shouldShowTax]);
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
@@ -506,11 +506,11 @@ function MoneyRequestConfirmationList({
     const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
     useEffect(() => {
-        if (!transactionID || isReadOnly) {
+        if (!transactionID || isReadOnly || !shouldShowTax) {
             return;
         }
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly]);
+    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly, shouldShowTax]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -835,7 +835,7 @@ function MoneyRequestConfirmationList({
         if (!transactionID || iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy?.id);
+        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy);
         // Keep 'transaction' out to ensure that we auto select the option only once
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
@@ -900,6 +900,11 @@ function MoneyRequestConfirmationList({
             }
             if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 setFormError('iou.error.invalidCategoryLength');
+                return;
+            }
+
+            if (iouCategory && policyCategories && (!policyCategories[iouCategory] || !policyCategories[iouCategory]?.enabled)) {
+                setFormError('violations.categoryOutOfPolicy');
                 return;
             }
 
@@ -972,7 +977,6 @@ function MoneyRequestConfirmationList({
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
-            iouCategory.length,
             policyTags,
             isPerDiemRequest,
             reportID,
@@ -986,6 +990,8 @@ function MoneyRequestConfirmationList({
             isDelegateAccessRestricted,
             onSendMoney,
             showDelegateNoAccessModal,
+            iouCategory,
+            policyCategories,
         ],
     );
 

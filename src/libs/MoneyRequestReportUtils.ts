@@ -13,6 +13,7 @@ import {
     hasUpdatedTotal,
     isInvoiceReport,
     isMoneyRequestReport,
+    isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
 import {isTransactionPendingDelete} from './TransactionUtils';
@@ -60,18 +61,17 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
 /**
  * Returns a correct reportID for a given TransactionListItemType for navigation/displaying purposes.
  */
-function getReportIDForTransaction(transactionItem: TransactionListItemType) {
+function getReportIDForTransaction(transactionItem: TransactionListItemType, IOUTransactionID?: string) {
     const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isFromOneTransactionReport = isOneTransactionReport(transactionItem.report);
 
-    return (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-        ? transactionItem.transactionThreadReportID
-        : transactionItem.reportID;
+    return (!isFromOneTransactionReport || isFromSelfDM) && IOUTransactionID ? IOUTransactionID : transactionItem.reportID;
 }
 
 /**
  * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
-function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false) {
+function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false, includeOrphanedTransactions = false) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {
             return false;
@@ -82,6 +82,9 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         }
 
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        if (!action && includeOrphanedTransactions) {
+            return true;
+        }
         if (action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline) {
             return true;
         }

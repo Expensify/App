@@ -24,6 +24,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
@@ -34,7 +35,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -120,6 +120,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const {translate, localeCompare} = useLocalize();
     const theme = useTheme();
@@ -155,7 +156,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
     const ancestors = useAncestors(report);
-    const displayNamesFSClass = FS.getChatFSClass(personalDetails, report);
 
     const shouldShowSubtitle = () => {
         if (!subtitle) {
@@ -306,12 +306,12 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                                 shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle || isReportArchived}
                                                 renderAdditionalText={renderAdditionalText}
                                                 shouldAddEllipsis={shouldAddEllipsis}
-                                                forwardedFSClass={displayNamesFSClass}
                                             />
                                         </CaretWrapper>
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                                reportID={parentNavigationReport?.reportID}
                                                 parentReportID={parentNavigationReport?.parentReportID}
                                                 parentReportActionID={isParentOneTransactionThread ? undefined : parentNavigationReport?.parentReportActionID}
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
@@ -373,7 +373,15 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, ancestors);
+                                    deleteTask(
+                                        report,
+                                        parentReport,
+                                        isReportArchived,
+                                        currentUserPersonalDetails.accountID,
+                                        hasOutstandingChildTask,
+                                        parentReportAction ?? undefined,
+                                        ancestors,
+                                    );
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}
