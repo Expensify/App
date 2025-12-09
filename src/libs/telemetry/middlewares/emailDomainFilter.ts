@@ -6,7 +6,10 @@ const emailDomainFilter: TelemetryBeforeSend = (event: TransactionEvent): Transa
     const email = event.user?.email;
     const lowerEmail = typeof email === 'string' ? email.toLowerCase() : '';
 
-    if (lowerEmail !== 'applausetester@applause.expensifail.com' && (lowerEmail.endsWith(CONST.EMAIL.QA_DOMAIN) || lowerEmail.endsWith('applauseauto.com'))) {
+    const isTestAccount= lowerEmail.endsWith(CONST.EMAIL.QA_DOMAIN) || lowerEmail.endsWith('applauseauto.com');
+    const isDesiredTestAccount = lowerEmail === 'applausetester@applause.expensifail.com' || lowerEmail.startsWith('fullstory');
+
+    if (isTestAccount && !isDesiredTestAccount) {
         return null;
     }
 
