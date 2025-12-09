@@ -10,7 +10,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import FS from '@libs/Fullstory';
 import Performance from '@libs/Performance';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
@@ -143,8 +142,6 @@ function MoneyRequestReportPreview({
         />
     );
 
-    const fsClass = FS.getChatFSClass(personalDetailsList, iouReport);
-
     return (
         <MoneyRequestReportPreviewContent
             newTransactionIDs={newTransactionIDs}
@@ -174,7 +171,7 @@ function MoneyRequestReportPreview({
             isInvoice={isInvoice}
             onPress={openReportFromPreview}
             shouldShowBorder={shouldShowBorder}
-            forwardedFSClass={fsClass}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
         />
     );
 }
