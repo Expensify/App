@@ -7,10 +7,9 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
-import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
-import {getReceiptFileName} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -32,12 +31,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+    const policy = usePolicy(report?.policyID);
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
@@ -56,7 +57,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return {
                 ...transactionMain,
                 receipt: mergeTransaction.receipt,
-                filename: getReceiptFileName(mergeTransaction.receipt),
             };
         }
 
@@ -100,7 +100,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         }
 
         const requestType = getRequestType(transaction);
-        const receiptFilename = getReceiptFilenameFromTransaction(transaction);
+        const receiptFilename = transaction?.receipt?.filename;
         const receiptType = transaction?.receipt?.type;
         navigateToStartStepIfScanFileCannotBeRead(
             receiptFilename,
@@ -136,16 +136,16 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             ? !transaction
             : moneyRequestReportID !== transaction?.reportID;
 
-    const originalFileName = isDraftTransaction ? getReceiptFilenameFromTransaction(transaction) : receiptURIs?.filename;
+    const originalFileName = isDraftTransaction ? transaction?.receipt?.filename : receiptURIs?.filename;
     const headerTitle = translate('common.receipt');
 
     /**
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction?.transactionID, policyCategories);
+        detachReceipt(transaction?.transactionID, policy, policyCategories);
         navigation.goBack();
-    }, [navigation, transaction?.transactionID, policyCategories]);
+    }, [navigation, transaction?.transactionID, policy, policyCategories]);
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
@@ -159,7 +159,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             const menuItems = [];
             if (shouldShowReplaceReceiptButton) {
                 menuItems.push({
-                    icon: Expensicons.Camera,
+                    icon: expensifyIcons.Camera,
                     text: translate('common.replace'),
                     onSelected: () => {
                         Navigation.dismissModal();
@@ -211,6 +211,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             iouType,
             report?.reportID,
             onDownloadAttachment,
+            expensifyIcons.Camera,
         ],
     );
 
