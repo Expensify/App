@@ -333,15 +333,15 @@ function WalletPage() {
                         closeModal(() => showLockedAccountModal());
                         return;
                     }
-                    closeModal(() =>
+                    closeModal(() => {
                         showDeleteAccountModal().then((result) => {
                             resetSelectedPaymentMethodData();
                             if (result.action !== ModalActions.CONFIRM) {
                                 return;
                             }
                             deletePaymentMethod();
-                        }),
-                    );
+                        });
+                    });
                 },
             },
             ...(shouldShowEnableGlobalReimbursementsButton
@@ -371,6 +371,7 @@ function WalletPage() {
             makeDefaultPaymentMethod,
             showLockedAccountModal,
             paymentMethod.selectedPaymentMethod.bankAccountID,
+            showDeleteAccountModal,
         ],
     );
 

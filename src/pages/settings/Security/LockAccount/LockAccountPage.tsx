@@ -77,21 +77,19 @@ function LockAccountPage() {
     );
 
     return (
-        <>
-            <HeaderPageLayout
-                onBackButtonPress={() => Navigation.goBack()}
-                title={translate('lockAccountPage.reportSuspiciousActivity')}
-                testID={LockAccountPage.displayName}
-                footer={lockAccountButton}
-                childrenContainerStyles={[styles.pt3, styles.gap6]}
-                shouldShowOfflineIndicatorInWideScreen
-            >
-                <View style={[styles.flex1, styles.gap4, styles.mh5]}>
-                    <Text>{translate('lockAccountPage.compromisedDescription')}</Text>
-                    <Text>{translate('lockAccountPage.domainAdminsDescription')}</Text>
-                </View>
-            </HeaderPageLayout>
-        </>
+        <HeaderPageLayout
+            onBackButtonPress={() => Navigation.goBack()}
+            title={translate('lockAccountPage.reportSuspiciousActivity')}
+            testID={LockAccountPage.displayName}
+            footer={lockAccountButton}
+            childrenContainerStyles={[styles.pt3, styles.gap6]}
+            shouldShowOfflineIndicatorInWideScreen
+        >
+            <View style={[styles.flex1, styles.gap4, styles.mh5]}>
+                <Text>{translate('lockAccountPage.compromisedDescription')}</Text>
+                <Text>{translate('lockAccountPage.domainAdminsDescription')}</Text>
+            </View>
+        </HeaderPageLayout>
     );
 }
 

@@ -190,95 +190,92 @@ function CardSection() {
     }
 
     return (
-        <>
-            <Section
-                title={translate('subscription.cardSection.title')}
-                subtitle={sectionSubtitle}
-                isCentralPane
-                titleStyles={styles.textStrong}
-                subtitleMuted
-                banner={BillingBanner}
-            >
-                <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
-                    {!isEmptyObject(defaultCard?.accountData) && (
-                        <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                            <Icon
-                                src={Expensicons.CreditCard}
-                                additionalStyles={styles.subscriptionAddedCardIcon}
-                                fill={theme.icon}
-                                medium
-                            />
-                            <View style={styles.flex1}>
-                                <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData, translate)}</Text>
-                                <Text style={styles.mutedNormalTextLabel}>
-                                    {translate('subscription.cardSection.cardInfo', {
-                                        name: defaultCard?.accountData?.addressName ?? '',
-                                        expiration: `${cardMonth} ${defaultCard?.accountData?.cardYear}`,
-                                        currency: defaultCard?.accountData?.currency ?? '',
-                                    })}
-                                </Text>
-                            </View>
-                            <CardSectionActions />
+        <Section
+            title={translate('subscription.cardSection.title')}
+            subtitle={sectionSubtitle}
+            isCentralPane
+            titleStyles={styles.textStrong}
+            subtitleMuted
+            banner={BillingBanner}
+        >
+            <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
+                {!isEmptyObject(defaultCard?.accountData) && (
+                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
+                        <Icon
+                            src={Expensicons.CreditCard}
+                            additionalStyles={styles.subscriptionAddedCardIcon}
+                            fill={theme.icon}
+                            medium
+                        />
+                        <View style={styles.flex1}>
+                            <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData, translate)}</Text>
+                            <Text style={styles.mutedNormalTextLabel}>
+                                {translate('subscription.cardSection.cardInfo', {
+                                    name: defaultCard?.accountData?.addressName ?? '',
+                                    expiration: `${cardMonth} ${defaultCard?.accountData?.cardYear}`,
+                                    currency: defaultCard?.accountData?.currency ?? '',
+                                })}
+                            </Text>
                         </View>
-                    )}
-                </View>
-
-                <View style={styles.mb3}>{isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}</View>
-                {billingStatus?.isRetryAvailable !== undefined && (
-                    <CardSectionButton
-                        text={translate('subscription.cardSection.retryPaymentButton')}
-                        isDisabled={isOffline || !billingStatus?.isRetryAvailable}
-                        isLoading={subscriptionRetryBillingStatusPending}
-                        onPress={handleRetryPayment}
-                        style={[styles.w100, styles.mb3]}
-                        large
-                    />
+                        <CardSectionActions />
+                    </View>
                 )}
-                {hasCardAuthenticatedError(privateStripeCustomerID) && (
-                    <CardSectionButton
-                        text={translate('subscription.cardSection.authenticatePayment')}
-                        isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
-                        isLoading={subscriptionRetryBillingStatusPending}
-                        onPress={handleAuthenticatePayment}
-                        style={[styles.w100, styles.mt5]}
-                        large
-                    />
-                )}
+            </View>
 
-                {!!account?.hasPurchases && (
-                    <MenuItem
-                        shouldShowRightIcon
-                        icon={expensifyIcons.History}
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                        title={translate('subscription.cardSection.viewPaymentHistory')}
-                        titleStyle={styles.textStrong}
-                        onPress={viewPurchases}
-                    />
-                )}
+            <View style={styles.mb3}>{isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}</View>
+            {billingStatus?.isRetryAvailable !== undefined && (
+                <CardSectionButton
+                    text={translate('subscription.cardSection.retryPaymentButton')}
+                    isDisabled={isOffline || !billingStatus?.isRetryAvailable}
+                    isLoading={subscriptionRetryBillingStatusPending}
+                    onPress={handleRetryPayment}
+                    style={[styles.w100, styles.mb3]}
+                    large
+                />
+            )}
+            {hasCardAuthenticatedError(privateStripeCustomerID) && (
+                <CardSectionButton
+                    text={translate('subscription.cardSection.authenticatePayment')}
+                    isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
+                    isLoading={subscriptionRetryBillingStatusPending}
+                    onPress={handleAuthenticatePayment}
+                    style={[styles.w100, styles.mt5]}
+                    large
+                />
+            )}
 
-                {!!(subscriptionPlan && account?.isEligibleForRefund) && (
-                    <MenuItem
-                        shouldShowRightIcon
-                        icon={Expensicons.Bill}
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                        title={translate('subscription.cardSection.requestRefund')}
-                        titleStyle={styles.textStrong}
-                        disabled={isOffline}
-                        onPress={() => {
-                            showRequestRefundModal().then((result) => {
-                                if (result.action !== ModalActions.CONFIRM) {
-                                    return;
-                                }
-                                requestRefund();
-                            });
-                        }}
-                    />
-                )}
+            {!!account?.hasPurchases && (
+                <MenuItem
+                    shouldShowRightIcon
+                    icon={expensifyIcons.History}
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                    title={translate('subscription.cardSection.viewPaymentHistory')}
+                    titleStyle={styles.textStrong}
+                    onPress={viewPurchases}
+                />
+            )}
 
-                {!!(privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && account?.hasPurchases) && <RequestEarlyCancellationMenuItem />}
-            </Section>
+            {!!(subscriptionPlan && account?.isEligibleForRefund) && (
+                <MenuItem
+                    shouldShowRightIcon
+                    icon={Expensicons.Bill}
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                    title={translate('subscription.cardSection.requestRefund')}
+                    titleStyle={styles.textStrong}
+                    disabled={isOffline}
+                    onPress={() => {
+                        showRequestRefundModal().then((result) => {
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
+                            }
+                            requestRefund();
+                        });
+                    }}
+                />
+            )}
 
-        </>
+            {!!(privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && account?.hasPurchases) && <RequestEarlyCancellationMenuItem />}
+        </Section>
     );
 }
 

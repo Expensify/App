@@ -180,32 +180,30 @@ function VacationDelegatePage() {
     }, [searchTerm]);
 
     return (
-        <>
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={VacationDelegatePage.displayName}
-            >
-                <HeaderWithBackButton
-                    title={translate('statusPage.vacationDelegate')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={VacationDelegatePage.displayName}
+        >
+            <HeaderWithBackButton
+                title={translate('statusPage.vacationDelegate')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
+            />
+            <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                <SelectionList
+                    sections={areOptionsInitialized ? sections : []}
+                    ListItem={UserListItem}
+                    onSelectRow={onSelectRow}
+                    shouldSingleExecuteRowSelect
+                    onChangeText={setSearchTerm}
+                    textInputValue={searchTerm}
+                    headerMessage={headerMessage}
+                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                    showLoadingPlaceholder={!areOptionsInitialized}
+                    isLoadingNewOptions={!!isSearchingForReports}
+                    onEndReached={onListEndReached}
                 />
-                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
-                        sections={areOptionsInitialized ? sections : []}
-                        ListItem={UserListItem}
-                        onSelectRow={onSelectRow}
-                        shouldSingleExecuteRowSelect
-                        onChangeText={setSearchTerm}
-                        textInputValue={searchTerm}
-                        headerMessage={headerMessage}
-                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                        showLoadingPlaceholder={!areOptionsInitialized}
-                        isLoadingNewOptions={!!isSearchingForReports}
-                        onEndReached={onListEndReached}
-                    />
-                </View>
-            </ScreenWrapper>
-        </>
+            </View>
+        </ScreenWrapper>
     );
 }
 

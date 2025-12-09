@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard} from 'react-native';
+import {Modal} from 'react-native-web';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
@@ -10,12 +11,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Star, Trashcan} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -107,28 +110,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         return !securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`]?.enableRestrictedPrimaryLogin;
     }, [isDefaultContactMethod, loginData?.validatedDate, session?.email, myDomainSecurityGroups, securityGroups]);
 
-    /**
-     * Toggle delete confirm modal visibility
-     */
-    const toggleDeleteModal = useCallback((isOpen: boolean) => {
-        if (canUseTouchScreen() && isOpen) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                setIsDeleteModalOpen(isOpen);
-            });
-            Keyboard.dismiss();
-        } else {
-            setIsDeleteModalOpen(isOpen);
-        }
-    }, []);
-
-    /**
-     * Delete the contact method and hide the modal
-     */
-    const confirmDeleteAndHideModal = useCallback(() => {
-        toggleDeleteModal(false);
-        deleteContactMethod(contactMethod, loginList ?? {}, backTo);
-    }, [contactMethod, loginList, toggleDeleteModal, backTo]);
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -150,17 +131,57 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         resetContactMethodValidateCodeSentState(contactMethod);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
     }, [contactMethod, loginData?.partnerUserID, loginData?.validatedDate]);
+
+    const {showConfirmModal} = useConfirmModal();
+    const showRemoveContactMethodModal = useCallback(() => {
+        return showConfirmModal({
+            title: translate('contacts.removeContactMethod'),
+            prompt: translate('contacts.removeAreYouSure'),
+            confirmText: translate('common.yesContinue'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+    }, [showConfirmModal, translate]);
+
+    /**
+     * Toggle delete confirm modal visibility
+     */
+    const turnOnDeleteModal = useCallback(() => {
+        const openDeleteModal = () => {
+            showRemoveContactMethodModal().then((result) => {
+                InteractionManager.runAfterInteractions(() => {
+                    validateCodeFormRef.current?.focusLastSelected?.();
+                });
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+
+                deleteContactMethod(contactMethod, loginList ?? {}, backTo);
+            });
+        };
+
+        if (canUseTouchScreen()) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(openDeleteModal);
+            Keyboard.dismiss();
+            return;
+        }
+
+        openDeleteModal();
+    }, [contactMethod, loginList, backTo]);
+
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
         if (isValidateCodeFormVisible && !isDefaultContactMethod) {
             menuItems.push({
                 icon: Trashcan,
                 text: translate('common.remove'),
-                onSelected: () => close(() => toggleDeleteModal(true)),
+                onSelected: () => close(turnOnDeleteModal),
             });
         }
         return menuItems;
-    }, [isValidateCodeFormVisible, translate, toggleDeleteModal, isDefaultContactMethod]);
+    }, [isValidateCodeFormVisible, translate, turnOnDeleteModal, isDefaultContactMethod]);
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
     }
@@ -182,24 +203,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
     const shouldSkipInitialValidation = route.params?.shouldSkipInitialValidation === 'true';
-    const getDeleteConfirmationModal = () => (
-        <ConfirmModal
-            title={translate('contacts.removeContactMethod')}
-            onConfirm={confirmDeleteAndHideModal}
-            onCancel={() => toggleDeleteModal(false)}
-            onModalHide={() => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    validateCodeFormRef.current?.focusLastSelected?.();
-                });
-            }}
-            prompt={translate('contacts.removeAreYouSure')}
-            confirmText={translate('common.yesContinue')}
-            cancelText={translate('common.cancel')}
-            isVisible={isDeleteModalOpen && !isDefaultContactMethod}
-            danger
-        />
-    );
+
     const getMenuItems = () => (
         <>
             {canChangeDefaultContactMethod ? (
@@ -239,7 +243,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                                 showDelegateNoAccessModal();
                                 return;
                             }
-                            toggleDeleteModal(true);
+                            turnOnDeleteModal();
                         }}
                     />
                 </OfflineWithFeedback>
@@ -331,7 +335,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     />
                 )}
                 {!isValidateCodeFormVisible && !!loginData.validatedDate && getMenuItems()}
-                {getDeleteConfirmationModal()}
             </ScrollView>
         </ScreenWrapper>
     );

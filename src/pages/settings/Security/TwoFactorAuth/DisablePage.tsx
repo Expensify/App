@@ -50,17 +50,18 @@ function DisablePage() {
     }, [showConfirmModal, translate]);
 
     useEffect(() => {
-        if (!isEmpty(account?.errorFields?.requiresTwoFactorAuth ?? {})) {
-            showTwoFactorAuthRequireModal().then(() => {
-                closeModal();
-            });
+        if (isEmpty(account?.errorFields?.requiresTwoFactorAuth ?? {})) {
+            return;
         }
+        showTwoFactorAuthRequireModal().then(() => {
+            closeModal();
+        });
     }, [account?.errorFields?.requiresTwoFactorAuth]);
 
     return (
         <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.DISABLE}
-            title={"translate('twoFactorAuth.disableTwoFactorAuth')"}
+            title={translate('twoFactorAuth.disableTwoFactorAuth')}
         >
             <ScrollView
                 contentContainerStyle={styles.flexGrow1}

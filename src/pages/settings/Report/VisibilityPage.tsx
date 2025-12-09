@@ -84,9 +84,10 @@ function VisibilityPage({report}: VisibilityProps) {
                     onSelectRow={(option) => {
                         if (option.value === CONST.REPORT.VISIBILITY.PUBLIC) {
                             showPublicVisibilityModal().then((result) => {
-                                if (result.action === ModalActions.CONFIRM) {
-                                    changeVisibility(CONST.REPORT.VISIBILITY.PUBLIC);
+                                if (result.action !== ModalActions.CONFIRM) {
+                                    return;
                                 }
+                                changeVisibility(CONST.REPORT.VISIBILITY.PUBLIC);
                             });
                             return;
                         }
