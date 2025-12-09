@@ -117,7 +117,7 @@ const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => a
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref}: FloatingActionButtonAndPopoverProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Document', 'NewWorkspace', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Document', 'NewWorkspace', 'NewWindow', 'Binoculars', 'Car', 'Location', 'Suitcase'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -544,7 +544,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const menuItems = [
         ...expenseMenuItems,
         {
-            icon: Expensicons.Location,
+            icon: icons.Location,
             text: translate('iou.trackDistance'),
             shouldCallAfterModalHide: shouldUseNarrowLayout,
             onSelected: () => {
@@ -621,7 +621,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             : []),
         ...[
             {
-                icon: Expensicons.Suitcase,
+                icon: icons.Suitcase,
                 text: translate('travel.bookTravel'),
                 rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? icons.NewWindow : undefined,
                 onSelected: () => interceptAnonymousUser(() => openTravel()),
@@ -630,7 +630,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         ...(!hasSeenTour
             ? [
                   {
-                      icon: Expensicons.Binoculars,
+                      icon: icons.Binoculars,
                       iconStyles: styles.popoverIconCircle,
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
