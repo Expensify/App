@@ -90,7 +90,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
 
         setIsForcedToChangeCurrency(true);
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
-    }, [bankAccountList, isBetaEnabled, policy, policyID]);
+    }, [bankAccountList, isBetaEnabled, policy]);
 
     /**
      * Set position of the payment menu
