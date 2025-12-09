@@ -50,8 +50,8 @@ import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployee
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getReportName as getReportNameFromUtils} from '@libs/ReportNameUtils';
 import {
+    canAddOrDeleteTransactions,
     canDeleteCardTransactionByLiabilityType,
-    canDeleteTransaction,
     canEditReportDescription as canEditReportDescriptionUtil,
     canJoinChat,
     canLeaveChat,
@@ -157,6 +157,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {showConfirmModal} = useConfirmModal();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan'] as const);
     const backTo = route.params.backTo;
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
@@ -175,7 +176,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline), [reportActions, isOffline, report, chatReport]);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan'] as const);
 
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
@@ -291,7 +291,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         !isClosedReport(report) &&
         isTaskModifiable &&
         isTaskActionable;
-    const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && (canAddOrDeleteTransactions(moneyRequestReport, policy, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID}`, {canBeMissing: true});
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
@@ -316,15 +316,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const leaveChat = useCallback(() => {
-        if (isChatThread && report.parentReportID) {
-            Navigation.dismissModalWithReport({reportID: report.parentReportID});
-            Navigation.isNavigationReady().then(() => {
-                const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-                leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
-            });
-            return;
-        }
-
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             if (isRootGroupChat) {
@@ -334,7 +325,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
             leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isRootGroupChat, isPolicyEmployee, isChatThread, isPolicyAdmin, quickAction?.chatReportID, report]);
+    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
@@ -563,7 +554,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
-        expensifyIcons,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -671,7 +661,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isChatRoom,
         isThread,
         isGroupChat,
-        expensifyIcons,
         icons,
         report,
         styles.avatarXLarge,
@@ -761,7 +750,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const nameSectionGroupWorkspace = (
         <OfflineWithFeedback
             pendingAction={report?.pendingFields?.reportName}
-            errors={report?.errorFields?.reportName}
+            errors={report?.errorFields?.reportName ?? null}
             errorRowStyles={[styles.ph5]}
             onClose={() => clearPolicyRoomNameErrors(report?.reportID)}
         >
@@ -808,7 +797,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const nameSectionTitleField = !!titleField && (
         <OfflineWithFeedback
             pendingAction={report.pendingFields?.reportName}
-            errors={report.errorFields?.reportName}
+            errors={report.errorFields?.reportName ?? null}
             errorRowStyles={styles.ph5}
             key={`menuItem-${fieldKey}`}
             onClose={() => clearPolicyRoomNameErrors(report.reportID)}

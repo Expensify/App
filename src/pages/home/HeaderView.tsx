@@ -148,6 +148,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const policyDescription = getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
+    // This is used to ensure that we display the text exactly as the user entered it when displaying thread header text, instead of parsing their text to HTML.
+    const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const subscriptionPlan = useSubscriptionPlan();
 
     const shouldShowSubtitle = () => {
@@ -293,6 +295,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                             <DisplayNames
                                                 fullTitle={title}
                                                 displayNamesWithTooltips={displayNamesWithTooltips}
+                                                shouldParseFullTitle={shouldParseFullTitle}
                                                 tooltipEnabled
                                                 numberOfLines={1}
                                                 textStyles={[styles.headerText, styles.pre]}

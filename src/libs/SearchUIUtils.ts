@@ -75,7 +75,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, getSubmitToAccountID, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -324,7 +324,7 @@ type GetSectionsParams = {
 function getSuggestedSearches(
     accountID: number = CONST.DEFAULT_NUMBER_ID,
     defaultFeedID?: string,
-    icons?: Record<'Document', IconAsset>,
+    icons?: Record<'Document' | 'Pencil', IconAsset>,
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
@@ -379,7 +379,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
             translationPath: 'common.submit',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: Expensicons.Pencil,
+            icon: icons?.Pencil,
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
@@ -1287,7 +1287,8 @@ function getActions(
 
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isScanning(t) || isPending(t));
 
-    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 
     // We're not supporting approve partial amount on search page now
     if (
@@ -2051,10 +2052,20 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+type OverflowMenuIconsType = Record<'Pencil', IconAsset>;
+
 /**
  * Constructs and configures the overflow menu for search items, handling interactions such as renaming or deleting items.
  */
-function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void, isMobileMenu?: boolean, closeMenu?: () => void) {
+function getOverflowMenu(
+    icons: OverflowMenuIconsType,
+    itemName: string,
+    hash: number,
+    inputQuery: string,
+    showDeleteModal: (hash: number) => void,
+    isMobileMenu?: boolean,
+    closeMenu?: () => void,
+) {
     return [
         {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2065,7 +2076,7 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
                 }
                 Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: encodeURIComponent(itemName), jsonQuery: inputQuery}));
             },
-            icon: Expensicons.Pencil,
+            icon: icons.Pencil,
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,
             shouldCallAfterModalHide: true,
@@ -2097,7 +2108,7 @@ function isCorrectSearchUserName(displayName?: string) {
 
 // eslint-disable-next-line @typescript-eslint/max-params
 function createTypeMenuSections(
-    icons: Record<'Document', IconAsset>,
+    icons: Record<'Document' | 'Pencil', IconAsset>,
     currentUserEmail: string | undefined,
     currentUserAccountID: number | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
@@ -2498,8 +2509,7 @@ function getColumnsToShow(
         }
 
         const category = getCategory(transaction);
-        const categoryEmptyValues = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
-        if (category !== '' && !categoryEmptyValues.includes(category)) {
+        if (category !== '' && category !== CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = true;
         }
 
@@ -2649,7 +2659,6 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
         isTaxAmountColumnWide,
         violations,
         hash,
-        canDelete,
         accountID,
         policyID,
         ...transaction

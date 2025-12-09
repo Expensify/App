@@ -28,6 +28,7 @@ import type {
     AssignedCardParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardOnDisputeParams,
@@ -950,8 +951,8 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `此聊天室用于讨论任何与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 相关的内容。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `此聊天用于 <strong>${invoicePayer}</strong> 与 <strong>${invoiceReceiver}</strong> 之间的发票。使用 “+” 按钮发送发票。`,
-        beginningOfChatHistory: '此聊天对象是',
+            `此聊天用于 <strong>${invoicePayer}</strong> 与 <strong>${invoiceReceiver}</strong> 之间的发票。使用 "+" 按钮发送发票。`,
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `此聊天是与${users}的聊天。`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `这是 <strong>${submitterDisplayName}</strong> 向 <strong>${workspaceName}</strong> 提交报销的地方。只需使用“+”按钮即可。`,
         beginningOfChatHistorySelfDM: '这是你的个人空间。可用于记录笔记、任务、草稿和提醒。',
@@ -6724,6 +6725,7 @@ ${reportName}
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `您确定要在 ${workspaceName} 中创建另一份报表吗？您可以在 中访问您的空报表`,
             emptyReportConfirmationPromptLink: '报表',
             genericWorkspaceName: '此工作区',
+            emptyReportConfirmationDontShowAgain: '不再显示此内容',
         },
         genericCreateReportFailureMessage: '创建此聊天时发生意外错误。请稍后再试。',
         genericAddCommentFailureMessage: '发表评论时发生意外错误。请稍后重试。',
@@ -7692,6 +7694,17 @@ ${reportName}
             fetchError: '无法获取 SAML 配置详情',
             setMetadataGenericError: '无法设置 SAML MetaData',
         },
+        accessRestricted: {
+            title: '访问受限',
+            subtitle: (domainName: string) => `如果您需要对以下内容进行管理，请验证您是 <strong>${domainName}</strong> 的授权公司管理员：`,
+            companyCardManagement: '公司卡管理',
+            accountCreationAndDeletion: '账户创建和删除',
+            workspaceCreation: '工作区创建',
+            samlSSO: 'SAML 单点登录',
+        },
+        addDomain: {title: '添加域', subtitle: '请输入您想访问的私有域名（例如：expensify.com）。', domainName: '域名', newDomain: '新域名'},
+        domainAdded: {title: '已添加域名', description: '接下来，您需要验证域名的所有权并调整您的安全设置。', configure: '配置'},
+        enhancedSecurity: {title: '增强的安全性', subtitle: '要求您域内的成员使用单点登录登录、限制工作区创建等。', enable: '启用'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
