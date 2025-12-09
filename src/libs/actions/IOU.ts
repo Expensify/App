@@ -6968,32 +6968,7 @@ function duplicateExpenseTransaction(
         policyCategories: targetPolicyCategories ?? {},
     };
 
-    const transactionType = getTransactionType(transaction);
-
-    switch (transactionType) {
-        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
-            const distanceParams: CreateDistanceRequestInformation = {
-                ...params,
-                participants,
-                existingTransaction: {
-                    ...(params.transactionParams ?? {}),
-                    comment: transaction.comment,
-                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                    modifiedCreated: '',
-                    reportID: '1',
-                    transactionID: '1',
-                },
-                transactionParams: {
-                    ...(params.transactionParams ?? {}),
-                    comment: transactionDetails?.comment ?? '',
-                    validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
-                },
-            };
-            return createDistanceRequest(distanceParams);
-        }
-        default:
-            return requestMoney(params);
-    }
+    return requestMoney(params);
 }
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {

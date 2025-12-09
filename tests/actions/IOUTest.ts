@@ -10831,42 +10831,5 @@ describe('actions/IOU', () => {
 
             isTransactionDuplicated(mockCashExpenseTransaction, duplicatedTransaction);
         });
-
-        it('should create a duplicate distance expense with all fields duplicated', async () => {
-            const randomDistanceTransaction = createRandomDistanceRequestTransaction(1, true);
-
-            const mockDistanceTransaction = {
-                ...randomDistanceTransaction,
-                amount: randomDistanceTransaction.amount * -1,
-            };
-
-            duplicateExpenseTransaction(
-                mockDistanceTransaction,
-                mockOptimisticChatReportID,
-                mockOptimisticIOUReportID,
-                mockIsASAPSubmitBetaEnabled,
-                mockPolicy,
-                fakePolicyCategories,
-                policyExpenseChat,
-            );
-
-            await waitForBatchedUpdates();
-
-            let duplicatedTransaction: OnyxEntry<Transaction>;
-
-            await getOnyxData({
-                key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
-                callback: (allTransactions) => {
-                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
-                },
-            });
-
-            if (!duplicatedTransaction) {
-                return;
-            }
-
-            isTransactionDuplicated(mockDistanceTransaction, duplicatedTransaction);
-        });
     });
 });
