@@ -149,7 +149,6 @@ function canExport(report: Report, policy?: Policy) {
     return isApproved || isReimbursed || isClosed;
 }
 
-// eslint-disable-next-line @typescript-eslint/max-params
 function getReportPreviewAction(
     isReportArchived: boolean,
     currentUserAccountID: number,
@@ -160,8 +159,7 @@ function getReportPreviewAction(
     isPaidAnimationRunning?: boolean,
     isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
-    hasDEWSubmitFailed?: boolean,
-    hasPendingDEWSubmit?: boolean,
+    hasDEWSubmitPendingOrFailed?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -181,7 +179,7 @@ function getReportPreviewAction(
     }
 
     // If DEW submit failed or there's a pending DEW submission, show VIEW
-    if ((hasDEWSubmitFailed || hasPendingDEWSubmit) && isOpenReport(report)) {
+    if (hasDEWSubmitPendingOrFailed && isOpenReport(report)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 

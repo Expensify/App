@@ -325,14 +325,29 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
     return optimisticNextStep;
 }
 
-function buildOptimisticNextStepForDynamicExternalWorkflowError() {
+function buildOptimisticNextStepForDynamicExternalWorkflowError(iconFill?: string) {
     const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'alert',
         icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
+        iconFill,
         message: [
             {
                 text: "This report can't be submitted. Please review the comments to resolve.",
                 type: 'alert-text',
+            },
+        ],
+    };
+
+    return optimisticNextStep;
+}
+
+function buildOptimisticNextStepForDEWOfflineSubmission() {
+    const optimisticNextStep: ReportNextStepDeprecated = {
+        type: 'neutral',
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        message: [
+            {
+                text: 'Waiting for you to come back online to determine next steps.',
             },
         ],
     };
@@ -723,6 +738,7 @@ export {
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
     buildOptimisticNextStepForDynamicExternalWorkflowError,
+    buildOptimisticNextStepForDEWOfflineSubmission,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildNextStepNew,
 };
