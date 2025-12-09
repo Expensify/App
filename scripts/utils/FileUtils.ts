@@ -31,5 +31,7 @@ function getLineAndColumnFromIndex(source: string, index: number): {line: number
     return {line, column};
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {getLineAndColumnFromIndex, ERROR_MESSAGES};
+const FileUtils = {getLineAndColumnFromIndex};
+
+export default FileUtils;
+export {ERROR_MESSAGES};

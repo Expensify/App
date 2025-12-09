@@ -11,7 +11,7 @@ import fs, {readFileSync} from 'fs';
 import path from 'path';
 import type {TupleToUnion} from 'type-fest';
 import CLI from './utils/CLI';
-import {getLineAndColumnFromIndex} from './utils/FileUtils';
+import FileUtils from './utils/FileUtils';
 import Git from './utils/Git';
 import type {DiffResult} from './utils/Git';
 import {log, bold as logBold, error as logError, info as logInfo, note as logNote, success as logSuccess, warn as logWarn} from './utils/Logger';
@@ -598,7 +598,7 @@ function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] 
             if (matchIndex === undefined) {
                 continue;
             }
-            const {line, column} = getLineAndColumnFromIndex(source, matchIndex);
+            const {line, column} = FileUtils.getLineAndColumnFromIndex(source, matchIndex);
             matches.push({keyword, line, column});
         }
     }
