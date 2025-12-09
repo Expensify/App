@@ -88,11 +88,11 @@ const FS: Fullstory = {
 
     anonymize: () => FullStory(CONST.FULLSTORY.OPERATION.SET_IDENTITY, {anonymous: true}),
 
-    getSessionId: async () => {
+    getSessionUrl: async () => {
         if (!isInitialized()) {
             return;
         }
-        return FullStory('getSessionAsync', {format: 'id'});
+        return FullStory('getSessionAsync', {format: 'url.now'});
     },
 };
 

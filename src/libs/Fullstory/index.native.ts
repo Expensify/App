@@ -49,8 +49,8 @@ const FS: Fullstory = {
 
     anonymize: () => FullStory.anonymize(),
 
-    getSessionId: () => {
-        return FullStory.getCurrentSession();
+    getSessionUrl: () => {
+        return FullStory.getCurrentSessionURL();
     },
 };
 
