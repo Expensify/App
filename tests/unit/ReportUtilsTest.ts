@@ -2950,6 +2950,7 @@ describe('ReportUtils', () => {
                             submitsTo: currentUserEmail,
                         },
                     },
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 };
                 Promise.all([
                     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy),
