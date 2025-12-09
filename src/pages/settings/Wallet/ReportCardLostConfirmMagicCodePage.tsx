@@ -1,3 +1,4 @@
+import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useState} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
@@ -14,7 +15,6 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SuccessReportCardLost from './SuccessReportCardLost';
 
 type ReportCardLostConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE>;
@@ -44,12 +44,17 @@ function ReportCardLostConfirmMagicCodePage({
     }, [cardList, physicalCard?.cardID, previousCardList]);
 
     useEffect(() => {
-        if (formData?.isLoading && isEmptyObject(physicalCard?.errors)) {
+        if (formData?.isLoading) {
             return;
         }
 
-        setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, physicalCard?.errors ?? {});
-    }, [formData?.isLoading, physicalCard?.errors]);
+        const newErrors = physicalCard?.errors ?? {};
+        // Only update if errors have actually changed to prevent additional rerender
+        if (deepEqual(newErrors, formData?.errors ?? {})) {
+            return;
+        }
+        setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, newErrors);
+    }, [formData?.isLoading, formData?.errors, physicalCard?.errors]);
 
     const handleValidateCodeEntered = useCallback(
         (validateCode: string) => {
