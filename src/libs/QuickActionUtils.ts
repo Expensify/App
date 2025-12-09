@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, Report} from '@src/types/onyx';

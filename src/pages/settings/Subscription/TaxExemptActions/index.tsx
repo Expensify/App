@@ -31,7 +31,7 @@ function TaxExemptActions() {
                 },
             },
         ],
-        [translate],
+        [translate, icons.Coins],
     );
 
     return (

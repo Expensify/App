@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import {Connect, RotateLeft} from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';

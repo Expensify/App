@@ -3,8 +3,6 @@ import {TabActions} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useIsResizing from '@hooks/useIsResizing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';

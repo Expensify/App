@@ -1,6 +1,7 @@
 import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import PopoverMenu from '@components/PopoverMenu';
