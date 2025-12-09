@@ -838,6 +838,10 @@ const SCREENS = {
     },
     WORKSPACES_VERIFY_DOMAIN: 'Workspaces_Verify_Domain',
     WORKSPACES_DOMAIN_VERIFIED: 'Workspaces_Domain_Verified',
+    WORKSPACES_ADD_DOMAIN: 'Workspaces_Add_Domain',
+    WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: 'Workspaces_Add_Domain_VerifyAccount',
+    WORKSPACES_DOMAIN_ADDED: 'Workspaces_Domain_Added',
+    WORKSPACES_DOMAIN_ACCESS_RESTRICTED: 'Workspaces_Domain_Access_Restricted',
     DOMAIN: {
         VERIFY: 'Domain_Verify',
         VERIFIED: 'Domain_Verified',
