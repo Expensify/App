@@ -124,6 +124,7 @@ function MoneyRequestReportPreviewContent({
 }: MoneyRequestReportPreviewContentProps) {
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true, allowStaleData: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
@@ -142,7 +143,7 @@ function MoneyRequestReportPreviewContent({
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow', 'Location'] as const);
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -269,7 +270,7 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(iouReport, activePolicy, currentUserDetails.accountID, currentUserDetails.email ?? '', hasViolations, isASAPSubmitBetaEnabled, true);
+            approveMoneyRequest(iouReport, activePolicy, currentUserDetails.accountID, currentUserDetails.email ?? '', hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
         }
     };
 
@@ -516,8 +517,8 @@ function MoneyRequestReportPreviewContent({
     ]);
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
-        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, lastDistanceExpenseType],
+        () => getAddExpenseDropdownOptions(expensifyIcons, iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
+        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -534,7 +535,7 @@ function MoneyRequestReportPreviewContent({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(iouReport, policy, currentUserDetails.accountID, currentUserDetails.email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                    submitReport(iouReport, policy, currentUserDetails.accountID, currentUserDetails.email ?? '', hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep);
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
