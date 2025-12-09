@@ -8,6 +8,8 @@ const mockSelectedTransaction: SelectedTransactionInfo = {
     action: 'approve',
     canHold: true,
     isHeld: false,
+    canSplit: false,
+    hasBeenSplit: false,
     canUnhold: false,
     canChangeReport: true,
     isSelected: true,
