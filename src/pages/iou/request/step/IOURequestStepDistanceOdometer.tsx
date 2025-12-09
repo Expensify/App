@@ -79,6 +79,8 @@ function IOURequestStepDistanceOdometer({
     // Track initial values for DiscardChangesConfirmation
     const initialStartReadingRef = useRef<string>('');
     const initialEndReadingRef = useRef<string>('');
+    const initialStartImageRef = useRef<File | string | undefined>(undefined);
+    const initialEndImageRef = useRef<File | string | undefined>(undefined);
     const isSavedRef = useRef(false);
     const hasInitializedRefs = useRef(false);
     // Track previous transaction values to detect when transaction is cleared (e.g., tab switch)
@@ -141,6 +143,8 @@ function IOURequestStepDistanceOdometer({
             endReadingRef.current = '';
             initialStartReadingRef.current = '';
             initialEndReadingRef.current = '';
+            initialStartImageRef.current = undefined;
+            initialEndImageRef.current = undefined;
             setFormError('');
             // Force TextInput remount to reset label position
             setInputKey((prev) => prev + 1);
@@ -156,18 +160,22 @@ function IOURequestStepDistanceOdometer({
         if (!hasInitializedRefs.current) {
             initialStartReadingRef.current = '';
             initialEndReadingRef.current = '';
+            initialStartImageRef.current = transaction?.comment?.odometerStartImage;
+            initialEndImageRef.current = transaction?.comment?.odometerEndImage;
             hasInitializedRefs.current = true;
         }
-    }, []);
+    }, [transaction?.comment?.odometerStartImage, transaction?.comment?.odometerEndImage]);
 
     // Update refs after saving to mark current state as "saved"
     useEffect(() => {
         if (isSavedRef.current) {
             initialStartReadingRef.current = startReading;
             initialEndReadingRef.current = endReading;
+            initialStartImageRef.current = transaction?.comment?.odometerStartImage;
+            initialEndImageRef.current = transaction?.comment?.odometerEndImage;
             isSavedRef.current = false;
         }
-    }, [startReading, endReading]);
+    }, [startReading, endReading, transaction?.comment?.odometerStartImage, transaction?.comment?.odometerEndImage]);
 
     // Calculate total distance - updated live after every input change
     const totalDistance = useMemo(() => {
@@ -474,7 +482,11 @@ function IOURequestStepDistanceOdometer({
                     if (isSavedRef.current) {
                         return false;
                     }
-                    return startReading !== initialStartReadingRef.current || endReading !== initialEndReadingRef.current;
+                    const hasReadingChanges = startReading !== initialStartReadingRef.current || endReading !== initialEndReadingRef.current;
+                    const hasImageChanges = 
+                        transaction?.comment?.odometerStartImage !== initialStartImageRef.current ||
+                        transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
+                    return hasReadingChanges || hasImageChanges;
                 }}
             />
         </StepScreenWrapper>
