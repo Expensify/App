@@ -1525,7 +1525,7 @@ function PureReportActionItem({
                                                     : 'horizontal'
                                             }
                                             shouldUseLocalization={!isConciergeOptions}
-                                            primaryTextNumberOfLines={isConciergeOptions ? 0 : 1}
+                                            primaryTextNumberOfLines={isConciergeOptions ? 2 : 1}
                                             textStyles={isConciergeOptions ? styles.textAlignLeft : undefined}
                                         />
                                     )}
