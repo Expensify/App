@@ -267,7 +267,7 @@ function WorkspaceTaxesPage({
             }
             deleteTaxes();
         });
-    }, [selectedTaxesIDs, translate, showConfirmModal, deleteTaxes]);
+    }, [selectedTaxesIDs.length, translate, showConfirmModal, deleteTaxes]);
 
     const toggleTaxes = useCallback(
         (isEnabled: boolean) => {
