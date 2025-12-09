@@ -48,8 +48,8 @@ import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
+    canAddOrDeleteTransactions,
     canDeleteCardTransactionByLiabilityType,
-    canDeleteTransaction,
     canEditReportDescription as canEditReportDescriptionUtil,
     canJoinChat,
     canLeaveChat,
@@ -291,7 +291,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         !isClosedReport(report) &&
         isTaskModifiable &&
         isTaskActionable;
-    const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && (canAddOrDeleteTransactions(moneyRequestReport, policy, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID}`, {canBeMissing: true});
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
