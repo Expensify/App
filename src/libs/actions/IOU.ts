@@ -1,7 +1,6 @@
 /* eslint-disable max-lines */
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
 import cloneDeep from 'lodash/cloneDeep';
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
@@ -3513,7 +3512,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         const expectedParticipants = [payerAccountID, payeeAccountID].sort();
         const sortedParentChatReportParticipants = parentChatReportParticipants.sort();
 
-        if (!deepEqual(expectedParticipants, sortedParentChatReportParticipants)) {
+        const participantsMatch =
+            expectedParticipants.length === sortedParentChatReportParticipants.length && expectedParticipants.every((id, index) => id === sortedParentChatReportParticipants[index]);
+
+        if (!participantsMatch) {
             chatReport = null;
         }
     }
