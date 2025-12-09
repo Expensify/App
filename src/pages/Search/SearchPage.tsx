@@ -995,10 +995,14 @@ function SearchPage({route}: SearchPageProps) {
         const selectedTransactionItems = Object.values(selectedTransactions);
         const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency;
         const numberOfExpense = shouldUseClientTotal
-            ? selectedTransactionsKeys.filter((key) => {
+            ? selectedTransactionsKeys.reduce((count, key) => {
                   const item = selectedTransactions[key];
-                  return !(item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID);
-              }).length
+                  // Skip empty reports (where key is the reportID itself, not a transactionID)
+                  if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
+                      return count;
+                  }
+                  return count + 1;
+              }, 0)
             : metadata?.count;
         const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
 

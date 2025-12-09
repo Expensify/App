@@ -208,11 +208,24 @@ function SearchList({
 
     const totalItems = useMemo(() => {
         if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
-            return emptyReports.length + flattenedItems.length;
+            const selectableEmptyReports = emptyReports.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            const selectableTransactions = flattenedItems.filter((item) => {
+                if ('pendingAction' in item) {
+                    return item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                }
+                return true;
+            });
+            return selectableEmptyReports.length + selectableTransactions.length;
         }
 
-        return flattenedItems.length;
-    }, [data, type, flattenedItems.length, emptyReports.length]);
+        const selectableTransactions = flattenedItems.filter((item) => {
+            if ('pendingAction' in item) {
+                return item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            }
+            return true;
+        });
+        return selectableTransactions.length;
+    }, [data, type, flattenedItems, emptyReports]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();

@@ -201,7 +201,7 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
           };
 }
 
-function toggleTransactionInList(item: TransactionListItemType, selectedTransactions: SelectedTransactions, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue) {
+function prepareTransactionsList(item: TransactionListItemType, selectedTransactions: SelectedTransactions, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
@@ -647,8 +647,9 @@ function Search({
                           }
                           return count + 1;
                       }
-                      // For regular reports, count all transactions
-                      return count + item.transactions.length;
+                      // For regular reports, count all transactions except pending delete ones
+                      const selectableTransactions = item.transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
+                      return count + selectableTransactions.length;
                   }, 0)
                 : filteredData.length;
             const areAllItemsSelected = totalSelectableItemsCount === Object.keys(updatedSelectedTransactions).length;
@@ -678,7 +679,7 @@ function Search({
                 if (isTransactionPendingDelete(item)) {
                     return;
                 }
-                const updatedTransactions = toggleTransactionInList(item, selectedTransactions, outstandingReportsByPolicyID);
+                const updatedTransactions = prepareTransactionsList(item, selectedTransactions, outstandingReportsByPolicyID);
                 setSelectedTransactions(updatedTransactions, filteredData);
                 updateSelectAllMatchingItemsState(updatedTransactions);
                 return;
