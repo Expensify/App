@@ -1,8 +1,7 @@
 import * as Sentry from '@sentry/react-native';
-import {Platform} from 'react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import {browserProfilingIntegration, browserTracingIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
+import {browserProfilingIntegration, browserTracingIntegration, hermesProfilingIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
 import processBeforeSendTransactions from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -14,13 +13,15 @@ export default function (): void {
         return;
     }
 
-    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, browserTracingIntegration].filter((integration) => !!integration);
+    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, browserTracingIntegration, hermesProfilingIntegration].filter(
+        (integration) => !!integration,
+    );
 
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
         transport: isDevelopment() ? makeDebugTransport : undefined,
         tracesSampleRate: 1.0,
-        profilesSampleRate: Platform.OS === 'android' ? 0.1 : 1.0,
+        profilesSampleRate: 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
         integrations,

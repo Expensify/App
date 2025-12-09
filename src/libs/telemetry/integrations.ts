@@ -25,4 +25,8 @@ const browserTracingIntegration =
 
 const browserProfilingIntegration = SentryReact.browserProfilingIntegration();
 
-export {navigationIntegration, tracingIntegration, browserTracingIntegration, browserProfilingIntegration};
+const hermesProfilingIntegration = Sentry.hermesProfilingIntegration({
+    platformProfilers: false,
+});
+
+export {navigationIntegration, tracingIntegration, browserTracingIntegration, browserProfilingIntegration, hermesProfilingIntegration};
