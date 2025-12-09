@@ -18,7 +18,8 @@ export default function useTodos() {
         const reportsToPay: Report[] = [];
         const reportsToExport: Report[] = [];
 
-        if (!allReports) {
+        const reports = allReports ? Object.values(allReports) : [];
+        if (reports.length === 0) {
             return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
         }
 
@@ -32,7 +33,7 @@ export default function useTodos() {
             }
         }
 
-        for (const report of Object.values(allReports)) {
+        for (const report of reports) {
             if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE) {
                 continue;
             }
