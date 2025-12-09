@@ -8,10 +8,10 @@ import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming}
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
+import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
@@ -438,7 +438,21 @@ function Search({
             reportTransactionsAndViolations: allReportsTransactionsAndViolations,
         });
         return [filteredData1, filteredData1.length, allLength];
-    }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON, email, isActionLoadingSet, allReportsTransactionsAndViolations]);
+    }, [
+        searchKey,
+        exportReportActions,
+        validGroupBy,
+        isDataLoaded,
+        searchResults,
+        type,
+        archivedReportsIdSet,
+        formatPhoneNumber,
+        accountID,
+        queryJSON,
+        email,
+        isActionLoadingSet,
+        allReportsTransactionsAndViolations,
+    ]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
