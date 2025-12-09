@@ -123,6 +123,10 @@ function BaseModal({
         [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
     );
 
+    const handleDismissModal = useCallback(() => {
+        ComposerFocusManager.setReadyToFocus(uniqueModalId);
+    }, [uniqueModalId]);
+
     useEffect(() => {
         let removeOnCloseListener: () => void;
         if (isVisible) {
@@ -134,13 +138,18 @@ function BaseModal({
             }
         }
 
+        // When the modal becomes not visible, run dismiss logic to setReadyToFocus after it fully closes.
+        if (!(isVisible || !wasVisible)) {
+            handleDismissModal();
+        }
+
         return () => {
             if (!removeOnCloseListener) {
                 return;
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type]);
+    }, [isVisible, wasVisible, onClose, type, handleDismissModal]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
@@ -152,10 +161,6 @@ function BaseModal({
                 return;
             }
             hideModalCallbackRef.current?.(true);
-
-            // Fallback: Ensure setReadyToFocus is called if modal is unmounted quickly
-            // before handleDismissModal could execute, preventing stuck focus promises
-            ComposerFocusManager.setReadyToFocus(uniqueModalId);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
@@ -178,10 +183,6 @@ function BaseModal({
         } else {
             onClose?.();
         }
-    };
-
-    const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus(uniqueModalId);
     };
 
     // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
