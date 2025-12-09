@@ -1,12 +1,13 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -42,7 +43,6 @@ import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
 
 function CardSection() {
-    const [isRequestRefundModalVisible, setIsRequestRefundModalVisible] = useState(false);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -75,9 +75,19 @@ function CardSection() {
     const [billingStatusOnyx] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
     const requestRefund = useCallback(() => {
         requestRefundByUser();
-        setIsRequestRefundModalVisible(false);
         Navigation.goBackToHome();
     }, []);
+
+    const {showConfirmModal} = useConfirmModal();
+    const showRequestRefundModal = useCallback(() => {
+        return showConfirmModal({
+            title: translate('subscription.cardSection.requestRefund'),
+            prompt: <RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />,
+            confirmText: translate('subscription.cardSection.requestRefundModal.confirm'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+        });
+    }, [showConfirmModal, translate]);
 
     const viewPurchases = useCallback(() => {
         const query = buildQueryStringFromFilterFormValues({merchant: CONST.EXPENSIFY_MERCHANT});
@@ -254,25 +264,20 @@ function CardSection() {
                         title={translate('subscription.cardSection.requestRefund')}
                         titleStyle={styles.textStrong}
                         disabled={isOffline}
-                        onPress={() => setIsRequestRefundModalVisible(true)}
+                        onPress={() => {
+                            showRequestRefundModal().then((result) => {
+                                if (result.action !== ModalActions.CONFIRM) {
+                                    return;
+                                }
+                                requestRefund();
+                            });
+                        }}
                     />
                 )}
 
                 {!!(privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && account?.hasPurchases) && <RequestEarlyCancellationMenuItem />}
             </Section>
 
-            {!!account?.isEligibleForRefund && (
-                <ConfirmModal
-                    title={translate('subscription.cardSection.requestRefund')}
-                    isVisible={isRequestRefundModalVisible}
-                    onConfirm={requestRefund}
-                    onCancel={() => setIsRequestRefundModalVisible(false)}
-                    prompt={<RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />}
-                    confirmText={translate('subscription.cardSection.requestRefundModal.confirm')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
-            )}
         </>
     );
 }

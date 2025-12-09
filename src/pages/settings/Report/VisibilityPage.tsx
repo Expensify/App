@@ -1,11 +1,12 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -22,11 +23,21 @@ type VisibilityProps = WithReportOrNotFoundProps & PlatformStackScreenProps<Repo
 
 function VisibilityPage({report}: VisibilityProps) {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>>();
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const shouldGoBackToDetailsPage = useRef(false);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldDisableVisibility = isArchivedNonExpenseReport(report, isReportArchived);
     const {translate} = useLocalize();
+
+    const {showConfirmModal} = useConfirmModal();
+    const showPublicVisibilityModal = useCallback(() => {
+        return showConfirmModal({
+            title: translate('common.areYouSure'),
+            prompt: translate('newRoomPage.publicDescription'),
+            confirmText: translate('common.yes'),
+            cancelText: translate('common.no'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+    }, [showConfirmModal, translate]);
 
     const visibilityOptions = useMemo(
         () =>
@@ -52,18 +63,10 @@ function VisibilityPage({report}: VisibilityProps) {
                 return;
             }
             updateRoomVisibility(report.reportID, report.visibility, newVisibility);
-            if (showConfirmModal) {
-                shouldGoBackToDetailsPage.current = true;
-            } else {
-                goBack();
-            }
+            goBack();
         },
         [report, showConfirmModal, goBack],
     );
-
-    const hideModal = useCallback(() => {
-        setShowConfirmModal(false);
-    }, []);
 
     return (
         <ScreenWrapper
@@ -80,7 +83,11 @@ function VisibilityPage({report}: VisibilityProps) {
                     data={visibilityOptions}
                     onSelectRow={(option) => {
                         if (option.value === CONST.REPORT.VISIBILITY.PUBLIC) {
-                            setShowConfirmModal(true);
+                            showPublicVisibilityModal().then((result) => {
+                                if (result.action === ModalActions.CONFIRM) {
+                                    changeVisibility(CONST.REPORT.VISIBILITY.PUBLIC);
+                                }
+                            });
                             return;
                         }
                         changeVisibility(option.value);
@@ -88,26 +95,6 @@ function VisibilityPage({report}: VisibilityProps) {
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={visibilityOptions.find((visibility) => visibility.isSelected)?.keyForList}
                     ListItem={RadioListItem}
-                />
-                <ConfirmModal
-                    isVisible={showConfirmModal}
-                    onConfirm={() => {
-                        changeVisibility(CONST.REPORT.VISIBILITY.PUBLIC);
-                        hideModal();
-                    }}
-                    onModalHide={() => {
-                        if (!shouldGoBackToDetailsPage.current) {
-                            return;
-                        }
-                        shouldGoBackToDetailsPage.current = false;
-                        goBack();
-                    }}
-                    onCancel={hideModal}
-                    title={translate('common.areYouSure')}
-                    prompt={translate('newRoomPage.publicDescription')}
-                    confirmText={translate('common.yes')}
-                    cancelText={translate('common.no')}
-                    danger
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

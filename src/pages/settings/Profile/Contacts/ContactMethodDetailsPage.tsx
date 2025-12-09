@@ -10,12 +10,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Star, Trashcan} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -118,18 +120,48 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         return !securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`]?.enableRestrictedPrimaryLogin;
     }, [isDefaultContactMethod, loginData?.validatedDate, session?.email, myDomainSecurityGroups, securityGroups]);
 
+    const {showConfirmModal} = useConfirmModal();
+    const showRemoveContactMethodModal = useCallback(() => {
+        return showConfirmModal({
+            title: translate('contacts.removeContactMethod'),
+            prompt: translate('contacts.removeAreYouSure'),
+            confirmText: translate('common.yesContinue'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+    }, [showConfirmModal, translate]);
+
     /**
      * Toggle delete confirm modal visibility
      */
-    const toggleDeleteModal = useCallback((isOpen: boolean) => {
-        if (canUseTouchScreen() && isOpen) {
+    const openDeleteModal = useCallback(() => {
+        if (canUseTouchScreen()) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                setIsDeleteModalOpen(isOpen);
+                showRemoveContactMethodModal().then((result) => {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    InteractionManager.runAfterInteractions(() => {
+                        validateCodeFormRef.current?.focusLastSelected?.();
+                    });
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    confirmDeleteAndHideModal();
+                });
             });
             Keyboard.dismiss();
         } else {
-            setIsDeleteModalOpen(isOpen);
+            showRemoveContactMethodModal().then((result) => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => {
+                    validateCodeFormRef.current?.focusLastSelected?.();
+                });
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                confirmDeleteAndHideModal();
+            });
         }
     }, []);
 

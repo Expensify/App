@@ -1,11 +1,12 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,7 +26,6 @@ import type {Participant} from '@src/types/onyx/IOU';
 function VacationDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [newVacationDelegate, setNewVacationDelegate] = useState('');
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -42,6 +42,17 @@ function VacationDelegatePage() {
         }),
         [currentVacationDelegate],
     );
+
+    const {showConfirmModal} = useConfirmModal();
+    const showVacationDelegateWarningModal = useCallback(() => {
+        return showConfirmModal({
+            title: translate('common.headsUp'),
+            prompt: translate('statusPage.vacationDelegateWarning', {nameOrEmail: getPersonalDetailByEmail(newVacationDelegate)?.displayName ?? newVacationDelegate}),
+            confirmText: translate('common.confirm'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+        });
+    }, [showConfirmModal, translate]);
 
     const {searchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -147,7 +158,13 @@ function VacationDelegatePage() {
                 }
 
                 if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
-                    setIsWarningModalVisible(true);
+                    showVacationDelegateWarningModal().then((result) => {
+                        if (result.action === ModalActions.CONFIRM) {
+                            setVacationDelegate(currentUserLogin ?? '', newVacationDelegate, true, vacationDelegate?.delegate).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
+                        } else {
+                            clearVacationDelegateError(vacationDelegate?.previousDelegate);
+                        }
+                    });
                     setNewVacationDelegate(option?.login ?? '');
                     return;
                 }
@@ -188,21 +205,6 @@ function VacationDelegatePage() {
                     />
                 </View>
             </ScreenWrapper>
-            <ConfirmModal
-                isVisible={isWarningModalVisible}
-                title={translate('common.headsUp')}
-                prompt={translate('statusPage.vacationDelegateWarning', {nameOrEmail: getPersonalDetailByEmail(newVacationDelegate)?.displayName ?? newVacationDelegate})}
-                onConfirm={() => {
-                    setIsWarningModalVisible(false);
-                    setVacationDelegate(currentUserLogin ?? '', newVacationDelegate, true, vacationDelegate?.delegate).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
-                }}
-                onCancel={() => {
-                    setIsWarningModalVisible(false);
-                    clearVacationDelegateError(vacationDelegate?.previousDelegate);
-                }}
-                confirmText={translate('common.confirm')}
-                cancelText={translate('common.cancel')}
-            />
         </>
     );
 }
