@@ -257,7 +257,8 @@ const ViolationsUtils = {
             }
         }
 
-        const shouldShowSmartScanFailedError = isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
+        const shouldShowSmartScanFailedError =
+            isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && TransactionUtils.hasMissingSmartscanFields(updatedTransaction);
         const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
         if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
             newTransactionViolations.push({name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true});
