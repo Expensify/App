@@ -7815,6 +7815,26 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             fetchError: 'SAML 設定の詳細を取得できませんでした',
             setMetadataGenericError: 'SAMLメタデータを設定できませんでした',
         },
+        accessRestricted: {
+            title: 'アクセスが制限されています',
+            subtitle: (domainName: string) => `以下を管理する必要がある場合は、<strong>${domainName}</strong> の認可された会社管理者であることを確認してください:`,
+            companyCardManagement: '法人カードの管理',
+            accountCreationAndDeletion: 'アカウントの作成と削除',
+            workspaceCreation: 'ワークスペースの作成',
+            samlSSO: 'SAML シングルサインオン',
+        },
+        addDomain: {
+            title: 'ドメインを追加',
+            subtitle: 'アクセスしたいプライベートドメイン名を入力してください（例：expensify.com）。',
+            domainName: 'ドメイン名',
+            newDomain: '新しいドメイン',
+        },
+        domainAdded: {title: 'ドメインが追加されました', description: '次に、ドメインの所有権を確認し、セキュリティ設定を調整する必要があります。', configure: '設定'},
+        enhancedSecurity: {
+            title: '強化されたセキュリティ',
+            subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須化し、ワークスペースの作成を制限するなど、さらに多くのことができます。',
+            enable: '有効にする',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
