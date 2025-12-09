@@ -14420,7 +14420,6 @@ function updateSplitTransactions({
     const originalChildTransactions = getChildTransactions(allTransactionsList, allReportsList, originalTransactionID);
     const processedChildTransactionIDs: string[] = [];
 
-    const reportTotal = transactionReport?.total ?? 0;
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
 
     const isCreationOfSplits = originalChildTransactions.length === 0;
@@ -14464,13 +14463,18 @@ function updateSplitTransactions({
         }) ?? [];
     changesInReportTotal -= splitExpensesTotal;
 
-    // While updating splits, BE sends incorrect transactionReport?.total, i.e reportTotal. So relying on splitExpensesTotal
-    const sumOfCurrentSplits = changesInReportTotal + splitExpensesTotal;
-    const calculatedNewReportTotal = isCreationOfSplits ? reportTotal - changesInReportTotal : -sumOfCurrentSplits;
-
     const successData = [] as OnyxUpdate[];
     const failureData = [] as OnyxUpdate[];
     const optimisticData = [] as OnyxUpdate[];
+
+    // The split transactions can be in different reports, so we need to calculate the total for each report.
+    const reportTotals = new Map<string, number>();
+    for (const expense of splitExpenses) {
+        if (expense.reportID) {
+            const currentTotal = reportTotals.get(expense.reportID) ?? 0;
+            reportTotals.set(expense.reportID, currentTotal - (expense.amount ?? 0));
+        }
+    }
 
     for (const [index, splitExpense] of splitExpenses.entries()) {
         const existingTransactionID = isReverseSplitOperation ? originalTransactionID : splitExpense.transactionID;
@@ -14554,7 +14558,7 @@ function updateSplitTransactions({
             moneyRequestReportID: splitExpense?.reportID,
             existingTransaction,
             existingTransactionID,
-            newReportTotal: calculatedNewReportTotal,
+            newReportTotal: reportTotals.get(splitExpense?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)) ?? 0,
             newNonReimbursableTotal: (transactionReport?.nonReimbursableTotal ?? 0) - changesInReportTotal,
             isSplitExpense: true,
             currentReportActionID: currentReportAction?.reportActionID,
