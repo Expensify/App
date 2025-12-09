@@ -44,7 +44,6 @@ function EnabledPage() {
             title: translate('twoFactorAuth.twoFactorAuthCannotDisable'),
             prompt: translate('twoFactorAuth.twoFactorAuthRequired'),
             confirmText: translate('common.buttonConfirm'),
-            cancelText: translate('common.cancel'),
             shouldShowCancelButton: false,
         });
     }, [showConfirmModal, translate]);

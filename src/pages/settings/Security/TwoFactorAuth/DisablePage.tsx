@@ -2,9 +2,9 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,10 +39,28 @@ function DisablePage() {
         Navigation.goBack();
     }, []);
 
+    const {showConfirmModal} = useConfirmModal();
+    const showTwoFactorAuthRequireModal = useCallback(() => {
+        return showConfirmModal({
+            title: translate('twoFactorAuth.twoFactorAuthCannotDisable'),
+            prompt: translate('twoFactorAuth.twoFactorAuthRequired'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
+
+    useEffect(() => {
+        if (!isEmpty(account?.errorFields?.requiresTwoFactorAuth ?? {})) {
+            showTwoFactorAuthRequireModal().then(() => {
+                closeModal();
+            });
+        }
+    }, [account?.errorFields?.requiresTwoFactorAuth]);
+
     return (
         <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.DISABLE}
-            title={translate('twoFactorAuth.disableTwoFactorAuth')}
+            title={"translate('twoFactorAuth.disableTwoFactorAuth')"}
         >
             <ScrollView
                 contentContainerStyle={styles.flexGrow1}
@@ -69,16 +87,6 @@ function DisablePage() {
                     }}
                 />
             </FixedFooter>
-            <ConfirmModal
-                title={translate('twoFactorAuth.twoFactorAuthCannotDisable')}
-                prompt={translate('twoFactorAuth.twoFactorAuthRequired')}
-                confirmText={translate('common.buttonConfirm')}
-                onConfirm={closeModal}
-                shouldShowCancelButton={false}
-                onBackdropPress={closeModal}
-                onCancel={closeModal}
-                isVisible={!isEmpty(account?.errorFields?.requiresTwoFactorAuth ?? {})}
-            />
         </TwoFactorAuthWrapper>
     );
 }
