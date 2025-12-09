@@ -228,8 +228,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
         Navigation.isNavigationReady().then(() => Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [featureToggleName, isFocused, isFeatureEnabled, pendingField, isOffline]);
+    }, [featureToggleName, isFocused, isFeatureEnabled, pendingField, isOffline, policyID]);
 
     if (!canPerformUpgrade) {
         return <NotFoundPage />;
