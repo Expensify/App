@@ -59,14 +59,15 @@ function validateAmount(amount: string, decimals: number, amountMaxLength: numbe
  * By default we keep backwards-compatible behavior and only allow whole-number percentages between 0 and 100.
  * Some callers (e.g. split-by-percentage) may temporarily allow values above 100 while the user edits; they can
  * opt into this relaxed behavior via the `allowExceedingHundred` flag.
+ * The `allowDecimal` flag enables one decimal place (0.1 precision) for more granular percentage splits.
  */
-function validatePercentage(amount: string, allowExceedingHundred = false): boolean {
+function validatePercentage(amount: string, allowExceedingHundred = false, allowDecimal = false): boolean {
     if (allowExceedingHundred) {
-        const digitsOnlyRegex = /^\d*$/u;
-        return amount === '' || digitsOnlyRegex.test(amount);
+        const regex = allowDecimal ? /^\d*\.?\d?$/u : /^\d*$/u;
+        return amount === '' || regex.test(amount);
     }
 
-    const regexString = '^(100|[0-9]{1,2})$';
+    const regexString = allowDecimal ? '^(100(\\.0)?|[0-9]{1,2}(\\.\\d)?)$' : '^(100|[0-9]{1,2})$';
     const percentageRegex = new RegExp(regexString, 'i');
     return amount === '' || percentageRegex.test(amount);
 }

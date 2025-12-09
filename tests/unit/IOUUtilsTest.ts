@@ -176,7 +176,13 @@ describe('IOUUtils', () => {
     describe('calculateSplitAmountFromPercentage', () => {
         test('Basic percentage calculation and rounding', () => {
             expect(IOUUtils.calculateSplitAmountFromPercentage(20000, 25)).toBe(5000);
-            expect(IOUUtils.calculateSplitAmountFromPercentage(199, 50)).toBe(100); // rounds
+            expect(IOUUtils.calculateSplitAmountFromPercentage(199, 50)).toBe(100);
+        });
+
+        test('Handles decimal percentages', () => {
+            expect(IOUUtils.calculateSplitAmountFromPercentage(10000, 7.7)).toBe(770);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(10000, 33.3)).toBe(3330);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(8900, 7.7)).toBe(685);
         });
 
         test('Clamps percentage between 0 and 100 and uses absolute total', () => {
@@ -187,26 +193,46 @@ describe('IOUUtils', () => {
     });
 
     describe('calculateSplitPercentagesFromAmounts', () => {
-        test('Distributes percentages proportionally and adjusts remainder across rows while preserving ordering', () => {
-            // 23.00 split as 7.66, 7.66, 7.68 → 3x ~33% but must sum to 100
+        test('Equal amounts always have equal percentages', () => {
+            // All equal amounts should get equal floored percentages
+            const amounts = [33, 33, 35];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, 101);
+
+            // First two (equal amounts) should have equal percentages
+            expect(percentages.at(0)).toBe(percentages.at(1));
+            // Last one (larger) should have the remainder
+            expect(percentages.at(2)).toBeGreaterThan(percentages.at(0) ?? 0);
+            // Sum should be 100
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
+        });
+
+        test('Zero-amount splits stay at 0 percent', () => {
+            // Splits with 0 amount should have 0% even when there is a remainder
+            const amounts = [33, 33, 35, 0, 0];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, 101);
+
+            // Zero amounts should be 0%
+            expect(percentages.at(3)).toBe(0);
+            expect(percentages.at(4)).toBe(0);
+            // First two (equal amounts) should have equal percentages
+            expect(percentages.at(0)).toBe(percentages.at(1));
+            // Sum should be 100
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
+        });
+
+        test('Returns percentages with one decimal place', () => {
             const totalInCents = 2300;
             const amounts = [766, 766, 768];
             const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
 
-            expect(percentages).toEqual([33, 33, 34]);
-            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
-        });
-
-        test('Ensures larger amounts receive the full remainder so first N are even and the last is highest', () => {
-            // 2.00 split as 0.33, 0.33, 0.33, 0.33, 0.33, 0.35
-            const totalInCents = 200;
-            const amounts = [33, 33, 33, 33, 33, 35];
-            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
-
-            // The first 5 rows share the same base percentage and the last one gets the full remainder.
-            // eslint-disable-next-line rulesdir/prefer-at
-            expect(percentages).toEqual([16, 16, 16, 16, 16, 20]);
-            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
+            // First two equal amounts should have equal percentages
+            expect(percentages.at(0)).toBe(percentages.at(1));
+            // Percentages should have at most one decimal place
+            for (const p of percentages) {
+                expect(Math.round(p * 10) / 10).toBe(p);
+            }
+            // Sum should be 100
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
         });
 
         test('Handles zero or empty totals by returning zeros', () => {
@@ -219,19 +245,61 @@ describe('IOUUtils', () => {
             const amounts = [-766, -766, -768];
             const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
 
-            expect(percentages).toEqual([33, 33, 34]);
-            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
+            // Equal amounts should have equal percentages
+            expect(percentages.at(0)).toBe(percentages.at(1));
+            // Sum should be 100
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
         });
 
-        test('Keeps raw percentages when split totals differ from original total', () => {
+        test('Returns floored percentages when split totals differ from original total', () => {
             const originalTotalInCents = 20000;
             const amounts = [10000, 10000, 5000]; // totals 25000, larger than original total
             const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, originalTotalInCents);
 
-            // Each amount is expressed as a percentage of the original total
-            expect(percentages).toEqual([50, 50, 25]);
-            // The sum can exceed 100 when splits are over the original total; the validation error covers this
+            // Each amount is expressed as floored percentage of the original total
+            expect(percentages.at(0)).toBe(percentages.at(1)); // Equal amounts have equal percentages
+            // The sum can exceed 100 when splits are over the original total
             expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(125);
+        });
+
+        test('Produces normalized percentages for 13-way split of $89', () => {
+            const totalInCents = 8900;
+            const amounts = [684, 684, 684, 684, 684, 685, 685, 685, 685, 685, 685, 685, 685];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            // All 684s (first 5) should have equal percentages
+            const first5 = percentages.slice(0, 5);
+            expect(new Set(first5).size).toBe(1);
+
+            // All 685s except the last should have equal percentages
+            const middle7 = percentages.slice(5, 12);
+            expect(new Set(middle7).size).toBe(1);
+
+            // Base percentage should be 7.6 (floored from 7.68-7.69)
+            expect(first5.at(0)).toBe(7.6);
+
+            // Sum should be 100
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
+        });
+
+        test('Produces normalized percentages for 12-way split of $22', () => {
+            const totalInCents = 2200;
+            const amounts = [183, 183, 183, 183, 183, 183, 183, 183, 184, 184, 184, 184];
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            // All 183s (first 8) should have equal percentages
+            const first8 = percentages.slice(0, 8);
+            expect(new Set(first8).size).toBe(1);
+
+            // All 184s except the last should have equal percentages
+            const middle3 = percentages.slice(8, 11);
+            expect(new Set(middle3).size).toBe(1);
+
+            // Base percentage should be 8.3 (floored from 8.31-8.36)
+            expect(first8.at(0)).toBe(8.3);
+
+            // Sum should be 100
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
         });
     });
 

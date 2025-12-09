@@ -48,6 +48,35 @@ describe('ReportActionsUtils', () => {
             expect(validatePercentage('10%', true)).toBe(false);
             expect(validatePercentage('-10', true)).toBe(false);
         });
+
+        it('allows one decimal place when allowDecimal is true', () => {
+            // Valid decimal percentages
+            expect(validatePercentage('7.5', false, true)).toBe(true);
+            expect(validatePercentage('0.1', false, true)).toBe(true);
+            expect(validatePercentage('99.9', false, true)).toBe(true);
+            expect(validatePercentage('100.0', false, true)).toBe(true);
+            expect(validatePercentage('50', false, true)).toBe(true);
+            expect(validatePercentage('', false, true)).toBe(true);
+
+            // Invalid: more than one decimal place
+            expect(validatePercentage('7.55', false, true)).toBe(false);
+            expect(validatePercentage('100.01', false, true)).toBe(false);
+
+            // Invalid: over 100
+            expect(validatePercentage('100.1', false, true)).toBe(false);
+            expect(validatePercentage('150', false, true)).toBe(false);
+        });
+
+        it('allows decimals and exceeding 100 when both flags are true', () => {
+            expect(validatePercentage('150.5', true, true)).toBe(true);
+            expect(validatePercentage('7.5', true, true)).toBe(true);
+            expect(validatePercentage('200', true, true)).toBe(true);
+            expect(validatePercentage('.5', true, true)).toBe(true);
+
+            // Invalid: more than one decimal place
+            expect(validatePercentage('7.55', true, true)).toBe(false);
+            expect(validatePercentage('abc', true, true)).toBe(false);
+        });
     });
 
     describe('handleNegativeAmountFlipping', () => {

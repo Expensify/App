@@ -22,11 +22,14 @@ type PercentageFormProps = BaseTextInputProps & {
     /** Whether to allow values greater than 100 (e.g. split expenses in percentage mode). */
     allowExceedingHundred?: boolean;
 
+    /** Whether to allow one decimal place (0.1 precision) for more granular percentage splits. */
+    allowDecimal?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 };
 
-function PercentageForm({value: amount, errorText, onInputChange, label, allowExceedingHundred = false, ref, ...rest}: PercentageFormProps) {
+function PercentageForm({value: amount, errorText, onInputChange, label, allowExceedingHundred = false, allowDecimal = false, ref, ...rest}: PercentageFormProps) {
     const {toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -42,14 +45,14 @@ function PercentageForm({value: amount, errorText, onInputChange, label, allowEx
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
-            if (!validatePercentage(newAmountWithoutSpaces, allowExceedingHundred)) {
+            if (!validatePercentage(newAmountWithoutSpaces, allowExceedingHundred, allowDecimal)) {
                 return;
             }
 
             const strippedAmount = stripCommaFromAmount(newAmountWithoutSpaces);
             onInputChange?.(strippedAmount);
         },
-        [allowExceedingHundred, onInputChange],
+        [allowExceedingHundred, allowDecimal, onInputChange],
     );
 
     const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);

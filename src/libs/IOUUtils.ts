@@ -93,26 +93,24 @@ function calculateAmount(numberOfSplits: number, total: number, currency: string
 /**
  * Calculate a split amount in backend cents from a percentage of the original amount.
  * - Clamps percentage to [0, 100]
- * - Rounds percentage to whole numbers (per product spec)
+ * - Preserves decimal precision in percentage (supports 0.1 precision)
  * - Uses absolute value of the total amount (cents)
  */
 function calculateSplitAmountFromPercentage(totalInCents: number, percentage: number): number {
     const totalAbs = Math.abs(totalInCents);
-    const clamped = Math.min(100, Math.max(0, Math.round(percentage)));
+    // Clamp percentage to [0, 100] without rounding to preserve decimal precision
+    const clamped = Math.min(100, Math.max(0, percentage));
     return Math.round((totalAbs * clamped) / 100);
 }
 
 /**
  * Given a list of split amounts (in backend cents) and the original total amount, calculate display percentages
  * for each split so that:
- * - Each row is a whole-number percentage of the original total
- * - When the sum of split amounts exactly matches the original total, percentages are proportional to the amounts
- *   and rounded so that the sum of percentages is exactly 100. Any rounding remainder is allocated entirely to the
- *   row with the largest amount (breaking ties by using the last such row), so the first N rows share the same
- *   base percentage and any leftover remainder is applied to the last row.
+ * - Each row is a percentage of the original total with one decimal place (0.1 precision)
+ * - Equal amounts ALWAYS have equal percentages
+ * - The remainder needed to reach 100% goes to the last item (which should be the largest)
  * - When the sum of split amounts does not match the original total (over/under splits), percentages still reflect
- *   each amount as a percentage of the original total and may sum to something other than 100; this keeps
- *   user-entered percentages stable while a validation error highlights the mismatch.
+ *   each amount as a percentage of the original total and may sum to something other than 100
  */
 function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInCents: number): number[] {
     const totalAbs = Math.abs(totalInCents);
@@ -123,37 +121,33 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
 
     const amountsAbs = amountsInCents.map((amount) => Math.abs(amount ?? 0));
 
-    // First compute rounded percentages used when we want to preserve the user's distribution, e.g. when the
-    // split amounts do not add up to the original total.
-    const roundedPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? Math.round((amount / totalAbs) * 100) : 0));
-    const sumOfRoundedPercentages = roundedPercentages.reduce((sum, current) => sum + current, 0);
+    // Helper functions for decimal precision
+    const roundToOneDecimal = (value: number): number => Math.round(value * 10) / 10;
+    const floorToOneDecimal = (value: number): number => Math.floor(value * 10) / 10;
+
+    // ALWAYS use floored percentages to guarantee equal amounts get equal percentages
+    const flooredPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? floorToOneDecimal((amount / totalAbs) * 100) : 0));
+
     const amountsTotal = amountsAbs.reduce((sum, curr) => sum + curr, 0);
 
-    // If the split amounts don't add up to the original total, return rounded percentages as-is so user-entered
-    // percentages and amounts remain stable while a validation error highlights the mismatch.
+    // If the split amounts don't add up to the original total, return floored percentages as-is
+    // (the sum may not be 100, but that's expected when there's a validation error)
     if (amountsTotal !== totalAbs) {
-        return roundedPercentages;
-    }
-
-    // If rounded percentages already sum to 100, we can also return them directly.
-    if (sumOfRoundedPercentages === 100) {
-        return roundedPercentages;
-    }
-
-    // Otherwise, compute base percentages by flooring the exact percentages and then allocating the full remainder
-    // to the row with the largest amount (last one in case of ties). This ensures the first N rows share the same
-    // base percentage and any leftover is applied entirely to the last row, matching how we treat remainder in
-    // split amounts.
-    const flooredPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? Math.floor((amount / totalAbs) * 100) : 0));
-    const sumOfFlooredPercentages = flooredPercentages.reduce((sum, current) => sum + current, 0);
-    const remainder = 100 - sumOfFlooredPercentages;
-
-    if (remainder === 0) {
         return flooredPercentages;
     }
 
+    // Calculate remainder and add it to the LAST item (which should be the largest in even splits)
+    const sumOfFlooredPercentages = roundToOneDecimal(flooredPercentages.reduce((sum, current) => sum + current, 0));
+    const remainder = roundToOneDecimal(100 - sumOfFlooredPercentages);
+
+    if (remainder <= 0) {
+        return flooredPercentages;
+    }
+
+    // Add remainder to the last item with the MAXIMUM amount (not just the last item since that can be a new split with 0 amount)
+    // This ensures 0-amount splits stay at 0%
     const maxAmount = Math.max(...amountsAbs);
-    let lastMaxIndex = 0;
+    let lastMaxIndex = amountsAbs.length - 1; // fallback to last
     for (let i = 0; i < amountsAbs.length; i += 1) {
         if (amountsAbs.at(i) === maxAmount) {
             lastMaxIndex = i;
@@ -161,8 +155,7 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
     }
 
     const adjustedPercentages = [...flooredPercentages];
-    const baseValue = adjustedPercentages.at(lastMaxIndex) ?? 0;
-    adjustedPercentages[lastMaxIndex] = Math.max(0, baseValue + remainder);
+    adjustedPercentages[lastMaxIndex] = roundToOneDecimal((adjustedPercentages.at(lastMaxIndex) ?? 0) + remainder);
 
     return adjustedPercentages;
 }
