@@ -1,0 +1,19 @@
+diff --git a/node_modules/@sentry/react-native/dist/js/profiling/integration.js b/node_modules/@sentry/react-native/dist/js/profiling/integration.js
+index dec552a..ddcb7b9 100644
+--- a/node_modules/@sentry/react-native/dist/js/profiling/integration.js
++++ b/node_modules/@sentry/react-native/dist/js/profiling/integration.js
+@@ -178,11 +178,9 @@ export const hermesProfilingIntegration = (initOptions = defaultOptions) => {
+  * Starts Profilers and returns the timestamp when profiling started in nanoseconds.
+  */
+ export function startProfiling(platformProfilers) {
+-    const started = NATIVE.startProfiling(platformProfilers);
+-    if (!started) {
+-        return null;
+-    }
+-    return Date.now() * MS_TO_NS;
++    /* We don't want to start profiling on native platforms yet because there's 
++    related crash issues. Please check https://github.com/Expensify/App/issues/75036 */
++    return null;
+ }
+ /**
+  * Stops Profilers and returns collected combined profile.
