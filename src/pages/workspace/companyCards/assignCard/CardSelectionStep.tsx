@@ -6,8 +6,8 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import RenderHTML from '@components/RenderHTML';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -119,6 +119,32 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage: searchedListOptions.length ? undefined : translate('common.noResultsFound'),
+            label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
+            value: searchText,
+            onChangeText: setSearchText,
+            shouldBeInsideList: true,
+        }),
+        [cardListOptions.length, searchText, searchedListOptions.length, translate],
+    );
+
+    const customListHeader = (
+        <View>
+            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                <InteractiveStepSubHeader
+                    startStepIndex={1}
+                    stepNames={CONST.COMPANY_CARD.STEP_NAMES}
+                />
+            </View>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
+            <View style={[styles.renderHTML, styles.ph5, styles.mv3, styles.textSupporting]}>
+                <RenderHTML html={translate('workspace.companyCards.chooseCardFor', assigneeDisplayName)} />
+            </View>
+        </View>
+    );
+
     return (
         <InteractiveStepWrapper
             wrapperID={CardSelectionStep.displayName}
@@ -141,38 +167,15 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                 </View>
             ) : (
                 <SelectionList
-                    sections={[{data: searchedListOptions}]}
-                    headerMessage={searchedListOptions.length ? undefined : translate('common.noResultsFound')}
-                    shouldShowTextInput={cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
-                    textInputLabel={translate('common.search')}
-                    textInputValue={searchText}
-                    onChangeText={setSearchText}
+                    data={searchedListOptions}
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => handleSelectCard(value)}
-                    initiallyFocusedOptionKey={cardSelected}
-                    listHeaderContent={
-                        <View>
-                            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                                <InteractiveStepSubHeader
-                                    startStepIndex={1}
-                                    stepNames={CONST.COMPANY_CARD.STEP_NAMES}
-                                />
-                            </View>
-                            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
-                            <View style={[styles.renderHTML, styles.ph5, styles.mv3, styles.textSupporting]}>
-                                <RenderHTML
-                                    html={translate('workspace.companyCards.chooseCardFor', {
-                                        assignee: assigneeDisplayName,
-                                    })}
-                                />
-                            </View>
-                        </View>
-                    }
-                    shouldShowTextInputAfterHeader
-                    shouldShowHeaderMessageAfterHeader
-                    addBottomSafeAreaPadding
-                    shouldShowListEmptyContent={false}
+                    initiallyFocusedItemKey={cardSelected}
+                    textInputOptions={textInputOptions}
+                    customListHeaderContent={customListHeader}
                     shouldScrollToFocusedIndex={false}
+                    showListEmptyContent={false}
+                    addBottomSafeAreaPadding
                     shouldUpdateFocusedIndex
                     footerContent={
                         <FormAlertWithSubmitButton

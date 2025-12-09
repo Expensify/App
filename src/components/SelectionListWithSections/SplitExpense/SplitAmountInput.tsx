@@ -23,6 +23,7 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
         return (
             <MoneyRequestAmountInput
                 ref={inputCallbackRef}
+                disabled={!splitItem.isEditable}
                 autoGrow={false}
                 amount={splitItem.amount}
                 currency={splitItem.currency}

@@ -406,7 +406,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Selected accountant */
         accountant?: Accountant;
 
-        /** The Transaction converted amount */
+        /** The transaction converted amount in report's currency */
         convertedAmount?: number;
 
         /** The transaction tax amount */
@@ -439,8 +439,11 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Server side errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
-        /** The name of the file used for a receipt (formerly receiptFilename) */
-        filename?: string;
+        /** The transaction converted amount in `groupCurrency` currency */
+        groupAmount?: number;
+
+        /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
+        groupCurrency?: string;
 
         /** Used during the creation flow before the transaction is saved to the server */
         iouRequestType?: IOURequestType;

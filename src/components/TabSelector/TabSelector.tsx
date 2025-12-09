@@ -37,7 +37,7 @@ type IconTitleAndTestID = {
 };
 
 function getIconTitleAndTestID(
-    icons: Record<'CalendarSolid' | 'UploadAlt' | 'User' | 'Pencil' | 'ReceiptScan' | 'Hashtag' | 'Car' | 'Receipt' | 'Map', IconAsset>,
+    icons: Record<'CalendarSolid' | 'UploadAlt' | 'User' | 'Car' | 'Hashtag' | 'Map' | 'Pencil' | 'ReceiptScan' | 'Receipt', IconAsset>,
     route: string,
     translate: LocaleContextProps['translate'],
 ): IconTitleAndTestID {

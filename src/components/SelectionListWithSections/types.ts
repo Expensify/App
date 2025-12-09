@@ -304,9 +304,6 @@ type TransactionListItemType = ListItem &
         /** The display name of the purchaser card, if any */
         cardName?: string;
 
-        /** Parent report action id */
-        moneyRequestReportActionID?: string;
-
         /** The available actions that can be performed for the transaction */
         allActions: SearchTransactionAction[];
 
@@ -376,9 +373,11 @@ type TransactionGroupListItemType = ListItem & {
 
     /** The hash of the query to get the transactions data */
     transactionsQueryJSON?: SearchQueryJSON;
+
+    /** Whether the report has visible violations for user */
+    hasVisibleViolations?: boolean;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & Report & {
         /** The personal details of the user requesting money */
         from: PersonalDetails;
