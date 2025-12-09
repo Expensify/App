@@ -30,11 +30,11 @@ import {
     buildOptimisticReportPreview,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
-    canAddOrDeleteTransactions,
     canAddTransaction,
     canCreateRequest,
     canDeleteMoneyRequestReport,
     canDeleteReportAction,
+    canDeleteTransaction,
     canEditMoneyRequest,
     canEditReportDescription,
     canEditRoomVisibility,
@@ -5985,7 +5985,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('canAddOrDeleteTransactions', () => {
+    describe('canDeleteTransaction', () => {
         it('should return true for a non-archived report', async () => {
             // Given a non-archived expense report
             const report: Report = {
@@ -5997,7 +5997,7 @@ describe('ReportUtils', () => {
             // When it's checked if the transactions can be deleted
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = canAddOrDeleteTransactions(report, policy, isReportArchived.current);
+            const result = canDeleteTransaction(report, isReportArchived.current);
 
             // Then the result is true
             expect(result).toBe(true);
@@ -6014,7 +6014,7 @@ describe('ReportUtils', () => {
 
             // When it's checked if the transactions can be deleted
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = canAddOrDeleteTransactions(report, policy, isReportArchived.current);
+            const result = canDeleteTransaction(report, isReportArchived.current);
 
             // Then the result is false
             expect(result).toBe(false);
@@ -6063,7 +6063,7 @@ describe('ReportUtils', () => {
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
 
-                expect(canAddOrDeleteTransactions(openReport, policy, false)).toBe(true);
+                expect(canDeleteTransaction(openReport, false)).toBe(true);
             });
 
             it('should return false for closed report when workflow is disabled', async () => {
@@ -6076,7 +6076,7 @@ describe('ReportUtils', () => {
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
 
-                expect(canAddOrDeleteTransactions(closedReport, policy, false)).toBe(false);
+                expect(canDeleteTransaction(closedReport, false)).toBe(false);
             });
         });
     });
