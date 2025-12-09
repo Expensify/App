@@ -9,14 +9,14 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import getIconForAction from './getIconForAction';
 import {canCreateRequest} from './ReportUtils';
 
-const getQuickActionIcon = (icons: Record<'CalendarSolid', IconAsset>, action: QuickActionName): IconAsset => {
+const getQuickActionIcon = (icons: Record<'CalendarSolid' | 'Car', IconAsset>, action: QuickActionName): IconAsset => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return getIconForAction(CONST.IOU.TYPE.REQUEST);
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
             return Expensicons.ReceiptScan;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-            return Expensicons.Car;
+            return icons.Car;
         case CONST.QUICK_ACTIONS.PER_DIEM:
             return icons.CalendarSolid;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
@@ -28,7 +28,7 @@ const getQuickActionIcon = (icons: Record<'CalendarSolid', IconAsset>, action: Q
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return Expensicons.Task;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            return Expensicons.Car;
+            return icons.Car;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
             return getIconForAction(CONST.IOU.TYPE.TRACK);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
