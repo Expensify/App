@@ -421,19 +421,18 @@ async function filterResultsByDiff(
         // Filter failures to only include those on changed lines
         const filteredFailures = new Map<string, CompilerFailure>();
 
-        // eslint-disable-next-line unicorn/no-array-for-each
-        failures.forEach((failure, key) => {
+        for (const [key, failure] of failures) {
             const changedLines = changedLinesMap.get(failure.file);
 
             // If the file is not in the diff, skip this failure
             if (!changedLines) {
-                return;
+                continue;
             }
 
             // If the file has eslint-disable comment, include ALL failures for this file
             if (filesWithEslintDisable.has(failure.file)) {
                 filteredFailures.set(key, failure);
-                return;
+                continue;
             }
 
             // If the failure has a line number, check if it's in the changed lines or eslint-disable-next-line
@@ -444,12 +443,12 @@ async function filterResultsByDiff(
                 if (isLineChanged || isLineEslintDisabled) {
                     filteredFailures.set(key, failure);
                 }
-                return;
+                continue;
             }
 
             // If there's no line number, include the failure if the file has changes
             filteredFailures.set(key, failure);
-        });
+        }
 
         return filteredFailures;
     }
@@ -461,13 +460,12 @@ async function filterResultsByDiff(
     // Filter success set to only include files that are in the diff
     const changedFiles = new Set(diffResult.files.map((file) => file.filePath));
     const filteredSuccesses = new Set<string>();
-    // eslint-disable-next-line unicorn/no-array-for-each
-    results.success.forEach((file) => {
+    for (const file of results.success) {
         if (!changedFiles.has(file)) {
-            return;
+            continue;
         }
         filteredSuccesses.add(file);
-    });
+    }
 
     if (shouldPrintSuccesses) {
         if (filteredSuccesses.size === 0) {
@@ -640,7 +638,6 @@ function printResults(
         logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
         log();
 
-        // eslint-disable-next-line unicorn/no-array-for-each
         for (const successFile of success) {
             logSuccess(`${successFile}`);
         }
@@ -651,10 +648,9 @@ function printResults(
     if (shouldPrintSuppressedErrors && suppressedFailures.size > 0) {
         // Create a Map of suppressed error type -> Failure[] with distinct errors and a list of failures with that error
         const suppressedErrorMap = new Map<string, CompilerFailure[]>();
-        // eslint-disable-next-line unicorn/no-array-for-each
-        suppressedFailures.forEach((failure) => {
+        for (const [, failure] of suppressedFailures) {
             if (!failure.reason) {
-                return;
+                continue;
             }
 
             if (!suppressedErrorMap.has(failure.reason)) {
@@ -662,13 +658,13 @@ function printResults(
             }
 
             suppressedErrorMap.get(failure.reason)?.push(failure);
-        });
+        }
 
         log();
         logWarn(`Suppressed the following errors in these files:`);
         log();
 
-        for (const [error, suppressedErrorFiles] of suppressedErrorMap.entries()) {
+        for (const [error, suppressedErrorFiles] of suppressedErrorMap) {
             logBold(error);
             const filesLine = suppressedErrorFiles.map((failure) => getUniqueFileKey(failure)).join(', ');
             logNote(`${TAB} - ${filesLine}`);
@@ -686,7 +682,6 @@ function printResults(
     }
 
     const distinctFileNames = new Set<string>();
-    // eslint-disable-next-line unicorn/no-array-for-each
     for (const failure of failures.values()) {
         distinctFileNames.add(failure.file);
     }
@@ -704,7 +699,7 @@ function printResults(
         logError(`These newly added component files were enforced to be automatically memoized with React Compiler:`);
         log();
 
-        for (const [filePath, {manualMemoizationMatches, compilerFailures}] of enforcedAddedComponentFailures.entries()) {
+        for (const [filePath, {manualMemoizationMatches, compilerFailures}] of enforcedAddedComponentFailures) {
             for (const manualMemoizationMatch of manualMemoizationMatches) {
                 const location = manualMemoizationMatch.line && manualMemoizationMatch.column ? `:${manualMemoizationMatch.line}:${manualMemoizationMatch.column}` : '';
                 logBold(`${filePath}${location}`);
