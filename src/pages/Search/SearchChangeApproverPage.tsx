@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,6 +15,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,6 +45,7 @@ function SearchChangeApproverPage() {
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const {clearSelectedTransactions, selectedReports} = useSearchContext();
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
+    const {isOffline} = useNetwork();
     const isSavingRef = useRef(false);
 
     const getOnyxReports = useCallback(
@@ -211,8 +214,8 @@ function SearchChangeApproverPage() {
         });
     }, [sections, selectedReports.length]);
 
-    if (onyxReports?.size !== selectedReports.length || isSavingRef.current) {
-        return <FullScreenLoadingIndicator />;
+    if ((!isOffline && onyxReports?.size !== selectedReports.length) || isSavingRef.current) {
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (
@@ -220,49 +223,57 @@ function SearchChangeApproverPage() {
             testID={SearchChangeApproverPage.displayName}
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
+            // Show the non-blocking offline indicator if reports are available in Onyx, otherwise show the blocking offline view because this page requires the Onyx data
+            shouldShowOfflineIndicator={onyxReports?.size === selectedReports.length}
         >
             <HeaderWithBackButton
                 title={translate('iou.changeApprover.title')}
                 onBackButtonPress={Navigation.goBack}
             />
-            <SelectionList
-                ListItem={RadioListItem}
-                sections={sections}
-                isAlternateTextMultilineSupported
-                onSelectRow={(option) => {
-                    if (!option.keyForList) {
-                        return;
+            {onyxReports?.size !== selectedReports.length && !!isOffline ? (
+                <FullPageOfflineBlockingView>
+                    <View />
+                </FullPageOfflineBlockingView>
+            ) : (
+                <SelectionList
+                    ListItem={RadioListItem}
+                    sections={sections}
+                    isAlternateTextMultilineSupported
+                    onSelectRow={(option) => {
+                        if (!option.keyForList) {
+                            return;
+                        }
+                        setSelectedApproverType(option.keyForList);
+                        setHasError(false);
+                    }}
+                    showConfirmButton
+                    confirmButtonText={translate('iou.changeApprover.title')}
+                    onConfirm={changeApprover}
+                    shouldUpdateFocusedIndex
+                    customListHeader={
+                        <>
+                            <Text style={[styles.ph5, styles.mb5]}>{translate(selectedReports.length === 1 ? 'iou.changeApprover.subtitle' : 'iou.changeApprover.bulkSubtitle')}</Text>
+                            {selectedPolicies.length === 1 && (
+                                <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
+                                    <RenderHTML
+                                        html={translate('iou.changeApprover.description', {
+                                            workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`,
+                                        })}
+                                    />
+                                </View>
+                            )}
+                        </>
                     }
-                    setSelectedApproverType(option.keyForList);
-                    setHasError(false);
-                }}
-                showConfirmButton
-                confirmButtonText={translate('iou.changeApprover.title')}
-                onConfirm={changeApprover}
-                shouldUpdateFocusedIndex
-                customListHeader={
-                    <>
-                        <Text style={[styles.ph5, styles.mb5]}>{translate(selectedReports.length === 1 ? 'iou.changeApprover.subtitle' : 'iou.changeApprover.bulkSubtitle')}</Text>
-                        {selectedPolicies.length === 1 && (
-                            <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                                <RenderHTML
-                                    html={translate('iou.changeApprover.description', {
-                                        workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`,
-                                    })}
-                                />
-                            </View>
-                        )}
-                    </>
-                }
-            >
-                {hasError && (
-                    <FormHelpMessage
-                        isError
-                        style={[styles.ph5, styles.mb3]}
-                        message={translate('common.error.pleaseSelectOne')}
-                    />
-                )}
-            </SelectionList>
+                >
+                    {hasError && (
+                        <FormHelpMessage
+                            isError
+                            style={[styles.ph5, styles.mb3]}
+                            message={translate('common.error.pleaseSelectOne')}
+                        />
+                    )}
+                </SelectionList>
+            )}
         </ScreenWrapper>
     );
 }

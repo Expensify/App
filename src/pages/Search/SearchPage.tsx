@@ -482,7 +482,6 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         const shouldShowChangeApproverOption =
-            !isOffline &&
             queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
             !isAnyTransactionOnHold &&
             areSelectedTransactionsIncludedInReports &&
@@ -495,14 +494,7 @@ function SearchPage({route}: SearchPageProps) {
                 text: translate('iou.changeApprover.title'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
-                    Navigation.navigate(ROUTES.CHANGE_APPROVER_SEARCH_RHP);
-                },
+                onSelected: () => Navigation.navigate(ROUTES.CHANGE_APPROVER_SEARCH_RHP),
             });
         }
 
