@@ -369,8 +369,7 @@ function IOURequestStepScan({
             billable?: boolean,
             reimbursable = true,
         ) => {
-            // eslint-disable-next-line unicorn/no-array-for-each
-            files.forEach((receiptFile: ReceiptFile, index) => {
+            for (const [index, receiptFile] of files.entries()) {
                 const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
                 const receipt: Receipt = receiptFile.file ?? {};
                 receipt.source = receiptFile.source;
@@ -426,7 +425,7 @@ function IOURequestStepScan({
                         transactionViolations,
                     });
                 }
-            });
+            }
         },
         [
             backToReport,

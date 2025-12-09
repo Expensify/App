@@ -150,7 +150,7 @@ function IOURequestStepCategory({
             }
         }
 
-        setMoneyRequestCategory(transactionID, updatedCategory, policyID);
+        setMoneyRequestCategory(transactionID, updatedCategory, policy);
 
         if (action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {
             if (report?.reportID) {
