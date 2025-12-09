@@ -7,10 +7,11 @@
  * It provides both CI and local development tools to enforce Rules of React compliance.
  */
 import {execSync} from 'child_process';
-import {readFileSync, writeFileSync} from 'fs';
-import {join} from 'path';
+import fs, {readFileSync} from 'fs';
+import path from 'path';
 import type {TupleToUnion} from 'type-fest';
 import CLI from './utils/CLI';
+import {getLineAndColumnFromIndex} from './utils/FileUtils';
 import Git from './utils/Git';
 import type {DiffResult} from './utils/Git';
 import {log, bold as logBold, error as logError, info as logInfo, note as logNote, success as logSuccess, warn as logWarn} from './utils/Logger';
@@ -547,7 +548,14 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
     // If no manual memoization keywords are found add the failures back to the regular failures.
     const addedComponentFailures: EnforcedAddedComponentFailureMap = new Map();
     for (const addedFilePath of addedDiffFiles) {
-        const source = readSourceFile(addedFilePath);
+        let source: string | null = null;
+        try {
+            const absolutePath = path.join(process.cwd(), addedFilePath);
+            source = readFileSync(absolutePath, 'utf8');
+        } catch (error) {
+            logWarn(`Unable to read ${addedFilePath} while enforcing new component rules.`, error);
+        }
+
         if (!source || NO_MANUAL_MEMO_DIRECTIVE_PATTERN.test(source)) {
             addNonAutoMemoEnforcedFailures(addedFilePath);
             continue;
@@ -604,24 +612,6 @@ function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] 
     });
 
     return matches;
-}
-
-function getLineAndColumnFromIndex(source: string, index: number): {line: number; column: number} {
-    const substring = source.slice(0, index);
-    const line = substring.split('\n').length;
-    const lastLineBreakIndex = substring.lastIndexOf('\n');
-    const column = lastLineBreakIndex === -1 ? index + 1 : index - lastLineBreakIndex;
-    return {line, column};
-}
-
-function readSourceFile(filePath: string): string | null {
-    try {
-        const absolutePath = join(process.cwd(), filePath);
-        return readFileSync(absolutePath, 'utf8');
-    } catch (error) {
-        logWarn(`Unable to read ${filePath} while enforcing new component rules.`, error);
-        return null;
-    }
 }
 
 /**
@@ -736,8 +726,8 @@ function generateReport(results: CompilerResults, outputFileName = DEFAULT_REPOR
     logInfo('Creating React Compiler Compliance Check report:');
 
     // Save detailed report
-    const reportFile = join(process.cwd(), outputFileName);
-    writeFileSync(
+    const reportFile = path.join(process.cwd(), outputFileName);
+    fs.writeFileSync(
         reportFile,
         JSON.stringify(
             {
