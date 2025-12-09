@@ -746,10 +746,9 @@ function SearchPage({route}: SearchPageProps) {
     // Show "delete expense" only when ALL selected items are from one-transaction reports
     // Show "delete report" in all other cases (empty reports, multi-expense reports, or mixtures)
     const isDeletingOnlyExpenses = isAllOneTransactionReports;
-    const deleteModalTitle = isDeletingOnlyExpenses ? translate('iou.deleteExpense', {count: expenseCount}) : translate('iou.deleteReport', {count: reportCount || expenseCount});
-    const deleteModalPrompt = isDeletingOnlyExpenses
-        ? translate('iou.deleteConfirmation', {count: expenseCount})
-        : translate('iou.deleteReportConfirmation', {count: reportCount || expenseCount});
+    const totalCount = reportCount + expenseCount;
+    const deleteModalTitle = isDeletingOnlyExpenses ? translate('iou.deleteExpense', {count: expenseCount}) : translate('iou.deleteReport', {count: totalCount});
+    const deleteModalPrompt = isDeletingOnlyExpenses ? translate('iou.deleteConfirmation', {count: expenseCount}) : translate('iou.deleteReportConfirmation', {count: totalCount});
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({
