@@ -1,0 +1,124 @@
+diff --git a/node_modules/expo-secure-store/build/SecureStore.d.ts b/node_modules/expo-secure-store/build/SecureStore.d.ts
+index 7097a8a..975d75b 100644
+--- a/node_modules/expo-secure-store/build/SecureStore.d.ts
++++ b/node_modules/expo-secure-store/build/SecureStore.d.ts
+@@ -153,6 +153,20 @@ export type SecureStoreOptions = {
+      * @platform ios
+      */
+     returnUsedAuthenticationType?: boolean;
++    /**
++     * On iOS, the system does not ask for auth when saving the value to the SecureStore.
++     * The Android however, displays the authentication prompt when saving the value.
++     * To keep the behavior on every platform similar as much as possible,
++     * setting this flag to true will ensure that authentication is required when saving a value to the store.
++     *
++     * @warning: This flag only works for the asynchronous version of the SecureStore save method.
++     * It should only be considered an improvement to the user experience; it does not prevent the user
++     * from saving the value without authenticating using other methods (e.g. by directly modifying the keychain).
++     * For it to take effect, the 'requireAuthentication' flag must be set to true.
++     * @default false
++     * @platform ios
++     */
++    forceAuthenticationOnSave?: boolean;
+ };
+ /**
+  * Returns whether the SecureStore API is enabled on the current device. This does not check the app
+diff --git a/node_modules/expo-secure-store/ios/SecureStoreModule.swift b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
+index 7764c8e..02f837c 100644
+--- a/node_modules/expo-secure-store/ios/SecureStoreModule.swift
++++ b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
+@@ -35,6 +35,10 @@ public final class SecureStoreModule: Module {
+         throw InvalidKeyException()
+       }
+ 
++      if options.requireAuthentication && options.forceAuthenticationOnSave {
++        try await triggerPolicy(options: options)
++      }
++
+       let result = try set(value: value, with: key, options: options)
+ 
+       return wrapResultWithFeedback(action: .set, result: result, options: options).value
+@@ -190,6 +194,32 @@ public final class SecureStoreModule: Module {
+     }
+   }
+ 
++  @MainActor
++  private func triggerPolicy(options: SecureStoreOptions) async throws {
++    let isPolicyAvailable = options.enableDeviceFallback ? areDeviceCredentialsEnabled() : areBiometricsEnabled()
++
++    guard isPolicyAvailable else {
++      throw SecureStoreRuntimeError("No authentication method available")
++    }
++
++    let localAuthPolicy: LAPolicy = options.enableDeviceFallback ? .deviceOwnerAuthentication : .deviceOwnerAuthenticationWithBiometrics
++    let localizedReason: String = options.authenticationPrompt ?? "Authentication required"
++
++    let success: Bool = try await withCheckedThrowingContinuation { continuation in
++      LAContext().evaluatePolicy(localAuthPolicy, localizedReason: localizedReason) { success, error in
++        if let error = error {
++          continuation.resume(throwing: error)
++        } else {
++          continuation.resume(returning: success)
++        }
++      }
++    }
++
++    guard success else {
++      throw SecureStoreRuntimeError("Unable to authenticate")
++    }
++  }
++
+   private func searchKeyChain(with key: String, options: SecureStoreOptions, requireAuthentication: Bool? = nil) throws -> Data? {
+     var query = query(with: key, options: options, requireAuthentication: requireAuthentication)
+ 
+diff --git a/node_modules/expo-secure-store/ios/SecureStoreOptions.swift b/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
+index b95eca7..321c7e5 100644
+--- a/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
++++ b/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
+@@ -21,6 +21,9 @@ internal struct SecureStoreOptions: Record {
+ 
+   @Field
+   var returnUsedAuthenticationType: Bool = false
++
++  @Field
++  var forceAuthenticationOnSave: Bool = false
+ }
+ 
+ @available(iOS 11.2, *)
+@@ -86,3 +89,10 @@ struct SecureStoreSetFeedback<T>: SecureStoreFeedback {
+     get { return authType }
+   }
+ }
++
++struct SecureStoreRuntimeError: LocalizedError {
++  let errorDescription: String?
++  init(_ description: String) {
++    self.errorDescription = description
++  }
++}
+diff --git a/node_modules/expo-secure-store/src/SecureStore.ts b/node_modules/expo-secure-store/src/SecureStore.ts
+index d44c0bb..c4b95ae 100644
+--- a/node_modules/expo-secure-store/src/SecureStore.ts
++++ b/node_modules/expo-secure-store/src/SecureStore.ts
+@@ -185,6 +185,21 @@ export type SecureStoreOptions = {
+    * @platform ios
+    */
+   returnUsedAuthenticationType?: boolean;
++
++  /**
++   * On iOS, the system does not ask for auth when saving the value to the SecureStore.
++   * The Android however, displays the authentication prompt when saving the value.
++   * To keep the behavior on every platform similar as much as possible,
++   * setting this flag to true will ensure that authentication is required when saving a value to the store.
++   *
++   * @warning: This flag only works for the asynchronous version of the SecureStore save method.
++   * It should only be considered an improvement to the user experience; it does not prevent the user
++   * from saving the value without authenticating using other methods (e.g. by directly modifying the keychain).
++   * For it to take effect, the 'requireAuthentication' flag must be set to true.
++   * @default false
++   * @platform ios
++   */
++  forceAuthenticationOnSave?: boolean;
+ };
+ 
+ // @needsAudit

@@ -1079,6 +1079,12 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}/gl-code` as const, backTo),
     },
+    MONEY_REQUEST_STEP_CURRENCY: {
+        route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex = '', currency = '', backTo = '') =>
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/currency/${transactionID}/${reportID}/${pageIndex}?currency=${currency}`, backTo),
+    },
     MONEY_REQUEST_STEP_DATE: {
         route: ':action/:iouType/date/:transactionID/:reportID/:reportActionID?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
@@ -3391,6 +3397,16 @@ const ROUTES = {
     WORKSPACES_DOMAIN_VERIFIED: {
         route: 'workspaces/domain-verified/:accountID',
         getRoute: (accountID: number) => `workspaces/domain-verified/${accountID}` as const,
+    },
+    WORKSPACES_ADD_DOMAIN: 'workspaces/add-domain',
+    WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: `workspaces/add-domain/${VERIFY_ACCOUNT}`,
+    WORKSPACES_DOMAIN_ADDED: {
+        route: 'workspaces/domain-added/:accountID',
+        getRoute: (accountID: number) => `workspaces/domain-added/${accountID}` as const,
+    },
+    WORKSPACES_DOMAIN_ACCESS_RESTRICTED: {
+        route: 'workspaces/domain-access-restricted/:accountID',
+        getRoute: (accountID: number) => `workspaces/domain-access-restricted/${accountID}` as const,
     },
     DOMAIN_INITIAL: {
         route: 'domain/:accountID',
