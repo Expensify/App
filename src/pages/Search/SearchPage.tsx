@@ -11,7 +11,6 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -72,7 +71,6 @@ import {
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getTransactionViolationsOfTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {dismissRejectUseExplanation, initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -950,8 +948,7 @@ function SearchPage({route}: SearchPageProps) {
                 Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
             }
         } else {
-            dismissRejectUseExplanation();
-            Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+            // TODO: Add reject
         }
         setRejectModalAction(null);
     }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
