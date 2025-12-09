@@ -70,6 +70,7 @@ import Car from '@assets/images/simple-illustrations/simple-illustration__car.sv
 import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
+import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
@@ -275,6 +276,7 @@ const Illustrations = {
     LockOpen,
     Mailbox,
     ShieldYellow,
+    Clock,
 };
 
 /**
