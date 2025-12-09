@@ -183,7 +183,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                         isVisible={isConfirmModalVisible}
                         onConfirm={updateCardLimitType}
                         onCancel={() => setIsConfirmModalVisible(false)}
-                        prompt={translate(promptTranslationKey, {limit: convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)})}
+                        prompt={translate(promptTranslationKey, convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency))}
                         confirmText={translate('workspace.expensifyCard.changeLimitType')}
                         cancelText={translate('common.cancel')}
                         danger
