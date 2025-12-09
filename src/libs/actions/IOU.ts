@@ -3503,7 +3503,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             expectedParticipants.length === sortedParentChatReportParticipants.length && expectedParticipants.every((id, index) => id === sortedParentChatReportParticipants.at(index));
 
         if (!participantsMatch) {
-            chatReport = null;
+            chatReport = undefined;
         }
     }
 
