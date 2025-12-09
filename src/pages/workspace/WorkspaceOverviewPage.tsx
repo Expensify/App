@@ -384,13 +384,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        const result = showConfirmModal({
+        showConfirmModal({
             title: translate('common.leaveWorkspace'),
             prompt,
             confirmText: translate('common.leave'),
             cancelText: translate('common.cancel'),
             danger: true,
         }).then((result) => {
+            // eslint-disable-next-line rulesdir/prefer-early-return
             if (result.action === ModalActions.CONFIRM && policy?.id) {
                 leaveWorkspace(policy.id);
                 goBackFromInvalidPolicy();

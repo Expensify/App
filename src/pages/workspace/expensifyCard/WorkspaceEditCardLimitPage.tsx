@@ -93,7 +93,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
 
             goBack();
         },
-        [defaultFundID, cardID, card?.nameValuePairs?.unapprovedExpenseLimit, card?.availableSpend, card?.nameValuePairs?.isVirtual, goBack, getNewAvailableSpend],
+        [defaultFundID, cardID, card?.nameValuePairs?.unapprovedExpenseLimit, card?.availableSpend, card?.nameValuePairs?.isVirtual, goBack],
     );
 
     const submit = useCallback(
@@ -104,7 +104,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
             if (newAvailableSpend <= 0) {
                 const result = await showConfirmModal({
                     title: translate('workspace.expensifyCard.changeCardLimit'),
-                    prompt: translate(getPromptTextKey, {limit: convertToDisplayString(newLimit, currency)}),
+                    prompt: translate(getPromptTextKey, convertToDisplayString(newLimit, currency)),
                     confirmText: translate('workspace.expensifyCard.changeLimit'),
                     cancelText: translate('common.cancel'),
                     danger: true,
@@ -118,7 +118,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
 
             updateCardLimit(newLimit);
         },
-        [getNewAvailableSpend, showConfirmModal, translate, getPromptTextKey, currency, updateCardLimit],
+        [showConfirmModal, translate, getPromptTextKey, currency, updateCardLimit],
     );
 
     const validate = useCallback(

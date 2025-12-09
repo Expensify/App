@@ -46,6 +46,18 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const canPerformDowngrade = useMemo(() => canModifyPlan(ownerPolicies, policy), [ownerPolicies, policy]);
     const isDowngraded = useMemo(() => isCollectPolicy(policy), [policy]);
 
+    const dismissModalAndNavigate = useCallback((targetPolicyID: string) => {
+        Navigation.dismissModal();
+        Navigation.isNavigationReady().then(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(targetPolicyID));
+
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
+            });
+        });
+    }, []);
+
     const onMoveToCompanyCardFeeds = () => {
         if (!policyID) {
             return;
@@ -81,19 +93,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             return;
         }
         downgradeToTeam(policy.id);
-    }, [canPerformDowngrade, policy, companyFeeds, showConfirmModal, translate, policyID]);
-
-    const dismissModalAndNavigate = useCallback((targetPolicyID: string) => {
-        Navigation.dismissModal();
-        Navigation.isNavigationReady().then(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(targetPolicyID));
-
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
-            });
-        });
-    }, []);
+    }, [canPerformDowngrade, policy, companyFeeds, showConfirmModal, translate, policyID, dismissModalAndNavigate, styles.flexRow, onMoveToCompanyCardFeeds]);
 
     if (!canPerformDowngrade) {
         return <NotFoundPage />;

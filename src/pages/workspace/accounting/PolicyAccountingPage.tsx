@@ -181,6 +181,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             startIntegrationFlow,
             showConfirmModal,
             policyID,
+            icons.Key,
         ],
     );
 

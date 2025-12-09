@@ -800,8 +800,8 @@ function WorkspacesListPage() {
                         keyboardShouldPersistTaps="handled"
                         contentContainerStyle={styles.pb20}
                     />
-                </View>
-            )}
+                )}
+            </View>
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
     );

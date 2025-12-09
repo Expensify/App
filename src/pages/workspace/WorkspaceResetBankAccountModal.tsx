@@ -88,6 +88,10 @@ function WorkspaceResetBankAccountModal({
 
             if (result.action === ModalActions.CONFIRM) {
                 if (isNonUSDWorkspace) {
+                    if (setIsResettingBankAccount) {
+                        setIsResettingBankAccount(true);
+                    }
+
                     resetNonUSDBankAccount(policyID, policy?.achAccount, !achData?.bankAccountID);
 
                     if (setShouldShowConnectedVerifiedBankAccount) {
@@ -99,8 +103,11 @@ function WorkspaceResetBankAccountModal({
                     }
 
                     if (setNonUSDBankAccountStep) {
-                        setNonUSDBankAccountStep(null);
+                        setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
                     }
+                    requestAnimationFrame(() => {
+                        setIsResettingBankAccount?.(false);
+                    });
                 } else {
                     resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod);
 
