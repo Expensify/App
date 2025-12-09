@@ -12667,10 +12667,7 @@ function selectFilteredReportActions(
             const actions = Object.values(actionsGroup ?? {});
             const filteredActions = actions.filter(
                 (action): action is ReportAction =>
-                    isExportIntegrationAction(action) ||
-                    isIntegrationMessageAction(action) ||
-                    isDynamicExternalWorkflowSubmitFailedAction(action) ||
-                    (isSubmittedAction(action) && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
+                    isExportIntegrationAction(action) || isIntegrationMessageAction(action) || isDynamicExternalWorkflowSubmitFailedAction(action) || isSubmittedAction(action),
             );
             return [reportId, filteredActions];
         }),
