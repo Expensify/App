@@ -16,6 +16,7 @@ import type {
     AssignedCardParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardOnDisputeParams,
@@ -944,7 +945,7 @@ const translations = {
             `This chat room is for anything <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> related.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the + button to send an invoice.`,
-        beginningOfChatHistory: 'This chat is with ',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `This chat is with ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the + button.`,
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',

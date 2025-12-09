@@ -28,6 +28,7 @@ import type {
     AssignedCardParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardOnDisputeParams,
@@ -960,7 +961,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Ten czat jest przeznaczony na wszystko, co dotyczy <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `Ten czat służy do faktur między <strong>${invoicePayer}</strong> a <strong>${invoiceReceiver}</strong>. Użyj przycisku +, aby wysłać fakturę.`,
-        beginningOfChatHistory: 'Ten czat jest z',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `Ta rozmowa jest z ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `Tutaj <strong>${submitterDisplayName}</strong> będzie przesyłać wydatki do <strong>${workspaceName}</strong>. Wystarczy użyć przycisku +.`,
         beginningOfChatHistorySelfDM: 'To jest Twoja osobista przestrzeń. Używaj jej do notatek, zadań, szkiców i przypomnień.',

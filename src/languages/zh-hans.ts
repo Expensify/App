@@ -28,6 +28,7 @@ import type {
     AssignedCardParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardOnDisputeParams,
@@ -950,8 +951,8 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `此聊天室用于讨论任何与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 相关的内容。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `此聊天用于 <strong>${invoicePayer}</strong> 与 <strong>${invoiceReceiver}</strong> 之间的发票。使用 “+” 按钮发送发票。`,
-        beginningOfChatHistory: '此聊天对象是',
+            `此聊天用于 <strong>${invoicePayer}</strong> 与 <strong>${invoiceReceiver}</strong> 之间的发票。使用 "+" 按钮发送发票。`,
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `此聊天是与${users}的聊天。`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `这是 <strong>${submitterDisplayName}</strong> 向 <strong>${workspaceName}</strong> 提交报销的地方。只需使用“+”按钮即可。`,
         beginningOfChatHistorySelfDM: '这是你的个人空间。可用于记录笔记、任务、草稿和提醒。',
