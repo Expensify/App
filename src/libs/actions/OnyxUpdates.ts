@@ -1,9 +1,10 @@
+import {Platform} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {isMobile} from '@libs/Browser';
 import Log from '@libs/Log';
-import triggerNotifications from '@libs/Notification/triggerNotifications';
 import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
 import CONST from '@src/CONST';
@@ -12,6 +13,7 @@ import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/o
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {queueOnyxUpdates} from './QueuedOnyxUpdates';
+import {triggerNotifications} from './Report';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -55,7 +57,7 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response, lastUpdateI
     return onyxDataUpdatePromise
         .then(() => {
             // Trigger notifications only on successful responses.
-            if (response.jsonCode === 200 && response.onyxData?.length) {
+            if (Platform.OS === 'web' && !isMobile() && response.jsonCode === 200 && response.onyxData?.length) {
                 triggerNotifications(response.onyxData);
             }
             // Handle the request's success/failure data (client-side data)

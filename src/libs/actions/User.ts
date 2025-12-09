@@ -34,7 +34,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import triggerNotifications from '@libs/Notification/triggerNotifications';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Pusher from '@libs/Pusher';
@@ -58,6 +57,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {openOldDotLink} from './Link';
+import {triggerNotifications} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 import Timing from './Timing';
 
