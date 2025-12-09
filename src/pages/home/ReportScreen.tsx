@@ -37,6 +37,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanel from '@hooks/useSidePanel';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
@@ -117,7 +118,10 @@ type ReportScreenNavigationProps =
     | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
     | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>;
 
-type ReportScreenProps = ReportScreenNavigationProps;
+type ReportScreenProps = ReportScreenNavigationProps & {
+    /** Whether the report screen is being displayed in the side panel */
+    isInSidePanel?: boolean;
+};
 
 const defaultReportMetadata = {
     hasOnceLoadedReportActions: false,
@@ -150,7 +154,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
     return !Object.values(report).some((value) => value !== undefined && value !== '');
 }
 
-function ReportScreen({route, navigation}: ReportScreenProps) {
+function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenProps) {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
     const {translate} = useLocalize();
@@ -354,6 +358,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
+    const {closeSidePanel} = useSidePanel();
+
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
             return;
@@ -372,6 +378,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(
         (prioritizeBackTo = false) => {
+            if (isInSidePanel) {
+                closeSidePanel();
+                return;
+            }
+
             if (backTo === SCREENS.SEARCH.REPORT_RHP) {
                 Navigation.goBack();
                 return;
@@ -394,7 +405,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
             Navigation.goBack();
         },
-        [isInNarrowPaneModal, backTo],
+        [isInSidePanel, backTo, isInNarrowPaneModal, closeSidePanel],
     );
 
     let headerView = (
@@ -404,6 +415,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             report={report}
             parentReportAction={parentReportAction}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
+            isInSidePanel={isInSidePanel}
         />
     );
 
@@ -1027,6 +1039,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             reportTransactions={reportTransactions}
                                             // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                             transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
+                                            isInSidePanel={isInSidePanel}
                                         />
                                     ) : null}
                                 </View>

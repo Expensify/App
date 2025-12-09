@@ -10,6 +10,8 @@ type AddCommentOrAttachmentParams = {
     clientCreatedTime?: string;
     isOldDotConciergeChat?: boolean;
     idempotencyKey?: string;
+    /** Simplified HTML of the page the user is viewing when sending from the Concierge side panel */
+    simplifiedPageHTML?: string;
 };
 
 export default AddCommentOrAttachmentParams;

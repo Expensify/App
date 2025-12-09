@@ -9,6 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import {SUPER_WIDE_RIGHT_MODALS, WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider';
+import SidePanelActions from '@libs/actions/SidePanel';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -19,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import type {Account} from '@src/types/onyx';
+import type {Account, SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getStateFromPath from './helpers/getStateFromPath';
@@ -51,6 +52,14 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         account = value;
+    },
+});
+
+let sidePanelNVP: OnyxEntry<SidePanel>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_SIDE_PANEL,
+    callback: (value) => {
+        sidePanelNVP = value;
     },
 });
 
@@ -118,6 +127,17 @@ const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmos
  * Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
  */
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
+
+/**
+ * Close the side panel on narrow layout when navigating to a different screen.
+ */
+function maybeCloseSidePanel() {
+    const isNarrowLayout = getIsNarrowLayout();
+    if (!sidePanelNVP?.openNarrowScreen || !isNarrowLayout) {
+        return;
+    }
+    SidePanelActions.closeSidePanel(true);
+}
 
 /**
  * Returns the current active route.
@@ -222,6 +242,7 @@ function navigate(route: Route, options?: LinkToOptions) {
     }
 
     linkTo(navigationRef.current, route, options);
+    maybeCloseSidePanel();
 }
 
 /**
