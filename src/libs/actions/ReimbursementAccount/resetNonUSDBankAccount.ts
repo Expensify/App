@@ -37,7 +37,7 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
     }
 
     API.write(
-        WRITE_COMMANDS.RESET_BANK_ACCOUNT_SETUP,
+        WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP,
         {policyID, bankAccountID},
         {
             optimisticData: [
