@@ -131,7 +131,7 @@ function BaseReportActionContextMenu({
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'ChatBubbleReply', 'ChatBubbleUnread', 'Mail'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Pencil', 'ThreeDots', 'ChatBubbleReply', 'ChatBubbleUnread', 'Mail'] as const);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth

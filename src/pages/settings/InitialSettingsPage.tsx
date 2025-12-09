@@ -88,7 +88,7 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'ExpensifyLogoNew', 'TreasureChest', 'Exit', 'Emoji', 'CreditCard', 'Wallet'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'Lightbulb', 'Lock', 'ExpensifyLogoNew', 'TreasureChest', 'Exit', 'Emoji', 'CreditCard', 'Wallet'] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -219,7 +219,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             },
             {
                 translationKey: 'initialSettingsPage.security',
-                icon: Expensicons.Lock,
+                icon: icons.Lock,
                 screenName: SCREENS.SETTINGS.SECURITY,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
             },
@@ -252,6 +252,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         session?.email,
         icons.Profile,
         icons.Gear,
+        icons.Lock,
+        icons.Wallet,
+        icons.CreditCard,
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
@@ -265,8 +268,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         retryBillingFailed,
         fundList,
         freeTrialText,
-        icons.Wallet,
-        icons.CreditCard,
+        billingStatus,
     ]);
 
     const classicRedirectMenuItem: MenuData | null = useMemo(() => {
@@ -343,7 +345,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
                 {
                     translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
-                    icon: Expensicons.Lightbulb,
+                    icon: icons.Lightbulb,
                     screenName: SCREENS.SETTINGS.TROUBLESHOOT,
                     action: () => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT),
                 },
@@ -362,7 +364,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, icons.TreasureChest, icons.Exit, icons.NewWindow, signOut]);
+    }, [styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, icons.TreasureChest, icons.Exit, icons.NewWindow, icons.Lightbulb, signOut]);
 
     /**
      * Return JSX.Element with menu items

@@ -53,6 +53,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Bookmark',
         'Checkmark',
+        'Pencil',
         'Receipt',
         'ChatBubbles',
         'MoneyBag',
@@ -89,8 +90,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     }, []);
 
     const getOverflowMenu = useCallback(
-        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal, true, closeMenu),
-        [showDeleteModal, closeMenu],
+        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, showDeleteModal, true, closeMenu),
+        [showDeleteModal, closeMenu, expensifyIcons],
     );
 
     const {savedSearchesMenuItems, isSavedSearchActive} = useMemo(() => {

@@ -11,16 +11,16 @@ import getIconForAction from './getIconForAction';
 import {canCreateRequest} from './ReportUtils';
 
 const getQuickActionIcon = (
-    icons: Record<'CalendarSolid' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'Receipt' | 'MoneyCircle', IconAsset>,
+    icons: Record<'CalendarSolid' | 'Car' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'ReceiptScan' | 'MoneyCircle', IconAsset>,
     action: QuickActionName,
-): IconAsset | Extract<ExpensifyIconName, 'ReceiptScan' | 'MoneyCircle'> => {
+): IconAsset => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return getIconForAction(CONST.IOU.TYPE.REQUEST, icons);
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-            return 'ReceiptScan';
+            return icons.ReceiptScan;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-            return Expensicons.Car;
+            return icons.Car;
         case CONST.QUICK_ACTIONS.PER_DIEM:
             return icons.CalendarSolid;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
@@ -32,13 +32,13 @@ const getQuickActionIcon = (
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return Expensicons.Task;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            return Expensicons.Car;
+            return icons.Car;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
             return getIconForAction(CONST.IOU.TYPE.TRACK, icons);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            return 'ReceiptScan';
+            return icons.ReceiptScan;
         default:
-            return 'MoneyCircle';
+            return icons.MoneyCircle;
     }
 };
 
