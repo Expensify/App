@@ -923,6 +923,8 @@ const ONYXKEYS = {
         WORKSPACE_PER_DIEM_FORM_DRAFT: 'workspacePerDiemFormDraft',
         ENABLE_GLOBAL_REIMBURSEMENTS: 'enableGlobalReimbursementsForm',
         ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT: 'enableGlobalReimbursementsFormDraft',
+        CREATE_DOMAIN_FORM: 'createDomainForm',
+        CREATE_DOMAIN_FORM_DRAFT: 'createDomainFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1037,6 +1039,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
     [ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS]: FormTypes.EnableGlobalReimbursementsForm;
+    [ONYXKEYS.FORMS.CREATE_DOMAIN_FORM]: FormTypes.CreateDomainForm;
 };
 
 type OnyxFormDraftValuesMapping = {
