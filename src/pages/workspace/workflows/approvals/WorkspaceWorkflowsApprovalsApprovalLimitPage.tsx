@@ -104,7 +104,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         }
         return undefined;
     }, [hasSubmitted, onlyApproverEmpty, translate]);
-    const bottomError = hasSubmitted && bothEmpty && !isEditFlow ? translate('workflowsApprovalLimitPage.enterBothError') : undefined;
 
     const firstApprover = approvalWorkflow?.approvers?.at(0)?.email ?? '';
 
@@ -159,13 +158,13 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             return;
         }
 
-        if (isEditFlow && bothEmpty) {
+        if (bothEmpty) {
             resetApprovalLimit();
             navigateAfterCompletion();
             return;
         }
 
-        if (bothEmpty || onlyAmountEmpty || onlyApproverEmpty) {
+        if (onlyAmountEmpty || onlyApproverEmpty) {
             setHasSubmitted(true);
             return;
         }
@@ -305,14 +304,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                             )}
                         </View>
                     </ScrollView>
-
-                    {!!bottomError && (
-                        <DotIndicatorMessage
-                            type="error"
-                            messages={{error: bottomError}}
-                            style={[styles.mh5, styles.mb3]}
-                        />
-                    )}
 
                     <View style={buttonContainerStyle}>
                         {!isEditFlow && (
