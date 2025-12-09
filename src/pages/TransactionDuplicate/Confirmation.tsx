@@ -46,7 +46,8 @@ function Confirmation() {
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: true});
     const [duplicatedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(reviewDuplicates?.transactionID)}`, {canBeMissing: true});
     const newTransaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction), [duplicatedTransaction, reviewDuplicates]);
-    const transactionID = TransactionUtils.getTransactionID(threadReportID);
+    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {canBeMissing: true});
+    const transactionID = TransactionUtils.getTransactionID(report);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`, {
@@ -61,7 +62,6 @@ function Confirmation() {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`, {canBeMissing: true});
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicatesReport, undefined, policyCategories);
     const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', threadReportID, backTo);
-    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {canBeMissing: true});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newTransaction?.reportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newTransaction?.reportID}`, {canBeMissing: true});
     const reportAction = Object.values(reportActions ?? {}).find(
@@ -113,7 +113,7 @@ function Confirmation() {
         [report, reportAction],
     );
 
-    const reportTransactionID = report?.reportID ? getTransactionID(report.reportID) : undefined;
+    const reportTransactionID = report?.reportID ? getTransactionID(report) : undefined;
     const doesTransactionBelongToReport = reviewDuplicates?.transactionID === reportTransactionID || (reportTransactionID && reviewDuplicates?.duplicates.includes(reportTransactionID));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
