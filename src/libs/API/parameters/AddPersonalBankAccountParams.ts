@@ -16,6 +16,7 @@ type AddPersonalBankAccountParams = {
     addressCity?: string;
     addressState?: string;
     addressZip?: string;
+    addressCountry?: string;
 };
 
 export default AddPersonalBankAccountParams;

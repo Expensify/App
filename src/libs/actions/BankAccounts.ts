@@ -290,6 +290,7 @@ function addPersonalBankAccount(
         addressCity: account?.addressCity,
         addressState: account?.addressState,
         addressZip: account?.addressZipCode,
+        addressCountry: account?.country,
     };
     if (policyID) {
         parameters.policyID = policyID;

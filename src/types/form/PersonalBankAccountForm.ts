@@ -17,6 +17,7 @@ const INPUT_IDS = {
         STREET: 'addressStreet',
         CITY: 'addressCity',
         STATE: 'addressState',
+        COUNTRY: 'country',
         ZIP_CODE: 'addressZipCode',
         PHONE_NUMBER: 'phoneNumber',
     },
@@ -36,6 +37,7 @@ type BankAccountStepProps = {
     [INPUT_IDS.BANK_INFO_STEP.CITY]: string;
     [INPUT_IDS.BANK_INFO_STEP.STATE]: string;
     [INPUT_IDS.BANK_INFO_STEP.ZIP_CODE]: string;
+    [INPUT_IDS.BANK_INFO_STEP.COUNTRY]: string;
     [INPUT_IDS.BANK_INFO_STEP.PHONE_NUMBER]: string;
 };
 
