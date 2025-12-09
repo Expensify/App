@@ -57,7 +57,7 @@ import {
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {getOriginalTransactionWithSplitInfo, isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, isDemoTransaction, isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -103,7 +103,7 @@ function mapTransactionItemToSelectedEntry(
         item.keyForList,
         {
             isSelected: true,
-            canDelete: canAddOrDeleteTransactions(item.report, item.policy),
+            canDelete: canAddOrDeleteTransactions(item.report, item.policy) || isDemoTransaction(itemTransaction),
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
@@ -193,7 +193,7 @@ function prepareTransactionsList(
         ...selectedTransactions,
         [item.keyForList]: {
             isSelected: true,
-            canDelete: canAddOrDeleteTransactions(item.report, item.policy),
+            canDelete: canAddOrDeleteTransactions(item.report, item.policy) || isDemoTransaction(itemTransaction),
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
@@ -535,7 +535,7 @@ function Search({
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
-                        canDelete: canAddOrDeleteTransactions(transactionItem.report, transactionItem.policy),
+                        canDelete: canAddOrDeleteTransactions(transactionItem.report, transactionItem.policy) || isDemoTransaction(itemTransaction),
 
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
@@ -586,7 +586,7 @@ function Search({
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
-                    canDelete: canAddOrDeleteTransactions(transactionItem.report, transactionItem.policy),
+                    canDelete: canAddOrDeleteTransactions(transactionItem.report, transactionItem.policy) || isDemoTransaction(itemTransaction),
 
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
