@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
+import React from 'react';
 import type {View} from 'react-native';
 import {StyleSheet} from 'react-native';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -12,9 +12,12 @@ import type {MenuItemProps} from './MenuItem';
 type Props = MenuItemProps & {
     /** Should the menu item be highlighted? */
     highlighted?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function HighlightableMenuItem({wrapperStyle, highlighted, ...restOfProps}: Props, ref: ForwardedRef<View>) {
+function HighlightableMenuItem({wrapperStyle, highlighted, ref, ...restOfProps}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -41,4 +44,4 @@ function HighlightableMenuItem({wrapperStyle, highlighted, ...restOfProps}: Prop
 
 HighlightableMenuItem.displayName = 'HighlightableMenuItem';
 
-export default forwardRef(HighlightableMenuItem);
+export default HighlightableMenuItem;

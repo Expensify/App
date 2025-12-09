@@ -1,6 +1,5 @@
 import {useCallback, useContext, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type AttachmentUploadValidationProps = {
@@ -93,9 +93,10 @@ function useAttachmentUploadValidation({
             report,
             parentReport: newParentReport,
             currentDate,
+            currentUserPersonalDetails,
         });
 
-        files.forEach((file, index) => {
+        for (const [index, file] of files.entries()) {
             const source = URL.createObjectURL(file as Blob);
             const newTransaction =
                 index === 0
@@ -107,8 +108,8 @@ function useAttachmentUploadValidation({
                       });
             const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
             setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true, file.type);
-            setMoneyRequestParticipantsFromReport(newTransactionID, report);
-        });
+            setMoneyRequestParticipantsFromReport(newTransactionID, report, currentUserPersonalDetails.accountID);
+        }
         Navigation.navigate(
             ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                 CONST.IOU.ACTION.CREATE,

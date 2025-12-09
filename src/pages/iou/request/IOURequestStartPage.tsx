@@ -27,8 +27,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabled} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
 import {initMoneyRequest} from '@userActions/IOU';
@@ -95,13 +96,20 @@ function IOURequestStartPage({
     };
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
-    const doesPerDiemPolicyExist = policiesWithPerDiemEnabled.length > 0;
-    const moreThanOnePerDiemExist = policiesWithPerDiemEnabled.length > 1;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const policiesWithPerDiemEnabledAndHasRates = useMemo(
+        () => getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(allPolicies, currentUserPersonalDetails.login),
+        [allPolicies, currentUserPersonalDetails.login],
+    );
+    const doesPerDiemPolicyExist = policiesWithPerDiemEnabledAndHasRates.length > 0;
+    const moreThanOnePerDiemExist = policiesWithPerDiemEnabledAndHasRates.length > 1;
     const hasCurrentPolicyPerDiemEnabled = !!policy?.arePerDiemRatesEnabled;
+    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+    const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);
     const shouldShowPerDiemOption =
-        iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled) || (isFromGlobalCreate && doesPerDiemPolicyExist));
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        iouType !== CONST.IOU.TYPE.TRACK &&
+        ((!isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled && hasPolicyPerDiemRates) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
     const transactionRequestType = useMemo(() => {
         if (!transaction?.iouRequestType) {
@@ -121,31 +129,13 @@ function IOURequestStartPage({
     const prevTransactionReportID = usePrevious(transaction?.reportID);
 
     useEffect(() => {
+        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE);
     }, []);
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
-
-    // This useEffect is used to initialize the money request, so that currency will be reset to default currency on page reload.
-    useEffect(() => {
-        if (transaction?.amount !== 0) {
-            return;
-        }
-        initMoneyRequest({
-            reportID,
-            policy,
-            isFromGlobalCreate,
-            currentIouRequestType: transaction?.iouRequestType,
-            newIouRequestType: transaction?.iouRequestType,
-            report,
-            parentReport,
-            currentDate,
-            lastSelectedDistanceRates,
-        });
-        // eslint-disable-next-line
-    }, []);
 
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
@@ -164,9 +154,21 @@ function IOURequestStartPage({
                 parentReport,
                 currentDate,
                 lastSelectedDistanceRates,
+                currentUserPersonalDetails,
             });
         },
-        [transaction?.iouRequestType, transaction?.isFromGlobalCreate, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates],
+        [
+            transaction?.iouRequestType,
+            transaction?.isFromGlobalCreate,
+            reportID,
+            policy,
+            isFromGlobalCreate,
+            report,
+            parentReport,
+            currentDate,
+            lastSelectedDistanceRates,
+            currentUserPersonalDetails,
+        ],
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
@@ -311,7 +313,7 @@ function IOURequestStartPage({
                                                 ) : (
                                                     <IOURequestStepDestination
                                                         openedFromStartPage
-                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabled.at(0)?.id}
+                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabledAndHasRates.at(0)?.id}
                                                         route={route}
                                                         navigation={navigation}
                                                     />

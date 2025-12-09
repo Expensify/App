@@ -9,10 +9,10 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {validateBankAccount} from '@libs/actions/BankAccounts';
+import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -59,23 +59,23 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
     const {translate, toLocaleDigit} = useLocalize();
     const styles = useThemeStyles();
 
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
     const decimalSeparator = toLocaleDigit('.');
     const permittedDecimalSeparator = getPermittedDecimalSeparator(decimalSeparator);
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
         const amountValues = getAmountValues(values);
         const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-        const amountRegex = RegExp(String.raw`^-?\d{0,8}([${permittedDecimalSeparator}]\d{0,${CurrencyUtils.getCurrencyDecimals(outputCurrency)}})?$`, 'i');
+        const amountRegex = RegExp(String.raw`^-?\d{0,8}([${permittedDecimalSeparator}]\d{0,${getCurrencyDecimals(outputCurrency)}})?$`, 'i');
 
-        Object.keys(amountValues).forEach((key) => {
+        for (const key of Object.keys(amountValues)) {
             const value = amountValues[key as keyof AmountValues];
             const filteredValue = filterInput(value, amountRegex, permittedDecimalSeparator);
-            if (ValidationUtils.isRequiredFulfilled(filteredValue.toString())) {
-                return;
+            if (isRequiredFulfilled(filteredValue.toString())) {
+                continue;
             }
             errors[key as keyof AmountValues] = translate('common.error.invalidAmount');
-        });
+        }
 
         return errors;
     };
@@ -89,12 +89,12 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
             const validateCode = [amount1, amount2, amount3].join(',');
 
             // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
-            const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
-            if (bankAccountID) {
-                BankAccounts.validateBankAccount(bankAccountID, validateCode, policyID);
+            const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
+            if (bankAccountID && policyID) {
+                validateBankAccount(bankAccountID, validateCode, policyID);
             }
         },
-        [reimbursementAccount, policyID, permittedDecimalSeparator],
+        [reimbursementAccount?.achData?.bankAccountID, policyID, permittedDecimalSeparator],
     );
     // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
     // See https://github.com/Expensify/App/issues/51868 for more information

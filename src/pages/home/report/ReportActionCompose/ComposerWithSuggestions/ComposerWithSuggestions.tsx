@@ -3,7 +3,7 @@ import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputContentSizeChangeEvent, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
-import {DeviceEventEmitter, NativeModules, StyleSheet, View} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
@@ -27,6 +27,7 @@ import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSp
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getPreferredSkinToneIndex, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
@@ -51,6 +52,11 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
+
+type SyncSelection = {
+    position: number;
+    value: string;
+};
 
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
@@ -155,6 +161,8 @@ type ComposerRef = {
 
 const {RNTextInputReset} = NativeModules;
 
+const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
+
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
  */
@@ -252,8 +260,7 @@ function ComposerWithSuggestions({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-
-    const shouldAutoFocus = shouldFocusInputOnScreenFocus && !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -262,9 +269,9 @@ function ComposerWithSuggestions({
 
     const [composerHeight, setComposerHeight] = useState(0);
 
-    const [suggestionPosition, setSuggestionPosition] = useState<number | null>(null);
-
     const textInputRef = useRef<TextInput | null>(null);
+
+    const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
@@ -408,6 +415,10 @@ function ComposerWithSuggestions({
             if (commentValue !== newComment) {
                 const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
 
+                if (commentWithSpaceInserted !== newComment && isIOSNative) {
+                    syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
+                }
+
                 setSelection((prevSelection) => ({
                     start: position,
                     end: position,
@@ -513,18 +524,25 @@ function ComposerWithSuggestions({
         [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, handleSendMessage, lastReportAction, reportID, updateComment, selection.end],
     );
 
-    useEffect(() => {
-        if (suggestionPosition === null) {
-            return;
-        }
+    const onChangeText = useCallback(
+        (commentValue: string) => {
+            updateComment(commentValue, true);
 
-        textInputRef.current?.setSelection?.(suggestionPosition, suggestionPosition);
-    }, [suggestionPosition]);
+            if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
+                const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
+                syncSelectionWithOnChangeTextRef.current = null;
 
-    const onSuggestionSelected = useCallback((suggestion: TextSelection) => {
-        setSelection(suggestion);
-        setSuggestionPosition(suggestion.end ?? 0);
-    }, []);
+                // ensure that selection is set imperatively after all state changes are effective
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => {
+                    // note: this implementation is only available on non-web RN, thus the wrapping
+                    // 'if' block contains a redundant (since the ref is only used on iOS) platform check
+                    textInputRef.current?.setSelection(positionSnapshot, positionSnapshot);
+                });
+            }
+        },
+        [updateComment],
+    );
 
     const onSelectionChange = useCallback(
         (e: CustomSelectionChangeEvent) => {
@@ -590,7 +608,7 @@ function ComposerWithSuggestions({
         // Checking whether the screen is focused or not, helps avoid `modal.isVisible` false when popups are closed, even if the modal is opened.
         const isComposerCoveredUp = !isFocused || isEmojiPickerVisible() || isMenuVisible || !!modal?.isVisible || modal?.willAlertModalBecomeVisible;
         return !isComposerCoveredUp;
-    }, [isMenuVisible, modal, isFocused]);
+    }, [isMenuVisible, modal?.isVisible, modal?.willAlertModalBecomeVisible, isFocused]);
 
     const focusComposerOnKeyPress = useCallback(
         (e: KeyboardEvent) => {
@@ -793,6 +811,21 @@ function ComposerWithSuggestions({
         onFocus();
     }, [onFocus, setUpComposeFocusManager]);
 
+    // When using the suggestions box (Suggestions) we need to imperatively
+    // set the cursor to the end of the suggestion/mention after it's selected.
+    const onSuggestionSelected = useCallback((suggestionSelection: TextSelection) => {
+        const endOfSuggestionSelection = suggestionSelection.end;
+        setSelection(suggestionSelection);
+
+        if (endOfSuggestionSelection === undefined) {
+            return;
+        }
+
+        queueMicrotask(() => {
+            textInputRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
+        });
+    }, []);
+
     return (
         <>
             <View
@@ -808,7 +841,7 @@ function ComposerWithSuggestions({
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
-                    onChangeText={updateComment}
+                    onChangeText={onChangeText}
                     onKeyPress={handleKeyPress}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose, composerHeight ? {height: composerHeight} : null]}

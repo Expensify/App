@@ -1,8 +1,9 @@
 import fastMerge from 'expensify-common/dist/fastMerge';
 import {useCallback} from 'react';
-import {runOnJS, runOnUI, useSharedValue} from 'react-native-reanimated';
+import {useSharedValue} from 'react-native-reanimated';
+import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 import Log from '@libs/Log';
-import executeOnUIRuntimeSync from './executeOnUIRuntimeSync';
+import runOnUISync from './runOnUISync';
 
 // When you need to debug state machine change this to true
 const DEBUG_MODE = false;
@@ -30,7 +31,7 @@ type State<P> = {
 type StateMachine<S extends string = string, A extends string = string> = Partial<Record<S, Partial<Record<A, S>>>>;
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const client = runOnJS(Log.client);
+const client = (...args: Parameters<typeof Log.client>) => scheduleOnRN(Log.client, ...args);
 
 /**
  * A hook that creates a state machine that can be used with Reanimated Worklets, useful for when you need to keep the native thread and JS tightly in-sync.
@@ -145,12 +146,12 @@ function useWorkletStateMachine<SM extends StateMachine<string, string>, P>(stat
     }, [currentState, initialState, log]);
 
     const reset = useCallback(() => {
-        runOnUI(resetWorklet)();
+        scheduleOnUI(resetWorklet);
     }, [resetWorklet]);
 
     const transition = useCallback(
         (action: ActionWithPayload<P>) => {
-            executeOnUIRuntimeSync(transitionWorklet)(action);
+            runOnUISync(transitionWorklet, action);
         },
         [transitionWorklet],
     );

@@ -56,9 +56,9 @@ type Destination = {
  */
 function getDestinationOptionTree(options: Destination[]): ModifiedOptionTree[] {
     const optionCollection = new Map<string, ModifiedOptionTree>();
-    Object.values(options).forEach((option) => {
+    for (const option of Object.values(options)) {
         if (optionCollection.has(option.rateID)) {
-            return;
+            continue;
         }
 
         optionCollection.set(option.rateID, {
@@ -70,7 +70,7 @@ function getDestinationOptionTree(options: Destination[]): ModifiedOptionTree[] 
             isSelected: !!option.isSelected,
             currency: option.currency,
         });
-    });
+    }
 
     return Array.from(optionCollection.values());
 }

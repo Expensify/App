@@ -34,7 +34,6 @@
     },
     "include": [
         "src",
-        "desktop",
         "web",
         "website",
         "docs",

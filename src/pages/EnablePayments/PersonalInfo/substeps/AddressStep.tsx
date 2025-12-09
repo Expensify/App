@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import CommonAddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -21,14 +21,17 @@ const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.STREET, PERSONAL_INFO_STEP_KEY.CITY,
 function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {canBeMissing: true});
 
-    const defaultValues = {
-        street: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STREET] ?? '',
-        city: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.CITY] ?? '',
-        state: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STATE] ?? '',
-        zipCode: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.ZIP_CODE] ?? '',
-    };
+    const defaultValues = useMemo(
+        () => ({
+            street: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STREET] ?? '',
+            city: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.CITY] ?? '',
+            state: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STATE] ?? '',
+            zipCode: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.ZIP_CODE] ?? '',
+        }),
+        [walletAdditionalDetails],
+    );
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -48,6 +51,8 @@ function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
             stepFields={STEP_FIELDS}
             inputFieldsIDs={INPUT_KEYS}
             defaultValues={defaultValues}
+            shouldShowHelpLinks
+            shouldShowPatriotActLink
         />
     );
 }

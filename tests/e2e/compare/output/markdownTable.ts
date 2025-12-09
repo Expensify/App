@@ -347,7 +347,7 @@ function markdownTable(table: Array<Array<string | null | undefined>>, options: 
             }
         }
 
-        lines.push(options.delimiterEnd === false ? line.join('').replace(/ +$/, '') : line.join(''));
+        lines.push(options.delimiterEnd === false ? line.join('').replaceAll(/ +$/g, '') : line.join(''));
     }
 
     return lines.join('\n');

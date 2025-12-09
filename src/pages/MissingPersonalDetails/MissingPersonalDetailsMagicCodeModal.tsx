@@ -7,6 +7,7 @@ import {clearPersonalDetailsErrors} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -28,13 +29,7 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
     const primaryLogin = account?.primaryLogin ?? '';
     const areAllCardsShipped = Object.values(cardList ?? {})?.every((card) => card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
 
-    const missingDetails =
-        !privatePersonalDetails?.legalFirstName ||
-        !privatePersonalDetails?.legalLastName ||
-        !privatePersonalDetails?.dob ||
-        !privatePersonalDetails?.phoneNumber ||
-        isEmptyObject(privatePersonalDetails?.addresses) ||
-        privatePersonalDetails.addresses.length === 0;
+    const missingDetails = arePersonalDetailsMissing(privatePersonalDetails);
 
     useEffect(() => {
         if (missingDetails || !!privateDetailsErrors || !areAllCardsShipped) {

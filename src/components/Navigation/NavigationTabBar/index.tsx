@@ -32,10 +32,12 @@ import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
-import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {DomainSplitNavigatorParamList, RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/home/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -44,7 +46,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
+import type {Domain, Policy} from '@src/types/onyx';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
 type NavigationTabBarProps = {
@@ -78,20 +80,25 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
     const initialNavigationRouteState = getWorkspaceNavigationRouteState();
     const [lastWorkspacesTabNavigatorRoute, setLastWorkspacesTabNavigatorRoute] = useState(initialNavigationRouteState.lastWorkspacesTabNavigatorRoute);
     const [workspacesTabState, setWorkspacesTabState] = useState(initialNavigationRouteState.workspacesTabState);
-    const params = workspacesTabState?.routes?.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
+    const params = workspacesTabState?.routes?.at(0)?.params as
+        | WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL]
+        | DomainSplitNavigatorParamList[typeof SCREENS.DOMAIN.INITIAL];
     const {typeMenuSections} = useSearchTypeMenuSections();
     const subscriptionPlan = useSubscriptionPlan();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings'] as const);
 
+    const paramsPolicyID = params && 'policyID' in params ? params.policyID : undefined;
+    const paramsDomainAccountID = params && 'accountID' in params ? params.accountID : undefined;
+
     const lastViewedPolicySelector = useCallback(
         (policies: OnyxCollection<Policy>) => {
-            if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || !params?.policyID) {
+            if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || !paramsPolicyID) {
                 return undefined;
             }
 
-            return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${params.policyID}`];
+            return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${paramsPolicyID}`];
         },
-        [params?.policyID, lastWorkspacesTabNavigatorRoute],
+        [paramsPolicyID, lastWorkspacesTabNavigatorRoute],
     );
 
     const [lastViewedPolicy] = useOnyx(
@@ -99,6 +106,26 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         {
             canBeMissing: true,
             selector: lastViewedPolicySelector,
+        },
+        [navigationState],
+    );
+
+    const lastViewedDomainSelector = useCallback(
+        (domains: OnyxCollection<Domain>) => {
+            if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR || !paramsDomainAccountID) {
+                return undefined;
+            }
+
+            return domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${paramsDomainAccountID}`];
+        },
+        [paramsDomainAccountID, lastWorkspacesTabNavigatorRoute],
+    );
+
+    const [lastViewedDomain] = useOnyx(
+        ONYXKEYS.COLLECTION.DOMAIN,
+        {
+            canBeMissing: true,
+            selector: lastViewedDomainSelector,
         },
         [navigationState],
     );
@@ -131,8 +158,14 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             return;
         }
 
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+            op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+        });
         Navigation.navigate(ROUTES.HOME);
     }, [selectedTab]);
+
+    const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
 
     const navigateToSearch = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SEARCH) {
@@ -140,6 +173,16 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
+            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
+                name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
+                op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
+            });
+
+            startSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS, {
+                name: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
+                op: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
+            });
+
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
             const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
             const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
@@ -160,11 +203,15 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 }
             }
 
-            const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+            const flattenedMenuItems = typeMenuSections.flatMap((section) => section.menuItems);
+            const defaultActionableSearchQuery =
+                getDefaultActionableSearchMenuItem(flattenedMenuItems)?.searchQuery ?? flattenedMenuItems.at(0)?.searchQuery ?? typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+
             const savedSearchQuery = Object.values(savedSearches ?? {}).at(0)?.query;
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
+            const lastQueryFromOnyx = lastSearchParams?.queryJSON ? buildSearchQueryString(lastSearchParams.queryJSON) : undefined;
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultActionableSearchQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
         });
-    }, [selectedTab, typeMenuSections, savedSearches]);
+    }, [selectedTab, typeMenuSections, savedSearches, lastSearchParams?.queryJSON]);
 
     const navigateToSettings = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SETTINGS) {
@@ -189,8 +236,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
      * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
      */
     const showWorkspaces = useCallback(() => {
-        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy});
-    }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy]);
+        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy, domain: lastViewedDomain});
+    }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy, lastViewedDomain]);
 
     if (!shouldUseNarrowLayout) {
         return (
@@ -201,7 +248,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         chatTabBrickRoad={chatTabBrickRoad}
                     />
                 )}
-                <View style={styles.leftNavigationTabBarContainer}>
+                <View
+                    style={styles.leftNavigationTabBarContainer}
+                    testID={NavigationTabBar.displayName}
+                >
                     <HeaderGap />
                     <View style={styles.flex1}>
                         <PressableWithFeedback
@@ -350,7 +400,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     chatTabBrickRoad={chatTabBrickRoad}
                 />
             )}
-            <View style={styles.navigationTabBarContainer}>
+            <View
+                style={styles.navigationTabBarContainer}
+                testID={NavigationTabBar.displayName}
+            >
                 <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.BUTTON}

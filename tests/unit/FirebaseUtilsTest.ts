@@ -14,9 +14,9 @@ describe('getAttributes', () => {
     ];
 
     const checkAttributes = (attributes: Partial<PerfAttributes>, expectedAttributes: Array<keyof Partial<PerfAttributes>>) => {
-        expectedAttributes.forEach((attr) => {
+        for (const attr of expectedAttributes) {
             expect(attributes).toHaveProperty(attr);
-        });
+        }
         expect(Object.keys(attributes).length).toEqual(expectedAttributes.length);
     };
 
