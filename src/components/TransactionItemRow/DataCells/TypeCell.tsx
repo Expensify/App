@@ -46,7 +46,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Car', 'CreditCard', 'CreditCardHourglass', 'Cash'] as const);
     const type = getTransactionType(transactionItem, cardList);
     const isPendingExpensifyCardTransaction = isExpensifyCardTransaction(transactionItem) && isPending(transactionItem);
-    const typeIcon = isPendingExpensifyCardTransaction ? Expensicons.CreditCardHourglass : getTypeIcon(expensifyIcons, type);
+    const typeIcon = isPendingExpensifyCardTransaction ? expensifyIcons.CreditCardHourglass : getTypeIcon(expensifyIcons, type);
     const typeText = isPendingExpensifyCardTransaction ? 'iou.pending' : getTypeText(type);
     const styles = useThemeStyles();
 
