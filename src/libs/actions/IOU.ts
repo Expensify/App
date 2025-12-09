@@ -610,6 +610,7 @@ type CreateDistanceRequestInformation = {
     backToReport?: string;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -627,6 +628,7 @@ type CreateSplitsAndOnyxDataParams = {
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type TrackExpenseTransactionParams = {
@@ -736,7 +738,6 @@ type GetTrackExpenseInformationParams = {
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -760,6 +761,7 @@ type StartSplitBilActionParams = {
     taxAmount: number;
     shouldPlaySound?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type UpdateSplitTransactionsParams = {
@@ -830,7 +832,6 @@ type DeleteMoneyRequestFunctionParams = {
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -845,7 +846,6 @@ Onyx.connect({
 });
 
 let allTransactionDrafts: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
@@ -855,7 +855,6 @@ Onyx.connect({
 });
 
 let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
@@ -870,7 +869,6 @@ Onyx.connect({
 });
 
 let allNextSteps: NonNullable<OnyxCollection<OnyxTypes.ReportNextStepDeprecated>> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.NEXT_STEP,
     waitForCollectionCallback: true,
@@ -880,7 +878,6 @@ Onyx.connect({
 });
 
 const allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
@@ -900,7 +897,6 @@ Onyx.connect({
 // `allRecentlyUsedTags` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
 // All uses of this variable should be replaced with `useOnyx`.
 let allRecentlyUsedTags: OnyxCollection<RecentlyUsedTags> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
     waitForCollectionCallback: true,
@@ -908,7 +904,6 @@ Onyx.connect({
 });
 
 let allReports: OnyxCollection<OnyxTypes.Report>;
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
@@ -918,7 +913,6 @@ Onyx.connect({
 });
 
 let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
@@ -929,7 +923,6 @@ Onyx.connect({
 
 let userAccountID = -1;
 let currentUserEmail = '';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -939,7 +932,6 @@ Onyx.connect({
 });
 
 let deprecatedCurrentUserPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails>;
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -957,7 +949,6 @@ Onyx.connect({
 });
 
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -970,7 +961,6 @@ Onyx.connect({
 });
 
 let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
@@ -987,7 +977,6 @@ Onyx.connectWithoutView({
 // `recentWaypoints` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
 // All uses of this variable should be replaced with `useOnyx`.
 let recentWaypoints: OnyxTypes.RecentWaypoint[] = [];
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
     callback: (val) => (recentWaypoints = val ?? []),
@@ -1140,8 +1129,6 @@ function initMoneyRequest({
         }
     }
 
-    const defaultMerchant = newIouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.TRANSACTION.DEFAULT_MERCHANT : CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-
     const newTransaction = {
         amount: 0,
         comment,
@@ -1152,7 +1139,7 @@ function initMoneyRequest({
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
-        merchant: defaultMerchant,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
     };
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
@@ -6878,7 +6865,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 waypoints: sanitizedWaypoints,
                 customUnitRateID,
                 description: parsedComment,
-                isDistance: isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction),
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
@@ -6975,6 +6961,7 @@ function createSplitsAndOnyxData({
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
+    quickAction,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7057,7 +7044,7 @@ function createSplitsAndOnyxData({
             value: {
                 action: iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? CONST.QUICK_ACTIONS.SPLIT_DISTANCE : CONST.QUICK_ACTIONS.SPLIT_MANUAL,
                 chatReportID: splitChatReport.reportID,
-                isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
+                isFirstQuickAction: isEmptyObject(quickAction),
             },
         },
         existingSplitChatReport
@@ -7141,7 +7128,7 @@ function createSplitsAndOnyxData({
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: deprecatedQuickAction ?? null,
+            value: quickAction ?? null,
         },
     ];
 
@@ -7465,6 +7452,7 @@ type SplitBillActionsParams = {
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 /**
@@ -7492,6 +7480,7 @@ function splitBill({
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
+    quickAction,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7517,6 +7506,7 @@ function splitBill({
         policyRecentlyUsedCategories,
         isASAPSubmitBetaEnabled,
         transactionViolations,
+        quickAction,
     });
 
     const parameters: SplitBillParams = {
@@ -7575,6 +7565,7 @@ function splitBillAndOpenReport({
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
+    quickAction,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7600,6 +7591,7 @@ function splitBillAndOpenReport({
         },
         policyRecentlyUsedCategories,
         transactionViolations,
+        quickAction,
     });
 
     const parameters: SplitBillParams = {
@@ -7654,6 +7646,7 @@ function startSplitBill({
     taxAmount = 0,
     shouldPlaySound = true,
     policyRecentlyUsedCategories,
+    quickAction,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7718,7 +7711,7 @@ function startSplitBill({
             value: {
                 action: CONST.QUICK_ACTIONS.SPLIT_SCAN,
                 chatReportID: splitChatReport.reportID,
-                isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
+                isFirstQuickAction: isEmptyObject(quickAction),
             },
         },
         existingSplitChatReport
@@ -7800,7 +7793,7 @@ function startSplitBill({
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: deprecatedQuickAction ?? null,
+            value: quickAction ?? null,
         },
     ];
 
@@ -7818,6 +7811,7 @@ function startSplitBill({
         currency,
         taxCode,
         taxAmount,
+        quickAction,
     };
 
     if (existingSplitChatReport) {
@@ -8079,7 +8073,7 @@ function completeSplitBill(
     ];
 
     const splitParticipants: Split[] = updatedTransaction?.comment?.splits ?? [];
-    const amount = Number(updatedTransaction?.modifiedAmount);
+    const amount = updatedTransaction?.modifiedAmount;
     const currency = updatedTransaction?.modifiedCurrency;
 
     // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
@@ -8309,6 +8303,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         backToReport,
         isASAPSubmitBetaEnabled,
         transactionViolations,
+        quickAction,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -8377,6 +8372,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyRecentlyUsedCategories,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            quickAction,
         });
         onyxData = splitOnyxData;
 
@@ -14744,7 +14740,7 @@ function updateSplitTransactions({
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
-                value: transactionThread ?? null,
+                value: transactionThread,
             });
         }
 
@@ -14870,6 +14866,7 @@ function assignReportToMe(
         currentUserEmailParam: email,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        bypassNextApproverID: accountID,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: accountID},
@@ -14881,6 +14878,7 @@ function assignReportToMe(
         currentUserEmailParam: email,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        bypassNextApproverID: accountID,
     });
 
     const onyxData: OnyxData = {
@@ -14984,6 +14982,7 @@ function addReportApprover(
         currentUserEmailParam: email,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        bypassNextApproverID: newApproverAccountID,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: newApproverAccountID},
@@ -14995,6 +14994,7 @@ function addReportApprover(
         currentUserEmailParam: email,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        bypassNextApproverID: newApproverAccountID,
     });
     const onyxData: OnyxData = {
         optimisticData: [
