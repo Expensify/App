@@ -100,7 +100,7 @@ For more details on adding a card to Apple or Android Pay, see this [guide](http
 
 ## What if I haven’t received my Expensify Card?
 
-If your physical card hasn't arrived within a week, make sure your mailing address is correct and order a new card. See [this guide](https://help.expensify.com/articles/expensify-classic/expensify-card/Request-the-Expensify-Card#:~:text=Potentially%20fraudulent%20activity-,Request%20a%20Replacement%20Expensify%20Card,-Lost%2C%20Stolen%2C%20or) for requesting a new Expensify Card.
+If your physical card hasn't arrived within a week, make sure your mailing address is correct and order a new card. See [this guide](https://help.expensify.com/articles/expensify-classic/expensify-card/Request-the-Expensify-Card#steps-to-request-the-expensify-card)for requesting a new Expensify Card.
 
 ## Why did my card get declined?
 
