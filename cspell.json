@@ -793,7 +793,8 @@
         "setuptools",
         "DYNAMICEXTERNAL",
         "RNCORE",
-        "Wooo"
+        "Wooo",
+        "Splittable"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
