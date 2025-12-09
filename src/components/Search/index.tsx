@@ -32,7 +32,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -90,15 +90,20 @@ type SearchProps = {
 
 const expenseHeaders = getExpenseHeaders();
 
-function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue): [string, SelectedTransactionInfo] {
+function mapTransactionItemToSelectedEntry(
+    item: TransactionListItemType,
+    currentUserLogin: string,
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+    const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
 
     return [
         item.keyForList,
         {
             isSelected: true,
             canDelete: item.canDelete,
-            canReject: item.canReject,
+            canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
@@ -167,7 +172,12 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
           };
 }
 
-function prepareTransactionsList(item: TransactionListItemType, selectedTransactions: SelectedTransactions, outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue) {
+function prepareTransactionsList(
+    item: TransactionListItemType,
+    selectedTransactions: SelectedTransactions,
+    currentUserLogin: string,
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
@@ -175,13 +185,14 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     }
 
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+    const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
 
     return {
         ...selectedTransactions,
         [item.keyForList]: {
             isSelected: true,
             canDelete: item.canDelete,
-            canReject: item.canReject,
+            canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
@@ -498,6 +509,7 @@ function Search({
                         transactionItem,
                         transactionItem.policy,
                     );
+                    const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report, transactionItem.policy) : false;
 
                     newTransactionList[transactionItem.transactionID] = {
                         action: transactionItem.action,
@@ -517,7 +529,7 @@ function Search({
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
                         canDelete: transactionItem.canDelete,
-                        canReject: transactionItem.canReject,
+                        canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
                         amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
@@ -544,6 +556,7 @@ function Search({
                     transactionItem,
                     transactionItem.policy,
                 );
+                const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report, transactionItem.policy) : false;
 
                 newTransactionList[transactionItem.transactionID] = {
                     action: transactionItem.action,
@@ -563,7 +576,7 @@ function Search({
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
                     canDelete: transactionItem.canDelete,
-                    canReject: transactionItem.canReject,
+                    canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
                     amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
@@ -642,7 +655,7 @@ function Search({
                 if (isTransactionPendingDelete(item)) {
                     return;
                 }
-                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, outstandingReportsByPolicyID), filteredData);
+                setSelectedTransactions(prepareTransactionsList(item, selectedTransactions, email ?? '', outstandingReportsByPolicyID), filteredData);
                 return;
             }
 
@@ -664,13 +677,13 @@ function Search({
                     ...Object.fromEntries(
                         currentTransactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, outstandingReportsByPolicyID)),
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, email ?? '', outstandingReportsByPolicyID)),
                     ),
                 },
                 filteredData,
             );
         },
-        [filteredData, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions],
+        [filteredData, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions, email],
     );
 
     const onSelectRow = useCallback(
@@ -884,7 +897,7 @@ function Search({
                     (filteredData as TransactionGroupListItemType[]).flatMap((item) =>
                         item.transactions
                             .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, outstandingReportsByPolicyID)),
+                            .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, email ?? '', outstandingReportsByPolicyID)),
                     ),
                 ),
                 filteredData,
@@ -897,11 +910,11 @@ function Search({
             Object.fromEntries(
                 (filteredData as TransactionListItemType[])
                     .filter((t) => !isTransactionPendingDelete(t))
-                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, outstandingReportsByPolicyID)),
+                    .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, email ?? '', outstandingReportsByPolicyID)),
             ),
             filteredData,
         );
-    }, [clearSelectedTransactions, filteredData, validGroupBy, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, isExpenseReportType]);
+    }, [clearSelectedTransactions, filteredData, validGroupBy, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID, isExpenseReportType, email]);
 
     const onLayout = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
