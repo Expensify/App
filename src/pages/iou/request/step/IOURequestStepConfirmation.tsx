@@ -170,13 +170,15 @@ function IOURequestStepConfirmation({
     /*
      * We want to use a report from the transaction if it exists
      * Also if the report was submitted and delayed submission is on, then we should use an initial report
+     * Additionally, if neither reportReal nor reportDraft exist, we fallback to the transactionReport
+     * to ensure proper navigation after expense creation.
      */
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
     const reportWithDraftFallback = useMemo(() => reportReal ?? reportDraft, [reportDraft, reportReal]);
-    const shouldUseTransactionReport =
-        transactionReport &&
-        ((!(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false)) ||
-            !reportWithDraftFallback);
+    const canUseReport = !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
+
+    const shouldUseTransactionReport = !!transactionReport && (canUseReport || !reportWithDraftFallback);
+
     const report = useMemo(() => {
         if (isUnreported) {
             return undefined;
