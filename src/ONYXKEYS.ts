@@ -187,6 +187,9 @@ const ONYXKEYS = {
      */
     NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION: 'nvp_dismissedASAPSubmitExplanation',
 
+    /** Whether the user dismissed the empty report confirmation dialog */
+    NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED: 'nvp_emptyReportsConfirmationDismissed',
+
     /** This NVP contains the training modals the user denied showing again */
     NVP_HAS_SEEN_TRACK_TRAINING: 'nvp_hasSeenTrackTraining',
 
@@ -1167,6 +1170,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
     [ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION]: boolean;
+    [ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
     [ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT]: string;
     [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;

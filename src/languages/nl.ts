@@ -6859,6 +6859,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Weet je zeker dat je een ander rapport wilt maken in ${workspaceName}? Je hebt toegang tot je lege rapporten in`,
             emptyReportConfirmationPromptLink: 'Rapporten',
+            emptyReportConfirmationDontShowAgain: 'Niet meer weergeven',
             genericWorkspaceName: 'deze workspace',
         },
         genericCreateReportFailureMessage: 'Onverwachte fout bij het maken van deze chat. Probeer het later opnieuw.',
