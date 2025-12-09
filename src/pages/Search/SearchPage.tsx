@@ -13,6 +13,7 @@ import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalMod
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {getTransactionViolationsOfTransaction} from '@libs/TransactionUtils';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -133,6 +134,7 @@ function SearchPage({route}: SearchPageProps) {
         'Send',
         'Trashcan',
         'ThumbsUp',
+        'ThumbsDown',
         'ArrowRight',
         'Stopwatch',
         'Exclamation',
@@ -491,7 +493,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowRejectOption) {
             options.push({
-                icon: Expensicons.ThumbsDown,
+                icon: expensifyIcons.ThumbsDown,
                 text: translate('search.bulkActions.reject'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
                 shouldCloseModalOnSelect: true,
@@ -948,7 +950,8 @@ function SearchPage({route}: SearchPageProps) {
                 Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
             }
         } else {
-            // TODO: Add reject
+            dismissRejectUseExplanation();
+            Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
         }
         setRejectModalAction(null);
     }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
