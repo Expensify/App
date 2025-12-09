@@ -6,16 +6,6 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-type MockConfirmModalProps = {
-    prompt: ReactNode;
-    confirmText?: string;
-    cancelText?: string;
-    isVisible?: boolean;
-    onConfirm?: () => void | Promise<void>;
-    onCancel?: () => void;
-    title?: string;
-};
-
 type MockTextLinkProps = {
     children?: ReactNode;
     onPress?: () => void;
@@ -27,6 +17,7 @@ type MockReactModule = {
 };
 
 const mockTranslate = jest.fn((key: string, params?: Record<string, string>) => (params?.workspaceName ? `${key}:${params.workspaceName}` : key));
+const mockShowConfirmModal = jest.fn<Promise<{action: 'CONFIRM' | 'CANCEL'}>, [options: {title?: string; prompt?: ReactNode; confirmText?: string; cancelText?: string}]>();
 
 let mockTextLinkProps: MockTextLinkProps | undefined;
 
@@ -34,11 +25,9 @@ jest.mock('@hooks/useLocalize', () => () => ({
     translate: mockTranslate,
 }));
 
-jest.mock('@components/ConfirmModal', () => {
-    const mockReact: MockReactModule = jest.requireActual('react');
-    return ({prompt, confirmText, cancelText, isVisible, onConfirm, onCancel, title}: MockConfirmModalProps) =>
-        mockReact.createElement('mock-confirm-modal', {prompt, confirmText, cancelText, isVisible, onConfirm, onCancel, title}, null);
-});
+jest.mock('@hooks/useConfirmModal', () => () => ({
+    showConfirmModal: mockShowConfirmModal,
+}));
 
 jest.mock('@components/Text', () => {
     const mockReact: MockReactModule = jest.requireActual('react');
@@ -58,24 +47,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
-type HookValue = ReturnType<typeof useCreateEmptyReportConfirmation>;
 type HookProps = {
     policyName?: string;
     onCancel?: () => void;
 };
-
-type MockConfirmModalElement = ReactElement<MockConfirmModalProps>;
-
-function getModal(hookValue: HookValue): MockConfirmModalElement {
-    return hookValue.CreateReportConfirmationModal as MockConfirmModalElement;
-}
-
-function getRequiredHandler<T extends (...args: never[]) => unknown>(handler: T | undefined, name: string): T {
-    if (!handler) {
-        throw new Error(`${name} handler was not provided`);
-    }
-    return handler;
-}
 
 const policyID = 'policy-123';
 const policyName = 'Engineering Team';
@@ -89,32 +64,12 @@ describe('useCreateEmptyReportConfirmation', () => {
         jest.clearAllMocks();
         mockTranslate.mockClear();
         mockTextLinkProps = undefined;
+        mockShowConfirmModal.mockReturnValue(Promise.resolve({action: 'CONFIRM' as const}));
     });
 
-    it('modal is hidden by default and opens on demand', () => {
+    it('calls showConfirmModal with correct parameters', () => {
         const onConfirm = jest.fn();
-        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
-            useCreateEmptyReportConfirmation({
-                policyID,
-                policyName,
-                onConfirm,
-            }),
-        );
-
-        let modal = getModal(result.current);
-        expect(modal.props.isVisible).toBe(false);
-
-        act(() => {
-            result.current.openCreateReportConfirmation();
-        });
-
-        modal = getModal(result.current);
-        expect(modal.props.isVisible).toBe(true);
-    });
-
-    it('invokes onConfirm and resets state after completion', () => {
-        const onConfirm = jest.fn();
-        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
+        const {result} = renderHook(() =>
             useCreateEmptyReportConfirmation({
                 policyID,
                 policyName,
@@ -126,24 +81,47 @@ describe('useCreateEmptyReportConfirmation', () => {
             result.current.openCreateReportConfirmation();
         });
 
-        let modal = getModal(result.current);
-        const confirmHandler = getRequiredHandler(modal.props.onConfirm, 'onConfirm');
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                title: expect.any(String),
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                prompt: expect.anything(),
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                confirmText: expect.any(String),
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                cancelText: expect.any(String),
+            }),
+        );
+    });
 
-        act(() => {
-            confirmHandler();
+    it('invokes onConfirm when user confirms', async () => {
+        const onConfirm = jest.fn();
+        mockShowConfirmModal.mockReturnValue(Promise.resolve({action: 'CONFIRM'}));
+
+        const {result} = renderHook(() =>
+            useCreateEmptyReportConfirmation({
+                policyID,
+                policyName,
+                onConfirm,
+            }),
+        );
+
+        await act(async () => {
+            result.current.openCreateReportConfirmation();
+            await Promise.resolve();
         });
 
         expect(onConfirm).toHaveBeenCalledTimes(1);
-
-        modal = getModal(result.current);
-        expect(modal.props.isVisible).toBe(false);
     });
 
-    it('calls onCancel when cancellation occurs', () => {
+    it('calls onCancel when user cancels', async () => {
         const onConfirm = jest.fn();
         const onCancel = jest.fn();
+        mockShowConfirmModal.mockReturnValue(Promise.resolve({action: 'CANCEL'}));
 
-        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
+        const {result} = renderHook(() =>
             useCreateEmptyReportConfirmation({
                 policyID,
                 policyName,
@@ -152,27 +130,18 @@ describe('useCreateEmptyReportConfirmation', () => {
             }),
         );
 
-        act(() => {
+        await act(async () => {
             result.current.openCreateReportConfirmation();
-        });
-
-        const modal = getModal(result.current);
-        const cancelHandler = getRequiredHandler(modal.props.onCancel, 'onCancel');
-
-        act(() => {
-            cancelHandler();
+            await Promise.resolve();
         });
 
         expect(onConfirm).not.toHaveBeenCalled();
         expect(onCancel).toHaveBeenCalledTimes(1);
-
-        const updatedModal = getModal(result.current);
-        expect(updatedModal.props.isVisible).toBe(false);
     });
 
     it('navigates to reports search when link in prompt is pressed', () => {
         const onConfirm = jest.fn();
-        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
+        const {result} = renderHook(() =>
             useCreateEmptyReportConfirmation({
                 policyID,
                 policyName: '',
@@ -180,10 +149,18 @@ describe('useCreateEmptyReportConfirmation', () => {
             }),
         );
 
-        const modal = getModal(result.current);
-        const {unmount} = render(modal.props.prompt as ReactElement);
-        const onPress = mockTextLinkProps?.onPress;
+        act(() => {
+            result.current.openCreateReportConfirmation();
+        });
 
+        // Get the prompt from the mock call and render it
+        const callArgs = mockShowConfirmModal.mock.calls.at(0);
+        if (callArgs) {
+            const {prompt} = callArgs[0];
+            render(prompt as ReactElement);
+        }
+
+        const onPress = mockTextLinkProps?.onPress;
         expect(onPress).toBeDefined();
 
         act(() => {
@@ -191,14 +168,13 @@ describe('useCreateEmptyReportConfirmation', () => {
         });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(expectedSearchRoute);
-        unmount();
     });
 
     it('calls onCancel when reports link in prompt is pressed', () => {
         const onConfirm = jest.fn();
         const onCancel = jest.fn();
 
-        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
+        const {result} = renderHook(() =>
             useCreateEmptyReportConfirmation({
                 policyID,
                 policyName,
@@ -211,10 +187,14 @@ describe('useCreateEmptyReportConfirmation', () => {
             result.current.openCreateReportConfirmation();
         });
 
-        const modal = getModal(result.current);
-        const {unmount} = render(modal.props.prompt as ReactElement);
-        const onPress = mockTextLinkProps?.onPress;
+        // Get the prompt from the mock call and render it
+        const callArgs = mockShowConfirmModal.mock.calls.at(0);
+        if (callArgs) {
+            const {prompt} = callArgs[0];
+            render(prompt as ReactElement);
+        }
 
+        const onPress = mockTextLinkProps?.onPress;
         expect(onPress).toBeDefined();
 
         act(() => {
@@ -222,7 +202,6 @@ describe('useCreateEmptyReportConfirmation', () => {
         });
 
         expect(onCancel).toHaveBeenCalledTimes(1);
-        unmount();
     });
 
     it('retains displayed workspace name while parent clears selection', () => {
@@ -250,20 +229,17 @@ describe('useCreateEmptyReportConfirmation', () => {
             result.current.openCreateReportConfirmation();
         });
 
-        const modal = getModal(result.current);
-        const renderedPrompt = render(modal.props.prompt as ReactElement);
-        expect(JSON.stringify(renderedPrompt.toJSON())).toContain(`report.newReport.emptyReportConfirmationPrompt:${initialPolicyName}`);
-        renderedPrompt.unmount();
+        // Check that translate was called with the initial policy name
+        expect(mockTranslate).toHaveBeenCalledWith('report.newReport.emptyReportConfirmationPrompt', {workspaceName: initialPolicyName});
 
+        mockTranslate.mockClear();
         rerender({policyName: '', onCancel});
 
-        const updatedModal = getModal(result.current);
-        const renderedPromptAfterClear = render(updatedModal.props.prompt as ReactElement);
-        expect(JSON.stringify(renderedPromptAfterClear.toJSON())).toContain(`report.newReport.emptyReportConfirmationPrompt:${initialPolicyName}`);
-        renderedPromptAfterClear.unmount();
+        // The workspace name should still be cached and not change
+        expect(mockTranslate).not.toHaveBeenCalledWith('report.newReport.emptyReportConfirmationPrompt', {workspaceName: ''});
     });
 
-    it('uses updated workspace name on subsequent opens', () => {
+    it('uses updated workspace name on subsequent opens', async () => {
         const onConfirm = jest.fn();
         const onCancel = jest.fn();
         const initialPolicyName = policyName;
@@ -285,35 +261,29 @@ describe('useCreateEmptyReportConfirmation', () => {
             },
         );
 
-        act(() => {
+        await act(async () => {
             result.current.openCreateReportConfirmation();
+            await Promise.resolve();
         });
 
-        let modal = getModal(result.current);
-        const renderedPrompt = render(modal.props.prompt as ReactElement);
-        expect(JSON.stringify(renderedPrompt.toJSON())).toContain(`report.newReport.emptyReportConfirmationPrompt:${initialPolicyName}`);
-        renderedPrompt.unmount();
+        // Check first call used initial policy name
+        expect(mockTranslate).toHaveBeenCalledWith('report.newReport.emptyReportConfirmationPrompt', {workspaceName: initialPolicyName});
 
-        const cancelHandler = getRequiredHandler(modal.props.onCancel, 'onCancel');
-        act(() => {
-            cancelHandler();
-        });
-
+        mockTranslate.mockClear();
         rerender({policyName: updatedPolicyName, onCancel});
 
-        act(() => {
+        await act(async () => {
             result.current.openCreateReportConfirmation();
+            await Promise.resolve();
         });
 
-        modal = getModal(result.current);
-        const renderedPromptAfterUpdate = render(modal.props.prompt as ReactElement);
-        expect(JSON.stringify(renderedPromptAfterUpdate.toJSON())).toContain(`report.newReport.emptyReportConfirmationPrompt:${updatedPolicyName}`);
-        renderedPromptAfterUpdate.unmount();
+        // Check second call used updated policy name
+        expect(mockTranslate).toHaveBeenCalledWith('report.newReport.emptyReportConfirmationPrompt', {workspaceName: updatedPolicyName});
     });
 
     it('falls back to generic workspace name in translations when necessary', () => {
         const onConfirm = jest.fn();
-        renderHook<HookValue, MockConfirmModalProps>(() =>
+        renderHook(() =>
             useCreateEmptyReportConfirmation({
                 policyID,
                 policyName: '   ',
