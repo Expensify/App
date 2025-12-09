@@ -13,7 +13,7 @@ import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/o
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {queueOnyxUpdates} from './QueuedOnyxUpdates';
-import {triggerNotifications} from './User';
+import {triggerNotifications} from './Report';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
