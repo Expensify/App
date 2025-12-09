@@ -2508,8 +2508,7 @@ function getColumnsToShow(
         }
 
         const category = getCategory(transaction);
-        const categoryEmptyValues = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
-        if (category !== '' && !categoryEmptyValues.includes(category)) {
+        if (category !== '' && category !== CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = true;
         }
 
