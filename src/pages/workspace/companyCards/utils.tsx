@@ -422,7 +422,7 @@ function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCard
 
         const targetRoute: AssignCardRoute = stepRoutes[currentStep];
         if (targetRoute) {
-           Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(targetRoute));
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(targetRoute));
         }
     }, [currentStep, policyID, feed, isStartStep, shouldUseBackToParam]);
 }
@@ -466,7 +466,7 @@ function useAddNewCardNavigation(policyID: string | undefined, isStartStep = fal
 
         const targetRoute: AddNewCardRoute = currentStep ? stepRoutes[currentStep] : stepRoutes[defaultStep];
         if (targetRoute) {
-           Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(targetRoute));
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(targetRoute));
         }
     }, [currentStep, policyID, isStartStep, addNewCard?.data?.selectedBank, defaultStep]);
 }
