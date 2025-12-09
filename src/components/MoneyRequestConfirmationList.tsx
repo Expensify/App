@@ -840,7 +840,7 @@ function MoneyRequestConfirmationList({
         if (!transactionID || iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy?.id, isMovingTransactionFromTrackExpense);
+        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy, isMovingTransactionFromTrackExpense);
         // Keep 'transaction' out to ensure that we auto select the option only once
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
