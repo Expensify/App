@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {assignReportToMe} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
 import {APPROVER_TYPE} from '@pages/ReportChangeApproverPage';
 import type {ApproverType} from '@pages/ReportChangeApproverPage';
@@ -162,16 +162,29 @@ function SearchChangeApproverPage() {
             },
         ];
 
-        const shouldShowBypassApproversOption = selectedReports.some((selectedReport) => {
+        const hasPermission = selectedReports.every((selectedReport) => {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            const report = onyxReports?.get(selectedReport.reportID);
-            if (!policy || !report) {
+
+            if (!policy) {
                 return false;
             }
 
-            const isCurrentUserManager = report.managerID === currentUserDetails.accountID;
-            return !isCurrentUserManager && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy);
+            return isPolicyAdmin(policy);
         });
+
+        const shouldShowBypassApproversOption =
+            hasPermission &&
+            selectedReports.some((selectedReport) => {
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+                const report = onyxReports?.get(selectedReport.reportID);
+
+                if (!policy || !report) {
+                    return false;
+                }
+
+                const isCurrentUserManager = report.managerID === currentUserDetails.accountID;
+                return !isCurrentUserManager && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy);
+            });
 
         if (shouldShowBypassApproversOption) {
             data.push({
