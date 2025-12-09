@@ -73,7 +73,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             return;
         }
         assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep);
-        Navigation.dismissToFirstRHP();
+        Navigation.dismissToPreviousRHP();
     }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep]);
 
     const approverTypes = useMemo(() => {

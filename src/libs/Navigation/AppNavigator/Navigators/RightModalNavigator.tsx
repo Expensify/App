@@ -53,7 +53,7 @@ function SecondaryOverlay() {
             <Overlay
                 progress={secondOverlayWideRHPProgress}
                 positionRightValue={animatedWideRHPWidth}
-                onPress={Navigation.dismissToSuperWideRHP}
+                onPress={() => Navigation.closeRHPFlow()}
             />
         );
     }
@@ -63,7 +63,7 @@ function SecondaryOverlay() {
             <Overlay
                 progress={secondOverlayRHPOnWideRHPProgress}
                 positionRightValue={variables.sideBarWidth}
-                onPress={Navigation.dismissToWideRHP}
+                onPress={Navigation.dismissToPreviousRHP}
             />
         );
     }
@@ -403,7 +403,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Overlay
                         progress={thirdOverlayProgress}
                         positionRightValue={variables.sideBarWidth}
-                        onPress={Navigation.dismissToWideRHP}
+                        onPress={Navigation.dismissToPreviousRHP}
                     />
                 )}
             </NoDropZone>

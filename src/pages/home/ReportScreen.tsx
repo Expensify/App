@@ -171,7 +171,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const {wideRHPRouteKeys, superWideRHPRouteKeys} = useContext(WideRHPContext);
     const isDisplayedInWidePaneModal = wideRHPRouteKeys.includes(route.key) || superWideRHPRouteKeys.includes(route.key);
-    const isWideRHPOpenedBelow = wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0;
+    const isWideRHPOpened = wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0;
     const currentReportIDValue = useCurrentReportID();
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
@@ -377,7 +377,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(
         (prioritizeBackTo = false) => {
-            if (backTo === SCREENS.SEARCH.REPORT_RHP || isDisplayedInWidePaneModal || isWideRHPOpenedBelow) {
+            if (backTo === SCREENS.SEARCH.REPORT_RHP || isDisplayedInWidePaneModal || isWideRHPOpened) {
                 Navigation.goBack();
                 return;
             }
@@ -399,7 +399,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
             Navigation.goBack();
         },
-        [backTo, isDisplayedInWidePaneModal, isWideRHPOpenedBelow, isInNarrowPaneModal],
+        [backTo, isDisplayedInWidePaneModal, isWideRHPOpened, isInNarrowPaneModal],
     );
 
     let headerView = (

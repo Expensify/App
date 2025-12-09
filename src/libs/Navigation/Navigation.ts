@@ -646,7 +646,7 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
         let areReportsIDsDefined = !!topmostSuperWideRHPReportID && !!reportID;
 
         if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
-            dismissToFirstRHP();
+            dismissToPreviousRHP();
             return;
         }
 
@@ -775,7 +775,7 @@ function dismissToModalStack(modalStackNames: Set<string>) {
         return;
     }
 
-    const lastFoundModalStackIndex = rhpState.routes.findLastIndex((route) => modalStackNames.has(route.name));
+    const lastFoundModalStackIndex = rhpState.routes.slice(0, -1).findLastIndex((route) => modalStackNames.has(route.name));
     const routesToPop = rhpState.routes.length - lastFoundModalStackIndex - 1;
 
     if (routesToPop <= 0 || lastFoundModalStackIndex === -1) {
@@ -789,22 +789,8 @@ function dismissToModalStack(modalStackNames: Set<string>) {
 /**
  * Dismiss top layer modal and go back to the Wide/Super Wide RHP.
  */
-function dismissToFirstRHP() {
+function dismissToPreviousRHP() {
     return dismissToModalStack(ALL_WIDE_RIGHT_MODALS);
-}
-
-/**
- * Dismiss top layer modal and go back to the Wide RHP.
- */
-function dismissToWideRHP() {
-    const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-
-    // If the wide rhp route is focused, it means we should dismiss to super wide rhp route displayed in a wide mode
-    if (focusedRoute?.name === SCREENS.SEARCH.REPORT_RHP) {
-        return dismissToSuperWideRHP();
-    }
-
-    return dismissToModalStack(WIDE_RIGHT_MODALS);
 }
 
 function dismissToSuperWideRHP() {
@@ -852,8 +838,7 @@ export default {
     isOnboardingFlow,
     clearPreloadedRoutes,
     isValidateLoginFlow,
-    dismissToFirstRHP,
-    dismissToWideRHP,
+    dismissToPreviousRHP,
     dismissToSuperWideRHP,
 };
 

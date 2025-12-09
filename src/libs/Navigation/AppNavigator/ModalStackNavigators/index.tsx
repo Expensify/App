@@ -166,6 +166,25 @@ function SecondaryOverlay() {
     return null;
 }
 
+function TertiaryOverlay() {
+    const {shouldRenderTertiaryOverlay, wideRHPRouteKeys} = useContext(WideRHPContext);
+    const modalStackRoute = useRoute();
+    const routeKey = getModalStackLastRoute(modalStackRoute?.key);
+
+    const isWide = useMemo(() => routeKey && wideRHPRouteKeys.includes(routeKey), [routeKey, wideRHPRouteKeys]);
+
+    if (isWide && shouldRenderTertiaryOverlay) {
+        return (
+            <Overlay
+                progress={thirdOverlayProgress}
+                positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
+            />
+        );
+    }
+
+    return null;
+}
+
 /**
  * Create a modal stack navigator with an array of sub-screens.
  *
@@ -236,12 +255,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 {/* Please note that in these cases, the overlay is rendered from the RHP screen displayed below. For example, if we display RHP on Wide RHP, the secondary overlay is rendered from Wide RHP, etc. */}
                 {/* There is also a special case where three different RHP widths are displayed at the same time. In this case, an overlay under RHP should be rendered from Wide RHP. */}
                 {!isSmallScreenWidth && <SecondaryOverlay />}
-                {!isSmallScreenWidth && shouldRenderTertiaryOverlay && isWideRHPRouteName(route.name) ? (
-                    <Overlay
-                        progress={thirdOverlayProgress}
-                        positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
-                    />
-                ) : null}
+                {!isSmallScreenWidth && <TertiaryOverlay />}
             </View>
         );
     }

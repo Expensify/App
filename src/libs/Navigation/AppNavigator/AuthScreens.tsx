@@ -343,13 +343,23 @@ function AuthScreens() {
                     return;
                 }
 
-                if (shouldRenderSecondaryOverlayForWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
+                if (shouldRenderSecondaryOverlayForWideRHP) {
+                    Navigation.closeRHPFlow();
+                    return;
+                }
+
+                if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
                     Navigation.dismissToSuperWideRHP();
                     return;
                 }
 
-                if (shouldRenderTertiaryOverlay || shouldRenderSecondaryOverlayForRHPOnWideRHP) {
-                    Navigation.dismissToWideRHP();
+                if (shouldRenderSecondaryOverlayForRHPOnWideRHP) {
+                    Navigation.dismissToPreviousRHP();
+                    return;
+                }
+
+                if (shouldRenderTertiaryOverlay) {
+                    Navigation.dismissToPreviousRHP();
                     return;
                 }
 

@@ -121,7 +121,7 @@ const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
-    dismissToFirstRHP: jest.fn(),
+    dismissToPreviousRHP: jest.fn(),
     dismissToSuperWideRHP: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
