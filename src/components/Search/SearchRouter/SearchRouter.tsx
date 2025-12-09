@@ -109,7 +109,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
-    const icons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
@@ -186,7 +186,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     data: [
                         {
                             text: StringUtils.lineBreaksToSpaces(`${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`),
-                            singleIcon: icons.MagnifyingGlass,
+                            singleIcon: expensifyIcons.MagnifyingGlass,
                             searchQuery: reportQueryValue,
                             autocompleteID,
                             itemStyle: styles.activeComponentBG,
@@ -199,13 +199,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed, reports, personalDetails, policyTags, icons.MagnifyingGlass],
+        [contextualReportID, textInputValue, isSearchRouterDisplayed, translate, expensifyIcons.MagnifyingGlass, styles.activeComponentBG, reports, policyTags, personalDetails],
     );
 
     const searchQueryItem = textInputValue
         ? {
               text: textInputValue,
-              singleIcon: icons.MagnifyingGlass,
+              singleIcon: expensifyIcons.MagnifyingGlass,
               searchQuery: textInputValue,
               itemStyle: styles.activeComponentBG,
               keyForList: 'findItem',

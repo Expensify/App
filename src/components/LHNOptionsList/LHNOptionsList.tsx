@@ -53,7 +53,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
     const isScreenFocused = useIsFocused();
-    const icons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Plus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Plus'] as const);
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
@@ -119,7 +119,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     text={translate('common.emptyLHN.subtitleText1')}
                 />
                 <Icon
-                    src={icons.MagnifyingGlass}
+                    src={expensifyIcons.MagnifyingGlass}
                     width={variables.emptyLHNIconWidth}
                     height={variables.emptyLHNIconHeight}
                     fill={theme.icon}
@@ -132,7 +132,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     text={translate('common.emptyLHN.subtitleText2')}
                 />
                 <Icon
-                    src={icons.Plus}
+                    src={expensifyIcons.Plus}
                     width={variables.emptyLHNIconWidth}
                     height={variables.emptyLHNIconHeight}
                     fill={theme.icon}
@@ -152,13 +152,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             styles.justifyContentCenter,
             styles.flexWrap,
             styles.textAlignCenter,
-            styles.mh1,
-            theme.icon,
-            theme.textSupporting,
             styles.textNormal,
+            styles.mh1,
+            theme.textSupporting,
+            theme.icon,
             translate,
-            icons.MagnifyingGlass,
-            icons.Plus,
+            expensifyIcons.MagnifyingGlass,
+            expensifyIcons.Plus,
         ],
     );
 
