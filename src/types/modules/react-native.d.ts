@@ -33,19 +33,6 @@ type PushNotificationBridge = {
 };
 
 declare module 'react-native' {
-    interface FlatListProps {
-        /**
-         * When true, this inverts the scroll-to-top behavior on iOS.
-         *
-         * Normally, tapping the status bar scrolls to the top of the list.
-         * When this prop is true, tapping the status bar scrolls to the bottom of the list.
-         *
-         * If the list is inverted, this prop reverses the behavior by scrolling to the top.
-         * @platform ios
-         */
-        invertScrollsToTop?: boolean;
-    }
-
     interface TextInputFocusEventData extends TargetedEvent {
         text: string;
         eventCount: number;

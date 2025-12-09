@@ -1,39 +1,3 @@
-diff --git a/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponent.js b/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponent.js
-index 82f9c93..c08d679 100644
---- a/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponent.js
-+++ b/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponent.js
-@@ -136,6 +136,7 @@ export const __INTERNAL_VIEW_CONFIG: PartialViewConfig =
-           disableIntervalMomentum: true,
-           indicatorStyle: true,
-           inverted: true,
-+          invertScrollsToTop: true,
-           keyboardDismissMode: true,
-           maintainVisibleContentPosition: true,
-           maximumZoomScale: true,
-diff --git a/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponentType.js b/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponentType.js
-index 1feee69..55f92ad 100644
---- a/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponentType.js
-+++ b/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponentType.js
-@@ -45,6 +45,7 @@ export type ScrollViewNativeProps = $ReadOnly<{
-   fadingEdgeLength?: ?number | {start: number, end: number},
-   indicatorStyle?: ?('default' | 'black' | 'white'),
-   isInvertedVirtualizedList?: ?boolean,
-+  invertScrollsToTop?: ?boolean,
-   keyboardDismissMode?: ?('none' | 'on-drag' | 'interactive'),
-   maintainVisibleContentPosition?: ?$ReadOnly<{
-     minIndexForVisible: number,
-diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.h b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.h
-index 6402bc6..a65ec93 100644
---- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.h
-+++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.h
-@@ -51,6 +51,7 @@ NS_ASSUME_NONNULL_BEGIN
- @property (nonatomic, assign) BOOL snapToStart;
- @property (nonatomic, assign) BOOL snapToEnd;
- @property (nonatomic, copy) NSArray<NSNumber *> *snapToOffsets;
-+@property (nonatomic, assign) BOOL invertScrollsToTop;
- 
- /*
-  * Makes `setContentOffset:` method no-op when given `block` is executed.
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.mm
 index c593d9e..dfcdc47 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.mm
@@ -66,51 +30,16 @@ index c593d9e..dfcdc47 100644
  }
  
  - (void)scrollViewDidZoom:(__unused UIScrollView *)scrollView
-diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.h b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.h
-index 99b7240..fc75797 100644
---- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.h
-+++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.h
-@@ -54,6 +54,11 @@ NS_ASSUME_NONNULL_BEGIN
- @property (nonatomic, strong, readonly)
-     RCTGenericDelegateSplitter<id<UIScrollViewDelegate>> *scrollViewDelegateSplitter;
- 
-+/**
-+ * Whether to invert the scroll-to-top behavior.
-+*/
-+@property (nonatomic, assign) BOOL invertScrollsToTop;
-+
- @end
- 
- /*
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.mm
-index 1494fd2..d8131c1 100644
+index 1494fd2..9fdd32e 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.mm
-@@ -103,6 +103,7 @@ @implementation RCTScrollViewComponentView {
-   BOOL _isUserTriggeredScrolling;
-   BOOL _shouldUpdateContentInsetAdjustmentBehavior;
-   BOOL _automaticallyAdjustKeyboardInsets;
-+  BOOL _invertScrollsToTop;
- 
-   CGPoint _contentOffsetWhenClipped;
- 
-@@ -344,6 +345,10 @@ - (void)updateProps:(const Props::Shared &)props oldProps:(const Props::Shared &
-   MAP_SCROLL_VIEW_PROP(showsHorizontalScrollIndicator);
-   MAP_SCROLL_VIEW_PROP(showsVerticalScrollIndicator);
- 
-+  if (oldScrollViewProps.invertScrollsToTop != newScrollViewProps.invertScrollsToTop) {
-+    _invertScrollsToTop = newScrollViewProps.invertScrollsToTop;
-+  }
-+
-   if (oldScrollViewProps.automaticallyAdjustKeyboardInsets != newScrollViewProps.automaticallyAdjustKeyboardInsets) {
-     _automaticallyAdjustKeyboardInsets = newScrollViewProps.automaticallyAdjustKeyboardInsets;
-   }
-@@ -692,6 +697,12 @@ - (void)scrollViewDidZoom:(UIScrollView *)scrollView
+@@ -692,6 +692,12 @@ - (void)scrollViewDidZoom:(UIScrollView *)scrollView
  - (BOOL)scrollViewShouldScrollToTop:(UIScrollView *)scrollView
  {
    _isUserTriggeredScrolling = YES;
 +
-+  if (_invertScrollsToTop) {
++  if ([self isInverted]) {
 +    [self scrollToEnd:YES];
 +    return NO;
 +  }
@@ -118,54 +47,3 @@ index 1494fd2..d8131c1 100644
    return YES;
  }
  
-diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/BaseScrollViewProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/BaseScrollViewProps.cpp
-index a62c9f1..95f9e5a 100644
---- a/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/BaseScrollViewProps.cpp
-+++ b/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/BaseScrollViewProps.cpp
-@@ -211,6 +211,15 @@ BaseScrollViewProps::BaseScrollViewProps(
-                     "scrollsToTop",
-                     sourceProps.scrollsToTop,
-                     true)),
-+      invertScrollsToTop(
-+          ReactNativeFeatureFlags::enableCppPropsIteratorSetter()
-+              ? sourceProps.invertScrollsToTop
-+              : convertRawProp(
-+                    context,
-+                    rawProps,
-+                    "invertScrollsToTop",
-+                    sourceProps.invertScrollsToTop,
-+                    false)),
-       showsHorizontalScrollIndicator(
-           ReactNativeFeatureFlags::enableCppPropsIteratorSetter()
-               ? sourceProps.showsHorizontalScrollIndicator
-@@ -407,6 +416,7 @@ void BaseScrollViewProps::setProp(
-     RAW_SET_PROP_SWITCH_CASE_BASIC(pagingEnabled);
-     RAW_SET_PROP_SWITCH_CASE_BASIC(pinchGestureEnabled);
-     RAW_SET_PROP_SWITCH_CASE_BASIC(scrollsToTop);
-+    RAW_SET_PROP_SWITCH_CASE_BASIC(invertScrollsToTop);
-     RAW_SET_PROP_SWITCH_CASE_BASIC(showsHorizontalScrollIndicator);
-     RAW_SET_PROP_SWITCH_CASE_BASIC(showsVerticalScrollIndicator);
-     RAW_SET_PROP_SWITCH_CASE_BASIC(persistentScrollbar);
-@@ -508,6 +518,10 @@ SharedDebugStringConvertibleList BaseScrollViewProps::getDebugProps() const {
-               "scrollsToTop",
-               scrollsToTop,
-               defaultScrollViewProps.scrollsToTop),
-+          debugStringConvertibleItem(
-+              "invertScrollsToTop",
-+              invertScrollsToTop,
-+              defaultScrollViewProps.invertScrollsToTop),
-           debugStringConvertibleItem(
-               "showsHorizontalScrollIndicator",
-               showsHorizontalScrollIndicator,
-diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/BaseScrollViewProps.h b/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/BaseScrollViewProps.h
-index 0ea853b..e6a62aa 100644
---- a/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/BaseScrollViewProps.h
-+++ b/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/BaseScrollViewProps.h
-@@ -54,6 +54,7 @@ class BaseScrollViewProps : public ViewProps {
-   bool pagingEnabled{};
-   bool pinchGestureEnabled{true};
-   bool scrollsToTop{true};
-+  bool invertScrollsToTop{false};
-   bool showsHorizontalScrollIndicator{true};
-   bool showsVerticalScrollIndicator{true};
-   bool persistentScrollbar{false};
