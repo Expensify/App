@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
-import getArchiveReason from '@selectors/Report';
+import {getArchiveReason} from '@selectors/Report';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -227,6 +227,7 @@ function MoneyReportHeader({
         'Document',
         'Feed',
         'Close',
+        'Location',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
@@ -546,7 +547,7 @@ function MoneyReportHeader({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, true);
+            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, true);
         }
     };
 
@@ -718,8 +719,8 @@ function MoneyReportHeader({
     });
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType],
+        () => getAddExpenseDropdownOptions(expensifyIcons, moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
+        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
@@ -801,7 +802,7 @@ function MoneyReportHeader({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
                     if (currentSearchQueryJSON && !isOffline) {
                         search({
                             searchKey: currentSearchKey,
@@ -1033,7 +1034,7 @@ function MoneyReportHeader({
                     showDWEModal();
                     return;
                 }
-                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
@@ -1064,11 +1065,11 @@ function MoneyReportHeader({
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                    unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
                     return;
                 }
 
-                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -1249,7 +1250,7 @@ function MoneyReportHeader({
             icon: expensifyIcons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             onSelected: () => {
-                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
@@ -1269,10 +1270,10 @@ function MoneyReportHeader({
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                    reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
                     return;
                 }
-                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REJECT]: {
@@ -1439,6 +1440,7 @@ function MoneyReportHeader({
             isUserValidated,
             confirmApproval,
             iouReport: moneyRequestReport,
+            iouReportNextStep: nextStep,
         });
 
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
