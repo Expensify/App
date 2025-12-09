@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {BeginningOfChatHistoryParams, TagSelectionParams, ViolationsRterParams} from './params';
+import type {TagSelectionParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -598,7 +598,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reactedWith: 'reaccionó con',
     },
     reportActionsView: {
-        beginningOfArchivedRoom: ({reportName, reportDetailsLink}) =>
+        beginningOfArchivedRoom: (reportName, reportDetailsLink) =>
             `Te perdiste la fiesta en <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>, no hay nada que ver aquí.`,
         beginningOfChatHistoryDomainRoom: (domainRoom) =>
             `Este chat es con todos los miembros de Expensify en el dominio <strong>${domainRoom}</strong>. Úsalo para chatear con colegas, compartir consejos y hacer preguntas.`,
@@ -606,12 +606,12 @@ const translations: TranslationDeepObject<typeof en> = {
             `Este chat es con los administradores del espacio de trabajo <strong>${workspaceName}</strong>. Úsalo para hablar sobre la configuración del espacio de trabajo y más.`,
         beginningOfChatHistoryAnnounceRoom: (workspaceName) =>
             `Este chat es con todos en <strong>${workspaceName}</strong>. Úsalo para hablar sobre la configuración del espacio de trabajo y más.`,
-        beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}) =>
+        beginningOfChatHistoryUserRoom: (reportName, reportDetailsLink) =>
             `Esta sala de chat es para cualquier cosa relacionada con <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
-        beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}) =>
+        beginningOfChatHistoryInvoiceRoom: (invoicePayer, invoiceReceiver) =>
             `Este chat es para facturas entre <strong>${invoicePayer}</strong> y <strong>${invoiceReceiver}</strong>. Usa el botón + para enviar una factura.`,
-        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `Este chat es con ${users}.`,
-        beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}) =>
+        beginningOfChatHistory: (users) => `Este chat es con ${users}.`,
+        beginningOfChatHistoryPolicyExpenseChat: (workspaceName, submitterDisplayName) =>
             `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón +.`,
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
@@ -928,11 +928,11 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: ({formattedAmount}) => `Pagar ${formattedAmount}`,
         settleBusiness: ({formattedAmount}) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pago con cuenta empresarial`),
         payElsewhere: ({formattedAmount}) => (formattedAmount ? `Marcar ${formattedAmount} como pagado` : `Marcar como pagado`),
-        settleInvoicePersonal: ({amount, last4Digits}) => (amount ? `pagado ${amount} con cuenta personal ${last4Digits}` : `Pagado con cuenta personal`),
-        settleInvoiceBusiness: ({amount, last4Digits}) => (amount ? `pagado ${amount} con cuenta de empresa ${last4Digits}` : `Pagado con cuenta de empresa`),
+        settleInvoicePersonal: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta personal ${last4Digits}` : `Pagado con cuenta personal`),
+        settleInvoiceBusiness: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta de empresa ${last4Digits}` : `Pagado con cuenta de empresa`),
         payWithPolicy: ({formattedAmount, policyName}) => (formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`),
-        businessBankAccount: ({amount, last4Digits}) => (amount ? `pagó ${amount} con la cuenta bancaria ${last4Digits}.` : `pagó con la cuenta bancaria ${last4Digits}`),
-        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}) =>
+        businessBankAccount: (amount, last4Digits) => (amount ? `pagó ${amount} con la cuenta bancaria ${last4Digits}.` : `pagó con la cuenta bancaria ${last4Digits}`),
+        automaticallyPaidWithBusinessBankAccount: (amount, last4Digits) =>
             `pagado ${amount ? `${amount} ` : ''}con la cuenta bancaria terminada en ${last4Digits} vía <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
         invoicePersonalBank: (lastFour) => `Cuenta personal • ${lastFour}`,
         invoiceBusinessBank: (lastFour) => `Cuenta de empresa • ${lastFour}`,
@@ -947,16 +947,16 @@ const translations: TranslationDeepObject<typeof en> = {
         splitAmount: ({amount}) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         yourSplit: ({amount}) => `Tu parte ${amount}`,
-        payerOwesAmount: ({payer, amount, comment}) => `${payer} debe ${amount}${comment ? ` para ${comment}` : ''}`,
+        payerOwesAmount: (amount, payer, comment) => `${payer} debe ${amount}${comment ? ` para ${comment}` : ''}`,
         payerOwes: ({payer}) => `${payer} debe: `,
-        payerPaidAmount: ({payer, amount}) => `${payer ? `${payer} ` : ''}pagó ${amount}`,
+        payerPaidAmount: (amount, payer) => `${payer ? `${payer} ` : ''}pagó ${amount}`,
         payerPaid: ({payer}) => `${payer} pagó: `,
-        payerSpentAmount: ({payer, amount}) => `${payer} gastó ${amount}`,
+        payerSpentAmount: (amount, payer) => `${payer} gastó ${amount}`,
         payerSpent: ({payer}) => `${payer} gastó: `,
         managerApproved: ({manager}) => `${manager} aprobó:`,
         managerApprovedAmount: ({manager, amount}) => `${manager} aprobó ${amount}`,
-        payerSettled: ({amount}) => `pagó ${amount}`,
-        payerSettledWithMissingBankAccount: ({amount}) => `pagó ${amount}. Agrega una cuenta bancaria para recibir tu pago.`,
+        payerSettled: (amount) => `pagó ${amount}`,
+        payerSettledWithMissingBankAccount: (amount) => `pagó ${amount}. Agrega una cuenta bancaria para recibir tu pago.`,
         automaticallyApproved: `aprobó mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
         approvedAmount: (amount) => `aprobó ${amount}`,
         approvedMessage: `aprobado`,
@@ -968,9 +968,9 @@ const translations: TranslationDeepObject<typeof en> = {
         adminCanceledRequest: 'canceló el pago',
         canceledRequest: ({amount, submitterDisplayName}) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
-        paidElsewhere: ({payer} = {}) => `${payer ? `${payer} ` : ''}marcó como pagado`,
-        paidWithExpensify: ({payer} = {}) => `${payer ? `${payer} ` : ''}pagó con la billetera`,
-        automaticallyPaidWithExpensify: ({payer} = {}) =>
+        paidElsewhere: (payer) => `${payer ? `${payer} ` : ''}marcó como pagado`,
+        paidWithExpensify: (payer) => `${payer ? `${payer} ` : ''}pagó con la billetera`,
+        automaticallyPaidWithExpensify: (payer) =>
             `${payer ? `${payer} ` : ''}pagó con Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
@@ -1894,7 +1894,7 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Este miembro ya pertenece a otro flujo de aprobación. Cualquier actualización aquí se reflejará allí también.',
-        approverCircularReference: ({name1, name2}) =>
+        approverCircularReference: (name1, name2) =>
             `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
         emptyContent: {
             title: 'No hay miembros para mostrar',
@@ -3358,13 +3358,13 @@ ${amount} para ${merchant} - ${date}`,
             ticketRefunded: ({airlineCode, origin, destination, startDate}) =>
                 `Tu billete para el vuelo ${airlineCode} (${origin} → ${destination}) del ${startDate} ha sido reembolsado o cambiado.`,
             flightCancelled: ({airlineCode, origin, destination, startDate}) => `Tu vuelo ${airlineCode} (${origin} → ${destination}) del ${startDate} ha sido cancelado por la aerolínea.`,
-            flightScheduleChangePending: ({airlineCode}) => `La aerolínea ha propuesto un cambio de horario para el vuelo ${airlineCode}; estamos esperando la confirmación.`,
-            flightScheduleChangeClosed: ({airlineCode, startDate}) => `Cambio de horario confirmado: el vuelo ${airlineCode} ahora sale a las ${startDate}.`,
+            flightScheduleChangePending: (airlineCode) => `La aerolínea ha propuesto un cambio de horario para el vuelo ${airlineCode}; estamos esperando la confirmación.`,
+            flightScheduleChangeClosed: (airlineCode, startDate) => `Cambio de horario confirmado: el vuelo ${airlineCode} ahora sale a las ${startDate}.`,
             flightUpdated: ({airlineCode, origin, destination, startDate}) => `Tu vuelo ${airlineCode} (${origin} → ${destination}) del ${startDate} ha sido actualizado.`,
-            flightCabinChanged: ({airlineCode, cabinClass}) => `Tu clase de cabina ha sido actualizada a ${cabinClass} en el vuelo ${airlineCode}.`,
-            flightSeatConfirmed: ({airlineCode}) => `Tu asignación de asiento en el vuelo ${airlineCode} ha sido confirmada.`,
-            flightSeatChanged: ({airlineCode}) => `Tu asignación de asiento en el vuelo ${airlineCode} ha sido modificada.`,
-            flightSeatCancelled: ({airlineCode}) => `Tu asignación de asiento en el vuelo ${airlineCode} fue eliminada.`,
+            flightCabinChanged: (airlineCode, cabinClass) => `Tu clase de cabina ha sido actualizada a ${cabinClass} en el vuelo ${airlineCode}.`,
+            flightSeatConfirmed: (airlineCode) => `Tu asignación de asiento en el vuelo ${airlineCode} ha sido confirmada.`,
+            flightSeatChanged: (airlineCode) => `Tu asignación de asiento en el vuelo ${airlineCode} ha sido modificada.`,
+            flightSeatCancelled: (airlineCode) => `Tu asignación de asiento en el vuelo ${airlineCode} fue eliminada.`,
             paymentDeclined: 'El pago de tu reserva aérea ha fallado. Por favor, inténtalo de nuevo.',
             bookingCancelledByTraveler: ({type, id = ''}) => `Cancelaste tu reserva de ${type} ${id}.`,
             bookingCancelledByVendor: ({type, id = ''}) => `El proveedor canceló tu reserva de ${type} ${id}.`,
@@ -4423,7 +4423,7 @@ ${amount} para ${merchant} - ${date}`,
             cardName: 'Nombre de la tarjeta',
             brokenConnectionError:
                 '<rbr>La conexión de la fuente de tarjetas está rota. Por favor, <a href="#">inicia sesión en tu banco</a> para que podamos restablecer la conexión.</rbr>',
-            assignedCard: ({assignee, link}) => `ha asignado a ${assignee} una ${link}! Las transacciones importadas aparecerán en este chat.`,
+            assignedCard: (assignee, link) => `ha asignado a ${assignee} una ${link}! Las transacciones importadas aparecerán en este chat.`,
             companyCard: 'tarjeta de empresa',
             chooseCardFeed: 'Elige feed de tarjetas',
             ukRegulation:
@@ -5924,7 +5924,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}) => `cambió el ${customUnitName} ${updatedField} a "${newValue}" (previamente "${oldValue}")`,
         updateCustomUnitTaxEnabled: ({newValue}) => `${newValue ? 'habilitó' : 'deshabilitó'} el seguimiento de impuestos en tasas de distancia`,
-        addCustomUnitRate: ({customUnitName, rateName}) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
+        addCustomUnitRate: (customUnitName, rateName) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}) =>
             `cambió la tasa de ${customUnitName} ${updatedField} "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}) => {
@@ -5939,7 +5939,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `añadió una parte recuperable de impuestos de "${newValue}" a la tasa por distancia "${customUnitRateName}`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
+        deleteCustomUnitRate: (customUnitName, rateName) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
         addedReportField: (fieldType, fieldName) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}) => `estableció el valor predeterminado del campo de informe "${fieldName}" en "${defaultValue}"`,
         addedReportFieldOption: ({fieldName, optionName}) => `añadió la opción "${optionName}" al campo de informe "${fieldName}"`,
@@ -6479,7 +6479,7 @@ ${amount} para ${merchant} - ${date}`,
                         : `cambió el campo personalizado 2 de ${email} a "${newValue}" (previamente "${previousValue}")`;
                 },
                 leftWorkspace: ({nameOrEmail}) => `${nameOrEmail} salió del espacio de trabajo`,
-                removeMember: ({email, role}) => `eliminado ${role} ${email}`,
+                removeMember: (email, role) => `eliminado ${role} ${email}`,
                 removedConnection: ({connectionName}) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}) => `se conectó a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'salió del chat',
@@ -7354,7 +7354,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             policyOwnerAmountOwedOverdue: {
                 title: 'No se pudo procesar tu pago',
-                subtitle: ({date, purchaseAmountOwed}) =>
+                subtitle: (date, purchaseAmountOwed) =>
                     date && purchaseAmountOwed
                         ? `No se ha podido procesar tu cargo de ${purchaseAmountOwed} del día ${date}. Por favor, añade una tarjeta de pago para saldar la cantidad adeudada.`
                         : 'Por favor, añade una tarjeta de pago para saldar la cantidad adeudada.',
@@ -7369,7 +7369,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             billingDisputePending: {
                 title: 'No se ha podido realizar el cobro a tu tarjeta',
-                subtitle: ({amountOwed, cardEnding}) =>
+                subtitle: (amountOwed, cardEnding) =>
                     `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
             },
             cardAuthenticationRequired: {
@@ -7399,7 +7399,7 @@ ${amount} para ${merchant} - ${date}`,
                 subtitle:
                     'Antes de volver a intentarlo, llama directamente a tu banco para que autorice los cargos de Expensify y elimine las retenciones. De lo contrario, añade una tarjeta de pago diferente.',
             },
-            cardOnDispute: ({amountOwed, cardEnding}) =>
+            cardOnDispute: (amountOwed, cardEnding) =>
                 `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
             preTrial: {
                 title: 'Iniciar una prueba gratuita',
