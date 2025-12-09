@@ -4,9 +4,7 @@ import {emailSelector} from '@selectors/Session';
 import {searchResultsErrorSelector} from '@selectors/Snapshot';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
-import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
+import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -16,7 +14,6 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import ScrollView from '@components/ScrollView';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
@@ -49,6 +46,7 @@ import {getActiveAdminWorkspaces, getAllTaxRates, isPaidGroupPolicy} from '@libs
 import {isExpenseReport} from '@libs/ReportUtils';
 import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
+import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,7 +85,7 @@ function SearchFiltersBar({
     latestBankItems,
 }: SearchFiltersBarProps) {
     const isFocused = useIsFocused();
-    const scrollRef = useRef<RNScrollView>(null);
+    const scrollRef = useRef<FlatList<FilterItem>>(null);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
@@ -96,7 +94,7 @@ function SearchFiltersBar({
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, localeCompare, preferredLocale} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
 
     const {isOffline} = useNetwork();
@@ -246,21 +244,19 @@ function SearchFiltersBar({
             const displayText: string[] = [];
             if (value.On) {
                 displayText.push(
-                    isSearchDatePreset(value.On)
-                        ? translate(`search.filters.date.presets.${value.On}`)
-                        : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On, preferredLocale)}`,
+                    isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`,
                 );
             }
             if (value.After) {
-                displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After, preferredLocale)}`);
+                displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
             }
             if (value.Before) {
-                displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before, preferredLocale)}`);
+                displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
             }
 
             return [value, displayText];
         },
-        [translate, preferredLocale],
+        [translate],
     );
 
     const [date, displayDate] = useMemo(
@@ -739,6 +735,52 @@ function SearchFiltersBar({
         });
     }, [filterFormValues, filters, typeFiltersKeys]);
 
+    const adjustScroll = useCallback((info: {distanceFromEnd: number}) => {
+        // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
+        // When the FlatList is scrolled to the end and the last item is deleted, a blank space is left behind.
+        // To fix this, we detect when onEndReached is triggered due to an item deletion,
+        // and programmatically scroll to the end to fill the space.
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (!shouldAdjustScroll || info.distanceFromEnd > 0) {
+            return;
+        }
+        scrollRef.current?.scrollToEnd();
+    }, []);
+
+    const renderFilterItem = useCallback(
+        // eslint-disable-next-line react/no-unused-prop-types
+        ({item}: {item: FilterItem}) => (
+            <DropdownButton
+                label={item.label}
+                value={item.value}
+                PopoverComponent={item.PopoverComponent}
+            />
+        ),
+        [],
+    );
+
+    const filterButtonText = useMemo(
+        () => translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : ''),
+        [translate, hiddenSelectedFilters.length],
+    );
+
+    const renderListFooter = useCallback(
+        () => (
+            <Button
+                link
+                small
+                shouldUseDefaultHover={false}
+                text={filterButtonText}
+                iconFill={theme.link}
+                iconHoverFill={theme.linkHover}
+                icon={expensifyIcons.Filter}
+                textStyles={[styles.textMicroBold]}
+                onPress={openAdvancedFilters}
+            />
+        ),
+        [filterButtonText, theme.link, theme.linkHover, styles.textMicroBold, openAdvancedFilters, expensifyIcons],
+    );
+
     if (hasErrors) {
         return null;
     }
@@ -806,35 +848,20 @@ function SearchFiltersBar({
                     )}
                 </KYCWall>
             ) : (
-                <ScrollView
+                <FlatList
                     horizontal
                     keyboardShouldPersistTaps="always"
                     style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
                     contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
                     ref={scrollRef}
                     showsHorizontalScrollIndicator={false}
-                >
-                    {filters.map((filter) => (
-                        <DropdownButton
-                            key={filter.label}
-                            label={filter.label}
-                            value={filter.value}
-                            PopoverComponent={filter.PopoverComponent}
-                        />
-                    ))}
-
-                    <Button
-                        link
-                        small
-                        shouldUseDefaultHover={false}
-                        text={translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : '')}
-                        iconFill={theme.link}
-                        iconHoverFill={theme.linkHover}
-                        icon={expensifyIcons.Filter}
-                        textStyles={[styles.textMicroBold]}
-                        onPress={openAdvancedFilters}
-                    />
-                </ScrollView>
+                    data={filters}
+                    keyExtractor={(item) => item.label}
+                    renderItem={renderFilterItem}
+                    ListFooterComponent={renderListFooter}
+                    onEndReached={adjustScroll}
+                    onEndReachedThreshold={0.75}
+                />
             )}
         </View>
     );
