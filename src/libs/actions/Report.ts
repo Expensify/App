@@ -5735,7 +5735,7 @@ function buildOptimisticChangePolicyData(
         });
     }
 
-    if (newStatusNum) {
+    if (newStatusNum != null && newStatusNum !== undefined) {
         // buildOptimisticNextStep is used in parallel
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
