@@ -67,6 +67,9 @@ type VerifiedBankAccountFlowEntryPointProps = {
 
     /** Method to set the state of shouldShowContinueSetupButton */
     setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
+
+    /** Method to set the state of isResettingBankAccount */
+    setIsResettingBankAccount?: (isResetting: boolean) => void;
 };
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
@@ -82,6 +85,7 @@ function VerifiedBankAccountFlowEntryPoint({
     setNonUSDBankAccountStep,
     setUSDBankAccountStep,
     setShouldShowContinueSetupButton,
+    setIsResettingBankAccount,
 }: VerifiedBankAccountFlowEntryPointProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -303,6 +307,7 @@ function VerifiedBankAccountFlowEntryPoint({
                     setUSDBankAccountStep={setUSDBankAccountStep}
                     setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                     setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
+                    setIsResettingBankAccount={setIsResettingBankAccount}
                 />
             )}
         </ScreenWrapper>
