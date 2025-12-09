@@ -63,6 +63,7 @@ function useOptions() {
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const personalData = useCurrentUserPersonalDetails();
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -80,6 +81,7 @@ function useOptions() {
             },
             draftComments,
             nvpDismissedProductTraining,
+            loginList,
             {
                 betas: betas ?? [],
                 includeSelfDM: true,
@@ -87,18 +89,18 @@ function useOptions() {
             countryCode,
         );
         return filteredOptions;
-    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas, nvpDismissedProductTraining, countryCode]);
+    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, nvpDismissedProductTraining, loginList, betas, countryCode]);
 
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
         return filteredOptions;
-    }, [debouncedSearchTerm, unselectedOptions, selectedOptions, countryCode]);
+    }, [unselectedOptions, debouncedSearchTerm, countryCode, loginList, selectedOptions]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
         return getHeaderMessage(
@@ -141,6 +143,7 @@ function useOptions() {
             if (!participantOption) {
                 participantOption = getUserToInviteOption({
                     searchValue: participant?.login,
+                    loginList,
                 });
             }
             if (!participantOption) {
@@ -152,7 +155,7 @@ function useOptions() {
             });
         }
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID]);
+    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID, loginList]);
 
     return {
         ...options,
