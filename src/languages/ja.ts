@@ -7815,6 +7815,11 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             setMetadataGenericError: 'SAMLメタデータを設定できませんでした',
         },
     },
+    desktopAppRetiredPage: {
+        title: 'デスクトップアプリは廃止されました',
+        body: 'New Expensify の Mac デスクトップアプリは廃止されました。今後は、アカウントへアクセスする際に Web アプリをご利用ください。',
+        goToWeb: 'Web を開く',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

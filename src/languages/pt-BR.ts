@@ -7846,6 +7846,11 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             setMetadataGenericError: 'Não foi possível definir os metadados SAML',
         },
     },
+    desktopAppRetiredPage: {
+        title: 'O app para desktop foi descontinuado',
+        body: 'O novo aplicativo desktop Expensify para Mac foi descontinuado. De agora em diante, use o aplicativo web para acessar sua conta.',
+        goToWeb: 'Ir para a web',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
