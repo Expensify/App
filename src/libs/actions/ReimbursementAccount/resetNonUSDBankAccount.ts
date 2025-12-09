@@ -6,12 +6,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 
-function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEntry<ACHAccount>, shouldResetLocally: boolean) {
+function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEntry<ACHAccount>, bankAccountID?: number) {
     if (!policyID) {
         throw new Error('Missing policy when attempting to reset');
     }
 
-    if (shouldResetLocally) {
+    // If there's no bankAccountID, we reset locally without making an API call
+    if (!bankAccountID) {
         const updateData = [
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -37,7 +38,7 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
 
     API.write(
         WRITE_COMMANDS.RESET_BANK_ACCOUNT_SETUP,
-        {policyID},
+        {policyID, bankAccountID},
         {
             optimisticData: [
                 {
