@@ -3398,6 +3398,16 @@ const ROUTES = {
         route: 'workspaces/domain-verified/:accountID',
         getRoute: (accountID: number) => `workspaces/domain-verified/${accountID}` as const,
     },
+    WORKSPACES_ADD_DOMAIN: 'workspaces/add-domain',
+    WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: `workspaces/add-domain/${VERIFY_ACCOUNT}`,
+    WORKSPACES_DOMAIN_ADDED: {
+        route: 'workspaces/domain-added/:accountID',
+        getRoute: (accountID: number) => `workspaces/domain-added/${accountID}` as const,
+    },
+    WORKSPACES_DOMAIN_ACCESS_RESTRICTED: {
+        route: 'workspaces/domain-access-restricted/:accountID',
+        getRoute: (accountID: number) => `workspaces/domain-access-restricted/${accountID}` as const,
+    },
     DOMAIN_INITIAL: {
         route: 'domain/:accountID',
         getRoute: (accountID: number) => `domain/${accountID}` as const,
