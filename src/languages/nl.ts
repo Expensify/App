@@ -6863,6 +6863,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Weet je zeker dat je een ander rapport wilt maken in ${workspaceName}? Je hebt toegang tot je lege rapporten in`,
             emptyReportConfirmationPromptLink: 'Rapporten',
+            emptyReportConfirmationDontShowAgain: 'Niet meer weergeven',
             genericWorkspaceName: 'deze workspace',
         },
         genericCreateReportFailureMessage: 'Onverwachte fout bij het maken van deze chat. Probeer het later opnieuw.',
@@ -7857,6 +7858,30 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             revealToken: 'Token weergeven',
             fetchError: 'Kan SAML-configuratiedetails niet ophalen',
             setMetadataGenericError: 'Kon SAML-metagegevens niet instellen',
+        },
+        accessRestricted: {
+            title: 'Toegang beperkt',
+            subtitle: (domainName: string) => `Bevestig dat u een geautoriseerde bedrijfsbeheerder bent voor <strong>${domainName}</strong> als u controle nodig hebt over:`,
+            companyCardManagement: 'Beheer van bedrijfskaarten',
+            accountCreationAndDeletion: 'Accountaanmaak en -verwijdering',
+            workspaceCreation: 'Werkruimte aanmaken',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Domein toevoegen',
+            subtitle: 'Voer de naam in van het privédomein waartoe je toegang wilt krijgen (bijv. expensify.com).',
+            domainName: 'Domeinnaam',
+            newDomain: 'Nieuw domein',
+        },
+        domainAdded: {
+            title: 'Domein toegevoegd',
+            description: 'Vervolgens moet je het eigendom van het domein verifiëren en je beveiligingsinstellingen aanpassen.',
+            configure: 'Configureren',
+        },
+        enhancedSecurity: {
+            title: 'Verbeterde beveiliging',
+            subtitle: 'Verplicht leden van je domein om in te loggen via single sign-on, beperk het aanmaken van werkruimten en meer.',
+            enable: 'Inschakelen',
         },
     },
 };

@@ -6895,6 +6895,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Sind Sie sicher, dass Sie einen weiteren Bericht in ${workspaceName} erstellen möchten? Sie können auf Ihre leeren Berichte zugreifen in`,
             emptyReportConfirmationPromptLink: 'Berichte',
+            emptyReportConfirmationDontShowAgain: 'Nicht mehr anzeigen',
             genericWorkspaceName: 'dieser Workspace',
         },
         genericCreateReportFailureMessage: 'Unerwarteter Fehler beim Erstellen dieses Chats. Bitte versuche es später erneut.',
@@ -7891,6 +7892,31 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             revealToken: 'Token anzeigen',
             fetchError: 'SAML-Konfigurationsdetails konnten nicht abgerufen werden',
             setMetadataGenericError: 'SAML-Metadaten konnten nicht festgelegt werden',
+        },
+        accessRestricted: {
+            title: 'Zugriff eingeschränkt',
+            subtitle: (domainName: string) =>
+                `Bitte verifizieren Sie sich als autorisierte/r Unternehmensadministrator/in für <strong>${domainName}</strong>, wenn Sie Kontrolle über Folgendes benötigen:`,
+            companyCardManagement: 'Firmenkartenverwaltung',
+            accountCreationAndDeletion: 'Kontoerstellung und -löschung',
+            workspaceCreation: 'Erstellung des Arbeitsbereichs',
+            samlSSO: 'SAML-SSO',
+        },
+        addDomain: {
+            title: 'Domain hinzufügen',
+            subtitle: 'Geben Sie den Namen der privaten Domain ein, auf die Sie zugreifen möchten (z. B. expensify.com).',
+            domainName: 'Domainname',
+            newDomain: 'Neue Domain',
+        },
+        domainAdded: {
+            title: 'Domain hinzugefügt',
+            description: 'Als Nächstes müssen Sie die Inhaberschaft der Domain bestätigen und Ihre Sicherheitseinstellungen anpassen.',
+            configure: 'Konfigurieren',
+        },
+        enhancedSecurity: {
+            title: 'Verbesserte Sicherheit',
+            subtitle: 'Erzwingen Sie für Mitglieder Ihrer Domain die Anmeldung per Single Sign-On, schränken Sie die Erstellung von Workspaces ein und vieles mehr.',
+            enable: 'Aktivieren',
         },
     },
 };
