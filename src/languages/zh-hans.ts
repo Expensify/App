@@ -7383,7 +7383,7 @@ ${reportName}
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `将在 ${date} 续订。`,
             pricingConfiguration: '价格取决于配置。要获得最低价格，请选择年度订阅并申请 Expensify Card。',
             learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
-                `在我们的<a href="${CONST.PRICING}">定价页面</a>上了解更多或使用您的语言与我们的团队聊天${hasAdminsRoom ? `<a href="adminsRoom">#admins 房间</a>` : '#admins 房间'}`,
+                `<muted-text>在我们的<a href="${CONST.PRICING}">定价页面</a>上了解更多或使用您的语言与我们的团队聊天${hasAdminsRoom ? `<a href="adminsRoom">#admins 房间</a>` : '#admins 房间'}</muted-text>`,
             estimatedPrice: '预估价格',
             changesBasedOn: '这将根据你使用 Expensify Card 的情况以及下面的订阅选项而变化。',
         },

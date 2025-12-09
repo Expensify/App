@@ -7531,7 +7531,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Renova em ${date}.`,
             pricingConfiguration: 'O preço depende da configuração. Para obter o menor preço, escolha uma assinatura anual e peça o Expensify Card.',
             learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
-                `Saiba mais em nossa <a href="${CONST.PRICING}">página de preços</a> ou converse com nossa equipe no seu ${hasAdminsRoom ? `<a href="adminsRoom">Sala #admins.</a>` : '#admins Sala.'}`,
+                `<muted-text>Saiba mais em nossa <a href="${CONST.PRICING}">página de preços</a> ou converse com nossa equipe no seu ${hasAdminsRoom ? `<a href="adminsRoom">Sala #admins.</a>` : '#admins Sala.'}</muted-text>`,
             estimatedPrice: 'Preço estimado',
             changesBasedOn: 'Isso muda com base no uso do seu Expensify Card e nas opções de assinatura abaixo.',
         },

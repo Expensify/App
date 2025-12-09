@@ -7578,7 +7578,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Se renouvelle le ${date}.`,
             pricingConfiguration: 'Le prix dépend de la configuration. Pour le prix le plus bas, choisissez un abonnement annuel et obtenez la carte Expensify.',
             learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
-                `En savoir plus sur notre <a href="${CONST.PRICING}">page de tarification</a> ou discutez avec notre équipe dans votre ${hasAdminsRoom ? `<a href="adminsRoom">Salon #admins.</a>` : 'Salon #admins.'}`,
+                `<muted-text>En savoir plus sur notre <a href="${CONST.PRICING}">page de tarification</a> ou discutez avec notre équipe dans votre ${hasAdminsRoom ? `<a href="adminsRoom">Salon #admins.</a>` : 'Salon #admins.'}</muted-text>`,
             estimatedPrice: 'Prix estimé',
             changesBasedOn: 'Cela change en fonction de votre utilisation de la carte Expensify et des options d’abonnement ci-dessous.',
         },
