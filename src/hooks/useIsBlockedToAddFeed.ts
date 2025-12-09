@@ -20,15 +20,16 @@ import usePolicy from './usePolicy';
 function useIsBlockedToAddFeed(policyID?: string) {
     const policy = usePolicy(policyID);
     const [cardFeeds, allFeedsResult, defaultFeed] = useCardFeeds(policyID);
-    // Exclude pending feeds from the count - pending feeds are still being set up and shouldn't count toward the limit
-    const companyFeeds = getCompanyFeeds(cardFeeds, true, true);
+    // Include pending feeds in the count to prevent users from adding multiple feeds
+    // Pending feeds count toward the limit because the backend checks before adding
+    const companyFeeds = getCompanyFeeds(cardFeeds, true, false);
     const isCollect = isCollectPolicy(policy);
     const isAllFeedsResultLoading = isLoadingOnyxValue(allFeedsResult);
 
     const isLoading = !cardFeeds || !!defaultFeed?.isLoading;
 
     // Count feeds excluding CSV uploads from Classic and Expensify Cards
-    // Note: Pending feeds are already excluded by getCompanyFeeds above
+    // Include pending feeds in the count to enforce the limit
     const nonCSVFeeds = Object.entries(companyFeeds ?? {}).filter(([feedKey]) => {
         const lowerFeedKey = feedKey.toLowerCase();
         // Exclude CSV feeds (feed types starting with "csv" or "ccupload", or containing "ccupload")
