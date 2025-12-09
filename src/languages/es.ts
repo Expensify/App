@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {BeginningOfChatHistoryParams, TagSelectionParams, ViolationsRterParams} from './params';
+import type {BeginningOfChatHistoryParams, SubscriptionSettingsLearnMoreParams, TagSelectionParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -7542,12 +7542,8 @@ ${amount} para ${merchant} - ${date}`,
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación?',
             renewsOn: ({date}) => `Se renovará el ${date}.`,
             pricingConfiguration: 'El precio depende de la configuración. Para obtener el precio más bajo, elige una suscripción anual y obtén la Tarjeta Expensify.',
-            learnMore: {
-                part1: 'Obtén más información en nuestra ',
-                pricingPage: 'página de precios',
-                part2: ' o chatea con nuestro equipo en tu ',
-                adminsRoom: 'sala #admins.',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `Obtén más información en nuestra <a href="${CONST.PRICING}">página de precios</a> o chatea con nuestro equipo en tu ${hasAdminsRoom ? `<a href="adminsRoom">sala #admins.</a>` : '#admins room.'}`,
             estimatedPrice: 'Precio estimado',
             changesBasedOn: 'Esto varía según el uso de tu Tarjeta Expensify y las opciones de suscripción que elijas a continuación.',
         },

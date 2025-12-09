@@ -206,6 +206,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -7500,12 +7501,8 @@ ${reportName}
             whatsMainReason: '自動更新を無効にする主な理由は何ですか？',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `更新日：${date}`,
             pricingConfiguration: '料金は構成によって異なります。最もお得にご利用いただくには、年額サブスクリプションを選択し、Expensify Card をご利用ください。',
-            learnMore: {
-                part1: '詳しくは、当社の',
-                pricingPage: '料金ページ',
-                part2: 'または、お使いの言語で当社のチームとチャットする',
-                adminsRoom: '#admins ルーム',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `詳しくは、当社の<a href="${CONST.PRICING}">料金ページ</a>または、お使いの言語で当社のチームとチャットする${hasAdminsRoom ? `<a href="adminsRoom">#admins ルーム</a>` : '#admins ルーム'}`,
             estimatedPrice: '見積価格',
             changesBasedOn: 'これは、Expensify Card の利用状況と、以下のサブスクリプションオプションによって変わります。',
         },

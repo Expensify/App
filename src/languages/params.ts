@@ -539,6 +539,8 @@ type SubscriptionSettingsSummaryParams = {subscriptionType: string; subscription
 
 type SubscriptionSettingsRenewsOnParams = {date: string};
 
+type SubscriptionSettingsLearnMoreParams = {hasAdminsRoom: boolean};
+
 type UnapproveWithIntegrationWarningParams = {accountingIntegration: string};
 
 type IncorrectZipFormatParams = {zipFormat?: string} | undefined;
@@ -1189,4 +1191,5 @@ export type {
     ReportFieldParams,
     FocusModeUpdateParams,
     TagSelectionParams,
+    SubscriptionSettingsLearnMoreParams,
 };

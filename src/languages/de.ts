@@ -206,6 +206,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -7569,12 +7570,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             whatsMainReason: 'Was ist der Hauptgrund, warum du die automatische Verlängerung deaktivierst?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Wird am ${date} verlängert.`,
             pricingConfiguration: 'Die Preise hängen von der Konfiguration ab. Wählen Sie für den niedrigsten Preis ein Jahresabonnement und holen Sie sich die Expensify Card.',
-            learnMore: {
-                part1: 'Erfahren Sie mehr auf unserer',
-                pricingPage: 'Preisseite',
-                part2: 'oder chatte mit unserem Team in deiner',
-                adminsRoom: '#admins-Raum.',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `Erfahren Sie mehr auf unserer <a href="${CONST.PRICING}">Preisseite</a> oder chatte mit unserem Team in deiner ${hasAdminsRoom ? `<a href="adminsRoom">#admins-Raum.</a>` : '#admins-Raum.'}`,
             estimatedPrice: 'Geschätzter Preis',
             changesBasedOn: 'Dies ändert sich basierend auf deiner Expensify Card-Nutzung und den untenstehenden Abonnementoptionen.',
         },

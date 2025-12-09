@@ -206,6 +206,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -7525,12 +7526,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             whatsMainReason: 'Jaki jest główny powód wyłączenia automatycznego odnawiania?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Odnawia się ${date}.`,
             pricingConfiguration: 'Cena zależy od konfiguracji. Aby uzyskać najniższą cenę, wybierz subskrypcję roczną i zamów kartę Expensify.',
-            learnMore: {
-                part1: 'Dowiedz się więcej na naszej',
-                pricingPage: 'strona cennika',
-                part2: 'lub porozmawiaj z naszym zespołem w swoim',
-                adminsRoom: 'Pokój #admins.',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `Dowiedz się więcej na naszej <a href="${CONST.PRICING}">strona cennika</a> lub porozmawiaj z naszym zespołem w swoim ${hasAdminsRoom ? `<a href="adminsRoom">Pokój #admins.</a>` : '#admins Pokój.'}`,
             estimatedPrice: 'Szacowana cena',
             changesBasedOn: 'To zmienia się w zależności od korzystania z karty Expensify i opcji subskrypcji poniżej.',
         },
