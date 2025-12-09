@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
@@ -42,6 +43,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const policy = usePolicy(report?.policyID);
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
@@ -170,9 +172,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction?.transactionID, policyCategories);
+        detachReceipt(transaction?.transactionID, policy, policyCategories);
         navigation.goBack();
-    }, [navigation, transaction?.transactionID, policyCategories]);
+    }, [navigation, transaction?.transactionID, policy, policyCategories]);
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
@@ -218,10 +220,11 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     file,
                     source: imageUriResult,
                     transactionPolicyCategories: policyCategories,
+                    transactionPolicy: policy,
                 });
             }
         });
-    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt?.type]);
+    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt?.type, transactionPolicy]);
 
     const shouldShowRotateReceiptButton = useMemo(
         () =>
