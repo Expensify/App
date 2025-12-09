@@ -6934,6 +6934,7 @@ function duplicateExpenseTransaction(
             customUnitRateID: transaction?.comment?.customUnit?.customUnitRateID,
             isTestDrive: transaction?.receipt?.isTestDriveReceipt,
             merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
+            modifiedAmount: undefined,
             originalTransactionID: transaction?.comment?.originalTransactionID,
             receipt: undefined,
             source: undefined,

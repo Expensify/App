@@ -10665,7 +10665,7 @@ describe('actions/IOU', () => {
             for (const k of Object.keys(duplicatedTransaction)) {
                 const key = k as keyof Transaction;
 
-                if (DUPLICATION_EXCEPTIONS.has(key) || !Object.hasOwn(originalTransaction, key) || key.startsWith('original')) {
+                if (DUPLICATION_EXCEPTIONS.has(key) || !Object.hasOwn(originalTransaction, key) || key.startsWith('original') || key.startsWith('modified')) {
                     continue;
                 }
 
@@ -10678,11 +10678,6 @@ describe('actions/IOU', () => {
 
                 const originalValue = originalTransaction[originalTransactionKey];
                 const duplicatedValue = duplicatedTransaction[key];
-
-                // This handles cases such as modifiedAmount where the sign is flipped for zero values
-                if ((originalValue as number) === 0 && (duplicatedValue as number) === 0) {
-                    continue;
-                }
 
                 expect(duplicatedValue).toEqual(originalValue);
             }
