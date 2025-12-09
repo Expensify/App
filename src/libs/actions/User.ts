@@ -57,7 +57,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {openOldDotLink} from './Link';
-import {triggerNotifications} from './Report';
+import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 import Timing from './Timing';
 
@@ -658,6 +658,23 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
     }
 
     return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
+}
+
+function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
+    for (const update of onyxUpdates) {
+        if (!update.shouldNotify && !update.shouldShowPushNotification) {
+            continue;
+        }
+
+        const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+        const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
+
+        for (const action of reportActions) {
+            if (action) {
+                showReportActionNotification(reportID, action);
+            }
+        }
+    }
 }
 
 const isChannelMuted = (reportId: string) =>
@@ -1502,4 +1519,5 @@ export {
     resetValidateActionCodeSent,
     lockAccount,
     requestUnlockAccount,
+    triggerNotifications,
 };
