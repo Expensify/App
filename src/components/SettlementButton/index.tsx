@@ -2,9 +2,10 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import isEmpty from 'lodash/isEmpty';
 import truncate from 'lodash/truncate';
 import React, {useCallback, useContext, useMemo} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption, PaymentType} from '@components/ButtonWithDropdownMenu/types';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 // eslint-disable-next-line no-restricted-imports
@@ -236,7 +237,7 @@ function SettlementButton({
     const latestBankItem = getLatestBankAccountItem();
 
     const paymentButtonOptions = useMemo(() => {
-        const buttonOptions = [];
+        const buttonOptions: Array<DropdownOption<PaymentMethod | PaymentMethodType | PaymentType> & {iconStyles?: StyleProp<ViewStyle>}> = [];
         const paymentMethods = getSettlementButtonPaymentMethods(icons, hasActivatedWallet, translate);
 
         const shortFormPayElsewhereButton = {
