@@ -104,7 +104,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return;
         }
 
-        if (isLocalFile || typeof source !== 'string') {
+        if (!isAuthTokenRequired || typeof source !== 'string') {
             setSourceUri(source);
             return;
         }
@@ -118,7 +118,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 setSourceUri(uri);
             })
             .catch(() => setSourceUri(''));
-    }, [source, isLocalFile, session?.encryptedAuthToken, isDraftTransaction, isImage]);
+    }, [source, isAuthTokenRequired, session?.encryptedAuthToken, isDraftTransaction, isImage]);
 
     const receiptPath = transaction?.receipt?.source;
 
@@ -185,13 +185,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Rotate the receipt image 90 degrees and save it automatically.
      */
     const rotateReceipt = useCallback(() => {
-        if (!transaction?.transactionID || !source || typeof source !== 'string' || !sourceUri || !isImage) {
+        if (!transaction?.transactionID || !sourceUri || !isImage) {
             return;
         }
 
         const receiptType = transaction?.receipt?.type ?? CONST.IMAGE_FILE_FORMAT.JPEG;
 
-        cropOrRotateImage(sourceUri as string, [{rotate: 90}], {
+        cropOrRotateImage(sourceUri as string, [{rotate: -90}], {
             compress: 1,
             name: receiptFilename,
             type: receiptType,
@@ -221,7 +221,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 });
             }
         });
-    }, [transaction?.transactionID, source, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt?.type]);
+    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt?.type]);
 
     const shouldShowRotateReceiptButton = useMemo(
         () =>
