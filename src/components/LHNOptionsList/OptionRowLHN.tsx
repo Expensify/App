@@ -14,6 +14,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -22,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+import FS from '@libs/Fullstory';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -58,6 +60,7 @@ function OptionRowLHN({
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
 
     const session = useSession();
     const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
@@ -166,6 +169,8 @@ function OptionRowLHN({
 
     const subscriptAvatarBorderColor = isOptionFocused ? focusedBackgroundColor : theme.sidebar;
     const firstIcon = optionItem.icons?.at(0);
+
+    const alternateTextFSClass = FS.getChatFSClass(report);
 
     const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         Performance.markStart(CONST.TIMING.OPEN_REPORT);
@@ -299,7 +304,7 @@ function OptionRowLHN({
                                                     style={alternateTextStyle}
                                                     numberOfLines={1}
                                                     accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
-                                                    fsClass={CONST.FULLSTORY.CLASS.MASK}
+                                                    fsClass={alternateTextFSClass}
                                                 >
                                                     {alternateTextContainsCustomEmojiWithText ? (
                                                         <TextWithEmojiFragment
@@ -316,7 +321,7 @@ function OptionRowLHN({
                                         {optionItem?.descriptiveText ? (
                                             <View
                                                 style={[styles.flexWrap]}
-                                                fsClass={CONST.FULLSTORY.CLASS.MASK}
+                                                fsClass={alternateTextFSClass}
                                             >
                                                 <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                             </View>
@@ -353,7 +358,7 @@ function OptionRowLHN({
                                             <Icon
                                                 testID="Pencil Icon"
                                                 fill={theme.icon}
-                                                src={Expensicons.Pencil}
+                                                src={expensifyIcons.Pencil}
                                             />
                                         </View>
                                     )}
