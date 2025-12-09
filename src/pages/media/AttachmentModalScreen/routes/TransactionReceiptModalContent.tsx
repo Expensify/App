@@ -30,6 +30,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
@@ -156,7 +157,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             const menuItems = [];
             if (shouldShowReplaceReceiptButton) {
                 menuItems.push({
-                    icon: Expensicons.Camera,
+                    icon: expensifyIcons.Camera,
                     text: translate('common.replace'),
                     onSelected: () => {
                         Navigation.dismissModal();
@@ -208,6 +209,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             iouType,
             report?.reportID,
             onDownloadAttachment,
+            expensifyIcons.Camera,
         ],
     );
 
