@@ -257,8 +257,9 @@ const ViolationsUtils = {
             }
         }
 
+        // Only show SmartScan failed when scan failed AND the user hasn't filled required fields yet
         const shouldShowSmartScanFailedError =
-            isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && TransactionUtils.hasMissingSmartscanFields(updatedTransaction);
+            isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && TransactionUtils.hasMissingSmartscanFields(updatedTransaction, iouReport);
         const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
         if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
             newTransactionViolations.push({name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true});
