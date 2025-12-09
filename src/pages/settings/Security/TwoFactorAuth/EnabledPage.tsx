@@ -1,5 +1,5 @@
 import {activeAdminPoliciesSelector} from '@selectors/Policy';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openPolicyProfilePage} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasPolicyWithXeroConnection} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -38,6 +39,24 @@ function EnabledPage() {
         [login],
     );
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector});
+    const fetchPolicyData = useCallback((policyID: string) => {
+        if (!policyID) {
+            return;
+        }
+        openPolicyProfilePage(policyID);
+    }, []);
+
+    useEffect(() => {
+        if (!adminPolicies) {
+            return;
+        }
+        adminPolicies.forEach((policy) => {
+            if(!policy.areConnectionsEnabled || !!policy.connections){
+                return;
+            }
+            fetchPolicyData(policy.id);
+        });
+    }, [adminPolicies, fetchPolicyData]);
     const {translate} = useLocalize();
 
     const closeModal = useCallback(() => {
