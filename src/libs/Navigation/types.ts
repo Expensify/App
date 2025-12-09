@@ -2090,6 +2090,14 @@ type WorkspacesDomainModalNavigatorParamList = {
     [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: {
         accountID: number;
     };
+    [SCREENS.WORKSPACES_ADD_DOMAIN]: undefined;
+    [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.WORKSPACES_DOMAIN_ADDED]: {
+        accountID: number;
+    };
+    [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: {
+        accountID: number;
+    };
 };
 
 type RightModalNavigatorParamList = {

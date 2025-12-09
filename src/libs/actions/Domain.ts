@@ -49,7 +49,7 @@ function validateDomain(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {isValidationPending: true, domainValidationError: null},
+            value: {isValidationPending: true, domainValidationError: null, hasValidationSucceeded: null},
         },
     ];
 
@@ -57,7 +57,7 @@ function validateDomain(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {isValidationPending: null},
+            value: {isValidationPending: null, hasValidationSucceeded: true},
         },
     ];
 
@@ -309,6 +309,41 @@ async function getScimToken(domainName: string): Promise<ScimTokenWithState> {
     }
 }
 
+/** Sends request for claiming a domain */
+function createDomain(domainName: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            value: {hasCreationSucceeded: null, isLoading: true},
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            value: {hasCreationSucceeded: true, isLoading: null},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            value: {isLoading: null},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.CREATE_DOMAIN, {domainName}, {optimisticData, successData, failureData});
+}
+
+/**
+ * For resetting createDomain form data
+ * Resets it only on the client's side, no server call is performed
+ */
+function resetCreateDomainForm() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -321,4 +356,6 @@ export {
     resetSamlRequiredError,
     setSamlIdentity,
     getScimToken,
+    createDomain,
+    resetCreateDomainForm,
 };
