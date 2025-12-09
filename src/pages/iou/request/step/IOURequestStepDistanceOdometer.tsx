@@ -81,6 +81,12 @@ function IOURequestStepDistanceOdometer({
     const initialEndReadingRef = useRef<string>('');
     const isSavedRef = useRef(false);
     const hasInitializedRefs = useRef(false);
+    // Track previous transaction values to detect when transaction is cleared (e.g., tab switch)
+    const prevTransactionStartRef = useRef<number | null | undefined>(undefined);
+    const prevTransactionEndRef = useRef<number | null | undefined>(undefined);
+    // Track local state via refs to avoid including them in useEffect dependencies
+    const startReadingRef = useRef<string>('');
+    const endReadingRef = useRef<string>('');
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
@@ -110,22 +116,40 @@ function IOURequestStepDistanceOdometer({
     // Reset component state when transaction has no odometer data (happens when switching tabs)
     // In Phase 1, we don't persist data from transaction since users can't save and exit
     useEffect(() => {
-        // Check if transaction has no odometer data (cleared when switching tabs)
+        const currentStart = transaction?.comment?.odometerStart;
+        const currentEnd = transaction?.comment?.odometerEnd;
+        
+        // Check if transaction was cleared (had values before, now null/undefined)
+        // This happens when switching tabs, not during normal typing
+        const wasCleared = 
+            (prevTransactionStartRef.current !== null && prevTransactionStartRef.current !== undefined && 
+             (currentStart === null || currentStart === undefined)) ||
+            (prevTransactionEndRef.current !== null && prevTransactionEndRef.current !== undefined && 
+             (currentEnd === null || currentEnd === undefined));
+        
         const hasNoTransactionData = 
-            (transaction?.comment?.odometerStart === null || transaction?.comment?.odometerStart === undefined) &&
-            (transaction?.comment?.odometerEnd === null || transaction?.comment?.odometerEnd === undefined);
+            (currentStart === null || currentStart === undefined) &&
+            (currentEnd === null || currentEnd === undefined);
 
-        // Reset state if transaction has no data but we have local state (tab switch cleared transaction data)
-        if (hasNoTransactionData && (startReading || endReading) && !isSavedRef.current && hasInitializedRefs.current) {
+        // Only reset if transaction was cleared (not just null initially) and we have local state
+        // We check local state via refs to avoid including them in dependencies
+        const hasLocalState = startReadingRef.current || endReadingRef.current;
+        if (wasCleared && hasNoTransactionData && hasLocalState && !isSavedRef.current && hasInitializedRefs.current) {
             setStartReading('');
             setEndReading('');
+            startReadingRef.current = '';
+            endReadingRef.current = '';
             initialStartReadingRef.current = '';
             initialEndReadingRef.current = '';
             setFormError('');
             // Force TextInput remount to reset label position
             setInputKey((prev) => prev + 1);
         }
-    }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd, startReading, endReading]);
+        
+        // Update refs to track previous values
+        prevTransactionStartRef.current = currentStart;
+        prevTransactionEndRef.current = currentEnd;
+    }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd]);
 
     // Initialize initial values refs on mount for DiscardChangesConfirmation
     useEffect(() => {
@@ -158,7 +182,7 @@ function IOURequestStepDistanceOdometer({
     }, [startReading, endReading]);
 
     // Get image source for web (blob URL) or native (URI string)
-    const getImageSource = useCallback((image: File | string | undefined): string | undefined => {
+    const getImageSource = useCallback((image: File | string | {uri?: string} | undefined): string | undefined => {
         if (!image) {
             return undefined;
         }
@@ -169,6 +193,10 @@ function IOURequestStepDistanceOdometer({
         // Native: URI string, use directly
         if (typeof image === 'string') {
             return image;
+        }
+        // Native: Object with uri property (fallback for compatibility)
+        if (typeof image === 'object' && 'uri' in image && typeof image.uri === 'string') {
+            return image.uri;
         }
         return undefined;
     }, []);
@@ -189,6 +217,7 @@ function IOURequestStepDistanceOdometer({
             // Only allow digits
             const digitsOnly = text.replace(/[^0-9]/g, '');
             setStartReading(digitsOnly);
+            startReadingRef.current = digitsOnly;
             if (formError) {
                 setFormError('');
             }
@@ -207,6 +236,7 @@ function IOURequestStepDistanceOdometer({
             // Only allow digits
             const digitsOnly = text.replace(/[^0-9]/g, '');
             setEndReading(digitsOnly);
+            endReadingRef.current = digitsOnly;
             if (formError) {
                 setFormError('');
             }
@@ -222,9 +252,7 @@ function IOURequestStepDistanceOdometer({
 
     const handleCaptureImage = useCallback(
         (imageType: 'start' | 'end') => {
-            // Navigate to AttachOdometerReading route
-            // For now, we'll use a placeholder route - this will be implemented in a later step
-            // Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(transactionID, imageType, Navigation.getActiveRouteWithoutParams()));
+            Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(transactionID, imageType, Navigation.getActiveRouteWithoutParams()));
         },
         [transactionID],
     );

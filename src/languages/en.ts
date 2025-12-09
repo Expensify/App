@@ -6990,6 +6990,10 @@ const translations = {
             totalDistance: 'Total distance',
             readingRequired: 'Please enter both start and end readings',
             negativeDistanceNotAllowed: 'End reading must be greater than start reading',
+            startTitle: 'Odometer start photo',
+            endTitle: 'Odometer end photo',
+            startMessage: 'Snap a photo of your odometer at the start of your trip',
+            endMessage: 'Snap a photo of your odometer at the end of your trip',
         },
     },
     reportCardLostOrDamaged: {

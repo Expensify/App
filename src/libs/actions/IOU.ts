@@ -1488,11 +1488,65 @@ function setMoneyRequestOdometerReading(transactionID: string, startReading: num
  * @param file - The image file (File object on web, URI string on native)
  * @param isDraft - Whether this is a draft transaction
  */
-function setMoneyRequestOdometerImage(transactionID: string, imageType: 'start' | 'end', file: File | string, isDraft: boolean) {
+function setMoneyRequestOdometerImage(transactionID: string, imageType: 'start' | 'end', file: File | string, isDraft: boolean, source?: string) {
     const imageKey = imageType === 'start' ? 'odometerStartImage' : 'odometerEndImage';
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             [imageKey]: file,
+        },
+    });
+}
+
+/**
+ * Replace odometer start image for a transaction
+ * @param transactionID - The transaction ID
+ * @param file - The image file (File object on web, URI string on native)
+ * @param isDraft - Whether this is a draft transaction
+ */
+function replaceOdometerStartImage(transactionID: string, file: File | string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            odometerStartImage: file,
+        },
+    });
+}
+
+/**
+ * Replace odometer end image for a transaction
+ * @param transactionID - The transaction ID
+ * @param file - The image file (File object on web, URI string on native)
+ * @param isDraft - Whether this is a draft transaction
+ */
+function replaceOdometerEndImage(transactionID: string, file: File | string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            odometerEndImage: file,
+        },
+    });
+}
+
+/**
+ * Detach (remove) odometer start image from a transaction
+ * @param transactionID - The transaction ID
+ * @param isDraft - Whether this is a draft transaction
+ */
+function detachOdometerStartImage(transactionID: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            odometerStartImage: null,
+        },
+    });
+}
+
+/**
+ * Detach (remove) odometer end image from a transaction
+ * @param transactionID - The transaction ID
+ * @param isDraft - Whether this is a draft transaction
+ */
+function detachOdometerEndImage(transactionID: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            odometerEndImage: null,
         },
     });
 }
@@ -15158,6 +15212,10 @@ export {
     setMoneyRequestDistanceRate,
     setMoneyRequestOdometerReading,
     setMoneyRequestOdometerImage,
+    replaceOdometerStartImage,
+    replaceOdometerEndImage,
+    detachOdometerStartImage,
+    detachOdometerEndImage,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,

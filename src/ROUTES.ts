@@ -1247,6 +1247,11 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-odometer` as const,
     },
+    ODOMETER_IMAGE: {
+        route: 'odometer-image/:transactionID/:readingType',
+        getRoute: (transactionID: string, readingType: 'start' | 'end', backTo?: string) =>
+            getUrlWithBackToParam(`odometer-image/${transactionID}/${readingType}`, backTo),
+    },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
     IOU_SEND_ENABLE_PAYMENTS: 'pay/new/enable-payments',
