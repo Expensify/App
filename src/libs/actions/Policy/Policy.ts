@@ -96,7 +96,6 @@ import {
     navigateToReceiptPartnersPage,
 } from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -183,6 +182,15 @@ type BuildPolicyDataOptions = {
     lastUsedPaymentMethod?: LastPaymentMethodType;
     adminParticipant?: Participant;
     hasOutstandingChildRequest?: boolean;
+    // Note: Mark this param as required after migrating completely
+    introSelectedParam?: OnyxEntry<IntroSelected>;
+    // Note: Mark this param as required after migrating completely
+    activePolicyIDParam?: string | undefined;
+    // Note: Mark this param as required after migrating completely
+    currentUserAccountIDParam?: number;
+    // Note: Mark this param as required after migrating completely
+    currentUserEmailParam?: string;
+    allReportsParam?: OnyxCollection<Report>;
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
 };
@@ -219,15 +227,6 @@ Onyx.connect({
         }
 
         deprecatedAllPolicies[key] = val;
-    },
-});
-
-let deprecatedAllReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        deprecatedAllReports = value;
     },
 });
 
@@ -2079,7 +2078,7 @@ function createDraftInitialWorkspace(
  * @param [file] Optional, avatar file for workspace
  * @param [shouldAddOnboardingTasks] whether to add onboarding tasks to the workspace
  */
-function buildPolicyData(options: BuildPolicyDataOptions = {}) {
+function buildPolicyData(options: BuildPolicyDataOptions) {
     const {
         policyOwnerEmail = '',
         makeMeAdmin = false,
@@ -2096,9 +2095,19 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         lastUsedPaymentMethod,
         adminParticipant,
         hasOutstandingChildRequest = true,
+        introSelectedParam,
+        activePolicyIDParam,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        allReportsParam,
         shouldAddGuideWelcomeMessage = true,
         onboardingPurposeSelected,
     } = options;
+    const introSelected = introSelectedParam ?? deprecatedIntroSelected;
+    const activePolicyID = activePolicyIDParam ?? deprecatedActivePolicyID;
+    const currentUserAccountID = currentUserAccountIDParam ?? deprecatedSessionAccountID;
+    const currentUserEmail = currentUserEmailParam ?? deprecatedSessionEmail;
+
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
@@ -2124,8 +2133,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
         engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
         engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
-    const shouldSetCreatedPolicyAsActive =
-        !deprecatedActivePolicyID || deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${deprecatedActivePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
+    const shouldSetCreatedPolicyAsActive = !activePolicyID || deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on selected features or user reported integration
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
@@ -2144,13 +2152,13 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                 type: workspaceType,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
-                owner: deprecatedSessionEmail,
-                ownerAccountID: deprecatedSessionAccountID,
+                owner: currentUserEmail,
+                ownerAccountID: currentUserAccountID,
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
-                approver: deprecatedSessionEmail,
+                approver: currentUserEmail,
                 autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 approvalMode:
                     shouldEnableWorkflowsByDefault && engagementChoice !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
@@ -2167,16 +2175,16 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
                 employeeList: {
-                    [deprecatedSessionEmail]: {
-                        submitsTo: deprecatedSessionEmail,
-                        email: deprecatedSessionEmail,
+                    [currentUserEmail]: {
+                        submitsTo: currentUserEmail,
+                        email: currentUserEmail,
                         role: CONST.POLICY.ROLE.ADMIN,
                         errors: {},
                     },
                     ...(adminParticipant?.login
                         ? {
                               [adminParticipant.login]: {
-                                  submitsTo: deprecatedSessionEmail,
+                                  submitsTo: currentUserEmail,
                                   email: adminParticipant.login,
                                   role: CONST.POLICY.ROLE.ADMIN,
                                   errors: {},
@@ -2403,7 +2411,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: deprecatedActivePolicyID,
+            value: activePolicyID,
         });
     }
 
@@ -2420,7 +2428,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     }
 
     if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
-        for (const report of Object.values(deprecatedAllReports ?? {})) {
+        for (const report of Object.values(allReportsParam ?? {})) {
             if (report?.type !== CONST.REPORT.TYPE.IOU) {
                 continue;
             }
@@ -2474,14 +2482,14 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     };
 
     if (
-        deprecatedIntroSelected !== undefined &&
-        (deprecatedIntroSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER || !deprecatedIntroSelected?.createWorkspace) &&
+        introSelected !== undefined &&
+        (introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER || !introSelected?.createWorkspace) &&
         engagementChoice &&
         shouldAddOnboardingTasks
     ) {
         const {onboardingMessages} = getOnboardingMessages();
         const onboardingData = ReportUtils.prepareOnboardingOnyxData({
-            introSelected: deprecatedIntroSelected,
+            introSelected,
             engagementChoice,
             onboardingMessage: onboardingMessages[engagementChoice],
             adminsChatReportID,
@@ -2502,13 +2510,13 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     }
 
     // For test drive receivers, we want to complete the createWorkspace task in concierge, instead of #admin room
-    if (deprecatedIntroSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER && deprecatedIntroSelected.createWorkspace) {
-        const createWorkspaceTaskReport = {reportID: deprecatedIntroSelected.createWorkspace};
+    if (introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER && introSelected.createWorkspace) {
+        const createWorkspaceTaskReport = {reportID: introSelected.createWorkspace};
         const {
             optimisticData: optimisticCreateWorkspaceTaskData,
             successData: successCreateWorkspaceTaskData,
             failureData: failureCreateWorkspaceTaskData,
-        } = buildTaskData(createWorkspaceTaskReport, deprecatedIntroSelected.createWorkspace, false, false, undefined);
+        } = buildTaskData(createWorkspaceTaskReport, introSelected.createWorkspace, false, false, undefined);
         optimisticData.push(...optimisticCreateWorkspaceTaskData);
         successData.push(...successCreateWorkspaceTaskData);
         failureData.push(...failureCreateWorkspaceTaskData);
@@ -2531,7 +2539,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     return {successData, optimisticData, failureData, params};
 }
 
-function createWorkspace(options: BuildPolicyDataOptions = {}): CreateWorkspaceParams {
+function createWorkspace(options: BuildPolicyDataOptions): CreateWorkspaceParams {
     // Set default engagement choice if not provided
     const optionsWithDefaults = {
         engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
@@ -2544,7 +2552,7 @@ function createWorkspace(options: BuildPolicyDataOptions = {}): CreateWorkspaceP
 
     // Publish a workspace created event if this is their first policy
     if (getAdminPolicies().length === 0) {
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, deprecatedSessionAccountID);
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, options.currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID);
     }
 
     return params;
@@ -3776,7 +3784,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
             amount: -transaction.amount,
-            modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
+            modifiedAmount: transaction.modifiedAmount ? -transaction.modifiedAmount : 0,
         };
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
