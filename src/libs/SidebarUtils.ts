@@ -586,7 +586,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     }
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
-    
+
     if (transactionThreadReportAction) {
         const transactionID = isMoneyRequestAction(transactionThreadReportAction) ? getOriginalMessage(transactionThreadReportAction)?.IOUTransactionID : undefined;
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
