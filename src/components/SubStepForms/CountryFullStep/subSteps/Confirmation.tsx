@@ -83,6 +83,14 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
         setSelectedCountry(currencyMappedToCountry);
     }, [currency, currencyMappedToCountry]);
 
+    useEffect(() => {
+        if (selectedCountry || !countryDefaultValue) {
+            return;
+        }
+
+        setSelectedCountry(countryDefaultValue);
+    }, [selectedCountry, countryDefaultValue]);
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
