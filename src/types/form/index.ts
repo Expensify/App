@@ -102,3 +102,4 @@ export type {SearchEditMultipleDescriptionForm} from './SearchEditMultipleDescri
 export type {SearchEditMultipleMerchantForm} from './SearchEditMultipleMerchantForm';
 export type {SearchEditMultipleDateForm} from './SearchEditMultipleDateForm';
 export type {EnterSignerInfoForm} from './EnterSignerInfoForm';
+export type {CreateDomainForm} from './CreateDomainForm';
