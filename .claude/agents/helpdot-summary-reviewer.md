@@ -1,7 +1,7 @@
 ---
 name: helpdot-summary-reviewer
 description: Provides comprehensive summary reviews of HelpDot documentation changes with scoring and overall assessment.
-tools: Glob, Grep, Read, WebFetch, Bash, Edit, MultiEdit, Write, TodoWrite, WebSearch, BashOutput, KillBash
+tools: Glob, Grep, Read, TodoWrite, Bash, BashOutput, KillBash 
 model: inherit
 ---
 

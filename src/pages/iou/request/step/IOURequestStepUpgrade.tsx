@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,9 +10,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -22,6 +25,7 @@ import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -29,7 +33,7 @@ type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigator
 
 function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath},
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, backTo},
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
@@ -40,14 +44,21 @@ function IOURequestStepUpgrade({
     const personalDetails = usePersonalDetails();
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
 
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [showConfirmationForm, setShowConfirmationForm] = useState(false);
     const [createdPolicyName, setCreatedPolicyName] = useState('');
+    const [isUpgradeWarningModalOpen, setIsUpgradeWarningModalOpen] = useState(false);
     const policyDataRef = useRef<CreateWorkspaceParams | null>(null);
     const isDistanceRateUpgrade = upgradePath === CONST.UPGRADE_PATHS.DISTANCE_RATES;
     const isCategorizing = upgradePath === CONST.UPGRADE_PATHS.CATEGORIES;
     const isReporting = upgradePath === CONST.UPGRADE_PATHS.REPORTS;
+    const platform = getPlatform();
+    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
+    const {isRestrictedPolicyCreation} = usePreferredPolicy();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const feature = useMemo(
         () =>
@@ -55,6 +66,17 @@ function IOURequestStepUpgrade({
                 .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
                 .find((f) => f.alias === upgradePath),
         [upgradePath],
+    );
+
+    const navigateWithMicrotask = useCallback(
+        (route: Route) => {
+            if (isWebOrDesktop) {
+                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
+            } else {
+                Navigation.navigate(route);
+            }
+        },
+        [isWebOrDesktop],
     );
 
     const afterUpgradeAcknowledged = useCallback(() => {
@@ -83,18 +105,21 @@ function IOURequestStepUpgrade({
                 // Let the confirmation step decide the distance rate because policy data is not fully available at this step
                 setCustomUnitRateID(transactionID, '-1');
                 Navigation.setParams({reportID: expenseReportID});
-                Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID, transactionID, expenseReportID));
+
+                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, expenseReportID));
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                navigateWithMicrotask(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+
                 break;
             default:
         }
-    }, [action, reportID, shouldSubmitExpense, transactionID, upgradePath]);
+    }, [action, backTo, navigateWithMicrotask, reportID, shouldSubmitExpense, transactionID, upgradePath]);
 
     const adminParticipant = useMemo(() => {
         const participant = transaction?.participants?.[0];
@@ -106,10 +131,16 @@ function IOURequestStepUpgrade({
     }, [isDistanceRateUpgrade, transaction?.participants, personalDetails]);
 
     const onUpgrade = useCallback(() => {
+        if (isRestrictedPolicyCreation) {
+            setIsUpgradeWarningModalOpen(true);
+            return;
+        }
+
         if (isCategorizing || isReporting) {
             setShowConfirmationForm(true);
             return;
         }
+
         const policyData = Policy.createWorkspace({
             policyOwnerEmail: undefined,
             policyName: undefined,
@@ -124,12 +155,33 @@ function IOURequestStepUpgrade({
             ],
             adminParticipant,
             hasOutstandingChildRequest: false,
+            introSelectedParam: introSelected,
+            activePolicyIDParam: activePolicyID,
+            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+            onboardingPurposeSelected,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
-    }, [isCategorizing, isReporting, currentUserPersonalDetails?.localCurrencyCode, isDistanceRateUpgrade, adminParticipant]);
+    }, [
+        isCategorizing,
+        isReporting,
+        currentUserPersonalDetails?.localCurrencyCode,
+        isDistanceRateUpgrade,
+        adminParticipant,
+        activePolicyID,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
+        introSelected,
+        onboardingPurposeSelected,
+        isRestrictedPolicyCreation,
+    ]);
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+
+    const handleConfirmUpgradeWarning = useCallback(() => {
+        setIsUpgradeWarningModalOpen(false);
+    }, []);
 
     const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyData = Policy.createWorkspace({
@@ -140,6 +192,11 @@ function IOURequestStepUpgrade({
             currency: params.currency,
             file: params.avatarFile as File,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            introSelectedParam: introSelected,
+            activePolicyIDParam: activePolicyID,
+            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+            onboardingPurposeSelected,
         });
         policyDataRef.current = policyData;
         setCreatedPolicyName(params.name);
@@ -192,6 +249,14 @@ function IOURequestStepUpgrade({
                     addBottomSafeAreaPadding={false}
                 />
             )}
+            <ConfirmModal
+                isVisible={isUpgradeWarningModalOpen}
+                shouldShowCancelButton={false}
+                onConfirm={handleConfirmUpgradeWarning}
+                title={translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarning')}
+                prompt={translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt')}
+                confirmText={translate('common.buttonConfirm')}
+            />
         </ScreenWrapper>
     );
 }

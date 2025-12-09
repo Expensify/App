@@ -10,6 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -31,6 +32,7 @@ function CategoryDescriptionHintPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const decodedCategoryName = getDecodedCategoryName(categoryName);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -65,7 +67,7 @@ function CategoryDescriptionHintPage({
                     addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
-                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', {categoryName})}</Text>
+                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', decodedCategoryName)}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.COMMENT_HINT}

@@ -12,18 +12,19 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SetDefaultWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import type {MoneyRequestNavigatorParamList} from '@navigation/types';
 import {setNameValuePair} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-type SetDefaultWorkspacePageProps = PlatformStackScreenProps<SetDefaultWorkspaceNavigatorParamList, typeof SCREENS.SET_DEFAULT_WORKSPACE.ROOT>;
+type SetDefaultWorkspacePageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.SET_DEFAULT_WORKSPACE>;
 
 function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
-    const {backTo} = route.params ?? {};
+    const {navigateTo} = route.params ?? {};
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -40,9 +41,22 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         if (!selectedPolicyID) {
             return;
         }
+        if (!navigateTo) {
+            Log.hmmm(`[SetDefaultWorkspacePage] navigateTo is undefined. Cannot navigate after setting default workspace to ${selectedPolicyID}`);
+            return;
+        }
+
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`];
+
         // eslint-disable-next-line rulesdir/no-default-id-values
         setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, selectedPolicyID, activePolicyID ?? '');
-        Navigation.goBack(backTo);
+
+        if (policy?.areCategoriesEnabled) {
+            Navigation.navigate(navigateTo);
+            return;
+        }
+
+        Navigation.goBack();
     };
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({

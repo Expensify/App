@@ -2,7 +2,9 @@ import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {close} from '@userActions/Modal';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -92,6 +94,16 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             }
         };
 
+        const startSearchRouterOpenSpan = () => {
+            startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
+                name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+                op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+                attributes: {
+                    trigger: 'keyboard',
+                },
+            });
+        };
+
         // There are callbacks that live outside of React render-loop and interact with SearchRouter
         // So we need a function that is based on ref to correctly open/close it
         // When user is on `/search` page we focus the Input instead of showing router
@@ -104,11 +116,13 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
                 if (searchPageInputRef.current.isFocused()) {
                     searchPageInputRef.current.blur();
                 } else {
+                    startSearchRouterOpenSpan();
                     searchPageInputRef.current.focus();
                 }
             } else if (searchRouterDisplayedRef.current) {
                 closeSearchRouter();
             } else {
+                startSearchRouterOpenSpan();
                 openSearchRouter();
             }
         };

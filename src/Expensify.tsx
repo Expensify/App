@@ -1,4 +1,5 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
+import * as Sentry from '@sentry/react-native';
 import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
@@ -23,6 +24,7 @@ import usePriorityMode from './hooks/usePriorityChange';
 import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
+import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken} from './libs/actions/Session';
 import * as User from './libs/actions/User';
@@ -42,6 +44,9 @@ import './libs/Notification/PushNotification/subscribeToPushNotifications';
 import './libs/registerPaginationConfig';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
+import {endSpan, startSpan} from './libs/telemetry/activeSpans';
+// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
+import './libs/telemetry/TelemetrySynchronizer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
@@ -118,23 +123,63 @@ function Expensify() {
     useDebugShortcut();
     usePriorityMode();
 
+    const bootsplashSpan = useRef<Sentry.Span>(null);
+
     const [initialUrl, setInitialUrl] = useState<Route | null>(null);
     const {setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
     useEffect(() => {
         if (isCheckingPublicRoom) {
             return;
         }
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX);
         setAttemptedToOpenPublicRoom(true);
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION,
+            parentSpan: bootsplashSpan.current,
+        });
     }, [isCheckingPublicRoom]);
 
+    useEffect(() => {
+        bootsplashSpan.current = startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+        });
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
+            parentSpan: bootsplashSpan.current,
+        });
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE,
+            parentSpan: bootsplashSpan.current,
+        });
+    }, []);
+
     const isAuthenticated = useIsAuthenticated();
-    const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
+    const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session?.autoAuthState]);
 
     const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
+
+    useEffect(() => {
+        if (!shouldHideSplash) {
+            return;
+        }
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER,
+            parentSpan: bootsplashSpan.current,
+        });
+    }, [shouldHideSplash]);
 
     useEffect(() => {
         if (!shouldInit || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
@@ -163,12 +208,17 @@ function Expensify() {
     const setNavigationReady = useCallback(() => {
         setIsNavigationReady(true);
 
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
+
         // Navigate to any pending routes now that the NavigationContainer is ready
         Navigation.setIsNavigationReady();
     }, []);
 
     const onSplashHide = useCallback(() => {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
+        endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER);
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {
@@ -184,6 +234,12 @@ function Expensify() {
     useEffect(() => {
         // Initialize Fullstory lib
         FS.init(userMetadata);
+        FS.getSessionId().then((sessionId) => {
+            if (!sessionId) {
+                return;
+            }
+            Sentry.setContext(CONST.TELEMETRY.CONTEXT_FULLSTORY, {sessionId});
+        });
     }, [userMetadata]);
 
     // Log the platform and config to debug .env issues
@@ -233,13 +289,17 @@ function Expensify() {
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
-            Report.openReportFromDeepLink(url ?? '', currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
+            if (url) {
+                openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
+            } else {
+                Report.doneCheckingPublicRoom();
+            }
         });
 
         // Open chat report from a deep link (only mobile native)
         linkingChangeListener.current = Linking.addEventListener('url', (state) => {
             const isCurrentlyAuthenticated = hasAuthToken();
-            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated);
+            openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated);
         });
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.onURLListenerAdded();

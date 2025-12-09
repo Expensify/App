@@ -1,13 +1,14 @@
 import React, {useRef} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Performance from '@libs/Performance';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -24,6 +25,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
     const {translate} = useLocalize();
     const {openSearchRouter} = useSearchRouterContext();
     const pressableRef = useRef<View>(null);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
 
     return (
         <Tooltip text={translate('common.search')}>
@@ -39,12 +41,16 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
 
                     Timing.start(CONST.TIMING.OPEN_SEARCH);
                     Performance.markStart(CONST.TIMING.OPEN_SEARCH);
+                    startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
+                        name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+                        op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+                    });
 
                     openSearchRouter();
                 })}
             >
                 <Icon
-                    src={Expensicons.MagnifyingGlass}
+                    src={expensifyIcons.MagnifyingGlass}
                     fill={theme.icon}
                 />
             </PressableWithoutFeedback>

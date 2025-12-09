@@ -33,22 +33,25 @@ type SelectedTransactionInfo = {
     reportID: string;
 
     /** The policyID tied to the report the transaction is reported on */
-    policyID: string;
+    policyID: string | undefined;
 
     /** The transaction amount */
     amount: number;
 
-    /** The converted transaction amount into either group currency, or the active policy currency */
-    convertedAmount: number;
-
-    /** The currency that the converted amount is in */
-    convertedCurrency: string;
-
     /** The transaction currency */
     currency: string;
 
+    /** The transaction converted amount in `groupCurrency` currency */
+    groupAmount?: number;
+
+    /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
+    groupCurrency?: string;
+
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport?: boolean;
+
+    /** Account ID of the report owner */
+    ownerAccountID?: number;
 };
 
 /** Model of selected transactions */
@@ -62,6 +65,7 @@ type SelectedReports = {
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
     currency?: string;
+    chatReportID: string | undefined;
 };
 
 /** Model of payment data used by Search bulk actions */
@@ -146,6 +150,14 @@ type QueryFilter = {
     value: string | number;
 };
 
+// Report fields are dynamic keys, that policies can configure. They match:
+// reportField-<key> : Normal report field
+// reportField<modifier>-<key> : Report field with a modifier, such as On, After, Before, Not, so that we can handle Dates and negation
+type ReportFieldTextKey = `${typeof CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${string}`;
+type ReportFieldNegatedKey = `${typeof CONST.SEARCH.REPORT_FIELD.NOT_PREFIX}${string}`;
+type ReportFieldDateKey = `${typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}-${string}`;
+type ReportFieldKey = ReportFieldTextKey | ReportFieldDateKey | ReportFieldNegatedKey;
+
 type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
 
 type SearchTextFilterKeys =
@@ -154,7 +166,8 @@ type SearchTextFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID;
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
+    | ReportFieldTextKey;
 
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
@@ -163,7 +176,8 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN;
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN
+    | ReportFieldTextKey;
 
 type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
 
@@ -186,6 +200,15 @@ type QueryFilters = Array<{
     filters: QueryFilter[];
 }>;
 
+type RawFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+
+type RawQueryFilter = {
+    key: RawFilterKey;
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+    value: string | string[];
+    isDefault?: boolean;
+};
+
 type SearchQueryString = string;
 
 type SearchQueryAST = {
@@ -196,6 +219,7 @@ type SearchQueryAST = {
     groupBy?: SearchGroupBy;
     filters: ASTNode;
     policyID?: string[];
+    rawFilterList?: RawQueryFilter[];
 };
 
 type SearchQueryJSON = {
@@ -226,6 +250,7 @@ type SearchParams = {
     offset: number;
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;
+    isLoading: boolean;
 };
 
 type BankAccountMenuItem = {
@@ -246,12 +271,18 @@ export type {
     SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
+    ReportFieldKey,
+    ReportFieldTextKey,
+    ReportFieldDateKey,
+    ReportFieldNegatedKey,
     SortOrder,
     SearchContextProps,
     SearchContextData,
     ASTNode,
     QueryFilter,
     QueryFilters,
+    RawFilterKey,
+    RawQueryFilter,
     SearchFilterKey,
     UserFriendlyKey,
     ExpenseSearchStatus,

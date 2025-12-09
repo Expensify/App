@@ -9,6 +9,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -48,8 +49,8 @@ function NewTaskPage({route}: NewTaskPageProps) {
         [task?.shareDestination, reports, personalDetails, localeCompare],
     );
     const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
+    const ancestors = useAncestors(parentReport);
     const [errorMessage, setErrorMessage] = useState('');
-
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || isAllowedToComment(parentReport), [parentReport]);
 
@@ -100,7 +101,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         }
 
         createTaskAndNavigate({
-            parentReportID: parentReport?.reportID,
+            parentReport,
             title: task.title,
             description: task?.description ?? '',
             assigneeEmail: task?.assignee ?? '',
@@ -111,6 +112,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
             policyID: parentReport?.policyID,
             isCreatedUsingMarkdown: false,
             quickAction,
+            ancestors,
         });
     };
 

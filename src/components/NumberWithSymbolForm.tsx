@@ -79,6 +79,9 @@ type NumberWithSymbolFormProps = {
     /** Whether to allow flipping amount */
     allowFlippingAmount?: boolean;
 
+    /** Whether the input is disabled or not */
+    disabled?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
@@ -141,6 +144,7 @@ function NumberWithSymbolForm({
     toggleNegative,
     clearNegative,
     ref,
+    disabled,
     ...props
 }: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
@@ -303,7 +307,7 @@ function NumberWithSymbolForm({
             const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`);
             setNewNumber(newNumber);
         },
-        [currentNumber, selection, shouldUpdateSelection, setNewNumber],
+        [currentNumber, selection.start, selection.end, shouldUpdateSelection, setNewNumber],
     );
 
     /**
@@ -369,6 +373,7 @@ function NumberWithSymbolForm({
                         ref.current = newRef;
                     }
                 }}
+                disabled={disabled}
                 prefixCharacter={symbol}
                 prefixStyle={styles.colorMuted}
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -400,6 +405,7 @@ function NumberWithSymbolForm({
                 }
                 textInput.current = newRef;
             }}
+            disabled={disabled}
             symbol={symbol}
             hideSymbol={hideSymbol}
             symbolPosition={symbolPosition}
@@ -459,60 +465,56 @@ function NumberWithSymbolForm({
                     <View
                         id={NUMBER_VIEW_ID}
                         onMouseDown={(event) => focusTextInput(event, [NUMBER_VIEW_ID])}
-                        style={[styles.moneyRequestAmountContainer, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                        style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
                     >
-                        {textInputComponent}
+                        <View style={[styles.flexRow, styles.moneyRequestAmountContainer, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
+                        {isSymbolPressable && !!currency && !canUseTouchScreen && (
+                            <Button
+                                shouldShowRightIcon
+                                small
+                                iconRight={Expensicons.DownArrow}
+                                onPress={onSymbolButtonPress}
+                                style={styles.minWidth18}
+                                isContentCentered
+                                text={currency}
+                            />
+                        )}
+                        {!!errorText && (
+                            <FormHelpMessage
+                                style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb5 : styles.mb3, styles.ph5, styles.w100]}
+                                isError
+                                message={errorText}
+                            />
+                        )}
                     </View>
-
-                    {isSymbolPressable && !!currency && !canUseTouchScreen && (
-                        <Button
-                            shouldShowRightIcon
-                            small
-                            iconRight={Expensicons.DownArrow}
-                            onPress={onSymbolButtonPress}
-                            style={styles.minWidth18}
-                            isContentCentered
-                            text={currency}
-                        />
-                    )}
-
-                    {!!errorText && (
-                        <FormHelpMessage
-                            style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
-                            isError
-                            message={errorText}
-                        />
-                    )}
                 </View>
             ) : (
                 textInputComponent
             )}
 
-            <View>
-                <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb2, styles.gap2]}>
-                    {isSymbolPressable && canUseTouchScreen && (
-                        <Button
-                            shouldShowRightIcon
-                            small
-                            iconRight={Expensicons.DownArrow}
-                            onPress={onSymbolButtonPress}
-                            style={styles.minWidth18}
-                            isContentCentered
-                            text={currency}
-                        />
-                    )}
-                    {allowFlippingAmount && canUseTouchScreen && (
-                        <Button
-                            shouldShowRightIcon
-                            small
-                            iconRight={Expensicons.PlusMinus}
-                            onPress={toggleNegative}
-                            style={styles.minWidth18}
-                            isContentCentered
-                            text={translate('iou.flip')}
-                        />
-                    )}
-                </View>
+            <View style={[styles.flexRow, styles.justifyContentCenter, shouldShowBigNumberPad ? styles.mb2 : styles.mb0, styles.gap2]}>
+                {isSymbolPressable && canUseTouchScreen && (
+                    <Button
+                        shouldShowRightIcon
+                        small
+                        iconRight={Expensicons.DownArrow}
+                        onPress={onSymbolButtonPress}
+                        style={styles.minWidth18}
+                        isContentCentered
+                        text={currency}
+                    />
+                )}
+                {allowFlippingAmount && canUseTouchScreen && (
+                    <Button
+                        shouldShowRightIcon
+                        small
+                        iconRight={Expensicons.PlusMinus}
+                        onPress={toggleNegative}
+                        style={styles.minWidth18}
+                        isContentCentered
+                        text={translate('iou.flip')}
+                    />
+                )}
             </View>
 
             {shouldShowBigNumberPad || !!footer ? (

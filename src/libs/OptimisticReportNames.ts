@@ -7,11 +7,28 @@ import type {Transaction} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {FormulaContext} from './Formula';
-import {compute, FORMULA_PART_TYPES, parse} from './Formula';
+import {compute, FORMULA_PART_TYPES, parse, requiresBackendComputation} from './Formula';
 import Log from './Log';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Permissions from './Permissions';
 import {getTitleReportField, isArchivedReport} from './ReportUtils';
+
+type ReportNameUpdate = {
+    name: string | undefined;
+    isPending?: boolean;
+};
+
+type ProcessedUpdates = {
+    optimisticData: OnyxUpdate[];
+    successData?: OnyxUpdate[];
+    failureData?: OnyxUpdate[];
+};
+
+type AdditionalUpdates = {
+    optimisticData: OnyxUpdate[];
+    successData: OnyxUpdate[];
+    failureData: OnyxUpdate[];
+};
 
 /**
  * Get the title field from report name value pairs
@@ -197,8 +214,8 @@ function isValidReportType(reportType?: string): boolean {
 /**
  * Compute a new report name if needed based on an optimistic update
  */
-function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext): string | null {
-    const {allPolicies} = context;
+function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext): ReportNameUpdate | null {
+    const {allPolicies, isOffline} = context;
 
     // If no report is provided, extract it from the update (for new reports)
     const targetReport = report ?? (incomingUpdate.value as Report);
@@ -256,7 +273,22 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
         report: updatedReport,
         policy: updatedPolicy,
         transaction: updatedTransaction,
+        allTransactions: context.allTransactions,
     };
+
+    // When we cannot properly compute the formula (e.g., currency conversion requires exchange rates),
+    // computing while online causes flickering between incorrect optimistic values and correct backend values.
+    // Return null to skip optimistic updates and let the backend provide the accurate result.
+    if (requiresBackendComputation(formulaParts, formulaContext)) {
+        if (!isOffline) {
+            return null;
+        }
+
+        return {
+            name: targetReport.reportName,
+            isPending: true,
+        };
+    }
 
     const newName = compute(formula, formulaContext);
 
@@ -267,31 +299,72 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
             isNewReport: !report,
         });
 
-        return newName;
+        return {
+            name: newName,
+        };
     }
 
     return null;
 }
 
 /**
+ * Add computed report name updates to the provided update buckets.
+ * Appends optimistic data and clears pending fields on success/failure if needed.
+ */
+function addAdditionalUpdates(reportID: string, reportNameUpdate: ReportNameUpdate, additionalUpdates: AdditionalUpdates) {
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    additionalUpdates.optimisticData.push({
+        key: getReportKey(reportID),
+        onyxMethod: Onyx.METHOD.MERGE,
+        value: {
+            reportName: reportNameUpdate.name,
+            ...(reportNameUpdate.isPending && {
+                pendingFields: {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            }),
+        },
+    });
+
+    // If there's a pending field, add updates to clear it in success/failure data
+    if (reportNameUpdate.isPending) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        const clearPendingUpdate: OnyxUpdate = {
+            key: getReportKey(reportID),
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {pendingFields: {reportName: null}},
+        };
+
+        additionalUpdates.successData.push(clearPendingUpdate);
+        additionalUpdates.failureData.push(clearPendingUpdate);
+    }
+}
+
+/**
  * Update optimistic report names based on incoming updates
  * This is the main middleware function that processes optimistic data
  */
-function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: UpdateContext): OnyxUpdate[] {
+function updateOptimisticReportNamesFromUpdates(optimisticData: OnyxUpdate[], context: UpdateContext, successData?: OnyxUpdate[], failureData?: OnyxUpdate[]): ProcessedUpdates {
     const {betas, allReports, betaConfiguration} = context;
 
     // Check if the feature is enabled
     if (!Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, betas, betaConfiguration)) {
-        return updates;
+        return {
+            optimisticData,
+            successData,
+            failureData,
+        };
     }
 
     Log.info('[OptimisticReportNames] Processing optimistic updates for report names', false, {
-        updatesCount: updates.length,
+        updatesCount: optimisticData.length,
     });
 
-    const additionalUpdates: OnyxUpdate[] = [];
+    const additionalUpdates: AdditionalUpdates = {
+        optimisticData: [],
+        successData: [],
+        failureData: [],
+    };
 
-    for (const update of updates) {
+    for (const update of optimisticData) {
         const objectType = determineObjectTypeByKey(update.key);
 
         switch (objectType) {
@@ -303,13 +376,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                 const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                 if (reportNameUpdate) {
-                    additionalUpdates.push({
-                        key: getReportKey(reportID),
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        value: {
-                            reportName: reportNameUpdate,
-                        },
-                    });
+                    addAdditionalUpdates(reportID, reportNameUpdate, additionalUpdates);
                 }
                 break;
             }
@@ -321,13 +388,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                     const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                     if (reportNameUpdate) {
-                        additionalUpdates.push({
-                            key: getReportKey(report.reportID),
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            value: {
-                                reportName: reportNameUpdate,
-                            },
-                        });
+                        addAdditionalUpdates(report.reportID, reportNameUpdate, additionalUpdates);
                     }
                 }
                 break;
@@ -346,13 +407,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                     const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
                     if (reportNameUpdate) {
-                        additionalUpdates.push({
-                            key: getReportKey(report.reportID),
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            value: {
-                                reportName: reportNameUpdate,
-                            },
-                        });
+                        addAdditionalUpdates(report.reportID, reportNameUpdate, additionalUpdates);
                     }
                 }
                 break;
@@ -364,10 +419,16 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     }
 
     Log.info('[OptimisticReportNames] Processing completed', false, {
-        additionalUpdatesCount: additionalUpdates.length,
+        additionalOptimisticUpdatesCount: additionalUpdates.optimisticData.length,
+        additionalSuccessUpdatesCount: additionalUpdates.successData.length,
+        additionalFailureUpdatesCount: additionalUpdates.failureData.length,
     });
 
-    return updates.concat(additionalUpdates);
+    return {
+        optimisticData: optimisticData.concat(additionalUpdates.optimisticData),
+        successData: successData ? successData.concat(additionalUpdates.successData) : additionalUpdates.successData,
+        failureData: failureData ? failureData.concat(additionalUpdates.failureData) : additionalUpdates.failureData,
+    };
 }
 
 export {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates};

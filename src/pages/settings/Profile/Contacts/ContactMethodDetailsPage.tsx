@@ -41,6 +41,7 @@ import {close} from '@userActions/Modal';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Login} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -71,7 +72,12 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      */
     const contactMethod: string = useMemo(() => getDecodedContactMethodFromUriParam(route.params.contactMethod), [route.params.contactMethod]);
 
-    const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
+    const loginDataRef = useRef<Login | undefined>(undefined);
+    const loginData = useMemo(() => {
+        // eslint-disable-next-line react-compiler/react-compiler
+        loginDataRef.current = loginList?.[contactMethod];
+        return loginList?.[contactMethod];
+    }, [loginList, contactMethod]);
 
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
@@ -330,7 +336,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         clearError={() => {
                             // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.
                             // This causes loginData to become an object, which makes sendValidateCode trigger, so we add this check to prevent clearing the error.
-                            if (!loginData.partnerUserID) {
+                            if (!loginDataRef.current?.partnerUserID) {
                                 return;
                             }
                             clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
@@ -342,7 +348,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                             requestContactMethodValidateCode(contactMethod);
                         }}
                         descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
-                        forwardedRef={validateCodeFormRef}
+                        ref={validateCodeFormRef}
                         shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />
                 )}
