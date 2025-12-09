@@ -20,6 +20,7 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover, isUserPolicyAdmin} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -388,7 +389,23 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
-    for (const email of selectedMemberEmails) {
+    // Handles the case when there are multiple logins for the same account.
+    // Currently, the only known case where this happens is when a user gets invited
+    // with their secondary login.
+    // This happens because we only have the secondary login when
+    // we're inviting the user, but the backend always returns the primary login,
+    // so we end up with both stored in Onyx.
+    const selectedMemberEmailsWithDuplicates: string[] = [...selectedMemberEmails];
+    for (const employeeEmail of Object.keys(policy?.employeeList ?? {})) {
+        const personalDetails = getPersonalDetailByEmail(employeeEmail);
+        // If we don't have the personal details, it means it's a secondary login
+        if (personalDetails) {
+            continue;
+        }
+        selectedMemberEmailsWithDuplicates.push(employeeEmail);
+    }
+
+    for (const email of selectedMemberEmailsWithDuplicates) {
         optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         successMembersState[email] = null;
         failureMembersState[email] = {
