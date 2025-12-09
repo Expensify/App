@@ -50,6 +50,7 @@ import {
 
 type GetReportPrimaryActionParams = {
     currentUserEmail: string;
+    currentUserAccountID: number;
     report: Report | undefined;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
@@ -97,7 +98,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
         return false;
     }
 
@@ -125,13 +126,6 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     }
 
     if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
-
-    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
-    const isReportSubmitter = isCurrentUserSubmitter(report);
-
-    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
     }
 
@@ -229,6 +223,11 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
 }
 
 function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[]) {
+    const isClosedReport = isClosedReportUtils(report);
+    if (isClosedReport) {
+        return false;
+    }
+
     const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
 
     if (!isReportOnHold) {
@@ -248,8 +247,8 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
     return isHolder;
 }
 
-function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[], currentUserEmail: string, policy: Policy | undefined) {
-    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail, report, policy));
+function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[], currentUserEmail: string, currentUserAccountID: number, policy: Policy | undefined) {
+    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail, currentUserAccountID, report, policy));
 
     if (!hasDuplicates) {
         return false;
@@ -270,14 +269,21 @@ function isReviewDuplicatesAction(report: Report, reportTransactions: Transactio
     return false;
 }
 
-function isMarkAsCashAction(currentUserEmail: string, report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+function isMarkAsCashAction(
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    report: Report,
+    reportTransactions: Transaction[],
+    violations: OnyxCollection<TransactionViolation[]>,
+    policy?: Policy,
+) {
     const isOneExpenseReport = isExpenseReportUtils(report) && reportTransactions.length === 1;
 
     if (!isOneExpenseReport) {
         return false;
     }
 
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserEmail, report, policy);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserEmail, currentUserAccountID, report, policy);
 
     if (hasAllPendingRTERViolations) {
         return true;
@@ -287,7 +293,14 @@ function isMarkAsCashAction(currentUserEmail: string, report: Report, reportTran
     const isReportApprover = isApproverUtils(policy, currentUserEmail);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(reportTransactions, report, policy, violations, currentUserEmail);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+        reportTransactions,
+        report,
+        policy,
+        violations,
+        currentUserEmail,
+        currentUserAccountID,
+    );
     const userControlsReport = isReportSubmitter || isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
@@ -306,12 +319,19 @@ function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolati
     return violations?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
 }
 
-function isPrimaryMarkAsResolvedAction(currentUserEmail: string, report?: Report, reportTransactions?: Transaction[], violations?: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+function isPrimaryMarkAsResolvedAction(
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    report?: Report,
+    reportTransactions?: Transaction[],
+    violations?: OnyxCollection<TransactionViolation[]>,
+    policy?: Policy,
+) {
     if (!reportTransactions || reportTransactions.length !== 1) {
         return false;
     }
 
-    const transactionViolations = getTransactionViolations(reportTransactions.at(0), violations, currentUserEmail, report, policy);
+    const transactionViolations = getTransactionViolations(reportTransactions.at(0), violations, currentUserEmail, currentUserAccountID, report, policy);
     return isExpenseReportUtils(report) && isMarkAsResolvedAction(report, transactionViolations, policy);
 }
 
@@ -335,6 +355,7 @@ function getAllExpensesToHoldIfApplicable(report: Report | undefined, reportActi
 function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     const {
         currentUserEmail,
+        currentUserAccountID,
         report,
         reportTransactions,
         violations,
@@ -362,12 +383,13 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
+    const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy);
 
-    if (isMarkAsCashAction(currentUserEmail, report, reportTransactions, violations, policy)) {
+    if (isMarkAsCashAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 
-    if (isReviewDuplicatesAction(report, reportTransactions, currentUserEmail, policy)) {
+    if (isReviewDuplicatesAction(report, reportTransactions, currentUserEmail, currentUserAccountID, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
@@ -375,11 +397,11 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
-    if (isRemoveHoldAction(report, chatReport, reportTransactions) || isPayActionWithAllExpensesHeld) {
+    if (isRemoveHoldAction(report, chatReport, reportTransactions) || (isPayActionWithAllExpensesHeld && expensesToHold.length)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
-    if (isPrimaryMarkAsResolvedAction(currentUserEmail, report, reportTransactions, violations, policy)) {
+    if (isPrimaryMarkAsResolvedAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
     if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
@@ -394,7 +416,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 
-    if (getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy).length) {
+    if (expensesToHold.length) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
@@ -423,6 +445,7 @@ function isMarkAsCashActionForTransaction(currentUserLogin: string, parentReport
 
 function getTransactionThreadPrimaryAction(
     currentUserLogin: string,
+    currentUserAccountID: number,
     transactionThreadReport: Report,
     parentReport: Report,
     reportTransaction: Transaction,
@@ -438,7 +461,7 @@ function getTransactionThreadPrimaryAction(
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
-    if (isReviewDuplicatesAction(parentReport, [reportTransaction], currentUserLogin, policy)) {
+    if (isReviewDuplicatesAction(parentReport, [reportTransaction], currentUserLogin, currentUserAccountID, policy)) {
         return isFromReviewDuplicates ? CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE : CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
@@ -455,6 +478,8 @@ export {
     isAddExpenseAction,
     isPrimaryPayAction,
     isExportAction,
+    isApproveAction,
+    isSubmitAction,
     isMarkAsResolvedAction,
     isPrimaryMarkAsResolvedAction,
     getAllExpensesToHoldIfApplicable,

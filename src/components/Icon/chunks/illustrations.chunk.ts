@@ -14,13 +14,16 @@ import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 // Other Images
 import Hand from '@assets/images/hand.svg';
+import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
+import BigVault from '@assets/images/product-illustrations/big-vault.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
+import DjBoothReferenceHands from '@assets/images/product-illustrations/dj-booth-reference-hands.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
@@ -34,13 +37,17 @@ import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg
 import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
+import Safe from '@assets/images/product-illustrations/safe.svg';
+import SaveTheWorldScale from '@assets/images/product-illustrations/save-the-world-scale.svg';
 import SewerDino from '@assets/images/product-illustrations/sewer_dino.svg';
 import SmartScan from '@assets/images/product-illustrations/simple-illustration__smartscan.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
+import TiltedCoinExpensify from '@assets/images/product-illustrations/tilted-coin-expensify.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -60,6 +67,7 @@ import Car from '@assets/images/simple-illustrations/simple-illustration__car.sv
 import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
+import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
@@ -90,6 +98,7 @@ import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illus
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
+import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
 import PaperAirplane from '@assets/images/simple-illustrations/simple-illustration__paperairplane.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
@@ -137,14 +146,17 @@ const Illustrations = {
     LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
+    LaptopOnDeskWithCoffeeAndKey,
 
     // Expensify Card
     ExpensifyCardIllustration,
 
     // Product Illustrations
     Abracadabra,
+    BigVault,
     BrokenCompanyCardBankConnection,
     BrokenMagnifyingGlass,
+    DjBoothReferenceHands,
     EmptyStateExpenses,
     HoldExpense,
     ReceiptFairy,
@@ -158,14 +170,18 @@ const Illustrations = {
     ReceiptsStackedOnPin,
     RocketBlue,
     RocketDude,
+    Safe,
+    SaveTheWorldScale,
     SewerDino,
     SmartScan,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
     ThreeLeggedLaptopWoman,
+    TiltedCoinExpensify,
     ToddBehindCloud,
     ToddInCar,
     ToddWithPhones,
+    WorkspaceScene,
 
     // Educational Illustrations
     MultiScan,
@@ -189,6 +205,7 @@ const Illustrations = {
     MagnifyingGlassMoney,
     MoneyReceipts,
     MoneyWings,
+    MoneyIntoWallet,
     PerDiem,
     RealtimeReport,
     ReceiptWrangler,
@@ -200,7 +217,6 @@ const Illustrations = {
     ThumbsDown,
     TreasureChest,
     ExpensifyMobileApp,
-    MoneyIntoWallet,
     PalmTree,
     PaperAirplane,
     PiggyBank,
@@ -223,6 +239,7 @@ const Illustrations = {
     BlueShield,
     Pencil,
     Luggage,
+    OpenSafe,
     Puzzle,
     Abacus,
     Alert,
@@ -253,6 +270,7 @@ const Illustrations = {
     LockOpen,
     Mailbox,
     ShieldYellow,
+    Clock,
 };
 
 /**

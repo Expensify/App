@@ -1,12 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import * as Expensicons from '@components/Icon/Expensicons';
 import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
@@ -41,7 +41,6 @@ function IOURequestStepPerDiemWorkspace({
     const {translate, localeCompare} = useLocalize();
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar'] as const);
 
     const selectedWorkspace = useMemo(() => transaction?.participants?.[0], [transaction]);
 
@@ -65,14 +64,14 @@ function IOURequestStepPerDiemWorkspace({
                     {
                         id: policy.id,
                         source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                        fallbackIcon: expensifyIcons.FallbackWorkspaceAvatar,
+                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         name: policy.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
                     },
                 ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, currentUserLogin, selectedWorkspace, localeCompare, expensifyIcons.FallbackWorkspaceAvatar]);
+    }, [allPolicies, currentUserLogin, selectedWorkspace?.policyID, localeCompare]);
 
     const filterWorkspace = useCallback((workspaceOption: WorkspaceListItem, searchInput: string) => {
         const results = tokenizedSearch([workspaceOption], searchInput, (option) => [option.text ?? '']);
@@ -107,7 +106,7 @@ function IOURequestStepPerDiemWorkspace({
             },
         ]);
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '');
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, policyExpenseReportID));
     };
 
