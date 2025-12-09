@@ -483,6 +483,7 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldShowChangeApproverOption =
             !isOffline &&
+            queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
             !isAnyTransactionOnHold &&
             areSelectedTransactionsIncludedInReports &&
             selectedReports.length &&
