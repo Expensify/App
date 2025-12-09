@@ -28,6 +28,7 @@ import type {
     AssignedCardParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardOnDisputeParams,
@@ -960,7 +961,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `このチャットルームは、<strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> に関するあらゆる内容のためのものです。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `このチャットは<strong>${invoicePayer}</strong>と<strong>${invoiceReceiver}</strong>の間の請求書用です。+ ボタンを使って請求書を送信してください。`,
-        beginningOfChatHistory: 'このチャットの相手は',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `このチャットは${users}とのチャットです。`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `ここは、<strong>${submitterDisplayName}</strong> が <strong>${workspaceName}</strong> に経費を提出する場所です。+ ボタンを使用してください。`,
         beginningOfChatHistorySelfDM: 'これはあなたの個人スペースです。メモ、タスク、下書き、リマインダーとして使用してください。',
