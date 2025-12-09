@@ -367,10 +367,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const getCustomListHeader = () => {
-        if (filteredTagList.length === 0) {
-            return null;
-        }
-
         if (hasDependentTags) {
             return (
                 <CustomListHeader
