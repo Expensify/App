@@ -2748,7 +2748,7 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
 }
 
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, isReportArchived = false): boolean {
-    if (!isMoneyRequestReport(moneyRequestReport) || isReportArchived) {
+    if (!(isMoneyRequestReport(moneyRequestReport) || isInvoiceReport(moneyRequestReport)) || isReportArchived) {
         return false;
     }
     // Adding or deleting transactions is not allowed on a closed report
@@ -2756,7 +2756,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, polic
         return false;
     }
 
-    if (isInstantSubmitEnabled(policy) && isProcessingReport(moneyRequestReport)) {
+    if (isInstantSubmitEnabled(policy) && isProcessingReport(moneyRequestReport) && isExpenseReport(moneyRequestReport)) {
         return isAwaitingFirstLevelApprovalNew(moneyRequestReport, Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`] ?? {}), policy);
     }
 
