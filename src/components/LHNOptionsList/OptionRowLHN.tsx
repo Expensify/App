@@ -14,6 +14,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -59,6 +60,7 @@ function OptionRowLHN({
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
 
     const session = useSession();
     const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
@@ -356,7 +358,7 @@ function OptionRowLHN({
                                             <Icon
                                                 testID="Pencil Icon"
                                                 fill={theme.icon}
-                                                src={Expensicons.Pencil}
+                                                src={expensifyIcons.Pencil}
                                             />
                                         </View>
                                     )}
