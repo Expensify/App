@@ -2351,7 +2351,7 @@ ${amount}，商户：${merchant} - ${date}`,
         transferDetailDebitCard: '您的资金应会立即到账。',
         failedTransfer: '您的余额尚未完全结清。请转账到银行账户。',
         notHereSubTitle: '请在钱包页面转出您的余额',
-        goToWallet: '前往钱��',
+        goToWallet: '前往钱包',
     },
     chooseTransferAccountPage: {
         chooseAccount: '选择账户',

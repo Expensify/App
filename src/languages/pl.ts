@@ -2187,7 +2187,7 @@ const translations: TranslationDeepObject<typeof en> = {
         monthlyLimit: {
             name: 'Miesięczny limit',
             title: ({formattedLimit}: ViolationsOverLimitParams) =>
-                `Możesz wydawa�� do ${formattedLimit} miesięcznie na tej karcie. Limit zostanie zresetowany pierwszego dnia każdego miesiąca kalendarzowego.`,
+                `Możesz wydawać do ${formattedLimit} miesięcznie na tej karcie. Limit zostanie zresetowany pierwszego dnia każdego miesiąca kalendarzowego.`,
         },
         virtualCardNumber: 'Numer wirtualnej karty',
         travelCardCvv: 'CVV karty podróżnej',

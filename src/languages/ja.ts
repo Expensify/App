@@ -1988,7 +1988,7 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: '不審なアクティビティを報告',
         lockAccount: 'アカウントをロック',
-        unlockAccount: 'アカウントのロック���除',
+        unlockAccount: 'アカウントのロック解除',
         compromisedDescription:
             'アカウントにおかしな点がありますか？報告すると、すぐにアカウントがロックされ、新しい Expensify Card の取引がブロックされ、アカウントの変更も行えなくなります。',
         domainAdminsDescription: 'ドメイン管理者向け：これにより、ドメイン内のすべての Expensify Card のアクティビティと管理者による操作も一時停止されます。',
