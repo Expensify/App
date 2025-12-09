@@ -57,7 +57,6 @@ import {
     generateReportID,
     getDisplayNameForParticipant,
     getIcons,
-    getReportName,
     getWorkspaceChats,
     hasEmptyReportsForPolicy,
     hasViolations as hasViolationsReportUtils,
