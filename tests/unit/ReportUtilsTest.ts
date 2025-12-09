@@ -5972,7 +5972,9 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 managerID: currentUserAccountID,
             };
+            const createdAction: ReportAction = {...createRandomReportAction(123), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, originalMessage: {submittedTo: currentUserAccountID}};
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdAction.reportActionID]: createdAction});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workflowDisabledPolicy.id}`, workflowDisabledPolicy);
             await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
                 [currentUserAccountID]: {
