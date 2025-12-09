@@ -10594,10 +10594,6 @@ function canIOUBePaid(
     );
 }
 
-function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxEntry<OnyxTypes.Session>, reportPolicy?: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>) {
-    return isPayerReportUtils(session, iouReport, false, reportPolicy) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
-}
-
 function canSubmitReport(
     report: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
@@ -15072,7 +15068,6 @@ export {
     canUnapproveIOU,
     cancelPayment,
     canIOUBePaid,
-    canCancelPayment,
     cleanUpMoneyRequest,
     clearMoneyRequest,
     completeSplitBill,
