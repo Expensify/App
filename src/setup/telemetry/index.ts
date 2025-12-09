@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/react-native';
-import {Platform} from 'react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {browserProfilingIntegration, browserTracingIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
