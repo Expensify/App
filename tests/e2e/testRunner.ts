@@ -127,15 +127,14 @@ const runTests = async (): Promise<void> => {
     const skippedTests: string[] = [];
     const clearTestResults = (test: TestConfig) => {
         skippedTests.push(test.name);
-
-        Object.keys(results).forEach((branch: string) => {
-            Object.keys(results[branch]).forEach((metric: string) => {
+        for (const branch of Object.keys(results)) {
+            for (const metric of Object.keys(results[branch])) {
                 if (!metric.startsWith(test.name)) {
-                    return;
+                    continue;
                 }
                 delete results[branch][metric];
-            });
-        });
+            }
+        }
     };
 
     // Collect results while tests are being executed

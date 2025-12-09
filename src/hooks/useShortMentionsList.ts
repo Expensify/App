@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
+import {getEmailDomain, isDomainPublic} from '@libs/LoginUtils';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 /**
@@ -18,14 +18,20 @@ export default function useShortMentionsList() {
             return [];
         }
 
+        const currentUserDomain = getEmailDomain(currentUserPersonalDetails.login ?? '');
+        const isCurrentUserPublicDomain = isDomainPublic(currentUserDomain);
+
         return Object.values(personalDetails)
             .map((personalDetail) => {
-                if (!personalDetail?.login) {
+                if (!personalDetail?.login || isCurrentUserPublicDomain) {
                     return;
                 }
 
+                const personalDetailDomain = getEmailDomain(personalDetail.login);
+                const isPersonalDetailPublicDomain = isDomainPublic(personalDetailDomain);
+
                 // If the emails are not in the same private domain, we don't want to highlight them
-                if (!areEmailsFromSamePrivateDomain(personalDetail.login, currentUserPersonalDetails.login ?? '')) {
+                if (isPersonalDetailPublicDomain || personalDetailDomain !== currentUserDomain) {
                     return;
                 }
 

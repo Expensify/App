@@ -4,7 +4,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
@@ -54,19 +53,33 @@ function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, tran
 }
 
 /**
- * Calculates the amount per user given a list of participants
+ * Calculates the amount per split.
  *
- * @param numberOfParticipants - Number of participants in the chat. It should not include the current user.
+ * @param numberOfSplits - Number of splits EXCLUDING the remainder holder ("default user").
  * @param total - IOU total amount in backend format (cents, no matter the currency)
- * @param currency - This is used to know how many decimal places are valid to use when splitting the total
- * @param isDefaultUser - Whether we are calculating the amount for the current user
+ * @param currency - Used to know how many decimal places are valid when splitting the total
+ * @param isDefaultUser - Whether we are calculating the amount for the remainder holder
+ * @param useFloorToLastRounding - `false` (default, legacy behavior) or `true` to floor all and put full remainder on the default user
  */
-function calculateAmount(numberOfParticipants: number, total: number, currency: string, isDefaultUser = false): number {
+function calculateAmount(numberOfSplits: number, total: number, currency: string, isDefaultUser = false, useFloorToLastRounding = false): number {
     // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
     // has to be capped to 2 decimal places
     const currencyUnit = Math.min(100, getCurrencyUnit(currency));
     const totalInCurrencySubunit = (total / 100) * currencyUnit;
-    const totalParticipants = numberOfParticipants + 1;
+    const totalParticipants = numberOfSplits + 1;
+
+    // New optional mode
+    if (useFloorToLastRounding) {
+        // For positive totals, floor for everyone and add the full remainder to the default user
+        // For negative totals, do the inverse of above and round up using Math.ceil to calculate the base share
+        const baseShareSubunit = totalInCurrencySubunit >= 0 ? Math.floor(totalInCurrencySubunit / totalParticipants) : Math.ceil(totalInCurrencySubunit / totalParticipants);
+        const remainderSubunit = totalInCurrencySubunit - baseShareSubunit * totalParticipants;
+
+        const subunitAmount = baseShareSubunit + (isDefaultUser ? remainderSubunit : 0);
+        return Math.round((subunitAmount * 100) / currencyUnit);
+    }
+
+    // Legacy behavior (backwards compatible): round equally and adjust default user by +/- difference
     const amountPerPerson = Math.round(totalInCurrencySubunit / totalParticipants);
     let finalAmount = amountPerPerson;
     if (isDefaultUser) {
@@ -192,7 +205,7 @@ function isMovingTransactionFromTrackExpense(action?: IOUAction) {
     return false;
 }
 
-function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy: OnyxInputOrEntry<Policy> | SearchPolicy, isPerDiemRequest: boolean) {
+function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy: OnyxInputOrEntry<Policy>, isPerDiemRequest: boolean) {
     // Determine when to show the receipt empty state:
     // - Show for pay, submit or track expense types
     // - Hide for per diem requests

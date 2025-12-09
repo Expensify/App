@@ -4,6 +4,7 @@ import DecisionModal from '@components/DecisionModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -13,6 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     checkIfFeedConnectionIsBroken,
+    getCompanyCardFeed,
     getCompanyFeeds,
     getDomainOrWorkspaceAccountID,
     getFilteredCardList,
@@ -55,9 +57,10 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
-    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardFeeds, , defaultFeed] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const [cardsList] = useCardsList(policyID, selectedFeed);
+    const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
+    const [cardsList] = useCardsList(selectedFeed);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
@@ -67,7 +70,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
-    const filteredCardList = getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined, workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.[selectedFeed]?.accountList : undefined, workspaceCardFeeds);
 
     const companyCards = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
@@ -83,21 +86,22 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     }, [policyID, domainOrWorkspaceAccountID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
-    const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
+    const isLoading = !isOffline && (!cardFeeds || (!!defaultFeed?.isLoading && isEmptyObject(cardsList)));
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
+    const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
     useEffect(() => {
         fetchCompanyCards();
     }, [fetchCompanyCards]);
 
     useEffect(() => {
-        if (isLoading || !selectedFeed || isPending) {
+        if (isLoading || !feed || isPending) {
             return;
         }
 
-        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, selectedFeed);
-    }, [selectedFeed, isLoading, policyID, isPending, domainOrWorkspaceAccountID]);
+        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, feed);
+    }, [feed, isLoading, policyID, isPending, domainOrWorkspaceAccountID]);
 
     const handleAssignCard = () => {
         if (isActingAsDelegate) {
@@ -118,19 +122,17 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         }
 
         const data: Partial<AssignCardData> = {
-            bankName: selectedFeed,
+            bankName: feed,
         };
 
         let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
         const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
-        const selectedFeedCompanyCardsData = selectedFeed ? cardFeeds?.settings?.companyCards?.[selectedFeed] : undefined;
-        const selectedFeedOAuthData = selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined;
-        const isFeedExpired = isSelectedFeedExpired(selectedFeedOAuthData);
-        const plaidAccessToken = selectedFeedCompanyCardsData?.plaidAccessToken;
+        const isFeedExpired = isSelectedFeedExpired(selectedFeedData);
+        const plaidAccessToken = selectedFeedData?.plaidAccessToken;
 
         // Refetch plaid card list
         if (!isFeedExpired && plaidAccessToken) {
-            const country = selectedFeedCompanyCardsData?.country ?? '';
+            const country = selectedFeedData?.country ?? '';
             importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', undefined, undefined, plaidAccessToken);
         }
 
@@ -209,7 +211,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                             shouldShowGBDisclaimer={shouldShowGBDisclaimer}
                             policyID={policyID}
                             handleAssignCard={handleAssignCard}
-                            isDisabledAssignCardButton={!selectedFeedData || isFeedConnectionBroken}
+                            isDisabledAssignCardButton={!selectedFeedData || isFeedConnectionBroken || !isAllowedToIssueCompanyCard}
                         />
                     )}
                 </WorkspacePageWithSections>

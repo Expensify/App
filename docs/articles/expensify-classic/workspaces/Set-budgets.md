@@ -27,8 +27,10 @@ Once you create your categories, you can enable a budget for each category using
 5. Select your budget settings:
    - **Budget frequency**: Set as monthly or yearly.
    - **Total workspace budget**: Enter the overall budget cap.
-   - **Per individual budget**: Set a budget per workspace member.
-   - **Notification threshold**: You'll be notified when 100% of the budget is used by default. To receive additional notifications at a certain percentage, enter the percentage.
+   - **Per member budget**: Set a budget per workspace member.
+   - **Threshold Notification**: You'll be notified when 100% of the budget is used by default. To receive additional notifications at a certain percentage, enter the percentage.
+   - After an expense is approved, an overspending notification will be sent to the `#admins` room in New Expensify.
+
 6. Click **Save**.
 
 ---
@@ -37,12 +39,13 @@ Once you create your categories, you can enable a budget for each category using
 
 Once you create your tags, you can enable a budget for each tag using the following steps:
 1. Navigate to **Settings > Workspaces > [Workspace Name] > Tags**.
-2. Click **Edit** next to the tag you want to add a budget.  
+2. Click **Edit Budget** next to the tag you want to add a budget.  
 3. Click the toggle to enable budgets (the dot will be green when enabled).
 4. Select your budget settings:
    - **Budget frequency**: Set as monthly or yearly.
    - **Total workspace budget**: Enter the overall budget cap.
-   - **Per individual budget**: Set a budget per workspace member.
-   - **Notification threshold**: You'll be notified when 100% of the budget is used by default. To receive additional notifications at a certain percentage, enter the percentage.
-5. Click **Save**.
+   - **Per member budget**: Set a budget per workspace member.
+   - **Threshold Notification**: You'll be notified when 100% of the budget is used by default. To receive additional notifications at a certain percentage, enter the percentage.
+   - After an expense is approved, an overspending notification will be sent to the `#admins` room in New Expensify.
 
+5. Click **Save**.

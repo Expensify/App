@@ -1,4 +1,4 @@
-import {isArchivedReport} from '@libs/ReportUtils';
+import {archivedReportsIdSetSelector} from '@selectors/ReportNameValuePairs';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useDeepCompareRef from './useDeepCompareRef';
@@ -10,19 +10,7 @@ import useOnyx from './useOnyx';
 function useArchivedReportsIdSet(): ArchivedReportsIDSet {
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
-
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    ids.add(key);
-                }
-            }
-            return ids;
-        },
+        selector: archivedReportsIdSetSelector,
     });
 
     // useDeepCompareRef is used here to prevent unnecessary re-renders by maintaining referential equality

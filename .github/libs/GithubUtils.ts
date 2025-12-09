@@ -201,7 +201,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue: OctokitIssueItem): StagingDeployCashData {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replaceAll('`', '');
 
             return {
                 title: issue.title,
@@ -334,7 +334,7 @@ class GithubUtils {
 
                     const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                     console.log('Found the following NO QA PRs:', noQAPRs);
-                    const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
+                    const verifiedOrNoQAPRs = new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs]);
 
                     const sortedPRList = [...new Set(arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort(
                         (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
@@ -360,20 +360,20 @@ class GithubUtils {
                     // PR list
                     if (sortedPRList.length > 0) {
                         issueBody += '**This release contains changes from the following pull requests:**\r\n';
-                        sortedPRList.forEach((URL) => {
-                            issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                        for (const URL of sortedPRList) {
+                            issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                             issueBody += ` ${URL}\r\n`;
-                        });
+                        }
                         issueBody += '\r\n\r\n';
                     }
 
                     // Mobile-Expensify PR list
                     if (sortedPRListMobileExpensify.length > 0) {
                         issueBody += '**Mobile-Expensify PRs:**\r\n';
-                        sortedPRListMobileExpensify.forEach((URL) => {
-                            issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                        for (const URL of sortedPRListMobileExpensify) {
+                            issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                             issueBody += ` ${URL}\r\n`;
-                        });
+                        }
                         issueBody += '\r\n\r\n';
                     }
 
@@ -381,25 +381,25 @@ class GithubUtils {
                     if (!isEmptyObject(internalQAPRMap)) {
                         console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                         issueBody += '**Internal QA:**\r\n';
-                        Object.keys(internalQAPRMap).forEach((URL) => {
+                        for (const URL of Object.keys(internalQAPRMap)) {
                             const merger = internalQAPRMap[URL];
                             const mergerMention = `@${merger}`;
                             issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
                             issueBody += `${URL}`;
                             issueBody += ` - ${mergerMention}`;
                             issueBody += '\r\n';
-                        });
+                        }
                         issueBody += '\r\n\r\n';
                     }
 
                     // Deploy blockers
                     if (deployBlockers.length > 0) {
                         issueBody += '**Deploy Blockers:**\r\n';
-                        sortedDeployBlockers.forEach((URL) => {
+                        for (const URL of sortedDeployBlockers) {
                             issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
                             issueBody += URL;
                             issueBody += '\r\n';
-                        });
+                        }
                         issueBody += '\r\n\r\n';
                     }
 

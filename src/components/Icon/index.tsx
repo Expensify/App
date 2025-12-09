@@ -28,6 +28,7 @@ type IconProps = {
     fill?: string;
 
     /** Is small icon */
+    extraSmall?: boolean;
     small?: boolean;
 
     /** Is large icon */
@@ -66,6 +67,7 @@ function Icon({
     width = variables.iconSizeNormal,
     height = variables.iconSizeNormal,
     fill = undefined,
+    extraSmall = false,
     small = false,
     large = false,
     medium = false,
@@ -80,7 +82,7 @@ function Icon({
 }: IconProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height, isButtonIcon);
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(extraSmall, small, medium, large, width, height, isButtonIcon);
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
     const contentSize: Dimensions = {width: iconWidth as number, height: iconHeight as number};
     const [canvasSize, setCanvasSize] = useState<Dimensions>();
