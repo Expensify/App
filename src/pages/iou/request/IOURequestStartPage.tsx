@@ -155,6 +155,7 @@ function IOURequestStartPage({
             currentDate,
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
         });
         // eslint-disable-next-line
     }, []);

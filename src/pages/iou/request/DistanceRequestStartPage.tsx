@@ -110,6 +110,7 @@ function DistanceRequestStartPage({
             currentDate,
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
         });
         // eslint-disable-next-line
     }, []);
