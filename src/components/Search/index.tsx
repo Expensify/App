@@ -32,7 +32,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canAddOrDeleteTransactions, canEditFieldOfMoneyRequest, canHoldUnholdReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -55,7 +55,7 @@ import {
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {hasValidModifiedAmount, isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -97,7 +97,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
         item.keyForList,
         {
             isSelected: true,
-            canDelete: item.canDelete,
+            canDelete: canAddOrDeleteTransactions(item.report, item.policy),
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
@@ -115,7 +115,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
             groupCurrency: item.groupCurrency,
             reportID: item.reportID,
             policyID: item.report?.policyID,
-            amount: hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount,
+            amount: item.modifiedAmount ?? item.amount,
             groupAmount: item.groupAmount,
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
@@ -179,7 +179,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
         ...selectedTransactions,
         [item.keyForList]: {
             isSelected: true,
-            canDelete: item.canDelete,
+            canDelete: canAddOrDeleteTransactions(item.report, item.policy),
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
@@ -196,7 +196,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
-            amount: hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount,
+            amount: Math.abs(item.modifiedAmount || item.amount),
             groupAmount: item.groupAmount,
             groupCurrency: item.groupCurrency,
             currency: item.currency,
@@ -238,6 +238,7 @@ function Search({
     const isFocused = useIsFocused();
     const {markReportIDAsExpense} = useContext(WideRHPContext);
     const {
+        currentSearchHash,
         setCurrentSearchHashAndKey,
         setCurrentSearchQueryJSON,
         setSelectedTransactions,
@@ -367,9 +368,11 @@ function Search({
         if (selectedKeys.length > 0 && !isMobileSelectionModeEnabled && !isSearchResultsEmpty) {
             turnOnMobileSelectionMode();
         }
+
+        // We only want this effect to handle the switching of mobile selection mode state when screen size changes.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
+    }, [isSmallScreenWidth]);
 
     useEffect(() => {
         openSearch();
@@ -511,10 +514,11 @@ function Search({
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
-                        canDelete: transactionItem.canDelete,
+                        canDelete: canAddOrDeleteTransactions(transactionItem.report, transactionItem.policy),
+
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
-                        amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
+                        amount: transactionItem.modifiedAmount ?? transactionItem.amount,
                         groupAmount: transactionItem.groupAmount,
                         groupCurrency: transactionItem.groupCurrency,
                         currency: transactionItem.currency,
@@ -556,10 +560,11 @@ function Search({
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
-                    canDelete: transactionItem.canDelete,
+                    canDelete: canAddOrDeleteTransactions(transactionItem.report, transactionItem.policy),
+
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
-                    amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
+                    amount: transactionItem.modifiedAmount ?? transactionItem.amount,
                     groupAmount: transactionItem.groupAmount,
                     groupCurrency: transactionItem.groupCurrency,
                     currency: transactionItem.currency,
@@ -586,13 +591,13 @@ function Search({
 
     useEffect(
         () => () => {
-            if (isSearchTopmostFullScreenRoute()) {
+            if (isSearchTopmostFullScreenRoute() && currentSearchHash === hash) {
                 return;
             }
             clearSelectedTransactions();
             turnOffMobileSelectionMode();
         },
-        [isFocused, clearSelectedTransactions],
+        [isFocused, clearSelectedTransactions, hash, currentSearchHash],
     );
 
     // When selectedTransactions is updated, we confirm that selection is refreshed

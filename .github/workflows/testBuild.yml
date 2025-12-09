@@ -311,7 +311,7 @@ jobs:
             echo "APP_PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
       - name: Get Java version
-        id: getJavaVersion
+        id: get-java-version
         uses: ./.github/actions/composite/getJavaVersion
 
       - name: Setup Java
@@ -319,7 +319,7 @@ jobs:
         uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: oracle
-          java-version: ${{ steps.getJavaVersion.outputs.version }}
+          java-version: ${{ steps.get-java-version.outputs.version }}
 
       - name: Setup Ruby
         # v1.229.0

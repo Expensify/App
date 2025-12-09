@@ -99,3 +99,4 @@ export type {WorkspacePerDiemForm} from './WorkspacePerDiemForm';
 export type {MoneyRequestRejectReasonForm} from './MoneyRequestRejectReasonForm';
 export type {EnableGlobalReimbursementsForm} from './EnableGlobalReimbursementsForm';
 export type {EnterSignerInfoForm} from './EnterSignerInfoForm';
+export type {CreateDomainForm} from './CreateDomainForm';
