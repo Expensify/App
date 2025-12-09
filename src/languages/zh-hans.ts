@@ -7676,6 +7676,7 @@ ${reportName}
             requireError: '无法更新 SAML 要求设置',
             disableSamlRequired: '禁用 SAML 要求',
             oktaWarningPrompt: '您确定吗？这也会禁用 Okta SCIM。',
+            requireWithEmptyMetadataError: '请在下方添加身份提供商元数据以启用',
         },
         samlConfigurationDetails: {
             title: 'SAML 配置详情',

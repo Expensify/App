@@ -7836,6 +7836,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             requireError: 'Kon de SAML-vereiste-instelling niet bijwerken',
             disableSamlRequired: '‘SAML vereist’ uitschakelen',
             oktaWarningPrompt: 'Weet je het zeker? Dit schakelt ook Okta SCIM uit.',
+            requireWithEmptyMetadataError: 'Voeg hieronder de Identity Provider-metadata toe om in te schakelen',
         },
         samlConfigurationDetails: {
             title: 'SAML-configuratiegegevens',

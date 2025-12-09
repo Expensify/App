@@ -7798,6 +7798,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             requireError: 'SAML 必須設定を更新できませんでした',
             disableSamlRequired: 'SAML 必須を無効にする',
             oktaWarningPrompt: 'よろしいですか？これにより Okta SCIM も無効になります。',
+            requireWithEmptyMetadataError: 'Id プロバイダーのメタデータを以下に追加して有効化してください',
         },
         samlConfigurationDetails: {
             title: 'SAML 設定の詳細',

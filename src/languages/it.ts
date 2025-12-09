@@ -7851,6 +7851,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             requireError: "Impossibile aggiornare l'impostazione dei requisiti SAML",
             disableSamlRequired: 'Disabilita SAML obbligatorio',
             oktaWarningPrompt: 'Sei sicuro? Questo disabiliterà anche Okta SCIM.',
+            requireWithEmptyMetadataError: 'Aggiungi di seguito i metadati del provider di identità per abilitare',
         },
         samlConfigurationDetails: {
             title: 'Dettagli di configurazione SAML',

@@ -7870,6 +7870,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             requireError: 'SAML-Anforderungseinstellung konnte nicht aktualisiert werden',
             disableSamlRequired: 'SAML-Anforderung deaktivieren',
             oktaWarningPrompt: 'Bist du sicher? Dadurch wird auch Okta SCIM deaktiviert.',
+            requireWithEmptyMetadataError: 'Bitte fügen Sie unten die Identity-Provider-Metadaten hinzu, um zu aktivieren',
         },
         samlConfigurationDetails: {
             title: 'SAML-Konfigurationsdetails',

@@ -7878,6 +7878,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             requireError: 'Impossible de mettre à jour le paramètre d’exigence SAML',
             disableSamlRequired: 'Désactiver l’exigence SAML',
             oktaWarningPrompt: 'Êtes-vous sûr ? Cela désactivera également Okta SCIM.',
+            requireWithEmptyMetadataError: 'Veuillez ajouter les métadonnées du fournisseur d’identité ci-dessous pour activer',
         },
         samlConfigurationDetails: {
             title: 'Détails de configuration SAML',

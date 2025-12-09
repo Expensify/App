@@ -7843,6 +7843,7 @@ ${amount} para ${merchant} - ${date}`,
             requireError: 'No se pudo actualizar la configuración de requerimiento de SAML',
             disableSamlRequired: 'Deshabilitar requisito de SAML',
             oktaWarningPrompt: '¿Estás seguro? Esto también deshabilitará Okta SCIM.',
+            requireWithEmptyMetadataError: 'Por favor, añade los metadatos del Proveedor de Identidad a continuación para habilitar',
         },
         samlConfigurationDetails: {
             title: 'Detalles de configuración de SAML',

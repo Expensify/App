@@ -7826,6 +7826,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             requireError: 'Nie można było zaktualizować ustawienia wymogu SAML',
             disableSamlRequired: 'Wyłącz wymóg SAML',
             oktaWarningPrompt: 'Czy na pewno? Spowoduje to również wyłączenie Okta SCIM.',
+            requireWithEmptyMetadataError: 'Dodaj poniżej metadane dostawcy tożsamości, aby włączyć',
         },
         samlConfigurationDetails: {
             title: 'Szczegóły konfiguracji SAML',
