@@ -561,6 +561,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the transaction is linked to a managed card */
         managedCard?: boolean;
 
+        /** The IOU report action ID from DB */
+        moneyRequestReportActionID?: string;
+
         /** The card transaction's posted date */
         posted?: string;
 
