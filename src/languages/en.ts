@@ -7728,6 +7728,30 @@ const translations = {
             fetchError: "Couldn't fetch SAML configuration details",
             setMetadataGenericError: "Couldn't set SAML MetaData",
         },
+        accessRestricted: {
+            title: 'Access restricted',
+            subtitle: (domainName: string) => `Please verify yourself as an authorized company administrator for <strong>${domainName}</strong> if you need control over:`,
+            companyCardManagement: 'Company card management',
+            accountCreationAndDeletion: 'Account creation and deletion',
+            workspaceCreation: 'Workspace creation',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Add domain',
+            subtitle: 'Enter the name of the private domain you want to access (e.g. expensify.com).',
+            domainName: 'Domain name',
+            newDomain: 'New domain',
+        },
+        domainAdded: {
+            title: 'Domain added',
+            description: "Next, you'll need to verify ownership of the domain and adjust your security settings.",
+            configure: 'Configure',
+        },
+        enhancedSecurity: {
+            title: 'Enhanced security',
+            subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
+            enable: 'Enable',
+        },
     },
 };
 
