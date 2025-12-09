@@ -1,9 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard} from 'react-native';
-import {Modal} from 'react-native-web';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -63,7 +61,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {formatPhoneNumber, translate} = useLocalize();
     const themeStyles = useThemeStyles();
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const backTo = route.params.backTo;
     /**
@@ -150,6 +147,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const turnOnDeleteModal = useCallback(() => {
         const openDeleteModal = () => {
             showRemoveContactMethodModal().then((result) => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     validateCodeFormRef.current?.focusLastSelected?.();
                 });
@@ -169,7 +167,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         }
 
         openDeleteModal();
-    }, [contactMethod, loginList, backTo]);
+    }, [contactMethod, loginList, backTo, showRemoveContactMethodModal]);
 
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
