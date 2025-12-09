@@ -214,7 +214,7 @@ function shouldDisplayReportInLHN(
         !!report.isPinned ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportAttributes?.[report?.reportID]?.requiresAttention ||
-        report.isOwnPolicyExpenseChat;
+        (report.isOwnPolicyExpenseChat && !isReportArchived);
 
     if (isHidden && !shouldOverrideHidden) {
         return {shouldDisplay: false};
