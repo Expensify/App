@@ -268,6 +268,7 @@ function ComposerWithSuggestions({
     const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
+    const defaultComposerHeightRef = useRef<number | null>(null);
 
     const textInputRef = useRef<TextInput | null>(null);
 
@@ -724,7 +725,10 @@ function ComposerWithSuggestions({
             isFocused: () => !!textInputRef.current?.isFocused(),
             clear,
             reset: () => {
-                setComposerHeight(36);
+                if (!defaultComposerHeightRef.current) {
+                    return;
+                }
+                setComposerHeight(defaultComposerHeightRef.current);
             },
             getCurrentText,
         }),
@@ -799,6 +803,12 @@ function ComposerWithSuggestions({
             const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
             const inputHeight = e.nativeEvent.contentSize.height;
             const totalHeight = inputHeight + paddingTopAndBottom;
+
+            if (defaultComposerHeightRef.current === null && inputHeight > 0 && !valueRef.current.includes('\n')) {
+                defaultComposerHeightRef.current = inputHeight;
+                setComposerHeight(inputHeight);
+            }
+
             const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
             setIsFullComposerAvailable?.(isFullComposerAvailable);
         },
