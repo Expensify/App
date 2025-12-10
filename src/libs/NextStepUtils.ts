@@ -372,12 +372,10 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         ? {
               text: `${ownerDisplayName}`,
               type: 'strong',
-              clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
           }
         : {
               text: `${policyOwnerDisplayName}`,
               type: 'strong',
-              clickToCopyText: policy?.ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
           };
 
     const nextStepPayExpense = {
