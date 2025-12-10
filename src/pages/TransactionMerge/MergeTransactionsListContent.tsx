@@ -82,31 +82,22 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
         [mergeTransaction?.eligibleTransactions, transactionID],
     );
 
-    const transactionDisplayName = useMemo(
-        () =>
-            translate('iou.transactionDisplayName', {
-                amount: convertToDisplayString(getAmount(targetTransaction), getCurrency(targetTransaction)),
-                merchant: getMerchant(targetTransaction),
-            }),
-        [translate, targetTransaction],
+    const transactionDisplayName = translate('iou.transactionDisplayName', {
+        amount: convertToDisplayString(getAmount(targetTransaction), getCurrency(targetTransaction)),
+        merchant: getMerchant(targetTransaction),
+    });
+
+    const headerContent = (
+        <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow]}>
+            <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: transactionDisplayName})} />
+        </View>
     );
 
-    const headerContent = useMemo(
-        () => (
-            <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow]}>
-                <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: transactionDisplayName})} />
-            </View>
-        ),
-        [transactionDisplayName, translate, styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow],
+    const subTitleContent = (
+        <View style={[styles.renderHTML, styles.textNormal]}>
+            <RenderHTML html={translate('transactionMerge.listPage.noEligibleExpenseFoundSubtitle')} />
+        </View>
     );
-
-    const subTitleContent = useMemo(() => {
-        return (
-            <View style={[styles.renderHTML, styles.textNormal]}>
-                <RenderHTML html={translate('transactionMerge.listPage.noEligibleExpenseFoundSubtitle')} />
-            </View>
-        );
-    }, [translate, styles.renderHTML, styles.textNormal]);
 
     const handleConfirm = useCallback(() => {
         if (!sourceTransaction || !targetTransaction) {
@@ -116,16 +107,13 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
         setupMergeTransactionDataAndNavigate([sourceTransaction, targetTransaction], localeCompare);
     }, [targetTransaction, sourceTransaction, localeCompare]);
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.continue'),
-            style: styles.justifyContentCenter,
-            isDisabled: !mergeTransaction?.sourceTransactionID,
-            onConfirm: handleConfirm,
-        }),
-        [handleConfirm, mergeTransaction?.sourceTransactionID, styles.justifyContentCenter, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.continue'),
+        style: styles.justifyContentCenter,
+        isDisabled: !mergeTransaction?.sourceTransactionID,
+        onConfirm: handleConfirm,
+    };
 
     if (eligibleTransactions?.length === 0) {
         return (

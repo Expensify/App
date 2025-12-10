@@ -350,47 +350,41 @@ function MoneyRequestView({
     const isEmptyUpdatedMerchant = updatedTransaction?.modifiedMerchant === '' || updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
 
-    const saveBillable = useCallback(
-        (newBillable: boolean) => {
-            // If the value hasn't changed, don't request to save changes on the server and just close the modal
-            if (newBillable === getBillable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
-                return;
-            }
-            updateMoneyRequestBillable(
-                transaction.transactionID,
-                transactionThreadReport?.reportID,
-                newBillable,
-                policy,
-                policyTagList,
-                policyCategories,
-                currentUserAccountIDParam,
-                currentUserEmailParam,
-                isASAPSubmitBetaEnabled,
-            );
-        },
-        [transaction, transactionThreadReport?.reportID, policy, policyTagList, policyCategories, currentUserAccountIDParam, currentUserEmailParam, isASAPSubmitBetaEnabled],
-    );
+    const saveBillable = (newBillable: boolean) => {
+        // If the value hasn't changed, don't request to save changes on the server and just close the modal
+        if (newBillable === getBillable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
+            return;
+        }
+        updateMoneyRequestBillable(
+            transaction.transactionID,
+            transactionThreadReport?.reportID,
+            newBillable,
+            policy,
+            policyTagList,
+            policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+        );
+    };
 
-    const saveReimbursable = useCallback(
-        (newReimbursable: boolean) => {
-            // If the value hasn't changed, don't request to save changes on the server and just close the modal
-            if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
-                return;
-            }
-            updateMoneyRequestReimbursable(
-                transaction.transactionID,
-                transactionThreadReport?.reportID,
-                newReimbursable,
-                policy,
-                policyTagList,
-                policyCategories,
-                currentUserAccountIDParam,
-                currentUserEmailParam,
-                isASAPSubmitBetaEnabled,
-            );
-        },
-        [transaction, transactionThreadReport?.reportID, policy, policyTagList, policyCategories, currentUserAccountIDParam, currentUserEmailParam, isASAPSubmitBetaEnabled],
-    );
+    const saveReimbursable = (newReimbursable: boolean) => {
+        // If the value hasn't changed, don't request to save changes on the server and just close the modal
+        if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
+            return;
+        }
+        updateMoneyRequestReimbursable(
+            transaction.transactionID,
+            transactionThreadReport?.reportID,
+            newReimbursable,
+            policy,
+            policyTagList,
+            policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+        );
+    };
 
     if (isCardTransaction) {
         if (transactionPostedDate) {
