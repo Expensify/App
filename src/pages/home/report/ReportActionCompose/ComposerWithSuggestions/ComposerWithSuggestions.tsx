@@ -20,7 +20,7 @@ import useSidePanel from '@hooks/useSidePanel';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileSafari} from '@libs/Browser';
+import {isMobileSafari, isSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
@@ -183,6 +183,20 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
+/**
+ * Insert ZWNJ between digits and emoji to prevent Safari keycap bug
+ * This prevents Safari from converting digit+emoji combinations into keycap emojis
+ * Only applies on Safari browsers (mobile and desktop)
+ */
+function insertZWNJBetweenDigitAndEmoji(input: string): string {
+    // Only apply ZWNJ insertion on Safari browsers
+    if (!isSafari()) {
+        return input;
+    }
+    const regex = /(\d)([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu;
+    return input.replaceAll(regex, '$1\u200C$2');
+}
 
 /**
  * This component holds the value and selection state.
@@ -395,7 +409,21 @@ function ComposerWithSuggestions({
                 diff.trim() === diff &&
                 containsOnlyEmojis(diff);
             const commentWithSpaceInserted = isEmojiInserted ? insertWhiteSpaceAtIndex(effectiveCommentValue, endIndex) : effectiveCommentValue;
-            const {text: newComment, emojis, cursorPosition} = replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
+            const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
+
+            // Safari ZWNJ normalization AFTER shortcodes replaced, so 234:smile: → 234😄 (with ZWNJ)
+            const newComment = insertZWNJBetweenDigitAndEmoji(emojiConvertedText);
+
+            // Calculate how many ZWNJ characters were inserted before the cursor position
+            // This is needed to adjust cursor position calculation
+            let zwnjOffset = 0;
+            if (isSafari() && cursorPosition !== undefined && cursorPosition !== null) {
+                // Count ZWNJ characters inserted before the cursor position
+                const textBeforeCursor = emojiConvertedText.substring(0, cursorPosition);
+                const textWithZWNJBeforeCursor = insertZWNJBetweenDigitAndEmoji(textBeforeCursor);
+                zwnjOffset = textWithZWNJBeforeCursor.length - textBeforeCursor.length;
+            }
+
             if (emojis.length) {
                 const newEmojis = getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (newEmojis.length) {
@@ -417,7 +445,10 @@ function ComposerWithSuggestions({
 
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
-                const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
+                // Adjust cursor position to account for ZWNJ insertion
+                // If cursorPosition is provided, use it and add ZWNJ offset; otherwise use length difference
+                const adjustedCursorPosition = cursorPosition !== undefined && cursorPosition !== null ? cursorPosition + zwnjOffset : undefined;
+                const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), adjustedCursorPosition ?? 0);
 
                 if (commentWithSpaceInserted !== newComment && isIOSNative) {
                     syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
