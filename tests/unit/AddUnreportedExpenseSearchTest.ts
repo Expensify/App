@@ -107,7 +107,7 @@ describe('AddUnreportedExpense Search Functionality', () => {
 
         // Add merchant to searchable fields
         const merchant = getMerchant(transaction);
-        if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) {
+        if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
             searchableFields.push(merchant);
         }
 

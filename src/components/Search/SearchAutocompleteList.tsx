@@ -18,8 +18,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
-import type {Options} from '@libs/OptionsListUtils';
+import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
@@ -150,10 +151,13 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
             />
         );
     }
+
+    const fsClass = FS.getChatFSClass((props.item as SearchOption<Report> | undefined)?.item);
+
     return (
         <UserListItem
             pressableStyle={[styles.br2, styles.ph3]}
-            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+            forwardedFSClass={fsClass}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />

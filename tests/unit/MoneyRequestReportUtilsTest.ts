@@ -99,7 +99,6 @@ const transactionItemBaseMock: TransactionListItemType = {
     taxAmount: undefined,
     mccGroup: undefined,
     modifiedMCCGroup: undefined,
-    moneyRequestReportActionID: '789',
     errors: undefined,
     filename: undefined,
     violations: [],

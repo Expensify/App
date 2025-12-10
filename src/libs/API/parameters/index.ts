@@ -430,6 +430,7 @@ export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishC
 export type {default as RejectMoneyRequestParams} from './RejectMoneyRequestParams';
 export type {default as MarkTransactionViolationAsResolvedParams} from './MarkTransactionViolationAsResolvedParams';
 export type {default as LockAccountParams} from './LockAccountParams';
+export type {default as RespondToProactiveAppReviewParams} from './RespondToProactiveAppReviewParams';
 export type {default as SetVacationDelegateParams} from './SetVacationDelegateParams';
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';

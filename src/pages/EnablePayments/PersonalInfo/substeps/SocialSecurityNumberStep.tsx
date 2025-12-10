@@ -59,6 +59,7 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             defaultValue={defaultSsnLast4}
             maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             shouldShowPatriotActLink
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }

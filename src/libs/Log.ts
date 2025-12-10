@@ -15,6 +15,7 @@ import {shouldAttachLog} from './Console';
 import getPlatform from './getPlatform';
 import {post} from './Network';
 import requireParameters from './requireParameters';
+import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
 let timeout: NodeJS.Timeout;
 let shouldCollectLogs = false;
@@ -59,6 +60,8 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(requestParams.parameters);
     }
+    // Mirror backend log payload into Telemetry logger for better context
+    forwardLogsToSentry(requestParams.logPacket);
     clearTimeout(timeout);
     timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
     return LogCommand(requestParams);

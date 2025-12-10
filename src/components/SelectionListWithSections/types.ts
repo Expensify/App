@@ -303,9 +303,6 @@ type TransactionListItemType = ListItem &
         /** The display name of the purchaser card, if any */
         cardName?: string;
 
-        /** Parent report action id */
-        moneyRequestReportActionID?: string;
-
         /** The available actions that can be performed for the transaction */
         allActions: SearchTransactionAction[];
 

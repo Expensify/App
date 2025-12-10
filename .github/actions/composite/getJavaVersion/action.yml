@@ -13,4 +13,3 @@ runs:
       id: getVersion
       shell: bash
       run: echo "VERSION=$(cat .java-version | tr -d '\n')" >> "$GITHUB_OUTPUT"
-

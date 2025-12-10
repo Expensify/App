@@ -72,7 +72,7 @@ function getBillingStatus({
         case PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED:
             return {
                 title: translate('subscription.billingBanner.policyOwnerAmountOwed.title'),
-                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwed.subtitle', {date: endDateFormatted ?? ''}),
+                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwed.subtitle', endDateFormatted ?? ''),
                 isError: true,
                 isRetryAvailable: true,
             };
@@ -96,7 +96,7 @@ function getBillingStatus({
         case PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING:
             return {
                 title: translate('subscription.billingBanner.policyOwnerUnderInvoicing.title'),
-                subtitle: translate('subscription.billingBanner.policyOwnerUnderInvoicing.subtitle', {date: endDateFormatted ?? ''}),
+                subtitle: translate('subscription.billingBanner.policyOwnerUnderInvoicing.subtitle', endDateFormatted ?? ''),
                 isError: true,
                 isAddButtonDark: true,
             };
@@ -120,7 +120,7 @@ function getBillingStatus({
         case PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED:
             return {
                 title: translate('subscription.billingBanner.cardAuthenticationRequired.title'),
-                subtitle: translate('subscription.billingBanner.cardAuthenticationRequired.subtitle', {cardEnding}),
+                subtitle: translate('subscription.billingBanner.cardAuthenticationRequired.subtitle', cardEnding),
                 isError: true,
                 isAuthenticationRequired: true,
             };
@@ -128,7 +128,7 @@ function getBillingStatus({
         case PAYMENT_STATUS.INSUFFICIENT_FUNDS:
             return {
                 title: translate('subscription.billingBanner.insufficientFunds.title'),
-                subtitle: translate('subscription.billingBanner.insufficientFunds.subtitle', {amountOwed}),
+                subtitle: translate('subscription.billingBanner.insufficientFunds.subtitle', amountOwed),
                 isError: true,
                 isRetryAvailable: true,
             };
@@ -136,7 +136,7 @@ function getBillingStatus({
         case PAYMENT_STATUS.CARD_EXPIRED:
             return {
                 title: translate('subscription.billingBanner.cardExpired.title'),
-                subtitle: translate('subscription.billingBanner.cardExpired.subtitle', {amountOwed}),
+                subtitle: translate('subscription.billingBanner.cardExpired.subtitle', amountOwed),
                 isError: true,
                 isRetryAvailable: !isCurrentCardExpired,
             };

@@ -27,15 +27,14 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
             isSelected: entityID === '',
         },
     ];
-    // eslint-disable-next-line unicorn/no-array-for-each
-    policy?.connections?.intacct?.data?.entities.forEach((entity) => {
+    for (const entity of policy?.connections?.intacct?.data?.entities ?? []) {
         sections.push({
             text: entity.name,
             value: entity.name,
             keyForList: entity.id,
             isSelected: entity.id === entityID,
         });
-    });
+    }
 
     const saveSelection = ({keyForList}: ListItem) => {
         updateSageIntacctEntity(policyID, keyForList ?? '', entityID);
