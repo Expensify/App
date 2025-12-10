@@ -1000,10 +1000,6 @@ function IOURequestStepConfirmation({
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                                 trackExpense(selectedParticipants);
                             },
-                            {
-                                maximumAge: CONST.GPS.MAX_AGE,
-                                timeout: CONST.GPS.TIMEOUT,
-                            },
                         );
                         return;
                     }
@@ -1049,10 +1045,6 @@ function IOURequestStepConfirmation({
                             Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                             requestMoney(selectedParticipants);
-                        },
-                        {
-                            maximumAge: CONST.GPS.MAX_AGE,
-                            timeout: CONST.GPS.TIMEOUT,
                         },
                     );
                     return;

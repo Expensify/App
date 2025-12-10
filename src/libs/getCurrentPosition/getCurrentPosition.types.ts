@@ -25,18 +25,7 @@ const GeolocationErrorCode = {
     NOT_SUPPORTED: -1,
 };
 
-type GeolocationOptions = {
-    /** Desktop only */
-    timeout?: number;
-
-    /** Desktop only */
-    maximumAge?: number;
-
-    /** Desktop only */
-    enableHighAccuracy?: boolean;
-} & LocationOptions;
-
-type GetCurrentPosition = (success: GeolocationSuccessCallback, error: GeolocationErrorCallback, options?: GeolocationOptions) => Promise<void>;
+type GetCurrentPosition = (success: GeolocationSuccessCallback, error: GeolocationErrorCallback, options?: LocationOptions) => Promise<void>;
 
 export {GeolocationErrorCode};
 
