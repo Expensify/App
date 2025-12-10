@@ -666,7 +666,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         policy,
         participants,
         moneyRequestReport?.reportID,
-        expensifyIcons.Camera
+        expensifyIcons.Camera,
     ]);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived);
