@@ -53,7 +53,7 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
-    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils, // eslint-disable-line @typescript-eslint/no-deprecated
     getReportName,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
@@ -700,6 +700,7 @@ function MoneyRequestView({
         );
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportNameToDisplay = isFromMergeTransaction ? updatedTransaction?.reportName : getReportName(parentReport) || parentReport?.reportName;
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport ? reportNameToDisplay : undefined;
