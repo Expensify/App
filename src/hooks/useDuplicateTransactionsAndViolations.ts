@@ -2,7 +2,7 @@ import {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 /**
@@ -21,7 +21,7 @@ function selectViolationsWithDuplicates(transactionIDs: string[], allTransaction
 
     for (const transactionID of transactionIDs) {
         const key = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
-        const transactionViolations = allTransactionsViolations[key];
+        const transactionViolations: TransactionViolations | undefined = allTransactionsViolations[key];
 
         if (!transactionViolations) {
             continue;
@@ -30,8 +30,8 @@ function selectViolationsWithDuplicates(transactionIDs: string[], allTransaction
         result[key] = transactionViolations;
 
         const duplicateTransactionIDs = transactionViolations
-            .filter((violations) => violations.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-            .flatMap((violations) => violations?.data?.duplicates ?? []);
+            .filter((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+            .flatMap((violation) => violation.data?.duplicates ?? []);
 
         for (const duplicateID of duplicateTransactionIDs) {
             if (!duplicateID) {
@@ -39,7 +39,7 @@ function selectViolationsWithDuplicates(transactionIDs: string[], allTransaction
             }
 
             const duplicateKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`;
-            const duplicateViolations = allTransactionsViolations[duplicateKey];
+            const duplicateViolations: TransactionViolations | undefined = allTransactionsViolations[duplicateKey];
 
             if (duplicateViolations) {
                 result[duplicateKey] = duplicateViolations;
