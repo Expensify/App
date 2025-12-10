@@ -32,5 +32,5 @@ export default function useAbsentPageSpan() {
         });
 
         endSpan(CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE);
-    }, []);
+    }, [initialURL]);
 }
