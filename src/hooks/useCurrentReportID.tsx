@@ -1,11 +1,14 @@
 import type {NavigationState} from '@react-navigation/native';
 import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
+import {getReportIDFromLink} from '@libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 type CurrentReportIDContextValue = {
-    getCurrentReportID: (state: NavigationState) => string | undefined;
-    updateCurrentReportID: (reportID: string | undefined) => void;
+    updateCurrentReportID: (state: NavigationState) => void;
     currentReportID: string | undefined;
+    currentReportIDFromPath: string | undefined;
 };
 
 type CurrentReportIDContextProviderProps = {
@@ -22,12 +25,14 @@ const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>
 
 function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderProps) {
     const [currentReportID, setCurrentReportID] = useState<string | undefined>('');
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
+    const lastAccessReportFromPath = getReportIDFromLink(lastVisitedPath ?? null);
 
     /**
-     * This function is used to get the currentReportID
+     * This function is used to update the currentReportID
      * @param state root navigation state
      */
-    const getCurrentReportID = useCallback(
+    const updateCurrentReportID = useCallback(
         (state: NavigationState) => {
             const reportID = Navigation.getTopmostReportId(state);
 
@@ -37,20 +42,8 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
              */
             const params = state?.routes?.[state.index]?.params;
             if (params && 'screen' in params && typeof params.screen === 'string' && params.screen.indexOf('Settings_') !== -1) {
-                return currentReportID;
+                return;
             }
-
-            return reportID;
-        },
-        [currentReportID],
-    );
-
-    /**
-     * This function is used to update the currentReportID
-     * @param reportID
-     */
-    const updateCurrentReportID = useCallback(
-        (reportID: string | undefined) => {
             // Prevent unnecessary updates when the report ID hasn't changed
             if (currentReportID === reportID) {
                 return;
@@ -76,10 +69,10 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
     const contextValue = useMemo(
         (): CurrentReportIDContextValue => ({
             updateCurrentReportID,
-            getCurrentReportID,
             currentReportID,
+            currentReportIDFromPath: lastAccessReportFromPath || undefined,
         }),
-        [updateCurrentReportID, currentReportID, getCurrentReportID],
+        [updateCurrentReportID, currentReportID, lastAccessReportFromPath],
     );
 
     return <CurrentReportIDContext.Provider value={contextValue}>{props.children}</CurrentReportIDContext.Provider>;
