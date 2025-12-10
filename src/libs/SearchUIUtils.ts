@@ -1368,6 +1368,56 @@ function getTaskSections(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     archivedReportsIDList?: ArchivedReportsIDSet,
 ): [TaskListItemType[], number] {
+    const reports = Object.keys(data)
+        .filter(isReportEntry)
+        .reduce(
+            (acc, key) => {
+                acc[key] = data[key];
+                return acc;
+            },
+            {} as Record<string, OnyxTypes.Report>,
+        );
+
+    const transactions = Object.keys(data)
+        .filter(isTransactionEntry)
+        .reduce(
+            (acc, key) => {
+                acc[key] = data[key];
+                return acc;
+            },
+            {} as Record<string, OnyxTypes.Transaction>,
+        );
+
+    const policies = Object.keys(data)
+        .filter(isPolicyEntry)
+        .reduce(
+            (acc, key) => {
+                acc[key] = data[key];
+                return acc;
+            },
+            {} as Record<string, OnyxTypes.Policy>,
+        );
+
+    const reportNameValuePairs = Object.keys(data)
+        .filter(isReportNameValuePairsEntry)
+        .reduce(
+            (acc, key) => {
+                acc[key] = data[key];
+                return acc;
+            },
+            {} as Record<string, OnyxTypes.ReportNameValuePairs>,
+        );
+
+    const reportActionsList = Object.keys(data)
+        .filter(isReportActionsEntry)
+        .reduce(
+            (acc, key) => {
+                acc[key] = data[key];
+                return acc;
+            },
+            {} as Record<string, OnyxTypes.ReportActions>,
+        );
+
     const tasks = Object.keys(data)
         .filter(isReportEntry)
         // Ensure that the reports that were passed are tasks, and not some other
@@ -1406,8 +1456,7 @@ function getTaskSections(
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const policy = getPolicy(parentReport.policyID);
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const parentReportName = getReportName(parentReport, policy, undefined, undefined, undefined, undefined, undefined, isParentReportArchived);
+                const parentReportName = computeReportNameWithoutFormula(parentReport, reports, policies, transactions, reportNameValuePairs, data.personalDetailsList, reportActionsList);
                 const icons = getIcons(parentReport, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
 

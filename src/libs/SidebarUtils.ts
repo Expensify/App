@@ -86,6 +86,7 @@ import {
     isTaskAction,
     isTransactionThread,
 } from './ReportActionsUtils';
+import {computeReportNameWithoutFormula, getReportName} from './ReportNameUtils';
 import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
@@ -102,8 +103,7 @@ import {
     getPolicyName,
     getReportActionActorAccountID,
     getReportDescription,
-    getReportMetadata, // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportName,
+    getReportMetadata,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
@@ -369,7 +369,6 @@ function categorizeReportsForLHN(
         }
 
         const reportID = report.reportID;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const displayName = getReportName(report);
         const miniReport: MiniReport = {
             reportID,
@@ -823,7 +822,6 @@ function getOptionData({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const users = translateLocal(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const roomName = getReportName(lastActionReport) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
@@ -992,8 +990,8 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived);
+    // TODO: Fix it
+    const reportName = computeReportNameWithoutFormula(report, undefined, undefined, undefined, undefined, undefined, undefined);
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -1098,7 +1096,6 @@ function getWelcomeMessage(
 function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(report);
 
     if (report?.description) {
