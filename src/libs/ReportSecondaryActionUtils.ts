@@ -64,6 +64,7 @@ import {
     isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned,
+    isScanning as isScanningTransactionUtils,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
 
@@ -641,9 +642,7 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
         return false;
     }
 
-    const isScanning = hasReceiptTransactionUtils(reportTransaction) && isReceiptBeingScanned(reportTransaction);
-
-    if (isScanning) {
+    if (isScanningTransactionUtils(reportTransaction)) {
         return false;
     }
 
