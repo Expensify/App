@@ -538,7 +538,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     <View style={[styles.flex1, styles.pr3]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.common.customField2')}</Text>
                     </View>
-                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.pr2]}>
+                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr6]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfEnd]}>{translate('common.role')}</Text>
                     </View>
                 </View>
@@ -556,6 +556,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.member')}
                 rightHeaderText={translate('common.role')}
+                shouldShowRightCaret
             />
         );
     };
@@ -826,6 +827,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
+                        shouldShowRightCaret
                     />
                 </>
             )}
