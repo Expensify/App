@@ -1406,9 +1406,21 @@ function MoneyReportHeader({
                     onSelected: showDeleteModal,
                 };
             }
+            if (option.text === translate('search.bulkActions.reject')) {
+                return {
+                    ...option,
+                    onSelected: () => {
+                        if (dismissedRejectUseExplanation) {
+                            option.onSelected?.();
+                        } else {
+                            setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                        }
+                    },
+                };
+            }
             return option;
         });
-    }, [originalSelectedTransactionsOptions, translate, showDeleteModal]);
+    }, [originalSelectedTransactionsOptions, translate, showDeleteModal, dismissedRejectUseExplanation]);
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
