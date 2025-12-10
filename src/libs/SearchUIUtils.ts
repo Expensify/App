@@ -1512,6 +1512,111 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
 
 /**
  * @private
+ * Generates metadata for report sections by iterating over the data once.
+ * This consolidates multiple checks (merchant, year, wide amount, etc.) into a single pass.
+ */
+function getReportSectionsMetadata(data: OnyxTypes.SearchResults['data']) {
+    let shouldShowMerchant = false;
+    let anyPastYearItem = false;
+    let anyPastYearReport = false;
+    let isAmountWide = false;
+    let isTaxAmountWide = false;
+
+    const moneyRequestReportActionsByTransactionID = new Map<string, OnyxTypes.ReportAction>();
+    const holdReportActionsByTransactionID = new Map<string, OnyxTypes.ReportAction>();
+    const allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]> = {};
+    const reportKeys: string[] = [];
+    const transactionKeys: string[] = [];
+    const allHoldReportActions = new Map<string, OnyxTypes.ReportAction>();
+
+    for (const key in data) {
+        if (isReportEntry(key)) {
+            reportKeys.push(key);
+            const item = data[key];
+            const date = item.created;
+            if (date && DateUtils.doesDateBelongToAPastYear(date)) {
+                anyPastYearReport = true;
+                anyPastYearItem = true;
+            }
+        } else if (isTransactionEntry(key)) {
+            transactionKeys.push(key);
+            const item = data[key];
+
+            // Check for merchant
+            if (!shouldShowMerchant) {
+                const merchant = item.modifiedMerchant ? item.modifiedMerchant : (item.merchant ?? '');
+                if (merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+                    shouldShowMerchant = true;
+                }
+            }
+
+            // Check for year
+            if (!anyPastYearItem && shouldShowTransactionYear(item)) {
+                anyPastYearItem = true;
+            }
+
+            // Check for wide amount
+            if (!isAmountWide) {
+                isAmountWide = isTransactionAmountTooLong(item);
+            }
+            if (!isTaxAmountWide) {
+                isTaxAmountWide = isTransactionTaxAmountTooLong(item);
+            }
+
+            // Report actions lookup logic (linking hold actions)
+            if (allHoldReportActions.size > holdReportActionsByTransactionID.size) {
+                const holdReportActionID = item?.comment?.hold;
+                if (holdReportActionID) {
+                    const action = allHoldReportActions.get(holdReportActionID);
+                    if (action) {
+                        holdReportActionsByTransactionID.set(item.transactionID, action);
+                    }
+                }
+            }
+        } else if (isReportActionEntry(key)) {
+            const actions = Object.values(data[key]);
+            for (const action of actions) {
+                // Check for year
+                if (!anyPastYearItem) {
+                    const date = action.created;
+                    if (DateUtils.doesDateBelongToAPastYear(date)) {
+                        anyPastYearItem = true;
+                    }
+                }
+
+                // Report actions lookup logic
+                if (isMoneyRequestAction(action)) {
+                    const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
+                    const transactionID = originalMessage?.IOUTransactionID;
+                    if (transactionID) {
+                        moneyRequestReportActionsByTransactionID.set(transactionID, action);
+                    }
+                } else if (isHoldAction(action)) {
+                    allHoldReportActions.set(action.reportActionID, action);
+                }
+            }
+        } else if (isViolationEntry(key)) {
+            allViolations[key] = data[key];
+        }
+    }
+
+    const orderedKeys = [...reportKeys, ...transactionKeys];
+
+    return {
+        shouldShowMerchant,
+        doesDataContainAPastYearTransaction: anyPastYearItem,
+        doesDataContainAPastYearReport: anyPastYearReport,
+        shouldShowAmountInWideColumn: isAmountWide,
+        shouldShowTaxAmountInWideColumn: isTaxAmountWide,
+        moneyRequestReportActionsByTransactionID,
+        holdReportActionsByTransactionID,
+        allViolations,
+        orderedKeys,
+    };
+}
+
+/**
+ * @private
  * Organizes data into List Sections grouped by report for display, for the TransactionGroupListItemType of Search Results.
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -1525,32 +1630,20 @@ function getReportSections(
     isActionLoadingSet: ReadonlySet<string> | undefined,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): [TransactionGroupListItemType[], number] {
-    const shouldShowMerchant = getShouldShowMerchant(data);
-
-    const doesDataContainAPastYearTransaction = shouldShowYear(data);
-    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
-    const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
-
-    // Get violations - optimize by using a Map for faster lookups
-    const allViolations = getViolations(data);
+    const {
+        shouldShowMerchant,
+        doesDataContainAPastYearTransaction,
+        doesDataContainAPastYearReport,
+        shouldShowAmountInWideColumn,
+        shouldShowTaxAmountInWideColumn,
+        moneyRequestReportActionsByTransactionID,
+        holdReportActionsByTransactionID,
+        allViolations,
+        orderedKeys,
+    } = getReportSectionsMetadata(data);
 
     const queryJSON = getCurrentSearchQueryJSON();
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
-
-    const {reportKeys, transactionKeys} = Object.keys(data).reduce(
-        (acc, key) => {
-            if (isReportEntry(key)) {
-                acc.reportKeys.push(key);
-            } else if (isTransactionEntry(key)) {
-                acc.transactionKeys.push(key);
-            }
-            return acc;
-        },
-        {reportKeys: [] as string[], transactionKeys: [] as string[]},
-    );
-
-    const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
-    const doesDataContainAPastYearReport = shouldShowYear(data, true);
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
@@ -1843,6 +1936,7 @@ function getSections({
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        console.log('getReportSections');
         return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, reportActions);
     }
 
