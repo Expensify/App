@@ -10267,7 +10267,7 @@ describe('ReportUtils', () => {
             } as PolicyReportField;
             expect(shouldHideSingleReportField(reportField)).toBe(false);
         });
-        it('should return falst if all items in list report field are disabled', () => {
+        it('should return false if all items in list report field are disabled', () => {
             const reportField = {
                 type: CONST.REPORT_FIELD_TYPES.LIST,
                 disabledOptions: [true, true, true],
