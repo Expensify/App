@@ -194,6 +194,8 @@ function RoomInvitePage({
     const backRoute = useMemo(() => {
         return reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
     }, [isPolicyEmployee, reportID, backTo, isReportArchived]);
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = useMemo(() => getReportName(report), [report]);
 
     const ancestors = useAncestors(report);
