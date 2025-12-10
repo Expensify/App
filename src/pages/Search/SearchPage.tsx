@@ -72,7 +72,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getTransactionViolationsOfTransaction} from '@libs/TransactionUtils';
+import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {dismissRejectUseExplanation, initMoneyRequest, initSplitExpense, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -489,10 +489,7 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         // Check if all selected transactions can be rejected
-        const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => {
-            const transactionViolations = getTransactionViolationsOfTransaction(id) ?? [];
-            return !transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
-        });
+        const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => !hasTransactionBeenRejected(id));
 
         const shouldShowRejectOption =
             queryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
