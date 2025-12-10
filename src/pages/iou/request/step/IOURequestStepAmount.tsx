@@ -76,7 +76,7 @@ function shouldAutoNavigateToDefaultWorkspace(
         return false;
     }
 
-    const hasAutoReporting = !!(defaultExpensePolicy?.autoReporting && personalPolicy?.autoReporting);
+    const hasAutoReporting = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
 
     return (
         iouType === CONST.IOU.TYPE.CREATE &&
