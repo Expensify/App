@@ -154,6 +154,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
                     shouldShowTextInput={shouldShowTextInput}
                     initiallyFocusedItemKey={centralBillingAccountEmail}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    disableMaintainingScrollPosition
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
                     showScrollIndicator
