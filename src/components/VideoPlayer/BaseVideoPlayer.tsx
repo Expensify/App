@@ -69,7 +69,7 @@ function BaseVideoPlayer({
         updatePlayerStatus,
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
-    const {isOffline} = useNetwork();
+
     const [duration, setDuration] = useState(videoDuration);
     const [isEnded, setIsEnded] = useState(false);
     const [isFirstLoad, setIsFirstLoad] = useState(true);
@@ -106,6 +106,15 @@ function BaseVideoPlayer({
         return status === 'error';
     }, [status]);
 
+    const {isOffline} = useNetwork({
+        onReconnect: () => {
+            if (!(currentTime <= 0 && hasError)) {
+                return;
+            }
+            videoPlayerRef.current.replaceAsync(sourceURL);
+        },
+    });
+
     const videoViewRef = useRef<VideoView | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
@@ -133,13 +142,6 @@ function BaseVideoPlayer({
         isOffline,
         isLocalFile: isUploading,
     });
-
-    useEffect(() => {
-        if (!(shouldShowErrorIndicator && currentTime <= 0)) {
-            return;
-        }
-        videoPlayerRef.current.replaceAsync(sourceURL);
-    }, [currentTime, pauseVideo, shouldShowErrorIndicator, sourceURL]);
 
     const {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuContext();
 
@@ -468,7 +470,7 @@ function BaseVideoPlayer({
                                         }}
                                     >
                                         <VideoView
-                                            allowsFullscreen
+                                            fullscreenOptions={{enable: true}}
                                             player={videoPlayerRef.current}
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
                                             nativeControls={isFullScreenRef.current}
