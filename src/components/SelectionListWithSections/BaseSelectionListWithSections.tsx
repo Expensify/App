@@ -781,15 +781,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
             }
 
-            if (!isInitialSectionListRender) {
-                return;
-            }
             if (shouldScrollToFocusedIndex) {
                 scrollToIndex(focusedIndex, false);
             }
             setIsInitialSectionListRender(false);
         },
-        [focusedIndex, isInitialSectionListRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch, shouldScrollToFocusedIndex],
+        [focusedIndex, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch, shouldScrollToFocusedIndex],
     );
 
     const onSectionListLayout = useCallback(
