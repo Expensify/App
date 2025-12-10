@@ -61,6 +61,10 @@ type BeginningOfChatHistoryInvoiceRoomParams = {
     invoiceReceiver: string;
 };
 
+type BeginningOfChatHistoryParams = {
+    users: string;
+};
+
 type LearnMoreRouteParams = {
     learnMoreMethodsRoute: string;
     formattedPrice: string;
@@ -957,6 +961,7 @@ export type {
     LogSizeAndDateParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryUserRoomParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,

@@ -28,6 +28,7 @@ import type {
     AssignedCardParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardOnDisputeParams,
@@ -959,7 +960,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Esta sala de chat é para qualquer coisa relacionada a <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `Este chat é para faturas entre <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Use o botão + para enviar uma fatura.`,
-        beginningOfChatHistory: 'Este chat é com',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `Este chat é com ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `É aqui que <strong>${submitterDisplayName}</strong> enviará despesas para <strong>${workspaceName}</strong>. Basta usar o botão +.`,
         beginningOfChatHistorySelfDM: 'Este é o seu espaço pessoal. Use-o para anotações, tarefas, rascunhos e lembretes.',
@@ -1529,7 +1530,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Escolha um aprovador adicional para este relatório antes de o encaminharmos pelo restante do fluxo de aprovação.',
+                bulkSubtitle: 'Escolha um aprovador adicional para estes relatórios antes de seguirmos pelo restante do fluxo de aprovação.',
             },
+            bulkSubtitle: 'Escolha uma opção para alterar o aprovador destes relatórios.',
         },
         chooseWorkspace: 'Escolha um workspace',
     },
@@ -2292,6 +2295,7 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Nenhum membro para exibir',
             expensesFromSubtitle: 'Todos os membros do workspace já pertencem a um fluxo de aprovação existente.',
             approverSubtitle: 'Todos os aprovadores pertencem a um fluxo de trabalho existente.',
+            bulkApproverSubtitle: 'Nenhum aprovador corresponde aos critérios para os relatórios selecionados.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -6853,6 +6857,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Tem certeza de que deseja criar outro relatório em ${workspaceName}? Você pode acessar seus relatórios em branco em`,
             emptyReportConfirmationPromptLink: 'Relatórios',
+            emptyReportConfirmationDontShowAgain: 'Não mostrar isso novamente',
             genericWorkspaceName: 'este workspace',
         },
         genericCreateReportFailureMessage: 'Erro inesperado ao criar este chat. Tente novamente mais tarde.',
@@ -7844,6 +7849,30 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             revealToken: 'Revelar token',
             fetchError: 'Não foi possível buscar os detalhes de configuração SAML',
             setMetadataGenericError: 'Não foi possível definir os metadados SAML',
+        },
+        accessRestricted: {
+            title: 'Acesso restrito',
+            subtitle: (domainName: string) => `Confirme que você é um administrador autorizado da empresa para <strong>${domainName}</strong> se precisar de controle sobre:`,
+            companyCardManagement: 'Gerenciamento de cartões corporativos',
+            accountCreationAndDeletion: 'Criação e exclusão de conta',
+            workspaceCreation: 'Criação do espaço de trabalho',
+            samlSSO: 'SSO SAML',
+        },
+        addDomain: {
+            title: 'Adicionar domínio',
+            subtitle: 'Digite o nome do domínio privado que você deseja acessar (ex.: expensify.com).',
+            domainName: 'Nome de domínio',
+            newDomain: 'Novo domínio',
+        },
+        domainAdded: {
+            title: 'Domínio adicionado',
+            description: 'Em seguida, você precisará verificar a propriedade do domínio e ajustar suas configurações de segurança.',
+            configure: 'Configurar',
+        },
+        enhancedSecurity: {
+            title: 'Segurança aprimorada',
+            subtitle: 'Exija que os membros do seu domínio façam login por meio de logon único (SSO), restrinja a criação de espaços de trabalho e muito mais.',
+            enable: 'Ativar',
         },
     },
 };

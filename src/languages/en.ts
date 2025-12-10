@@ -16,6 +16,7 @@ import type {
     AssignedCardParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillingBannerCardOnDisputeParams,
@@ -944,7 +945,7 @@ const translations = {
             `This chat room is for anything <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> related.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the + button to send an invoice.`,
-        beginningOfChatHistory: 'This chat is with ',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `This chat is with ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the + button.`,
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
@@ -1496,6 +1497,7 @@ const translations = {
         changeApprover: {
             title: 'Change approver',
             subtitle: 'Choose an option to change the approver for this report.',
+            bulkSubtitle: 'Choose an option to change the approver for these reports.',
             description: ({workflowSettingLink}: WorkflowSettingsParam) =>
                 `You can also change the approver permanently for all reports in your <a href="${workflowSettingLink}">workflow settings</a>.`,
             changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
@@ -1507,6 +1509,7 @@ const translations = {
             },
             addApprover: {
                 subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow.',
+                bulkSubtitle: 'Choose an additional approver for these reports before we route through the rest of the approval workflow.',
             },
         },
         chooseWorkspace: 'Choose a workspace',
@@ -2257,6 +2260,7 @@ const translations = {
             title: 'No members to display',
             expensesFromSubtitle: 'All workspace members already belong to an existing approval workflow.',
             approverSubtitle: 'All approvers belong to an existing workflow.',
+            bulkApproverSubtitle: 'No approvers match the criteria for selected reports.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -6744,6 +6748,7 @@ const translations = {
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Are you sure you want to create another report in ${workspaceName}? You can access your empty reports in`,
             emptyReportConfirmationPromptLink: 'Reports',
+            emptyReportConfirmationDontShowAgain: "Don't show me this again",
             genericWorkspaceName: 'this workspace',
         },
         genericCreateReportFailureMessage: 'Unexpected error creating this chat. Please try again later.',
@@ -7731,6 +7736,30 @@ const translations = {
             revealToken: 'Reveal token',
             fetchError: "Couldn't fetch SAML configuration details",
             setMetadataGenericError: "Couldn't set SAML MetaData",
+        },
+        accessRestricted: {
+            title: 'Access restricted',
+            subtitle: (domainName: string) => `Please verify yourself as an authorized company administrator for <strong>${domainName}</strong> if you need control over:`,
+            companyCardManagement: 'Company card management',
+            accountCreationAndDeletion: 'Account creation and deletion',
+            workspaceCreation: 'Workspace creation',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Add domain',
+            subtitle: 'Enter the name of the private domain you want to access (e.g. expensify.com).',
+            domainName: 'Domain name',
+            newDomain: 'New domain',
+        },
+        domainAdded: {
+            title: 'Domain added',
+            description: "Next, you'll need to verify ownership of the domain and adjust your security settings.",
+            configure: 'Configure',
+        },
+        enhancedSecurity: {
+            title: 'Enhanced security',
+            subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
+            enable: 'Enable',
         },
     },
 };
