@@ -53,7 +53,6 @@ import type {
     SearchCardGroup,
     SearchDataTypes,
     SearchMemberGroup,
-    SearchReport,
     SearchTask,
     SearchTransaction,
     SearchTransactionAction,
@@ -61,8 +60,9 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {hasSynchronizationErrorMessage} from './actions/connections';
-import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
-import {createNewReport, createTransactionThreadReport} from './actions/Report';
+import {canApproveIOU, canIOUBePaid, canSubmitReport, startMoneyRequest} from './actions/IOU';
+import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from './actions/isOpenConfirmNavigateExpensifyClassicModal';
+import {createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
@@ -75,7 +75,16 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {
+    arePaymentsEnabled,
+    canSendInvoice,
+    getGroupPaidPoliciesWithExpenseChatEnabled,
+    getPolicy,
+    getSubmitToAccountID,
+    isPaidGroupPolicy,
+    isPolicyAdmin,
+    isPolicyPayer,
+} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -90,6 +99,7 @@ import {
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canUserPerformWriteAction,
+    generateReportID,
     getIcons,
     getPersonalDetailsForAccountID,
     getReportName,
@@ -102,16 +112,18 @@ import {
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
+    isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
     isOneTransactionReport,
     isOpenExpenseReport,
     isOpenReport,
+    isProcessingReport,
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
-import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
     getCategory,
@@ -324,7 +336,7 @@ type GetSectionsParams = {
 function getSuggestedSearches(
     accountID: number = CONST.DEFAULT_NUMBER_ID,
     defaultFeedID?: string,
-    icons?: Record<'Document', IconAsset>,
+    icons?: Record<'Document' | 'Pencil', IconAsset>,
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
@@ -379,7 +391,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
             translationPath: 'common.submit',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: Expensicons.Pencil,
+            icon: icons?.Pencil,
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
@@ -1070,8 +1082,7 @@ function getTransactionsSections(
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as SearchReport | undefined;
+        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
 
         let shouldShow = true;
 
@@ -1114,7 +1125,7 @@ function getTransactionsSections(
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 keyForList: transactionItem.transactionID,
-                action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                action: getAction(allActions),
                 allActions,
                 report,
                 policy,
@@ -1163,10 +1174,10 @@ function getTransactionsForReport(data: OnyxTypes.SearchResults['data'], reportI
 function getReportFromKey(data: OnyxTypes.SearchResults['data'], key: string): OnyxTypes.Report | undefined {
     if (isTransactionEntry(key)) {
         const transaction = data[key];
-        return data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] as OnyxTypes.Report;
+        return data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     }
     if (isReportEntry(key)) {
-        return data[key] as OnyxTypes.Report;
+        return data[key];
     }
     return undefined;
 }
@@ -1288,7 +1299,8 @@ function getActions(
 
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isScanning(t) || isPending(t));
 
-    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 
     // We're not supporting approve partial amount on search page now
     if (
@@ -1305,11 +1317,26 @@ function getActions(
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
+    if (report && policy && isPolicyAdmin(policy) && isExpenseReportUtil(report) && isProcessingReport(report) && !isMoneyRequestReportPendingDeletion(report)) {
+        allActions.push(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
+    }
+
     if (reportNVP?.exportFailedTime) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
     return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
+}
+
+/**
+ * @private
+ * Returns the main action that can be taken on a given transaction or report
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getAction(allActions: SearchTransactionAction[]) {
+    // VIEW should take precedence over CHANGE_APPROVER
+    return allActions.find((action) => action !== CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER) ?? CONST.SEARCH.ACTION_TYPES.VIEW;
 }
 
 /**
@@ -1388,7 +1415,7 @@ function createAndOpenSearchTransactionThread(
     shouldNavigate = true,
 ) {
     const iouReportAction = getIOUActionForReportID(item.reportID, item.transactionID);
-    const moneyRequestReportActionID = item.moneyRequestReportActionID !== '0' ? item.moneyRequestReportActionID : undefined;
+    const moneyRequestReportActionID = item.reportAction?.reportActionID ?? undefined;
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
@@ -1585,7 +1612,7 @@ function getReportSections(
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
-                    action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                    action: getAction(allActions),
                     allActions,
                     keyForList: String(reportItem.reportID),
                     groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
@@ -1608,8 +1635,7 @@ function getReportSections(
             const transactionItem = {...data[key]};
             const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as SearchReport | undefined;
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as OnyxTypes.Report | undefined;
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
@@ -1629,7 +1655,7 @@ function getReportSections(
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions);
             const transaction = {
                 ...transactionItem,
-                action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                action: getAction(allActions),
                 allActions,
                 report,
                 reportAction,
@@ -2053,10 +2079,20 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+type OverflowMenuIconsType = Record<'Pencil', IconAsset>;
+
 /**
  * Constructs and configures the overflow menu for search items, handling interactions such as renaming or deleting items.
  */
-function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void, isMobileMenu?: boolean, closeMenu?: () => void) {
+function getOverflowMenu(
+    icons: OverflowMenuIconsType,
+    itemName: string,
+    hash: number,
+    inputQuery: string,
+    showDeleteModal: (hash: number) => void,
+    isMobileMenu?: boolean,
+    closeMenu?: () => void,
+) {
     return [
         {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2067,7 +2103,7 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
                 }
                 Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: encodeURIComponent(itemName), jsonQuery: inputQuery}));
             },
-            icon: Expensicons.Pencil,
+            icon: icons.Pencil,
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,
             shouldCallAfterModalHide: true,
@@ -2099,19 +2135,17 @@ function isCorrectSearchUserName(displayName?: string) {
 
 // eslint-disable-next-line @typescript-eslint/max-params
 function createTypeMenuSections(
-    icons: Record<'Document', IconAsset>,
+    icons: Record<'Document' | 'Pencil', IconAsset>,
     currentUserEmail: string | undefined,
     currentUserAccountID: number | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     defaultCardFeed: CardFeedForDisplay | undefined,
     policies: OnyxCollection<OnyxTypes.Policy>,
-    activePolicyID: string | undefined,
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
     isOffline: boolean,
     defaultExpensifyCard: CardFeedForDisplay | undefined,
-    isASAPSubmitBetaEnabled: boolean,
-    hasViolations: boolean,
-    createReportWithConfirmation?: (params: {policyID: string; policyName?: string; onSuccess: (reportID: string) => void; personalDetails?: OnyxTypes.PersonalDetails}) => void,
+    shouldRedirectToExpensifyClassic: boolean,
+    draftTransactions: OnyxCollection<OnyxTypes.Transaction>,
 ): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -2138,65 +2172,15 @@ function createTypeMenuSections(
                             ? [
                                   {
                                       success: true,
-                                      buttonText: 'report.newReport.createReport',
+                                      buttonText: 'report.newReport.createExpense',
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
-                                              const activePolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
-                                              const personalDetails = getPersonalDetailsForAccountID(currentUserAccountID) as OnyxTypes.PersonalDetails;
-
-                                              let workspaceIDForReportCreation: string | undefined;
-
-                                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                              if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                                  workspaceIDForReportCreation = activePolicy.id;
-                                              } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                                  workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                              }
-
-                                              if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                                  const policyForCreation =
-                                                      policies?.[`${ONYXKEYS.COLLECTION.POLICY}${workspaceIDForReportCreation}`] ??
-                                                      groupPoliciesWithChatEnabled.find((policy) => policy?.id === workspaceIDForReportCreation);
-                                                  const policyName = policyForCreation?.name ?? activePolicy?.name ?? groupPoliciesWithChatEnabled.at(0)?.name ?? '';
-
-                                                  if (createReportWithConfirmation) {
-                                                      createReportWithConfirmation({
-                                                          policyID: workspaceIDForReportCreation,
-                                                          policyName,
-                                                          personalDetails,
-                                                          onSuccess: (createdReportID) => {
-                                                              Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                                  Navigation.navigate(
-                                                                      ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}),
-                                                                  );
-                                                              });
-                                                          },
-                                                      });
-                                                  } else {
-                                                      const {reportID: createdReportID} = createNewReport(
-                                                          personalDetails,
-                                                          isASAPSubmitBetaEnabled,
-                                                          hasViolations,
-                                                          workspaceIDForReportCreation,
-                                                      );
-                                                      Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                          Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                                      });
-                                                  }
+                                              if (shouldRedirectToExpensifyClassic) {
+                                                  setIsOpenConfirmNavigateExpensifyClassicModalOpen(true);
                                                   return;
                                               }
 
-                                              if (
-                                                  workspaceIDForReportCreation &&
-                                                  shouldRestrictUserBillableActions(workspaceIDForReportCreation) &&
-                                                  groupPoliciesWithChatEnabled.length === 1
-                                              ) {
-                                                  Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-                                                  return;
-                                              }
-
-                                              // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
-                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                                              startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, draftTransactions);
                                           });
                                       },
                                   },
@@ -2552,8 +2536,7 @@ function getColumnsToShow(
         }
 
         const category = getCategory(transaction);
-        const categoryEmptyValues = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
-        if (category !== '' && !categoryEmptyValues.includes(category)) {
+        if (category !== '' && category !== CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = true;
         }
 
@@ -2568,8 +2551,7 @@ function getColumnsToShow(
 
         // The From/To columns display logic depends on the passed report/reportAction i.e. if data is SearchResults and not an array (Transaction[])
         if (!Array.isArray(data)) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] as SearchReport | undefined;
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] as OnyxTypes.Report | undefined;
             const reportAction = moneyRequestReportActionsByTransactionID?.get(transaction.transactionID);
 
             // Handle From&To columns that are only shown in the Reports page
@@ -2588,8 +2570,9 @@ function getColumnsToShow(
     };
 
     if (Array.isArray(data)) {
-        // eslint-disable-next-line unicorn/no-array-for-each
-        data.forEach(updateColumns);
+        for (const item of data) {
+            updateColumns(item);
+        }
     } else {
         for (const key of Object.keys(data)) {
             if (!isTransactionEntry(key)) {
@@ -2703,7 +2686,6 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
         isTaxAmountColumnWide,
         violations,
         hash,
-        moneyRequestReportActionID,
         canDelete,
         accountID,
         policyID,
