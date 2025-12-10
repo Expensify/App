@@ -94,10 +94,72 @@ function processHighlightedSpans(item: unknown): void {
     }
 }
 
-function processEnvelopeItems(items: unknown[]): void {
-    console.debug(formatLogPrefix('REQUEST'), items);
+/**
+ * Check if a log entry has [SENTRY] prefix in body.
+ */
+function isSentryDebugLogEntry(logEntry: unknown): boolean {
+    if (!isRecord(logEntry) || !('body' in logEntry) || !isString(logEntry.body)) {
+        return false;
+    }
+    return logEntry.body.startsWith('[SENTRY]');
+}
 
-    for (const item of items) {
+/**
+ * Check if item is a header (sdk info or type header).
+ */
+function isEnvelopeHeader(item: unknown): boolean {
+    if (!isRecord(item)) {
+        return false;
+    }
+    // SDK header: {"sdk": {...}}
+    if ('sdk' in item && Object.keys(item).length === 1) {
+        return true;
+    }
+    // Type header: {"type": "log", "item_count": ..., "content_type": ...}
+    if ('type' in item && !('items' in item)) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Filter out log entries with [SENTRY] prefix from items array to prevent recursive logging.
+ * Returns a new items array with filtered log batches, or null if only headers remain.
+ */
+function filterSentryDebugLogs(items: unknown[]): unknown[] | null {
+    const filtered = items
+        .map((item) => {
+            if (isRecord(item) && 'items' in item && Array.isArray(item.items)) {
+                const filteredLogEntries = item.items.filter((logEntry: unknown) => !isSentryDebugLogEntry(logEntry));
+                if (filteredLogEntries.length === 0) {
+                    return null;
+                }
+                return {...item, items: filteredLogEntries};
+            }
+            return item;
+        })
+        .filter((item) => item !== null);
+
+    const hasActualData = filtered.some((item) => !isEnvelopeHeader(item));
+    if (!hasActualData) {
+        return null;
+    }
+
+    return filtered;
+}
+
+function processEnvelopeItems(items: unknown[]): void {
+    // Filter out [SENTRY] debug logs from items to prevent recursive logging
+    const filteredItems = filterSentryDebugLogs(items);
+
+    // Skip if nothing left after filtering (only headers remain)
+    if (filteredItems === null) {
+        return;
+    }
+
+    console.debug(formatLogPrefix('REQUEST'), filteredItems);
+
+    for (const item of filteredItems) {
         processHighlightedSpans(item);
     }
 }
