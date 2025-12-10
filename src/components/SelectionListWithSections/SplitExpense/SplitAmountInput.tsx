@@ -7,12 +7,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import SplitAmountDisplay from './SplitAmountDisplay';
 
 type SplitAmountInputProps = {
+    /** The split item data containing amount, currency, and editable state. */
     splitItem: SplitListItemType;
+    /** The formatted original amount string used to calculate max input length. */
     formattedOriginalAmount: string;
+    /** The width of the input content area. */
     contentWidth: number;
+    /** Callback invoked when the split expense value changes. */
     onSplitExpenseValueChange: (value: string) => void;
+    /** Callback invoked when the input receives focus. */
     focusHandler: () => void;
+    /** Callback invoked when the input loses focus. */
     onInputBlur: ((e: BlurEvent) => void) | undefined;
+    /** Callback ref for accessing the underlying text input. */
     inputCallbackRef: (ref: BaseTextInputRef | null) => void;
 };
 

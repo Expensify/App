@@ -6,17 +6,24 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import SplitPercentageDisplay from './SplitPercentageDisplay';
 
-type SplitAmountInputProps = {
+type SplitPercentageInputProps = {
+    /** The split item data containing amount, currency, and editable state. */
     splitItem: SplitListItemType;
+    /** The width of the input content area. */
     contentWidth: number;
+    /** The draft percentage value while the user is editing. */
     percentageDraft: string | undefined;
+    /** Callback invoked when the split expense value changes. */
     onSplitExpenseValueChange: (value: string) => void;
+    /** State setter for the percentage draft value. */
     setPercentageDraft: React.Dispatch<React.SetStateAction<string | undefined>>;
+    /** Callback invoked when the input receives focus. */
     focusHandler: () => void;
+    /** Callback invoked when the input loses focus. */
     onInputBlur: ((e: BlurEvent) => void) | undefined;
 };
 
-function SplitPercentageInput({splitItem, contentWidth, percentageDraft, onSplitExpenseValueChange, setPercentageDraft, focusHandler, onInputBlur}: SplitAmountInputProps) {
+function SplitPercentageInput({splitItem, contentWidth, percentageDraft, onSplitExpenseValueChange, setPercentageDraft, focusHandler, onInputBlur}: SplitPercentageInputProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 

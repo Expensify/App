@@ -7,8 +7,11 @@ import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 
 type SplitAmountDisplayProps = {
+    /** The split item data containing amount, currency, and editable state. */
     splitItem: SplitListItemType;
+    /** The width of the content area. */
     contentWidth?: number | string;
+    /** Whether to remove default spacing from the container. */
     shouldRemoveSpacing?: boolean;
 };
 

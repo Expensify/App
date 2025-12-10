@@ -6,7 +6,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type SplitPercentageDisplayProps = {
+    /** The split item data containing amount, currency, and editable state. */
     splitItem: SplitListItemType;
+    /** The width of the content area. */
     contentWidth: number;
 };
 
