@@ -99,7 +99,6 @@ type BaseCheckOptions = PrintResultsOptions & {
     remote?: string;
     shouldFilterByDiff?: boolean;
     shouldEnforceNewComponents?: boolean;
-    shouldExcludeUntrackedFiles?: boolean;
     shouldGenerateReport?: boolean;
     reportFileName?: string;
 };
@@ -114,7 +113,6 @@ async function check({
     shouldFilterByDiff,
     shouldIgnoreRegularErrors,
     shouldEnforceNewComponents,
-    shouldExcludeUntrackedFiles,
     shouldPrintRegularErrorsAsWarnings,
     shouldPrintSuccesses,
     shouldPrintSuppressedErrors,
@@ -135,7 +133,7 @@ async function check({
     if (shouldFilterByDiff || shouldEnforceNewComponents) {
         const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
         const diffFilteringCommits: DiffFilteringCommits = {fromRef: mainBaseCommitHash};
-        const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef, undefined, !shouldExcludeUntrackedFiles);
+        const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef, undefined, true);
 
         if (shouldFilterByDiff) {
             results = await filterResultsByDiff(results, diffFilteringCommits, diffResult, printResultsOptions);
@@ -158,18 +156,18 @@ async function check({
     return isPassed;
 }
 
-async function checkChangedFiles({remote, shouldExcludeUntrackedFiles, ...restOptions}: BaseCheckOptions): Promise<boolean> {
+async function checkChangedFiles({remote, ...restOptions}: BaseCheckOptions): Promise<boolean> {
     logInfo('Checking changed files for React Compiler compliance...');
 
     const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-    const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash, undefined, !shouldExcludeUntrackedFiles);
+    const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash, undefined, true);
 
     if (changedFiles.length === 0) {
         logSuccess('No React files changed, skipping check.');
         return true;
     }
 
-    return check({files: changedFiles, shouldExcludeUntrackedFiles, ...restOptions});
+    return check({files: changedFiles, ...restOptions});
 }
 
 function runCompilerHealthcheck(src?: string): CompilerResults {
@@ -878,7 +876,6 @@ async function main() {
     const {
         filterByDiff: shouldFilterByDiff,
         enforceNewComponents: shouldEnforceNewComponents,
-        excludeUntrackedFiles: shouldExcludeUntrackedFiles,
         ignoreRegularErrors: shouldIgnoreRegularErrors,
         printRegularErrorsAsWarnings: shouldPrintRegularErrorsAsWarnings,
         printSuccesses: shouldPrintSuccesses,
@@ -889,7 +886,6 @@ async function main() {
     const commonOptions: BaseCheckOptions = {
         shouldFilterByDiff,
         shouldEnforceNewComponents,
-        shouldExcludeUntrackedFiles,
         shouldIgnoreRegularErrors,
         shouldPrintRegularErrorsAsWarnings,
         shouldPrintSuccesses,
