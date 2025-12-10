@@ -785,7 +785,13 @@ function rejectMoneyRequestsOnSearch(
     for (const [reportID, selectedTransactionIDs] of Object.entries(transactionsByReport)) {
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const totalReportTransactions = report?.transactionCount ?? 0;
-        const areAllExpensesSelected = selectedTransactionIDs.length === totalReportTransactions;
+        
+        // Subtract pending deletes to get accurate count when transactions are deleted offline
+        const pendingDeleteCount = getReportTransactions(reportID).filter(
+            (transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        ).length;
+        const effectiveTransactionCount = totalReportTransactions - pendingDeleteCount;
+        const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
