@@ -193,30 +193,36 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             {visibleTransactions.map((transaction, index) => {
                 const shouldShowBottomBorder = !isLastTransaction(index) && !isLargeScreenWidth;
                 const transactionRow = (
-                    <TransactionItemRow
-                        report={transaction.report}
-                        transactionItem={transaction}
-                        violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, transaction.report, transaction.policy)}
-                        isSelected={!!transaction.isSelected}
-                        dateColumnSize={dateColumnSize}
-                        amountColumnSize={amountColumnSize}
-                        taxAmountColumnSize={taxAmountColumnSize}
-                        shouldShowTooltip={showTooltip}
-                        shouldUseNarrowLayout={!isLargeScreenWidth}
-                        shouldShowCheckbox={!!canSelectMultiple}
-                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                        columns={currentColumns}
-                        onButtonPress={() => {
-                            openReportInRHP(transaction);
-                        }}
-                        style={[styles.noBorderRadius, !isLargeScreenWidth ? [styles.p3, styles.pt3] : [styles.pl3, styles.pv1Half], styles.flex1]}
-                        isReportItemChild
-                        isInSingleTransactionReport={isInSingleTransactionReport}
-                        areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                        shouldShowBottomBorder={shouldShowBottomBorder}
-                        onArrowRightPress={() => openReportInRHP(transaction)}
-                        shouldShowArrowRightOnNarrowLayout
-                    />
+                        <TransactionItemRow
+                            report={transaction.report}
+                            transactionItem={transaction}
+                            violations={getTransactionViolations(
+                                transaction,
+                                violations,
+                                currentUserDetails.email ?? '',
+                                currentUserDetails.accountID,
+                                transaction.report,
+                                transaction.policy,
+                            )}
+                            isSelected={!!transaction.isSelected}
+                            dateColumnSize={dateColumnSize}
+                            amountColumnSize={amountColumnSize}
+                            taxAmountColumnSize={taxAmountColumnSize}
+                            shouldShowTooltip={showTooltip}
+                            shouldUseNarrowLayout={!isLargeScreenWidth}
+                            shouldShowCheckbox={!!canSelectMultiple}
+                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                            columns={currentColumns}
+                            onButtonPress={() => {
+                                openReportInRHP(transaction);
+                            }}
+                            style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv1Half], styles.flex1]}
+                            isReportItemChild
+                            isInSingleTransactionReport={isInSingleTransactionReport}
+                            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                            shouldShowBottomBorder={shouldShowBottomBorder}
+                            onArrowRightPress={() => openReportInRHP(transaction)}
+                        />
                 );
                 return (
                     <OfflineWithFeedback
