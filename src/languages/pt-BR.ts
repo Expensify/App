@@ -733,6 +733,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domínios',
         viewReport: 'Ver relatório',
         actionRequired: 'Ação necessária',
+        duplicate: 'Duplicar',
+        duplicated: 'Duplicado',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',

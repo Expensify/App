@@ -58,10 +58,14 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
     hasSmartScanFailedViolation,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
+    isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned,
+    isScanning as isScanningTransactionUtils,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
 
@@ -638,6 +642,34 @@ function isReportLayoutAction(report: Report, reportTransactions: Transaction[])
     return reportTransactions.length >= 2;
 }
 
+function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
+    // Only single transactions are supported for now
+    if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    const reportTransaction = reportTransactions.at(0);
+
+    // Per diem and distance requests will be handled separately in a follow-up
+    if (isPerDiemRequestTransactionUtils(reportTransaction) || isDistanceRequestTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    if (isScanningTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    if (!isCurrentUserSubmitter(report)) {
+        return false;
+    }
+
+    if (isManagedCardTransactionTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    return true;
+}
+
 function getSecondaryReportActions({
     currentUserEmail,
     currentUserAccountID,
@@ -733,6 +765,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
+    if (isDuplicateAction(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
@@ -807,6 +843,10 @@ function getSecondaryTransactionThreadActions(
 
     if (isMergeAction(parentReport, [reportTransaction], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
+    }
+
+    if (isDuplicateAction(parentReport, [reportTransaction])) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
