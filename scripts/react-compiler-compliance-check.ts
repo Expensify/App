@@ -504,12 +504,7 @@ async function filterResultsByDiff(
  * @returns The enforced compiler results
  */
 function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffResult) {
-    const addedDiffFiles = new Set<string>();
-    for (const file of diffResult.files) {
-        if (file.diffType === 'added') {
-            addedDiffFiles.add(file.filePath);
-        }
-    }
+    const addedDiffFiles = new Set<string>(diffResult.files.filter((file) => file.diffType === 'added').map((file) => file.filePath));
 
     // Partition failures into non-auto memo enforced failures and added file failures
     const nonAutoMemoEnforcedFailures: FailureMap = new Map();
