@@ -871,6 +871,7 @@ describe('OptionsListUtils', () => {
                         timestamp: DateUtils.getDBTime(new Date().valueOf()),
                     },
                 },
+                loginList,
                 {
                     includeP2P: true,
                     canShowManagerMcTest: true,
