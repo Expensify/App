@@ -704,7 +704,6 @@ const CONST = {
         NEWDOT_REJECT: 'newDotReject',
         CUSTOM_RULES: 'customRules',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
-        PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         TIME_TRACKING: 'timeTracking',
         EUR_BILLING: 'eurBilling',

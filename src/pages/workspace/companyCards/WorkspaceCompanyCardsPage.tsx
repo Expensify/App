@@ -9,7 +9,6 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -63,7 +62,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const [cardsList] = useCardsList(selectedFeed);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const {isBetaEnabled} = usePermissions();
     const hasNoAssignedCard = Object.keys(cardsList ?? {}).length === 0;
 
     const {cardList, ...cards} = cardsList ?? {};
@@ -88,7 +86,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
     const isLoading = !isOffline && (!cardFeeds || (!!defaultFeed?.isLoading && isEmptyObject(cardsList)));
     const isGB = countryByIp === CONST.COUNTRY.GB;
-    const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
+    const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
     useEffect(() => {

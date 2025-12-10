@@ -46,6 +46,7 @@ const mockTransaction: TransactionListItemType = {
         created: '2025-09-19',
     },
     holdReportAction: undefined,
+    canDelete: true,
     merchant: '(none)',
     modifiedAmount: -1284,
     modifiedCreated: '2025-09-07',
