@@ -45,7 +45,6 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         >
             <ScreenWrapper
                 testID={WorkspaceMemberDetailsRolePage.displayName}
-                includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <WorkspaceMemberRoleList
