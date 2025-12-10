@@ -199,7 +199,6 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
-import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -6227,23 +6226,6 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
     });
 }
 
-function triggerNotifications(onyxUpdates: OnyxServerUpdate[]): void {
-    for (const update of onyxUpdates) {
-        if (!update.shouldNotify && !update.shouldShowPushNotification) {
-            continue;
-        }
-
-        const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-        const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
-
-        for (const action of reportActions) {
-            if (action) {
-                showReportActionNotification(reportID, action);
-            }
-        }
-    }
-}
-
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
@@ -6358,5 +6340,4 @@ export {
     openUnreportedExpense,
     optimisticReportLastData,
     setOptimisticTransactionThread,
-    triggerNotifications,
 };
