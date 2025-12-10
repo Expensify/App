@@ -130,7 +130,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     const textInputOptions = useMemo(
         () => ({
             label: textInputLabel,
-            valu: searchTerm,
+            value: searchTerm,
             onChangeText: setSearchTerm,
             headerMessage,
         }),
