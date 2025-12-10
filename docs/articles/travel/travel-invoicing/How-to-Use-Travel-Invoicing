@@ -1,0 +1,68 @@
+---
+title: How to Use Travel Invoicing as a Traveler
+description: Learn how to find your CVV when booking travel and what to expect at hotel check-in when using Travel Invoicing.
+keywords: [New Expensify, travel CVV, travel invoice, hotel check in, virtual card, credit card authorization, Spotnana, Expensify Travel]
+---
+
+<div id="new-expensify" markdown="1">
+
+If your company uses Travel Invoicing in Expensify, you don’t need a corporate card to book travel. We’ll explain how to find your Travel CVV and what to expect at hotels or rental car counters.
+
+# Finding Your Travel CVV
+
+When booking a flight, hotel, or rental car in Expensify Travel (via Spotnana), you’ll be asked to enter a **CVV** — even though the card was never given to you directly. Here’s how to find it:
+
+1. In the left-hand menu, select **Account > Wallet**.
+2. Under **Assigned cards**, find the one labeled **Travel CVV**.
+3. Tap it and select **Reveal CVV**.
+4. Use the number displayed during the checkout process.
+
+> You won’t see the full card number — just the CVV. That’s expected!
+
+The card is **virtual-only** and can only be used within Expensify Travel, so it's safe and secure.
+
+# What to Expect at Hotel Check-In
+
+Some hotels or rental car companies may ask for proof that you’re authorized to use the virtual card. This is where the **Credit Card Authorization (CCA)** form comes in.
+
+## What is a CCA?
+
+A **Credit Card Authorization (CCA)** form tells the hotel or rental agency that:
+- Your company is paying for the booking
+- You’re allowed to use the virtual card
+- The charge will be settled later via Expensify
+
+## Do I need to do anything?
+
+Nope! We handle it for you.
+
+If your booking requires a CCA:
+- Our team will reach out to the hotel or rental agency
+- We’ll send the completed form on your behalf
+- You may receive a confirmation message once it’s approved
+
+In rare cases, the front desk might not see the authorization right away. If that happens:
+- Politely let them know your company is covering the cost through a virtual card
+- Ask if they’ve received a credit card authorization form from Expensify
+- Contact your company admin or Concierge if there’s an issue
+
+# FAQ
+
+## I don’t see a CVV in my Wallet — what do I do?
+
+Make sure:
+- You’re logged into Expensify with your work email
+- Your workspace has Travel Invoicing enabled
+- You’ve been added to a travel-enabled workspace
+
+If you're still not seeing it, reach out to your company admin.
+
+## Can I use the Travel CVV outside of Expensify Travel?
+
+No. The Travel card only works within Expensify Travel’s booking system (Spotnana). It won’t work on other travel sites or at physical locations.
+
+## Will I see this travel expense in my Expensify account?
+
+Nope! With Travel Invoicing, expenses are tracked by your company — so you don’t need to code or submit anything. Just book, travel, and go.
+
+</div>
