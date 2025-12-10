@@ -68,6 +68,7 @@ const mockTransaction: TransactionListItemType = {
     isAmountColumnWide: false,
     isTaxAmountColumnWide: false,
     shouldAnimateInHighlight: false,
+    canDelete: true,
     report: {
         reportID: '515146912679679',
     },
