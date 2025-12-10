@@ -33,9 +33,14 @@ jobs:
               - 'docs/**/*.md'
               - 'docs/**/*.csv'
 
-      - name: Add claude utility scripts to PATH
+      - name: Add skill scripts to PATH
         run: |
-          echo "$GITHUB_WORKSPACE/.claude/scripts" >> "$GITHUB_PATH"
+          # Add all skill scripts directories to PATH
+          for skill_dir in "$GITHUB_WORKSPACE/.claude/skills"/*; do
+            if [ -d "$skill_dir/scripts" ]; then
+              echo "$skill_dir/scripts" >> "$GITHUB_PATH"
+            fi
+          done
 
       - name: Run Claude Code (code)
         if: steps.filter.outputs.code == 'true'
@@ -57,4 +62,4 @@ jobs:
           allowed_non_write_users: "*"
           prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
           claude_args: |
-            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment"
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(addPrReaction.sh:*),mcp__github_inline_comment__create_inline_comment"

@@ -113,6 +113,52 @@ You can also attach **custom MCP servers** to provide additional tools beyond th
 
 For details on MCP tool naming, configuration, and creating custom MCP servers, see the [MCP documentation](https://docs.anthropic.com/en/docs/claude-code/mcp).
 
+## Skills
+
+**Skills** are reusable bundles of instructions, scripts, and resources that agents can load. Skills are defined in `.claude/skills/<skill-name>/`.
+
+### Skill Scripts
+
+Skills can include executable scripts in their `scripts/` directory. All skill scripts are automatically made available to agents.
+
+**Automatic PATH Configuration:**
+
+The workflow automatically adds all skill scripts to PATH:
+
+```yaml
+- name: Add skill scripts to PATH
+  run: |
+    # Add all skill scripts directories to PATH
+    for skill_dir in "$GITHUB_WORKSPACE/.claude/skills"/*; do
+      if [ -d "$skill_dir/scripts" ]; then
+        echo "$skill_dir/scripts" >> "$GITHUB_PATH"
+      fi
+    done
+```
+
+This means any script in any skill's `scripts/` directory is automatically available for agents to use.
+
+**To use a skill script:**
+
+1. **Create the script** - Add it to `.claude/skills/<skill-name>/scripts/scriptName.sh`
+
+2. **Allow in command** - Add the script to `allowed-tools`:
+   ```yaml
+   allowed-tools: Bash(scriptName.sh:*)
+   ```
+
+3. **Load skill in agent** - Declare the skill in agent frontmatter:
+   ```yaml
+   skills: skill-name
+   ```
+
+4. **Call from agent** - Use the script by name only (no path):
+   ```bash
+   scriptName.sh arguments
+   ```
+
+**Example:** The `github-pr-review-communication` skill provides `addPrReaction.sh`, which agents call as `addPrReaction.sh 12345`.
+
 ## Security considerations
 
 When configuring agents and commands, follow these security best practices:
