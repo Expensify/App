@@ -3,7 +3,6 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type AccountData from './AccountData';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
-import type AccountVerifications from './Verifications';
 
 /** Model of additional bank account data */
 type BankAccountAdditionalData = {
@@ -39,114 +38,6 @@ type BankAccountAdditionalData = {
         /** Powerform files */
         achAuthorizationForm?: FileObject[];
     };
-
-    /** Accept terms and conditions */
-    acceptTerms?: boolean;
-
-    /** Address city */
-    addressCity?: string;
-
-    /** Address state */
-    addressState?: string;
-
-    /** Address street */
-    addressStreet?: string;
-
-    /** Address zip code */
-    addressZipCode?: string;
-
-    /** Approved by */
-    approvedBy?: string;
-
-    /** Certify true information */
-    certifyTrueInformation?: boolean;
-
-    /** Company name */
-    companyName?: string;
-
-    /** Company phone */
-    companyPhone?: string;
-
-    /** Company tax ID */
-    companyTaxID?: string;
-
-    /** Current step */
-    currentStep?: string;
-
-    /** Date signed */
-    dateSigned?: string;
-
-    /** Date of birth */
-    dob?: string;
-
-    /** First name */
-    firstName?: string;
-
-    /** Has full SSN */
-    hasFullSSN?: boolean;
-
-    /** Has no connection to cannabis */
-    hasNoConnectionToCannabis?: boolean;
-
-    /** Incorporation date */
-    incorporationDate?: string;
-
-    /** Incorporation state */
-    incorporationState?: string;
-
-    /** Incorporation type */
-    incorporationType?: string;
-
-    /** Industry code */
-    industryCode?: string;
-
-    /** Is authorized to use bank account */
-    isAuthorizedToUseBankAccount?: boolean;
-
-    /** Is controlling officer */
-    isControllingOfficer?: boolean;
-
-    /** Is Onfido setup complete */
-    isOnfidoSetupComplete?: boolean;
-
-    /** Last name */
-    lastName?: string;
-
-    /** Last update timestamp */
-    lastUpdate?: string;
-
-    /** Account mask (last 4 digits) */
-    mask?: string;
-
-    /** Owns more than 25 percent */
-    ownsMoreThan25Percent?: boolean;
-
-    /** Plaid access token */
-    plaidAccessToken?: string;
-
-    /** Requestor address city */
-    requestorAddressCity?: string;
-
-    /** Requestor address state */
-    requestorAddressState?: string;
-
-    /** Requestor address street */
-    requestorAddressStreet?: string;
-
-    /** Requestor address zip code */
-    requestorAddressZipCode?: string;
-
-    /** Setup type */
-    setupType?: string;
-
-    /** SSN last 4 digits */
-    ssnLast4?: string;
-
-    /** Verifications data */
-    verifications?: AccountVerifications;
-
-    /** Website */
-    website?: string;
 };
 
 /** Model of bank account */
