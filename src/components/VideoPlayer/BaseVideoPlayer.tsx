@@ -66,6 +66,7 @@ function BaseVideoPlayer({
         setCurrentlyPlayingURL,
         mountedVideoPlayersRef,
         playerStatus,
+        updatePlayerStatus,
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
@@ -242,7 +243,7 @@ function BaseVideoPlayer({
 
     useEventListener(videoPlayerRef.current, 'statusChange', (payload: StatusChangeEventPayload) => {
         if (payload.status !== 'error') {
-            playerStatus.current = payload.status;
+            updatePlayerStatus(payload.status);
         }
         if (payload.status !== 'readyToPlay') {
             return;
@@ -331,7 +332,7 @@ function BaseVideoPlayer({
     useEffect(() => {
         // On mobile safari, we need to auto-play when sharing video element here
         if (status !== 'error') {
-            playerStatus.current = status;
+            updatePlayerStatus(status);
         }
         shareVideoPlayerElements(
             videoPlayerRef.current,
@@ -352,8 +353,8 @@ function BaseVideoPlayer({
         isFullScreenRef,
         hasError,
         isCurrentlyURLSet,
-        playerStatus,
         status,
+        updatePlayerStatus,
     ]);
 
     // append shared video element to new parent (used for example in attachment modal)

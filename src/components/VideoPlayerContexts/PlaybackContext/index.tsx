@@ -65,6 +65,10 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         [currentlyPlayingURL, video],
     );
 
+    const updatePlayerStatus = useCallback((newStatus: VideoPlayerStatus) => {
+        playerStatus.current = newStatus;
+    }, []);
+
     const shareVideoPlayerElements: PlaybackContextValues['shareVideoPlayerElements'] = useCallback(
         (
             videoPlayerRef: VideoPlayer | null,
@@ -132,6 +136,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             resetVideoPlayerData: video.resetPlayerData,
             mountedVideoPlayersRef,
             playerStatus,
+            updatePlayerStatus,
         }),
         [
             updateCurrentURLAndReportID,
@@ -148,6 +153,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             video.stop,
             video.isPlaying,
             video.resetPlayerData,
+            updatePlayerStatus,
         ],
     );
 

@@ -1,6 +1,7 @@
-import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
-import type {RefObject} from 'react';
-import type {View} from 'react-native';
+import type { VideoPlayer, VideoPlayerStatus, VideoView } from 'expo-video';
+import type { RefObject } from 'react';
+import type { View } from 'react-native';
+
 
 /**
  * Callback type for reporting the current playback status.
@@ -102,6 +103,12 @@ type PlaybackContextValues = {
      * Status of the currently used Video Player
      */
     playerStatus: RefObject<VideoPlayerStatus>;
+
+    /**
+     * Updates current videoPlayer status
+     * @param newStatus New videoPlayer status
+     */
+    updatePlayerStatus: (newStatus: VideoPlayerStatus) => void;
 };
 
 /**
