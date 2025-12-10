@@ -45,8 +45,7 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
-    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils, // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
