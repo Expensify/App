@@ -9,8 +9,8 @@
 
 ### [@sentry+react-native+7.6.0+002.patch](@sentry+react-native+7.6.0+002.patch)
 
-- Reason: Fixes Android crash when setting profileSampleRate to 1.0. the patch dismissing android native hermes sampling
+- Reason: - Reason: Fixes Android crash when setting profilesSampleRate to 1.0. This patch disables Android native Hermes profiler initialization.
 - Upstream PR/issue: N/A (specific to our hybrid app environment)
 - E/App issue: https://github.com/Expensify/App/issues/75036
-- PR Introducing Patch: 
+- PR Introducing Patch: https://github.com/Expensify/App/pull/77230
 
