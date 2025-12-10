@@ -98,7 +98,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
         return false;
     }
 
@@ -126,13 +126,6 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     }
 
     if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
-
-    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
-    const isReportSubmitter = isCurrentUserSubmitter(report);
-
-    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
     }
 
@@ -390,6 +383,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
+    const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy);
 
     if (isMarkAsCashAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
@@ -403,7 +397,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
-    if (isRemoveHoldAction(report, chatReport, reportTransactions) || isPayActionWithAllExpensesHeld) {
+    if (isRemoveHoldAction(report, chatReport, reportTransactions) || (isPayActionWithAllExpensesHeld && expensesToHold.length)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
@@ -422,7 +416,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 
-    if (getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy).length) {
+    if (expensesToHold.length) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
@@ -484,6 +478,8 @@ export {
     isAddExpenseAction,
     isPrimaryPayAction,
     isExportAction,
+    isApproveAction,
+    isSubmitAction,
     isMarkAsResolvedAction,
     isPrimaryMarkAsResolvedAction,
     getAllExpensesToHoldIfApplicable,
