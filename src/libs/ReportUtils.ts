@@ -131,6 +131,7 @@ import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import Permissions from './Permissions';
+import {getReportName as getReportNameReportNameUtils} from '@libs/ReportNameUtils';
 import {
     getAccountIDsByLogins,
     getDisplayNameOrDefault,
@@ -7025,7 +7026,7 @@ function getMovedTransactionMessage(action: ReportAction) {
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
     const report = fromReport ?? toReport;
-    const reportName = getReportName(report) ?? report?.reportName ?? '';
+    const reportName = getReportNameReportNameUtils(report) ?? report?.reportName ?? '';
     let reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -7054,7 +7055,7 @@ function getUnreportedTransactionMessage(action: ReportAction) {
 
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
-    const reportName = getReportName(fromReport) ?? fromReport?.reportName ?? '';
+    const reportName = getReportNameReportNameUtils(fromReport) ?? fromReport?.reportName ?? '';
 
     let reportUrl = `${environmentURL}/r/${fromReport?.reportID}`;
 
