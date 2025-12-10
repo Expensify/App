@@ -26,6 +26,7 @@ import {
     isManagedCardTransaction,
     isMerchantMissing,
     isPerDiemRequest,
+    isTransactionPendingDelete,
 } from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
@@ -362,7 +363,7 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
     }
 
     // Do not allow merging transactions that are pending delete
-    if (transaction1.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || transaction2.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+    if (isTransactionPendingDelete(transaction1) || isTransactionPendingDelete(transaction2)) {
         return false;
     }
 
