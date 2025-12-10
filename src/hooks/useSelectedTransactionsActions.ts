@@ -9,8 +9,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {isMergeAction, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
-    canAddOrDeleteTransactions,
     canDeleteCardTransactionByLiabilityType,
+    canDeleteTransaction,
     canEditFieldOfMoneyRequest,
     canHoldUnholdReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
@@ -335,7 +335,7 @@ function useSelectedTransactionsActions({
             return canRemoveTransaction && isIOUActionOwner && !isActionDeleted;
         });
 
-        const canRemoveReportTransaction = canAddOrDeleteTransactions(report, policy, isReportArchived);
+        const canRemoveReportTransaction = canDeleteTransaction(report, isReportArchived);
 
         if (canRemoveReportTransaction && canAllSelectedTransactionsBeRemoved) {
             options.push({
