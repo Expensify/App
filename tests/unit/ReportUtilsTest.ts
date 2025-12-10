@@ -6811,6 +6811,56 @@ describe('ReportUtils', () => {
 
             expect(canJoinChat(report, undefined, undefined)).toBe(true);
         });
+
+        it('should respect workspace membership for restricted visibility rooms', async () => {
+            const policyID = '123456';
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            const policyWithoutCurrentUser: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                employeeList: {
+                    'employee@test.com': {
+                        role: CONST.POLICY.ROLE.USER,
+                        errors: {},
+                    },
+                },
+            };
+
+            const policyWithCurrentUser: Policy = {
+                ...createRandomPolicy(2),
+                id: policyID,
+                employeeList: {
+                    [currentUserEmail]: {
+                        role: CONST.POLICY.ROLE.USER,
+                        errors: {},
+                    },
+                },
+            };
+
+            const restrictedReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                policyID,
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+                participants: {
+                    ...buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+            };
+
+            const publicReport: Report = {
+                ...restrictedReport,
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+            };
+
+            expect(canJoinChat(restrictedReport, undefined, policyWithoutCurrentUser)).toBe(false);
+            expect(canJoinChat(restrictedReport, undefined, policyWithCurrentUser)).toBe(true);
+            expect(canJoinChat(publicReport, undefined, policyWithoutCurrentUser)).toBe(true);
+        });
     });
 
     describe('isRootGroupChat', () => {
