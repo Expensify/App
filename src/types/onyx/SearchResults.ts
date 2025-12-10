@@ -90,7 +90,7 @@ type SearchTransaction = {
     canDelete: boolean;
 
     /** The edited transaction amount */
-    modifiedAmount: number | string;
+    modifiedAmount: number;
 
     /** The transaction currency */
     currency: string;
@@ -151,9 +151,6 @@ type SearchTransaction = {
 
     /** The modified MCC Group associated with the transaction */
     modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
-
-    /** The ID of the money request reportAction associated with the transaction */
-    moneyRequestReportActionID?: string;
 
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;
