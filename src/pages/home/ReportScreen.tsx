@@ -156,7 +156,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
 
 function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenProps) {
     const styles = useThemeStyles();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
@@ -978,7 +978,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                     onClose={dismissBanner}
                                     onButtonPress={chatWithAccountManager}
                                     shouldShowCloseButton
-                                    icon={Expensicons.Lightbulb}
+                                    icon={expensifyIcons.Lightbulb}
                                     shouldShowIcon
                                     shouldShowButton
                                 />
@@ -1025,6 +1025,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                             hasOlderActions={hasOlderActions}
                                             hasNewerActions={hasNewerActions}
                                             showReportActionsLoadingState={showReportActionsLoadingState}
+                                            reportPendingAction={reportPendingAction}
                                         />
                                     ) : null}
                                     {isCurrentReportLoadedFromOnyx ? (
