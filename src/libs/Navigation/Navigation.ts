@@ -56,6 +56,8 @@ Onyx.connectWithoutView({
 });
 
 let sidePanelNVP: OnyxEntry<SidePanel>;
+// `connectWithoutView` is used here because we want to avoid unnecessary re-renders when the side panel NVP changes
+// Also it is not directly connected to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_SIDE_PANEL,
     callback: (value) => {

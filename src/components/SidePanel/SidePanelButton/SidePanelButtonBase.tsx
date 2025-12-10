@@ -7,9 +7,9 @@ import useLocalize from '@hooks/useLocalize';
 import useSidePanel from '@hooks/useSidePanel';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type HelpButtonProps from './types';
+import type SidePanelButtonProps from './types';
 
-function HelpButton({style}: HelpButtonProps) {
+function SidePanelButtonBase({style}: SidePanelButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -38,6 +38,6 @@ function HelpButton({style}: HelpButtonProps) {
     );
 }
 
-HelpButton.displayName = 'HelpButtonBase';
+SidePanelButtonBase.displayName = 'SidePanelButtonBase';
 
-export default HelpButton;
+export default SidePanelButtonBase;
