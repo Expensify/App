@@ -771,14 +771,13 @@ function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Selecte
     }, {});
 
     for (const [reportID, selectedTransactionIDs] of Object.entries(transactionsByReport)) {
-        const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
-        const areAllExpensesSelected = allTransactionIDs.every((transactionID) => selectedTransactionIDs.includes(transactionID));
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        const totalReportTransactions = report?.transactionCount ?? 0;
+        const areAllExpensesSelected = selectedTransactionIDs.length === totalReportTransactions;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(hash, reportID, comment, allTransactionIDs);
+            rejectMoneyRequestInBulk(hash, reportID, comment, selectedTransactionIDs);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
