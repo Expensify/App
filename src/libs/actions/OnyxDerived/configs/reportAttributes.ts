@@ -1,11 +1,11 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import {computeReportName} from '@libs/ReportNameUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from '@libs/Localize';
+import {translate} from '@libs/Localize';
 import {generateIsEmptyReport, generateReportAttributes, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, ReportAttributesDerivedValue} from '@src/types/onyx';
@@ -171,6 +171,10 @@ export default createOnyxDerivedValueConfig({
                 return currentValue ?? {reports: {}, locale: null};
             }
         }
+
+        // Create a translate function that uses the preferred locale from dependencies
+        const translateWithLocale: LocalizedTranslate = (path, ...parameters) => translate(preferredLocale ?? undefined, path, ...parameters);
+
         const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>((acc, key) => {
             // source value sends partial data, so we need an entire report object to do computations
             const report = reports[key];
@@ -206,7 +210,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             acc[report.reportID] = {
-                reportName: report ? computeReportName(translateLocal, report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions) : '',
+                reportName: report ? computeReportName(translateWithLocale, report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions) : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
                 requiresAttention,

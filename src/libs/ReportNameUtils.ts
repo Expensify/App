@@ -268,8 +268,8 @@ function getInvoicesChatName({
     return getPolicyName({report, policy: receiverPolicyResolved, policies});
 }
 
-function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>, translate?: LocalizedTranslate): string {
-    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy, translate: translate ?? translateLocal});
+function getInvoiceReportName(report: OnyxEntry<Report>, translate: LocalizedTranslate, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
+    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy, translate});
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
@@ -306,7 +306,7 @@ function getMoneyRequestReportName({
     translate: LocalizedTranslate;
 }): string {
     if (report?.reportName && isExpenseReport(report)) {
-        return Str.htmlDecode(report.reportName);
+        return report.reportName;
     }
 
     const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
@@ -681,7 +681,7 @@ function computeReportName(
             chatReceiverPolicyID = (chatReceiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = chatReceiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicyID}`] : undefined;
-        formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy, translate);
+        formattedName = getInvoiceReportName(report, translate, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {

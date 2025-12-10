@@ -4501,18 +4501,12 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
-        if (isExpenseReport(report)) {
-            payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
-        }
+        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
+        return translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
-    const shouldShowPayerOwesAmount = isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0 || (isIOUReport(report) && !isSettled(report?.reportID))
-
-    if (shouldShowPayerOwesAmount) {
+    if (isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
@@ -5967,11 +5961,7 @@ function getReportName(
 
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
-            if (parentReport && isMoneyRequestReport(parentReport) && parentReport.reportID && parentReport.statusNum !== undefined) {
-                formattedName = getMoneyRequestReportName({report: parentReport, policy});
-            } else {
-                formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
-            }
+            formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
 
             if (isArchivedNonExpense) {
                 // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
@@ -6259,9 +6249,8 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 
 /**
  * Gets the parent navigation subtitle for the report
- * This function is only called from React components, so translate is required.
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived: boolean, reportAttributes: ReportAttributesDerivedValue['reports'] | undefined, translate: LocalizedTranslate): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(report: OnyxEntry<Report>, translate: LocalizedTranslate, isParentReportArchived = false, reportAttributes?: ReportAttributesDerivedValue['reports']): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
 
     if (isEmptyObject(parentReport)) {
