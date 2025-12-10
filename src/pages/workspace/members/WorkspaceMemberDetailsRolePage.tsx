@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
@@ -27,16 +27,13 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
 
-    const changeRole = useCallback(
-        ({value}: ListItemType) => {
-            if (value === member?.role) {
-                return;
-            }
-            updateWorkspaceMembersRole(policyID, [memberLogin], [accountID], value);
-            Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-        },
-        [accountID, member?.role, memberLogin, policyID],
-    );
+    const changeRole = ({value}: ListItemType) => {
+        if (value === member?.role) {
+            return;
+        }
+        updateWorkspaceMembersRole(policyID, [memberLogin], [accountID], value);
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+    };
 
     return (
         <AccessOrNotFoundWrapper

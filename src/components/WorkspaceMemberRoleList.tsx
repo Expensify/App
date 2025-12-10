@@ -33,36 +33,32 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const roleItems: ListItemType[] = useMemo(() => {
-        const items: ListItemType[] = [
-            {
-                value: CONST.POLICY.ROLE.ADMIN,
-                text: translate('common.admin'),
-                alternateText: translate('workspace.common.adminAlternateText'),
-                isSelected: role === CONST.POLICY.ROLE.ADMIN,
-                keyForList: CONST.POLICY.ROLE.ADMIN,
-            },
-            {
-                value: CONST.POLICY.ROLE.AUDITOR,
-                text: translate('common.auditor'),
-                alternateText: translate('workspace.common.auditorAlternateText'),
-                isSelected: role === CONST.POLICY.ROLE.AUDITOR,
-                keyForList: CONST.POLICY.ROLE.AUDITOR,
-            },
-            {
-                value: CONST.POLICY.ROLE.USER,
-                text: translate('common.member'),
-                alternateText: translate('workspace.common.memberAlternateText'),
-                isSelected: role === CONST.POLICY.ROLE.USER,
-                keyForList: CONST.POLICY.ROLE.USER,
-            },
-        ];
+    const workspaceRoles: ListItemType[] = [
+        {
+            value: CONST.POLICY.ROLE.ADMIN,
+            text: translate('common.admin'),
+            alternateText: translate('workspace.common.adminAlternateText'),
+            isSelected: role === CONST.POLICY.ROLE.ADMIN,
+            keyForList: CONST.POLICY.ROLE.ADMIN,
+        },
+        {
+            value: CONST.POLICY.ROLE.AUDITOR,
+            text: translate('common.auditor'),
+            alternateText: translate('workspace.common.auditorAlternateText'),
+            isSelected: role === CONST.POLICY.ROLE.AUDITOR,
+            keyForList: CONST.POLICY.ROLE.AUDITOR,
+        },
+        {
+            value: CONST.POLICY.ROLE.USER,
+            text: translate('common.member'),
+            alternateText: translate('workspace.common.memberAlternateText'),
+            isSelected: role === CONST.POLICY.ROLE.USER,
+            keyForList: CONST.POLICY.ROLE.USER,
+        },
+    ];
 
-        if (!isControlPolicy(policy)) {
-            return items.filter((item) => item.value !== CONST.POLICY.ROLE.AUDITOR);
-        }
-        return items;
-    }, [role, translate, policy]);
+    const isPolicyControl = isControlPolicy(policy);
+    const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => isPolicyControl || item.value !== CONST.POLICY.ROLE.AUDITOR);
 
     return (
         <>
@@ -73,11 +69,11 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
             {!isLoading && (
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <SelectionList
-                        data={roleItems}
+                        data={availableRoleItems}
                         ListItem={RadioListItem}
                         onSelectRow={onSelectRole}
                         shouldSingleExecuteRowSelect
-                        initiallyFocusedItemKey={roleItems.find((item) => item.isSelected)?.keyForList}
+                        initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}
                         addBottomSafeAreaPadding
                     />
                 </View>
