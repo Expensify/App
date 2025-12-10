@@ -5,11 +5,11 @@ import Onyx from 'react-native-onyx';
 import ReceiptDoc from '@assets/images/receipt-doc.png';
 import ComposeProviders from '@components/ComposeProviders';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
-import * as Illustrations from '@components/Icon/Illustrations';
 import {FullScreenContextProvider} from '@components/VideoPlayerContexts/FullScreenContext';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeContext';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -56,13 +56,17 @@ describe('FeatureTrainingModal', () => {
             expect(screen.getByTestId(CONST.VIDEO_PLAYER_TEST_ID)).toBeOnTheScreen();
         });
         it('renders svg image', () => {
-            render(
-                <FeatureTrainingModal
-                    confirmText={CONFIRM_TEXT}
-                    image={Illustrations.HoldExpense}
-                />,
-            );
+            function Component() {
+                const illustrations = useMemoizedLazyIllustrations(['HoldExpense'] as const);
+                return (
+                    <FeatureTrainingModal
+                        confirmText={CONFIRM_TEXT}
+                        image={illustrations.HoldExpense}
+                    />
+                );
+            }
 
+            render(<Component />);
             expect(screen.getByTestId(CONST.IMAGE_SVG_TEST_ID)).toBeOnTheScreen();
         });
         it('renders non-svg image', () => {
