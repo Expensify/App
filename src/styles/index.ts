@@ -5907,10 +5907,10 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {height};
         },
 
-        getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean) => {
+        getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean, isSearchable = true) => {
             const BUTTON_HEIGHT = 40;
-            const SEARCHBAR_HEIGHT = 50;
-            const SEARCHBAR_MARGIN = 14;
+            const SEARCHBAR_HEIGHT = isSearchable ? 50 : 0;
+            const SEARCHBAR_MARGIN = isSearchable ? 14 : 0;
             const PADDING = 44 - (shouldUseNarrowLayout ? 32 : 0);
             const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_MARGIN + BUTTON_HEIGHT + PADDING;
 
