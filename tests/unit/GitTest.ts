@@ -820,5 +820,115 @@ describe('Git', () => {
 
             expect(file.diffType).toBe('removed');
         });
+
+        it('returns "removed" for single-line files that are deleted', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/single-line-file.ts b/single-line-file.ts
+                deleted file mode 100644
+                index 1234567..0000000
+                --- a/single-line-file.ts
+                +++ /dev/null
+                @@ -1,1 +0,0 @@
+                -export const test = 'value';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('removed');
+            expect(file.filePath).toBe('single-line-file.ts');
+        });
+
+        it('returns "removed" for files with multiple hunks that are deleted', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/multi-hunk-removed.ts b/multi-hunk-removed.ts
+                deleted file mode 100644
+                index 1234567..0000000
+                --- a/multi-hunk-removed.ts
+                +++ /dev/null
+                @@ -1,2 +0,0 @@
+                -const first = 'value';
+                -const second = 'value';
+                @@ -5,3 +0,0 @@
+                -const third = 'value';
+                -const fourth = 'value';
+                -const fifth = 'value';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('removed');
+            expect(file.filePath).toBe('multi-hunk-removed.ts');
+            expect(file.hunks.length).toBeGreaterThan(1);
+        });
+
+        it('uses the old file path for removed files (not /dev/null)', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/src/utils/helper.ts b/src/utils/helper.ts
+                deleted file mode 100644
+                index 1234567..0000000
+                --- a/src/utils/helper.ts
+                +++ /dev/null
+                @@ -1,2 +0,0 @@
+                -export const helper = () => {};
+                -export const another = () => {};
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('removed');
+            expect(file.filePath).toBe('src/utils/helper.ts');
+            expect(file.filePath).not.toBe('/dev/null');
+        });
+
+        it('correctly populates removedLines for deleted files', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/deleted.ts b/deleted.ts
+                deleted file mode 100644
+                index 1234567..0000000
+                --- a/deleted.ts
+                +++ /dev/null
+                @@ -1,5 +0,0 @@
+                -const line1 = 'value1';
+                -const line2 = 'value2';
+                -const line3 = 'value3';
+                -const line4 = 'value4';
+                -const line5 = 'value5';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('removed');
+            expect(file.removedLines.size).toBe(5);
+            expect(file.addedLines.size).toBe(0);
+            expect(file.modifiedLines.size).toBe(0);
+        });
     });
 });
