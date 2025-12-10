@@ -2,6 +2,7 @@ import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
 import {TabActions} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {TupleToUnion} from 'type-fest';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -45,7 +46,11 @@ type IconTitleAndTestID = {
 
 const MEMOIZED_LAZY_TAB_SELECTOR_ICONS = ['CalendarSolid', 'UploadAlt', 'User', 'Car', 'Hashtag', 'Map', 'Pencil', 'Crosshair'] as const;
 
-function getIconTitleAndTestID(icons: Record<(typeof MEMOIZED_LAZY_TAB_SELECTOR_ICONS)[number], IconAsset>, route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
+function getIconTitleAndTestID(
+    icons: Record<TupleToUnion<typeof MEMOIZED_LAZY_TAB_SELECTOR_ICONS>, IconAsset>,
+    route: string,
+    translate: LocaleContextProps['translate'],
+): IconTitleAndTestID {
     switch (route) {
         case CONST.TAB.RECEIPT_PARTNERS.ALL:
             return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all'};
