@@ -1,7 +1,6 @@
-import type { VideoPlayer, VideoPlayerStatus, VideoView } from 'expo-video';
-import type { RefObject } from 'react';
-import type { View } from 'react-native';
-
+import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
 
 /**
  * Callback type for reporting the current playback status.
