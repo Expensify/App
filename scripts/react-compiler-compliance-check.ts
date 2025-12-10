@@ -158,7 +158,7 @@ async function checkChangedFiles({remote, ...restOptions}: BaseCheckOptions): Pr
     logInfo('Checking changed files for React Compiler compliance...');
 
     const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-    const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash);
+    const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash, undefined, true);
 
     if (changedFiles.length === 0) {
         logSuccess('No React files changed, skipping check.');
