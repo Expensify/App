@@ -47,14 +47,16 @@ readonly LINE_ARG="${3:-}"
 validate_rule "$BODY_ARG"
 echo "Comment approved: $COMMENT_STATUS_REASON"
 
-readonly COMMIT_ID=$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.head.sha')
+COMMIT_ID=$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.head.sha')
+readonly COMMIT_ID
 
-readonly PAYLOAD=$(jq -n \
+PAYLOAD=$(jq -n \
     --arg body "$BODY_ARG" \
     --arg path "$PATH_ARG" \
     --argjson line "$LINE_ARG" \
     --arg commit_id "$COMMIT_ID" \
     '{body: $body, path: $path, line: $line, side: "RIGHT", commit_id: $commit_id}')
+readonly PAYLOAD
 
 gh api -X POST "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/comments" \
     --input - <<< "$PAYLOAD" || exit 1
