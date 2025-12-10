@@ -50,20 +50,22 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
-    const {listData, noResultsFound} = useMemo(() => {
+    const listData: ListItem[] = useMemo(() => {
         const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) : items;
-        const data: ListItem[] = filteredItems.map((item) => ({
+        return filteredItems.map((item) => ({
             text: item.text,
             keyForList: item.value,
             isSelected: !!selectedItems.find((i) => i.value === item.value),
             icons: item.icons,
         }));
-        return {listData: data, noResultsFound: isSearchable && data.length === 0};
     }, [items, selectedItems, isSearchable, debouncedSearchTerm]);
 
     const headerMessage = useMemo(() => {
-        return noResultsFound ? translate('common.noResultsFound') : undefined;
-    }, [noResultsFound, translate]);
+        if (!isSearchable || listData.length > 0) {
+            return undefined;
+        }
+        return translate('common.noResultsFound');
+    }, [isSearchable, listData.length, translate]);
 
     const updateSelectedItems = useCallback(
         (item: ListItem) => {
