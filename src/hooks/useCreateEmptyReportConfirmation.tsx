@@ -1,5 +1,7 @@
 import type {ReactNode} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import ConfirmModal from '@components/ConfirmModal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -8,6 +10,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import useLocalize from './useLocalize';
+import useThemeStyles from './useThemeStyles';
 
 type UseCreateEmptyReportConfirmationParams = {
     /** The policy ID for which the report is being created */
@@ -15,7 +18,7 @@ type UseCreateEmptyReportConfirmationParams = {
     /** The display name of the policy/workspace */
     policyName?: string;
     /** Callback function to execute when user confirms report creation */
-    onConfirm: () => void;
+    onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void;
     /** Optional callback function to execute when user cancels the confirmation */
     onCancel?: () => void;
 };
@@ -49,22 +52,27 @@ type UseCreateEmptyReportConfirmationResult = {
  */
 export default function useCreateEmptyReportConfirmation({policyName, onConfirm, onCancel}: UseCreateEmptyReportConfirmationParams): UseCreateEmptyReportConfirmationResult {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const workspaceDisplayName = useMemo(() => (policyName?.trim().length ? policyName : translate('report.newReport.genericWorkspaceName')), [policyName, translate]);
     const [isVisible, setIsVisible] = useState(false);
     const [modalWorkspaceName, setModalWorkspaceName] = useState(workspaceDisplayName);
+    const [shouldDismissEmptyReportsConfirmation, setShouldDismissEmptyReportsConfirmation] = useState(false);
 
     const handleConfirm = useCallback(() => {
-        onConfirm();
+        onConfirm(shouldDismissEmptyReportsConfirmation);
+        setShouldDismissEmptyReportsConfirmation(false);
         setIsVisible(false);
-    }, [onConfirm]);
+    }, [onConfirm, shouldDismissEmptyReportsConfirmation]);
 
     const handleCancel = useCallback(() => {
         onCancel?.();
+        setShouldDismissEmptyReportsConfirmation(false);
         setIsVisible(false);
     }, [onCancel]);
 
     const handleReportsLinkPress = useCallback(() => {
         onCancel?.();
+        setShouldDismissEmptyReportsConfirmation(false);
         setIsVisible(false);
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
     }, [onCancel]);
@@ -73,17 +81,26 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
         // The caller is responsible for determining if empty report confirmation
         // should be shown. We simply open the modal when called.
         setModalWorkspaceName(workspaceDisplayName);
+        setShouldDismissEmptyReportsConfirmation(false);
         setIsVisible(true);
     }, [workspaceDisplayName]);
 
     const prompt = useMemo(
         () => (
-            <Text>
-                {translate('report.newReport.emptyReportConfirmationPrompt', {workspaceName: modalWorkspaceName})}{' '}
-                <TextLink onPress={handleReportsLinkPress}>{translate('report.newReport.emptyReportConfirmationPromptLink')}.</TextLink>
-            </Text>
+            <View style={styles.gap4}>
+                <Text>
+                    {translate('report.newReport.emptyReportConfirmationPrompt', {workspaceName: modalWorkspaceName})}{' '}
+                    <TextLink onPress={handleReportsLinkPress}>{translate('report.newReport.emptyReportConfirmationPromptLink')}.</TextLink>
+                </Text>
+                <CheckboxWithLabel
+                    accessibilityLabel={translate('report.newReport.emptyReportConfirmationDontShowAgain')}
+                    label={translate('report.newReport.emptyReportConfirmationDontShowAgain')}
+                    isChecked={shouldDismissEmptyReportsConfirmation}
+                    onInputChange={(value) => setShouldDismissEmptyReportsConfirmation(!!value)}
+                />
+            </View>
         ),
-        [handleReportsLinkPress, modalWorkspaceName, translate],
+        [handleReportsLinkPress, modalWorkspaceName, shouldDismissEmptyReportsConfirmation, styles.gap4, translate],
     );
 
     const CreateReportConfirmationModal = useMemo(
