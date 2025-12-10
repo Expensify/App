@@ -219,7 +219,8 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const canRejectTransactions = selectedTransactionsList.length > 0 && isMoneyRequestReport && !isReportReimbursed && !!session?.email && !!report && canRejectReportAction(session.email, report, policy);
+        const canRejectTransactions =
+            selectedTransactionsList.length > 0 && isMoneyRequestReport && !isReportReimbursed && !!session?.email && !!report && canRejectReportAction(session.email, report, policy);
         if (canRejectTransactions) {
             options.push({
                 text: translate('search.bulkActions.reject'),
