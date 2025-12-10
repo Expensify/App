@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -34,7 +33,7 @@ type ConfirmationStepProps = {
 };
 
 function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationStepProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
@@ -85,7 +84,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
-                    title={Str.isSMSLogin(cardholderTitle) ? formatPhoneNumber(cardholderTitle) : cardholderTitle}
+                    title={cardholderTitle}
                     shouldShowRightIcon={!issueNewCard?.isChangeAssigneeDisabled}
                     interactive={!issueNewCard?.isChangeAssigneeDisabled}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
