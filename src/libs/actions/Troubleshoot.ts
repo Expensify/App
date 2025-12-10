@@ -43,23 +43,21 @@ function clearAutoOffTimeout() {
  * @param fileName - The filename to save the profile trace as
  * @returns Profile path, memoize stats, and performance measures
  */
-function stopProfilingAndGetData(fileName: string): Promise<ProfilingData> {
+async function stopProfilingAndGetData(fileName: string): Promise<ProfilingData> {
     const showProfileTool = shouldShowProfileTool();
 
     // Stop profiler and save to file (only if profiling is available)
-    const profilingPromise = showProfileTool ? stopProfiling(true, fileName) : Promise.resolve(undefined);
+    const profilePath = showProfileTool ? await stopProfiling(true, fileName) : undefined;
 
-    return profilingPromise.then((profilePath) => {
-        // Get stats before stopping monitoring
-        const memoizeStats = Memoize.stopMonitoring();
-        const performanceMeasures = showProfileTool ? Performance.getPerformanceMeasures() : undefined;
+    // Get stats before stopping monitoring
+    const memoizeStats = Memoize.stopMonitoring();
+    const performanceMeasures = showProfileTool ? Performance.getPerformanceMeasures() : undefined;
 
-        // Stop monitoring
-        Performance.disableMonitoring();
-        toggleProfileTool(false);
+    // Stop monitoring
+    Performance.disableMonitoring();
+    toggleProfileTool(false);
 
-        return {profilePath, memoizeStats, performanceMeasures};
-    });
+    return {profilePath, memoizeStats, performanceMeasures};
 }
 
 /**

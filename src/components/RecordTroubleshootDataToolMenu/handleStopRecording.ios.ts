@@ -2,7 +2,7 @@ import RNFS from 'react-native-fs';
 import Log from '@libs/Log';
 import type {StopRecordingParams} from './handleStopRecording.types';
 
-export default function handleStopRecording({
+export default async function handleStopRecording({
     profilingData,
     infoFileName,
     profileFileName,
@@ -19,39 +19,33 @@ export default function handleStopRecording({
 
     if (!profilePath) {
         cleanupAfterDisable();
-        return Promise.resolve();
+        return;
     }
 
     const newFilePath = `${pathToBeUsed}/${profileFileName}`;
 
-    return RNFS.exists(newFilePath)
-        .then((fileExists) => {
-            if (!fileExists) {
-                return;
-            }
+    try {
+        const fileExists = await RNFS.exists(newFilePath);
+        if (fileExists) {
+            await RNFS.unlink(newFilePath);
+            Log.hmmm('[ProfilingToolMenu] existing file deleted successfully');
+        }
+    } catch (error) {
+        const typedError = error as Error;
+        Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
+    }
 
-            return RNFS.unlink(newFilePath).then(() => {
-                Log.hmmm('[ProfilingToolMenu] existing file deleted successfully');
-            });
-        })
-        .catch((error) => {
-            const typedError = error as Error;
-            Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
-        })
-        .then(() => RNFS.copyFile(profilePath, newFilePath))
-        .then(() => {
-            zipRef.current?.file(infoFileName, appInfo);
+    try {
+        await RNFS.copyFile(profilePath, newFilePath);
+        zipRef.current?.file(infoFileName, appInfo);
 
-            return onDisableLogging(logsWithParsedMessages).then(() => {
-                cleanupAfterDisable();
-                onDownloadZip?.();
-            });
-        })
-        .then(() => {
-            setProfileTracePath?.(newFilePath);
-            Log.hmmm('[ProfilingToolMenu] file copied successfully');
-        })
-        .catch((error) => {
-            Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
-        });
+        await onDisableLogging(logsWithParsedMessages);
+        cleanupAfterDisable();
+        onDownloadZip?.();
+
+        setProfileTracePath?.(newFilePath);
+        Log.hmmm('[ProfilingToolMenu] file copied successfully');
+    } catch (error) {
+        Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
+    }
 }

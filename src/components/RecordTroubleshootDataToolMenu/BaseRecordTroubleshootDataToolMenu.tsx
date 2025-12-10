@@ -85,21 +85,20 @@ function BaseRecordTroubleshootDataToolMenu({
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
     const [profileTracePath, setProfileTracePath] = useState<string>();
 
-    const getAppInfo = useCallback((profilingData: ProfilingData) => {
-        return Promise.all([DeviceInfo.getTotalMemory(), DeviceInfo.getUsedMemory()]).then(([totalMemory, usedMemory]) => {
-            return JSON.stringify({
-                appVersion: pkg.version,
-                environment: CONFIG.ENVIRONMENT,
-                platform: getPlatform(),
-                totalMemory: formatBytes(totalMemory, 2),
-                usedMemory: formatBytes(usedMemory, 2),
-                memoizeStats: profilingData.memoizeStats,
-                performance: profilingData.performanceMeasures,
-            });
+    const getAppInfo = useCallback(async (profilingData: ProfilingData) => {
+        const [totalMemory, usedMemory] = await Promise.all([DeviceInfo.getTotalMemory(), DeviceInfo.getUsedMemory()]);
+        return JSON.stringify({
+            appVersion: pkg.version,
+            environment: CONFIG.ENVIRONMENT,
+            platform: getPlatform(),
+            totalMemory: formatBytes(totalMemory, 2),
+            usedMemory: formatBytes(usedMemory, 2),
+            memoizeStats: profilingData.memoizeStats,
+            performance: profilingData.performanceMeasures,
         });
     }, []);
 
-    const onToggle = () => {
+    const onToggle = async () => {
         if (!shouldRecordTroubleshootData) {
             enableRecording();
 
@@ -123,27 +122,28 @@ function BaseRecordTroubleshootDataToolMenu({
 
         const infoFileName = `App_Info_${pkg.version}.json`;
 
-        stopProfilingAndGetData(newFileName).then((profilingData) => {
-            getAppInfo(profilingData).then((appInfo) => {
-                const params: StopRecordingParams = {
-                    profilingData,
-                    infoFileName,
-                    profileFileName: newFileName,
-                    appInfo,
-                    logsWithParsedMessages,
-                    onDisableLogging,
-                    cleanupAfterDisable,
-                    zipRef,
-                    pathToBeUsed,
-                    onDownloadZip,
-                    setProfileTracePath,
-                };
+        try {
+            const profilingData = await stopProfilingAndGetData(newFileName);
+            const appInfo = await getAppInfo(profilingData);
 
-                handleStopRecording(params).finally(() => {
-                    setIsDisabled(false);
-                });
-            });
-        });
+            const params: StopRecordingParams = {
+                profilingData,
+                infoFileName,
+                profileFileName: newFileName,
+                appInfo,
+                logsWithParsedMessages,
+                onDisableLogging,
+                cleanupAfterDisable,
+                zipRef,
+                pathToBeUsed,
+                onDownloadZip,
+                setProfileTracePath,
+            };
+
+            await handleStopRecording(params);
+        } finally {
+            setIsDisabled(false);
+        }
     };
 
     useEffect(() => {

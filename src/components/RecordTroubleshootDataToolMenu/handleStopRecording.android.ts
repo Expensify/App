@@ -1,7 +1,7 @@
 import RNFetchBlob from 'react-native-blob-util';
 import type {StopRecordingParams} from './handleStopRecording.types';
 
-export default function handleStopRecording({
+export default async function handleStopRecording({
     profilingData,
     infoFileName,
     appInfo,
@@ -15,17 +15,20 @@ export default function handleStopRecording({
     const {profilePath} = profilingData;
 
     if (profilePath) {
-        RNFetchBlob.fs
+        try {
             // Check if it is an internal path of `DownloadManager` then append content://media to create a valid url
-            .stat(!profilePath.startsWith('content://media/') && profilePath.match(/\/downloads\/\d+$/) ? `content://media/${profilePath}` : profilePath)
-            .then(({path}) => setProfileTracePath?.(path))
-            .catch(() => setProfileTracePath?.(profilePath));
+            const {path} = await RNFetchBlob.fs.stat(
+                !profilePath.startsWith('content://media/') && profilePath.match(/\/downloads\/\d+$/) ? `content://media/${profilePath}` : profilePath,
+            );
+            setProfileTracePath?.(path);
+        } catch {
+            setProfileTracePath?.(profilePath);
+        }
     }
 
     zipRef.current?.file(infoFileName, appInfo);
 
-    return onDisableLogging(logsWithParsedMessages).then(() => {
-        cleanupAfterDisable();
-        onDownloadZip?.();
-    });
+    await onDisableLogging(logsWithParsedMessages);
+    cleanupAfterDisable();
+    onDownloadZip?.();
 }

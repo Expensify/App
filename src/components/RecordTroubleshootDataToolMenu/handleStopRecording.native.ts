@@ -1,6 +1,6 @@
 import type {StopRecordingParams} from './handleStopRecording.types';
 
-export default function handleStopRecording({
+export default async function handleStopRecording({
     infoFileName,
     appInfo,
     logsWithParsedMessages,
@@ -11,8 +11,7 @@ export default function handleStopRecording({
 }: StopRecordingParams): Promise<void> {
     zipRef.current?.file(infoFileName, appInfo);
 
-    return onDisableLogging(logsWithParsedMessages).then(() => {
-        cleanupAfterDisable();
-        onDownloadZip?.();
-    });
+    await onDisableLogging(logsWithParsedMessages);
+    cleanupAfterDisable();
+    onDownloadZip?.();
 }
