@@ -75,7 +75,6 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                 accessibilityLabel="row"
                 style={styles.mh5}
                 onPress={action}
-                disabled={!isAdmin}
             >
                 {({hovered}) => (
                     <DomainsListRow

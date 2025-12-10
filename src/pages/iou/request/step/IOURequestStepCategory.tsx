@@ -112,7 +112,7 @@ function IOURequestStepCategory({
     useEffect(() => {
         fetchData();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [policyID]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -150,7 +150,7 @@ function IOURequestStepCategory({
             }
         }
 
-        setMoneyRequestCategory(transactionID, updatedCategory, policyID);
+        setMoneyRequestCategory(transactionID, updatedCategory, policy);
 
         if (action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {
             if (report?.reportID) {

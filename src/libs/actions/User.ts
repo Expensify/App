@@ -568,10 +568,9 @@ function validateSecondaryLogin(
             ],
         );
 
-        // eslint-disable-next-line unicorn/no-array-for-each
-        Object.values(allPolicies ?? {}).forEach((policy) => {
+        for (const policy of Object.values(allPolicies ?? {})) {
             if (!policy) {
-                return;
+                continue;
             }
 
             let optimisticPolicyDataValue;
@@ -600,7 +599,7 @@ function validateSecondaryLogin(
                     value: optimisticPolicyDataValue,
                 });
             }
-        });
+        }
     }
 
     const failureData: OnyxUpdate[] = [
@@ -662,18 +661,20 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
 }
 
 function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
-    // eslint-disable-next-line unicorn/no-array-for-each
-    onyxUpdates.forEach((update) => {
+    for (const update of onyxUpdates) {
         if (!update.shouldNotify && !update.shouldShowPushNotification) {
-            return;
+            continue;
         }
 
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
-        // eslint-disable-next-line unicorn/no-array-for-each
-        reportActions.forEach((action) => action && showReportActionNotification(reportID, action));
-    });
+        for (const action of reportActions) {
+            if (action) {
+                showReportActionNotification(reportID, action);
+            }
+        }
+    }
 }
 
 const isChannelMuted = (reportId: string) =>
@@ -1211,10 +1212,9 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
         },
     ];
 
-    // eslint-disable-next-line unicorn/no-array-for-each
-    Object.values(allPolicies ?? {}).forEach((policy) => {
+    for (const policy of Object.values(allPolicies ?? {})) {
         if (!policy) {
-            return;
+            continue;
         }
 
         let optimisticPolicyDataValue;
@@ -1259,7 +1259,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
                 value: failurePolicyDataValue,
             });
         }
-    });
+    }
     const parameters: SetContactMethodAsDefaultParams = {
         partnerUserID: newDefaultContactMethod,
     };

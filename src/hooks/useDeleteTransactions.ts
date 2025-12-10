@@ -120,7 +120,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                         originalTransactionID: transactionID,
                         splitExpenses: childTransactions.map((childTransaction) => initSplitExpenseItemData(childTransaction)),
                     },
-                    hash: currentSearchHash ?? 0,
+                    searchContext: {
+                        currentSearchHash: currentSearchHash ?? 0,
+                    },
                     policyCategories,
                     policy,
                     policyRecentlyUsedCategories,

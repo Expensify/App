@@ -7,6 +7,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
+type OldTransaction = Transaction & {filename?: string};
+
 // This migration moves filename from the transaction root to transaction.receipt.filename to match the database structure.
 export default function () {
     return new Promise<void>((resolve) => {
@@ -15,7 +17,7 @@ export default function () {
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
             waitForCollectionCallback: true,
-            callback: (transactions: OnyxCollection<Transaction>) => {
+            callback: (transactions: OnyxCollection<OldTransaction>) => {
                 Onyx.disconnect(connection);
 
                 if (!transactions || isEmptyObject(transactions)) {
@@ -23,7 +25,7 @@ export default function () {
                     return resolve();
                 }
 
-                const transactionsWithReceipt: Array<OnyxEntry<Transaction>> = Object.values(transactions).filter((transaction) => transaction?.filename);
+                const transactionsWithReceipt: Array<OnyxEntry<OldTransaction>> = Object.values(transactions).filter((transaction) => transaction?.filename);
                 if (!transactionsWithReceipt?.length) {
                     Log.info('[Migrate Onyx] Skipped migration RenameReceiptFilename because there were no transactions with the filename property');
                     return resolve();
@@ -43,7 +45,7 @@ export default function () {
                         };
                         return acc;
                     },
-                    {} as Record<TransactionKey, NullishDeep<Transaction>>,
+                    {} as Record<TransactionKey, NullishDeep<OldTransaction>>,
                 );
 
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data

@@ -13,32 +13,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
-import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function TransactionStartDateStep() {
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
     const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
-    const formatter = useMemo(() => {
-        return new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
-    }, [preferredLocale]);
 
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const [errorText, setErrorText] = useState('');
-    const [startDate, setStartDate] = useState(() => {
-        if (assignCard?.startDate) {
-            return assignCard.startDate;
-        }
-        if (data?.startDate) {
-            return data.startDate;
-        }
-        return formatter.format();
-    });
+    const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -57,7 +46,7 @@ function TransactionStartDateStep() {
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
             return;
         }
-        setStartDate(formatter.format());
+        setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     };
 
     const submit = () => {
@@ -135,7 +124,11 @@ function TransactionStartDateStep() {
                                     value={startDate}
                                     label={translate('iou.startDate')}
                                     onInputChange={(value) => {
-                                        setErrorText('');
+                                        if (!isRequiredFulfilled(value)) {
+                                            setErrorText(translate('common.error.fieldRequired'));
+                                        } else {
+                                            setErrorText('');
+                                        }
                                         setStartDate(value);
                                     }}
                                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}

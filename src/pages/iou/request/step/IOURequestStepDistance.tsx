@@ -93,6 +93,7 @@ function IOURequestStepDistance({
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const waypoints = useMemo(
         () =>
@@ -379,6 +380,7 @@ function IOURequestStepDistance({
                     backToReport,
                     isASAPSubmitBetaEnabled,
                     transactionViolations,
+                    quickAction,
                 });
                 return;
             }
@@ -445,6 +447,8 @@ function IOURequestStepDistance({
         personalPolicy?.autoReporting,
         reportID,
         transactionViolations,
+        currentUserPersonalDetails.accountID,
+        quickAction,
     ]);
 
     const getError = () => {

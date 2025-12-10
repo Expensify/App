@@ -8,7 +8,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -90,7 +90,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollViewWithContext
+                <ScrollView
                     keyboardShouldPersistTaps="handled"
                     addBottomSafeAreaPadding
                     style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
@@ -110,6 +110,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                         domainName={domainName}
                                         isSamlEnabled={isSamlEnabled}
                                         isSamlRequired={isSamlRequired}
+                                        isOktaScimEnabled={!!domainSettings?.oktaSCIM}
                                     />
                                 </Section>
 
@@ -152,7 +153,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                             />
                         )}
                     </View>
-                </ScrollViewWithContext>
+                </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
