@@ -13,7 +13,7 @@ import useMergeTransactions from '@hooks/useMergeTransactions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getTransactionsForMerging, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {getTransactionsForMerging, setMergeTransactionKey, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {fillMissingReceiptSource, getMergeableDataAndConflictFields, selectTargetAndSourceTransactionsForMerge, shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -84,18 +84,22 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
         [mergeTransaction?.eligibleTransactions, transactionID],
     );
 
+    const transactionDisplayName = useMemo(
+        () =>
+            translate('iou.transactionDisplayName', {
+                amount: convertToDisplayString(getAmount(targetTransaction), getCurrency(targetTransaction)),
+                merchant: getMerchant(targetTransaction),
+            }),
+        [translate, targetTransaction],
+    );
+
     const headerContent = useMemo(
         () => (
             <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow]}>
-                <RenderHTML
-                    html={translate('iou.transactionDisplayName', {
-                        amount: convertToDisplayString(getAmount(targetTransaction), getCurrency(targetTransaction)),
-                        merchant: getMerchant(targetTransaction),
-                    })}
-                />
+                <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: transactionDisplayName})} />
             </View>
         ),
-        [targetTransaction, translate, styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow],
+        [transactionDisplayName, translate, styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow],
     );
 
     const subTitleContent = useMemo(() => {
@@ -111,31 +115,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
             return;
         }
 
-        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(targetTransaction, sourceTransaction);
-        if (shouldNavigateToReceiptReview([newTargetTransaction, newSourceTransaction])) {
-            setMergeTransactionKey(transactionID, {
-                targetTransactionID: newTargetTransaction?.transactionID,
-                sourceTransactionID: newSourceTransaction?.transactionID,
-            });
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
-        } else {
-            const mergedReceipt = newTargetTransaction?.receipt?.receiptID ? newTargetTransaction.receipt : newSourceTransaction?.receipt;
-            setMergeTransactionKey(transactionID, {
-                targetTransactionID: newTargetTransaction?.transactionID,
-                sourceTransactionID: newSourceTransaction?.transactionID,
-                receipt: mergedReceipt,
-            });
-
-            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction, localeCompare);
-            if (!conflictFields.length) {
-                // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
-                setMergeTransactionKey(transactionID, mergeableData);
-                Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
-                return;
-            }
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
-        }
-    }, [transactionID, targetTransaction, sourceTransaction, localeCompare]);
+        setupMergeTransactionDataAndNavigate([sourceTransaction, targetTransaction], localeCompare);
+    }, [targetTransaction, sourceTransaction, localeCompare]);
 
     const confirmButtonOptions = useMemo(
         () => ({

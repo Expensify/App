@@ -663,7 +663,7 @@ function SearchPage({route}: SearchPageProps) {
                     text: translate('common.merge'),
                     icon: expensifyIcons.ArrowCollapse,
                     value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                    onSelected: () => setupMergeTransactionDataAndNavigate(transactions, queryJSON?.hash),
+                    onSelected: () => setupMergeTransactionDataAndNavigate(transactions, localeCompare, queryJSON?.hash),
                 });
             }
         }
@@ -695,6 +695,7 @@ function SearchPage({route}: SearchPageProps) {
         hash,
         selectedTransactions,
         translate,
+        localeCompare,
         areAllMatchingItemsSelected,
         isOffline,
         selectedReports,

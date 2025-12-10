@@ -195,7 +195,7 @@ function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
  * @param localeCompare - The localize compare function
  * @returns mergeableData and conflictFields
  */
-function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, localeCompare: (a: string, b: string) => number) {
+function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, localeCompare: LocaleContextProps['localeCompare']) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
 

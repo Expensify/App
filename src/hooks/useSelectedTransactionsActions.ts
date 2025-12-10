@@ -122,7 +122,7 @@ function useSelectedTransactionsActions({
         return false;
     }, [selectedTransactionsList, selectedTransactionsMeta, selectedTransactionIDs.length]);
 
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
@@ -290,7 +290,7 @@ function useSelectedTransactionsActions({
                 text: translate('common.merge'),
                 icon: expensifyIcons.ArrowCollapse,
                 value: MERGE,
-                onSelected: () => setupMergeTransactionDataAndNavigate(selectedTransactionsList),
+                onSelected: () => setupMergeTransactionDataAndNavigate(selectedTransactionsList, localeCompare),
             });
         }
 
@@ -336,7 +336,14 @@ function useSelectedTransactionsActions({
         session?.accountID,
         showDeleteModal,
         hasTransactionsFromMultipleOwners,
-        expensifyIcons,
+        expensifyIcons.Stopwatch,
+        expensifyIcons.Table,
+        expensifyIcons.Export,
+        expensifyIcons.ArrowRight,
+        expensifyIcons.DocumentMerge,
+        expensifyIcons.ArrowCollapse,
+        expensifyIcons.Trashcan,
+        localeCompare,
     ]);
 
     return {

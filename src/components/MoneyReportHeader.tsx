@@ -230,7 +230,7 @@ function MoneyReportHeader({
         'Location',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const exportTemplates = useMemo(
         () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
@@ -1159,7 +1159,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                setupMergeTransactionDataAndNavigate([currentTransaction]);
+                setupMergeTransactionDataAndNavigate([currentTransaction], localeCompare);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
