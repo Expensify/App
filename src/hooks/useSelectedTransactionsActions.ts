@@ -20,7 +20,7 @@ import {
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
-import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -219,8 +219,15 @@ function useSelectedTransactionsActions({
             });
         }
 
+        const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(id));
         const canRejectTransactions =
-            selectedTransactionsList.length > 0 && isMoneyRequestReport && !isReportReimbursed && !!session?.email && !!report && canRejectReportAction(session.email, report, policy);
+            selectedTransactionsList.length > 0 &&
+            isMoneyRequestReport &&
+            !isReportReimbursed &&
+            !!session?.email &&
+            !!report &&
+            canRejectReportAction(session.email, report, policy) &&
+            hasNoRejectedTransaction;
         if (canRejectTransactions) {
             options.push({
                 text: translate('search.bulkActions.reject'),
