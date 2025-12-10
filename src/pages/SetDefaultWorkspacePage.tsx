@@ -100,6 +100,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                             textInputOptions={textInputOptions}
                             onSelectRow={(option) => selectPolicy(option.policyID)}
                             showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            disableMaintainingScrollPosition
                         />
                     )}
                 </>
