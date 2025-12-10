@@ -2,7 +2,7 @@ import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
 import {TabActions} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {TupleToUnion} from 'type-fest';
+import type {TupleToUnion} from 'type-fest';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
