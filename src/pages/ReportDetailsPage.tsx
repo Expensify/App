@@ -756,6 +756,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     shouldShowRightIcon={!shouldDisableRename}
                     interactive={!shouldDisableRename}
                     title={StringUtils.lineBreaksToSpaces(reportName)}
+                    titleStyle={styles.newKansasLarge}
                     titleContainerStyle={shouldDisableRename && styles.alignItemsCenter}
                     shouldCheckActionAllowedOnPress={false}
                     description={!shouldDisableRename ? roomDescription : ''}

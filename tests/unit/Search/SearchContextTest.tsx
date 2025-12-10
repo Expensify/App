@@ -57,6 +57,7 @@ const mockTransaction: TransactionListItemType = {
     transactionID: '1',
     action: 'approve',
     allActions: ['approve'],
+    canDelete: true,
     formattedFrom: 'Main Applause QA',
     formattedTo: 'Main Applause QA',
     formattedTotal: -1284,
