@@ -6893,6 +6893,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Sind Sie sicher, dass Sie einen weiteren Bericht in ${workspaceName} erstellen möchten? Sie können auf Ihre leeren Berichte zugreifen in`,
             emptyReportConfirmationPromptLink: 'Berichte',
+            emptyReportConfirmationDontShowAgain: 'Nicht mehr anzeigen',
             genericWorkspaceName: 'dieser Workspace',
         },
         genericCreateReportFailureMessage: 'Unerwarteter Fehler beim Erstellen dieses Chats. Bitte versuche es später erneut.',

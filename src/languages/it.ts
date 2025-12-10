@@ -6876,6 +6876,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 `Sei sicuro di voler creare un altro report in ${workspaceName}? Puoi accedere ai tuoi report vuoti in`,
             emptyReportConfirmationPromptLink: 'Report',
             genericWorkspaceName: 'questo spazio di lavoro',
+            emptyReportConfirmationDontShowAgain: 'Non mostrarmelo di nuovo',
         },
         genericCreateReportFailureMessage: 'Errore imprevisto durante la creazione di questa chat. Riprova più tardi.',
         genericAddCommentFailureMessage: 'Errore imprevisto durante la pubblicazione del commento. Riprova più tardi.',
