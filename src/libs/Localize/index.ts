@@ -106,7 +106,11 @@ const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
     maxArgs: 2,
     equality: 'shallow',
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    skipCache: (params) => !isEmptyObject(params.at(2)),
+    skipCache: (params) => {
+        const thirdParam = params.at(2);
+        // Skip cache if there are parameters (even if they're primitives)
+        return thirdParam !== undefined;
+    },
 });
 
 /**
