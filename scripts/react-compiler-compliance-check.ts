@@ -726,7 +726,7 @@ function printResults(
 
     log();
     logError(
-        `The files above failed the React Compiler compliance check. Do not any remove manual memoization, unless a file is already compiled with React Compiler. Please fix the issues and run the check again...`,
+        `The files above failed the React Compiler compliance check. Do not remove any manual memoization patterns, unless a file is already able to compile with React Compiler. You can use the "React Compiler Marker" VS Code extension to check whether a file is being compiled with React Compiler.`,
     );
 
     return false;
