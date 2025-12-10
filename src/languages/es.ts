@@ -5851,6 +5851,8 @@ ${amount} para ${merchant} - ${date}`,
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `cambió la dirección de la empresa a "${newAddress}" (anteriormente "${previousAddress}")` : `estableció la dirección de la empresa en "${newAddress}"`,
         addApprovalRule: ({approverEmail, approverName, field, name}) => `añadió a ${approverName} (${approverEmail}) como aprobador para la ${field} "${name}"`,
         deleteApprovalRule: ({approverEmail, approverName, field, name}) => `eliminó a ${approverName} (${approverEmail}) como aprobador para la ${field} "${name}"`,
         updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}) => {

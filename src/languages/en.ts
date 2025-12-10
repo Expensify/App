@@ -6213,6 +6213,8 @@ const translations = {
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        changedCompanyAddress: ({newAddress, previousAddress}: {newAddress: string; previousAddress?: string}) =>
+            previousAddress ? `changed the company address to "${newAddress}" (previously "${previousAddress}")` : `set the company address to "${newAddress}"`,
         addApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) => `added ${approverName} (${approverEmail}) as an approver for the ${field} "${name}"`,
         deleteApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) =>
             `removed ${approverName} (${approverEmail}) as an approver for the ${field} "${name}"`,
