@@ -2570,9 +2570,9 @@ const ROUTES = {
         getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_VERIFY_ACCOUNT: {
-        route: `travel/:domain/${VERIFY_ACCOUNT}`,
+        route: `travel/${VERIFY_ACCOUNT}`,
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/${VERIFY_ACCOUNT}?${policyID ? `policyID=${policyID}` : ''}`, backTo),
+        getRoute: (domain?: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(getUrlWithParams(`travel/${VERIFY_ACCOUNT}`, {domain, policyID}), backTo),
     },
     ONBOARDING_ROOT: {
         route: 'onboarding',

@@ -32,6 +32,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                 <BookTravelButton
                     text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
                     activePolicyID={policyID}
+                    shouldShowVerifyAccountModal={false}
                 />
             }
         />

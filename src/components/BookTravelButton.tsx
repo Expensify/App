@@ -34,6 +34,8 @@ type BookTravelButtonProps = {
 
     /** Function to set the shouldScrollToBottom state */
     setShouldScrollToBottom?: (shouldScrollToBottom: boolean) => void;
+
+    shouldShowVerifyAccountModal?: boolean;
 };
 
 const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean, policyID?: string) => {
@@ -46,7 +48,7 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean, policy
     Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID, Navigation.getActiveRoute()));
 };
 
-function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, activePolicyID, setShouldScrollToBottom}: BookTravelButtonProps) {
+function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, activePolicyID, setShouldScrollToBottom, shouldShowVerifyAccountModal = true}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['RocketDude'] as const);
@@ -116,7 +118,13 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, ac
         } else if (isPolicyProvisioned) {
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN, undefined, activePolicyID ?? undefined);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
-            setVerificationModalVisibility(true);
+            if (!isUserValidated) {
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
+                return;
+            }
+            if (shouldShowVerifyAccountModal) {
+                setVerificationModalVisibility(true);
+            }
             if (!travelSettings?.lastTravelSignupRequestTime) {
                 requestTravelAccess();
             }
