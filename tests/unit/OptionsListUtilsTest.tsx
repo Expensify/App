@@ -20,9 +20,11 @@ import {
     filterSelfDMChat,
     filterWorkspaceChats,
     formatMemberForList,
+    getCurrentUserSearchTerms,
     getLastActorDisplayName,
     getLastMessageTextForReport,
     getMemberInviteOptions,
+    getPersonalDetailSearchTerms,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
     getValidOptions,
@@ -2804,6 +2806,26 @@ describe('OptionsListUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
+        });
+    });
+
+    describe('getPersonalDetailSearchTerms', () => {
+        it('should include display name', () => {
+            const displayName = 'test';
+            const searchTerms = getPersonalDetailSearchTerms({displayName});
+            expect(searchTerms.includes(displayName)).toBe(true);
+            const searchTerms2 = getPersonalDetailSearchTerms({participantsList: [{displayName, accountID: 123}]});
+            expect(searchTerms2.includes(displayName)).toBe(true);
+        });
+    });
+
+    describe('getCurrentUserSearchTerms', () => {
+        it('should include display name', () => {
+            const displayName = 'test';
+            const searchTerms = getCurrentUserSearchTerms({displayName});
+            expect(searchTerms.includes(displayName)).toBe(true);
+            const searchTerms2 = getCurrentUserSearchTerms({text: displayName});
+            expect(searchTerms2.includes(displayName)).toBe(true);
         });
     });
 });

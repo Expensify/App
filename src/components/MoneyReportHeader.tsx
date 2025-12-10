@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
-import getArchiveReason from '@selectors/Report';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {getArchiveReason} from '@selectors/Report';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -140,6 +140,7 @@ import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusB
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 import type {PopoverMenuItem} from './PopoverMenu';
+import {PressableWithFeedback} from './Pressable';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
@@ -195,8 +196,6 @@ function MoneyReportHeader({
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${moneyRequestReport?.reportID}`, {canBeMissing: true}) ?? null;
-    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`, {canBeMissing: true});
-    const isDownloadingPDF = download?.isDownloading ?? false;
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
@@ -227,6 +226,8 @@ function MoneyReportHeader({
         'Export',
         'Document',
         'Feed',
+        'Close',
+        'Location',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
@@ -254,9 +255,17 @@ function MoneyReportHeader({
         return Object.values(reportTransactions);
     }, [reportTransactions]);
 
-    const shouldBlockSubmit = useMemo(() => {
+    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
+    // We should always show this optimistic message for policies with preventSelfApproval
+    // to avoid any flicker during transitions between online/offline states
+    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
+    const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
+    const isBlockSubmitDueToStrictPolicyRules = useMemo(() => {
         return shouldBlockSubmitDueToStrictPolicyRules(moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, accountID, email ?? '', transactions);
     }, [moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, accountID, email, transactions]);
+    const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && policy?.preventSelfApproval;
+
+    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
 
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`, {
@@ -316,13 +325,23 @@ function MoneyReportHeader({
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
     const transactionIDs = useMemo(() => transactions?.map((t) => t.transactionID) ?? [], [transactions]);
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const canTriggerAutomaticPDFDownload = useRef(false);
+    const hasFinishedPDFDownload = reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
+
+    useEffect(() => {
+        canTriggerAutomaticPDFDownload.current = isPDFModalVisible;
+    }, [isPDFModalVisible]);
 
     const messagePDF = useMemo(() => {
         if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
             return translate('reportDetailsPage.errorPDF');
         }
-        return translate('reportDetailsPage.waitForPDF');
-    }, [reportPDFFilename, translate]);
+        if (!hasFinishedPDFDownload) {
+            return translate('reportDetailsPage.waitForPDF');
+        }
+        return translate('reportDetailsPage.successPDF');
+    }, [reportPDFFilename, hasFinishedPDFDownload, translate]);
 
     // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
     // wrapped in useMemo to avoid unnecessary re-renders and for better performance (array operation inside of function)
@@ -341,8 +360,7 @@ function MoneyReportHeader({
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const getCanIOUBePaid = useCallback(
-        (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
-            canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere, undefined, undefined, shouldCheckApprovedState),
+        (onlyShowPayElsewhere = false) => canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
         [moneyRequestReport, chatReport, policy, transaction],
     );
 
@@ -433,14 +451,9 @@ function MoneyReportHeader({
         hasDuplicates ||
         shouldShowMarkAsResolved;
 
-    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
-    // We should always show this optimistic message for policies with preventSelfApproval
-    // to avoid any flicker during transitions between online/offline states
-    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
-    const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
     let optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
 
-    if (shouldBlockSubmit && isReportOwner(moneyRequestReport) && isOpenExpenseReport(moneyRequestReport)) {
+    if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(moneyRequestReport) && isOpenExpenseReport(moneyRequestReport)) {
         optimisticNextStep = buildOptimisticNextStepForStrictPolicyRuleViolations();
     }
 
@@ -536,7 +549,7 @@ function MoneyReportHeader({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, true);
+            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, true);
         }
     };
 
@@ -708,8 +721,8 @@ function MoneyReportHeader({
     });
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType],
+        () => getAddExpenseDropdownOptions(expensifyIcons, moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
+        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
@@ -791,7 +804,7 @@ function MoneyReportHeader({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
                     if (currentSearchQueryJSON && !isOffline) {
                         search({
                             searchKey: currentSearchKey,
@@ -813,6 +826,7 @@ function MoneyReportHeader({
                 success
                 onPress={confirmApproval}
                 text={translate('iou.approve')}
+                isDisabled={isBlockSubmitDueToPreventSelfApproval}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.PAY]: (
@@ -1023,7 +1037,7 @@ function MoneyReportHeader({
                     showDWEModal();
                     return;
                 }
-                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
@@ -1054,11 +1068,11 @@ function MoneyReportHeader({
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                    unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
                     return;
                 }
 
-                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -1239,7 +1253,7 @@ function MoneyReportHeader({
             icon: expensifyIcons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             onSelected: () => {
-                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
@@ -1259,10 +1273,10 @@ function MoneyReportHeader({
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                    reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
                     return;
                 }
-                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REJECT]: {
@@ -1320,12 +1334,12 @@ function MoneyReportHeader({
     }, [transactionThreadReportID]);
 
     useEffect(() => {
-        if (!isPDFModalVisible || !reportPDFFilename || reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR || isDownloadingPDF) {
+        if (!hasFinishedPDFDownload || !canTriggerAutomaticPDFDownload.current) {
             return;
         }
         downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '');
-        setIsPDFModalVisible(false);
-    }, [isPDFModalVisible, reportPDFFilename, isDownloadingPDF, moneyRequestReport?.reportName]);
+        canTriggerAutomaticPDFDownload.current = false;
+    }, [hasFinishedPDFDownload, reportPDFFilename, moneyRequestReport?.reportName]);
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
@@ -1429,6 +1443,7 @@ function MoneyReportHeader({
             isUserValidated,
             confirmApproval,
             iouReport: moneyRequestReport,
+            iouReportNextStep: nextStep,
         });
 
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
@@ -1588,34 +1603,58 @@ function MoneyReportHeader({
                 onClose={() => setOfflineModalVisible(false)}
             />
             <Modal
-                onClose={() => setIsPDFModalVisible(false)}
+                onClose={() => {
+                    setIsPDFModalVisible(false);
+                }}
                 isVisible={isPDFModalVisible}
                 type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
                 innerContainerStyle={styles.pv0}
             >
-                <View style={[styles.m5]}>
-                    <View style={[styles.flexRow, styles.mb4]}>
-                        <View style={[styles.flex1]}>
-                            <View style={[styles.flexRow]}>
-                                <Header title={translate('reportDetailsPage.generatingPDF')} />
+                <View style={[styles.flexRow, styles.m5]}>
+                    <View style={[styles.flex1]}>
+                        <View style={[styles.flexRow, styles.mb4]}>
+                            <View style={[styles.flex1]}>
+                                <View style={[styles.flexRow]}>
+                                    <Header title={translate('reportDetailsPage.generatingPDF')} />
+                                </View>
+                                <Text style={[styles.mt5, styles.textAlignLeft]}>{messagePDF}</Text>
                             </View>
-                            <Text style={[styles.mt3]}>{messagePDF}</Text>
+
+                            {!hasFinishedPDFDownload && (
+                                <View style={[styles.dFlex, styles.justifyContentEnd]}>
+                                    <ActivityIndicator
+                                        size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                                        color={theme.textSupporting}
+                                        style={styles.ml3}
+                                    />
+                                </View>
+                            )}
                         </View>
-                        <View style={[styles.dFlex, styles.justifyContentCenter]}>
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                                color={theme.textSupporting}
-                                style={styles.ml3}
-                            />
-                        </View>
-                    </View>
-                    {(!reportPDFFilename || reportPDFFilename === 'error') && (
                         <Button
                             style={[styles.mt3, styles.noSelect]}
-                            onPress={() => setIsPDFModalVisible(false)}
-                            text={translate('common.cancel')}
+                            onPress={() => {
+                                if (!hasFinishedPDFDownload) {
+                                    setIsPDFModalVisible(false);
+                                } else {
+                                    downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '');
+                                }
+                            }}
+                            text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
                         />
-                    )}
+                    </View>
+                    <PressableWithFeedback
+                        onPress={() => {
+                            setIsPDFModalVisible(false);
+                        }}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('common.close')}
+                        wrapperStyle={[styles.pAbsolute, styles.r0]}
+                    >
+                        <Icon
+                            src={expensifyIcons.Close}
+                            fill={theme.icon}
+                        />
+                    </PressableWithFeedback>
                 </View>
             </Modal>
         </View>
