@@ -20,7 +20,7 @@ import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import type PolicyData from '@hooks/usePolicyData/types';
@@ -304,6 +304,7 @@ import type {AvatarSource} from './UserAvatarUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
 import {generateAccountID} from './UserUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
+import {computeReportName} from './ReportNameUtils';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
@@ -5969,7 +5970,7 @@ function getReportName(
             if (parentReport && isMoneyRequestReport(parentReport) && parentReport.reportID && parentReport.statusNum !== undefined) {
                 formattedName = getMoneyRequestReportName({report: parentReport, policy});
             } else {
-            formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
+                formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
             }
 
             if (isArchivedNonExpense) {
@@ -6258,8 +6259,9 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 
 /**
  * Gets the parent navigation subtitle for the report
+ * This function is only called from React components, so translate is required.
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived = false, reportAttributes?: ReportAttributesDerivedValue['reports']): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived: boolean, reportAttributes: ReportAttributesDerivedValue['reports'] | undefined, translate: LocalizedTranslate): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
 
     if (isEmptyObject(parentReport)) {
@@ -6271,8 +6273,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
 
         if (isExpenseReport(report)) {
             return {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                reportName: translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName ?? ''}),
+                reportName: translate('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName ?? ''}),
                 workspaceName: getPolicyName({report}),
             };
         }
@@ -6283,13 +6284,10 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport)}`;
 
         if (isArchivedNonExpenseReport(parentReport, isParentReportArchived)) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            reportName += ` (${translateLocal('common.archived')})`;
+            reportName += ` (${translate('common.archived')})`;
         }
 
         return {
@@ -6297,10 +6295,27 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
         };
     }
 
+    const parentReportID = parentReport?.reportID;
+    const computedReportName = reportAttributes?.[parentReportID]?.reportName;
+
+    if (computedReportName) {
+        return {
+            reportName: computedReportName,
+            workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
+        };
+    }
+
     return {
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        reportName: getReportName(parentReport, undefined, undefined, undefined, undefined, reportAttributes),
+        reportName: computeReportName(
+            translate,
+            parentReport,
+            allReports,
+            allPolicies,
+            allTransactions,
+            undefined,
+            allPersonalDetails,
+            allReportActions,
+        ),
         workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
     };
 }

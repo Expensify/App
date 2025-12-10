@@ -6,6 +6,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {
     PersonalDetails,
     PersonalDetailsList,
@@ -95,6 +96,7 @@ import {
     isGroupChat,
     isInvoiceReport,
     isInvoiceRoom,
+    isIOUReport,
     isMoneyRequestReport,
     isNewDotInvoice,
     isOpenExpenseReport,
@@ -266,8 +268,8 @@ function getInvoicesChatName({
     return getPolicyName({report, policy: receiverPolicyResolved, policies});
 }
 
-function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
-    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>, translate?: LocalizedTranslate): string {
+    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy, translate: translate ?? translateLocal});
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
@@ -292,9 +294,19 @@ function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: 
 /**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
-function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {report: OnyxEntry<Report>; policy?: OnyxEntry<Policy>; invoiceReceiverPolicy?: OnyxEntry<Policy>}): string {
+function getMoneyRequestReportName({
+    report,
+    policy,
+    invoiceReceiverPolicy,
+    translate,
+}: {
+    report: OnyxEntry<Report>;
+    policy?: OnyxEntry<Policy>;
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    translate: LocalizedTranslate;
+}): string {
     if (report?.reportName && isExpenseReport(report)) {
-        return report.reportName;
+        return Str.htmlDecode(report.reportName);
     }
 
     const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
@@ -310,34 +322,34 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
     } else {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber}) ?? '';
     }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', {
+    const payerPaidAmountMessage = translate('iou.payerPaidAmount', {
         payer: payerOrApproverName,
         amount: formattedAmount,
     });
 
     if (isReportApproved({report})) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.managerApprovedAmount', {
+        return translate('iou.managerApprovedAmount', {
             manager: payerOrApproverName,
             amount: formattedAmount,
         });
     }
 
     if (report?.isWaitingOnBankAccount) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return `${payerPaidAmountMessage} ${CONST.DOT_SEPARATOR} ${translateLocal('iou.pending')}`;
+        return `${payerPaidAmountMessage} ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber}) ?? '';
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
+        if (isExpenseReport(report)) {
+            payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber}) ?? '';
+            return translate('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
+        }
+        return translate('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
-    if (isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
+    const shouldShowPayerOwesAmount = isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0 || (isIOUReport(report) && !isSettled(report?.reportID));
+
+    if (shouldShowPayerOwesAmount) {
+        return translate('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
     return payerPaidAmountMessage;
@@ -601,6 +613,7 @@ function computeChatThreadReportName(report: Report, reportNameValuePairs: Repor
 }
 
 function computeReportName(
+    translate: LocalizedTranslate,
     report?: Report,
     reports?: OnyxCollection<Report>,
     policies?: OnyxCollection<Policy>,
@@ -638,8 +651,7 @@ function computeReportName(
 
     const transactionsArray = transactions ? (Object.values(transactions).filter(Boolean) as Array<OnyxEntry<Transaction>>) : undefined;
     if (isClosedExpenseReportWithNoExpenses(report, transactionsArray)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('parentReportAction.deletedReport');
+        return translate('parentReportAction.deletedReport');
     }
 
     if (isGroupChat(report)) {
@@ -658,7 +670,7 @@ function computeReportName(
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName({report, policy});
+        formattedName = getMoneyRequestReportName({report, policy, translate});
     }
 
     if (isInvoiceReport(report)) {
@@ -669,7 +681,7 @@ function computeReportName(
             chatReceiverPolicyID = (chatReceiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = chatReceiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicyID}`] : undefined;
-        formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy);
+        formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy, translate);
     }
 
     if (isInvoiceRoom(report)) {
