@@ -86,7 +86,7 @@ function WorkspaceCreateReportFieldsPage({
 
             if (!isRequiredFulfilled(name)) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.reportFieldNameRequiredError');
-            } else if (Object.values(policy?.fieldList ?? {}).some((reportField) => reportField.name === name)) {
+            } else if (Object.values(policy?.fieldList ?? {}).some((reportField) => reportField.name.toLowerCase() === name.toLowerCase())) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
             } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
