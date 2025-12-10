@@ -19,7 +19,17 @@ import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
-import {canAddTransaction, getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {
+    canAddTransaction,
+    getOutstandingReportsForUser,
+    getPolicyName,
+    getReportName,
+    isIOUReport,
+    isOpenReport,
+    isReportOwner,
+    isSelfDM,
+    sortOutstandingReportsBySelected,
+} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
