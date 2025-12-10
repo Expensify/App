@@ -452,7 +452,7 @@ class Git {
         }
     }
 
-    static async getChangedFileNames(fromRef: string, toRef?: string): Promise<string[]> {
+    static async getChangedFileNames(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<string[]> {
         if (IS_CI) {
             const {data: changedFiles} = await GitHubUtils.octokit.pulls.listFiles({
                 owner: CONST.GITHUB_OWNER,
@@ -465,7 +465,7 @@ class Git {
         }
 
         // Get the diff output and check status
-        const diffResult = this.diff(fromRef, toRef);
+        const diffResult = this.diff(fromRef, toRef, undefined, shouldIncludeUntrackedFiles);
         const files = diffResult.files.map((file) => file.filePath);
         return files;
     }
