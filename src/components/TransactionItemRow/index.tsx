@@ -75,9 +75,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** information about whether to show the description, that is provided on Reports page */
     shouldShowDescription?: boolean;
 
-    /** Type of transaction */
-    transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
     /** Precomputed violations */
     violations?: TransactionViolation[];
 
@@ -126,7 +123,7 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
     }
 
     const merchantName = StringUtils.getFirstLine(merchant);
-    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchantName !== CONST.TRANSACTION.DEFAULT_MERCHANT ? merchantName : '';
+    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
 }
 
 function TransactionItemRow({
@@ -559,7 +556,7 @@ function TransactionItemRow({
                     {!!isLargeScreenWidth && !!onArrowRightPress && (
                         <PressableWithFeedback
                             onPress={() => onArrowRightPress?.()}
-                            style={[styles.p3Half, styles.pl0half, styles.justifyContentCenter, styles.alignItemsEnd]}
+                            style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
                         >

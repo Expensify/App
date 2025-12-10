@@ -1,8 +1,7 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import mimeDb from 'mime-db';
-import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent, TextInput, TextInputChangeEvent, TextInputPasteEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputChangeEvent, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
@@ -21,24 +20,22 @@ import type {FileObject} from '@src/types/utils/Attachment';
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
 
-function Composer(
-    {
-        onClear: onClearProp = () => {},
-        onPasteFile = () => {},
-        isDisabled = false,
-        maxLines,
-        isComposerFullSize = false,
-        style,
-        // On native layers we like to have the Text Input not focused so the
-        // user can read new chats without the keyboard in the way of the view.
-        // On Android the selection prop is required on the TextInput but this prop has issues on IOS
-        selection,
-        value,
-        isGroupPolicyReport = false,
-        ...props
-    }: ComposerProps,
-    ref: ForwardedRef<TextInput>,
-) {
+function Composer({
+    onClear: onClearProp = () => {},
+    onPasteFile = () => {},
+    isDisabled = false,
+    maxLines,
+    isComposerFullSize = false,
+    style,
+    // On native layers we like to have the Text Input not focused so the
+    // user can read new chats without the keyboard in the way of the view.
+    // On Android the selection prop is required on the TextInput but this prop has issues on IOS
+    selection,
+    value,
+    isGroupPolicyReport = false,
+    ref,
+    ...props
+}: ComposerProps) {
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
@@ -138,4 +135,4 @@ function Composer(
 
 Composer.displayName = 'Composer';
 
-export default React.forwardRef(Composer);
+export default Composer;
