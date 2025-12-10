@@ -14144,15 +14144,27 @@ function initSplitExpenseItemData(
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, reports: OnyxCollection<OnyxTypes.Report>, transaction: OnyxEntry<OnyxTypes.Transaction>) {
+function initSplitExpense(
+    transactions: OnyxCollection<OnyxTypes.Transaction>,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    report?: OnyxEntry<OnyxTypes.Report>,
+) {
     if (!transaction) {
         return;
     }
 
-    const reportID = transaction.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+    const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+
+    let reportID;
+    if (isSelfDM(report) || isSelfDM(parentReport)) {
+        reportID = report?.reportID;
+    } else {
+        reportID = transaction.reportID;
+    }
 
     if (isExpenseSplit) {
         const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
@@ -14183,8 +14195,16 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
 
     const splitExpenses = [
-        initSplitExpenseItemData(transaction, {amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false), transactionID: NumberUtils.rand64()}),
-        initSplitExpenseItemData(transaction, {amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true), transactionID: NumberUtils.rand64()}),
+        initSplitExpenseItemData(transaction, {
+            reportID,
+            amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false),
+            transactionID: NumberUtils.rand64(),
+        }),
+        initSplitExpenseItemData(transaction, {
+            reportID,
+            amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true),
+            transactionID: NumberUtils.rand64(),
+        }),
     ];
 
     const draftTransaction = buildOptimisticTransaction({

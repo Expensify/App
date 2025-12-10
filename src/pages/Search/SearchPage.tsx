@@ -622,6 +622,7 @@ function SearchPage({route}: SearchPageProps) {
         const isSplittable = !!firstTransactionMeta?.canSplit;
         const isAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
         const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
+        const report = getReportOrDraftReport(firstTransaction?.reportID);
 
         const canSplitTransaction = selectedTransactionsKeys.length === 1 && !isAlreadySplit && isSplittable;
 
@@ -631,7 +632,7 @@ function SearchPage({route}: SearchPageProps) {
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
                 onSelected: () => {
-                    initSplitExpense(allTransactions, allReports, firstTransaction);
+                    initSplitExpense(allTransactions, allReports, firstTransaction, report);
                 },
             });
         }
@@ -709,7 +710,6 @@ function SearchPage({route}: SearchPageProps) {
         dismissedHoldUseExplanation,
         dismissedRejectUseExplanation,
         areAllTransactionsFromSubmitter,
-        currentUserPersonalDetails?.login,
     ]);
 
     const handleDeleteExpenses = () => {
