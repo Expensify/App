@@ -666,6 +666,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         policy,
         participants,
         moneyRequestReport?.reportID,
+        expensifyIcons.Camera
     ]);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived);
@@ -692,9 +693,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 <>
                     <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
                         <DisplayNames
-                            fullTitle={rawReportName}
+                            fullTitle={reportName}
                             displayNamesWithTooltips={displayNamesWithTooltips}
-                            shouldParseHtml={!isGroupChat}
+                            shouldParseFullTitle={!isGroupChat}
                             tooltipEnabled
                             numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
                             textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
