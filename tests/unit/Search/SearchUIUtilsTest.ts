@@ -410,7 +410,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
             errors: undefined,
             groupAmount: -5000,
             groupCurrency: 'USD',
@@ -440,7 +439,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             groupAmount: -5000,
@@ -472,7 +470,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             groupAmount: -5000,
@@ -503,7 +500,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             groupAmount: -5000,
@@ -806,7 +802,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
         errors: undefined,
         violations: [],
         groupAmount: -5000,
@@ -814,7 +809,7 @@ const transactionsListItems = [
     },
     {
         action: 'approve',
-        allActions: ['approve'],
+        allActions: ['approve', 'changeApprover'],
         amount: -5000,
         report: report2,
         policy,
@@ -863,7 +858,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         violations: [
@@ -926,7 +920,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         violations: [],
@@ -984,7 +977,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         violations: [],
@@ -1075,7 +1067,6 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: '789',
                 errors: undefined,
                 violations: [],
                 groupAmount: -5000,
@@ -1089,7 +1080,7 @@ const transactionReportGroupListItems = [
         groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'approve',
-        allActions: ['approve'],
+        allActions: ['approve', 'changeApprover'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
@@ -1126,7 +1117,7 @@ const transactionReportGroupListItems = [
         transactions: [
             {
                 action: 'approve',
-                allActions: ['approve'],
+                allActions: ['approve', 'changeApprover'],
                 report: report2,
                 policy,
                 reportAction: reportAction2,
@@ -1181,7 +1172,6 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: '789',
                 pendingAction: undefined,
                 errors: undefined,
                 groupAmount: -5000,
@@ -1716,7 +1706,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 47;
+            const expectedPropertyCount = 46;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1749,7 +1739,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 47;
+            const expectedPropertyCount = 46;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1947,8 +1937,8 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {})
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -2026,7 +2016,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -2034,12 +2024,11 @@ describe('SearchUIUtils', () => {
                 mockCardFeedsByPolicy,
                 undefined,
                 mockPolicies,
-                undefined,
                 mockSavedSearches,
                 false,
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -2090,7 +2079,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -2098,12 +2087,11 @@ describe('SearchUIUtils', () => {
                 mockCardFeedsByPolicy,
                 undefined,
                 mockPolicies,
-                undefined,
                 mockSavedSearches,
                 false,
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -2133,8 +2121,8 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {});
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -2143,8 +2131,8 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {});
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -2160,7 +2148,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -2168,12 +2156,11 @@ describe('SearchUIUtils', () => {
                 {},
                 undefined,
                 {},
-                undefined,
                 mockSavedSearches,
                 false, // not offline
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2190,7 +2177,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -2198,12 +2185,11 @@ describe('SearchUIUtils', () => {
                 {},
                 undefined,
                 {},
-                undefined,
                 mockSavedSearches,
                 true, // offline
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2224,8 +2210,8 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {});
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -2245,7 +2231,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -2253,12 +2239,11 @@ describe('SearchUIUtils', () => {
                 {}, // no card feeds
                 undefined,
                 mockPolicies,
-                undefined,
                 {},
                 false,
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -2289,8 +2274,8 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {});
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2315,21 +2300,8 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                mockCardFeedsByPolicy,
-                undefined,
-                mockPolicies,
-                undefined,
-                {},
-                false,
-                undefined,
-                true,
-                false,
-            );
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false, {});
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
 
             expect(accountingSection).toBeDefined();
@@ -2338,8 +2310,8 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {})
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -2775,7 +2747,7 @@ describe('SearchUIUtils', () => {
                 merchant: '',
                 modifiedMerchant: 'Modified Merchant',
                 comment: {comment: ''},
-                category: 'Uncategorized', // This is in CONST.SEARCH.CATEGORY_EMPTY_VALUE
+                category: 'none', // This is in CONST.SEARCH.CATEGORY_EMPTY_VALUE
                 tag: CONST.SEARCH.TAG_EMPTY_VALUE, // This is the empty tag value
                 accountID: adminAccountID,
                 managerID: adminAccountID,
@@ -2811,49 +2783,7 @@ describe('SearchUIUtils', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, {reportActionID: transactionListItem.moneyRequestReportActionID}, undefined, undefined);
-        });
-
-        test('Should create transaction thread report for legacy transactions without IOU action (moneyRequestReportActionID = "0")', () => {
-            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
-
-            // Create a legacy transaction item with moneyRequestReportActionID = '0'
-            const legacyTransactionItem = {
-                ...transactionListItem,
-                moneyRequestReportActionID: '0',
-            };
-
-            SearchUIUtils.createAndOpenSearchTransactionThread(legacyTransactionItem, backTo, undefined, undefined, false);
-
-            // Extract the transaction by removing UI-specific and search-specific fields
-            const {
-                keyForList,
-                action,
-                allActions,
-                report,
-                from,
-                to,
-                formattedFrom,
-                formattedTo,
-                formattedTotal,
-                formattedMerchant,
-                date,
-                shouldShowMerchant,
-                shouldShowYear,
-                isAmountColumnWide,
-                isTaxAmountColumnWide,
-                violations,
-                hash: itemHash,
-                moneyRequestReportActionID,
-                canDelete,
-                accountID,
-                policyID: searchPolicyID,
-                ...expectedTransaction
-            } = legacyTransactionItem;
-
-            // For legacy transactions (moneyRequestReportActionID = '0'), should pass transaction and violations
-            // reportActionID will be undefined since there's no IOU action
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report, {reportActionID: undefined}, expect.objectContaining(expectedTransaction), violations);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, {reportActionID: '11111111'}, undefined, undefined);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
@@ -2899,7 +2829,7 @@ describe('SearchUIUtils', () => {
             await waitForBatchedUpdates();
 
             const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionListItem.reportID}`);
-            const parentReportAction = transactionListItem.moneyRequestReportActionID && parentReport?.[transactionListItem.moneyRequestReportActionID];
+            const parentReportAction = transactionListItem?.reportAction?.reportActionID && parentReport?.[transactionListItem?.reportAction?.reportActionID];
 
             expect(parentReportAction).toBeTruthy();
         });
