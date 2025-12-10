@@ -7343,7 +7343,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         confirmDuplicatesInfo: `Les doublons que vous ne conservez pas seront mis de côté pour que l’expéditeur les supprime.`,
         hold: 'Cette dépense a été mise en attente',
         resolvedDuplicates: 'a résolu le doublon',
-        requiredCompanyCard: 'Achats avec carte d’entreprise requis',
+        companyCardRequired: 'Achats avec carte d’entreprise requis',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} est requis`,

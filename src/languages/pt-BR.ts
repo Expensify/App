@@ -7296,7 +7296,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         confirmDuplicatesInfo: `Os duplicados que você não mantiver serão mantidos para que o remetente os exclua.`,
         hold: 'Esta despesa foi colocada em espera',
         resolvedDuplicates: 'duplicata resolvida',
-        requiredCompanyCard: 'Compras com cartão da empresa obrigatórias',
+        companyCardRequired: 'Compras com cartão da empresa obrigatórias',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} é obrigatório`,

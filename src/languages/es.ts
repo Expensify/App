@@ -7282,7 +7282,7 @@ ${amount} para ${merchant} - ${date}`,
         confirmDuplicatesInfo: 'Los duplicados que no conserves se mantendrán para que el remitente los elimine.',
         hold: 'Este gasto está retenido',
         resolvedDuplicates: 'resolvió el duplicado',
-        requiredCompanyCard: 'Se requieren compras con la tarjeta de la empresa.',
+        companyCardRequired: 'Se requieren compras con la tarjeta de la empresa.',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}) => `${fieldName} es obligatorio`,

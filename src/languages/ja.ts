@@ -7265,7 +7265,7 @@ ${reportName}
         confirmDuplicatesInfo: `あなたが保持しない重複分は、申請者が削除できるように保留されます。`,
         hold: 'この経費は保留になっています',
         resolvedDuplicates: '重複を解決しました',
-        requiredCompanyCard: '法人カードでの購入が必須',
+        companyCardRequired: '法人カードでの購入が必須',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} は必須です`,
