@@ -60,10 +60,6 @@ function SplitListItem<TItem extends ListItem>({
 
     const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
     const focusHandler = useCallback(() => {
-        if (!onInputFocus) {
-            return;
-        }
-
         onInputFocus?.(item);
     }, [onInputFocus, item]);
 
