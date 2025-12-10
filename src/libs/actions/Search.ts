@@ -724,8 +724,9 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     }
 }
 
-function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: string, policy: OnyxEntry<Policy>, transactionIDs: string[]) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+function rejectMoneyRequestInBulk(reportID: string, comment: string, policy: OnyxEntry<Policy>, transactionIDs: string[], hash?: number) {
+    const loadingData = hash !== undefined ? getOnyxLoadingData(hash) : {optimisticData: [] as OnyxUpdate[], finallyData: [] as OnyxUpdate[]};
+    const {optimisticData, finallyData} = loadingData;
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const transactionIDToRejectReportAction: Record<
@@ -755,7 +756,12 @@ function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: strin
     );
 }
 
-function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string, allPolicies: OnyxCollection<Policy>, allReports: OnyxCollection<Report>) {
+/** Minimal transaction info needed for reject - only reportID is used */
+type TransactionReportInfo = {
+    reportID: string;
+};
+
+function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Record<string, TransactionReportInfo>, comment: string, allPolicies: OnyxCollection<Policy>, allReports: OnyxCollection<Report>) {
     const transactionIDs = Object.keys(selectedTransactions);
 
     const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {
@@ -777,7 +783,7 @@ function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Selecte
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(hash, reportID, comment, policy, selectedTransactionIDs);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, hash);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
