@@ -153,6 +153,7 @@ const SCREENS = {
             DOMAIN_CARD: 'Settings_Wallet_DomainCard',
             DOMAIN_CARD_CONFIRM_MAGIC_CODE: 'Settings_Wallet_DomainCard_ConfirmMagicCode',
             CARD_MISSING_DETAILS: 'Settings_Wallet_Card_MissingDetails',
+            CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE: 'Settings_Wallet_Card_MissingDetails_ConfirmMagicCode',
             TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
             CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
@@ -837,6 +838,10 @@ const SCREENS = {
     },
     WORKSPACES_VERIFY_DOMAIN: 'Workspaces_Verify_Domain',
     WORKSPACES_DOMAIN_VERIFIED: 'Workspaces_Domain_Verified',
+    WORKSPACES_ADD_DOMAIN: 'Workspaces_Add_Domain',
+    WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: 'Workspaces_Add_Domain_VerifyAccount',
+    WORKSPACES_DOMAIN_ADDED: 'Workspaces_Domain_Added',
+    WORKSPACES_DOMAIN_ACCESS_RESTRICTED: 'Workspaces_Domain_Access_Restricted',
     DOMAIN: {
         VERIFY: 'Domain_Verify',
         VERIFIED: 'Domain_Verified',
