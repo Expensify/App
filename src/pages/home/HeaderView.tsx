@@ -50,7 +50,6 @@ import {
     getPolicyDescriptionText,
     getPolicyName,
     getReportDescription,
-    getReportName,
     hasReportNameError,
     isAdminRoom,
     isArchivedReport,

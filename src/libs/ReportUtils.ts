@@ -215,6 +215,7 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
+// eslint-disable-next-line import/no-cycle
 import {computeReportNameWithoutFormula, getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
@@ -5526,8 +5527,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
     }
 
     return {
-        // TODO: Fix it
-        reportName: computeReportNameWithoutFormula(parentReport, undefined, undefined, undefined, undefined, undefined, undefined),
+        reportName: getReportName(parentReport, reportAttributes),
         workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
     };
 }
@@ -11915,8 +11915,8 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return originalMessage && translateLocal('iou.invoiceReportName', originalMessage);
     }
-    // TODO: Fix it
-    return computeReportNameWithoutFormula(iouReport, undefined, undefined, undefined, undefined, undefined) || action.childReportName;
+
+    return getReportName(iouReport, reportAttributes) || action.childReportName;
 }
 
 function selectFilteredReportActions(

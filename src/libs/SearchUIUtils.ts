@@ -103,7 +103,6 @@ import {
     generateReportID,
     getIcons,
     getPersonalDetailsForAccountID,
-    getReportName,
     getReportOrDraftReport,
     getReportStatusTranslation,
     hasAnyViolations,

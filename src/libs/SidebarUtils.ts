@@ -990,8 +990,18 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    // TODO: Fix it
-    const reportName = computeReportNameWithoutFormula(report, undefined, undefined, undefined, undefined, undefined, undefined);
+    const reportName = computeReportNameWithoutFormula(
+        report,
+        undefined,
+        {
+            [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]: policy,
+            ...(invoiceReceiverPolicy?.id ? {[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicy?.id}`]: invoiceReceiverPolicy} : {}),
+        },
+        undefined,
+        {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: reportNameValuePairs},
+        undefined,
+        undefined,
+    );
 
     result.text = reportName;
     result.subtitle = subtitle;

@@ -18,7 +18,6 @@ import {
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
     getParentNavigationSubtitle,
-    getReportName,
     getReportStatusColorStyle,
     getReportStatusTranslation,
     isChatThread,

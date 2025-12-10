@@ -23,7 +23,7 @@ import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {computeReportNameWithoutFormula} from '@libs/ReportNameUtils';
-import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
+import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -358,7 +358,7 @@ function MoneyRequestConfirmationListFooter({
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
         return name;
-    }, [isUnreported, selectedReport, selectedPolicy, translate]);
+    }, [isUnreported, selectedReport, policies, allReports, allTransactions, allReportNameValuePairs, personalDetails, reportActions, translate]);
 
     const shouldReportBeEditableFromFAB = isUnreported ? allOutstandingReports.length >= 1 : allOutstandingReports.length > 1;
 
