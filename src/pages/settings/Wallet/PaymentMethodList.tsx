@@ -7,6 +7,8 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
+// eslint-disable-next-line no-restricted-imports
+import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
@@ -75,6 +77,9 @@ type PaymentMethodListProps = {
     /** Whether the right icon should be shown in PaymentMethodItem */
     shouldShowRightIcon?: boolean;
 
+    /** Whether the we should skip default account validation when adding bank account */
+    shouldSkipDefaultAccountValidation?: boolean;
+
     /** What to do when a menu item is pressed */
     onPress: PaymentMethodPressHandler | CardPressHandler;
 
@@ -137,6 +142,7 @@ function PaymentMethodList({
     onPress,
     shouldShowAddBankAccount = true,
     shouldShowAssignedCards = false,
+    shouldSkipDefaultAccountValidation = false,
     onListContentSizeChange = () => {},
     style = {},
     listItemStyle = {},
@@ -155,7 +161,7 @@ function PaymentMethodList({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
     const illustrations = useThemeIllustrations();
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
@@ -388,7 +394,7 @@ function PaymentMethodList({
     ]);
 
     const onPressItem = useCallback(() => {
-        if (!isUserValidated) {
+        if (!isUserValidated && !shouldSkipDefaultAccountValidation) {
             const path = Navigation.getActiveRoute();
             if (path.includes(ROUTES.WORKSPACES_LIST.route) && policyID) {
                 Navigation.navigate(ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.getRoute(policyID));
@@ -398,14 +404,14 @@ function PaymentMethodList({
             return;
         }
         onAddBankAccountPress();
-    }, [isUserValidated, onAddBankAccountPress, policyID]);
+    }, [isUserValidated, onAddBankAccountPress, policyID, shouldSkipDefaultAccountValidation]);
 
     const renderListFooterComponent = useCallback(
         () => (
             <MenuItem
                 onPress={onPressItem}
                 title={translate('bankAccount.addBankAccount')}
-                icon={expensifyIcons.Plus}
+                icon={Expensicons.Plus}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
             />
         ),
