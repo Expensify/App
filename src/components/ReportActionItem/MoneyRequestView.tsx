@@ -71,7 +71,7 @@ import {
     hasMissingSmartscanFields,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
-    isManagedCardTransaction as isCardTransactionTransactionUtils,
+    isFromCreditCardImport as isCardTransactionTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,

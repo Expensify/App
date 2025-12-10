@@ -1077,6 +1077,31 @@ function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean 
     return !!transaction?.managedCard;
 }
 
+/**
+ * Determine whether a transaction is imported from a credit card.
+ * This includes managed cards (Expensify/Company cards) and personal cards imported via bank connection.
+ * CSV uploads and cash expenses are NOT considered credit card imports.
+ */
+function isFromCreditCardImport(transaction: OnyxEntry<Transaction>): boolean {
+    if (transaction?.bank === 'upload') {
+        return false;
+    }
+
+    if (isManagedCardTransaction(transaction)) {
+        return true;
+    }
+
+    if (transaction?.cardNumber) {
+        return true;
+    }
+
+    if (transaction?.bank) {
+        return true;
+    }
+
+    return false;
+}
+
 function getCardName(transaction: OnyxEntry<Transaction>): string {
     return transaction?.cardName ?? '';
 }
@@ -2343,6 +2368,7 @@ export {
     mergeProhibitedViolations,
     getOriginalAttendees,
     getReportOwnerAsAttendee,
+    isFromCreditCardImport,
 };
 
 export type {TransactionChanges};
