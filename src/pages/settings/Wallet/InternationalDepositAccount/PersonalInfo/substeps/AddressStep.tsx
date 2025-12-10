@@ -1,93 +1,122 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import CommonAddressStep from '@components/SubStepForms/AddressStep';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import AddressForm from '@components/AddressForm';
+import type {FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalBankAccountDetailsFormSubmit from '@hooks/usePersonalBankAccountDetailsFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
+import INPUT_IDS from '@src/types/form/HomeAddressForm';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-const PERSONAL_INFO_STEP_KEY = INPUT_IDS.BANK_INFO_STEP;
+function AddressStep({onNext, isEditing}: SubStepProps) {
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: true});
+    const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
-const INPUT_KEYS = {
-    street: PERSONAL_INFO_STEP_KEY.STREET,
-    city: PERSONAL_INFO_STEP_KEY.CITY,
-    state: PERSONAL_INFO_STEP_KEY.STATE,
-    zipCode: PERSONAL_INFO_STEP_KEY.ZIP_CODE,
-};
-
-const STEP_FIELDS_WITH_STATE = [PERSONAL_INFO_STEP_KEY.STREET, PERSONAL_INFO_STEP_KEY.CITY, PERSONAL_INFO_STEP_KEY.STATE, PERSONAL_INFO_STEP_KEY.ZIP_CODE, PERSONAL_INFO_STEP_KEY.COUNTRY];
-const STEP_FIELDS_WITHOUT_STATE = [PERSONAL_INFO_STEP_KEY.STREET, PERSONAL_INFO_STEP_KEY.CITY, PERSONAL_INFO_STEP_KEY.ZIP_CODE, PERSONAL_INFO_STEP_KEY.COUNTRY];
-
-function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
+    const address = useMemo(() => {
+        const normalizedAddress = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address;
+        return {
+            street: bankAccountPersonalDetails?.addressStreet
+                ? `${bankAccountPersonalDetails?.addressStreet}\n${bankAccountPersonalDetails?.addressStreet2}`
+                : (normalizedAddress?.street ?? ''),
+            city: bankAccountPersonalDetails?.addressCity ?? normalizedAddress?.city ?? '',
+            state: bankAccountPersonalDetails?.addressState ?? normalizedAddress?.state ?? '',
+            zip: bankAccountPersonalDetails?.addressZipCode ?? normalizedAddress?.zip ?? '',
+            country: (bankAccountPersonalDetails?.country ?? normalizedAddress?.country ?? '') as Country | '',
+        };
+    }, [
+        bankAccountPersonalDetails?.addressCity,
+        bankAccountPersonalDetails?.addressState,
+        bankAccountPersonalDetails?.addressStreet,
+        bankAccountPersonalDetails?.addressStreet2,
+        bankAccountPersonalDetails?.addressZipCode,
+        bankAccountPersonalDetails?.country,
+        privatePersonalDetails,
+    ]);
     const {translate} = useLocalize();
 
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const currentAddress = getCurrentAddress(privatePersonalDetails);
+    // Check if country is valid
+    const {street} = address ?? {};
+    const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
+    const [currentCountry, setCurrentCountry] = useState<string | undefined>(address?.country ?? defaultCountry ?? CONST.COUNTRY.US);
+    const [state, setState] = useState<string | undefined>(address?.state);
+    const [city, setCity] = useState<string | undefined>(address?.city);
+    const [zipcode, setZipcode] = useState<string | undefined>(address?.zip);
 
-    const defaultValues = useMemo(
-        () => ({
-            street: bankAccountPersonalDetails?.addressStreet ?? currentAddress?.street ?? '',
-            city: bankAccountPersonalDetails?.addressCity ?? currentAddress?.city ?? '',
-            state: bankAccountPersonalDetails?.addressState ?? currentAddress?.state ?? '',
-            zipCode: bankAccountPersonalDetails?.addressZipCode ?? currentAddress?.zip ?? '',
-            country: (bankAccountPersonalDetails?.country ?? currentAddress?.country ?? '') as Country | '',
-        }),
-        [
-            bankAccountPersonalDetails?.addressCity,
-            bankAccountPersonalDetails?.addressState,
-            bankAccountPersonalDetails?.addressStreet,
-            bankAccountPersonalDetails?.addressZipCode,
-            bankAccountPersonalDetails?.country,
-            currentAddress?.city,
-            currentAddress?.country,
-            currentAddress?.state,
-            currentAddress?.street,
-            currentAddress?.zip,
-        ],
-    );
-    // Has to be stored in state and updated on country change due to the fact that we can't relay on onyxValues when user is editing the form (draft values are not being saved in that case)
-    const [shouldDisplayStateSelector, setShouldDisplayStateSelector] = useState<boolean>(
-        defaultValues?.country === CONST.COUNTRY.US || defaultValues?.country === CONST.COUNTRY.CA || defaultValues?.country === '',
-    );
-    const [shouldValidateZipCodeFormat, setShouldValidateZipCodeFormat] = useState<boolean>(defaultValues?.country === CONST.COUNTRY.US);
-
-    const stepFields = shouldDisplayStateSelector ? STEP_FIELDS_WITH_STATE : STEP_FIELDS_WITHOUT_STATE;
-
-    const handleCountryChange = useCallback((country: unknown) => {
-        if (typeof country !== 'string' || country === '') {
+    useEffect(() => {
+        if (!address) {
             return;
         }
-        setShouldDisplayStateSelector(country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA);
-        setShouldValidateZipCodeFormat(country === CONST.COUNTRY.US);
-    }, []);
+        setState(address.state);
+        setCurrentCountry(address.country);
+        setCity(address.city);
+        setZipcode(address.zip);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [address?.state, address?.country, address?.city, address?.zip]);
 
-    const handleSubmit = usePersonalBankAccountDetailsFormSubmit({
-        fieldIds: stepFields,
-        onNext,
-        shouldSaveDraft: isEditing,
-    });
+    const handleAddressChange = useCallback(
+        (value: unknown, key: unknown) => {
+            const addressPart = value as string;
+            const addressPartKey = key as keyof Address;
+
+            if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
+                return;
+            }
+            if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
+                setCurrentCountry(addressPart as Country | '');
+                setState('');
+                setCity('');
+                setZipcode('');
+                return;
+            }
+            if (addressPartKey === INPUT_IDS.STATE) {
+                setState(addressPart);
+                setCity('');
+                setZipcode('');
+                return;
+            }
+            if (addressPartKey === INPUT_IDS.CITY) {
+                setCity(addressPart);
+                setZipcode('');
+                return;
+            }
+            setZipcode(addressPart);
+        },
+        [currentCountry],
+    );
+
+    const updateAddress = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
+            setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {
+                addressStreet: values.addressLine1?.trim() ?? '',
+                addressStreet2: values.addressLine2?.trim() ?? '',
+                addressCity: values.city?.trim() ?? '',
+                addressState: values.state?.trim() ?? '',
+                addressZipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
+                country: currentCountry,
+            });
+            onNext();
+        },
+        [currentCountry, onNext],
+    );
 
     return (
-        <CommonAddressStep<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>
-            isEditing={isEditing}
-            onNext={onNext}
-            onMove={onMove}
-            formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
-            formTitle={translate('personalInfoStep.whatsYourAddress')}
-            formPOBoxDisclaimer={translate('common.noPO')}
-            onSubmit={handleSubmit}
-            stepFields={stepFields}
-            defaultValues={defaultValues}
-            inputFieldsIDs={INPUT_KEYS}
-            onCountryChange={handleCountryChange}
-            shouldDisplayStateSelector={shouldDisplayStateSelector}
-            shouldDisplayCountrySelector
-            shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
+        <AddressForm
+            formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
+            onSubmit={updateAddress}
+            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+            city={city}
+            country={currentCountry as unknown as Country}
+            onAddressChanged={handleAddressChange}
+            state={state}
+            street1={street1}
+            street2={street2}
+            zip={zipcode}
         />
     );
 }

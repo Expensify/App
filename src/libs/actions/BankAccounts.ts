@@ -23,6 +23,7 @@ import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parame
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getFormattedStreet} from '@libs/PersonalDetailsUtils';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -286,7 +287,7 @@ function addPersonalBankAccount(
         phoneNumber: account?.phoneNumber,
         legalFirstName: account?.legalFirstName,
         legalLastName: account?.legalLastName,
-        addressStreet: account?.addressStreet,
+        addressStreet: getFormattedStreet(account?.addressStreet, account?.addressStreet2),
         addressCity: account?.addressCity,
         addressState: account?.addressState,
         addressZip: account?.addressZipCode,

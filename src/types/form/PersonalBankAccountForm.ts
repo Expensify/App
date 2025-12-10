@@ -15,6 +15,7 @@ const INPUT_IDS = {
         FIRST_NAME: 'legalFirstName',
         LAST_NAME: 'legalLastName',
         STREET: 'addressStreet',
+        STREET_SECOND: 'addressStreet2',
         CITY: 'addressCity',
         STATE: 'addressState',
         COUNTRY: 'country',
@@ -34,6 +35,7 @@ type BankAccountStepProps = {
     [INPUT_IDS.BANK_INFO_STEP.FIRST_NAME]: string;
     [INPUT_IDS.BANK_INFO_STEP.LAST_NAME]: string;
     [INPUT_IDS.BANK_INFO_STEP.STREET]: string;
+    [INPUT_IDS.BANK_INFO_STEP.STREET_SECOND]: string;
     [INPUT_IDS.BANK_INFO_STEP.CITY]: string;
     [INPUT_IDS.BANK_INFO_STEP.STATE]: string;
     [INPUT_IDS.BANK_INFO_STEP.ZIP_CODE]: string;
