@@ -94,18 +94,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     Navigation.navigate(route.params.backTo);
                 }
                 return;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id:
-                setPolicyPreventSelfApproval(policyID, true);
-                Navigation.goBack();
-                return;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id:
-                enableAutoApprovalOptions(policyID, true);
-                Navigation.goBack();
-                return;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
-                enablePolicyAutoReimbursementLimit(policyID, true);
-                Navigation.goBack();
-                return;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
                     case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias:
@@ -148,6 +136,15 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
         switch (feature.id) {
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id:
+                setPolicyPreventSelfApproval(policyID, true);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id:
+                enableAutoApprovalOptions(policyID, true);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
+                enablePolicyAutoReimbursementLimit(policyID, true);
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
                     case CONST.REPORT_FIELDS_FEATURE.qbo.classes:
