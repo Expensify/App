@@ -13,6 +13,7 @@ import type {
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from '@components/Search/types';
+import type {ReplacementReason} from '@libs/actions/Card';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
@@ -1084,6 +1085,13 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
+    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE]: {
+        /** cardID of selected card */
+        cardID: string;
+
+        /** Reason for replacing the card */
+        reason: ReplacementReason;
+    };
     [SCREENS.KEYBOARD_SHORTCUTS]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
@@ -2088,6 +2096,14 @@ type WorkspacesDomainModalNavigatorParamList = {
         accountID: number;
     };
     [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: {
+        accountID: number;
+    };
+    [SCREENS.WORKSPACES_ADD_DOMAIN]: undefined;
+    [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.WORKSPACES_DOMAIN_ADDED]: {
+        accountID: number;
+    };
+    [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: {
         accountID: number;
     };
 };

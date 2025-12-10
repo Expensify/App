@@ -271,6 +271,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
                             path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
                             exact: true,
@@ -1775,6 +1779,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: {
                             path: ROUTES.WORKSPACES_DOMAIN_VERIFIED.route,
+                            exact: true,
+                        },
+                        [SCREENS.WORKSPACES_ADD_DOMAIN]: ROUTES.WORKSPACES_ADD_DOMAIN,
+                        [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: ROUTES.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT,
+                        [SCREENS.WORKSPACES_DOMAIN_ADDED]: {
+                            path: ROUTES.WORKSPACES_DOMAIN_ADDED.route,
+                            exact: true,
+                        },
+                        [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: {
+                            path: ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.route,
                             exact: true,
                         },
                     },

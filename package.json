@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.2.73-5",
+  "version": "9.2.74-6",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -144,6 +144,7 @@
     "expo-image-manipulator": "^13.1.5",
     "expo-modules-core": "3.0.18",
     "expo-secure-store": "~14.2.4",
+    "expo-store-review": "~9.0.8",
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
     "group-ib-fp": "file:modules/group-ib-fp",
