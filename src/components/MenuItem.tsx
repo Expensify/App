@@ -967,6 +967,7 @@ function MenuItem({
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.pl6,
                                                             isHovered ? styles.opacity1 : styles.opacitySemiTransparent,
+                                                            styles.alignItemsEnd,
                                                         ]}
                                                     >
                                                         <Icon
