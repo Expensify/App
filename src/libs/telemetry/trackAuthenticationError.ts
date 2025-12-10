@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react-native';
+import CONST from '@src/CONST';
 
 type AuthenticationFunction = 'Authenticate' | 'reauthenticate';
 type AuthenticationErrorType = 'missing_params' | 'network_retry' | 'auth_failure';
@@ -23,12 +24,12 @@ function trackAuthenticationError(error: Error, context: AuthenticationErrorCont
     const {errorType, functionName, jsonCode, command, commandName, errorMessage, providedParameters} = context;
 
     const tags: Record<string, string> = {
-        'authentication.function': functionName,
-        'authentication.error_type': errorType,
+        [CONST.TELEMETRY.TAG_AUTHENTICATION_FUNCTION]: functionName,
+        [CONST.TELEMETRY.TAG_AUTHENTICATION_ERROR_TYPE]: errorType,
     };
 
     if (jsonCode !== undefined) {
-        tags['authentication.json_code'] = String(jsonCode);
+        tags[CONST.TELEMETRY.TAG_AUTHENTICATION_JSON_CODE] = String(jsonCode);
     }
 
     const extra: Record<string, unknown> = {
