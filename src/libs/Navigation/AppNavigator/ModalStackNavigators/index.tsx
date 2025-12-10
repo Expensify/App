@@ -208,6 +208,12 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                         return;
                     }
 
+                    // Synchronization after RHP unmount is handled in RightModalNavigator.tsx.
+                    const isRHPOpened = navigationRef?.getRootState()?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+                    if (!isRHPOpened) {
+                        return;
+                    }
+
                     syncRHPKeys();
                 },
                 [route.name, syncRHPKeys],
