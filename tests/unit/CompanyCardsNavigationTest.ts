@@ -10,7 +10,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // Mock Navigation
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
-    setNavigationActionToMicrotaskQueue: jest.fn((callback) => callback()),
+    setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
 }));
 
 // Mock usePermissions hook
