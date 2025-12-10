@@ -131,8 +131,6 @@ async function check({
         const diffFilteringCommits: DiffFilteringCommits = {fromRef: mainBaseCommitHash};
         const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef, undefined, true);
 
-        console.log(JSON.stringify(diffResult, null, 2));
-
         if (shouldFilterByDiff) {
             results = await filterResultsByDiff(results, diffFilteringCommits, diffResult, printResultsOptions);
         }
