@@ -98,9 +98,8 @@ function isCategoryMissing(category: string | undefined): boolean {
     if (!category) {
         return true;
     }
-    const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
 
-    return emptyCategories.includes(category ?? '');
+    return category === CONST.SEARCH.CATEGORY_EMPTY_VALUE || category === CONST.SEARCH.CATEGORY_DEFAULT_VALUE;
 }
 
 function isCategoryDescriptionRequired(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): boolean {

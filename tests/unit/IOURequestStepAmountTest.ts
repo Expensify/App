@@ -64,11 +64,40 @@ describe('IOURequestStepAmount', () => {
             expect(shouldNavigate).toBe(true);
         });
 
-        it('returns false when personal policy auto reporting is disabled', () => {
+        it('returns true when workspace policy has auto reporting enabled but personal policy has it disabled', () => {
             const shouldNavigate = shouldAutoNavigateToDefaultWorkspace(CONST.IOU.TYPE.CREATE, defaultExpensePolicy, {
                 ...personalPolicy,
                 autoReporting: false,
             });
+
+            expect(shouldNavigate).toBe(true);
+        });
+
+        it('returns true when personal policy has auto reporting enabled but workspace policy has it disabled', () => {
+            const shouldNavigate = shouldAutoNavigateToDefaultWorkspace(
+                CONST.IOU.TYPE.CREATE,
+                {
+                    ...defaultExpensePolicy,
+                    autoReporting: false,
+                },
+                personalPolicy,
+            );
+
+            expect(shouldNavigate).toBe(true);
+        });
+
+        it('returns false when both workspace and personal policy auto reporting is disabled', () => {
+            const shouldNavigate = shouldAutoNavigateToDefaultWorkspace(
+                CONST.IOU.TYPE.CREATE,
+                {
+                    ...defaultExpensePolicy,
+                    autoReporting: false,
+                },
+                {
+                    ...personalPolicy,
+                    autoReporting: false,
+                },
+            );
 
             expect(shouldNavigate).toBe(false);
         });

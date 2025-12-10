@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import useAbsentPageSpan from '@libs/telemetry/useAbsentPageSpan';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import BlockingViewSubtitle from './BlockingViewSubtitle';
@@ -123,6 +124,8 @@ function BlockingView({
         [shouldEmbedLinkWithSubtitle, styles],
     );
     const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: containerStyleProp});
+
+    useAbsentPageSpan();
 
     return (
         <View

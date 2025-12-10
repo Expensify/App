@@ -17,6 +17,7 @@
         "Airplus",
         "airshipconfig",
         "airside",
+        "alrt",
         "Amal",
         "Amal's",
         "americanexpressfdx",
@@ -799,7 +800,8 @@
         "setuptools",
         "DYNAMICEXTERNAL",
         "RNCORE",
-        "Wooo"
+        "Wooo",
+        "Splittable"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
