@@ -1,5 +1,5 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,7 +14,7 @@ import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import {canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
@@ -52,7 +52,6 @@ function getFeatureNameAlias(featureName: string) {
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
-    const isFocused = useIsFocused();
 
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
 
@@ -70,27 +69,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false, selector: ownerPoliciesSelectorWithAccountID});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
-    const featureToggleName = useMemo(() => {
-        switch (featureNameAlias) {
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.taxCodes.alias:
-                return CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiLevelTags?.alias:
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes?.alias:
-                return CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes?.alias:
-                return CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals?.alias:
-                return CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING[CONST.POLICY.CONNECTIONS.NAME.QBD]?.alias:
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.alias:
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.alias:
-                return CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED;
-            default:
-                return null;
-        }
-    }, [featureNameAlias]);
-    const pendingField = featureToggleName ? policy?.pendingFields?.[featureToggleName] : undefined;
-    const isFeatureEnabled = featureToggleName ? isPolicyFeatureEnabled(policy, featureToggleName) : true;
 
     const canPerformUpgrade = useMemo(() => canModifyPlan(ownerPolicies, policy), [ownerPolicies, policy]);
     const isUpgraded = useMemo(() => isControlPolicy(policy), [policy]);
@@ -222,13 +200,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             };
         }, [isUpgraded, canPerformUpgrade, confirmUpgrade]),
     );
-
-    useEffect(() => {
-        if (!featureToggleName || !isFocused || isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled) || !policyID) {
-            return;
-        }
-        Navigation.isNavigationReady().then(() => Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
-    }, [featureToggleName, isFocused, isFeatureEnabled, pendingField, isOffline, policyID]);
 
     if (!canPerformUpgrade) {
         return <NotFoundPage />;
