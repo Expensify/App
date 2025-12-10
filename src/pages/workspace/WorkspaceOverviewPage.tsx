@@ -391,11 +391,11 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             cancelText: translate('common.cancel'),
             danger: true,
         }).then((result) => {
-            // eslint-disable-next-line rulesdir/prefer-early-return
-            if (result.action === ModalActions.CONFIRM && policy?.id) {
-                leaveWorkspace(policy.id);
-                goBackFromInvalidPolicy();
+            if (result.action !== ModalActions.CONFIRM || !policy?.id) {
+                return;
             }
+            leaveWorkspace(policy.id);
+            goBackFromInvalidPolicy();
         });
     }, [policy?.achAccount?.reimburser, policy?.id, session?.email, showConfirmModal, translate, confirmModalPrompt]);
 

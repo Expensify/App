@@ -139,9 +139,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
             cancelText: translate('common.cancel'),
         }).then((result) => {
-            if (result.action === ModalActions.CONFIRM && policyID) {
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            if (result.action !== ModalActions.CONFIRM || !policyID) {
+                return;
             }
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
         });
     }, [hasAccountingConnection, showConfirmModal, translate, policyID]);
 
@@ -155,9 +156,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             confirmText: translate('workspace.moreFeatures.workflowWarningModal.confirmText'),
             cancelText: translate('common.cancel'),
         }).then((result) => {
-            if (result.action === ModalActions.CONFIRM) {
-                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
             }
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
         });
     }, [isSmartLimitEnabled, showConfirmModal, translate, policyID]);
 
@@ -424,9 +426,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
                     cancelText: translate('common.cancel'),
                 }).then((result) => {
-                    if (result.action === ModalActions.CONFIRM && policyID) {
-                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+                    if (result.action !== ModalActions.CONFIRM || !policyID) {
+                        return;
                     }
+                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
                 });
             },
             action: (isEnabled: boolean) => {

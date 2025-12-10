@@ -54,28 +54,28 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     }, [backTo, policyID, params.expenseType]);
 
     const selectDestination = useCallback(
-        async (row: MenuListItem, isWarningConfirmed?: boolean) => {
+        (row: MenuListItem, isWarningConfirmed?: boolean) => {
             if (row.value === currentDestination || !policyID) {
                 goBack();
                 return;
             }
 
             if (!isReimbursable && !isWarningConfirmed && row.value === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT && policy?.areCompanyCardsEnabled) {
-                const result = await showConfirmModal({
+                showConfirmModal({
                     title: translate('common.areYouSure'),
                     prompt: translate('workspace.netsuite.exportDestination.expenseReportDestinationConfirmDescription'),
                     confirmText: translate('common.confirm'),
                     cancelText: translate('common.cancel'),
-                });
-
-                if (result.action === ModalActions.CONFIRM) {
-                    if (isReimbursable) {
-                        updateNetSuiteReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT);
-                    } else {
-                        updateNetSuiteNonReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL);
+                }).then((result) => {
+                    if (result.action === ModalActions.CONFIRM) {
+                        if (isReimbursable) {
+                            updateNetSuiteReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT);
+                        } else {
+                            updateNetSuiteNonReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL);
+                        }
+                        goBack();
                     }
-                    goBack();
-                }
+                });
                 return;
             }
 

@@ -104,9 +104,10 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     }, [policy, startFlow, setIsCurrencyModalOpen, showConfirmModal, translate]);
 
     useEffect(() => {
-        if (isCurrencyModalOpen) {
-            confirmCurrencyChangeAndHideModal();
+        if (!isCurrencyModalOpen) {
+            return;
         }
+        confirmCurrencyChangeAndHideModal();
     }, [isCurrencyModalOpen, confirmCurrencyChangeAndHideModal]);
 
     return (

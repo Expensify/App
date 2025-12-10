@@ -150,7 +150,10 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                 });
 
                                 if (result.action === ModalActions.CONFIRM && policyID) {
-                                    removePolicyReceiptPartnersConnection(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER, integrations?.uber);
+                                    if (!policyID || !selectedPartner) {
+                                        return;
+                                    }
+                                    removePolicyReceiptPartnersConnection(policyID, selectedPartner, integrations?.[selectedPartner]);
                                     fetchReceiptPartners();
                                 }
                                 setSelectedPartner(null);
@@ -162,7 +165,19 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     return [];
             }
         },
-        [icons.NewWindow, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow, showConfirmModal, policyID, integrations, fetchReceiptPartners],
+        [
+            icons.NewWindow,
+            shouldShowEnterCredentialsError,
+            translate,
+            isOffline,
+            startIntegrationFlow,
+            showConfirmModal,
+            policyID,
+            integrations?.uber,
+            fetchReceiptPartners,
+            icons.Key,
+            selectedPartner,
+        ],
     );
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {

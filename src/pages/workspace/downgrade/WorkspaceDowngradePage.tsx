@@ -93,7 +93,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             return;
         }
         downgradeToTeam(policy.id);
-    }, [canPerformDowngrade, policy, companyFeeds, showConfirmModal, translate, policyID, dismissModalAndNavigate, styles.flexRow, onMoveToCompanyCardFeeds]);
+    }, [canPerformDowngrade, policy, companyFeeds, showConfirmModal, translate, policyID, dismissModalAndNavigate, styles.flexRow]);
 
     if (!canPerformDowngrade) {
         return <NotFoundPage />;

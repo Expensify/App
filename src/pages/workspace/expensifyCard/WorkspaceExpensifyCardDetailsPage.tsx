@@ -97,9 +97,10 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
             danger: true,
             shouldSetModalVisibility: false,
             onModalHide: () => {
-                if (shouldGoBack.current) {
-                    Navigation.goBack();
+                if (!shouldGoBack.current) {
+                    return;
                 }
+                Navigation.goBack();
             },
         });
 

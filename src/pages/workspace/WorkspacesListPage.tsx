@@ -4,7 +4,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
 import type {DomainItem} from '@components/Domain/DomainMenuItem';
 import DomainMenuItem from '@components/Domain/DomainMenuItem';
 import DomainsEmptyStateComponent from '@components/DomainsEmptyStateComponent';
@@ -317,9 +316,10 @@ function WorkspacesListPage() {
             cancelText: translate('common.cancel'),
             danger: true,
         }).then((result) => {
-            if (result.action === ModalActions.CONFIRM && policyIDToLeave) {
-                leaveWorkspace(policyIDToLeave);
+            if (result.action !== ModalActions.CONFIRM || !policyIDToLeave) {
+                return;
             }
+            leaveWorkspace(policyIDToLeave);
         });
     }, [policies, policyIDToLeave, session?.email, confirmModalPrompt, showConfirmModal, translate]);
 
@@ -507,7 +507,6 @@ function WorkspacesListPage() {
             activePolicyID,
             duplicateWorkspace?.policyID,
             translate,
-            policies,
             fundList,
             styles,
             loadingSpinnerIconIndex,

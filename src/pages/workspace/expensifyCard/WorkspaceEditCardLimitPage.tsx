@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -97,23 +97,25 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     );
 
     const submit = useCallback(
-        async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>) => {
             const newLimit = Number(values[INPUT_IDS.LIMIT]) * 100;
             const newAvailableSpend = getNewAvailableSpend(newLimit);
 
             if (newAvailableSpend <= 0) {
-                const result = await showConfirmModal({
+                showConfirmModal({
                     title: translate('workspace.expensifyCard.changeCardLimit'),
-                    prompt: translate(getPromptTextKey, convertToDisplayString(newLimit, currency)),
+                    prompt: translate(getPromptTextKey, {limit: convertToDisplayString(newLimit, currency)}),
                     confirmText: translate('workspace.expensifyCard.changeLimit'),
                     cancelText: translate('common.cancel'),
                     danger: true,
                     shouldEnableNewFocusManagement: true,
+                }).then((result) => {
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    updateCardLimit(newLimit);
                 });
-
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
+                return;
             }
 
             updateCardLimit(newLimit);
