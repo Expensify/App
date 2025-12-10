@@ -43,14 +43,14 @@ const hasInProgressUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean =>
 };
 
 /** Returns true if user passed first step of flow for non USD VBBA */
-const hasInProgressNonUSDVBBA = (achData?: ACHDataReimbursementAccount, nonUSDCountryDraftValue?: string): boolean => {
-    return (!!achData?.bankAccountID && !!achData?.created) || nonUSDCountryDraftValue !== '';
+const hasInProgressNonUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean => {
+    return !!achData?.bankAccountID && !!achData?.created;
 };
 
 /** Returns true if VBBA flow is in progress */
-const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean, nonUSDCountryDraftValue?: string) => {
+const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean) => {
     if (isNonUSDWorkspace) {
-        return hasInProgressNonUSDVBBA(achData, nonUSDCountryDraftValue);
+        return hasInProgressNonUSDVBBA(achData);
     }
 
     return hasInProgressUSDVBBA(achData);

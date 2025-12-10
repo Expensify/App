@@ -109,11 +109,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
     const achData = reimbursementAccount?.achData;
-    const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
 
     const shouldShowContinueModal = useMemo(() => {
-        return hasInProgressVBBA(achData, isNonUSDWorkspace, nonUSDCountryDraftValue);
-    }, [achData, isNonUSDWorkspace, nonUSDCountryDraftValue]);
+        return hasInProgressVBBA(achData, isNonUSDWorkspace);
+    }, [achData, isNonUSDWorkspace]);
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
 
