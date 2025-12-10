@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/react-native';
-import {Platform} from 'react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {browserProfilingIntegration, browserTracingIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
@@ -20,7 +19,7 @@ export default function (): void {
         dsn: CONFIG.SENTRY_DSN,
         transport: isDevelopment() ? makeDebugTransport : undefined,
         tracesSampleRate: 1.0,
-        profilesSampleRate: Platform.OS === 'android' ? 0 : 1.0,
+        profilesSampleRate: 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
         integrations,
