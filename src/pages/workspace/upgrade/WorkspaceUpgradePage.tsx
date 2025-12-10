@@ -94,23 +94,14 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id:
                 setPolicyPreventSelfApproval(policyID, true);
                 Navigation.goBack();
-                if (route.params.backTo) {
-                    Navigation.navigate(route.params.backTo);
-                }
                 return;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id:
                 enableAutoApprovalOptions(policyID, true);
                 Navigation.goBack();
-                if (route.params.backTo) {
-                    Navigation.navigate(route.params.backTo);
-                }
                 return;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
                 enablePolicyAutoReimbursementLimit(policyID, true);
                 Navigation.goBack();
-                if (route.params.backTo) {
-                    Navigation.navigate(route.params.backTo);
-                }
                 return;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
