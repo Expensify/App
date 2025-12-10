@@ -519,7 +519,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 !wasReportAccessibleRef.current &&
                 !firstRenderRef.current &&
                 !reportID &&
-                !reportIdRef?.current &&
+                !reportIdRef?.current.onyxReportId &&
                 !isOptimisticDelete &&
                 !reportMetadata?.isLoadingInitialReportActions &&
                 !userLeavingStatus
@@ -539,7 +539,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             reportMetadata?.isLoadingInitialReportActions,
             userLeavingStatus,
             currentReportIDFormRoute,
-            reportIdRef?.current,
+            reportIdRef?.current.onyxReportId,
         ],
     );
 
