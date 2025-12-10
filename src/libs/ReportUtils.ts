@@ -6715,8 +6715,11 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
         return translateLocal('iou.newReport');
     }
 
-    const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
-
+    let createdDate;
+    if (report.lastVisibleActionCreated) {
+        const normalizedDate = DateUtils.convertDBDateTimeToISO(report.lastVisibleActionCreated);
+        createdDate = new Date(normalizedDate);
+    }
     const result = formula
         // We don't translate because the server response is always in English
         .replaceAll(/\{report:type\}/gi, 'Expense Report')

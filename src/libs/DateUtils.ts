@@ -339,6 +339,23 @@ function getDBTimeFromDate(date: Date): string {
 }
 
 /**
+ * Convert the given database date-time string to an ISO formatted date-time string
+ */
+function convertDBDateTimeToISO(dateString: string): string {
+    let result = dateString.trim();
+
+    if (!result.includes('T') && result.includes(' ')) {
+        result = result.replace(' ', 'T');
+    }
+
+    if (!result.endsWith('Z')) {
+        result += 'Z';
+    }
+
+    return result;
+}
+
+/**
  * Convert the given timestamp to the "yyyy-MM-dd HH:mm:ss" format, as expected by the database
  *
  * @param [timestamp] the given timestamp (if omitted, defaults to the current time)
@@ -931,6 +948,7 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
+    convertDBDateTimeToISO,
     subtractMillisecondsFromDateTime,
     addMillisecondsFromDateTime,
     getEndOfToday,
