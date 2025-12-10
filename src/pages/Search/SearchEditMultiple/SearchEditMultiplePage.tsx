@@ -46,8 +46,6 @@ function SearchEditMultiplePage() {
     }, [selectedTransactions, activePolicyID]);
 
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID ?? '-1'}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID ?? '-1'}`, {canBeMissing: true});
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 

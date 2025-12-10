@@ -6,6 +6,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -24,7 +25,7 @@ function SearchEditMultipleTagPage() {
             return activePolicyID;
         }
 
-        const firstPolicyID = transactionValues[0]?.policyID;
+        const firstPolicyID = transactionValues.at(0)?.policyID;
         const allSamePolicy = transactionValues.every((t) => t.policyID === firstPolicyID);
 
         if (allSamePolicy && firstPolicyID) {
@@ -44,11 +45,11 @@ function SearchEditMultipleTagPage() {
             return '';
         }
         const tagListKeys = Object.keys(policyTags);
-        return tagListKeys.length > 0 ? tagListKeys[0] : '';
+        return tagListKeys.at(0) ?? '';
     }, [policyTags]);
 
     const saveTag = useCallback((item: Partial<OptionData>) => {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+        updateBulkEditDraftTransaction({
             tag: item.searchText,
         });
         Navigation.goBack();

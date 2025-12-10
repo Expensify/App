@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo} from 'react';
-import Onyx from 'react-native-onyx';
 import CategoryPicker from '@components/CategoryPicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -7,8 +6,8 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import Navigation from '@libs/Navigation/Navigation';
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
