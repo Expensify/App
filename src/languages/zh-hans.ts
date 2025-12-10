@@ -41,6 +41,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillableDefaultDescriptionParams,
@@ -727,6 +728,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这比预期花费的时间更长...',
         domains: '域名',
+        viewReport: '查看报告',
         actionRequired: '需要操作',
     },
     supportalNoAccess: {
@@ -977,8 +979,8 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `此聊天室用于讨论任何与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 相关的内容。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `此聊天用于 <strong>${invoicePayer}</strong> 与 <strong>${invoiceReceiver}</strong> 之间的发票。使用 “+” 按钮发送发票。`,
-        beginningOfChatHistory: '此聊天对象是',
+            `此聊天用于 <strong>${invoicePayer}</strong> 与 <strong>${invoiceReceiver}</strong> 之间的发票。使用 "+" 按钮发送发票。`,
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `此聊天是与${users}的聊天。`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `这是 <strong>${submitterDisplayName}</strong> 向 <strong>${workspaceName}</strong> 提交报销的地方。只需使用“+”按钮即可。`,
         beginningOfChatHistorySelfDM: '这是你的个人空间。可用于记录笔记、任务、草稿和提醒。',
@@ -1532,9 +1534,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 bypassApprovers: '绕过审批人',
                 bypassApproversSubtitle: '将自己指定为最终审批人，并跳过所有剩余审批人。',
             },
-            addApprover: {
-                subtitle: '在我们将此报销单送交其余审批流程之前，请为其选择一位额外的审批人。',
-            },
+            addApprover: {subtitle: '在我们将此报销单送交其余审批流程之前，请为其选择一位额外的审批人。', bulkSubtitle: '在我们将这些报表提交给其余审批流程之前，请为其选择一位额外审批人。'},
+            bulkSubtitle: '选择一个选项来更改这些报表的审批人。',
         },
         chooseWorkspace: '选择一个工作区',
     },
@@ -2289,6 +2290,7 @@ ${amount}，商户：${merchant} - ${date}`,
             title: '没有可显示的成员',
             expensesFromSubtitle: '所有工作区成员已属于现有的审批流程。',
             approverSubtitle: '所有审批人都属于一个现有的工作流程。',
+            bulkApproverSubtitle: '所选报表中没有符合条件的审批人。',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -5965,6 +5967,8 @@ ${reportName}
                     toUpgrade: '要升级，请点击',
                     selectWorkspace: '选择一个工作区，并将套餐类型更改为',
                 },
+                upgradeWorkspaceWarning: '无法升级工作区',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '您的公司已限制工作区创建。请联系管理员寻求帮助。',
             },
         },
         downgrade: {
@@ -6608,6 +6612,7 @@ ${reportName}
         groupBy: '分组依据',
         moneyRequestReport: {
             emptyStateTitle: '此报表没有任何报销。',
+            accessPlaceHolder: '打开以查看详情',
         },
         noCategory: '无类别',
         noTag: '无标签',
@@ -6748,6 +6753,7 @@ ${reportName}
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `您确定要在 ${workspaceName} 中创建另一份报表吗？您可以在 中访问您的空报表`,
             emptyReportConfirmationPromptLink: '报表',
             genericWorkspaceName: '此工作区',
+            emptyReportConfirmationDontShowAgain: '不再显示此内容',
         },
         genericCreateReportFailureMessage: '创建此聊天时发生意外错误。请稍后再试。',
         genericAddCommentFailureMessage: '发表评论时发生意外错误。请稍后重试。',
@@ -7717,6 +7723,17 @@ ${reportName}
             fetchError: '无法获取 SAML 配置详情',
             setMetadataGenericError: '无法设置 SAML MetaData',
         },
+        accessRestricted: {
+            title: '访问受限',
+            subtitle: (domainName: string) => `如果您需要对以下内容进行管理，请验证您是 <strong>${domainName}</strong> 的授权公司管理员：`,
+            companyCardManagement: '公司卡管理',
+            accountCreationAndDeletion: '账户创建和删除',
+            workspaceCreation: '工作区创建',
+            samlSSO: 'SAML 单点登录',
+        },
+        addDomain: {title: '添加域', subtitle: '请输入您想访问的私有域名（例如：expensify.com）。', domainName: '域名', newDomain: '新域名'},
+        domainAdded: {title: '已添加域名', description: '接下来，您需要验证域名的所有权并调整您的安全设置。', configure: '配置'},
+        enhancedSecurity: {title: '增强的安全性', subtitle: '要求您域内的成员使用单点登录登录、限制工作区创建等。', enable: '启用'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

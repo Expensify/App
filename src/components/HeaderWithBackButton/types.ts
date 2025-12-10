@@ -132,6 +132,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
 
+    /** Number of lines to display for the title */
+    numberOfTitleLines?: number;
+
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;
 
