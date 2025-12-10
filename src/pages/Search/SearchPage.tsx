@@ -60,7 +60,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
+    canDeleteMoneyRequestReport,
     generateReportID,
     getPolicyExpenseChat,
     getReportOrDraftReport,
@@ -102,6 +104,7 @@ function SearchPage({route}: SearchPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const newReportID = generateReportID();
@@ -654,7 +657,24 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowDeleteOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canDelete);
+        const shouldShowDeleteOption =
+            !isOffline &&
+            selectedTransactionsKeys.every((id) => {
+                const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+                if (!transaction) {
+                    return false;
+                }
+                const parentReportID = transaction.reportID;
+                const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+                if (!parentReport) {
+                    return false;
+                }
+                const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
+                const parentReportAction = Object.values(reportActions ?? {}).find(
+                    (action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === selectedTransactions[id].transactionID,
+                );
+                return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
+            });
 
         if (shouldShowDeleteOption) {
             options.push({
@@ -701,15 +721,27 @@ function SearchPage({route}: SearchPageProps) {
         status,
         hash,
         selectedTransactions,
+        expensifyIcons.Export,
+        expensifyIcons.ArrowRight,
+        expensifyIcons.Table,
+        expensifyIcons.ThumbsUp,
+        expensifyIcons.Workflows,
+        expensifyIcons.Send,
+        expensifyIcons.MoneyBag,
+        expensifyIcons.Stopwatch,
+        expensifyIcons.DocumentMerge,
+        expensifyIcons.ArrowSplit,
+        expensifyIcons.Trashcan,
+        expensifyIcons.Exclamation,
         translate,
         areAllMatchingItemsSelected,
         isOffline,
         selectedReports,
-        selectedTransactionReportIDs,
+        queryJSON,
         lastPaymentMethods,
         selectedReportIDs,
         allTransactions,
-        queryJSON,
+        selectedTransactionReportIDs,
         selectedPolicyIDs,
         policies,
         integrationsExportTemplates,
@@ -718,16 +750,15 @@ function SearchPage({route}: SearchPageProps) {
         beginExportWithTemplate,
         bulkPayButtonOptions,
         onBulkPaySelected,
+        areAllTransactionsFromSubmitter,
+        dismissedHoldUseExplanation,
+        dismissedRejectUseExplanation,
         allReports,
+        allReportActions,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
-        expensifyIcons,
-        dismissedHoldUseExplanation,
-        dismissedRejectUseExplanation,
-        areAllTransactionsFromSubmitter,
-        currentUserPersonalDetails?.login,
     ]);
 
     const handleDeleteExpenses = () => {
