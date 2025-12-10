@@ -17,10 +17,10 @@ import getPlatform from '@libs/getPlatform';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Log as OnyxLog} from '@src/types/onyx';
-import handleStopRecording from './handleStopRecording';
-import type {StopRecordingParams} from './handleStopRecording.types';
-import Share from './Share';
 import pkg from '../../../package.json';
+import handleStopRecording from './handleStopRecording';
+import type StopRecordingParams from './handleStopRecording.types';
+import Share from './Share';
 
 type File = {
     path: string;
@@ -141,9 +141,11 @@ function BaseRecordTroubleshootDataToolMenu({
             };
 
             await handleStopRecording(params);
-        } finally {
-            setIsDisabled(false);
+        } catch (error) {
+            console.error('[ProfilingToolMenu] error handling stop recording', error);
         }
+
+        setIsDisabled(false);
     };
 
     useEffect(() => {
@@ -166,7 +168,9 @@ function BaseRecordTroubleshootDataToolMenu({
                 <Switch
                     accessibilityLabel={translate('initialSettingsPage.troubleshoot.recordTroubleshootData')}
                     isOn={!!shouldRecordTroubleshootData}
-                    onToggle={onToggle}
+                    onToggle={() => {
+                        onToggle().catch((error) => console.error('[ProfilingToolMenu] toggle failed', error));
+                    }}
                     disabled={isDisabled}
                 />
             </TestToolRow>

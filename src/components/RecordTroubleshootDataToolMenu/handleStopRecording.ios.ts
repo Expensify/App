@@ -1,6 +1,6 @@
 import RNFS from 'react-native-fs';
 import Log from '@libs/Log';
-import type {StopRecordingParams} from './handleStopRecording.types';
+import type StopRecordingParams from './handleStopRecording.types';
 
 export default async function handleStopRecording({
     profilingData,
@@ -31,8 +31,8 @@ export default async function handleStopRecording({
             Log.hmmm('[ProfilingToolMenu] existing file deleted successfully');
         }
     } catch (error) {
-        const typedError = error as Error;
-        Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
+        const message = error instanceof Error ? error.message : String(error);
+        Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', message);
     }
 
     try {
@@ -46,6 +46,7 @@ export default async function handleStopRecording({
         setProfileTracePath?.(newFilePath);
         Log.hmmm('[ProfilingToolMenu] file copied successfully');
     } catch (error) {
-        Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
+        const message = error instanceof Error ? error.message : String(error);
+        Log.hmmm('[ProfilingToolMenu] error copying file: ', message);
     }
 }

@@ -1,4 +1,4 @@
-import type {StopRecordingParams} from './handleStopRecording.types';
+import type StopRecordingParams from './handleStopRecording.types';
 
 export default async function handleStopRecording({
     infoFileName,

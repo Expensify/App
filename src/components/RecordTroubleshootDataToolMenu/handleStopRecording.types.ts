@@ -17,4 +17,4 @@ type StopRecordingParams = {
     setProfileTracePath?: (path: string) => void;
 };
 
-export type {StopRecordingParams};
+export default StopRecordingParams;
