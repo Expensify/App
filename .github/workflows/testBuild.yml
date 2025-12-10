@@ -308,19 +308,6 @@ jobs:
             sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
             echo "APP_PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
-      - name: Setup Java
-        # v4
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
-        with:
-          distribution: 'oracle'
-          java-version: '17'
-
-      - name: Setup Ruby
-        # v1.229.0
-        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
-        with:
-          bundler-cache: true
-
       - name: Install 1Password CLI
         # v1
         uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
@@ -422,39 +409,9 @@ jobs:
           sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
           echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
 
-      - name: Setup Ruby
-        # v1.229.0
-        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
-        with:
-          bundler-cache: true
-
-      - name: Install New Expensify Gems
-        run: bundle install
-
-      - name: Cache Pod dependencies
-        # v4
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
-        id: pods-cache
-        with:
-          path: Mobile-Expensify/iOS/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock', 'firebase.json') }}
-
-      - name: Compare Podfile.lock and Manifest.lock
-        id: compare-podfile-and-manifest
-        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock') == hashFiles('Mobile-Expensify/iOS/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
-
-      - name: Install cocoapods
-        uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
-        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          command: npm run pod-install
-
       - name: Install 1Password CLI
         # v1
         uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
-
 
       - name: Load files from 1Password
         env:
