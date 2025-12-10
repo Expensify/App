@@ -74,10 +74,10 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
     const instanceIDRef = useRef('');
     const {email} = useCurrentUserPersonalDetails();
-    const reportActionTransactions = useReportActionTransactions(reportActionRef.current?.childReportID);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
+    const [childReportID, setChildReportID] = useState<string | undefined>(undefined);
     const [shouldSetModalVisibilityForDeleteConfirmation, setShouldSetModalVisibilityForDeleteConfirmation] = useState(true);
 
     const [isRoomArchived, setIsRoomArchived] = useState(false);
@@ -160,6 +160,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const clearActiveReportAction = () => {
         reportActionIDRef.current = undefined;
         reportActionRef.current = null;
+        setChildReportID(undefined);
     };
 
     /**
@@ -246,6 +247,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             originalReportIDRef.current = originalReportID || undefined;
             selectionRef.current = selection;
+            setChildReportID(reportAction.childReportID);
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
             setIsRoomArchived(isArchivedRoom);
@@ -338,6 +340,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
+    const reportActionTransactions = useReportActionTransactions(childReportID);
     useEffect(() => {
         if (!originalReport) {
             return;
@@ -389,6 +392,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         currentSearchHash,
         isOriginalReportArchived,
         email,
+        reportActionTransactions,
     ]);
 
     const hideDeleteModal = () => {
@@ -408,6 +412,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         onConfirmDeleteModal.current = onConfirm;
         reportIDRef.current = reportID;
         reportActionRef.current = reportAction ?? null;
+        setChildReportID(reportAction?.childReportID);
 
         setShouldSetModalVisibilityForDeleteConfirmation(shouldSetModalVisibility);
         setIsDeleteCommentConfirmModalVisible(true);
