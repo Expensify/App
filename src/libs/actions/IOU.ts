@@ -547,6 +547,10 @@ type MoneyRequestInformationParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    /** Whether this is a selfDM split transaction */
+    isSelfDMSplit?: boolean;
+    /** The selfDM report ID for split transactions */
+    selfDMReportID?: string;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -590,6 +594,10 @@ type BuildOnyxDataForMoneyRequestParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
+    /** Whether this is a selfDM split transaction */
+    isSelfDMSplit?: boolean;
+    /** The selfDM report ID for split transactions */
+    selfDMReportID?: string;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -1604,6 +1612,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        isSelfDMSplit,
+        selfDMReportID,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1639,73 +1649,93 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
 
-    if (chat.report) {
+    // For selfDM split, we don't create chat/IOU reports - only add IOU action to selfDM report
+    if (isSelfDMSplit && selfDMReportID) {
+        // Add transaction
         optimisticData.push({
-            // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
-            onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report.reportID}`,
-            value: {
-                ...chat.report,
-                lastReadTime: DateUtils.getDBTime(),
-                ...(shouldCreateNewMoneyRequestReport ? {lastVisibleActionCreated: chat.reportPreviewAction.created} : {}),
-                // do not update iouReportID if auto submit beta is enabled and it is a scan request
-                ...(isASAPSubmitBetaEnabled && isScanRequest ? {} : {iouReportID: iou.report.reportID}),
-                ...outstandingChildRequest,
-                ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
-            },
-        });
-    }
-
-    optimisticData.push(
-        {
-            onyxMethod: shouldCreateNewMoneyRequestReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
-            value: {
-                ...iou.report,
-                lastVisibleActionCreated: iou.action.created,
-                pendingFields: {
-                    ...(shouldCreateNewMoneyRequestReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
-                },
-            },
-        },
-        {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: transaction,
-        },
-        isNewChatReport
-            ? {
-                  onyxMethod: Onyx.METHOD.SET,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
-                  value: {
-                      [chat.createdAction.reportActionID]: chat.createdAction,
-                      [chat.reportPreviewAction.reportActionID]: chat.reportPreviewAction,
+        });
+
+        // Add IOU action directly to selfDM report (no CREATED or REPORTPREVIEW)
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+            value: {
+                [iou.action.reportActionID]: iou.action as OnyxTypes.ReportAction,
+            },
+        });
+    } else {
+        // Standard flow: create chat and IOU reports
+        if (chat.report) {
+            optimisticData.push({
+                // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
+                onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report.reportID}`,
+                value: {
+                    ...chat.report,
+                    lastReadTime: DateUtils.getDBTime(),
+                    ...(shouldCreateNewMoneyRequestReport ? {lastVisibleActionCreated: chat.reportPreviewAction.created} : {}),
+                    // do not update iouReportID if auto submit beta is enabled and it is a scan request
+                    ...(isASAPSubmitBetaEnabled && isScanRequest ? {} : {iouReportID: iou.report.reportID}),
+                    ...outstandingChildRequest,
+                    ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
+                },
+            });
+        }
+
+        optimisticData.push(
+            {
+                onyxMethod: shouldCreateNewMoneyRequestReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
+                value: {
+                    ...iou.report,
+                    lastVisibleActionCreated: iou.action.created,
+                    pendingFields: {
+                        ...(shouldCreateNewMoneyRequestReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: transaction,
+            },
+            isNewChatReport
+                ? {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
+                      value: {
+                          [chat.createdAction.reportActionID]: chat.createdAction,
+                          [chat.reportPreviewAction.reportActionID]: chat.reportPreviewAction,
+                      },
+                  }
+                : {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
+                      value: {
+                          [chat.reportPreviewAction.reportActionID]: chat.reportPreviewAction,
+                      },
                   },
-              }
-            : {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
-                  value: {
-                      [chat.reportPreviewAction.reportActionID]: chat.reportPreviewAction,
+            shouldCreateNewMoneyRequestReport
+                ? {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
+                      value: {
+                          [iou.createdAction.reportActionID]: iou.createdAction as OnyxTypes.ReportAction,
+                          [iou.action.reportActionID]: iou.action as OnyxTypes.ReportAction,
+                      },
+                  }
+                : {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
+                      value: {
+                          [iou.action.reportActionID]: iou.action as OnyxTypes.ReportAction,
+                      },
                   },
-              },
-        shouldCreateNewMoneyRequestReport
-            ? {
-                  onyxMethod: Onyx.METHOD.SET,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
-                  value: {
-                      [iou.createdAction.reportActionID]: iou.createdAction as OnyxTypes.ReportAction,
-                      [iou.action.reportActionID]: iou.action as OnyxTypes.ReportAction,
-                  },
-              }
-            : {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
-                  value: {
-                      [iou.action.reportActionID]: iou.action as OnyxTypes.ReportAction,
-                  },
-              },
-    );
+        );
+    }
 
     if (shouldGenerateTransactionThreadReport) {
         optimisticData.push(
@@ -1727,7 +1757,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         );
     }
 
-    if (isNewChatReport) {
+    // Skip chat/IOU report metadata for selfDM split
+    if (isNewChatReport && !isSelfDMSplit) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
@@ -1737,7 +1768,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    if (shouldCreateNewMoneyRequestReport) {
+    if (shouldCreateNewMoneyRequestReport && !isSelfDMSplit) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report?.reportID}`,
@@ -1889,11 +1920,57 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    if (isNewChatReport) {
+    // For selfDM split, we only need transaction and IOU action success data
+    if (isSelfDMSplit && selfDMReportID) {
         successData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    pendingAction: null,
+                    pendingFields: clearedPendingFields,
+                    routes: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                value: {
+                    [iou.action.reportActionID]: {
+                        pendingAction: null,
+                        errors: null,
+                        isOptimisticAction: null,
+                    },
+                },
+            },
+        );
+    } else {
+        // Standard flow
+        if (isNewChatReport) {
+            successData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
+                    value: {
+                        participants: redundantParticipants,
+                        pendingFields: null,
+                        errorFields: null,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+                    value: {
+                        isOptimisticReport: false,
+                    },
+                },
+            );
+        }
+
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
                 value: {
                     participants: redundantParticipants,
                     pendingFields: null,
@@ -1902,84 +1979,65 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
                 value: {
                     isOptimisticReport: false,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    pendingAction: null,
+                    pendingFields: clearedPendingFields,
+                    // The routes contains the distance in meters. Clearing the routes ensures we use the distance
+                    // in the correct unit stored under the transaction customUnit once the request is created.
+                    // The route is also not saved in the backend, so we can't rely on it.
+                    routes: null,
+                },
+            },
+
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
+                value: {
+                    ...(isNewChatReport
+                        ? {
+                              [chat.createdAction.reportActionID]: {
+                                  pendingAction: null,
+                                  errors: null,
+                                  isOptimisticAction: null,
+                              },
+                          }
+                        : {}),
+                    [chat.reportPreviewAction.reportActionID]: {
+                        pendingAction: null,
+                        isOptimisticAction: null,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
+                value: {
+                    ...(shouldCreateNewMoneyRequestReport
+                        ? {
+                              [iou.createdAction.reportActionID]: {
+                                  pendingAction: null,
+                                  errors: null,
+                                  isOptimisticAction: null,
+                              },
+                          }
+                        : {}),
+                    [iou.action.reportActionID]: {
+                        pendingAction: null,
+                        errors: null,
+                        isOptimisticAction: null,
+                    },
+                },
+            },
         );
     }
-
-    successData.push(
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
-            value: {
-                participants: redundantParticipants,
-                pendingFields: null,
-                errorFields: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {
-                isOptimisticReport: false,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: {
-                pendingAction: null,
-                pendingFields: clearedPendingFields,
-                // The routes contains the distance in meters. Clearing the routes ensures we use the distance
-                // in the correct unit stored under the transaction customUnit once the request is created.
-                // The route is also not saved in the backend, so we can't rely on it.
-                routes: null,
-            },
-        },
-
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
-            value: {
-                ...(isNewChatReport
-                    ? {
-                          [chat.createdAction.reportActionID]: {
-                              pendingAction: null,
-                              errors: null,
-                              isOptimisticAction: null,
-                          },
-                      }
-                    : {}),
-                [chat.reportPreviewAction.reportActionID]: {
-                    pendingAction: null,
-                    isOptimisticAction: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
-            value: {
-                ...(shouldCreateNewMoneyRequestReport
-                    ? {
-                          [iou.createdAction.reportActionID]: {
-                              pendingAction: null,
-                              errors: null,
-                              isOptimisticAction: null,
-                          },
-                      }
-                    : {}),
-                [iou.action.reportActionID]: {
-                    pendingAction: null,
-                    errors: null,
-                    isOptimisticAction: null,
-                },
-            },
-        },
-    );
 
     if (shouldGenerateTransactionThreadReport) {
         successData.push(
@@ -2018,64 +2076,88 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
     const errorKey = DateUtils.getMicroseconds();
 
-    failureData.push(
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
-            value: {
-                iouReportID: chat.report?.iouReportID,
-                lastReadTime: chat.report?.lastReadTime,
-                lastVisibleActionCreated: chat.report?.lastVisibleActionCreated,
-                pendingFields: null,
-                hasOutstandingChildRequest: chat.report?.hasOutstandingChildRequest,
-                ...(isNewChatReport
-                    ? {
-                          errorFields: {
-                              createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
-                          },
-                      }
-                    : {}),
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
-            value: {
-                pendingFields: null,
-                errorFields: {
-                    ...(shouldCreateNewMoneyRequestReport ? {createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')} : {}),
+    // For selfDM split, we only need transaction and IOU action failure data
+    if (isSelfDMSplit && selfDMReportID) {
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
+                    pendingFields: clearedPendingFields,
                 },
             },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: {
-                errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
-                pendingFields: clearedPendingFields,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                value: {
+                    [iou.action.reportActionID]: {
+                        errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
+                    },
+                },
             },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
-            value: {
-                ...(shouldCreateNewMoneyRequestReport
-                    ? {
-                          [iou.createdAction.reportActionID]: {
-                              errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
-                          },
-                          [iou.action.reportActionID]: {
-                              errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
-                          },
-                      }
-                    : {
-                          [iou.action.reportActionID]: {
-                              errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
-                          },
-                      }),
+        );
+    } else {
+        // Standard flow
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
+                value: {
+                    iouReportID: chat.report?.iouReportID,
+                    lastReadTime: chat.report?.lastReadTime,
+                    lastVisibleActionCreated: chat.report?.lastVisibleActionCreated,
+                    pendingFields: null,
+                    hasOutstandingChildRequest: chat.report?.hasOutstandingChildRequest,
+                    ...(isNewChatReport
+                        ? {
+                              errorFields: {
+                                  createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+                              },
+                          }
+                        : {}),
+                },
             },
-        },
-    );
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
+                value: {
+                    pendingFields: null,
+                    errorFields: {
+                        ...(shouldCreateNewMoneyRequestReport ? {createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')} : {}),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
+                    pendingFields: clearedPendingFields,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
+                value: {
+                    ...(shouldCreateNewMoneyRequestReport
+                        ? {
+                              [iou.createdAction.reportActionID]: {
+                                  errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
+                              },
+                              [iou.action.reportActionID]: {
+                                  errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                              },
+                          }
+                        : {
+                              [iou.action.reportActionID]: {
+                                  errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
+                              },
+                          }),
+                },
+            },
+        );
+    }
 
     if (shouldGenerateTransactionThreadReport) {
         failureData.push({
@@ -3439,6 +3521,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserAccountIDParam,
         currentUserEmailParam,
         transactionViolations,
+        isSelfDMSplit,
+        selfDMReportID,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
@@ -3550,17 +3634,23 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
             existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
     const isManualDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    // For selfDM split, use UNREPORTED_REPORT_ID for the transaction
+    const transactionReportID = isSelfDMSplit ? CONST.REPORT.UNREPORTED_REPORT_ID : iouReport.reportID;
+    // For selfDM split, preserve the sign from original transaction (don't negate)
+    const shouldNegateAmount = isSelfDMSplit || isExpenseReport(iouReport);
+
+    console.log(shouldNegateAmount, modifiedAmount, {modifiedAmount: shouldNegateAmount ? -modifiedAmount : modifiedAmount});
     let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID,
         existingTransaction,
         originalTransactionID: transactionParams.originalTransactionID,
         policy,
         transactionParams: {
-            amount: isExpenseReport(iouReport) ? -amount : amount,
+            amount: shouldNegateAmount ? -amount : amount,
             distance,
-            ...(modifiedAmount !== undefined && {modifiedAmount: isExpenseReport(iouReport) ? -modifiedAmount : modifiedAmount}),
+            ...(modifiedAmount !== undefined && {modifiedAmount: shouldNegateAmount ? -modifiedAmount : modifiedAmount}),
             currency,
-            reportID: iouReport.reportID,
+            reportID: transactionReportID,
             comment,
             attendees,
             created,
@@ -3570,7 +3660,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             tag,
             taxCode,
             source,
-            taxAmount: isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
+            taxAmount: shouldNegateAmount ? -(taxAmount ?? 0) : taxAmount,
             billable,
             pendingAction,
             pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, ...pendingFields} : pendingFields,
@@ -3630,6 +3720,20 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             shouldGenerateTransactionThreadReport,
             reportActionID: currentReportActionID,
         });
+
+    // For selfDM split, modify iouAction and transaction thread
+    if (isSelfDMSplit && selfDMReportID) {
+        // Change type from "create" to "track" and update IOUReportID
+        if (iouAction.originalMessage) {
+            iouAction.originalMessage.type = CONST.IOU.REPORT_ACTION_TYPE.TRACK;
+            iouAction.originalMessage.IOUReportID = CONST.REPORT.UNREPORTED_REPORT_ID;
+        }
+        // Update transaction thread to point to selfDM report
+        if (optimisticTransactionThread) {
+            optimisticTransactionThread.parentReportID = selfDMReportID;
+            optimisticTransactionThread.chatReportID = selfDMReportID;
+        }
+    }
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
 
@@ -3713,6 +3817,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        isSelfDMSplit,
+        selfDMReportID,
     });
 
     return {
@@ -14167,7 +14273,7 @@ function initSplitExpense(
     }
 
     if (isExpenseSplit) {
-        const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
+        const relatedTransactions = getChildTransactions(transactions, originalTransactionID);
         const transactionDetails = getTransactionDetails(originalTransaction);
         const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
         const draftTransaction = buildOptimisticTransaction({
@@ -14428,6 +14534,23 @@ function updateSplitTransactions({
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
 
+    // Determine if this is a selfDM report for unreported transactions
+    const chatReport = getReportOrDraftReport(expenseReport?.chatReportID);
+
+    let selfDMReportID;
+    let isSelfDMReport = false;
+
+    if (isSelfDM(transactionReport)) {
+        selfDMReportID = transactionReport?.reportID;
+        isSelfDMReport = true;
+    } else if (isSelfDM(parentTransactionReport)) {
+        selfDMReportID = parentTransactionReport?.reportID;
+        isSelfDMReport = true;
+    } else if (isSelfDM(chatReport)) {
+        selfDMReportID = chatReport?.reportID;
+        isSelfDMReport = true;
+    }
+
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
@@ -14437,7 +14560,7 @@ function updateSplitTransactions({
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     // List of all child transactions that have been created after split
-    const originalChildTransactions = getChildTransactions(allTransactionsList, allReportsList, originalTransactionID);
+    const originalChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID);
     const processedChildTransactionIDs: string[] = [];
 
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
@@ -14540,7 +14663,8 @@ function updateSplitTransactions({
                 taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
                 billable: originalTransactionDetails?.billable,
             },
-            parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
+            // For selfDM, use the selfDM report as the parent chat report so report actions are stored there
+            parentChatReport: isSelfDMReport ? chatReport : getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
             existingTransaction: originalTransaction,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
@@ -14570,12 +14694,15 @@ function updateSplitTransactions({
         const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? ''));
         transactionParams.comment = parsedComment;
 
+        // For selfDM, use UNREPORTED_REPORT_ID for moneyRequestReportID
+        const moneyRequestReportIDForSplit = isSelfDMReport ? CONST.REPORT.UNREPORTED_REPORT_ID : splitExpense?.reportID;
+
         const {transactionThreadReportID, createdReportActionIDForThread, onyxData, iouAction} = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
             policyParams,
             transactionParams,
-            moneyRequestReportID: splitExpense?.reportID,
+            moneyRequestReportID: moneyRequestReportIDForSplit,
             existingTransaction,
             existingTransactionID,
             newReportTotal: reportTotals.get(splitExpense?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)) ?? 0,
@@ -14586,6 +14713,8 @@ function updateSplitTransactions({
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
+            isSelfDMSplit: isSelfDMReport,
+            selfDMReportID,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData = {};
@@ -14641,7 +14770,8 @@ function updateSplitTransactions({
             }
             // For new split transactions, set the reportID once the transaction and associated report are created
         } else if (currentSplit) {
-            currentSplit.reportID = splitExpense?.reportID;
+            // For selfDM reports, use UNREPORTED_REPORT_ID (0) for the API params
+            currentSplit.reportID = isSelfDMReport ? CONST.REPORT.UNREPORTED_REPORT_ID : splitExpense?.reportID;
         }
 
         if (currentSplit) {
@@ -14729,6 +14859,9 @@ function updateSplitTransactions({
                 },
             };
             const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstIOU.childReportID}`] ?? null;
+            // For selfDM, use the selfDM report ID for report actions
+            const reportActionsReportID = isSelfDMReport ? selfDMReportID : iouReport?.reportID;
+
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
@@ -14736,13 +14869,13 @@ function updateSplitTransactions({
             });
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
                 value: updatedReportAction,
             });
 
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
                 value: {
                     [firstIOU.reportActionID]: {
                         ...firstIOU,
