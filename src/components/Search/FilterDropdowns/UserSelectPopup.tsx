@@ -178,8 +178,8 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     }, [closeOverlay, onChange]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const dataLength = listData.length;
-    const shouldShowSearchInput = isSearchable ?? dataLength >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const totalOptionsCount = optionsList.personalDetails.length + optionsList.recentReports.length;
+    const shouldShowSearchInput = isSearchable ?? totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const textInputOptions = useMemo(
         () =>
@@ -196,7 +196,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     );
 
     return (
-        <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}>
+        <View style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}>
             <SelectionList
                 data={listData}
                 ref={selectionListRef}
