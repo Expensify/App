@@ -83,6 +83,9 @@ const ONYXKEYS = {
      */
     PERSONAL_DETAILS_METADATA: 'personalDetailsMetadata',
 
+    /** GPS points stored for the GPS distance expense before they're accepted by the user */
+    GPS_DRAFT_DETAILS: 'gpsDraftDetails',
+
     /** Contains all the info for Tasks */
     TASK: 'task',
 
@@ -1135,6 +1138,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: boolean;
+    [ONYXKEYS.GPS_DRAFT_DETAILS]: OnyxTypes.GpsDraftDetails;
     [ONYXKEYS.FULLSCREEN_VISIBILITY]: boolean;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
