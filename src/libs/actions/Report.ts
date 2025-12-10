@@ -3047,6 +3047,7 @@ function createNewReport(
     isASAPSubmitBetaEnabled: boolean,
     policyID?: string,
     shouldNotifyNewAction = false,
+    shouldDismissEmptyReportsConfirmation?: boolean,
 ) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -3065,9 +3066,21 @@ function createNewReport(
         isASAPSubmitBetaEnabled,
     );
 
+    if (shouldDismissEmptyReportsConfirmation) {
+        Onyx.merge(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, true);
+    }
+
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
-        {reportName: optimisticReportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID, reportPreviewReportActionID},
+        {
+            reportName: optimisticReportName,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID,
+            reportID: optimisticReportID,
+            reportActionID,
+            reportPreviewReportActionID,
+            ...(shouldDismissEmptyReportsConfirmation ? {shouldDismissEmptyReportsConfirmation} : {}),
+        },
         {optimisticData, successData, failureData},
     );
     if (shouldNotifyNewAction) {
