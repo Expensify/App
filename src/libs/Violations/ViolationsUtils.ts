@@ -383,8 +383,13 @@ const ViolationsUtils = {
         const shouldShowMissingComment = !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy;
 
         const attendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees ?? [];
+        const isAttendeeTrackingEnabled = policy.isAttendeeTrackingEnabled ?? false;
         const shouldShowMissingAttendees =
-            !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areAttendeesRequired && isControlPolicy && (attendees.length === 0 || attendees.length === 1);
+            !isInvoiceTransaction &&
+            isAttendeeTrackingEnabled &&
+            policyCategories?.[categoryName ?? '']?.areAttendeesRequired &&
+            isControlPolicy &&
+            (attendees.length === 0 || attendees.length === 1);
 
         const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
         // Add 'futureDate' violation if transaction date is in the future and policy type is corporate

@@ -920,7 +920,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            const missingAttendeesViolation = getMissingAttendeesViolationError(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails);
+            const missingAttendeesViolation = getMissingAttendeesViolationError(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
             if (missingAttendeesViolation) {
                 setFormError(missingAttendeesViolation);
                 return;

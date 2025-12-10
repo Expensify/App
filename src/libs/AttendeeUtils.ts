@@ -32,9 +32,11 @@ function getMissingAttendeesViolationError(
     category: string,
     iouAttendees: Attendee[] | string | undefined,
     userPersonalDetails: CurrentUserPersonalDetails,
+    isAttendeeTrackingEnabled = false,
 ) {
     const areAttendeesRequired = !!policyCategories?.[category ?? '']?.areAttendeesRequired;
-    if (!areAttendeesRequired) {
+    // If attendee tracking is disabled at the policy level, don't enforce attendee requirement
+    if (!isAttendeeTrackingEnabled || !areAttendeesRequired) {
         return '';
     }
 

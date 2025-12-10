@@ -426,7 +426,13 @@ function MoneyRequestView({
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
-    const missingAttendeesViolation = getMissingAttendeesViolationError(policyCategories, updatedTransaction?.category ?? categoryForDisplay, actualAttendees, currentUserPersonalDetails);
+    const missingAttendeesViolation = getMissingAttendeesViolationError(
+        policyCategories,
+        updatedTransaction?.category ?? categoryForDisplay,
+        actualAttendees,
+        currentUserPersonalDetails,
+        policy?.isAttendeeTrackingEnabled,
+    );
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {

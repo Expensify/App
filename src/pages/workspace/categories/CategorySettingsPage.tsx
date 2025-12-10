@@ -174,6 +174,7 @@ function CategorySettingsPage({
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
+    // Pending fields are objects so we can't use nullish coalescing
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const requireFieldsPendingAction = policyCategory?.pendingFields?.areCommentsRequired || policyCategory?.pendingFields?.areAttendeesRequired;
 
