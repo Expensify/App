@@ -9,9 +9,9 @@ import toggleProfileTool from './ProfilingTool';
 import {shouldShowProfileTool} from './TestTool';
 
 type ProfilingData = {
-    profilePath: string | undefined;
+    profilePath?: string;
     memoizeStats: ReturnType<typeof Memoize.stopMonitoring>;
-    performanceMeasures: ReturnType<typeof Performance.getPerformanceMeasures> | undefined;
+    performanceMeasures?: ReturnType<typeof Performance.getPerformanceMeasures>;
 };
 
 // Auto-off timeout for troubleshoot recording (10 minutes)
@@ -20,7 +20,7 @@ const AUTO_OFF_TIMEOUT_MS = 10 * 60 * 1000;
 // Module-level state
 let autoOffTimeout: NodeJS.Timeout | null = null;
 let shouldRecordTroubleshootData: OnyxEntry<boolean>;
-let troubleshootRecordingStartTime: OnyxEntry<number>;
+let troubleshootRecordingStartTime: OnyxEntry<number | null>;
 let isRecordingLoaded = false;
 let isStartTimeLoaded = false;
 let isInitialized = false;
@@ -43,27 +43,34 @@ function clearAutoOffTimeout() {
  * @param fileName - The filename to save the profile trace as
  * @returns Profile path, memoize stats, and performance measures
  */
-async function stopProfilingAndGetData(fileName: string): Promise<ProfilingData> {
+function stopProfilingAndGetData(fileName: string): Promise<ProfilingData> {
     const showProfileTool = shouldShowProfileTool();
 
     // Stop profiler and save to file (only if profiling is available)
-    const profilePath = showProfileTool ? await stopProfiling(true, fileName) : undefined;
+    const profilingPromise = showProfileTool ? stopProfiling(true, fileName) : Promise.resolve(undefined);
 
-    // Get stats before stopping monitoring
-    const memoizeStats = Memoize.stopMonitoring();
-    const performanceMeasures = showProfileTool ? Performance.getPerformanceMeasures() : undefined;
+    return profilingPromise.then((profilePath) => {
+        // Get stats before stopping monitoring
+        const memoizeStats = Memoize.stopMonitoring();
+        const performanceMeasures = showProfileTool ? Performance.getPerformanceMeasures() : undefined;
 
-    // Stop monitoring
-    Performance.disableMonitoring();
-    toggleProfileTool(false);
+        // Stop monitoring
+        Performance.disableMonitoring();
+        toggleProfileTool(false);
 
-    return {profilePath, memoizeStats, performanceMeasures};
+        return {profilePath, memoizeStats, performanceMeasures};
+    });
 }
 
 /**
  * Disable troubleshoot recording, stop profiling, and clean up logs.
  * Used for auto-off and invalid state cleanup.
  */
+function clearRecordingOnyxState() {
+    Onyx.set(ONYXKEYS.TROUBLESHOOT_RECORDING_START_TIME, null);
+    Onyx.set(ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA, false);
+}
+
 function disableRecording() {
     clearAutoOffTimeout();
 
@@ -76,8 +83,7 @@ function disableRecording() {
     disableLoggingAndFlushLogs();
 
     // Update Onyx state
-    Onyx.set(ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA, false);
-    Onyx.set(ONYXKEYS.TROUBLESHOOT_RECORDING_START_TIME, null);
+    clearRecordingOnyxState();
 }
 
 /**
@@ -87,8 +93,7 @@ function disableRecording() {
 function cleanupAfterDisable() {
     clearAutoOffTimeout();
     disableLoggingAndFlushLogs();
-    Onyx.set(ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA, false);
-    Onyx.set(ONYXKEYS.TROUBLESHOOT_RECORDING_START_TIME, null);
+    clearRecordingOnyxState();
 }
 
 /**
@@ -163,7 +168,7 @@ function tryInitialize() {
  * Listen for changes to the troubleshoot recording flag.
  * On app load, triggers initialization to handle auto-off timer.
  */
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA,
     initWithStoredValues: true,
     callback: (value) => {
@@ -177,7 +182,7 @@ Onyx.connect({
  * Listen for changes to the recording start time.
  * On app load, triggers initialization to calculate remaining time for auto-off.
  */
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.TROUBLESHOOT_RECORDING_START_TIME,
     initWithStoredValues: true,
     callback: (value) => {
@@ -199,8 +204,7 @@ function setShouldRecordTroubleshootData(shouldRecord: boolean) {
         scheduleAutoOff(AUTO_OFF_TIMEOUT_MS);
         Onyx.set(ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA, true);
     } else {
-        Onyx.set(ONYXKEYS.TROUBLESHOOT_RECORDING_START_TIME, null);
-        Onyx.set(ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA, false);
+        clearRecordingOnyxState();
     }
 }
 

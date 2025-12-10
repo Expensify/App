@@ -2,7 +2,6 @@ import type JSZip from 'jszip';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
 import {Alert} from 'react-native';
-import RNFetchBlob from 'react-native-blob-util';
 import DeviceInfo from 'react-native-device-info';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
@@ -15,14 +14,13 @@ import {cleanupAfterDisable, disableRecording, enableRecording, stopProfilingAnd
 import type {ProfilingData} from '@libs/actions/Troubleshoot';
 import {parseStringifiedMessages} from '@libs/Console';
 import getPlatform from '@libs/getPlatform';
-import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Log as OnyxLog} from '@src/types/onyx';
-import pkg from '../../../package.json';
-import RNFS from './RNFS';
+import handleStopRecording from './handleStopRecording';
+import type {StopRecordingParams} from './handleStopRecording.types';
 import Share from './Share';
+import pkg from '../../../package.json';
 
 type File = {
     path: string;
@@ -125,95 +123,26 @@ function BaseRecordTroubleshootDataToolMenu({
 
         const infoFileName = `App_Info_${pkg.version}.json`;
 
-        // Stop profiling and get data (centralized in Troubleshoot.ts)
         stopProfilingAndGetData(newFileName).then((profilingData) => {
-            const {profilePath} = profilingData;
+            getAppInfo(profilingData).then((appInfo) => {
+                const params: StopRecordingParams = {
+                    profilingData,
+                    infoFileName,
+                    profileFileName: newFileName,
+                    appInfo,
+                    logsWithParsedMessages,
+                    onDisableLogging,
+                    cleanupAfterDisable,
+                    zipRef,
+                    pathToBeUsed,
+                    onDownloadZip,
+                    setProfileTracePath,
+                };
 
-            if (getPlatform() === CONST.PLATFORM.WEB) {
-                getAppInfo(profilingData).then((appInfo) => {
-                    zipRef.current?.file(infoFileName, appInfo);
-
-                    onDisableLogging(logsWithParsedMessages).then(() => {
-                        cleanupAfterDisable();
-                        setIsDisabled(false);
-                        onDownloadZip?.();
-                    });
+                handleStopRecording(params).finally(() => {
+                    setIsDisabled(false);
                 });
-            } else if (getPlatform() === CONST.PLATFORM.IOS) {
-                if (!profilePath) {
-                    return;
-                }
-
-                const newFilePath = `${pathToBeUsed}/${newFileName}`;
-
-                RNFS.exists(newFilePath)
-                    .then((fileExists) => {
-                        if (!fileExists) {
-                            return;
-                        }
-
-                        return RNFS.unlink(newFilePath).then(() => {
-                            Log.hmmm('[ProfilingToolMenu] existing file deleted successfully');
-                        });
-                    })
-                    .catch((error) => {
-                        const typedError = error as Error;
-                        Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
-                    })
-                    .then(() => {
-                        RNFS.copyFile(profilePath, newFilePath)
-                            .then(() => {
-                                getAppInfo(profilingData).then((appInfo) => {
-                                    zipRef.current?.file(infoFileName, appInfo);
-
-                                    onDisableLogging(logsWithParsedMessages).then(() => {
-                                        cleanupAfterDisable();
-                                        setIsDisabled(false);
-                                        onDownloadZip?.();
-                                    });
-                                });
-                                Log.hmmm('[ProfilingToolMenu] file copied successfully');
-
-                                setProfileTracePath(newFilePath);
-                            })
-                            .catch((err) => {
-                                console.error('[ProfilingToolMenu] error copying file: ', err);
-                            });
-                    })
-                    .catch((error: Record<string, unknown>) => {
-                        console.error('[ProfilingToolMenu] error copying file: ', error);
-                        Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
-                    });
-            } else if (getPlatform() === CONST.PLATFORM.ANDROID) {
-                if (!profilePath) {
-                    return;
-                }
-
-                RNFetchBlob.fs
-                    // Check if it is an internal path of `DownloadManager` then append content://media to create a valid url
-                    .stat(!profilePath.startsWith('content://media/') && profilePath.match(/\/downloads\/\d+$/) ? `content://media/${profilePath}` : profilePath)
-                    .then(({path: realPath}) => setProfileTracePath(realPath))
-                    .catch(() => setProfileTracePath(profilePath));
-
-                getAppInfo(profilingData).then((appInfo) => {
-                    zipRef.current?.file(infoFileName, appInfo);
-
-                    onDisableLogging(logsWithParsedMessages).then(() => {
-                        cleanupAfterDisable();
-                        setIsDisabled(false);
-                    });
-                });
-            } else {
-                // Desktop
-                getAppInfo(profilingData).then((appInfo) => {
-                    zipRef.current?.file(infoFileName, appInfo);
-
-                    onDisableLogging(logsWithParsedMessages).then(() => {
-                        cleanupAfterDisable();
-                        setIsDisabled(false);
-                    });
-                });
-            }
+            });
         });
     };
 
