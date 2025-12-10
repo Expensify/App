@@ -167,6 +167,22 @@ function ParentNavigationSubtitle({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID}));
                 return;
             }
+
+            // Specific case: when opening expense report from search report (chat RHP),
+            // avoid stacking RHPs by going back to the search report if it's already there
+            const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
+
+            if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && lastRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
+                const lastPreviousRoute = previousRoute.state?.routes.at(-1);
+                if (lastPreviousRoute?.name === SCREENS.SEARCH.REPORT_RHP && lastPreviousRoute.params && 'reportID' in lastPreviousRoute.params) {
+                    const reportIDFromParams = lastPreviousRoute.params.reportID;
+
+                    if (reportIDFromParams === parentReportID) {
+                        Navigation.goBack();
+                        return;
+                    }
+                }
+            }
         }
 
         if (isVisibleAction) {
