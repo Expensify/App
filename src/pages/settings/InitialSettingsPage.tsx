@@ -88,7 +88,7 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'Heart', 'Info', 'QuestionMark', 'ExpensifyLogoNew', 'TreasureChest', 'Exit'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'Heart', 'Info', 'QuestionMark', 'ExpensifyLogoNew', 'TreasureChest', 'Exit', 'Lightbulb', 'Lock'] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -219,7 +219,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             },
             {
                 translationKey: 'initialSettingsPage.security',
-                icon: Expensicons.Lock,
+                icon: icons.Lock,
                 screenName: SCREENS.SETTINGS.SECURITY,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
             },
@@ -252,6 +252,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         session?.email,
         icons.Profile,
         icons.Gear,
+        icons.Lock,
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
@@ -265,6 +266,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         retryBillingFailed,
         fundList,
         freeTrialText,
+        billingStatus,
     ]);
 
     const classicRedirectMenuItem: MenuData | null = useMemo(() => {
@@ -341,7 +343,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
                 {
                     translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
-                    icon: Expensicons.Lightbulb,
+                    icon: icons.Lightbulb,
                     screenName: SCREENS.SETTINGS.TROUBLESHOOT,
                     action: () => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT),
                 },

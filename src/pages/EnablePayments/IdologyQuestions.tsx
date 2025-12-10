@@ -132,6 +132,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                             chooseAnswer(SafeString(value));
                         }}
                         onInputChange={() => {}}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
                         <Icon

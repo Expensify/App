@@ -203,7 +203,7 @@ function DetailsStep() {
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>
                     {!!feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
                 </Text>
-                {renderInputs()}
+                <View fsClass={CONST.FULLSTORY.CLASS.MASK}>{renderInputs()}</View>
                 {!!feedProvider && !isStripeFeedProvider && (
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Icon
