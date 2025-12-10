@@ -225,7 +225,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             const displayName = getDisplayNameOrDefault(participantPersonalDetail);
             const login = participantPersonalDetail?.login;
             if (displayName && login) {
-                return translate('common.chatWithAccountManager', {accountManagerDisplayName: `${displayName} (${login})`});
+                return translate('common.chatWithAccountManager', `${displayName} (${login})`);
             }
         }
         return '';

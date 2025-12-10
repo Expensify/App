@@ -620,11 +620,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         {hasDependentTags && (
                             <View style={[styles.renderHTML]}>
                                 <RenderHTML
-                                    html={translate('workspace.tags.dependentMultiLevelTagsSubtitle', {
-                                        importSpreadsheetLink: isQuickSettingsFlow
+                                    html={translate(
+                                        'workspace.tags.dependentMultiLevelTagsSubtitle',
+                                        isQuickSettingsFlow
                                             ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
                                             : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`,
-                                    })}
+                                    )}
                                 />
                             </View>
                         )}

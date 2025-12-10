@@ -32,7 +32,7 @@ function AverageReimbursement({onNext, onMove, isEditing}: AverageReimbursementP
                 inputID: TRADE_VOLUME,
                 defaultValue: reimbursementAccount?.achData?.corpay?.[TRADE_VOLUME] ?? '',
                 options: tradeVolumeRangeListOptions,
-                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', {currencyCode: currency}),
+                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', currency),
                 modalHeaderTitle: translate('businessInfoStep.selectAverageReimbursement'),
                 searchInputTitle: translate('businessInfoStep.findAverageReimbursement'),
             },

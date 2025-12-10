@@ -116,10 +116,6 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
     policyName: string;
 };
 
-type DuplicateTransactionParams = {
-    isSubmitted: boolean;
-};
-
 type RequestCountParams = {
     scanningReceipts: number;
     pendingReceipts: number;
@@ -183,8 +179,6 @@ type PayerOwesAmountParams = {payer: string; amount: number | string; comment?: 
 
 type PayerOwesParams = {payer: string};
 
-type CompanyCardFeedNameParams = {feedName: string};
-
 type PayerPaidAmountParams = {payer?: string; amount: number | string};
 
 type ManagerApprovedParams = {manager: string};
@@ -194,8 +188,6 @@ type ManagerApprovedAmountParams = {manager: string; amount: number | string};
 type PayerPaidParams = {payer: string};
 
 type PayerSettledParams = {amount: number | string};
-
-type CreateExpensesParams = {expensesNumber: number};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
@@ -227,10 +219,6 @@ type InstantSummaryParams = {rate: string; minAmount: string};
 
 type NotYouParams = {user: string};
 
-type DateShouldBeBeforeParams = {dateString: string};
-
-type DateShouldBeAfterParams = {dateString: string};
-
 type WeSentYouMagicSignInLinkParams = {login: string; loginType: string};
 
 type ToValidateLoginParams = {primaryLogin: string; secondaryLogin: string};
@@ -238,8 +226,6 @@ type ToValidateLoginParams = {primaryLogin: string; secondaryLogin: string};
 type NoLongerHaveAccessParams = {primaryLogin: string};
 
 type OurEmailProviderParams = {login: string};
-
-type ConfirmThatParams = {login: string};
 
 type UntilTimeParams = {time: string};
 
@@ -477,8 +463,6 @@ type LeftWorkspaceParams = {nameOrEmail: string};
 
 type RemoveMemberParams = {email: string; role: string};
 
-type DateParams = {date: string};
-
 type FiltersAmountBetweenParams = {greaterThan: string; lessThan: string};
 
 type StatementPageTitleParams = {year: string | number; monthName: string};
@@ -545,8 +529,6 @@ type IncorrectZipFormatParams = {zipFormat?: string} | undefined;
 
 type ExportIntegrationSelectedParams = {connectionName: ConnectionName};
 
-type DefaultVendorDescriptionParams = {isReimbursable: boolean};
-
 type RequiredFieldParams = {fieldName: string};
 
 type ImportFieldParams = {importField: string};
@@ -558,8 +540,6 @@ type LastSyncAccountingParams = {relativeDate: string};
 type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
 
 type DelegateRoleParams = {role: DelegateRole};
-
-type DelegatorParams = {delegator: string};
 
 type VacationDelegateParams = {nameOrEmail: string};
 
@@ -589,10 +569,6 @@ type FeatureNameParams = {
     moreFeaturesLink: string;
 };
 
-type DefaultAmountParams = {
-    defaultAmount: string;
-};
-
 type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
 };
@@ -606,10 +582,6 @@ type IntegrationExportParams = {
     integration: string;
     type?: string;
     exportPageLink?: string;
-};
-
-type ConnectionParams = {
-    connection: string;
 };
 
 type MissingPropertyParams = {
@@ -672,21 +644,9 @@ type FileTypeParams = {
     fileType: string;
 };
 
-type CompanyCardBankName = {
-    bankName: string;
-};
-
-type CurrencyCodeParams = {
-    currencyCode: string;
-};
-
 type WorkspaceLockedPlanTypeParams = {
     count: number;
     annualSubscriptionEndDate: string;
-};
-
-type CompanyNameParams = {
-    companyName: string;
 };
 
 type SignerInfoMessageParams = {
@@ -696,10 +656,6 @@ type SignerInfoMessageParams = {
 
 type CustomUnitRateParams = {
     rate: number;
-};
-
-type ChatWithAccountManagerParams = {
-    accountManagerDisplayName: string;
 };
 
 type EditDestinationSubtitleParams = {
@@ -728,10 +684,6 @@ type ReceiptPartnersUberSubtitleParams = {
 
 type ReviewParams = {
     amount: string;
-};
-
-type CurrencyInputDisabledTextParams = {
-    currency: string;
 };
 
 type SplitExpenseSubtitleParams = {
@@ -775,14 +727,6 @@ type RailTicketParams = {
 type TravelTypeParams = {
     type: string;
     id?: string;
-};
-
-type ContactMethodsRouteParams = {
-    contactMethodsRoute: string;
-};
-
-type ContactMethodParams = {
-    contactMethodRoute: string;
 };
 
 type QBDSetupErrorBodyParams = {
@@ -845,16 +789,8 @@ type UpgradeSuccessMessageParams = {
     subscriptionLink: string;
 };
 
-type DomainPermissionInfoRestrictionParams = {
-    domain: string;
-};
-
 type SubmittedWithMemoParams = {
     memo?: string;
-};
-
-type DependentMultiLevelTagsSubtitleParams = {
-    importSpreadsheetLink: string;
 };
 
 type PayAndDowngradeDescriptionParams = {
@@ -872,10 +808,6 @@ type ErrorODIntegrationParams = {
 type SettlementAccountReconciliationParams = {
     settlementAccountUrl: string;
     lastFourPAN: string;
-};
-
-type DisconnectYourBankAccountParams = {
-    bankName: string;
 };
 
 type MergeAccountIntoParams = {
@@ -900,8 +832,6 @@ type FocusModeUpdateParams = {
 export type {
     SettlementAccountReconciliationParams,
     ToggleImportTitleParams,
-    ContactMethodsRouteParams,
-    ContactMethodParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
@@ -911,11 +841,9 @@ export type {
     MissingPropertyParams,
     InvalidPropertyParams,
     InvalidValueParams,
-    ConnectionParams,
     IntegrationExportParams,
     RemovedFromApprovalWorkflowParams,
     DemotedFromWorkspaceParams,
-    DefaultAmountParams,
     FeatureNameParams,
     FileLimitParams,
     FileTypeParams,
@@ -924,14 +852,12 @@ export type {
     AssignedCardParams,
     SpreadCategoriesParams,
     DelegateRoleParams,
-    DelegatorParams,
     VacationDelegateParams,
     LastSyncAccountingParams,
     SyncStageNameConnectionsParams,
     RequiredFieldParams,
     IntacctMappingTitleParams,
     ImportFieldParams,
-    DefaultVendorDescriptionParams,
     ExportIntegrationSelectedParams,
     UnapproveWithIntegrationWarningParams,
     IncorrectZipFormatParams,
@@ -966,10 +892,6 @@ export type {
     BeginningOfChatHistoryUserRoomParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
     CanceledRequestParams,
-    ConfirmThatParams,
-    CompanyCardFeedNameParams,
-    DateShouldBeAfterParams,
-    DateShouldBeBeforeParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
@@ -1001,7 +923,6 @@ export type {
     ParentNavigationSummaryParams,
     PaySomeoneParams,
     PayerOwesAmountParams,
-    DuplicateTransactionParams,
     PayerOwesParams,
     RoleNamesParams,
     PayerPaidAmountParams,
@@ -1086,10 +1007,8 @@ export type {
     UpdatedCustomFieldParams,
     LeftWorkspaceParams,
     RemoveMemberParams,
-    DateParams,
     FiltersAmountBetweenParams,
     StatementPageTitleParams,
-    CompanyCardBankName,
     DisconnectPromptParams,
     DisconnectTitleParams,
     CharacterLengthLimitParams,
@@ -1098,11 +1017,8 @@ export type {
     WorkspaceYouMayJoin,
     WorkspaceMemberList,
     ImportPerDiemRatesSuccessfulDescriptionParams,
-    CurrencyCodeParams,
     WorkspaceLockedPlanTypeParams,
-    CompanyNameParams,
     CustomUnitRateParams,
-    ChatWithAccountManagerParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyCategoryParams,
@@ -1150,9 +1066,7 @@ export type {
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     SubscriptionSettingsSummaryParams,
     ReviewParams,
-    CreateExpensesParams,
     WorkspaceMembersCountParams,
-    CurrencyInputDisabledTextParams,
     EmployeeInviteMessageParams,
     FlightParams,
     AirlineParams,
@@ -1176,14 +1090,11 @@ export type {
     WorkspaceShareNoteParams,
     RulesEnableWorkflowsParams,
     UpgradeSuccessMessageParams,
-    DomainPermissionInfoRestrictionParams,
     SubmittedWithMemoParams,
     SignerInfoMessageParams,
-    DependentMultiLevelTagsSubtitleParams,
     PayAndDowngradeDescriptionParams,
     WalletAgreementParams,
     ErrorODIntegrationParams,
-    DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
     NextStepParams,
     ReportFieldParams,
