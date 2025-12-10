@@ -598,6 +598,7 @@ const SCREENS = {
         EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
         EXPENSIFY_CARD_LIMIT: 'Workspace_ExpensifyCard_Limit',
         EXPENSIFY_CARD_ISSUE_NEW: 'Workspace_ExpensifyCard_New',
+        EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: 'Workspace_ExpensifyCard_New_Confirm_Magic_Code',
         EXPENSIFY_CARD_NAME: 'Workspace_ExpensifyCard_Name',
         EXPENSIFY_CARD_SELECT_FEED: 'Workspace_ExpensifyCard_Select_Feed',
         EXPENSIFY_CARD_LIMIT_TYPE: 'Workspace_ExpensifyCard_LimitType',

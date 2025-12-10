@@ -1139,6 +1139,7 @@ const CONST = {
             PAY: 'pay',
             MERGE: 'merge',
             REPORT_LAYOUT: 'reportLayout',
+            DUPLICATE: 'duplicate',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1173,6 +1174,7 @@ const CONST = {
             DELETE: 'delete',
             REJECT: 'reject',
             MERGE: 'merge',
+            DUPLICATE: 'duplicate',
         },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
@@ -1685,6 +1687,7 @@ const CONST = {
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
+        SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_SKELETON: 'ManualSkeleton',
         SPAN_BOOTSPLASH: {
             ROOT: 'BootsplashVisible',

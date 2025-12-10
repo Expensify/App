@@ -734,6 +734,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'ドメイン',
         viewReport: 'レポートを表示',
         actionRequired: '対応が必要',
+        duplicate: '複製',
+        duplicated: '重複',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
