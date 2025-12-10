@@ -91,8 +91,7 @@ type DiffFilteringCommits = {
 type PrintResultsOptions = {
     shouldIgnoreRegularErrors?: boolean;
     shouldPrintRegularErrorsAsWarnings?: boolean;
-    shouldPrintSuccesses: boolean;
-    shouldPrintSuppressedErrors: boolean;
+    verbose: boolean;
 };
 
 type BaseCheckOptions = PrintResultsOptions & {
@@ -114,12 +113,11 @@ async function check({
     shouldIgnoreRegularErrors,
     shouldEnforceNewComponents,
     shouldPrintRegularErrorsAsWarnings,
-    shouldPrintSuccesses,
-    shouldPrintSuppressedErrors,
+    verbose,
     shouldGenerateReport,
     reportFileName,
 }: CheckOptions): Promise<boolean> {
-    const printResultsOptions: PrintResultsOptions = {shouldIgnoreRegularErrors, shouldPrintRegularErrorsAsWarnings, shouldPrintSuccesses, shouldPrintSuppressedErrors};
+    const printResultsOptions: PrintResultsOptions = {shouldIgnoreRegularErrors, shouldPrintRegularErrorsAsWarnings, verbose};
 
     if (files) {
         logInfo(`Running React Compiler check for ${files.length} files or glob patterns...`);
@@ -356,7 +354,7 @@ async function filterResultsByDiff(
     results: CompilerResults,
     diffFilteringCommits: DiffFilteringCommits,
     diffResult: DiffResult,
-    {shouldIgnoreRegularErrors, shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
+    {shouldIgnoreRegularErrors, verbose}: PrintResultsOptions,
 ): Promise<CompilerResults> {
     logInfo(`Filtering results by diff between ${diffFilteringCommits.fromRef} and ${diffFilteringCommits.toRef ?? 'the working tree'}...`);
 
@@ -483,15 +481,13 @@ async function filterResultsByDiff(
         }
     }
 
-    if (shouldPrintSuppressedErrors) {
+    if (verbose) {
         if (filteredSuppressedFailures.size === 0) {
             logInfo('No suppressed errors remain after filtering by diff.');
         } else {
             logInfo(`${filteredSuppressedFailures.size} out of ${results.suppressedFailures.size} successes remain after filtering by diff.`);
         }
-    }
 
-    if (shouldPrintSuccesses) {
         if (filteredSuccesses.size === 0) {
             logInfo('No successes remain after filtering by diff.');
         } else {
@@ -635,9 +631,9 @@ function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] 
  */
 function printResults(
     {success, failures, suppressedFailures, enforcedAddedComponentFailures}: CompilerResults,
-    {shouldIgnoreRegularErrors, shouldPrintRegularErrorsAsWarnings, shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
+    {shouldIgnoreRegularErrors, shouldPrintRegularErrorsAsWarnings, verbose}: PrintResultsOptions,
 ): boolean {
-    if (shouldPrintSuccesses && success.size > 0) {
+    if (verbose && success.size > 0) {
         log();
         logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
         log();
@@ -649,7 +645,7 @@ function printResults(
         log();
     }
 
-    if (shouldPrintSuppressedErrors && suppressedFailures.size > 0) {
+    if (verbose && suppressedFailures.size > 0) {
         // Create a Map of suppressed error type -> Failure[] with distinct errors and a list of failures with that error
         const suppressedErrorMap = new Map<string, CompilerFailure[]>();
         for (const [, failure] of suppressedFailures) {
@@ -853,13 +849,8 @@ async function main() {
                 required: false,
                 default: false,
             },
-            printSuccesses: {
-                description: 'Print the successes',
-                required: false,
-                default: false,
-            },
-            printSuppressedErrors: {
-                description: 'Print suppressed errors',
+            verbose: {
+                description: 'Print logs of successes and suppressed errors',
                 required: false,
                 default: false,
             },
@@ -878,8 +869,7 @@ async function main() {
         enforceNewComponents: shouldEnforceNewComponents,
         ignoreRegularErrors: shouldIgnoreRegularErrors,
         printRegularErrorsAsWarnings: shouldPrintRegularErrorsAsWarnings,
-        printSuccesses: shouldPrintSuccesses,
-        printSuppressedErrors: shouldPrintSuppressedErrors,
+        verbose,
         report: shouldGenerateReport,
     } = cli.flags;
 
@@ -888,8 +878,7 @@ async function main() {
         shouldEnforceNewComponents,
         shouldIgnoreRegularErrors,
         shouldPrintRegularErrorsAsWarnings,
-        shouldPrintSuccesses,
-        shouldPrintSuppressedErrors,
+        verbose,
         shouldGenerateReport,
         reportFileName,
     };
