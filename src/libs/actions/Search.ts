@@ -810,7 +810,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], a
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, failureData, successData, finallyData});
 }
 
-function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: string, transactionIDs: string[]) {
+function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: string, policy: OnyxEntry<Policy>, transactionIDs: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -822,7 +822,7 @@ function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: strin
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, undefined, true);
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, undefined, true);
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);
@@ -864,12 +864,12 @@ function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Selecte
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(hash, reportID, comment, allTransactionIDs);
+            rejectMoneyRequestInBulk(hash, reportID, comment, policy, allTransactionIDs);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, {sharedRejectedToReportID});
+                rejectMoneyRequest(transactionID, reportID, comment, policy, {sharedRejectedToReportID});
             }
         }
     }
