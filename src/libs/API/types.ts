@@ -519,11 +519,13 @@ const WRITE_COMMANDS = {
     ASSIGN_REPORT_TO_ME: 'AssignReportToMe',
     ADD_REPORT_APPROVER: 'AddReportApprover',
     REQUEST_UNLOCK_ACCOUNT: 'RequestUnlockAccount',
+    RESPOND_TO_PROACTIVE_APP_REVIEW: 'RespondToProactiveAppReview',
     SEND_SCHEDULE_CALL_NUDGE: 'SendScheduleCallNudge',
     VALIDATE_DOMAIN: 'ValidateDomain',
     SET_SAML_IDENTITY: 'SetSAMLIdentity',
     UPDATE_SAML_ENABLED: 'UpdateSAMLEnabled',
     UPDATE_SAML_REQUIRED: 'UpdateSAMLRequired',
+    CREATE_DOMAIN: 'CreateDomain',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -1062,12 +1064,14 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ASSIGN_REPORT_TO_ME]: Parameters.AssignReportToMeParams;
     [WRITE_COMMANDS.ADD_REPORT_APPROVER]: Parameters.AddReportApproverParams;
     [WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT]: Parameters.LockAccountParams;
+    [WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW]: Parameters.RespondToProactiveAppReviewParams;
 
     // Domain API
     [WRITE_COMMANDS.VALIDATE_DOMAIN]: Parameters.DomainParams;
     [WRITE_COMMANDS.SET_SAML_IDENTITY]: Parameters.SetSamlIdentityParams;
     [WRITE_COMMANDS.UPDATE_SAML_ENABLED]: Parameters.UpdateSamlEnabledParams;
     [WRITE_COMMANDS.UPDATE_SAML_REQUIRED]: Parameters.UpdateSamlRequiredParams;
+    [WRITE_COMMANDS.CREATE_DOMAIN]: Parameters.DomainParams;
 };
 
 const READ_COMMANDS = {

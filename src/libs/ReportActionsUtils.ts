@@ -2324,30 +2324,56 @@ function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repor
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE);
 }
 
-function getPolicyChangeLogUpdateEmployee(reportAction: OnyxInputOrEntry<ReportAction>): string {
-    if (!isPolicyChangeLogChangeRoleMessage(reportAction)) {
+function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(field: string | undefined, oldValue: unknown, newValue: unknown, rawEmail: string): string {
+    if (!field) {
         return '';
     }
 
-    const originalMessage = getOriginalMessage(reportAction);
-    const email = formatPhoneNumber(originalMessage?.email ?? '');
-    const field = originalMessage?.field;
+    const email = formatPhoneNumber(rawEmail ?? '');
+    const stringOldValue = typeof oldValue === 'string' ? oldValue : '';
+    const stringNewValue = typeof newValue === 'string' ? newValue : '';
     const customFieldType = Object.values(CONST.CUSTOM_FIELD_KEYS).find((value) => value === field);
     if (customFieldType) {
         const translationKey = field === CONST.CUSTOM_FIELD_KEYS.customField1 ? 'report.actions.type.updatedCustomField1' : 'report.actions.type.updatedCustomField2';
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal(translationKey, {
             email,
-            newValue: typeof originalMessage?.newValue === 'string' ? originalMessage?.newValue : '',
-            previousValue: typeof originalMessage?.oldValue === 'string' ? originalMessage?.oldValue : '',
+            newValue: stringNewValue,
+            previousValue: stringOldValue,
         });
     }
+
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const newRole = translateLocal('workspace.common.roleName', {role: typeof originalMessage?.newValue === 'string' ? originalMessage?.newValue : ''}).toLowerCase();
+    const newRole = translateLocal('workspace.common.roleName', {role: stringNewValue}).toLowerCase();
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const oldRole = translateLocal('workspace.common.roleName', {role: typeof originalMessage?.oldValue === 'string' ? originalMessage?.oldValue : ''}).toLowerCase();
+    const oldRole = translateLocal('workspace.common.roleName', {role: stringOldValue}).toLowerCase();
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
+}
+
+function getPolicyChangeLogUpdateEmployee(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    if (!isPolicyChangeLogChangeRoleMessage(reportAction)) {
+        return '';
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    const email = originalMessage?.email ?? '';
+    const fieldChanges = originalMessage?.fields;
+
+    if (Array.isArray(fieldChanges) && fieldChanges.length > 0) {
+        const messages = fieldChanges
+            .map((fieldChange) => {
+                if (!fieldChange || typeof fieldChange !== 'object') {
+                    return '';
+                }
+                return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(fieldChange.field, fieldChange.oldValue, fieldChange.newValue, email);
+            })
+            .filter(Boolean);
+
+        return messages.join(', ');
+    }
+
+    return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(originalMessage?.field, originalMessage?.oldValue, originalMessage?.newValue, email);
 }
 
 function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useName = false): string {
@@ -3374,6 +3400,12 @@ function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
     return getOriginalMessage(action)?.to;
 }
 
+function isSystemUserMentioned(action: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>): boolean {
+    const mentionedUsers = getOriginalMessage(action)?.inviteeAccountIDs;
+    const systemAccountIDs = new Set(Object.values(CONST.ACCOUNT_ID));
+    return mentionedUsers?.some((accountID) => systemAccountIDs.has(accountID)) ?? false;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3559,6 +3591,7 @@ export {
     isPendingHide,
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,
+    isSystemUserMentioned,
 };
 
 export type {LastVisibleMessage};

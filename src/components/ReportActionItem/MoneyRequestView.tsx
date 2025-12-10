@@ -41,13 +41,13 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {canSubmitPerDiemExpenseFromWorkspace, getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getReportName,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,
@@ -67,6 +67,7 @@ import {
     getFormattedCreated,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
+    getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -611,7 +612,25 @@ function MoneyRequestView({
                 shouldShow = true;
             } else {
                 const prevTagValue = getTagForDisplay(transaction, index - 1);
-                shouldShow = !!prevTagValue;
+                if (!prevTagValue) {
+                    shouldShow = false;
+                } else {
+                    const parentTag = getTagArrayFromName(transactionTag ?? '')
+                        .slice(0, index)
+                        .join(':');
+
+                    const availableTags = Object.values(tags).filter((policyTag) => {
+                        const filterRegex = policyTag.rules?.parentTagsFilter;
+                        if (!filterRegex) {
+                            return true;
+                        }
+
+                        const regex = new RegExp(filterRegex);
+                        return regex.test(parentTag ?? '');
+                    });
+
+                    shouldShow = availableTags.some((tag) => tag.enabled);
+                }
             }
         } else {
             shouldShow = !!tagForDisplay || hasEnabledOptions(tags);

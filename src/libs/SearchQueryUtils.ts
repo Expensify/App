@@ -834,9 +834,7 @@ function buildFilterFormValuesFromQuery(
                       .map((item) => Object.values(item ?? {}).map((category) => category.name))
                       .flat();
             const uniqueCategories = new Set(categories);
-            const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
-            const hasEmptyCategoriesInFilter = emptyCategories.every((category) => filterValues.includes(category));
-            // We split CATEGORY_EMPTY_VALUE into individual values to detect both are present in filterValues.
+            const hasEmptyCategoriesInFilter = filterValues.includes(CONST.SEARCH.CATEGORY_EMPTY_VALUE);
             // If empty categories are found, append the CATEGORY_EMPTY_VALUE to filtersForm.
             filtersForm[key as typeof filterKey] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
@@ -1000,6 +998,7 @@ function getFilterDisplayValue(
         return getCardDescription(cardList?.[cardID]) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
@@ -1288,6 +1287,10 @@ function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
     return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
 }
 
+function isDefaultExpenseReportsQuery(queryJSON: SearchQueryJSON) {
+    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
+}
+
 /**
  * Always show `No category` and `No tag` as the first option
  */
@@ -1424,6 +1427,7 @@ export {
     getCurrentSearchQueryJSON,
     getQueryWithoutFilters,
     isDefaultExpensesQuery,
+    isDefaultExpenseReportsQuery,
     sortOptionsWithEmptyValue,
     shouldHighlight,
     getAllPolicyValues,
