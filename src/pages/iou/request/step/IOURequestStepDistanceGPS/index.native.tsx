@@ -5,7 +5,8 @@ import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTrans
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import type IOURequestStepDistanceGPSProps from './types';
 
-function IOURequestStepDistanceGPS(_props: IOURequestStepDistanceGPSProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function IOURequestStepDistanceGPS(props: IOURequestStepDistanceGPSProps) {
     return <Text>GPS screen content</Text>;
 }
 
