@@ -680,17 +680,12 @@ function printResults(
     }
 
     const didRegularCheckSucceed = !!shouldIgnoreRegularErrors || !!shouldPrintRegularErrorsAsWarnings || failures.size === 0;
+
     const didEnforcedCheckSucceed = !enforcedAddedComponentFailures || enforcedAddedComponentFailures.size === 0;
 
-    const hasRegularFailures = failures.size > 0 && shouldPrintRegularErrorsAsWarnings ? true : !shouldIgnoreRegularErrors;
-
     const isPassed = didRegularCheckSucceed && didEnforcedCheckSucceed;
-    if (isPassed) {
-        logSuccess('All files pass React Compiler compliance check!');
-        return true;
-    }
 
-    if (hasRegularFailures) {
+    if (failures.size > 0 && !shouldIgnoreRegularErrors) {
         const distinctFileNames = new Set<string>();
         for (const failure of failures.values()) {
             distinctFileNames.add(failure.file);
@@ -709,6 +704,11 @@ function printResults(
                 logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and should be ignored.');
             }
         }
+    }
+
+    // Print an extra empty line if no enforced errors are printed.
+    if (shouldPrintRegularErrorsAsWarnings && didEnforcedCheckSucceed) {
+        log();
     }
 
     if (!didEnforcedCheckSucceed) {
@@ -731,6 +731,11 @@ function printResults(
                 printFailures(compilerFailures);
             }
         }
+    }
+
+    if (isPassed) {
+        logSuccess('All files pass React Compiler compliance check!');
+        return true;
     }
 
     log();
