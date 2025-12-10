@@ -7513,6 +7513,7 @@ const CONST = {
             ATTACHMENT_PICKER_MENU_CREATE_REPORT: 'Report-AttachmentPickerMenuCreateReport',
             ATTACHMENT_PICKER_MENU_ASSIGN_TASK: 'Report-AttachmentPickerMenuAssignTask',
             ATTACHMENT_PICKER_MENU_ADD_ATTACHMENT: 'Report-AttachmentPickerMenuAddAttachment',
+            EMOJI_PICKER_BUTTON: 'Report-EmojiPickerButton',
             REPORT_ACTION_ITEM_CREATED: 'Report-ReportActionItemCreated',
             REPORT_ACTION_ITEM_MESSAGE_ENTER_SIGNER_INFO: 'Report-ReportActionItemMessageEnterSignerInfo',
             REPORT_ACTION_ITEM_MESSAGE_ADD_BANK_ACCOUNT: 'Report-ReportActionItemMessageAddBankAccount',
