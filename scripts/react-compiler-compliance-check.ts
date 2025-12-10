@@ -32,6 +32,8 @@ const MANUAL_MEMOIZATION_PATTERNS = {
     useCallback: /\b(?:React\.)?useCallback\s*\(/g,
 } as const satisfies Record<string, RegExp>;
 
+const MANUAL_MEMOIZATION_FILE_EXTENSIONS = ['.tsx', '.jsx'] as const satisfies string[];
+
 type ManualMemoizationKeyword = keyof typeof MANUAL_MEMOIZATION_PATTERNS;
 
 const MANUAL_MEMOIZATION_FAILURE_MESSAGE = (manualMemoizationKeyword: ManualMemoizationKeyword) =>
@@ -513,11 +515,16 @@ async function filterResultsByDiff(
  * @returns The enforced compiler results
  */
 function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffResult) {
-    const addedDiffFiles = new Set<string>();
+    const addedComponentFiles = new Set<string>();
     for (const file of diffResult.files) {
-        if (file.diffType === 'added') {
-            addedDiffFiles.add(file.filePath);
+        if (!MANUAL_MEMOIZATION_FILE_EXTENSIONS.some((extension) => file.filePath.endsWith(extension))) {
+            continue;
         }
+
+        if (file.diffType !== 'added') {
+            continue;
+        }
+        addedComponentFiles.add(file.filePath);
     }
 
     // Partition failures into non-auto memo enforced failures and added file failures
@@ -526,7 +533,7 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
     for (const [failureKey, failure] of failures) {
         const addedFilePath = failure.file;
 
-        if (!addedDiffFiles.has(addedFilePath)) {
+        if (!addedComponentFiles.has(addedFilePath)) {
             nonAutoMemoEnforcedFailures.set(failureKey, failure);
             continue;
         }
@@ -556,7 +563,7 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
     // Check all added files for manual memoization keywords and attach React compiler failures.
     // If no manual memoization keywords are found add the failures back to the regular failures.
     const addedComponentFailures: EnforcedAddedComponentFailureMap = new Map();
-    for (const addedFilePath of addedDiffFiles) {
+    for (const addedFilePath of addedComponentFiles) {
         let source: string | null = null;
         try {
             const absolutePath = path.join(process.cwd(), addedFilePath);
