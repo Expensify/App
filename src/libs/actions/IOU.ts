@@ -14050,6 +14050,52 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
     return urlToNavigateBack;
 }
 
+function rejectMoneyRequestInBulkFromReport(reportID: string, comment: string, policy: OnyxEntry<OnyxTypes.Policy>, transactionIDs: string[]) {
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+    const optimisticData: OnyxUpdate[] = [];
+    const transactionIDToRejectReportAction: Record<
+        string,
+        {
+            rejectedActionReportActionID: string;
+            rejectedCommentReportActionID: string;
+        }
+    > = {};
+
+    for (const transactionID of transactionIDs) {
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, undefined, true);
+        if (data) {
+            optimisticData.push(...data.optimisticData);
+            successData.push(...data.successData);
+            failureData.push(...data.failureData);
+            transactionIDToRejectReportAction[transactionID] = {
+                rejectedActionReportActionID: data.parameters.rejectedActionReportActionID,
+                rejectedCommentReportActionID: data.parameters.rejectedCommentReportActionID,
+            };
+        }
+    }
+
+    API.write(
+        WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK,
+        {reportID, comment, transactionIDToRejectReportAction: JSON.stringify(transactionIDToRejectReportAction)},
+        {optimisticData, successData, failureData},
+    );
+}
+
+function rejectTransactionsInBulk(transactionIDs: string[], reportID: string, comment: string, policy: OnyxEntry<OnyxTypes.Policy>, totalReportTransactions: number) {
+    const areAllExpensesSelected = transactionIDs.length === totalReportTransactions;
+    const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
+
+    if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
+        rejectMoneyRequestInBulkFromReport(reportID, comment, policy, transactionIDs);
+    } else {
+        const sharedRejectedToReportID = generateReportID();
+        for (const transactionID of transactionIDs) {
+            rejectMoneyRequest(transactionID, reportID, comment, policy, {sharedRejectedToReportID});
+        }
+    }
+}
+
 function markRejectViolationAsResolved(transactionID: string, reportID?: string) {
     if (!reportID) {
         return;
@@ -15168,6 +15214,7 @@ export {
     calculateDiffAmount,
     dismissRejectUseExplanation,
     rejectMoneyRequest,
+    rejectTransactionsInBulk,
     prepareRejectMoneyRequestData,
     markRejectViolationAsResolved,
     setMoneyRequestReimbursable,
