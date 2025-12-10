@@ -495,7 +495,11 @@ function SearchPage({route}: SearchPageProps) {
         });
 
         const shouldShowRejectOption =
-            !isOffline && selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => selectedTransactions[id].canReject) && hasNoRejectedTransaction;
+            queryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
+            !isOffline &&
+            selectedTransactionsKeys.length > 0 &&
+            selectedTransactionsKeys.every((id) => selectedTransactions[id].canReject) &&
+            hasNoRejectedTransaction;
 
         if (shouldShowRejectOption) {
             options.push({
