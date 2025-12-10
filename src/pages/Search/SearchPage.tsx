@@ -671,7 +671,7 @@ function SearchPage({route}: SearchPageProps) {
                 }
                 const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
                 const parentReportAction = Object.values(reportActions ?? {}).find(
-                    (action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === selectedTransactions[id].transactionID,
+                    (action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === transaction.transactionID,
                 );
                 return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
             });
@@ -721,18 +721,7 @@ function SearchPage({route}: SearchPageProps) {
         status,
         hash,
         selectedTransactions,
-        expensifyIcons.Export,
-        expensifyIcons.ArrowRight,
-        expensifyIcons.Table,
-        expensifyIcons.ThumbsUp,
-        expensifyIcons.Workflows,
-        expensifyIcons.Send,
-        expensifyIcons.MoneyBag,
-        expensifyIcons.Stopwatch,
-        expensifyIcons.DocumentMerge,
-        expensifyIcons.ArrowSplit,
-        expensifyIcons.Trashcan,
-        expensifyIcons.Exclamation,
+        expensifyIcons,
         translate,
         areAllMatchingItemsSelected,
         isOffline,
