@@ -54,6 +54,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CurrencyList, Policy} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
@@ -117,7 +118,7 @@ function SearchFiltersBar({
     const taxRates = getAllTaxRates(allPolicies);
 
     // Get workspace data for the filter
-    const {sections: workspaces} = useWorkspaceList({
+    const {sections: workspaces, shouldShowSearchInput: shouldShowWorkspaceSearchInput} = useWorkspaceList({
         policies: allPolicies,
         currentUserLogin: email,
         shouldShowPendingDeletePolicy: false,
@@ -131,10 +132,11 @@ function SearchFiltersBar({
     const workspaceOptions = useMemo<Array<MultiSelectItem<string>>>(() => {
         return workspaces
             .flatMap((section) => section.data)
-            .filter((workspace): workspace is typeof workspace & {policyID: string} => !!workspace.policyID)
+            .filter((workspace): workspace is typeof workspace & {policyID: string; icons: Icon[]} => !!workspace.policyID && !!workspace.icons)
             .map((workspace) => ({
                 text: workspace.text,
                 value: workspace.policyID,
+                icons: workspace.icons,
             }));
     }, [workspaces]);
 
@@ -424,6 +426,7 @@ function SearchFiltersBar({
             items: Array<MultiSelectItem<T>>,
             value: Array<MultiSelectItem<T>>,
             onChangeCallback: (selectedItems: Array<MultiSelectItem<T>>) => void,
+            isSearchable?: boolean,
         ) => {
             return ({closeOverlay}: PopoverComponentProps) => {
                 return (
@@ -433,6 +436,7 @@ function SearchFiltersBar({
                         value={value}
                         closeOverlay={closeOverlay}
                         onChange={onChangeCallback}
+                        isSearchable={isSearchable}
                     />
                 );
             };
@@ -508,12 +512,28 @@ function SearchFiltersBar({
         [filterFormValues.from, updateFilterForm],
     );
 
-    const workspaceComponent = useMemo(() => {
-        const updateWorkspaceFilterForm = (items: Array<MultiSelectItem<string>>) => {
+    const handleWorkspaceChange = useCallback(
+        (items: Array<MultiSelectItem<string>>) => {
             updateFilterForm({policyID: items.map((item) => item.value)});
-        };
-        return createMultiSelectComponent('workspace.common.workspace', workspaceOptions, selectedWorkspaceOptions, updateWorkspaceFilterForm);
-    }, [createMultiSelectComponent, workspaceOptions, selectedWorkspaceOptions, updateFilterForm]);
+        },
+        [updateFilterForm],
+    );
+
+    const workspaceComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            return (
+                <MultiSelectPopup
+                    label={translate('workspace.common.workspace')}
+                    items={workspaceOptions}
+                    value={selectedWorkspaceOptions}
+                    closeOverlay={closeOverlay}
+                    onChange={handleWorkspaceChange}
+                    isSearchable={shouldShowWorkspaceSearchInput}
+                />
+            );
+        },
+        [workspaceOptions, selectedWorkspaceOptions, handleWorkspaceChange, shouldShowWorkspaceSearchInput, translate],
+    );
 
     const workspaceValue = useMemo(() => selectedWorkspaceOptions.map((option) => option.text), [selectedWorkspaceOptions]);
 
