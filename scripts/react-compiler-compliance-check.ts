@@ -873,6 +873,7 @@ async function main() {
     const {
         filterByDiff: shouldFilterByDiff,
         enforceNewComponents: shouldEnforceNewComponents,
+        excludeUntrackedFiles: shouldExcludeUntrackedFiles,
         ignoreRegularErrors: shouldIgnoreRegularErrors,
         printRegularErrorsAsWarnings: shouldPrintRegularErrorsAsWarnings,
         printSuccesses: shouldPrintSuccesses,
