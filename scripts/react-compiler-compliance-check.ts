@@ -88,6 +88,7 @@ type DiffFilteringCommits = {
 
 type PrintResultsOptions = {
     shouldIgnoreRegularErrors?: boolean;
+    shouldPrintRegularErrorsAsWarnings?: boolean;
     shouldPrintSuccesses: boolean;
     shouldPrintSuppressedErrors: boolean;
 };
@@ -110,12 +111,13 @@ async function check({
     shouldFilterByDiff,
     shouldIgnoreRegularErrors,
     shouldEnforceNewComponents,
+    shouldPrintRegularErrorsAsWarnings,
     shouldPrintSuccesses,
     shouldPrintSuppressedErrors,
     shouldGenerateReport,
     reportFileName,
 }: CheckOptions): Promise<boolean> {
-    const printResultsOptions: PrintResultsOptions = {shouldIgnoreRegularErrors, shouldPrintSuccesses, shouldPrintSuppressedErrors};
+    const printResultsOptions: PrintResultsOptions = {shouldIgnoreRegularErrors, shouldPrintRegularErrorsAsWarnings, shouldPrintSuccesses, shouldPrintSuppressedErrors};
 
     if (files) {
         logInfo(`Running React Compiler check for ${files.length} files or glob patterns...`);
@@ -626,7 +628,7 @@ function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] 
  */
 function printResults(
     {success, failures, suppressedFailures, enforcedAddedComponentFailures}: CompilerResults,
-    {shouldIgnoreRegularErrors, shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
+    {shouldIgnoreRegularErrors, shouldPrintRegularErrorsAsWarnings, shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
 ): boolean {
     if (shouldPrintSuccesses && success.size > 0) {
         log();
@@ -668,10 +670,12 @@ function printResults(
         log();
     }
 
-    const hasRegularFailures = !shouldIgnoreRegularErrors && failures.size > 0;
-    const hasEnforcedAddedComponentFailures = enforcedAddedComponentFailures && enforcedAddedComponentFailures.size > 0;
+    const didRegularCheckSucceed = !!shouldIgnoreRegularErrors || !!shouldPrintRegularErrorsAsWarnings || failures.size === 0;
+    const didEnforcedCheckSucceed = !enforcedAddedComponentFailures || enforcedAddedComponentFailures.size === 0;
 
-    const isPassed = !hasRegularFailures && !hasEnforcedAddedComponentFailures;
+    const hasRegularFailures = failures.size > 0 && shouldPrintRegularErrorsAsWarnings ? true : !shouldIgnoreRegularErrors;
+
+    const isPassed = didRegularCheckSucceed && didEnforcedCheckSucceed;
     if (isPassed) {
         logSuccess('All files pass React Compiler compliance check!');
         return true;
@@ -684,20 +688,22 @@ function printResults(
         }
 
         if (distinctFileNames.size > 0) {
+            const logMethod = shouldPrintRegularErrorsAsWarnings ? logWarn : logError;
             log();
-            logError(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
+            logMethod(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
             log();
 
             printFailures(failures);
+
+            if (shouldPrintRegularErrorsAsWarnings) {
+                log();
+                logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and should be ignored.');
+            }
         }
     }
 
-    // Add an empty line if there are regular failures and enforced added component failures
-    if (hasRegularFailures && hasEnforcedAddedComponentFailures) {
+    if (!didEnforcedCheckSucceed) {
         log();
-    }
-
-    if (hasEnforcedAddedComponentFailures) {
         logError(`The following newly added components should rely on React Compiler’s automatic memoization (manual memoization is not allowed):`);
         log();
 
@@ -710,14 +716,16 @@ function printResults(
 
             if (compilerFailures) {
                 log();
-                logBold(`${TAB}Additional React Compiler errors:`);
+                logBold(`${TAB}Additional React Compiler errors for this file:`);
                 printFailures(compilerFailures, 1);
             }
         }
     }
 
     log();
-    logError('The files above failed the React Compiler compliance check. Please fix the issues and run the check again...');
+    logError(
+        `The files above failed the React Compiler compliance check. Do not any remove manual memoization, unless a file is already compiled with React Compiler. Please fix the issues and run the check again...`,
+    );
 
     return false;
 }
@@ -821,6 +829,11 @@ async function main() {
                 required: false,
                 default: false,
             },
+            printRegularErrorsAsWarnings: {
+                description: 'Print regular React Compiler errors as warnings',
+                required: false,
+                default: false,
+            },
             printSuccesses: {
                 description: 'Print the successes',
                 required: false,
@@ -845,6 +858,7 @@ async function main() {
         filterByDiff: shouldFilterByDiff,
         enforceNewComponents: shouldEnforceNewComponents,
         ignoreRegularErrors: shouldIgnoreRegularErrors,
+        printRegularErrorsAsWarnings: shouldPrintRegularErrorsAsWarnings,
         printSuccesses: shouldPrintSuccesses,
         printSuppressedErrors: shouldPrintSuppressedErrors,
         report: shouldGenerateReport,
@@ -854,6 +868,7 @@ async function main() {
         shouldFilterByDiff,
         shouldEnforceNewComponents,
         shouldIgnoreRegularErrors,
+        shouldPrintRegularErrorsAsWarnings,
         shouldPrintSuccesses,
         shouldPrintSuppressedErrors,
         shouldGenerateReport,
