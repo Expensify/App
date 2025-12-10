@@ -14252,8 +14252,10 @@ function initSplitExpense(
     const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
+    const isSelfDMReport = isSelfDM(report) || isSelfDM(parentReport);
+
     let reportID;
-    if (isSelfDM(report) || isSelfDM(parentReport)) {
+    if (isSelfDMReport) {
         reportID = report?.reportID;
     } else {
         reportID = transaction.reportID;
@@ -14262,7 +14264,7 @@ function initSplitExpense(
     if (isExpenseSplit) {
         const relatedTransactions = getChildTransactions(transactions, originalTransactionID);
         const transactionDetails = getTransactionDetails(originalTransaction);
-        const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
+        const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction, isSelfDMReport ? {reportID} : {}));
         const draftTransaction = buildOptimisticTransaction({
             originalTransactionID,
             transactionParams: {
