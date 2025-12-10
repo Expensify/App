@@ -705,9 +705,10 @@ function printResults(
     if (!didEnforcedCheckSucceed) {
         log();
         logError(`The following newly added components should rely on React Compiler’s automatic memoization (manual memoization is not allowed):`);
-        log();
 
         for (const [filePath, {manualMemoizationMatches, compilerFailures}] of enforcedAddedComponentFailures) {
+            log();
+
             for (const manualMemoizationMatch of manualMemoizationMatches) {
                 const location = manualMemoizationMatch.line && manualMemoizationMatch.column ? `:${manualMemoizationMatch.line}:${manualMemoizationMatch.column}` : '';
                 logBold(`${filePath}${location}`);
@@ -716,8 +717,9 @@ function printResults(
 
             if (compilerFailures) {
                 log();
-                logBold(`${TAB}Additional React Compiler errors for this file:`);
-                printFailures(compilerFailures, 1);
+                logBold(`React Compiler errors for ${filePath}:`);
+                log();
+                printFailures(compilerFailures);
             }
         }
     }
