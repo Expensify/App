@@ -1530,7 +1530,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Escolha um aprovador adicional para este relatório antes de o encaminharmos pelo restante do fluxo de aprovação.',
+                bulkSubtitle: 'Escolha um aprovador adicional para estes relatórios antes de seguirmos pelo restante do fluxo de aprovação.',
             },
+            bulkSubtitle: 'Escolha uma opção para alterar o aprovador destes relatórios.',
         },
         chooseWorkspace: 'Escolha um workspace',
     },
@@ -2293,6 +2295,7 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Nenhum membro para exibir',
             expensesFromSubtitle: 'Todos os membros do workspace já pertencem a um fluxo de aprovação existente.',
             approverSubtitle: 'Todos os aprovadores pertencem a um fluxo de trabalho existente.',
+            bulkApproverSubtitle: 'Nenhum aprovador corresponde aos critérios para os relatórios selecionados.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -6854,6 +6857,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Tem certeza de que deseja criar outro relatório em ${workspaceName}? Você pode acessar seus relatórios em branco em`,
             emptyReportConfirmationPromptLink: 'Relatórios',
+            emptyReportConfirmationDontShowAgain: 'Não mostrar isso novamente',
             genericWorkspaceName: 'este workspace',
         },
         genericCreateReportFailureMessage: 'Erro inesperado ao criar este chat. Tente novamente mais tarde.',

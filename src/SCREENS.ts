@@ -94,6 +94,10 @@ const SCREENS = {
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
+        CHANGE_APPROVER: {
+            ROOT: 'Search_Change_Approver_Root',
+            ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
+        },
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
@@ -110,6 +114,7 @@ const SCREENS = {
         ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Select_Country_Verify_Account',
         CLOSE: 'Settings_Close',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
+        REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: 'Settings_ReportCardLostOrDamaged_ConfirmMagicCode',
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
