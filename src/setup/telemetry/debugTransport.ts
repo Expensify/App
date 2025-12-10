@@ -5,7 +5,7 @@ import {createTransport} from '@sentry/core';
  * Enable this to log Sentry requests to console in development.
  * Sentry requests are NOT sent to Sentry servers in development.
  */
-const DEBUG_SENTRY_ENABLED = false;
+const DEBUG_SENTRY_ENABLED = true;
 
 /**
  * List of span operations to highlight in debug logs.
