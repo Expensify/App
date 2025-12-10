@@ -834,11 +834,6 @@ async function main() {
                 required: false,
                 default: false,
             },
-            excludeUntrackedFiles: {
-                description: 'Exclude untracked files from the check',
-                required: false,
-                default: false,
-            },
             ignoreRegularErrors: {
                 description: 'Ignore regular React Compiler errors (not enforced)',
                 required: false,
