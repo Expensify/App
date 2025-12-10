@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useOnyx from '@hooks/useOnyx';
@@ -9,7 +9,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {SearchReportActionsParamList} from '@navigation/types';
 import RejectReasonFormView from '@pages/iou/RejectReasonFormView';
-import {rejectTransactionsInBulk} from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
@@ -24,22 +23,28 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
 
-    const report = reportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : undefined;
-    const policy = report?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
-    const totalReportTransactions = report?.transactionCount ?? 0;
+    // When coming from the report view, selectedTransactions is empty, build it from selectedTransactionIDs
+    const selectedTransactionsForReject = useMemo(() => {
+        if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS && reportID) {
+            return context.selectedTransactionIDs.reduce<Record<string, {reportID: string}>>((acc, transactionID) => {
+                acc[transactionID] = {reportID};
+                return acc;
+            }, {});
+        }
+        return context.selectedTransactions;
+    }, [route.name, reportID, context.selectedTransactionIDs, context.selectedTransactions]);
 
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-            if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS && reportID) {
-                rejectTransactionsInBulk(context.selectedTransactionIDs, reportID, comment, policy, totalReportTransactions);
+            rejectMoneyRequestsOnSearch(context.currentSearchHash, selectedTransactionsForReject, comment, allPolicies, allReports);
+            if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 context.clearSelectedTransactions(true);
             } else {
-                rejectMoneyRequestsOnSearch(context.currentSearchHash, context.selectedTransactions, comment, allPolicies, allReports);
                 context.clearSelectedTransactions();
             }
             Navigation.goBack();
         },
-        [context, allPolicies, allReports, route.name, reportID, policy, totalReportTransactions],
+        [context, allPolicies, allReports, route.name, selectedTransactionsForReject],
     );
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
