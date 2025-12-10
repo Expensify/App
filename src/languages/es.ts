@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {BeginningOfChatHistoryParams, EnterMagicCodeParams, TagSelectionParams, ViolationsRterParams} from './params';
+import type {BeginningOfChatHistoryParams, TagSelectionParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -375,9 +375,6 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Está tardando más de lo esperado...',
         domains: 'Dominios',
         actionRequired: 'Acción requerida',
-        test: 'Prueba',
-        deny: 'Denegar',
-        approve: 'Aprobar',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -484,6 +481,8 @@ const translations: TranslationDeepObject<typeof en> = {
             transactionDetails: 'Detalles de la transacción',
             denyTransactionButton: 'Denegar transacción',
             denyTransactionContent: 'La transacción será denegada si cierra esta pantalla.',
+            deny: 'Denegar',
+            approve: 'Aprobar',
         },
         biometrics: {
             biometricsNotRegistered: 'Biometría (No registrada)',
@@ -491,7 +490,8 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsTest: 'Prueba de biometría',
             notificationTitle: 'Autenticación exitosa',
             additionalFactorPageTitle: 'Verifiquemos que eres tú',
-            additionalFactorMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Por favor, ingrese el código mágico enviado a ${contactMethod}.`,
+            additionalFactorMagicCodeContent: ({contactMethod}) => `Por favor, ingrese el código mágico enviado a ${contactMethod}.`,
+            test: 'Prueba',
         },
         revokePage: {
             headerTitle: 'Verificación facial/huella dactilar',

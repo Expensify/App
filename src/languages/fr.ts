@@ -735,9 +735,6 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domaines',
         viewReport: 'Voir le rapport',
         actionRequired: 'Action requise',
-        test: 'Test',
-        deny: 'Refuser',
-        approve: 'Approuver',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -850,6 +847,8 @@ const translations: TranslationDeepObject<typeof en> = {
             transactionDetails: 'Détails de la transaction',
             denyTransactionButton: 'Refuser la transaction',
             denyTransactionContent: 'La transaction sera refusée si vous fermez cet écran.',
+            deny: 'Refuser',
+            approve: 'Approuver',
         },
         biometrics: {
             biometricsNotRegistered: 'Biométrie (Non enregistrée)',
@@ -858,6 +857,7 @@ const translations: TranslationDeepObject<typeof en> = {
             notificationTitle: 'Authentification réussie',
             additionalFactorPageTitle: "Vérifions que c'est vous",
             additionalFactorMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Veuillez entrer le code magique envoyé à ${contactMethod}.`,
+            test: 'Test',
         },
         revokePage: {
             headerTitle: 'Vérification faciale/empreinte digitale',

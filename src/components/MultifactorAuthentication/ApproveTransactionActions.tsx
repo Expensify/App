@@ -20,14 +20,14 @@ function MultifactorAuthenticationApproveTransactionActions({onApprove, onDeny}:
                 large
                 style={styles.flex1}
                 onPress={onDeny}
-                text={translate('common.deny')}
+                text={translate('multifactorAuthentication.approveTransaction.deny')}
             />
             <Button
                 success
                 large
                 style={styles.flex1}
                 onPress={onApprove}
-                text={translate('common.approve')}
+                text={translate('multifactorAuthentication.approveTransaction.approve')}
             />
         </FixedFooter>
     );

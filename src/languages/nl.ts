@@ -734,9 +734,6 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domeinen',
         viewReport: 'Rapport bekijken',
         actionRequired: 'Actie vereist',
-        test: 'Test',
-        deny: 'Weigeren',
-        approve: 'Goedkeuren',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -847,6 +844,8 @@ const translations: TranslationDeepObject<typeof en> = {
             transactionDetails: 'Transactiedetails',
             denyTransactionButton: 'Transactie weigeren',
             denyTransactionContent: 'De transactie wordt geweigerd als u dit scherm sluit.',
+            deny: 'Weigeren',
+            approve: 'Goedkeuren',
         },
         biometrics: {
             biometricsNotRegistered: 'Biometrie (Niet geregistreerd)',
@@ -855,6 +854,7 @@ const translations: TranslationDeepObject<typeof en> = {
             notificationTitle: 'Verificatie geslaagd',
             additionalFactorPageTitle: 'Laten we verifiëren dat u het bent',
             additionalFactorMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Voer alstublieft de magic code in die is verzonden naar ${contactMethod}.`,
+            test: 'Test',
         },
         revokePage: {
             headerTitle: 'Gezicht/vingerafdruk verificatie',

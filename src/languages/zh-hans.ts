@@ -730,9 +730,6 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: '域名',
         viewReport: '查看报告',
         actionRequired: '需要操作',
-        test: '测试',
-        deny: '拒绝',
-        approve: '批准',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -842,6 +839,8 @@ const translations: TranslationDeepObject<typeof en> = {
             transactionDetails: '交易详情',
             denyTransactionButton: '拒绝交易',
             denyTransactionContent: '如果您关闭此屏幕，交易将被拒绝。',
+            deny: '拒绝',
+            approve: '批准',
         },
         biometrics: {
             biometricsNotRegistered: '生物识别（未注册）',
@@ -850,6 +849,7 @@ const translations: TranslationDeepObject<typeof en> = {
             notificationTitle: '身份验证成功',
             additionalFactorPageTitle: '让我们验证是否是您本人',
             additionalFactorMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `请输入发送至${contactMethod}的魔法代码。`,
+            test: '测试',
         },
         revokePage: {
             headerTitle: '面部/指纹验证',

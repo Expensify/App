@@ -723,9 +723,6 @@ const translations = {
         thisIsTakingLongerThanExpected: 'This is taking longer than expected...',
         domains: 'Domains',
         actionRequired: 'Action required',
-        test: 'Test',
-        deny: 'Deny',
-        approve: 'Approve',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -832,6 +829,8 @@ const translations = {
             transactionDetails: 'Transaction Details',
             denyTransactionButton: 'Deny transaction',
             denyTransactionContent: 'The transaction will be denied if you close this screen.',
+            deny: 'Deny',
+            approve: 'Approve',
         },
         biometrics: {
             biometricsNotRegistered: 'Biometrics (Not registered)',
@@ -840,6 +839,7 @@ const translations = {
             notificationTitle: 'Authentication successful',
             additionalFactorPageTitle: "Let's verify it's you",
             additionalFactorMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}.`,
+            test: 'Test',
         },
         revokePage: {
             headerTitle: 'Face/fingerprint verification',

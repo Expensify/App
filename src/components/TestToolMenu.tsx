@@ -98,7 +98,7 @@ function TestToolMenu() {
                         <View style={[styles.flexRow, styles.gap2]}>
                             <Button
                                 small
-                                text={translate('common.test')}
+                                text={translate('multifactorAuthentication.biometrics.test')}
                                 onPress={() => navigateToBiometricsTestPage()}
                             />
                         </View>

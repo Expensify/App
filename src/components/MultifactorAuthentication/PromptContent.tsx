@@ -15,13 +15,13 @@ type MultifactorAuthenticationPromptContentProps = {
 
 function MultifactorAuthenticationPromptContent({title, subtitle}: MultifactorAuthenticationPromptContentProps) {
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['SmartScanMock'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['SmartScanStatic'] as const);
     const {translate} = useLocalize();
 
     return (
         <View style={styles.flex1}>
             <BlockingView
-                icon={illustrations.SmartScanMock}
+                icon={illustrations.SmartScanStatic}
                 iconWidth={204}
                 iconHeight={204}
                 // animation={animation}    // TODO: MFA/Release Bring back the animation instead of the mock image

@@ -734,9 +734,6 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'ドメイン',
         viewReport: 'レポートを表示',
         actionRequired: '対応が必要',
-        test: 'テスト',
-        deny: '拒否',
-        approve: '承認',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -848,6 +845,8 @@ const translations: TranslationDeepObject<typeof en> = {
             transactionDetails: 'トランザクション詳細',
             denyTransactionButton: 'トランザクションを拒否',
             denyTransactionContent: 'この画面を閉じると、トランザクションが拒否されます。',
+            deny: '拒否',
+            approve: '承認',
         },
         biometrics: {
             biometricsNotRegistered: '生体認証（未登録）',
@@ -856,6 +855,7 @@ const translations: TranslationDeepObject<typeof en> = {
             notificationTitle: '認証成功',
             additionalFactorPageTitle: '本人確認をさせてください',
             additionalFactorMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。`,
+            test: 'テスト',
         },
         revokePage: {
             headerTitle: '顔/指紋認証',

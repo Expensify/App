@@ -48,7 +48,7 @@ function MultifactorAuthenticationBiometricsTestPage() {
                                 transactionID: CONST.FAKE_REPORT_ID,
                             });
                         }}
-                        text={translate('common.test')}
+                        text={translate('multifactorAuthentication.biometrics.test')}
                     />
                 </View>
             </FullPageOfflineBlockingView>
