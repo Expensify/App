@@ -66,7 +66,6 @@ import {
     getParticipantsList,
     getReportDescription,
     getReportFieldKey,
-    getReportName,
     isAdminOwnerApproverOrReportOwner,
     isArchivedNonExpenseReport,
     isCanceledTaskReport as isCanceledTaskReportUtil,
@@ -755,8 +754,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!shouldDisableRename}
                     interactive={!shouldDisableRename}
-                    title={StringUtils.lineBreaksToSpaces(reportNameForMenus)}
-                    titleStyle={styles.newKansasLarge}
+                    title={StringUtils.lineBreaksToSpaces(reportName)}
                     titleContainerStyle={shouldDisableRename && styles.alignItemsCenter}
                     shouldCheckActionAllowedOnPress={false}
                     description={!shouldDisableRename ? roomDescription : ''}
@@ -803,7 +801,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!isFieldDisabled}
                     interactive={!isFieldDisabled}
-                    title={reportNameForMenus}
+                    title={reportName}
                     titleStyle={styles.newKansasLarge}
                     shouldCheckActionAllowedOnPress={false}
                     description={Str.UCFirst(titleField.name)}

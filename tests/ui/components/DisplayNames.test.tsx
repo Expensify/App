@@ -27,15 +27,15 @@ describe('DisplayNames HTML Parsing', () => {
         jest.clearAllMocks();
     });
 
-    describe('DisplayNames Component - shouldParseHtml prop', () => {
-        it('should parse HTML when shouldParseHtml is true', () => {
+    describe('DisplayNames Component - shouldParseFullTitle prop', () => {
+        it('should parse HTML when shouldParseFullTitle is true', () => {
             const htmlTitle = '<strong>Test Title</strong>';
 
             render(
                 <DisplayNames
                     fullTitle={htmlTitle}
                     numberOfLines={1}
-                    shouldParseHtml
+                    shouldParseFullTitle={true}
                 />,
             );
 
@@ -43,21 +43,21 @@ describe('DisplayNames HTML Parsing', () => {
             expect(mockHtmlToText).toHaveBeenCalledTimes(1);
         });
 
-        it('should NOT parse HTML when shouldParseHtml is false', () => {
+        it('should NOT parse HTML when shouldParseFullTitle is false', () => {
             const htmlTitle = '<strong>Test Title</strong>';
 
             render(
                 <DisplayNames
                     fullTitle={htmlTitle}
                     numberOfLines={1}
-                    shouldParseHtml={false}
+                    shouldParseFullTitle={false}
                 />,
             );
             expect(mockHtmlToText).not.toHaveBeenCalled();
             expect(screen.getByText(htmlTitle)).toBeTruthy();
         });
 
-        it('HTML is parsed by default when shouldParseHtml is not provided', () => {
+        it('HTML is parsed by default when shouldParseFullTitle is not provided', () => {
             const htmlTitle = '<em>Test Title </em>';
 
             render(
