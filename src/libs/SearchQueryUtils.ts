@@ -1,5 +1,6 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {
@@ -46,6 +47,15 @@ import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
+
+let allReports: OnyxCollection<OnyxTypes.Report>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+    },
+});
 
 type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
@@ -834,7 +844,9 @@ function buildFilterFormValuesFromQuery(
                       .map((item) => Object.values(item ?? {}).map((category) => category.name))
                       .flat();
             const uniqueCategories = new Set(categories);
-            const hasEmptyCategoriesInFilter = filterValues.includes(CONST.SEARCH.CATEGORY_EMPTY_VALUE);
+            const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
+            const hasEmptyCategoriesInFilter = emptyCategories.every((category) => filterValues.includes(category));
+            // We split CATEGORY_EMPTY_VALUE into individual values to detect both are present in filterValues.
             // If empty categories are found, append the CATEGORY_EMPTY_VALUE to filtersForm.
             filtersForm[key as typeof filterKey] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
@@ -972,7 +984,7 @@ function buildFilterFormValuesFromQuery(
  * First checks the policies collection, then falls back to cached names in reports (policyName or oldPolicyName).
  * This ensures workspace names remain visible even after a user is removed from the workspace.
  */
-function getPolicyNameWithFallback(policyID: string, policies: OnyxCollection<OnyxTypes.Policy>, reports: OnyxCollection<OnyxTypes.Report>): string {
+function getPolicyNameWithFallback(policyID: string, policies: OnyxCollection<OnyxTypes.Policy>): string {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
     const policy = policies?.[policyKey];
 
@@ -981,11 +993,11 @@ function getPolicyNameWithFallback(policyID: string, policies: OnyxCollection<On
     }
 
     // Fallback: find cached name from reports that reference this policy
-    if (!reports) {
+    if (!allReports) {
         return policyID;
     }
 
-    const reportWithPolicyName = Object.values(reports).find((report) => report?.policyID === policyID && (report?.policyName ?? report?.oldPolicyName));
+    const reportWithPolicyName = Object.values(allReports).find((report) => report?.policyID === policyID && (report?.policyName ?? report?.oldPolicyName));
 
     return reportWithPolicyName?.policyName ?? reportWithPolicyName?.oldPolicyName ?? policyID;
 }
@@ -1036,7 +1048,7 @@ function getFilterDisplayValue(
         return cardFeedsForDisplay[filterValue]?.name ?? filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
-        return getPolicyNameWithFallback(filterValue, policies, reports);
+        return getPolicyNameWithFallback(filterValue, policies);
     }
     return filterValue;
 }
@@ -1114,7 +1126,7 @@ function getDisplayQueryFiltersForKey(
     }));
 }
 
-function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: OnyxCollection<OnyxTypes.Policy>, reports: OnyxCollection<OnyxTypes.Report>) {
+function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: OnyxCollection<OnyxTypes.Policy>) {
     const rawValues = Array.isArray(rawFilter.value) ? rawFilter.value : [rawFilter.value];
     const cleanedValues = rawValues.map((val) => (typeof val === 'string' ? val.trim() : '')).filter((val) => val.length > 0);
 
@@ -1124,7 +1136,7 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
 
     if (rawFilter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         const workspaceValues = cleanedValues.map((id) => {
-            const policyName = getPolicyNameWithFallback(id, policies, reports);
+            const policyName = getPolicyNameWithFallback(id, policies);
             return sanitizeSearchValue(policyName);
         });
 
@@ -1192,7 +1204,7 @@ function buildUserReadableQueryString(
             }
 
             if (rawFilter.isDefault) {
-                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies, reports);
+                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies);
                 if (defaultSegment) {
                     segments.push(defaultSegment);
                 }
@@ -1239,7 +1251,7 @@ function buildUserReadableQueryString(
     }
 
     if (policyID && policyID.length > 0) {
-        title += ` workspace:${policyID.map((id) => sanitizeSearchValue(getPolicyNameWithFallback(id, policies, reports))).join(',')}`;
+        title += ` workspace:${policyID.map((id) => sanitizeSearchValue(getPolicyNameWithFallback(id, policies))).join(',')}`;
     }
 
     for (const filterObject of filters) {
