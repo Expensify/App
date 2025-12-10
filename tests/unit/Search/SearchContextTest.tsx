@@ -24,6 +24,7 @@ const mockSelectedTransaction: SelectedTransactionInfo = {
 } as const;
 
 const mockTransaction: TransactionListItemType = {
+    canDelete: true,
     accountID: 1,
     amount: 0,
     category: '',
