@@ -74,8 +74,8 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return canAddTransaction(report, isReportArchived);
 }
 
-function isSplitAction(report: Report, reportTransactions: Transaction[], originalTransaction: OnyxEntry<Transaction>, policy?: Policy): boolean {
-    if (Number(reportTransactions?.length) !== 1) {
+function isSplitAction(report: OnyxEntry<Report>, reportTransactions: Array<OnyxEntry<Transaction>>, originalTransaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>): boolean {
+    if (Number(reportTransactions?.length) !== 1 || !report) {
         return false;
     }
 
@@ -225,7 +225,7 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserLogin, report, policy));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, policy));
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -235,7 +235,7 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
         return false;
     }
 
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserLogin, report, policy);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserLogin, currentUserAccountID, report, policy);
 
     if (hasAllPendingRTERViolations) {
         return true;
@@ -243,7 +243,14 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(reportTransactions, report, policy, violations, currentUserLogin);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+        reportTransactions,
+        report,
+        policy,
+        violations,
+        currentUserLogin,
+        currentUserAccountID,
+    );
     const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const userControlsReport = isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
@@ -568,6 +575,11 @@ function isRemoveHoldAction(
     policy?: Policy,
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
 ): boolean {
+    const isClosedReport = isClosedReportUtils(report);
+    if (isClosedReport) {
+        return false;
+    }
+
     const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
 
     if (!isReportOnHold) {
@@ -594,8 +606,27 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
     return isOnHoldTransactionUtils(reportTransaction) && policy?.role === CONST.POLICY.ROLE.ADMIN && !isHoldCreator(reportTransaction, report.reportID);
 }
 
+/**
+ * Checks if the report should show the "Report layout" option
+ * Only shows for expense reports (not IOU reports) with 2 or more transactions
+ */
+function isReportLayoutAction(report: Report, reportTransactions: Transaction[]): boolean {
+    if (!isExpenseReportUtils(report)) {
+        return false;
+    }
+
+    // Exclude IOU reports - only show for workspace expense reports
+    if (isIOUReportUtils(report)) {
+        return false;
+    }
+
+    // Only show if report has 2 or more transactions
+    return reportTransactions.length >= 2;
+}
+
 function getSecondaryReportActions({
     currentUserEmail,
+    currentUserAccountID,
     report,
     chatReport,
     reportTransactions,
@@ -608,6 +639,7 @@ function getSecondaryReportActions({
     isChatReportArchived = false,
 }: {
     currentUserEmail: string;
+    currentUserAccountID: number;
     report: Report;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
@@ -632,6 +664,7 @@ function getSecondaryReportActions({
 
     const primaryAction = getReportPrimaryAction({
         currentUserEmail,
+        currentUserAccountID,
         report,
         chatReport,
         reportTransactions,
@@ -694,11 +727,16 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
-    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy)) {
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
+
+    if (isReportLayoutAction(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT);
+    }
 
     if (isDeleteAction(report, reportTransactions, reportActions ?? [])) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);

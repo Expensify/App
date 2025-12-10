@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
+import {useMemo} from 'react';
 import type * as RNAppLogs from 'react-native-app-logs';
 import type {ReadDirItem} from 'react-native-fs';
 import 'react-native-gesture-handler/jestSetup';
@@ -142,60 +143,70 @@ jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
     clearOldDotAfterSignOut: jest.fn(),
 }));
 
+const mockUseMemo = useMemo;
+
 // Mock lazy asset loading to be synchronous in tests
 jest.mock('../src/hooks/useLazyAsset.ts', () => ({
-    useMemoizedLazyAsset: jest.fn(() => {
-        // Return a mock asset immediately to avoid async loading in tests
-        const mockAsset = {
-            src: 'mock-icon',
-            testID: 'mock-asset',
-            // Add common icon properties that tests might expect
-            height: 20,
-            width: 20,
-        };
+    useMemoizedLazyAsset: jest.fn((importFn) =>
+        mockUseMemo(() => {
+            // Return a mock asset immediately to avoid async loading in tests
+            const mockAsset = {
+                src: 'mock-icon',
+                testID: 'mock-asset',
+                // Add common icon properties that tests might expect
+                height: 20,
+                width: 20,
+            };
 
-        return {
-            asset: mockAsset,
-            isLoaded: true,
-            isLoading: false,
-            hasError: false,
-        };
-    }),
-    useMemoizedLazyIllustrations: jest.fn((names: readonly string[]) => {
-        // Return a Record with all requested illustration names
-        const mockIllustrations: Record<string, unknown> = {};
-        for (const name of names) {
-            mockIllustrations[name] = {
-                src: `mock-${name}`,
-                testID: `mock-illustration-${name}`,
-                height: 20,
-                width: 20,
+            return {
+                asset: mockAsset,
+                isLoaded: true,
+                isLoading: false,
+                hasError: false,
             };
-        }
-        return mockIllustrations;
-    }),
-    useMemoizedLazyExpensifyIcons: jest.fn((names: readonly string[]) => {
-        // Return a Record with all requested icon names
-        const mockIcons: Record<string, unknown> = {};
-        for (const name of names) {
-            mockIcons[name] = {
-                src: `mock-${name}`,
-                testID: `mock-expensify-icon-${name}`,
-                height: 20,
-                width: 20,
+        }, [importFn]),
+    ),
+    useMemoizedLazyIllustrations: jest.fn((names: readonly string[]) =>
+        mockUseMemo(() => {
+            // Return a Record with all requested illustration names
+            const mockIllustrations: Record<string, unknown> = {};
+            for (const name of names) {
+                mockIllustrations[name] = {
+                    src: `mock-${name}`,
+                    testID: `mock-illustration-${name}`,
+                    height: 20,
+                    width: 20,
+                };
+            }
+            return mockIllustrations;
+        }, [names]),
+    ),
+    useMemoizedLazyExpensifyIcons: jest.fn((names: readonly string[]) =>
+        mockUseMemo(() => {
+            // Return a Record with all requested icon names
+            const mockIcons: Record<string, unknown> = {};
+            for (const name of names) {
+                mockIcons[name] = {
+                    src: `mock-${name}`,
+                    testID: `mock-expensify-icon-${name}`,
+                    height: 20,
+                    width: 20,
+                };
+            }
+            return mockIcons;
+        }, [names]),
+    ),
+    default: jest.fn((importFn) =>
+        mockUseMemo(() => {
+            const mockAsset = {src: 'mock-icon', testID: 'mock-asset'};
+            return {
+                asset: mockAsset,
+                isLoaded: true,
+                isLoading: false,
+                hasError: false,
             };
-        }
-        return mockIcons;
-    }),
-    default: jest.fn(() => {
-        const mockAsset = {src: 'mock-icon', testID: 'mock-asset'};
-        return {
-            asset: mockAsset,
-            isLoaded: true,
-            isLoading: false,
-            hasError: false,
-        };
-    }),
+        }, [importFn]),
+    ),
 }));
 
 // Mock icon loading functions to resolve immediately
@@ -212,7 +223,7 @@ jest.mock('../src/components/Icon/ExpensifyIconLoader.ts', () => ({
 }));
 
 jest.mock(
-    '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
+    '@components/InvertedFlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
             private handler: (info: unknown) => void = () => {};
@@ -281,3 +292,10 @@ if (typeof globalWithOptionalFetch.fetch !== 'function') {
         configurable: true,
     });
 }
+
+jest.mock('@components/ActionSheetAwareScrollView/index');
+jest.mock('@components/ActionSheetAwareScrollView/index.ios');
+jest.mock('@components/ActionSheetAwareScrollView/index.android');
+jest.mock('@components/ActionSheetAwareScrollView/ActionSheetAwareScrollViewContext');
+
+jest.mock('@src/components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext');
