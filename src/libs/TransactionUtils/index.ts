@@ -1150,6 +1150,14 @@ function getTransactionViolationsOfTransaction(transactionID: string) {
 }
 
 /**
+ * Check if a transaction has been rejected
+ */
+function hasTransactionBeenRejected(transactionID: string): boolean {
+    const transactionViolations = getTransactionViolationsOfTransaction(transactionID);
+    return transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+}
+
+/**
  * Check if there is pending rter violation in transactionViolations.
  */
 function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
@@ -2336,6 +2344,7 @@ export {
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
     getTransactionViolationsOfTransaction,
+    hasTransactionBeenRejected,
     isExpenseSplit,
     getAttendeesListDisplayString,
     isCorporateCardTransaction,
