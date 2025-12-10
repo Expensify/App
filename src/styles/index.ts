@@ -5165,6 +5165,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...display.dFlex,
         },
 
+        emptyStateFolderStaticIllustration: {
+            width: 184,
+            height: 112,
+        },
+
         emptyStateFireworksWebStyles: {
             width: 250,
             ...flex.alignItemsCenter,
