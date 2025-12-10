@@ -346,6 +346,7 @@ function MoneyRequestConfirmationListFooter({
     }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
 
     const reportName = useMemo(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const name = getReportName(selectedReport, selectedPolicy);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
