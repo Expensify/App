@@ -1898,6 +1898,10 @@ const translations = {
             recordTroubleshootData: 'Record Troubleshoot Data',
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
+            sentryDebug: 'Sentry debug',
+            sentryDebugDescription: 'Log Sentry requests to console',
+            sentryHighlightedSpanOps: 'Highlighted span operations',
+            sentryHighlightedSpanOpsDescription: 'Comma-separated list of span operations to highlight (e.g. ui.interaction.click, navigation)',
         },
         debugConsole: {
             saveLog: 'Save log',

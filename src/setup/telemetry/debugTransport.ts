@@ -1,19 +1,27 @@
 import type {BaseTransportOptions, Transport, TransportRequest, TransportRequestExecutor} from '@sentry/core';
 import {createTransport} from '@sentry/core';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
- * Enable this to log Sentry requests to console in development.
- * Sentry requests are NOT sent to Sentry servers in development.
+ * Sentry debug settings controlled via Onyx from Troubleshoot panel.
+ * These values are updated in real-time when changed in the UI.
  */
-const DEBUG_SENTRY_ENABLED = false;
+let isSentryDebugEnabled = false;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.IS_SENTRY_DEBUG_ENABLED,
+    callback: (value) => {
+        isSentryDebugEnabled = value ?? false;
+    },
+});
 
-/**
- * List of span operations to highlight in debug logs.
- * Add span.op values here to see detailed logs for specific operations.
- * Note: span.op in code corresponds to span.name in Sentry dashboard.
- * Example: ['ui.interaction.click', 'ui.interaction.scroll', 'ui.load', 'navigation']
- */
-const HIGHLIGHTED_SPAN_OPS: string[] = [];
+let highlightedSpanOps: string[] = [];
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS,
+    callback: (value) => {
+        highlightedSpanOps = value ?? [];
+    },
+});
 
 function formatLogPrefix(category: string, op?: string): string {
     if (op) {
@@ -39,7 +47,7 @@ function hasSpansArray(obj: Record<string, unknown>): obj is Record<string, unkn
 }
 
 function isHighlightedSpanOp(op: string): boolean {
-    return HIGHLIGHTED_SPAN_OPS.some((highlightedOp) => op === highlightedOp || op.startsWith(`${highlightedOp}.`));
+    return highlightedSpanOps.some((highlightedOp) => op === highlightedOp || op.startsWith(`${highlightedOp}.`));
 }
 
 function parseEnvelopeBody(body: string | Uint8Array): unknown[] {
@@ -96,8 +104,10 @@ function processEnvelopeItems(items: unknown[]): void {
 
 function makeDebugTransport(options: BaseTransportOptions): Transport {
     const makeRequest: TransportRequestExecutor = (request: TransportRequest) => {
-        const items = parseEnvelopeBody(request.body);
-        processEnvelopeItems(items);
+        if (isSentryDebugEnabled) {
+            const items = parseEnvelopeBody(request.body);
+            processEnvelopeItems(items);
+        }
 
         return Promise.resolve({
             statusCode: 200,
@@ -108,4 +118,3 @@ function makeDebugTransport(options: BaseTransportOptions): Transport {
 }
 
 export default makeDebugTransport;
-export {DEBUG_SENTRY_ENABLED};
