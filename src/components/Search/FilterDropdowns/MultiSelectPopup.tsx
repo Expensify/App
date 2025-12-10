@@ -50,28 +50,17 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
-    const filteredItems = useMemo(
-        () => (isSearchable ? items.filter((item) => item.text.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) : items),
-        [items, isSearchable, debouncedSearchTerm],
-    );
+    const listData: ListItem[] = useMemo(() => {
+        const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) : items;
+        return filteredItems.map((item) => ({
+            text: item.text,
+            keyForList: item.value,
+            isSelected: !!selectedItems.find((i) => i.value === item.value),
+            icons: item.icons,
+        }));
+    }, [items, selectedItems, isSearchable, debouncedSearchTerm]);
 
-    const listData: ListItem[] = useMemo(
-        () =>
-            filteredItems.map((item) => ({
-                text: item.text,
-                keyForList: item.value,
-                isSelected: !!selectedItems.find((i) => i.value === item.value),
-                icons: item.icons,
-            })),
-        [filteredItems, selectedItems],
-    );
-
-    const headerMessage = useMemo(() => {
-        if (!isSearchable || filteredItems.length > 0) {
-            return undefined;
-        }
-        return translate('common.noResultsFound');
-    }, [isSearchable, filteredItems.length, translate]);
+    const headerMessage = isSearchable && listData.length === 0 ? translate('common.noResultsFound') : undefined;
 
     const updateSelectedItems = useCallback(
         (item: ListItem) => {
