@@ -18,7 +18,6 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {computeReportName} from '@libs/ReportNameUtils';
 import {
     canAddTransaction,
     getOutstandingReportsForUser,
@@ -189,7 +188,7 @@ function IOURequestEditReportCommon({
                     // We set it to null here to prevent showing RBR for reports https://github.com/Expensify/App/issues/65960.
                     brickRoadIndicator: null,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
-                    text: computeReportName(report),
+                    text: getReportName(report),
                     value: report.reportID,
                     keyForList: report.reportID,
                     isSelected: report.reportID === selectedReportID,
