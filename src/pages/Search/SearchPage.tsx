@@ -277,27 +277,23 @@ function SearchPage({route}: SearchPageProps) {
     );
 
     const selectedTransactionReport = useMemo(() => {
-        if (!selectedTransactionsKeys.length) {
-            return null;
-        }
-        
         const firstTransactionID = selectedTransactionsKeys.at(0);
-        
         if (!firstTransactionID) {
             return null;
         }
-        
+
         const transaction = selectedTransactions[firstTransactionID];
-        
-        if (!transaction || typeof transaction !== 'object' || !('reportID' in transaction)) {
+        if (!transaction?.reportID) {
             return null;
         }
-        
+
         return getReportOrDraftReport(transaction.reportID);
     }, [selectedTransactionsKeys, selectedTransactions]);
 
     const iouType = useMemo(() => {
-        if (!selectedTransactionReport) {return CONST.IOU.TYPE.SUBMIT;}
+        if (!selectedTransactionReport) {
+            return CONST.IOU.TYPE.SUBMIT;
+        }
 
         if (isTrackExpenseReport(selectedTransactionReport)) {
             return CONST.IOU.TYPE.TRACK;
@@ -760,12 +756,17 @@ function SearchPage({route}: SearchPageProps) {
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (shouldNavigateToUpgradePath && selectedTransactionsKeys.length > 0) {
+                        const firstTransactionID = selectedTransactionsKeys.at(0);
+                        if (!firstTransactionID) {
+                            return;
+                        }
+
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                 action: CONST.IOU.ACTION.EDIT,
                                 iouType,
-                                transactionID: selectedTransactionsKeys.at(0),
-                                reportID: selectedTransactions[selectedTransactionsKeys[0]].reportID,
+                                transactionID: firstTransactionID,
+                                reportID: selectedTransactions[firstTransactionID].reportID,
                                 upgradePath: CONST.UPGRADE_PATHS.REPORTS,
                             }),
                         );
@@ -849,6 +850,8 @@ function SearchPage({route}: SearchPageProps) {
         areAllTransactionsFromSubmitter,
         bulkRejectHydrationStatus,
         currentUserPersonalDetails?.login,
+        iouType,
+        shouldNavigateToUpgradePath,
     ]);
 
     const handleDeleteExpenses = () => {
