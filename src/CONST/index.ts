@@ -711,6 +711,7 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
+        GPS_MILEAGE: 'gpsMileage',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2888,6 +2889,7 @@ const CONST = {
             PER_DIEM: 'per-diem',
             DISTANCE_MAP: 'distance-map',
             DISTANCE_MANUAL: 'distance-manual',
+            DISTANCE_GPS: 'distance-gps',
         },
         EXPENSE_TYPE: {
             DISTANCE: 'distance',
@@ -2898,6 +2900,7 @@ const CONST = {
             PENDING_EXPENSIFY_CARD: 'pendingExpensifyCard',
             DISTANCE_MAP: 'distance-map',
             DISTANCE_MANUAL: 'distance-manual',
+            DISTANCE_GPS: 'distance-gps',
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
@@ -5459,6 +5462,7 @@ const CONST = {
         PER_DIEM: 'per-diem',
         DISTANCE_MAP: 'distance-map',
         DISTANCE_MANUAL: 'distance-manual',
+        DISTANCE_GPS: 'distance-gps',
     },
 
     STATUS_TEXT_MAX_LENGTH: 100,

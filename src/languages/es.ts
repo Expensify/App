@@ -693,6 +693,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Manual',
         scan: 'Escanear',
         map: 'Map',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Importar',

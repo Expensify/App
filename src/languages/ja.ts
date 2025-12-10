@@ -1075,6 +1075,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: '手動',
         scan: 'スキャン',
         map: '地図',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'スプレッドシートをアップロード',

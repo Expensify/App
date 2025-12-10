@@ -1059,6 +1059,7 @@ const translations = {
         manual: 'Manual',
         scan: 'Scan',
         map: 'Map',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Upload a spreadsheet',
