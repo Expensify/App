@@ -1262,7 +1262,7 @@ const personalDetailsComparator = (personalDetail: SearchOptionData) => {
  * Sort reports by archived status and last visible action
  */
 const recentReportComparator = (option: SearchOptionData) => {
-    return `${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
+    return `${option.isSelfDM ? 1 : 0}_${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
 };
 
 /**
@@ -2114,7 +2114,8 @@ function getValidOptions(
             if (personalDetailLoginsToExclude[personalDetail.login]) {
                 return false;
             }
-            const searchText = deburr(`${personalDetail.text ?? ''} ${personalDetail.login ?? ''}`.toLocaleLowerCase());
+            const personalDetailSearchTerms = getPersonalDetailSearchTerms(personalDetail);
+            const searchText = deburr(`${personalDetailSearchTerms.join(' ')} ${personalDetail.text ?? ''}`.toLocaleLowerCase());
 
             return searchTerms.every((term) => searchText.includes(term));
         };
