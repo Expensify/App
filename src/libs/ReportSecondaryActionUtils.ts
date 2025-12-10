@@ -136,14 +136,14 @@ function isSplitAction(report: OnyxEntry<Report>, reportTransactions: Array<Onyx
 function isSubmitAction(
     report: Report,
     reportTransactions: Transaction[],
-    violations: OnyxCollection<TransactionViolation[]>,
-    currentUserEmail: string,
-    currentUserAccountID: number,
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
     isChatReportArchived = false,
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
+    violations?: OnyxCollection<TransactionViolation[]>,
+    currentUserEmail?: string,
+    currentUserAccountID?: number,
 ): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -161,8 +161,10 @@ function isSubmitAction(
         return false;
     }
 
-    if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
-        return false;
+    if (violations && currentUserEmail && currentUserAccountID !== undefined) {
+        if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+            return false;
+        }
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED) {
@@ -721,7 +723,7 @@ function getSecondaryReportActions({
         isChatReportArchived,
     });
 
-    if (isSubmitAction(report, reportTransactions, violations, currentUserEmail, currentUserAccountID, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction, violations, currentUserEmail, currentUserAccountID)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 

@@ -80,11 +80,11 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
 function isSubmitAction(
     report: Report,
     reportTransactions: Transaction[],
-    violations: OnyxCollection<TransactionViolation[]>,
-    currentUserEmail: string,
-    currentUserAccountID: number,
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
+    violations?: OnyxCollection<TransactionViolation[]>,
+    currentUserEmail?: string,
+    currentUserAccountID?: number,
 ) {
     if (isArchivedReport(reportNameValuePairs)) {
         return false;
@@ -105,8 +105,10 @@ function isSubmitAction(
         return false;
     }
 
-    if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
-        return false;
+    if (violations && currentUserEmail && currentUserAccountID !== undefined) {
+        if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+            return false;
+        }
     }
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
@@ -417,7 +419,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     if (isPrimaryMarkAsResolvedAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
-    if (isSubmitAction(report, reportTransactions, violations, currentUserEmail, currentUserAccountID, policy, reportNameValuePairs)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, violations, currentUserEmail, currentUserAccountID)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
