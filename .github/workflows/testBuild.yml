@@ -344,7 +344,7 @@ jobs:
 
       - name: Rock Remote Build - Android
         id: rock-remote-build-android
-        uses: LukasMod/android@c3070214406d788305c3998e2a07055666370b0f
+        uses: LukasMod/android@fd2a5c37d909dbe2f63564c54c6c409bc667df7e
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -454,7 +454,7 @@ jobs:
 
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
-        uses: LukasMod/ios@77e2325c8ec386326708216545821d851bf065cf
+        uses: LukasMod/ios@75aeadfcb0ae8407cfa654cd9c840976683a9c24
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
