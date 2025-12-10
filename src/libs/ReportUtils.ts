@@ -135,7 +135,6 @@ import {
     getAccountIDsByLogins,
     getDisplayNameOrDefault,
     getEffectiveDisplayName,
-    getLoginByAccountID,
     getLoginsByAccountIDs,
     getPersonalDetailByEmail,
     getPersonalDetailsByIDs,
@@ -147,7 +146,6 @@ import {
     getCleanedTagName,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
-    getDefaultApprover,
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
@@ -157,7 +155,6 @@ import {
     getRuleApprovers,
     getSubmitToAccountID,
     hasDependentTags as hasDependentTagsPolicyUtils,
-    hasDynamicExternalWorkflow,
     isExpensifyTeam,
     isInstantSubmitEnabled,
     isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
@@ -1441,7 +1438,7 @@ function isIOUReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
 /**
  * Checks if a report is an IOU report using report
  */
-function isIOUReportUsingReport(report: OnyxEntry<Report>): boolean {
+function isIOUReportUsingReport(report: OnyxEntry<Report>): report is Report {
     return report?.type === CONST.REPORT.TYPE.IOU;
 }
 
@@ -1966,9 +1963,6 @@ function requiresManualSubmission(report: OnyxEntry<Report>, policy: OnyxEntry<P
     return isManualSubmitEnabled || (isOpenReport(report) && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy));
 }
 
-/**
- * @deprecated This function will be removed soon. Please use isAwaitingFirstLevelApprovalNew instead
- */
 function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return false;
@@ -1979,63 +1973,6 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     const submitsToAccountID = getSubmitToAccountID(getPolicy(report.policyID), report);
 
     return isProcessingReport(report) && submitsToAccountID === report.managerID;
-}
-
-function isAwaitingFirstLevelApprovalNew(report: OnyxEntry<Report>, reportActions: ReportAction[], policy: OnyxEntry<Policy>): boolean {
-    if (!report) {
-        return false;
-    }
-
-    if (!isProcessingReport(report)) {
-        return false;
-    }
-
-    if (isIOUReportUsingReport(report)) {
-        return true;
-    }
-
-    if (hasDynamicExternalWorkflow(policy)) {
-        return false;
-    }
-
-    if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC) {
-        return true;
-    }
-
-    // If the report is part of a policy with Instant Submit, this data should be stored in the CREATED action
-    // as Instant Submit reports do not have a SUBMITTED action.
-    // For all other cases, use the most recent SUBMITTED action instead.
-    const usedReportAction = isInstantSubmitEnabled(policy)
-        ? reportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
-        : reportActions
-              ?.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED)
-              ?.sort((a, b) => {
-                  if (!a.created || !b.created) {
-                      return !a.created ? 1 : -1;
-                  }
-                  return a.created < b.created ? 1 : -1;
-              })
-              ?.at(0);
-
-    const originalMessage = getOriginalMessage(usedReportAction);
-    if (!originalMessage) {
-        return false;
-    }
-    let submittedTo: number | undefined = 'submittedTo' in originalMessage ? originalMessage?.submittedTo : undefined;
-
-    if (!submittedTo) {
-        const submittedToLogin = 'to' in originalMessage ? (originalMessage?.to ?? '') : '';
-        submittedTo = getAccountIDsByLogins([submittedToLogin])?.at(0);
-    }
-
-    if (!submittedTo) {
-        const managerID = 'managerOnVacation' in originalMessage && originalMessage?.managerOnVacation ? originalMessage?.managerOnVacation : report.managerID;
-        const approverAccountID =
-            policy?.employeeList?.[getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? '']?.submitsTo ?? getAccountIDsByLogins([getDefaultApprover(policy)])?.at(0);
-        return managerID === approverAccountID;
-    }
-
-    return report.managerID === submittedTo;
 }
 
 /**
@@ -2747,17 +2684,21 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
     return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
-function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, isReportArchived = false): boolean {
+function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
     if (!isMoneyRequestReport(moneyRequestReport) || isReportArchived) {
         return false;
     }
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(moneyRequestReport?.policyID);
+
     // Adding or deleting transactions is not allowed on a closed report
     if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isOpenReport(moneyRequestReport)) {
         return false;
     }
 
     if (isInstantSubmitEnabled(policy) && isProcessingReport(moneyRequestReport)) {
-        return isAwaitingFirstLevelApprovalNew(moneyRequestReport, Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`] ?? {}), policy);
+        return isAwaitingFirstLevelApproval(moneyRequestReport);
     }
 
     if (isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
@@ -2786,7 +2727,17 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchiv
         return false;
     }
 
-    return canAddOrDeleteTransactions(moneyRequestReport, policy, isReportArchived);
+    return canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
+}
+
+/**
+ * Checks whether the supplied report supports deleting more transactions from it.
+ * Return true if:
+ * - report is a non-settled IOU
+ * - report is a non-approved IOU
+ */
+function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
+    return canAddOrDeleteTransactions(moneyRequestReport, isReportArchived);
 }
 
 /**
@@ -2816,7 +2767,6 @@ function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string,
     }
 
     if (isSubmitter) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return isOpenReport(report) || (isIOUReport(report) && isProcessingReport(report)) || isAwaitingFirstLevelApproval(report);
     }
 
@@ -3003,7 +2953,7 @@ function canDeleteReportAction(
 
         if (isActionOwner) {
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
-                return canAddOrDeleteTransactions(report, policy ?? undefined) && canCardTransactionBeDeleted;
+                return canDeleteTransaction(report) && canCardTransactionBeDeleted;
             }
             if (isTrackExpenseAction(reportAction)) {
                 return canCardTransactionBeDeleted;
@@ -4715,7 +4665,6 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
         }
 
         if (isSubmitted) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return (isSubmitter && isAwaitingFirstLevelApproval(report)) || isManager || isAdmin;
         }
 
@@ -10518,7 +10467,9 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     }
     if (isApproved) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.approvedAmount', formattedAmount);
+        return translateLocal('iou.approvedAmount', {
+            amount: formattedAmount,
+        });
     }
     if (isSplitBillReportAction(reportAction)) {
         translationKey = 'iou.didSplitAmount';
@@ -11592,7 +11543,7 @@ function prepareOnboardingOnyxData({
     const onboardingTaskParams: OnboardingTaskLinks = {
         integrationName,
         onboardingCompanySize: companySize ?? onboardingCompanySize,
-        workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID ?? firstAdminPolicy?.id)}`,
+        workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID ?? firstAdminPolicy?.id)}`,
         workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID)}`,
         workspaceTagsLink: `${environmentURL}/${ROUTES.WORKSPACE_TAGS.getRoute(onboardingPolicyID)}`,
         workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID)}`,
@@ -13043,7 +12994,7 @@ export {
     canAccessReport,
     isReportNotFound,
     canAddTransaction,
-    canAddOrDeleteTransactions,
+    canDeleteTransaction,
     canBeAutoReimbursed,
     canCreateRequest,
     canCreateTaskInReport,
@@ -13259,9 +13210,7 @@ export {
     isOpenReport,
     requiresManualSubmission,
     isReportIDApproved,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     isAwaitingFirstLevelApproval,
-    isAwaitingFirstLevelApprovalNew,
     isPublicAnnounceRoom,
     isPublicRoom,
     isReportApproved,

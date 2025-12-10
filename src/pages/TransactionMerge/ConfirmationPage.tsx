@@ -18,13 +18,11 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import {buildMergedTransactionData} from '@libs/MergeTransactionUtils';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -75,19 +73,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             isASAPSubmitBetaEnabled,
         });
 
-        if (reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
-            // Navigate to search money report screen if we're on Reports
-            if (isSearchTopmostFullScreenRoute()) {
-                // Close the current modal screen
-                Navigation.dismissModal();
-                // Ensure the dismiss completes first
-                Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    // Navigate to the money request report in search results
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
-                });
-                return;
-            }
-            Navigation.dismissModalWithReport({reportID});
+        const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
+        if (reportID !== targetTransaction.reportID && reportIDToDismiss) {
+            Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
         } else {
             Navigation.dismissModal();
         }
