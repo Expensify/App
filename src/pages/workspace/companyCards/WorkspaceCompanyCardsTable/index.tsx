@@ -10,7 +10,6 @@ import useCompanyCards from '@hooks/useCompanyCards';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDomainOrWorkspaceAccountID, isMaskedCardNumberEqual} from '@libs/CardUtils';
@@ -44,7 +43,6 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
 
     const {
         feedName,
@@ -78,7 +76,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const showTableControls = showCards && !!selectedFeed && !isLoadingCards;
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
-    const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
+    const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.

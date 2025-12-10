@@ -8,7 +8,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {navigateToConciergeChat} from '@libs/actions/Report';
@@ -39,7 +38,6 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
     const {currentStep} = addNewCardFeed ?? {};
-    const {isBetaEnabled} = usePermissions();
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
@@ -125,7 +123,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = <DirectStatementCloseDateStep policyID={policyID} />;
             break;
         default:
-            CurrentStep = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
+            CurrentStep = <SelectCountryStep policyID={policyID} />;
             break;
     }
 
