@@ -706,6 +706,7 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
+        TIME_TRACKING: 'timeTracking',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
@@ -1028,7 +1029,7 @@ const CONST = {
     COLLECT_UPGRADE_HELP_URL: 'https://help.expensify.com/Hidden/collect-upgrade',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
-    DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain',
+    DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Verify-a-Domain',
     SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
@@ -1138,6 +1139,7 @@ const CONST = {
             PAY: 'pay',
             MERGE: 'merge',
             REPORT_LAYOUT: 'reportLayout',
+            DUPLICATE: 'duplicate',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1159,7 +1161,6 @@ const CONST = {
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
             ADD_EXPENSE: 'addExpense',
-            REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -1173,6 +1174,7 @@ const CONST = {
             DELETE: 'delete',
             REJECT: 'reject',
             MERGE: 'merge',
+            DUPLICATE: 'duplicate',
         },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
@@ -1196,6 +1198,8 @@ const CONST = {
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
+                CARD_REPLACED_VIRTUAL: 'CARDREPLACEDVIRTUAL',
+                CARD_REPLACED: 'CARDREPLACED',
                 CARD_ASSIGNED: 'CARDASSIGNED',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
@@ -1322,6 +1326,7 @@ const CONST = {
                     UPDATE_DISABLED_FIELDS: 'POLICYCHANGELOG_UPDATE_DISABLED_FIELDS',
                     UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
                     UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
+                    UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
@@ -1682,6 +1687,15 @@ const CONST = {
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
+        SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
+        SPAN_SKELETON: 'ManualSkeleton',
+        SPAN_BOOTSPLASH: {
+            ROOT: 'BootsplashVisible',
+            NAVIGATION: 'BootsplashVisibleNavigation',
+            ONYX: 'BootsplashVisibleOnyx',
+            LOCALE: 'BootsplashVisibleLocale',
+            SPLASH_HIDER: 'BootsplashVisibleHider',
+        },
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
@@ -1690,6 +1704,11 @@ const CONST = {
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
+        ATTRIBUTE_MIN_DURATION: 'min_duration',
+        ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
+        CONFIG: {
+            SKELETON_MIN_DURATION: 10_000,
+        },
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -3453,6 +3472,11 @@ const CONST = {
         FREQUENCY_SETTING: {
             DAILY: 'daily',
             MONTHLY: 'monthly',
+        },
+        TERMINATION_REASON: {
+            LOST: 'lost',
+            STOLEN: 'stolen',
+            DAMAGED: 'damaged',
         },
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
     },
@@ -6611,9 +6635,9 @@ const CONST = {
         },
         ACTION_TYPES: {
             VIEW: 'view',
-            REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
+            CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
             DONE: 'done',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
@@ -6629,6 +6653,7 @@ const CONST = {
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
             APPROVE: 'approve',
+            CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
             SUBMIT: 'submit',
             HOLD: 'hold',
@@ -6636,6 +6661,7 @@ const CONST = {
             DELETE: 'delete',
             REJECT: 'reject',
             CHANGE_REPORT: 'changeReport',
+            SPLIT: 'split',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -6646,6 +6672,11 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
+        },
+        SETTLEMENT_STATUS: {
+            PENDING: 'pending',
+            CLEARED: 'cleared',
+            FAILED: 'failed',
         },
         IS_VALUES: {
             READ: 'read',
@@ -6798,7 +6829,8 @@ const CONST = {
             BEFORE_PREFIX: 'reportFieldBefore-',
         },
         TAG_EMPTY_VALUE: 'none',
-        CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
+        CATEGORY_EMPTY_VALUE: 'none',
+        CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
@@ -7223,6 +7255,7 @@ const CONST = {
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
         HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
+        HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
         HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
     },
@@ -7446,6 +7479,25 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
+    },
+
+    MODAL_EVENTS: {
+        CLOSED: 'modalClosed',
+    },
+
+    LIST_BEHAVIOR: {
+        REGULAR: 'regular',
+        INVERTED: 'inverted',
+    },
+
+    SENTRY_LABEL: {
+        NAVIGATION_TAB_BAR: {
+            EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
+            INBOX: 'NavigationTabBar-Inbox',
+            REPORTS: 'NavigationTabBar-Reports',
+            WORKSPACES: 'NavigationTabBar-Workspaces',
+            ACCOUNT: 'NavigationTabBar-Account',
+        },
     },
 } as const;
 
