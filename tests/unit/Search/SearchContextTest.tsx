@@ -14,6 +14,7 @@ const mockSelectedTransaction: SelectedTransactionInfo = {
     canChangeReport: true,
     isSelected: true,
     canDelete: true,
+    canReject: false,
     policyID: '06F34677820A4D07',
     reportID: '515146912679679',
     amount: 0,
@@ -26,6 +27,7 @@ const mockSelectedTransaction: SelectedTransactionInfo = {
 const mockTransaction: TransactionListItemType = {
     accountID: 1,
     amount: 0,
+    canDelete: true,
     category: '',
     groupAmount: 1284,
     groupCurrency: 'USD',
