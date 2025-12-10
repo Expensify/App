@@ -61,7 +61,6 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     };
 
     const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);
-    const cardholderTitle = getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName') ?? '';
 
     return (
         <InteractiveStepWrapper
@@ -84,7 +83,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
-                    title={cardholderTitle}
+                    title={getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName')}
                     shouldShowRightIcon={!issueNewCard?.isChangeAssigneeDisabled}
                     interactive={!issueNewCard?.isChangeAssigneeDisabled}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
