@@ -1,8 +1,10 @@
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
@@ -10,8 +12,8 @@ import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
 import {isPaidGroupPolicy} from './PolicyUtils';
-import {getReportTransactions} from './ReportUtils';
-import {getCurrency, getTagArrayFromName} from './TransactionUtils';
+import {getReportTransactions, isExpenseReport} from './ReportUtils';
+import {getAmount, getCurrency, getTagArrayFromName, isOnHold} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -239,8 +241,80 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
     return [initialAttendee];
 }
 
+type DuplicateTransactionTotals = {
+    /** Total amount of all transactions */
+    total: number;
+    /** Total amount of transactions that are not on hold */
+    unheldTotal: number;
+    /** Total amount of non-reimbursable transactions that are not on hold */
+    unheldNonReimbursableTotal: number;
+};
+
+/**
+ * Calculates the total amounts for a list of duplicate transactions.
+ * Used when merging or resolving duplicates to update report totals.
+ *
+ * @param transactionIDList - List of transaction IDs to calculate totals for
+ * @param report - The report the transactions belong to
+ * @param allTransactions - Collection of all transactions from Onyx
+ * @param options - Options for calculation
+ * @param options.includeHeldTransactions - Whether to include held transactions in the total calculation (default: true)
+ * @returns Object containing total, unheldTotal, and unheldNonReimbursableTotal
+ */
+function calculateDuplicateTransactionsTotals(
+    transactionIDList: string[],
+    report: OnyxEntry<Report>,
+    allTransactions: OnyxCollection<Transaction>,
+    options: {includeHeldTransactions?: boolean} = {},
+): DuplicateTransactionTotals {
+    const {includeHeldTransactions = true} = options;
+    const isExpenseReportLocal = isExpenseReport(report);
+    const coefficient = isExpenseReportLocal ? -1 : 1;
+
+    let total = 0;
+    let unheldTotal = 0;
+    let unheldNonReimbursableTotal = 0;
+
+    for (const transactionID of transactionIDList) {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+        // Skip if transaction doesn't exist or has different currency than the report
+        if (!transaction || transaction.currency !== report?.currency) {
+            continue;
+        }
+
+        const isTransactionOnHold = isOnHold(transaction);
+
+        // Skip held transactions if we're not including them in totals (e.g., resolveDuplicates)
+        if (!includeHeldTransactions && isTransactionOnHold) {
+            continue;
+        }
+
+        const transactionAmount = getAmount(transaction, isExpenseReportLocal) * coefficient;
+
+        // Always add to total (for mergeDuplicates where transactions are deleted)
+        if (includeHeldTransactions) {
+            total += transactionAmount;
+        }
+
+        // Only add to unheld totals if transaction is not on hold
+        if (!isTransactionOnHold) {
+            unheldTotal += transactionAmount;
+
+            if (!transaction.reimbursable) {
+                unheldNonReimbursableTotal += transactionAmount;
+            }
+        }
+    }
+
+    return {total, unheldTotal, unheldNonReimbursableTotal};
+}
+
+export type {DuplicateTransactionTotals};
+
 export {
     calculateAmount,
+    calculateDuplicateTransactionsTotals,
     insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,

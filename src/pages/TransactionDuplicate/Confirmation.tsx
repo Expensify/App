@@ -19,6 +19,7 @@ import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation'
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -76,28 +77,31 @@ function Confirmation() {
     );
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
-    const closeReviewDuplicates = useCallback(() => {
-        if (reviewDuplicates?.reportID) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reviewDuplicates.reportID}), {forceReplace: true});
-            });
+    const navigateAfterMerge = useCallback((reportID: string | undefined) => {
+        if (reportID) {
+            // Navigate to search page or regular report based on where user came from
+            if (isSearchTopmostFullScreenRoute()) {
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}), {forceReplace: true});
+            } else {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), {forceReplace: true});
+            }
         }
         Navigation.dismissModal();
-    }, [reviewDuplicates?.reportID]);
+    }, []);
 
     const mergeDuplicates = useCallback(() => {
         const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
         if (!reportAction?.childReportID) {
             transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
         }
-        closeReviewDuplicates();
         IOU.mergeDuplicates(transactionsMergeParams);
-    }, [reportAction?.childReportID, transactionsMergeParams, closeReviewDuplicates]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => navigateAfterMerge(reviewDuplicates?.reportID));
+    }, [reportAction?.childReportID, transactionsMergeParams, reviewDuplicates?.reportID, navigateAfterMerge]);
 
     const resolveDuplicates = useCallback(() => {
-        closeReviewDuplicates();
         IOU.resolveDuplicates(transactionsMergeParams);
-    }, [transactionsMergeParams, closeReviewDuplicates]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => navigateAfterMerge(reviewDuplicates?.reportID));
+    }, [transactionsMergeParams, reviewDuplicates?.reportID, navigateAfterMerge]);
 
     const contextValue = useMemo(
         () => ({

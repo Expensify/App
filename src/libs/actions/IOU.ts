@@ -56,6 +56,7 @@ import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {
+    calculateDuplicateTransactionsTotals,
     calculateAmount as calculateIOUAmount,
     formatCurrentUserToAttendee,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
@@ -12773,20 +12774,27 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         };
     });
 
-    const duplicateTransactionTotals = params.transactionIDList.reduce((total, id) => {
-        const duplicateTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-        if (!duplicateTransaction) {
-            return total;
-        }
-        return total + duplicateTransaction.amount;
-    }, 0);
-
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
+
+    // Calculate the total amounts from duplicate transactions being deleted
+    const {
+        total: duplicateTransactionTotals,
+        unheldTotal: duplicateUnheldTotals,
+        unheldNonReimbursableTotal: duplicateUnheldNonReimbursableTotals,
+    } = calculateDuplicateTransactionsTotals(params.transactionIDList, expenseReport, allTransactions, {includeHeldTransactions: true});
+
+    const newTotal = (expenseReport?.total ?? 0) - duplicateTransactionTotals;
+    // When unheldTotal is undefined, it means there were no held expenses, so unheldTotal equals total
+    const newUnheldTotal = (expenseReport?.unheldTotal ?? expenseReport?.total ?? 0) - duplicateUnheldTotals;
+    const newUnheldNonReimbursableTotal = (expenseReport?.unheldNonReimbursableTotal ?? expenseReport?.nonReimbursableTotal ?? 0) - duplicateUnheldNonReimbursableTotals;
+
     const expenseReportOptimisticData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
         value: {
-            total: (expenseReport?.total ?? 0) - duplicateTransactionTotals,
+            total: newTotal,
+            unheldTotal: newUnheldTotal,
+            unheldNonReimbursableTotal: newUnheldNonReimbursableTotal,
         },
     };
     const expenseReportFailureData: OnyxUpdate = {
@@ -12794,6 +12802,8 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
         value: {
             total: expenseReport?.total,
+            unheldTotal: expenseReport?.unheldTotal,
+            unheldNonReimbursableTotal: expenseReport?.unheldNonReimbursableTotal,
         },
     };
 
@@ -12948,6 +12958,9 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
             value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
         });
     }
+
+    // Apply the report totals update immediately to ensure UI reflects the change before navigation
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`, {total: newTotal, unheldTotal: newUnheldTotal, unheldNonReimbursableTotal: newUnheldNonReimbursableTotal});
 
     API.write(WRITE_COMMANDS.MERGE_DUPLICATES, {...allParams, reportActionID: optimisticReportAction.reportActionID}, {optimisticData, failureData, successData});
 }
@@ -13106,33 +13119,29 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
 
     // Update unheldTotal and unheldNonReimbursableTotal on the iou report for duplicate transactions being put on hold
     const iouReport = params.reportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`] : undefined;
+    let newUnheldTotal: number | undefined;
+    let newUnheldNonReimbursableTotal: number | undefined;
+
     if (iouReport) {
-        const isExpenseReportLocal = isExpenseReport(iouReport);
-        const coefficient = isExpenseReportLocal ? -1 : 1;
-        let totalHeldAmount = 0;
-        let nonReimbursableHeldAmount = 0;
-
-        for (const duplicateTransactionID of params.transactionIDList) {
-            const duplicateTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateTransactionID}`];
-            if (!duplicateTransaction || duplicateTransaction.currency !== iouReport.currency) {
-                continue;
-            }
-
-            const transactionAmount = getAmount(duplicateTransaction, isExpenseReportLocal) * coefficient;
-            totalHeldAmount += transactionAmount;
-
-            if (!duplicateTransaction.reimbursable) {
-                nonReimbursableHeldAmount += transactionAmount;
-            }
-        }
+        // For resolveDuplicates, transactions are put on hold (not deleted), so we only need unheld totals
+        const {unheldTotal: totalHeldAmount, unheldNonReimbursableTotal: nonReimbursableHeldAmount} = calculateDuplicateTransactionsTotals(
+            params.transactionIDList,
+            iouReport,
+            allTransactions,
+            {includeHeldTransactions: false},
+        );
 
         if (totalHeldAmount !== 0) {
+            // When unheldTotal is undefined, it means there were no held expenses, so unheldTotal equals total
+            newUnheldTotal = (iouReport.unheldTotal ?? iouReport.total ?? 0) - totalHeldAmount;
+            newUnheldNonReimbursableTotal = (iouReport.unheldNonReimbursableTotal ?? iouReport.nonReimbursableTotal ?? 0) - nonReimbursableHeldAmount;
+
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                 value: {
-                    unheldTotal: (iouReport.unheldTotal ?? 0) - totalHeldAmount,
-                    unheldNonReimbursableTotal: (iouReport.unheldNonReimbursableTotal ?? 0) - nonReimbursableHeldAmount,
+                    unheldTotal: newUnheldTotal,
+                    unheldNonReimbursableTotal: newUnheldNonReimbursableTotal,
                 },
             });
 
@@ -13156,6 +13165,10 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         transactionIDList: orderedTransactionIDList,
         dismissedViolationReportActionID: optimisticReportAction.reportActionID,
     };
+
+    if (iouReport && newUnheldTotal !== undefined) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {unheldTotal: newUnheldTotal, unheldNonReimbursableTotal: newUnheldNonReimbursableTotal});
+    }
 
     API.write(WRITE_COMMANDS.RESOLVE_DUPLICATES, parameters, {optimisticData, failureData});
 }
