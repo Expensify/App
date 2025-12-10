@@ -100,7 +100,7 @@ function useOptions() {
         });
 
         return filteredOptions;
-    }, [unselectedOptions, debouncedSearchTerm, countryCode, loginList, selectedOptions]);
+    }, [countryCode, debouncedSearchTerm, loginList, selectedOptions, unselectedOptions]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
         return getHeaderMessage(
