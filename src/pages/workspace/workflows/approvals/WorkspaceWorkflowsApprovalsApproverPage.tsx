@@ -42,8 +42,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const firstApprover = currentApprovalWorkflow?.approvers?.[0]?.email ?? '';
 
     const isChangeApproverRoute = route.name === SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE;
-    const backTo = 'backTo' in route.params ? route.params.backTo : undefined;
-    const isInitialCreationFlow = currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !backTo;
+    const isInitialCreationFlow = currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params?.backTo;
     const currentApprover = currentApprovalWorkflow?.approvers[approverIndex];
     const selectedApproverEmail = currentApprover?.email;
 
