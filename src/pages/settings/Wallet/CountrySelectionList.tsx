@@ -61,7 +61,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
             onChangeText: setSearchValue,
             headerMessage: searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
         }),
-        [translate, searchValue, setSearchValue, searchValue, searchResults.length],
+        [translate, searchValue, setSearchValue, searchResults.length],
     );
 
     const confirmButtonOptions = useMemo(
