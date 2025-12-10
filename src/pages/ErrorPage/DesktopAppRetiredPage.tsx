@@ -1,6 +1,6 @@
 import React from 'react';
 import {Linking, View} from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
