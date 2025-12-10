@@ -761,7 +761,13 @@ type TransactionReportInfo = {
     reportID: string;
 };
 
-function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Record<string, TransactionReportInfo>, comment: string, allPolicies: OnyxCollection<Policy>, allReports: OnyxCollection<Report>) {
+function rejectMoneyRequestsOnSearch(
+    hash: number,
+    selectedTransactions: Record<string, TransactionReportInfo>,
+    comment: string,
+    allPolicies: OnyxCollection<Policy>,
+    allReports: OnyxCollection<Report>,
+) {
     const transactionIDs = Object.keys(selectedTransactions);
 
     const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {
