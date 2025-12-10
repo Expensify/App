@@ -14,7 +14,7 @@ import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canModifyPlan, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
+import {canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
@@ -26,6 +26,7 @@ import {
     enablePolicyRules,
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
+    setWorkspaceApprovalMode,
     upgradeToCorporate,
 } from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,6 +78,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const categoryId = route.params?.categoryId;
+
+    const defaultApprover = getDefaultApprover(policy);
 
     const goBack = useCallback(() => {
         if ((!feature && featureNameAlias !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) || !policyID) {
@@ -182,6 +185,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
                 enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
+                setWorkspaceApprovalMode(policyID, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED);
+                break;
             default:
         }
     }, [
@@ -196,6 +202,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         qboConfig?.syncLocations,
         route.params?.featureName,
         featureNameAlias,
+        defaultApprover,
     ]);
 
     useFocusEffect(
