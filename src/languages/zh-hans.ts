@@ -6725,6 +6725,7 @@ ${reportName}
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `您确定要在 ${workspaceName} 中创建另一份报表吗？您可以在 中访问您的空报表`,
             emptyReportConfirmationPromptLink: '报表',
             genericWorkspaceName: '此工作区',
+            emptyReportConfirmationDontShowAgain: '不再显示此内容',
         },
         genericCreateReportFailureMessage: '创建此聊天时发生意外错误。请稍后再试。',
         genericAddCommentFailureMessage: '发表评论时发生意外错误。请稍后重试。',
