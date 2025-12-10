@@ -9,7 +9,6 @@ import IntlStore from '@src/languages/IntlStore';
 import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';
