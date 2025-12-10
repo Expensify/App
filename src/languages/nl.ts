@@ -41,6 +41,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillableDefaultDescriptionParams,
@@ -731,7 +732,10 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiëren naar klembord',
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
+        viewReport: 'Rapport bekijken',
         actionRequired: 'Actie vereist',
+        duplicate: 'Dupliceren',
+        duplicated: 'Gedupliceerd',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -986,7 +990,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Deze chatruimte is voor alles wat met <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> te maken heeft.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `Deze chat is voor facturen tussen <strong>${invoicePayer}</strong> en <strong>${invoiceReceiver}</strong>. Gebruik de knop + om een factuur te versturen.`,
-        beginningOfChatHistory: 'Deze chat is met',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `Deze chat is met ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `Dit is waar <strong>${submitterDisplayName}</strong> declaraties zal indienen bij <strong>${workspaceName}</strong>. Gebruik gewoon de +‑knop.`,
         beginningOfChatHistorySelfDM: 'Dit is je persoonlijke ruimte. Gebruik het voor notities, taken, concepten en herinneringen.',
@@ -1557,7 +1561,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Kies een extra fiatteur voor dit rapport voordat we het door de rest van de goedkeuringsworkflow sturen.',
+                bulkSubtitle: 'Kies een extra fiatteur voor deze rapporten voordat we ze door de rest van de goedkeuringsworkflow sturen.',
             },
+            bulkSubtitle: 'Kies een optie om de fiatteur voor deze rapporten te wijzigen.',
         },
         chooseWorkspace: 'Kies een workspace',
     },
@@ -2321,6 +2327,7 @@ ${amount} voor ${merchant} - ${date}`,
             title: 'Geen leden om weer te geven',
             expensesFromSubtitle: 'Alle werkruimteleden behoren al tot een bestaande goedkeuringsworkflow.',
             approverSubtitle: 'Alle fiatteurs behoren tot een bestaande workflow.',
+            bulkApproverSubtitle: 'Geen goedkeurders komen overeen met de criteria voor de geselecteerde rapporten.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -6077,6 +6084,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                     toUpgrade: 'Om te upgraden, klik',
                     selectWorkspace: 'selecteer een workspace en wijzig het type abonnement in',
                 },
+                upgradeWorkspaceWarning: 'Kan werkruimte niet upgraden',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Uw bedrijf heeft de creatie van werkruimten beperkt. Neem contact op met een beheerder voor hulp.',
             },
         },
         downgrade: {
@@ -6506,7 +6515,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ingeschakeld' : 'Uitgeschakeld'} bijhouden van deelnemers`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'ingeschakeld' : 'Uitgeschakeld'} terugbetalingen voor deze werkruimte`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} terugbetalingen`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting “${taxName}” toegevoegd`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting “${taxName}” verwijderd`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6739,6 +6748,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         groupBy: 'Groeperen op',
         moneyRequestReport: {
             emptyStateTitle: 'Dit rapport bevat geen onkosten.',
+            accessPlaceHolder: 'Open voor details',
         },
         noCategory: 'Geen categorie',
         noTag: 'Geen tag',
@@ -6881,6 +6891,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Weet je zeker dat je een ander rapport wilt maken in ${workspaceName}? Je hebt toegang tot je lege rapporten in`,
             emptyReportConfirmationPromptLink: 'Rapporten',
+            emptyReportConfirmationDontShowAgain: 'Niet meer weergeven',
             genericWorkspaceName: 'deze workspace',
         },
         genericCreateReportFailureMessage: 'Onverwachte fout bij het maken van deze chat. Probeer het later opnieuw.',
@@ -7875,6 +7886,30 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             revealToken: 'Token weergeven',
             fetchError: 'Kan SAML-configuratiedetails niet ophalen',
             setMetadataGenericError: 'Kon SAML-metagegevens niet instellen',
+        },
+        accessRestricted: {
+            title: 'Toegang beperkt',
+            subtitle: (domainName: string) => `Bevestig dat u een geautoriseerde bedrijfsbeheerder bent voor <strong>${domainName}</strong> als u controle nodig hebt over:`,
+            companyCardManagement: 'Beheer van bedrijfskaarten',
+            accountCreationAndDeletion: 'Accountaanmaak en -verwijdering',
+            workspaceCreation: 'Werkruimte aanmaken',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Domein toevoegen',
+            subtitle: 'Voer de naam in van het privédomein waartoe je toegang wilt krijgen (bijv. expensify.com).',
+            domainName: 'Domeinnaam',
+            newDomain: 'Nieuw domein',
+        },
+        domainAdded: {
+            title: 'Domein toegevoegd',
+            description: 'Vervolgens moet je het eigendom van het domein verifiëren en je beveiligingsinstellingen aanpassen.',
+            configure: 'Configureren',
+        },
+        enhancedSecurity: {
+            title: 'Verbeterde beveiliging',
+            subtitle: 'Verplicht leden van je domein om in te loggen via single sign-on, beperk het aanmaken van werkruimten en meer.',
+            enable: 'Inschakelen',
         },
     },
 };

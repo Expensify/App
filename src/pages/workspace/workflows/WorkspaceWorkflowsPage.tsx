@@ -103,7 +103,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
-    const isAdvanceApproval = approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1;
+    const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
     const displayNameForAuthorizedPayer = useMemo(
         () => getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser,
