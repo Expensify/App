@@ -730,6 +730,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: '域名',
         viewReport: '查看报告',
         actionRequired: '需要操作',
+        duplicate: '复制',
+        duplicated: '已重复',
     },
     supportalNoAccess: {
         title: '先别急',
