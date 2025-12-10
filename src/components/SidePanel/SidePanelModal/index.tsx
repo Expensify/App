@@ -65,7 +65,7 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
                         {!shouldHideSidePanelBackdrop && (
                             <SidePanelOverlay
                                 onBackdropPress={closeSidePanel}
-                                shouldBeInvisible={isWideRHPVisible ? !isWideRHPFocused : isRHPVisible}
+                                shouldBeVisible={isWideRHPVisible ? isWideRHPFocused : !isRHPVisible}
                             />
                         )}
                     </View>

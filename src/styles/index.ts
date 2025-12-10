@@ -5850,7 +5850,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             }) satisfies ViewStyle,
 
         sidePanelOverlayOpacity: (isOverlayVisible: boolean) => ({
-            opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
+            opacity: isOverlayVisible ? variables.overlayOpacity : 0,
         }),
         sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             width: shouldUseNarrowLayout ? '100%' : variables.sidePanelWidth,
