@@ -3,7 +3,7 @@ import SidePanelButtonBase from './SidePanelButtonBase';
 import type SidePanelButtonProps from './types';
 
 function SidePanelButton({style}: SidePanelButtonProps) {
-    return <HelpButtonBase style={style} />;
+    return <SidePanelButtonBase style={style} />;
 }
 
 SidePanelButton.displayName = 'SidePanelButton';
