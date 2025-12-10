@@ -1,12 +1,12 @@
 import React from 'react';
 import {Linking, View} from 'react-native';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
