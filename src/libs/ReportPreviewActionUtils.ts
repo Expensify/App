@@ -20,7 +20,7 @@ import {
     isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {getTransactionViolations, isPending, isScanning} from './TransactionUtils';
+import {hasSmartScanFailedViolation, isPending, isScanning} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
@@ -47,12 +47,7 @@ function canSubmit(
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
-    const hasSmartScanFailedViolation = transactions?.some((transaction) => {
-        const transactionViolations = getTransactionViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy);
-        return transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
-    });
-
-    if (hasSmartScanFailedViolation) {
+    if (transactions?.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
         return false;
     }
 
@@ -177,8 +172,7 @@ function getReportPreviewAction(
     isPaidAnimationRunning?: boolean,
     isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
-    currentUserEmail?: string,
-    violations?: OnyxCollection<TransactionViolation[]>,
+    violationsData?: {currentUserEmail?: string; violations?: OnyxCollection<TransactionViolation[]>},
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -197,7 +191,7 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
-    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserEmail ?? '', violations, policy, transactions)) {
+    if (canSubmit(report, isReportArchived, currentUserAccountID, violationsData?.currentUserEmail ?? '', violationsData?.violations, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, policy, transactions)) {

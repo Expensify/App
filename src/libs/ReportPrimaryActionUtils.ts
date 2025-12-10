@@ -40,6 +40,7 @@ import {
     allHavePendingRTERViolation,
     getTransactionViolations,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    hasSmartScanFailedViolation,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
@@ -104,12 +105,7 @@ function isSubmitAction(
         return false;
     }
 
-    const hasSmartScanFailedViolation = reportTransactions.some((transaction) => {
-        const transactionViolations = getTransactionViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy);
-        return transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
-    });
-
-    if (hasSmartScanFailedViolation) {
+    if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
         return false;
     }
 

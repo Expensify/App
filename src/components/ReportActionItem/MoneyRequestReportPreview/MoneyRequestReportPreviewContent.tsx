@@ -501,8 +501,7 @@ function MoneyRequestReportPreviewContent({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
-            currentUserDetails.email ?? '',
-            transactionViolations,
+            {currentUserEmail: currentUserDetails.email ?? '', violations: transactionViolations},
         );
     }, [
         isPaidAnimationRunning,
