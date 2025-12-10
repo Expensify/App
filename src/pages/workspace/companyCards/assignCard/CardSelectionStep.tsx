@@ -20,28 +20,28 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {getCardFeedIcon, getCompanyCardFeed, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import {useAssignCardNavigation} from '@pages/workspace/companyCards/utils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type SCREENS from '@src/SCREENS';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 
-type CardSelectionStepProps = {
-    /** Selected feed */
-    feed: CompanyCardFeedWithDomainID;
+type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_SELECT>;
 
-    /** Current policy id */
-    policyID: string | undefined;
-};
-
-function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
+function CardSelectionStep({route}: CardSelectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass'] as const);
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeedWithDomainID;
+    const policyID = route.params?.policyID;
     const [list] = useCardsList(feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
@@ -74,6 +74,8 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             />
         ),
     }));
+
+    useAssignCardNavigation(policyID, feed);
 
     const handleBackButtonPress = () => {
         if (isEditing) {

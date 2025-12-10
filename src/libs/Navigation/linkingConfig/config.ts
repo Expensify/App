@@ -758,8 +758,59 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_BANK]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_TYPE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_TYPE.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_NAME]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_DETAILS]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_SELECT]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_NAME]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_PLAID_CONNECTION]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION.route,
                         },
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
