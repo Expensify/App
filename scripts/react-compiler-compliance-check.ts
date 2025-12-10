@@ -89,8 +89,7 @@ type DiffFilteringCommits = {
 };
 
 type PrintResultsOptions = {
-    shouldIgnoreRegularErrors?: boolean;
-    shouldPrintRegularErrorsAsWarnings?: boolean;
+    logLevel: LogLevel;
     verbose: boolean;
 };
 
@@ -106,18 +105,8 @@ type CheckOptions = BaseCheckOptions & {
     files?: string[];
 };
 
-async function check({
-    files,
-    remote,
-    shouldFilterByDiff,
-    shouldIgnoreRegularErrors,
-    shouldEnforceNewComponents,
-    shouldPrintRegularErrorsAsWarnings,
-    verbose,
-    shouldGenerateReport,
-    reportFileName,
-}: CheckOptions): Promise<boolean> {
-    const printResultsOptions: PrintResultsOptions = {shouldIgnoreRegularErrors, shouldPrintRegularErrorsAsWarnings, verbose};
+async function check({files, remote, shouldFilterByDiff, shouldEnforceNewComponents, logLevel, verbose, shouldGenerateReport, reportFileName}: CheckOptions): Promise<boolean> {
+    const printResultsOptions: PrintResultsOptions = {logLevel, verbose};
 
     if (files) {
         logInfo(`Running React Compiler check for ${files.length} files or glob patterns...`);
@@ -350,12 +339,7 @@ function createFilesGlob(files?: string[]): string | undefined {
  * @param diffFilteringCommits - The commit range to diff (from and to)
  * @returns Filtered compiler results containing only failures in changed lines or eslint-disabled areas
  */
-async function filterResultsByDiff(
-    results: CompilerResults,
-    diffFilteringCommits: DiffFilteringCommits,
-    diffResult: DiffResult,
-    {shouldIgnoreRegularErrors, verbose}: PrintResultsOptions,
-): Promise<CompilerResults> {
+async function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits, diffResult: DiffResult, {verbose}: PrintResultsOptions): Promise<CompilerResults> {
     logInfo(`Filtering results by diff between ${diffFilteringCommits.fromRef} and ${diffFilteringCommits.toRef ?? 'the working tree'}...`);
 
     // If there are no changes, return empty results
@@ -473,12 +457,10 @@ async function filterResultsByDiff(
         filteredSuccesses.add(file);
     }
 
-    if (!shouldIgnoreRegularErrors) {
-        if (filteredFailures.size === 0) {
-            logInfo('No failures remain after filtering by diff.');
-        } else {
-            logInfo(`${filteredFailures.size} out of ${results.failures.size} failures remain after filtering by diff.`);
-        }
+    if (filteredFailures.size === 0) {
+        logInfo('No failures remain after filtering by diff.');
+    } else {
+        logInfo(`${filteredFailures.size} out of ${results.failures.size} failures remain after filtering by diff.`);
     }
 
     if (verbose) {
@@ -629,10 +611,7 @@ function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] 
  * @param results - The compiler results to print
  * @param options - The options for printing the results
  */
-function printResults(
-    {success, failures, suppressedFailures, enforcedAddedComponentFailures}: CompilerResults,
-    {shouldIgnoreRegularErrors, shouldPrintRegularErrorsAsWarnings, verbose}: PrintResultsOptions,
-): boolean {
+function printResults({success, failures, suppressedFailures, enforcedAddedComponentFailures}: CompilerResults, {logLevel, verbose}: PrintResultsOptions): boolean {
     if (verbose && success.size > 0) {
         log();
         logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
@@ -673,27 +652,26 @@ function printResults(
         log();
     }
 
-    const didRegularCheckSucceed = !!shouldIgnoreRegularErrors || !!shouldPrintRegularErrorsAsWarnings || failures.size === 0;
-
+    const didRegularCheckSucceed = logLevel === 'warning' || failures.size === 0;
     const didEnforcedCheckSucceed = !enforcedAddedComponentFailures || enforcedAddedComponentFailures.size === 0;
 
     const isPassed = didRegularCheckSucceed && didEnforcedCheckSucceed;
 
-    if (failures.size > 0 && !shouldIgnoreRegularErrors) {
+    if (failures.size > 0) {
         const distinctFileNames = new Set<string>();
         for (const failure of failures.values()) {
             distinctFileNames.add(failure.file);
         }
 
         if (distinctFileNames.size > 0) {
-            const logMethod = shouldPrintRegularErrorsAsWarnings ? logWarn : logError;
+            const logMethod = logLevel === 'warning' ? logWarn : logError;
             log();
             logMethod(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
             log();
 
             printFailures(failures);
 
-            if (shouldPrintRegularErrorsAsWarnings) {
+            if (logLevel === 'warning') {
                 log();
                 logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and should be ignored.');
             }
@@ -701,7 +679,7 @@ function printResults(
     }
 
     // Print an extra empty line if no enforced errors are printed.
-    if (shouldPrintRegularErrorsAsWarnings && didEnforcedCheckSucceed) {
+    if (logLevel === 'warning' && didEnforcedCheckSucceed) {
         log();
     }
 
@@ -788,6 +766,9 @@ const Checker = {
 const CLI_COMMANDS = ['check', 'check-changed'] as const;
 type CliCommand = TupleToUnion<typeof CLI_COMMANDS>;
 
+const LOG_LEVELS = ['error', 'warning'] as const;
+type LogLevel = TupleToUnion<typeof LOG_LEVELS>;
+
 // CLI interface
 async function main() {
     const cli = new CLI({
@@ -817,6 +798,17 @@ async function main() {
                 required: false,
                 supersedes: ['check-changed'],
             },
+            logLevel: {
+                description: 'Set the log level (error (default) or warning)',
+                required: false,
+                default: 'error',
+                parse: (val) => {
+                    if (!LOG_LEVELS.includes(val as LogLevel)) {
+                        throw new Error(`Invalid log level. Must be one of: info, warn, error`);
+                    }
+                    return val;
+                },
+            },
             reportFileName: {
                 description: 'File name to save the report to',
                 required: false,
@@ -834,16 +826,6 @@ async function main() {
                 required: false,
                 default: false,
             },
-            ignoreRegularErrors: {
-                description: 'Ignore regular React Compiler errors (not enforced)',
-                required: false,
-                default: false,
-            },
-            printRegularErrorsAsWarnings: {
-                description: 'Print regular React Compiler errors as warnings',
-                required: false,
-                default: false,
-            },
             verbose: {
                 description: 'Print logs of successes and suppressed errors',
                 required: false,
@@ -858,21 +840,13 @@ async function main() {
     });
 
     const {command, file} = cli.positionalArgs;
-    const {remote, reportFileName = DEFAULT_REPORT_FILENAME} = cli.namedArgs;
-    const {
-        filterByDiff: shouldFilterByDiff,
-        enforceNewComponents: shouldEnforceNewComponents,
-        ignoreRegularErrors: shouldIgnoreRegularErrors,
-        printRegularErrorsAsWarnings: shouldPrintRegularErrorsAsWarnings,
-        verbose,
-        report: shouldGenerateReport,
-    } = cli.flags;
+    const {remote, logLevel = 'error', reportFileName = DEFAULT_REPORT_FILENAME} = cli.namedArgs;
+    const {filterByDiff: shouldFilterByDiff, enforceNewComponents: shouldEnforceNewComponents, verbose, report: shouldGenerateReport} = cli.flags;
 
     const commonOptions: BaseCheckOptions = {
         shouldFilterByDiff,
         shouldEnforceNewComponents,
-        shouldIgnoreRegularErrors,
-        shouldPrintRegularErrorsAsWarnings,
+        logLevel: logLevel as LogLevel,
         verbose,
         shouldGenerateReport,
         reportFileName,
