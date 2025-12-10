@@ -95,9 +95,9 @@ type PrintResultsOptions = {
 
 type BaseCheckOptions = PrintResultsOptions & {
     remote?: string;
-    shouldFilterByDiff?: boolean;
-    shouldEnforceNewComponents?: boolean;
-    shouldGenerateReport?: boolean;
+    filterByDiff?: boolean;
+    enforceNewComponents?: boolean;
+    report?: boolean;
     reportFileName?: string;
 };
 
@@ -105,7 +105,7 @@ type CheckOptions = BaseCheckOptions & {
     files?: string[];
 };
 
-async function check({files, remote, shouldFilterByDiff, shouldEnforceNewComponents, logLevel, verbose, shouldGenerateReport, reportFileName}: CheckOptions): Promise<boolean> {
+async function check({files, remote, filterByDiff, enforceNewComponents, logLevel, verbose, report, reportFileName}: CheckOptions): Promise<boolean> {
     const printResultsOptions: PrintResultsOptions = {logLevel, verbose};
 
     if (files) {
@@ -117,16 +117,16 @@ async function check({files, remote, shouldFilterByDiff, shouldEnforceNewCompone
     const src = createFilesGlob(files);
     let results = runCompilerHealthcheck(src);
 
-    if (shouldFilterByDiff || shouldEnforceNewComponents) {
+    if (filterByDiff || enforceNewComponents) {
         const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
         const diffFilteringCommits: DiffFilteringCommits = {fromRef: mainBaseCommitHash};
         const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef, undefined, true);
 
-        if (shouldFilterByDiff) {
+        if (filterByDiff) {
             results = await filterResultsByDiff(results, diffFilteringCommits, diffResult, printResultsOptions);
         }
 
-        if (shouldEnforceNewComponents) {
+        if (enforceNewComponents) {
             const {nonAutoMemoEnforcedFailures, addedComponentFailures} = enforceNewComponentGuard(results, diffResult);
 
             results.enforcedAddedComponentFailures = addedComponentFailures;
@@ -136,7 +136,7 @@ async function check({files, remote, shouldFilterByDiff, shouldEnforceNewCompone
 
     const isPassed = printResults(results, printResultsOptions);
 
-    if (shouldGenerateReport) {
+    if (report) {
         generateReport(results, reportFileName);
     }
 
@@ -841,14 +841,14 @@ async function main() {
 
     const {command, file} = cli.positionalArgs;
     const {remote, logLevel = 'error', reportFileName = DEFAULT_REPORT_FILENAME} = cli.namedArgs;
-    const {filterByDiff: shouldFilterByDiff, enforceNewComponents: shouldEnforceNewComponents, verbose, report: shouldGenerateReport} = cli.flags;
+    const {filterByDiff, enforceNewComponents, verbose, report} = cli.flags;
 
     const commonOptions: BaseCheckOptions = {
-        shouldFilterByDiff,
-        shouldEnforceNewComponents,
+        filterByDiff,
+        enforceNewComponents,
         logLevel: logLevel as LogLevel,
         verbose,
-        shouldGenerateReport,
+        report,
         reportFileName,
     };
 
