@@ -509,4 +509,268 @@ describe('Git', () => {
             expect(file.removedLines.size).toBe(0);
         });
     });
+
+    describe('isAddedDiffFile', () => {
+        it('returns true for newly added files with single hunk starting at line 0', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/new-file.ts b/new-file.ts
+                new file mode 100644
+                index 0000000..1234567
+                --- /dev/null
+                +++ b/new-file.ts
+                @@ -0,0 +1,3 @@
+                +const hello = 'world';
+                +const foo = 'bar';
+                +const baz = 'qux';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(Git.isAddedDiffFile(file)).toBe(true);
+        });
+
+        it('returns true for newly added files with single line', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/single-line.ts b/single-line.ts
+                new file mode 100644
+                index 0000000..1234567
+                --- /dev/null
+                +++ b/single-line.ts
+                @@ -0,0 +1,1 @@
+                +export const test = 'value';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(Git.isAddedDiffFile(file)).toBe(true);
+        });
+
+        it('returns false for files with modified lines', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/modified.ts b/modified.ts
+                index 1234567..abcdefg 100644
+                --- a/modified.ts
+                +++ b/modified.ts
+                @@ -1,1 +1,1 @@
+                -const old = 'value';
+                +const new = 'value';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(Git.isAddedDiffFile(file)).toBe(false);
+        });
+
+        it('returns false for files with removed lines', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/removed.ts b/removed.ts
+                index 1234567..abcdefg 100644
+                --- a/removed.ts
+                +++ b/removed.ts
+                @@ -2,2 +2,0 @@
+                -const removed1 = 'value1';
+                -const removed2 = 'value2';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(Git.isAddedDiffFile(file)).toBe(false);
+        });
+
+        it('returns false for files with both added and modified lines', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/mixed.ts b/mixed.ts
+                index 1234567..abcdefg 100644
+                --- a/mixed.ts
+                +++ b/mixed.ts
+                @@ -1,1 +1,2 @@
+                -const old = 'value';
+                +const new = 'value';
+                +const added = 'new';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(Git.isAddedDiffFile(file)).toBe(false);
+        });
+
+        it('returns false for files with both added and removed lines', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/mixed.ts b/mixed.ts
+                index 1234567..abcdefg 100644
+                --- a/mixed.ts
+                +++ b/mixed.ts
+                @@ -1,1 +1,1 @@
+                -const removed = 'value';
+                +const added = 'value';
+                @@ -3,0 +4,1 @@
+                +const newLine = 'new';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(Git.isAddedDiffFile(file)).toBe(false);
+        });
+
+        it('returns false for files with multiple hunks', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/multi-hunk.ts b/multi-hunk.ts
+                new file mode 100644
+                index 0000000..1234567
+                --- /dev/null
+                +++ b/multi-hunk.ts
+                @@ -0,0 +1,2 @@
+                +const first = 'value';
+                +const second = 'value';
+                @@ -0,0 +3,2 @@
+                +const third = 'value';
+                +const fourth = 'value';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(Git.isAddedDiffFile(file)).toBe(false);
+        });
+
+        it('returns false for files with added lines but oldStart !== 0', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/inserted.ts b/inserted.ts
+                index 1234567..abcdefg 100644
+                --- a/inserted.ts
+                +++ b/inserted.ts
+                @@ -5,0 +6,2 @@
+                +const inserted1 = 'value1';
+                +const inserted2 = 'value2';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(Git.isAddedDiffFile(file)).toBe(false);
+        });
+
+        it('returns false for files with added lines but oldCount !== 0', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/partial.ts b/partial.ts
+                index 1234567..abcdefg 100644
+                --- a/partial.ts
+                +++ b/partial.ts
+                @@ -1,1 +1,2 @@
+                 const existing = 'value';
+                +const added = 'new';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(Git.isAddedDiffFile(file)).toBe(false);
+        });
+
+        it('returns false for files with no added lines', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/no-additions.ts b/no-additions.ts
+                index 1234567..abcdefg 100644
+                --- a/no-additions.ts
+                +++ b/no-additions.ts
+                @@ -1,2 +1,0 @@
+                -const removed1 = 'value1';
+                -const removed2 = 'value2';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(Git.isAddedDiffFile(file)).toBe(false);
+        });
+
+        it('returns false for files with only modified lines and no additions', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/modified-only.ts b/modified-only.ts
+                index 1234567..abcdefg 100644
+                --- a/modified-only.ts
+                +++ b/modified-only.ts
+                @@ -1,1 +1,1 @@
+                -const old = 'old';
+                +const new = 'new';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(Git.isAddedDiffFile(file)).toBe(false);
+        });
+    });
 });
