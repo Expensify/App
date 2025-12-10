@@ -5,10 +5,11 @@ import type {ExtraContentProps, PlatformStackNavigationProp} from '@libs/Navigat
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import ReportScreen from '@pages/home/ReportScreen';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
 function Concierge({navigation}: Pick<ExtraContentProps, 'navigation'>) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
-    const route = useMemo(() => !!conciergeReportID && ({name: 'Report', params: {reportID: conciergeReportID}, key: 'Report-Concierge-Key'} as const), [conciergeReportID]);
+    const route = useMemo(() => !!conciergeReportID && ({name: SCREENS.REPORT, params: {reportID: conciergeReportID}, key: 'Report-Concierge-Key'} as const), [conciergeReportID]);
 
     if (!route) {
         return null;
@@ -18,7 +19,7 @@ function Concierge({navigation}: Pick<ExtraContentProps, 'navigation'>) {
         <NavigationRouteContext.Provider value={route}>
             <ReportScreen
                 route={route}
-                navigation={navigation as unknown as PlatformStackNavigationProp<ReportsSplitNavigatorParamList, 'Report'>}
+                navigation={navigation as unknown as PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>}
                 isInSidePanel
             />
         </NavigationRouteContext.Provider>
