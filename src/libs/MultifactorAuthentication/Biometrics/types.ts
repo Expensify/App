@@ -1,11 +1,11 @@
 import type {ViewStyle} from 'react-native';
 import type {EmptyObject, ValueOf} from 'type-fest';
+import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config';
 import type {AllMultifactorAuthenticationNotificationType} from '@components/MultifactorAuthentication/types';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
@@ -28,7 +28,7 @@ type MultifactorAuthenticationCancelConfirm = {
 };
 
 type MultifactorAuthenticationUIConfig = {
-    illustration: IconAsset;
+    illustration: IllustrationName;
     iconWidth: number;
     iconHeight: number;
     padding: ViewStyle;

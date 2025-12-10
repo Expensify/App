@@ -3,9 +3,11 @@ import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP} from '@components/MultifactorAuthentication/config';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,6 +29,8 @@ function MultifactorAuthenticationNotificationPage({route}: MultifactorAuthentic
 
     const data = MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP[route.params.notificationType];
 
+    const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(data.illustration));
+
     const {headerTitle, title, content} = {headerTitle: info.headerTitle, title: info.title, content: info.message};
 
     if (!data) {
@@ -42,7 +46,7 @@ function MultifactorAuthenticationNotificationPage({route}: MultifactorAuthentic
             />
             <View style={styles.flex1}>
                 <BlockingView
-                    icon={data.illustration}
+                    icon={icon}
                     contentFitImage="fill"
                     iconWidth={data.iconWidth}
                     iconHeight={data.iconHeight}
