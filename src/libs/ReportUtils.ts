@@ -6717,7 +6717,7 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
 
     let createdDate;
     if (report.lastVisibleActionCreated) {
-        const normalizedDate = DateUtils.convertDBDateTimeToISO(report.lastVisibleActionCreated);
+        const normalizedDate = report.lastVisibleActionCreated.endsWith('Z') ? report.lastVisibleActionCreated : `${report.lastVisibleActionCreated}Z`;
         createdDate = new Date(normalizedDate);
     }
     const result = formula
