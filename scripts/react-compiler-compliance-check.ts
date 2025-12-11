@@ -646,12 +646,13 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
         log();
     }
 
+    // In Phase 1, we print all errors on modified lines and files as warnings.
+    // TODO: In Phase 2, print errors instead.
     const shouldPrintAsWarnings = mode === 'incremental';
 
-    const didRegularCheckSucceed = shouldPrintAsWarnings || failures.size === 0;
-    const didEnforcedCheckSucceed = !manualMemoFailures || manualMemoFailures.size === 0;
-
-    const isPassed = didRegularCheckSucceed && didEnforcedCheckSucceed;
+    const didRegularCheckPass = failures.size === 0 || shouldPrintAsWarnings;
+    const hasManualMemoErrors = manualMemoFailures && manualMemoFailures.size > 0;
+    const isPassed = didRegularCheckPass && !hasManualMemoErrors;
 
     if (failures.size > 0) {
         const {distinctFileNames: distinctFailureFileNames} = getErrorsByFile(failures);
@@ -672,11 +673,11 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
     }
 
     // Print an extra empty line if no enforced errors are printed.
-    if (shouldPrintAsWarnings && didEnforcedCheckSucceed) {
+    if (shouldPrintAsWarnings && !hasManualMemoErrors) {
         log();
     }
 
-    if (!didEnforcedCheckSucceed) {
+    if (hasManualMemoErrors) {
         log();
         logError(`The following newly added components should rely on React Compiler’s automatic memoization (manual memoization is not allowed):`);
 
