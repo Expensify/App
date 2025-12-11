@@ -540,6 +540,7 @@ function SearchPage({route}: SearchPageProps) {
                 },
             });
         }
+
         const shouldShowSubmitOption =
             !isOffline &&
             areSelectedTransactionsIncludedInReports &&
