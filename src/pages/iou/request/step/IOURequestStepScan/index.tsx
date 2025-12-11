@@ -365,6 +365,8 @@ function IOURequestStepScan({
             quickAction,
             policy,
             personalPolicy?.autoReporting,
+            isASAPSubmitBetaEnabled,
+            transactionViolations,
         ],
     );
 

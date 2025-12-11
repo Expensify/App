@@ -325,7 +325,6 @@ function IOURequestStepDistanceMap({
         personalPolicy?.autoReporting,
         reportID,
         transactionViolations,
-        currentUserPersonalDetails.accountID,
         quickAction,
     ]);
 

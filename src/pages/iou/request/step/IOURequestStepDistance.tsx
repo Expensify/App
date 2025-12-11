@@ -323,7 +323,6 @@ function IOURequestStepDistance({
         personalPolicy?.autoReporting,
         reportID,
         transactionViolations,
-        currentUserPersonalDetails.accountID,
         quickAction,
     ]);
 

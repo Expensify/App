@@ -193,7 +193,6 @@ function IOURequestStepDistanceManual({
             report,
             reportNameValuePairs,
             iouType,
-            shouldUseDefaultExpensePolicy,
             distance,
             transaction,
             reportID,
@@ -211,7 +210,6 @@ function IOURequestStepDistanceManual({
             defaultExpensePolicy,
             personalPolicy?.autoReporting,
             transactionViolations,
-            currentUserPersonalDetails.accountID,
             quickAction,
         ],
     );
