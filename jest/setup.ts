@@ -299,10 +299,3 @@ jest.mock('@components/ActionSheetAwareScrollView/index.android');
 jest.mock('@components/ActionSheetAwareScrollView/ActionSheetAwareScrollViewContext');
 
 jest.mock('@src/components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext');
-
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-    getCurrentPosition: jest.fn(),
-    watchPosition: jest.fn(),
-    clearWatch: jest.fn(),
-}));
