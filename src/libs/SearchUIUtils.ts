@@ -1542,7 +1542,6 @@ function getReportSectionsMetadata(data: OnyxTypes.SearchResults['data']) {
             transactionKeys.push(key);
             const item = data[key];
 
-            // Check for merchant
             if (!shouldShowMerchant) {
                 const merchant = item.modifiedMerchant ? item.modifiedMerchant : (item.merchant ?? '');
                 if (merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
@@ -1550,12 +1549,10 @@ function getReportSectionsMetadata(data: OnyxTypes.SearchResults['data']) {
                 }
             }
 
-            // Check for year
             if (!anyPastYearItem && shouldShowTransactionYear(item)) {
                 anyPastYearItem = true;
             }
 
-            // Check for wide amount
             if (!isAmountWide) {
                 isAmountWide = isTransactionAmountTooLong(item);
             }
@@ -1563,7 +1560,6 @@ function getReportSectionsMetadata(data: OnyxTypes.SearchResults['data']) {
                 isTaxAmountWide = isTransactionTaxAmountTooLong(item);
             }
 
-            // Report actions lookup logic (linking hold actions)
             if (allHoldReportActions.size > holdReportActionsByTransactionID.size) {
                 const holdReportActionID = item?.comment?.hold;
                 if (holdReportActionID) {
@@ -1584,7 +1580,6 @@ function getReportSectionsMetadata(data: OnyxTypes.SearchResults['data']) {
                     }
                 }
 
-                // Report actions lookup logic
                 if (isMoneyRequestAction(action)) {
                     const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
                     const transactionID = originalMessage?.IOUTransactionID;
@@ -1936,7 +1931,6 @@ function getSections({
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        console.log('getReportSections');
         return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, reportActions);
     }
 
