@@ -627,9 +627,9 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
 
     // In Phase 1, we print all errors on modified lines and files as warnings.
     // TODO: In Phase 2, print errors instead.
-    const shouldPrintAsWarnings = mode === 'incremental';
+    const shouldTreatReactCompilerErrorsAsWarnings = mode === 'incremental';
 
-    const didRegularCheckPass = failures.size === 0 || shouldPrintAsWarnings;
+    const didRegularCheckPass = failures.size === 0 || shouldTreatReactCompilerErrorsAsWarnings;
     const hasManualMemoErrors = manualMemoFailures && manualMemoFailures.size > 0;
     const isPassed = didRegularCheckPass && !hasManualMemoErrors;
 
@@ -637,14 +637,14 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
         const distinctFailureFileNames = getDistinctFailureFileNames(failures);
 
         if (distinctFailureFileNames.size > 0) {
-            const logMethod = shouldPrintAsWarnings ? logWarn : logError;
+            const logMethod = shouldTreatReactCompilerErrorsAsWarnings ? logWarn : logError;
             log();
             logMethod(`Failed to compile ${distinctFailureFileNames.size} files with React Compiler:`);
             log();
 
             printFailures(failures);
 
-            if (shouldPrintAsWarnings) {
+            if (shouldTreatReactCompilerErrorsAsWarnings) {
                 log();
                 logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and can get ignored.');
             }
@@ -652,7 +652,7 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
     }
 
     // Print an extra empty line if no enforced errors are printed.
-    if (shouldPrintAsWarnings && !hasManualMemoErrors) {
+    if (shouldTreatReactCompilerErrorsAsWarnings && !hasManualMemoErrors) {
         log();
     }
 
