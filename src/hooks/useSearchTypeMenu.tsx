@@ -32,7 +32,23 @@ import useWindowDimensions from './useWindowDimensions';
 
 export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {hash, similarSearchHash} = queryJSON;
-    const shouldSkipSuggestedSearchNavigation = !!queryJSON.rawFilterList;
+    const shouldSkipSuggestedSearchNavigation = useMemo(() => {
+        const hasKeywordFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+        const hasContextFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN);
+        const inputQuery = queryJSON.inputQuery?.toLowerCase() ?? '';
+        const hasInlineKeywordFilter = inputQuery.includes(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD.toLowerCase()}:`);
+        const hasInlineContextFilter = inputQuery.includes(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN.toLowerCase()}:`);
+        const isChatSearch = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+
+        return (
+            !!queryJSON.rawFilterList ||
+            hasKeywordFilter ||
+            hasContextFilter ||
+            hasInlineKeywordFilter ||
+            hasInlineContextFilter ||
+            isChatSearch
+        );
+    }, [queryJSON.flatFilters, queryJSON.rawFilterList, queryJSON.inputQuery, queryJSON.type]);
 
     const theme = useTheme();
     const styles = useThemeStyles();
