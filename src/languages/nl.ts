@@ -734,6 +734,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domeinen',
         viewReport: 'Rapport bekijken',
         actionRequired: 'Actie vereist',
+        duplicate: 'Dupliceren',
+        duplicated: 'Gedupliceerd',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -6186,7 +6188,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 adultEntertainment: 'Volwassenenentertainment',
             },
             expenseReportRules: {
-                title: 'Onkostendeclaraties',
+                title: 'Geavanceerd',
                 subtitle: 'Automatiseer naleving, goedkeuringen en betalingen van onkostendeclaraties.',
                 preventSelfApprovalsTitle: 'Zelfgoedkeuringen voorkomen',
                 preventSelfApprovalsSubtitle: 'Voorkom dat werkruimtedeelnemers hun eigen onkostendeclaraties goedkeuren.',
@@ -6202,8 +6204,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 autoPayApprovedReportsLockedSubtitle: 'Ga naar Meer functies en schakel Workflows in, voeg vervolgens Betalingen toe om deze functie te ontgrendelen.',
                 autoPayReportsUnderTitle: 'Rapporten automatisch betalen onder',
                 autoPayReportsUnderDescription: 'Volledig conforme onkostendeclaraties onder dit bedrag worden automatisch betaald.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Ga naar [meer functies](${moreFeaturesLink}) en schakel workflows in, voeg vervolgens ${featureName} toe om deze functie te ontgrendelen.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Voeg ${featureName} toe om deze functie te ontgrendelen.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,
             },
