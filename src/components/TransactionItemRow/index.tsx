@@ -492,7 +492,6 @@ function TransactionItemRow({
                             </View>
                         )}
                     </View>
-
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
                         <View style={[styles.flexColumn, styles.flex1]}>
                             {hasCategoryOrTag && (
@@ -509,7 +508,6 @@ function TransactionItemRow({
                                     />
                                 </View>
                             )}
-
                             {shouldShowErrors && (
                                 <TransactionItemRowRBR
                                     transaction={transactionItem}
