@@ -165,6 +165,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, ac
         isUserValidated,
         phoneErrorMethodsRoute,
         activePolicyID,
+        shouldShowVerifyAccountModal,
     ]);
 
     return (
