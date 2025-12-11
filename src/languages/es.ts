@@ -375,6 +375,8 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Está tardando más de lo esperado...',
         domains: 'Dominios',
         actionRequired: 'Acción requerida',
+        duplicate: 'Duplicar',
+        duplicated: 'Duplicado',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -5737,7 +5739,7 @@ ${amount} para ${merchant} - ${date}`,
                 adultEntertainment: 'Entretenimiento para adultos',
             },
             expenseReportRules: {
-                title: 'Informes de gastos',
+                title: 'Avanzado',
                 subtitle: 'Automatiza el cumplimiento, la aprobación y el pago de los informes de gastos.',
                 preventSelfApprovalsTitle: 'Evitar autoaprobaciones',
                 preventSelfApprovalsSubtitle: 'Evita que los miembros del espacio de trabajo aprueben sus propios informes de gastos.',
@@ -5753,8 +5755,7 @@ ${amount} para ${merchant} - ${date}`,
                 autoPayApprovedReportsLockedSubtitle: 'Ve a más funciones y habilita flujos de trabajo, luego agrega pagos para desbloquear esta función.',
                 autoPayReportsUnderTitle: 'Pagar automáticamente informes por debajo de',
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de esta cantidad se pagarán automáticamente.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}) =>
-                    `Ir a [más características](${moreFeaturesLink}) y habilita flujos de trabajo, luego agrega ${featureName} para desbloquear esta función.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}) => `Añade ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}) => `Ir a [más características](${moreFeaturesLink}) y habilita ${featureName} para desbloquear esta función.`,
             },
             categoryRules: {

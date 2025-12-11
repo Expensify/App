@@ -733,6 +733,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domínios',
         viewReport: 'Ver relatório',
         actionRequired: 'Ação necessária',
+        duplicate: 'Duplicar',
+        duplicated: 'Duplicado',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -6185,7 +6187,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 adultEntertainment: 'Entretenimento adulto',
             },
             expenseReportRules: {
-                title: 'Relatórios de despesas',
+                title: 'Avançado',
                 subtitle: 'Automatize a conformidade, as aprovações e o pagamento de relatórios de despesas.',
                 preventSelfApprovalsTitle: 'Impedir autoaprovações',
                 preventSelfApprovalsSubtitle: 'Impedir que membros do workspace aprovem seus próprios relatórios de despesas.',
@@ -6201,8 +6203,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 autoPayApprovedReportsLockedSubtitle: 'Vá para Mais recursos e ative Fluxos de trabalho, depois adicione Pagamentos para desbloquear este recurso.',
                 autoPayReportsUnderTitle: 'Relatórios de pagamento automático sob',
                 autoPayReportsUnderDescription: 'Relatórios de despesas totalmente compatíveis abaixo deste valor serão pagos automaticamente.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Vá para [mais recursos](${moreFeaturesLink}) e ative fluxos de trabalho, depois adicione ${featureName} para desbloquear este recurso.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Adicione ${featureName} para desbloquear esse recurso.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Vá para [mais recursos](${moreFeaturesLink}) e ative ${featureName} para desbloquear este recurso.`,
             },

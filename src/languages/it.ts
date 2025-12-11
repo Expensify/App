@@ -735,6 +735,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domini',
         viewReport: 'Visualizza rendiconto',
         actionRequired: 'Azione richiesta',
+        duplicate: 'Duplica',
+        duplicated: 'Duplicato',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -6202,7 +6204,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 adultEntertainment: 'Intrattenimento per adulti',
             },
             expenseReportRules: {
-                title: 'Note spese',
+                title: 'Avanzato',
                 subtitle: 'Automatizza la conformità delle note spese, le approvazioni e i pagamenti.',
                 preventSelfApprovalsTitle: 'Impedisci autoapprovazioni',
                 preventSelfApprovalsSubtitle: 'Impedisci ai membri dello spazio di lavoro di approvare i propri report spese.',
@@ -6218,8 +6220,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 autoPayApprovedReportsLockedSubtitle: 'Vai su Altre funzionalità e abilita i workflow, quindi aggiungi i pagamenti per sbloccare questa funzionalità.',
                 autoPayReportsUnderTitle: 'Pagamento automatico dei report inferiori a',
                 autoPayReportsUnderDescription: 'Le note spese completamente conformi inferiori a questo importo verranno rimborsate automaticamente.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Vai a [altre funzionalità](${moreFeaturesLink}) e abilita i flussi di lavoro, quindi aggiungi ${featureName} per sbloccare questa funzionalità.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Aggiungi ${featureName} per sbloccare questa funzionalità.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Vai a [altre funzionalità](${moreFeaturesLink}) e abilita ${featureName} per sbloccare questa funzione.`,
             },

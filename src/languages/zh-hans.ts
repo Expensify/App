@@ -730,6 +730,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: '域名',
         viewReport: '查看报告',
         actionRequired: '需要操作',
+        duplicate: '复制',
+        duplicated: '已重复',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -6072,7 +6074,7 @@ ${reportName}
                 adultEntertainment: '成人娱乐',
             },
             expenseReportRules: {
-                title: '报销报告',
+                title: '高级',
                 subtitle: '自动化处理费用报表的合规性、审批和付款。',
                 preventSelfApprovalsTitle: '防止自我审批',
                 preventSelfApprovalsSubtitle: '防止工作区成员批准自己的报销报告。',
@@ -6088,8 +6090,7 @@ ${reportName}
                 autoPayApprovedReportsLockedSubtitle: '前往“更多功能”并启用“工作流”，然后添加“付款”以解锁此功能。',
                 autoPayReportsUnderTitle: '自动支付报表至',
                 autoPayReportsUnderDescription: '金额低于此数且完全合规的报销单将自动支付。',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `前往[更多功能](${moreFeaturesLink})并启用工作流，然后添加 ${featureName} 以解锁此功能。`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `添加 ${featureName} 以解锁此功能。`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) => `前往[更多功能](${moreFeaturesLink})并启用 ${featureName} 以解锁此功能。`,
             },
             categoryRules: {
