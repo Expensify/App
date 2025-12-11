@@ -36,6 +36,7 @@ import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationRef, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
+import getSearchTopmostReportParams from './getSearchTopmostReportParams';
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES = new Set<Route>([
@@ -108,6 +109,11 @@ function canNavigate(methodName: string, params: CanNavigateParams = {}): boolea
  * Extracts from the topmost report its id.
  */
 const getTopmostReportId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportID;
+
+/**
+ * Extracts from the topmost report its id which also include the RHP report and search money request report.
+ */
+const getSearchTopmostReportId = (state = navigationRef.getRootState()) => getSearchTopmostReportParams(state)?.reportID;
 
 /**
  * Extracts from the topmost report its action id.
@@ -786,6 +792,7 @@ export default {
     isValidateLoginFlow,
     dismissToFirstRHP,
     dismissToSecondRHP,
+    getSearchTopmostReportId,
 };
 
 export {navigationRef};
