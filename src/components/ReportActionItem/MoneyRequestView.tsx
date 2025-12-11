@@ -55,7 +55,8 @@ import {
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getTransactionDetails,
-    getTripIDFromTransactionParentReportID, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getTripIDFromTransactionParentReportID, 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     isInvoiceReport,
     isPaidGroupPolicy,
