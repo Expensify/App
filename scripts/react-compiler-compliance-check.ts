@@ -86,23 +86,25 @@ type DiffFilteringCommits = {
     toRef?: string;
 };
 
-type PrintResultsOptions = {
-    logLevel: LogLevel;
-    verbose: boolean;
-};
+type CheckMode = 'static' | 'incremental';
 
-type BaseCheckOptions = PrintResultsOptions & {
+type BaseCheckParameters = {
     remote?: string;
-    filterByDiff?: boolean;
-    enforceNewComponents?: boolean;
+    verbose?: boolean;
 };
 
-type CheckOptions = BaseCheckOptions & {
+type CheckParameters = BaseCheckParameters & {
+    mode?: CheckMode;
     files?: string[];
 };
 
-async function check({files, remote, filterByDiff, enforceNewComponents, logLevel, verbose}: CheckOptions): Promise<boolean> {
-    const printResultsOptions: PrintResultsOptions = {logLevel, verbose};
+type CheckOptions = {
+    mode: CheckMode;
+    verbose: boolean;
+};
+
+async function check({mode = 'static', files, remote, verbose = false}: CheckParameters): Promise<boolean> {
+    const options: CheckOptions = {mode, verbose};
 
     if (files) {
         logInfo(`Running React Compiler check for ${files.length} files or glob patterns...`);
@@ -113,13 +115,16 @@ async function check({files, remote, filterByDiff, enforceNewComponents, logLeve
     const src = createFilesGlob(files);
     let results = runCompilerHealthcheck(src);
 
+    const filterByDiff = mode === 'incremental';
+    const enforceNewComponents = true;
+
     if (filterByDiff || enforceNewComponents) {
         const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
         const diffFilteringCommits: DiffFilteringCommits = {fromRef: mainBaseCommitHash};
         const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef, undefined, true);
 
         if (filterByDiff) {
-            results = await filterResultsByDiff(results, diffFilteringCommits, diffResult, printResultsOptions);
+            results = await filterResultsByDiff(results, diffFilteringCommits, diffResult, options);
         }
 
         if (enforceNewComponents) {
@@ -130,14 +135,14 @@ async function check({files, remote, filterByDiff, enforceNewComponents, logLeve
         }
     }
 
-    const isPassed = printResults(results, printResultsOptions);
+    const isPassed = printResults(results, options);
 
     generateReport(results);
 
     return isPassed;
 }
 
-async function checkChangedFiles({remote, ...restOptions}: BaseCheckOptions): Promise<boolean> {
+async function checkChangedFiles({remote, ...restOptions}: BaseCheckParameters): Promise<boolean> {
     logInfo('Checking changed files for React Compiler compliance...');
 
     const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
@@ -148,7 +153,7 @@ async function checkChangedFiles({remote, ...restOptions}: BaseCheckOptions): Pr
         return true;
     }
 
-    return check({files: changedFiles, ...restOptions});
+    return check({mode: 'incremental', files: changedFiles, ...restOptions});
 }
 
 function runCompilerHealthcheck(src?: string): CompilerResults {
@@ -333,7 +338,7 @@ function createFilesGlob(files?: string[]): string | undefined {
  * @param diffFilteringCommits - The commit range to diff (from and to)
  * @returns Filtered compiler results containing only failures in changed lines or eslint-disabled areas
  */
-async function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits, diffResult: DiffResult, {verbose}: PrintResultsOptions): Promise<CompilerResults> {
+async function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits, diffResult: DiffResult, {verbose}: CheckOptions): Promise<CompilerResults> {
     logInfo(`Filtering results by diff between ${diffFilteringCommits.fromRef} and ${diffFilteringCommits.toRef ?? 'the working tree'}...`);
 
     // If there are no changes, return empty results
@@ -587,7 +592,7 @@ function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] 
  * @param results - The compiler results to print
  * @param options - The options for printing the results
  */
-function printResults({success, failures, suppressedFailures, manualMemoFailures}: CompilerResults, {logLevel, verbose}: PrintResultsOptions): boolean {
+function printResults({success, failures, suppressedFailures, manualMemoFailures}: CompilerResults, {mode, verbose}: CheckOptions): boolean {
     if (verbose && success.size > 0) {
         log();
         logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
@@ -628,7 +633,9 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
         log();
     }
 
-    const didRegularCheckSucceed = logLevel === 'warning' || failures.size === 0;
+    const shouldPrintAsWarnings = mode === 'incremental';
+
+    const didRegularCheckSucceed = shouldPrintAsWarnings || failures.size === 0;
     const didEnforcedCheckSucceed = !manualMemoFailures || manualMemoFailures.size === 0;
 
     const isPassed = didRegularCheckSucceed && didEnforcedCheckSucceed;
@@ -640,14 +647,14 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
         }
 
         if (distinctFileNames.size > 0) {
-            const logMethod = logLevel === 'warning' ? logWarn : logError;
+            const logMethod = shouldPrintAsWarnings ? logWarn : logError;
             log();
             logMethod(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
             log();
 
             printFailures(failures);
 
-            if (logLevel === 'warning') {
+            if (shouldPrintAsWarnings) {
                 log();
                 logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and should be ignored.');
             }
@@ -655,7 +662,7 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
     }
 
     // Print an extra empty line if no enforced errors are printed.
-    if (logLevel === 'warning' && didEnforcedCheckSucceed) {
+    if (shouldPrintAsWarnings && didEnforcedCheckSucceed) {
         log();
     }
 
@@ -757,9 +764,6 @@ const Checker = {
 const CLI_COMMANDS = ['check', 'check-changed'] as const;
 type CliCommand = TupleToUnion<typeof CLI_COMMANDS>;
 
-const LOG_LEVELS = ['error', 'warning'] as const;
-type LogLevel = TupleToUnion<typeof LOG_LEVELS>;
-
 // CLI interface
 async function main() {
     const cli = new CLI({
@@ -789,29 +793,8 @@ async function main() {
                 required: false,
                 supersedes: ['check-changed'],
             },
-            logLevel: {
-                description: 'Set the log level (error (default) or warning)',
-                required: false,
-                default: 'error',
-                parse: (val) => {
-                    if (!LOG_LEVELS.includes(val as LogLevel)) {
-                        throw new Error(`Invalid log level. Must be one of: info, warn, error`);
-                    }
-                    return val;
-                },
-            },
         },
         flags: {
-            filterByDiff: {
-                description: 'Filter the files to check by the diff between the current commit/PR and the main branch',
-                required: false,
-                default: false,
-            },
-            enforceNewComponents: {
-                description: 'Ensure new components compile with React Compiler and avoid manual memoization',
-                required: false,
-                default: false,
-            },
             verbose: {
                 description: 'Print logs of successes and suppressed errors',
                 required: false,
@@ -821,13 +804,10 @@ async function main() {
     });
 
     const {command, file} = cli.positionalArgs;
-    const {remote, logLevel = 'error'} = cli.namedArgs;
-    const {filterByDiff, enforceNewComponents, verbose} = cli.flags;
+    const {remote} = cli.namedArgs;
+    const {verbose} = cli.flags;
 
-    const commonOptions: BaseCheckOptions = {
-        filterByDiff,
-        enforceNewComponents,
-        logLevel: logLevel as LogLevel,
+    const commonOptions: BaseCheckParameters = {
         verbose,
     };
 
