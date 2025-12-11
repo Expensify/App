@@ -279,10 +279,6 @@ function MoneyRequestView({
             (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy)),
         [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID, isPerDiemRequest, policy],
     );
-    const canEditCategory = useMemo(
-        () => isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.CATEGORY, undefined, isChatReportArchived),
-        [isEditable, parentReportAction, isChatReportArchived],
-    );
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
@@ -297,8 +293,7 @@ function MoneyRequestView({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowCategory =
         (isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) ||
-        (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {}))) ||
-        (isIOUReport(moneyRequestReport) && categoryForDisplay);
+        (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {})));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || hasEnabledTags(policyTagLists));
@@ -828,8 +823,8 @@ function MoneyRequestView({
                             description={translate('common.category')}
                             title={decodedCategoryName}
                             numberOfLinesTitle={2}
-                            interactive={canEditCategory}
-                            shouldShowRightIcon={canEditCategory}
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => {
                                 if (shouldNavigateToUpgradePath) {

@@ -114,6 +114,7 @@ import {
     isClosedReport,
     isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
+    isIOUReport,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
     isOneTransactionReport,
@@ -2458,6 +2459,7 @@ function getColumnsToShow(
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
     isExpenseReportView = false,
     type?: SearchDataTypes,
+    isExpenseReportViewFromIOUReport = false,
 ): ColumnVisibility {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         return {
@@ -2537,12 +2539,12 @@ function getColumnsToShow(
 
         const category = getCategory(transaction);
         if (category !== '' && category !== CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = true;
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = !isExpenseReportViewFromIOUReport;
         }
 
         const tag = getTag(transaction);
         if (tag !== '' && tag !== CONST.SEARCH.TAG_EMPTY_VALUE) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = true;
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
         }
 
         if (isExpenseReportView) {
@@ -2560,6 +2562,9 @@ function getColumnsToShow(
             if (accountID && accountID !== currentAccountID) {
                 columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
             }
+
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] && !isIOUReport(report);
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] && !isIOUReport(report);
 
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const toFieldValue = getToFieldValueForTransaction(transaction as SearchTransaction, report, data.personalDetailsList, reportAction);

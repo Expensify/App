@@ -4711,17 +4711,13 @@ function canEditFieldOfMoneyRequest(
         return false;
     }
 
-    const iouMessage = getOriginalMessage(reportAction);
-    const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
-
     // If we're editing fields such as category, tag, description, etc. the check above should be enough for handling the permission
     if (!restrictedFields.includes(fieldToEdit)) {
-        if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.CATEGORY) {
-            return !isIOUReport(moneyRequestReport);
-        }
         return true;
     }
 
+    const iouMessage = getOriginalMessage(reportAction);
+    const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
     const transaction = linkedTransaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {

@@ -19,7 +19,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import {isSettled} from '@libs/ReportUtils';
+import {isIOUReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
@@ -481,7 +481,7 @@ function TransactionItemRow({
                     </View>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
                         <View style={[styles.flexColumn, styles.flex1]}>
-                            {hasCategoryOrTag && (
+                            {hasCategoryOrTag && !isIOUReport(report) && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
                                     <CategoryCell
                                         transactionItem={transactionItem}
