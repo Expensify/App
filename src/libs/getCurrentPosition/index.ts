@@ -15,9 +15,9 @@ const getCurrentPosition: GetCurrentPosition = async (success, error, options) =
 
     try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-        const currentPosition = (await getCurrentPositionAsync(options)) as LocationObject;
+        const currentPosition = await getCurrentPositionAsync(options);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        success(currentPosition);
+        success(currentPosition as LocationObject);
     } catch (caughtError: unknown) {
         let message = 'Geolocation call failed';
         let code = GeolocationErrorCode.POSITION_UNAVAILABLE;

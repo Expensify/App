@@ -179,12 +179,12 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      */
     const showContextMenu: ReportActionContextMenu['showContextMenu'] = (showContextMenuParams) => {
         const {
-            type,
+            type: contextMenuType,
             event,
-            selection,
+            selection: contextMenuSelection,
             contextMenuAnchor,
             report: currentReport = {},
-            reportAction = {},
+            reportAction: contextMenuReportAction = {},
             callbacks = {},
             disabledOptions = [],
             shouldCloseOnTarget = false,
@@ -197,8 +197,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             setComposerToRefocusOnClose('edit');
         }
 
-        const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = currentReport;
-        const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
+        const {reportID: contextReportID, originalReportID: contextOriginalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = currentReport;
+        const {reportActionID: contextReportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = contextMenuReportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
         setIsWithoutOverlay(withoutOverlay);
@@ -237,12 +237,12 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             }
         }).then(() => {
             setDisabledActions(disabledOptions);
-            setType(type);
-            setReportID(reportID);
-            setReportActionID(reportActionID);
+            setType(contextMenuType);
+            setReportID(contextReportID);
+            setReportActionID(contextReportActionID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            setOriginalReportID(originalReportID || undefined);
-            setSelection(selection);
+            setOriginalReportID(contextOriginalReportID || undefined);
+            setSelection(contextMenuSelection);
             setIsPopoverVisible(true);
             setReportActionDraftMessage(draftMessage);
             setIsRoomArchived(isArchivedRoom);
@@ -376,6 +376,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         DeviceEventEmitter.emit(`deletedReportAction_${reportID}`, currentReportAction?.reportActionID);
     }, [
         report,
+        reportAction,
+        reportID,
         iouReport,
         chatReport,
         duplicateTransactions,
@@ -397,13 +399,13 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     };
 
     /** Opens the Confirm delete action modal */
-    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
+    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (deleteReportID, deleteReportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
         onCancelDeleteModal.current = onCancel;
         onConfirmDeleteModal.current = onConfirm;
-        setReportID(reportID);
-        setReportAction(reportAction ?? null);
+        setReportID(deleteReportID);
+        setReportAction(deleteReportAction ?? null);
 
-        const currentReportAction = reportAction ?? null;
+        const currentReportAction = deleteReportAction ?? null;
         showConfirmModal({
             title: translate('reportActionContextMenu.deleteAction', {action: currentReportAction}),
             prompt: translate('reportActionContextMenu.deleteConfirmation', {action: currentReportAction}),
