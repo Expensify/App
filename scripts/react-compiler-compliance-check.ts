@@ -197,7 +197,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         suppressedErrors: new Map(),
     };
 
-    let currentFailureWithoutReason: ReactCompilerError | null = null;
+    let currentErrorWithoutReason: ReactCompilerError | null = null;
 
     // Parse verbose output
     for (const line of lines) {
@@ -210,64 +210,64 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         }
 
         // Parse failed file paths with file, location, and reason all on one line
-        const failureWithReasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITH_REASON);
-        if (failureWithReasonMatch) {
-            const newFailure: ReactCompilerError = {
-                file: failureWithReasonMatch[1],
-                line: parseInt(failureWithReasonMatch[2], 10),
-                column: parseInt(failureWithReasonMatch[3], 10),
-                reason: failureWithReasonMatch[4],
+        const errorWithReasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITH_REASON);
+        if (errorWithReasonMatch) {
+            const newError: ReactCompilerError = {
+                file: errorWithReasonMatch[1],
+                line: parseInt(errorWithReasonMatch[2], 10),
+                column: parseInt(errorWithReasonMatch[3], 10),
+                reason: errorWithReasonMatch[4],
             };
 
             // If we already have a reason, we don't want to set the reason again
-            currentFailureWithoutReason = null;
+            currentErrorWithoutReason = null;
 
-            if (shouldSuppressCompilerError(newFailure.reason)) {
-                addErrorIfDoesNotExist(results.suppressedErrors, newFailure);
+            if (shouldSuppressCompilerError(newError.reason)) {
+                addErrorIfDoesNotExist(results.suppressedErrors, newError);
                 continue;
             }
 
-            // Only add if failure does not exist already, or if existing one has no reason
-            addErrorIfDoesNotExist(results.reactCompilerErrors, newFailure);
+            // Only add if error does not exist already, or if existing one has no reason
+            addErrorIfDoesNotExist(results.reactCompilerErrors, newError);
         }
 
         // Parse failed compilation with file and location only (fallback)
-        const failureWithoutReasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITHOUT_REASON);
-        if (failureWithoutReasonMatch) {
-            const newFailure: ReactCompilerError = {
-                file: failureWithoutReasonMatch[1],
-                line: parseInt(failureWithoutReasonMatch[2], 10),
-                column: parseInt(failureWithoutReasonMatch[3], 10),
+        const errorWithoutReasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITHOUT_REASON);
+        if (errorWithoutReasonMatch) {
+            const newError: ReactCompilerError = {
+                file: errorWithoutReasonMatch[1],
+                line: parseInt(errorWithoutReasonMatch[2], 10),
+                column: parseInt(errorWithoutReasonMatch[3], 10),
             };
 
-            currentFailureWithoutReason = newFailure;
+            currentErrorWithoutReason = newError;
 
-            // Only create new failure if it doesn't exist
-            addErrorIfDoesNotExist(results.reactCompilerErrors, newFailure);
+            // Only create new error if it doesn't exist
+            addErrorIfDoesNotExist(results.reactCompilerErrors, newError);
 
             continue;
         }
 
         // Parse reason line (fallback for multi-line reasons)
         const reasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.REASON);
-        if (reasonMatch && currentFailureWithoutReason) {
+        if (reasonMatch && currentErrorWithoutReason) {
             const reason = reasonMatch[1];
 
-            const currentFailure: ReactCompilerError = {
-                file: currentFailureWithoutReason.file,
-                line: currentFailureWithoutReason.line,
-                column: currentFailureWithoutReason.column,
+            const currentError: ReactCompilerError = {
+                file: currentErrorWithoutReason.file,
+                line: currentErrorWithoutReason.line,
+                column: currentErrorWithoutReason.column,
                 reason,
             };
 
-            currentFailureWithoutReason = null;
+            currentErrorWithoutReason = null;
 
             if (shouldSuppressCompilerError(reason)) {
-                addErrorIfDoesNotExist(results.suppressedErrors, currentFailure);
+                addErrorIfDoesNotExist(results.suppressedErrors, currentError);
                 continue;
             }
 
-            addErrorIfDoesNotExist(results.reactCompilerErrors, currentFailure);
+            addErrorIfDoesNotExist(results.reactCompilerErrors, currentError);
         }
     }
 
@@ -399,38 +399,38 @@ async function filterResultsByDiff(results: CompilerResults, diffFilteringCommit
      */
     function filterErrorsByChangedLines(errors: Map<string, ReactCompilerError>) {
         // Filter errors to only include those on changed lines
-        const filteredFailures = new Map<string, ReactCompilerError>();
+        const filteredErrors = new Map<string, ReactCompilerError>();
 
-        for (const [key, failure] of errors) {
-            const changedLines = changedLinesMap.get(failure.file);
+        for (const [key, error] of errors) {
+            const changedLines = changedLinesMap.get(error.file);
 
-            // If the file is not in the diff, skip this failure
+            // If the file is not in the diff, skip this error
             if (!changedLines) {
                 continue;
             }
 
             // If the file has eslint-disable comment, include ALL errors for this file
-            if (filesWithEslintDisable.has(failure.file)) {
-                filteredFailures.set(key, failure);
+            if (filesWithEslintDisable.has(error.file)) {
+                filteredErrors.set(key, error);
                 continue;
             }
 
-            // If the failure has a line number, check if it's in the changed lines or eslint-disable-next-line
-            if (failure.line !== undefined) {
-                const isLineChanged = changedLines.has(failure.line);
-                const isLineEslintDisabled = linesWithEslintDisableNextLine.get(failure.file)?.has(failure.line);
+            // If the error has a line number, check if it's in the changed lines or eslint-disable-next-line
+            if (error.line !== undefined) {
+                const isLineChanged = changedLines.has(error.line);
+                const isLineEslintDisabled = linesWithEslintDisableNextLine.get(error.file)?.has(error.line);
 
                 if (isLineChanged || isLineEslintDisabled) {
-                    filteredFailures.set(key, failure);
+                    filteredErrors.set(key, error);
                 }
                 continue;
             }
 
-            // If there's no line number, include the failure if the file has changes
-            filteredFailures.set(key, failure);
+            // If there's no line number, include the error if the file has changes
+            filteredErrors.set(key, error);
         }
 
-        return filteredFailures;
+        return filteredErrors;
     }
 
     // Filter errors to only include those on changed lines
@@ -530,11 +530,11 @@ function enforceNewComponentGuard({reactCompilerErrors}: CompilerResults, diffRe
 
         errorsByFile.delete(file);
 
-        const manualMemoFailure: ManualMemoError = {
+        const manualMemoError: ManualMemoError = {
             manualMemoizationMatches,
             reactCompilerErrors: errors,
         };
-        manualMemoErrors.set(file, manualMemoFailure);
+        manualMemoErrors.set(file, manualMemoError);
     }
 
     const remainingReactCompilerErrors = new Map([...errorsByFile.values()].flatMap((errors) => [...errors.entries()]));
@@ -617,7 +617,7 @@ function printResults({success, reactCompilerErrors, suppressedErrors, manualMem
 
         for (const [error, suppressedErrorFiles] of suppressedErrorMap) {
             logBold(error);
-            const filesLine = suppressedErrorFiles.map((failure) => getUniqueFileKey(failure)).join(', ');
+            const filesLine = suppressedErrorFiles.map((error) => getUniqueFileKey(error)).join(', ');
             logNote(`${TAB} - ${filesLine}`);
         }
 
@@ -631,8 +631,8 @@ function printResults({success, reactCompilerErrors, suppressedErrors, manualMem
 
     if (reactCompilerErrors.size > 0) {
         const distinctFileNames = new Set<string>();
-        for (const failure of reactCompilerErrors.values()) {
-            distinctFileNames.add(failure.file);
+        for (const error of reactCompilerErrors.values()) {
+            distinctFileNames.add(error.file);
         }
 
         if (distinctFileNames.size > 0) {
@@ -698,7 +698,7 @@ function printErrors(errors: Map<string, ReactCompilerError>, level = 0) {
     }
 }
 
-type ManualMemoFailureObject = {
+type ManualMemoErrorObject = {
     manualMemoizationMatches: ManualMemoizationMatch[];
     reactCompilerErrors: Record<string, ReactCompilerError>;
 };
@@ -713,20 +713,20 @@ function generateReport({success, reactCompilerErrors, suppressedErrors, manualM
     const reportFileName = `react-compiler-compliance-check-report-${timestamp}.json`;
     const reportFile = path.join('/tmp', reportFileName);
 
-    const enforcedAddedComponentFailuresObject: Record<string, ManualMemoFailureObject> = {};
+    const enforcedAddedComponentErrorsObject: Record<string, ManualMemoErrorObject> = {};
     for (const [filePath, manualMemoError] of manualMemoErrors ?? []) {
-        const manualMemoErrorObject: ManualMemoFailureObject = {
+        const manualMemoErrorObject: ManualMemoErrorObject = {
             manualMemoizationMatches: manualMemoError.manualMemoizationMatches,
             reactCompilerErrors: Object.fromEntries(manualMemoError.reactCompilerErrors?.entries() ?? []),
         };
-        enforcedAddedComponentFailuresObject[filePath] = manualMemoErrorObject;
+        enforcedAddedComponentErrorsObject[filePath] = manualMemoErrorObject;
     }
 
     const resultsObject = {
         success: Array.from(success),
         reactCompilerErrors: Object.fromEntries(reactCompilerErrors.entries()),
         suppressedErrors: Object.fromEntries(suppressedErrors.entries()),
-        manualMemoErrors: enforcedAddedComponentFailuresObject,
+        manualMemoErrors: enforcedAddedComponentErrorsObject,
     } satisfies Record<keyof CompilerResults, Record<string, unknown> | unknown[]>;
 
     fs.writeFileSync(
