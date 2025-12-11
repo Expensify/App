@@ -322,20 +322,25 @@ function IOURequestStepDistanceManual({
 
     const submitAndNavigateToNextPage = useCallback(() => {
         const value = numberFormRef.current?.getNumber() ?? '';
-        const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report).at(0));
-        
-        if (!value.length || parseFloat(value) < 0) {
+        const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserAccountIDParam).at(0));
+
+        if (isBetaEnabled(CONST.BETAS.ZERO_EXPENSES)) {
+            if (!value.length || parseFloat(value) < 0) {
+                setFormError(translate('iou.error.invalidDistance'));
+                return;
+            }
+        } else if (!value.length || parseFloat(value) <= 0) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }
-        
+
         if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && parseFloat(value) === 0 && isP2P) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }
 
         navigateToNextPage(value);
-    }, [navigateToNextPage, translate, report, iouType]);
+    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam, isBetaEnabled]);
 
     useEffect(() => {
         if (isLoadingSelectedTab) {
