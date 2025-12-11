@@ -53,8 +53,6 @@ keywords: [feature name, related terms, navigation path, etc.]
 
 ## Instructions
 
-> **Communication Methods**: This agent uses inline comments and reactions to communicate feedback. For complete guidance on tool usage, comment formats, and when to use each method, see the [GitHub PR Review Communication skill](.claude/skills/github-pr-review-communication/SKILL.md).
-
 1. **First, get the list of changed files:**
    - Use `gh pr diff` to see what actually changed in the PR
    - Focus ONLY on documentation files (*.md, *.csv, etc.)
