@@ -326,6 +326,21 @@ function createFilesGlob(files?: string[]): string | undefined {
     return `**/+(${files.join('|')})`;
 }
 
+function getErrorsByFile(failures: FailureMap) {
+    const errorsByFile = new Map<string, FailureMap>();
+    for (const [errorKey, error] of failures) {
+        const filePath = error.file;
+        if (!errorsByFile.has(filePath)) {
+            errorsByFile.set(filePath, new Map([[errorKey, error]]));
+        }
+        errorsByFile.get(filePath)?.set(errorKey, error);
+    }
+
+    const distinctFileNames = new Set(errorsByFile.keys());
+
+    return {errorsByFile, distinctFileNames};
+}
+
 /**
  * Filters compiler results to only include failures for lines that were changed in the git diff.
  * This helps focus on new issues introduced by the current changes rather than pre-existing issues.
@@ -489,33 +504,31 @@ async function filterResultsByDiff(results: CompilerResults, diffFilteringCommit
  * @param diffResult - The diff result to check for added files
  * @returns The compiler results partitioned into manual memo errors and react compiler errors
  */
-    const addedDiffFiles = new Set<string>();
 function enforceAutomaticMemoization({success, failures}: CompilerResults, diffResult: DiffResult) {
+    const {errorsByFile, distinctFileNames: distinctErrorFileNames} = getErrorsByFile(failures);
+
+    // Add added files from the diff that are already compiled successfully,
+    // to a list of files that should have automatic memoization enforced
+    const enforcedAutoMemoFiles = new Set<string>();
     for (const file of diffResult.files) {
-        const isReactComponentSourceFile = MANUAL_MEMOIZATION_FILE_EXTENSIONS.some((extension) => file.filePath.endsWith(extension));
-        const isSuccessfullyCompiled = success.has(file.filePath);
+        const filePath = file.filePath;
+
+        const isReactComponentSourceFile = MANUAL_MEMOIZATION_FILE_EXTENSIONS.some((extension) => filePath.endsWith(extension));
+        const isSuccessfullyCompiled = success.has(filePath);
         const isAddedFile = file.diffType === 'added';
 
-        // Only enforce auto memoization for added React component source files that were successfully compiled
         if (isReactComponentSourceFile && isSuccessfullyCompiled && isAddedFile) {
-            addedDiffFiles.add(file.filePath);
+            distinctErrorFileNames.add(filePath);
+            enforcedAutoMemoFiles.add(filePath);
         }
     }
 
-    const errorsByFile = new Map<string, FailureMap>();
-    for (const [errorKey, error] of failures) {
-        const filePath = error.file;
-        if (!errorsByFile.has(filePath)) {
-            errorsByFile.set(filePath, new Map());
-        }
-        errorsByFile.get(filePath)?.set(errorKey, error);
-    }
-
-    // Check all added files for manual memoization keywords and attach React compiler errors.
-    // If no manual memoization keywords are found add the errors back to the regular errors.
+    // Check all files whether we are enforcing automatic memoization, if so, log an error if manual memoization keywords are found and attach React compiler errors.
     const manualMemoErrors = new Map<string, ManualMemoFailure>();
-    for (const [file, errors] of errorsByFile) {
-        if (!addedDiffFiles.has(file)) {
+    for (const file of distinctErrorFileNames) {
+        const errors = errorsByFile.get(file);
+
+        if (!enforcedAutoMemoFiles.has(file)) {
             continue;
         }
 
@@ -641,15 +654,12 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
     const isPassed = didRegularCheckSucceed && didEnforcedCheckSucceed;
 
     if (failures.size > 0) {
-        const distinctFileNames = new Set<string>();
-        for (const failure of failures.values()) {
-            distinctFileNames.add(failure.file);
-        }
+        const {distinctFileNames: distinctFailureFileNames} = getErrorsByFile(failures);
 
-        if (distinctFileNames.size > 0) {
+        if (distinctFailureFileNames.size > 0) {
             const logMethod = shouldPrintAsWarnings ? logWarn : logError;
             log();
-            logMethod(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
+            logMethod(`Failed to compile ${distinctFailureFileNames.size} files with React Compiler:`);
             log();
 
             printFailures(failures);
