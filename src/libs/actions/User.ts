@@ -24,6 +24,7 @@ import type {
     UpdateStatusParams,
     UpdateThemeParams,
     ValidateSecondaryLoginParams,
+    VerifyAddSecondaryLoginCodeParams,
 } from '@libs/API/parameters';
 import type LockAccountParams from '@libs/API/parameters/LockAccountParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -346,16 +347,6 @@ function clearUnvalidatedNewContactMethodAction() {
 function clearPendingContactActionErrors() {
     Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
         errorFields: null,
-    });
-}
-
-/**
- * When user adds a new contact method, they need to verify the magic code first
- * So we add the temporary contact method to Onyx to use it later, after user verified magic code.
- */
-function addPendingContactMethod(contactMethod: string) {
-    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
-        contactMethod,
     });
 }
 
@@ -1569,6 +1560,60 @@ function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip',
     API.write(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, params, {optimisticData, successData, failureData});
 }
 
+/**
+ * Verify the validation code for adding a secondary login within the contact method flow.
+ *
+ * This handles the complete flow for verifying a secondary login:
+ * 1. Verifies the validation code entered by the user
+ * 2. On success, stores the validate code to allow adding the new email
+ * 3. On failure, updates the state to reflect the failed verification
+ *
+ * @param validateCode - The validation code entered by the user
+ */
+function verifyAddSecondaryLoginCode(validateCode: string) {
+    resetValidateActionCodeSent();
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {
+                validateActionCode: validateCode,
+                errorFields: {
+                    validateActionCode: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {
+                validateActionCode: validateCode,
+                isVerifiedValidateActionCode: true,
+                errorFields: {
+                    validateActionCode: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {
+                isVerifiedValidateActionCode: false,
+            },
+        },
+    ];
+
+    const parameters: VerifyAddSecondaryLoginCodeParams = {validateCode};
+
+    API.write(WRITE_COMMANDS.VERIFY_ADD_SECONDARY_LOGIN_CODE, parameters, {optimisticData, successData, failureData});
+}
+
 export {
     closeAccount,
     dismissReferralBanner,
@@ -1603,11 +1648,11 @@ export {
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,
     requestValidateCodeAction,
-    addPendingContactMethod,
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
     resetValidateActionCodeSent,
     lockAccount,
     requestUnlockAccount,
     respondToProactiveAppReview,
+    verifyAddSecondaryLoginCode,
 };
