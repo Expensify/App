@@ -4560,6 +4560,7 @@ function canEditMoneyRequest(
 
     const transaction = linkedTransaction ?? getLinkedTransaction(reportAction ?? undefined);
 
+    // In case the transaction is failed to be created, we should disable editing the money request
     if (!transaction?.transactionID || (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(transaction.errors))) {
         return false;
     }
