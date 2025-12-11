@@ -14,6 +14,7 @@ const mockSelectedTransaction: SelectedTransactionInfo = {
     canChangeReport: true,
     isSelected: true,
     canDelete: true,
+    canReject: false,
     policyID: '06F34677820A4D07',
     reportID: '515146912679679',
     amount: 0,
