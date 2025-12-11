@@ -284,6 +284,33 @@ describe('CategoryOptionListUtils', () => {
                 externalID: '',
                 origin: '',
             },
+            Entertainment: {
+                enabled: true,
+                name: 'Entertainment',
+                unencodedName: 'Entertainment',
+                areCommentsRequired: false,
+                'GL Code': '',
+                externalID: '',
+                origin: '',
+            },
+            'Office Supplies': {
+                enabled: true,
+                name: 'Office Supplies',
+                unencodedName: 'Office Supplies',
+                areCommentsRequired: false,
+                'GL Code': '',
+                externalID: '',
+                origin: '',
+            },
+            Utilities: {
+                enabled: true,
+                name: 'Utilities',
+                unencodedName: 'Utilities',
+                areCommentsRequired: false,
+                'GL Code': '',
+                externalID: '',
+                origin: '',
+            },
         };
         const largeResultList: CategoryTreeSection[] = [
             {
@@ -321,7 +348,7 @@ describe('CategoryOptionListUtils', () => {
             {
                 title: 'All',
                 shouldShow: true,
-                indexOffset: 11,
+                indexOffset: 14,
                 data: [
                     {
                         text: 'Cars',
@@ -351,6 +378,15 @@ describe('CategoryOptionListUtils', () => {
                         pendingAction: undefined,
                     },
                     {
+                        text: 'Entertainment',
+                        keyForList: 'Entertainment',
+                        searchText: 'Entertainment',
+                        tooltipText: 'Entertainment',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
                         text: 'Food',
                         keyForList: 'Food',
                         searchText: 'Food',
@@ -373,6 +409,15 @@ describe('CategoryOptionListUtils', () => {
                         keyForList: 'Food: Milk',
                         searchText: 'Food: Milk',
                         tooltipText: 'Milk',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Office Supplies',
+                        keyForList: 'Office Supplies',
+                        searchText: 'Office Supplies',
+                        tooltipText: 'Office Supplies',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -418,6 +463,15 @@ describe('CategoryOptionListUtils', () => {
                         keyForList: 'Travel: Meals: Lunch',
                         searchText: 'Travel: Meals: Lunch',
                         tooltipText: 'Lunch',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Utilities',
+                        keyForList: 'Utilities',
+                        searchText: 'Utilities',
+                        tooltipText: 'Utilities',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,

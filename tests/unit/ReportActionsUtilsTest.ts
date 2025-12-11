@@ -1366,7 +1366,7 @@ describe('ReportActionsUtils', () => {
                 reportActionID: '1',
                 created: '2025-09-29',
                 originalMessage: {
-                    toReportID: '2',
+                    fromReportID: '2',
                 },
             };
 
@@ -1403,6 +1403,7 @@ describe('ReportActionsUtils', () => {
                 created: '2025-09-29',
                 originalMessage: {
                     toReportID: report.reportID,
+                    fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 },
             };
 
@@ -1433,6 +1434,52 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(action);
             const expected = translateLocal('report.actions.type.updatedCustomField1', {email: formatPhoneNumber(email), newValue, previousValue});
             expect(actual).toBe(expected);
+        });
+
+        it('should concatenate multiple field changes when fields array is present', () => {
+            const email = 'employee@example.com';
+            const newRole = CONST.POLICY.ROLE.ADMIN;
+            const previousRole = CONST.POLICY.ROLE.USER;
+            const customFieldNewValue = '12';
+            const customFieldOldValue = '10';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    fields: [
+                        {
+                            field: CONST.CUSTOM_FIELD_KEYS.customField1,
+                            newValue: customFieldNewValue,
+                            oldValue: customFieldOldValue,
+                        },
+                        {
+                            field: 'role',
+                            newValue: newRole,
+                            oldValue: previousRole,
+                        },
+                    ],
+                },
+            };
+
+            const formattedEmail = formatPhoneNumber(email);
+            const expectedCustomFieldMessage = translateLocal('report.actions.type.updatedCustomField1', {
+                email: formattedEmail,
+                newValue: customFieldNewValue,
+                previousValue: customFieldOldValue,
+            });
+            const expectedRoleMessage = translateLocal('report.actions.type.updateRole', {
+                email: formattedEmail,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                newRole: translateLocal('workspace.common.roleName', {role: newRole}).toLowerCase(),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                currentRole: translateLocal('workspace.common.roleName', {role: previousRole}).toLowerCase(),
+            });
+
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(action);
+            expect(actual).toBe(`${expectedCustomFieldMessage}, ${expectedRoleMessage}`);
         });
     });
 

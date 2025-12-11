@@ -66,6 +66,7 @@ import {
     getFormattedCreated,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
+    getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -308,7 +309,7 @@ function MoneyRequestView({
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
@@ -610,7 +611,25 @@ function MoneyRequestView({
                 shouldShow = true;
             } else {
                 const prevTagValue = getTagForDisplay(transaction, index - 1);
-                shouldShow = !!prevTagValue;
+                if (!prevTagValue) {
+                    shouldShow = false;
+                } else {
+                    const parentTag = getTagArrayFromName(transactionTag ?? '')
+                        .slice(0, index)
+                        .join(':');
+
+                    const availableTags = Object.values(tags).filter((policyTag) => {
+                        const filterRegex = policyTag.rules?.parentTagsFilter;
+                        if (!filterRegex) {
+                            return true;
+                        }
+
+                        const regex = new RegExp(filterRegex);
+                        return regex.test(parentTag ?? '');
+                    });
+
+                    shouldShow = availableTags.some((tag) => tag.enabled);
+                }
             }
         } else {
             shouldShow = !!tagForDisplay || hasEnabledOptions(tags);

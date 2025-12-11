@@ -32,6 +32,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Called when the list is scrolled and the user begins dragging */
     onScrollBeginDrag?: () => void;
 
+    /** Callback to fire when an error is dismissed */
+    onDismissError?: (item: TItem) => void;
+
     /** Called once when the scroll position gets within onEndReachedThreshold of the rendered content */
     onEndReached?: () => void;
 
@@ -225,6 +228,9 @@ type SelectionListHandle = {
 
     /** Updates the focused index and optionally scrolls to it */
     updateFocusedIndex: (newFocusedIndex: number, shouldScroll?: boolean) => void;
+
+    /** Sets the focus to the textInput component */
+    focusTextInput: () => void;
 };
 
 type DataDetailsType<TItem extends ListItem> = {
