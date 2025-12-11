@@ -76,11 +76,6 @@ type ManualMemoizationError = {
     column: number;
 };
 
-type DiffFilteringCommits = {
-    fromRef: string;
-    toRef?: string;
-};
-
 type CheckMode = 'static' | 'incremental';
 
 type BaseCheckParameters = {
@@ -124,13 +119,12 @@ async function check({mode = 'static', files, remote, verbose = false}: CheckPar
     let results = runCompilerHealthcheck(createFilesGlob(files));
 
     const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-    const diffFilteringCommits: DiffFilteringCommits = {fromRef: mainBaseCommitHash};
-    const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef, undefined, true);
+    const diffResult = Git.diff(mainBaseCommitHash, undefined, undefined, true);
 
     // If we are in incremental mode, we only want to show errors for lines
     // that were directly modified in the git diff, not for the whole file.
     if (mode === 'incremental') {
-        results = await filterResultsByDiff(results, diffFilteringCommits, diffResult, options);
+        results = await filterResultsByDiff(results, mainBaseCommitHash, diffResult, options);
     }
 
     // Enforce automatic memoization for added files that are successfully compiled with React Compiler
@@ -337,8 +331,8 @@ function getDistinctFailureFileNames(failures: FailureMap) {
  * @param diffFilteringCommits - The commit range to diff (from and to)
  * @returns Filtered compiler results containing only failures in changed lines or eslint-disabled areas
  */
-async function filterResultsByDiff(results: CompilerResults, diffFilteringCommits: DiffFilteringCommits, diffResult: DiffResult, {verbose}: CheckOptions): Promise<CompilerResults> {
-    logInfo(`Filtering results by diff between ${diffFilteringCommits.fromRef} and ${diffFilteringCommits.toRef ?? 'the working tree'}...`);
+async function filterResultsByDiff(results: CompilerResults, mainBaseCommitHash: string, diffResult: DiffResult, {verbose}: CheckOptions): Promise<CompilerResults> {
+    logInfo(`Filtering results by diff between ${mainBaseCommitHash} and the working tree...`);
 
     // If there are no changes, return empty results
     if (!diffResult.hasChanges) {
