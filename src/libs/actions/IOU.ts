@@ -324,8 +324,8 @@ type PayInvoiceArgs = {
     chatReport: OnyxTypes.Report;
     invoiceReport: OnyxEntry<OnyxTypes.Report>;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    currentUserAccountID: number;
-    currentUserEmail: string;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
     payAsBusiness?: boolean;
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     methodID?: number;
@@ -11946,8 +11946,8 @@ function payInvoice({
     chatReport,
     invoiceReport,
     introSelected,
-    currentUserAccountID,
-    currentUserEmail,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
     payAsBusiness = false,
     existingB2BInvoiceReport,
     methodID,
@@ -11981,8 +11981,8 @@ function payInvoice({
         bankAccountID: methodID,
         existingB2BInvoiceReport,
         activePolicy,
-        currentUserAccountIDParam: currentUserAccountID,
-        currentUserEmailParam: currentUserEmail,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
         introSelectedParam: introSelected,
     });
 
