@@ -3959,13 +3959,6 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
 }
 
-/** Invites people to a room via concierge whisper */
-function inviteToRoomAction(reportID: string, ancestors: Ancestor[], inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, timezoneParam: Timezone) {
-    const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
-
-    addComment(reportID, reportID, ancestors, inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, false);
-}
-
 function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
     const reportMetadata = getReportMetadata(reportID);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -6292,7 +6285,6 @@ export {
     inviteToGroupChat,
     buildInviteToRoomOnyxData,
     inviteToRoom,
-    inviteToRoomAction,
     joinRoom,
     leaveGroupChat,
     leaveRoom,
