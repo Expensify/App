@@ -161,13 +161,7 @@ Use these patterns to determine when to combine communication methods:
 
 **Right:** "Found violation at line 10: [Immediately calls mcp tool]"
 
-### Pitfall 2: Shell Escaping Errors
-
-**Wrong:** `gh pr comment --body "Use "workspace" instead"`
-
-**Right:** `gh pr comment --body 'Use "workspace" instead'`
-
-### Pitfall 3: Premature Reactions
+### Pitfall 2: Premature Reactions
 
 **Wrong:** "Checked most files, looks good... adding reaction"
 
