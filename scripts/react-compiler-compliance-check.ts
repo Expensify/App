@@ -56,7 +56,7 @@ type CompilerResults = {
     success: Set<string>;
     failures: FailureMap;
     suppressedFailures: FailureMap;
-    enforcedAddedComponentFailures?: EnforcedAddedComponentFailureMap;
+    manualMemoFailures?: EnforcedAddedComponentFailureMap;
 };
 
 type FailureMap = Map<string, CompilerFailure>;
@@ -123,10 +123,10 @@ async function check({files, remote, filterByDiff, enforceNewComponents, logLeve
         }
 
         if (enforceNewComponents) {
-            const {nonAutoMemoEnforcedFailures, addedComponentFailures} = enforceNewComponentGuard(results, diffResult);
+            const {reactCompilerFailures, manualMemoFailures} = enforceNewComponentGuard(results, diffResult);
 
-            results.enforcedAddedComponentFailures = addedComponentFailures;
-            results.failures = nonAutoMemoEnforcedFailures;
+            results.manualMemoFailures = manualMemoFailures;
+            results.failures = reactCompilerFailures;
         }
     }
 
@@ -479,13 +479,13 @@ async function filterResultsByDiff(results: CompilerResults, diffFilteringCommit
 }
 
 /**
- * Enforces the new component guard by checking for manual memoization keywords in added files and attaching React compiler failures.
- * @param failures - The compiler results to enforce the new component guard on
+ * Enforces the new component guard by checking for manual memoization keywords in added files and attaching React compiler errors.
+ * @param errors - The compiler results to enforce the new component guard on
  * @param diffResult - The diff result to check for added files
- * @returns The enforced compiler results
+ * @returns The compiler results partitioned into manual memo errors and react compiler errors
  */
 function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffResult) {
-    const addedComponentFiles = new Set<string>();
+    const addedDiffFiles = new Set<string>();
     for (const file of diffResult.files) {
         if (!MANUAL_MEMOIZATION_FILE_EXTENSIONS.some((extension) => file.filePath.endsWith(extension))) {
             continue;
@@ -494,76 +494,58 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
         if (file.diffType !== 'added') {
             continue;
         }
-        addedComponentFiles.add(file.filePath);
+        addedDiffFiles.add(file.filePath);
     }
 
-    // Partition failures into non-auto memo enforced failures and added file failures
-    const nonAutoMemoEnforcedFailures: FailureMap = new Map();
-    const addedFileFailures = new Map<string, FailureMap>();
-    for (const [failureKey, failure] of failures) {
-        const addedFilePath = failure.file;
+    const errorsByFile = new Map<string, FailureMap>();
+    for (const [errorKey, error] of failures) {
+        const filePath = error.file;
+        if (!errorsByFile.has(filePath)) {
+            errorsByFile.set(filePath, new Map());
+        }
+        errorsByFile.get(filePath)?.set(errorKey, error);
+    }
 
-        if (!addedComponentFiles.has(addedFilePath)) {
-            nonAutoMemoEnforcedFailures.set(failureKey, failure);
+    // Check all added files for manual memoization keywords and attach React compiler errors.
+    // If no manual memoization keywords are found add the errors back to the regular errors.
+    const manualMemoErrors = new Map<string, ManualMemoFailure>();
+    for (const [file, errors] of errorsByFile) {
+        if (!addedDiffFiles.has(file)) {
             continue;
         }
 
-        const existingAddedFileFailuresMap = addedFileFailures.get(addedFilePath);
-        if (existingAddedFileFailuresMap) {
-            existingAddedFileFailuresMap.set(failureKey, failure);
-            continue;
-        }
-
-        addedFileFailures.set(addedFilePath, new Map<string, CompilerFailure>([[failureKey, failure]]));
-    }
-
-    // Used as fallback to add back the failures from added files that didn't have manual memoization
-    function addNonAutoMemoEnforcedFailures(addedFilePath: string): void {
-        const addedFileFailuresMap = addedFileFailures.get(addedFilePath);
-
-        if (!addedFileFailuresMap) {
-            return;
-        }
-
-        for (const [failureKey, failure] of addedFileFailuresMap) {
-            nonAutoMemoEnforcedFailures.set(failureKey, failure);
-        }
-    }
-
-    // Check all added files for manual memoization keywords and attach React compiler failures.
-    // If no manual memoization keywords are found add the failures back to the regular failures.
-    const addedComponentFailures: EnforcedAddedComponentFailureMap = new Map();
-    for (const addedFilePath of addedComponentFiles) {
         let source: string | null = null;
         try {
-            const absolutePath = path.join(process.cwd(), addedFilePath);
+            const absolutePath = path.join(process.cwd(), file);
             source = readFileSync(absolutePath, 'utf8');
         } catch (error) {
-            logWarn(`Unable to read ${addedFilePath} while enforcing new component rules.`, error);
+            logWarn(`Unable to read ${file} while enforcing new component rules.`, error);
         }
 
         if (!source || NO_MANUAL_MEMO_DIRECTIVE_PATTERN.test(source)) {
-            addNonAutoMemoEnforcedFailures(addedFilePath);
             continue;
         }
 
         const manualMemoizationMatches = findManualMemoizationMatches(source);
 
         if (manualMemoizationMatches.length === 0) {
-            addNonAutoMemoEnforcedFailures(addedFilePath);
             continue;
         }
 
-        const manualMemoFailure: ManualMemoFailure = {
+        errorsByFile.delete(file);
+
+        const manualMemoError: ManualMemoFailure = {
             manualMemoizationMatches,
-            compilerFailures: addedFileFailures.get(addedFilePath),
+            compilerFailures: errors,
         };
-        addedComponentFailures.set(addedFilePath, manualMemoFailure);
+        manualMemoErrors.set(file, manualMemoError);
     }
 
+    const remainingReactCompilerErrors = new Map([...errorsByFile.values()].flatMap((errors) => [...errors.entries()]));
+
     return {
-        nonAutoMemoEnforcedFailures,
-        addedComponentFailures,
+        manualMemoFailures: manualMemoErrors,
+        reactCompilerFailures: remainingReactCompilerErrors,
     };
 }
 
@@ -605,7 +587,7 @@ function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] 
  * @param results - The compiler results to print
  * @param options - The options for printing the results
  */
-function printResults({success, failures, suppressedFailures, enforcedAddedComponentFailures}: CompilerResults, {logLevel, verbose}: PrintResultsOptions): boolean {
+function printResults({success, failures, suppressedFailures, manualMemoFailures}: CompilerResults, {logLevel, verbose}: PrintResultsOptions): boolean {
     if (verbose && success.size > 0) {
         log();
         logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
@@ -647,7 +629,7 @@ function printResults({success, failures, suppressedFailures, enforcedAddedCompo
     }
 
     const didRegularCheckSucceed = logLevel === 'warning' || failures.size === 0;
-    const didEnforcedCheckSucceed = !enforcedAddedComponentFailures || enforcedAddedComponentFailures.size === 0;
+    const didEnforcedCheckSucceed = !manualMemoFailures || manualMemoFailures.size === 0;
 
     const isPassed = didRegularCheckSucceed && didEnforcedCheckSucceed;
 
@@ -681,7 +663,7 @@ function printResults({success, failures, suppressedFailures, enforcedAddedCompo
         log();
         logError(`The following newly added components should rely on React Compiler’s automatic memoization (manual memoization is not allowed):`);
 
-        for (const [filePath, {manualMemoizationMatches, compilerFailures}] of enforcedAddedComponentFailures) {
+        for (const [filePath, {manualMemoizationMatches, compilerFailures}] of manualMemoFailures) {
             log();
 
             for (const manualMemoizationMatch of manualMemoizationMatches) {
@@ -729,27 +711,27 @@ type ManualMemoFailureObject = {
  * Generates a report of the React Compiler compliance check and saves it to /tmp.
  * @param results - The compiler results to generate a report for
  */
-function generateReport({success, failures, suppressedFailures, enforcedAddedComponentFailures}: CompilerResults): void {
+function generateReport({success, failures, suppressedFailures, manualMemoFailures}: CompilerResults): void {
     // Generate a unique filename with timestamp
     const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
     const reportFileName = `react-compiler-compliance-check-report-${timestamp}.json`;
     const reportFile = path.join('/tmp', reportFileName);
 
-    const enforcedAddedComponentFailuresObject: Record<string, ManualMemoFailureObject> = {};
-    for (const [filePath, manualMemoFailure] of enforcedAddedComponentFailures ?? []) {
+    const manualMemoFailuresObject: Record<string, ManualMemoFailureObject> = {};
+    for (const [filePath, manualMemoFailure] of manualMemoFailures ?? []) {
         const manualMemoFailureObject: ManualMemoFailureObject = {
             manualMemoizationMatches: manualMemoFailure.manualMemoizationMatches,
             compilerFailures: Object.fromEntries(manualMemoFailure.compilerFailures?.entries() ?? []),
         };
-        enforcedAddedComponentFailuresObject[filePath] = manualMemoFailureObject;
+        manualMemoFailuresObject[filePath] = manualMemoFailureObject;
     }
 
     const resultsObject = {
         success: Array.from(success),
         failures: Object.fromEntries(failures.entries()),
         suppressedFailures: Object.fromEntries(suppressedFailures.entries()),
-        enforcedAddedComponentFailures: enforcedAddedComponentFailuresObject,
-    };
+        manualMemoFailures: manualMemoFailuresObject,
+    } satisfies Record<keyof CompilerResults, Record<string, unknown> | string[]>;
 
     fs.writeFileSync(
         reportFile,
