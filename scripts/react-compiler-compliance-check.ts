@@ -55,8 +55,10 @@ const REACT_COMPILER_HEALTHCHECK_OUTPUT_REGEXES = {
 type CompilerResults = {
     success: Set<string>;
     failures: Map<string, CompilerFailure>;
-    suppressedFailures: Map<string, CompilerFailure>;
+    failuresForAddedFiles?: Map<string, CompilerFailure>;
+    failuresForModifiedFiles?: Map<string, CompilerFailure>;
     manualMemoFailures?: Map<string, ManualMemoizationError[]>;
+    suppressedFailures: Map<string, CompilerFailure>;
 };
 
 type CompilerFailure = {
@@ -124,10 +126,12 @@ async function check({mode = 'static', files, remote, verbose = false}: CheckPar
     }
 
     // Enforce automatic memoization for added files that are successfully compiled with React Compiler
-    const {reactCompilerFailures, manualMemoFailures} = enforceAutomaticMemoization(results, diffResult);
+    const {reactCompilerFailuresForModifiedFiles, reactCompilerFailuresForAddedFiles, manualMemoFailures} = splitErrorsBasedOnFileDiffType(results, diffResult);
 
     results.manualMemoFailures = manualMemoFailures;
-    results.failures = reactCompilerFailures;
+    results.failures;
+    results.failuresForAddedFiles = reactCompilerFailuresForAddedFiles;
+    results.failuresForModifiedFiles = reactCompilerFailuresForModifiedFiles;
 
     const isPassed = printResults(results, options);
 
@@ -493,14 +497,21 @@ async function filterResultsByDiff(results: CompilerResults, mainBaseCommitHash:
  * @param diffResult - The diff result to check for added files
  * @returns The compiler results partitioned into manual memo errors and react compiler errors
  */
-function enforceAutomaticMemoization({success, failures: reactCompilerFailures}: CompilerResults, diffResult: DiffResult) {
+function splitErrorsBasedOnFileDiffType({success, failures: reactCompilerFailures}: CompilerResults, diffResult: DiffResult) {
     const distinctFailureFileNames = getDistinctFailureFileNames(reactCompilerFailures);
 
     // Add added files from the diff that are already compiled successfully,
     // to a list of files that should have automatic memoization enforced
     const enforcedAutoMemoFiles = new Set<string>();
+    const addedFiles = new Set<string>();
+
     for (const file of diffResult.files) {
         const filePath = file.filePath;
+
+        if (file.diffType === 'added') {
+            distinctFailureFileNames.add(filePath);
+            addedFiles.add(filePath);
+        }
 
         const isReactComponentSourceFile = MANUAL_MEMOIZATION_FILE_EXTENSIONS.some((extension) => filePath.endsWith(extension));
 
@@ -508,14 +519,22 @@ function enforceAutomaticMemoization({success, failures: reactCompilerFailures}:
         const isSuccessfullyCompiled = success.has(filePath);
         if (isReactComponentSourceFile && isSuccessfullyCompiled) {
             enforcedAutoMemoFiles.add(filePath);
-            distinctFailureFileNames.add(filePath);
         }
     }
 
-    // Check all files whether we are enforcing automatic memoization, if so, log an error if manual memoization keywords are found and attach React compiler errors.
+    const reactCompilerFailuresForModifiedFiles = reactCompilerFailures;
+    const reactCompilerFailuresForAddedFiles = new Map<string, CompilerFailure>();
     const manualMemoFailures = new Map<string, ManualMemoizationError[]>();
+
+    // Check all files whether we are enforcing automatic memoization, if so, log an error if manual memoization keywords are found and attach React compiler errors.
     for (const file of distinctFailureFileNames) {
         if (!enforcedAutoMemoFiles.has(file)) {
+            // Split up the React Compiler failures into modified and added files
+            if (addedFiles.has(file)) {
+                reactCompilerFailuresForAddedFiles.set(file, reactCompilerFailures.get(file) ?? {file});
+                reactCompilerFailures.delete(file);
+            }
+
             continue;
         }
 
@@ -542,7 +561,8 @@ function enforceAutomaticMemoization({success, failures: reactCompilerFailures}:
 
     return {
         manualMemoFailures,
-        reactCompilerFailures,
+        reactCompilerFailuresForModifiedFiles,
+        reactCompilerFailuresForAddedFiles,
     };
 }
 
@@ -584,7 +604,7 @@ function findManualMemoizationMatches(source: string): ManualMemoizationError[] 
  * @param results - The compiler results to print
  * @param options - The options for printing the results
  */
-function printResults({success, failures, suppressedFailures, manualMemoFailures}: CompilerResults, {mode, verbose}: CheckOptions): boolean {
+function printResults({success, failuresForAddedFiles, failuresForModifiedFiles, suppressedFailures, manualMemoFailures}: CompilerResults, {mode, verbose}: CheckOptions): boolean {
     if (verbose && success.size > 0) {
         log();
         logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
@@ -625,34 +645,47 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
         log();
     }
 
-    // In Phase 1, we print all errors on modified lines and files as warnings.
+    // In Phase 1, we only fail the check if there are any React Compiler errors in added files.
     // TODO: Starting in Phase 2, always print errors instead.
-    const shouldTreatReactCompilerErrorsAsWarnings = mode === 'incremental';
+    const didRegularCheckPass = !failuresForAddedFiles || failuresForAddedFiles.size === 0;
 
-    const didRegularCheckPass = failures.size === 0 || shouldTreatReactCompilerErrorsAsWarnings;
     const hasManualMemoErrors = manualMemoFailures && manualMemoFailures.size > 0;
     const isPassed = didRegularCheckPass && !hasManualMemoErrors;
 
-    if (failures.size > 0) {
-        const distinctFailureFileNames = getDistinctFailureFileNames(failures);
+    const shouldPrintModifiedFilesErrors = failuresForModifiedFiles && failuresForModifiedFiles.size > 0;
+    const shouldPrintAddedFilesErrors = failuresForAddedFiles && failuresForAddedFiles.size > 0;
+
+    const shouldPrintErrors = shouldPrintModifiedFilesErrors || shouldPrintAddedFilesErrors;
+
+    if (shouldPrintModifiedFilesErrors) {
+        const distinctFailureFileNames = getDistinctFailureFileNames(failuresForModifiedFiles);
 
         if (distinctFailureFileNames.size > 0) {
-            const logMethod = shouldTreatReactCompilerErrorsAsWarnings ? logWarn : logError;
             log();
-            logMethod(`Failed to compile ${distinctFailureFileNames.size} files with React Compiler:`);
+            logWarn(`Failed to compile ${distinctFailureFileNames.size} modified files with React Compiler:`);
             log();
 
-            printFailures(failures);
+            printFailures(failuresForModifiedFiles);
 
-            if (shouldTreatReactCompilerErrorsAsWarnings) {
-                log();
-                logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and can get ignored.');
-            }
+            log();
+            logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and can get ignored.');
+        }
+    }
+
+    if (shouldPrintAddedFilesErrors) {
+        const distinctFailureFileNames = getDistinctFailureFileNames(failuresForAddedFiles);
+
+        if (distinctFailureFileNames.size > 0) {
+            log();
+            logError(`Failed to compile ${distinctFailureFileNames.size} added files with React Compiler:`);
+            log();
+
+            printFailures(failuresForAddedFiles);
         }
     }
 
     // Print an extra empty line if no enforced errors are printed.
-    if (shouldTreatReactCompilerErrorsAsWarnings && !hasManualMemoErrors) {
+    if (shouldPrintErrors && !hasManualMemoErrors) {
         log();
     }
 
@@ -696,7 +729,7 @@ function printFailures(failuresToPrint: Map<string, CompilerFailure>, level = 0)
  * Generates a report of the React Compiler compliance check and saves it to /tmp.
  * @param results - The compiler results to generate a report for
  */
-function generateReport({success, failures, suppressedFailures, manualMemoFailures}: CompilerResults): void {
+function generateReport({success, failures, suppressedFailures, manualMemoFailures, failuresForAddedFiles, failuresForModifiedFiles}: CompilerResults): void {
     // Generate a unique filename with timestamp
     const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
     const reportFileName = `react-compiler-compliance-check-report-${timestamp}.json`;
@@ -705,8 +738,10 @@ function generateReport({success, failures, suppressedFailures, manualMemoFailur
     const resultsObject = {
         success: Array.from(success),
         failures: Object.fromEntries(failures.entries()),
-        suppressedFailures: Object.fromEntries(suppressedFailures.entries()),
+        failuresForAddedFiles: Object.fromEntries(failuresForAddedFiles?.entries() ?? []),
+        failuresForModifiedFiles: Object.fromEntries(failuresForModifiedFiles?.entries() ?? []),
         manualMemoFailures: Object.fromEntries(manualMemoFailures?.entries() ?? []),
+        suppressedFailures: Object.fromEntries(suppressedFailures.entries()),
     } satisfies Record<keyof CompilerResults, Record<string, unknown> | string[]>;
 
     fs.writeFileSync(
