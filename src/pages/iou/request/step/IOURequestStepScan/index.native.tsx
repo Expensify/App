@@ -463,10 +463,6 @@ function IOURequestStepScan({
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                                 createTransaction(files, participant);
                             },
-                            {
-                                maximumAge: CONST.GPS.MAX_AGE,
-                                timeout: CONST.GPS.TIMEOUT,
-                            },
                         );
                         return;
                     }
