@@ -20,7 +20,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import {ScrollViewProps} from '@components/ScrollView';
+import type {ScrollViewProps} from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
@@ -186,7 +186,7 @@ function WorkspacesListPage() {
         },
         [route, saveScrollOffset],
     );
-
+    const flatlistRef = useRef<FlatList | null>(null);
     useLayoutEffect(() => {
         const scrollOffset = getScrollOffset(route);
         if (!scrollOffset || !flatlistRef.current) {
@@ -205,7 +205,6 @@ function WorkspacesListPage() {
         selector: filterInactiveCards,
         canBeMissing: true,
     });
-    const flatlistRef = useRef<FlatList | null>(null);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
     const prevPolicyToDelete = usePrevious(policyToDelete);
