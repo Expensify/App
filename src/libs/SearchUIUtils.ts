@@ -1578,7 +1578,7 @@ function getReportSections(
             }
 
             if (shouldShow) {
-                const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
+                const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.total ?? reportItem?.pendingFields?.createReport ?? reportItem?.pendingFields?.preview;
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions);
 
