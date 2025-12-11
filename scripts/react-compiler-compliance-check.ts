@@ -489,17 +489,17 @@ async function filterResultsByDiff(results: CompilerResults, diffFilteringCommit
  * @param diffResult - The diff result to check for added files
  * @returns The compiler results partitioned into manual memo errors and react compiler errors
  */
-function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffResult) {
+function enforceNewComponentGuard({success, failures}: CompilerResults, diffResult: DiffResult) {
     const addedDiffFiles = new Set<string>();
     for (const file of diffResult.files) {
-        if (!MANUAL_MEMOIZATION_FILE_EXTENSIONS.some((extension) => file.filePath.endsWith(extension))) {
-            continue;
-        }
+        const isReactComponentSourceFile = MANUAL_MEMOIZATION_FILE_EXTENSIONS.some((extension) => file.filePath.endsWith(extension));
+        const isSuccessfullyCompiled = success.has(file.filePath);
+        const isAddedFile = file.diffType === 'added';
 
-        if (file.diffType !== 'added') {
-            continue;
+        // Only enforce auto memoization for added React component source files that were successfully compiled
+        if (isReactComponentSourceFile && isSuccessfullyCompiled && isAddedFile) {
+            addedDiffFiles.add(file.filePath);
         }
-        addedDiffFiles.add(file.filePath);
     }
 
     const errorsByFile = new Map<string, FailureMap>();
