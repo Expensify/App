@@ -727,7 +727,6 @@ function SearchPage({route}: SearchPageProps) {
         dismissedHoldUseExplanation,
         dismissedRejectUseExplanation,
         areAllTransactionsFromSubmitter,
-        currentUserPersonalDetails?.login,
     ]);
 
     const handleDeleteExpenses = () => {
