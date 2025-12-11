@@ -50,7 +50,6 @@ import {
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,
-    isIOUReport,
     isPaidGroupPolicy,
     isReportApproved,
     isReportInGroupPolicy,

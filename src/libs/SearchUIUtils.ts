@@ -114,7 +114,7 @@ import {
     isClosedReport,
     isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
-    isIOUReport,
+    isIOUReport as isIOUReportReportUtil,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
     isOneTransactionReport,
@@ -2563,8 +2563,8 @@ function getColumnsToShow(
                 columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
             }
 
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] && !isIOUReport(report);
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] && !isIOUReport(report);
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] && !isIOUReportReportUtil(report);
+            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] && !isIOUReportReportUtil(report);
 
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const toFieldValue = getToFieldValueForTransaction(transaction as SearchTransaction, report, data.personalDetailsList, reportAction);
