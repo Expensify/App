@@ -3090,6 +3090,11 @@ ${
         toGetStarted: 'Dodaj konto bankowe, aby zwracać wydatki, wydawać karty Expensify, pobierać płatności za faktury i opłacać rachunki – wszystko z jednego miejsca.',
         plaidBodyCopy: 'Daj swoim pracownikom łatwiejszy sposób na płacenie – i otrzymywanie zwrotów – za wydatki firmowe.',
         checkHelpLine: 'Numer rozliczeniowy i numer rachunku możesz znaleźć na czeku powiązanym z tym kontem.',
+        bankAccountPurposeTitle: 'Co chcesz zrobić ze swoim kontem bankowym?',
+        getReimbursed: 'Otrzymać zwrot kosztów',
+        getReimbursedDescription: 'Od pracodawcy lub innych',
+        makePayments: 'Dokonywać płatności',
+        makePaymentsDescription: 'Płacić wydatki lub wydawać karty Expensify',
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Aby połączyć konto bankowe, <a href="${contactMethodRoute}">dodaj adres e‑mail jako swój główny login</a> i spróbuj ponownie. Numer telefonu możesz dodać jako login dodatkowy.`,
         hasBeenThrottledError: 'Wystąpił błąd podczas dodawania Twojego konta bankowego. Poczekaj kilka minut i spróbuj ponownie.',

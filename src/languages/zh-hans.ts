@@ -3050,6 +3050,11 @@ ${
         toGetStarted: '在同一处添加银行账户，用于报销费用、发放 Expensify Cards、收取发票款项并支付账单。',
         plaidBodyCopy: '为员工提供更便捷的方式来支付公司费用，并获得报销。',
         checkHelpLine: '您可以在该账户的支票上找到路由号码和账户号码。',
+        bankAccountPurposeTitle: '您想用您的银行账户做什么？',
+        getReimbursed: '获得报销',
+        getReimbursedDescription: '由雇主或其他人报销',
+        makePayments: '进行付款',
+        makePaymentsDescription: '支付费用或发行Expensify卡',
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `要连接银行账户，请先<a href="${contactMethodRoute}">添加一个电子邮箱作为您的主要登录方式</a>，然后重试。您可以将手机号添加为次要登录方式。`,
         hasBeenThrottledError: '在添加您的银行账户时出错。请等待几分钟后再试一次。',

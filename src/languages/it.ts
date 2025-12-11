@@ -3096,6 +3096,11 @@ ${
         toGetStarted: 'Aggiungi un conto bancario per rimborsare le spese, emettere Expensify Card, riscuotere i pagamenti delle fatture e pagare le bollette, tutto da un unico posto.',
         plaidBodyCopy: 'Offri ai tuoi dipendenti un modo più semplice per pagare – e farsi rimborsare – le spese aziendali.',
         checkHelpLine: 'Il tuo numero di instradamento e il numero di conto si possono trovare su un assegno relativo al conto.',
+        bankAccountPurposeTitle: 'Cosa vuoi fare con il tuo conto bancario?',
+        getReimbursed: 'Ottenere rimborsi',
+        getReimbursedDescription: 'Dal datore di lavoro o altri',
+        makePayments: 'Effettuare pagamenti',
+        makePaymentsDescription: 'Pagare spese o emettere carte Expensify',
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Per collegare un conto bancario, <a href="${contactMethodRoute}">aggiungi un'email come accesso principale</a> e riprova. Puoi aggiungere il tuo numero di telefono come accesso secondario.`,
         hasBeenThrottledError: "Si è verificato un errore durante l'aggiunta del tuo conto bancario. Attendi qualche minuto e riprova.",

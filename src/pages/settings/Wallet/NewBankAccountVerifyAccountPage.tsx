@@ -9,10 +9,11 @@ type NewBankAccountVerifyAccountPageProps = PlatformStackScreenProps<SettingsNav
 
 function NewBankAccountVerifyAccountPage({route}: NewBankAccountVerifyAccountPageProps) {
     const navigateBackTo = route.params?.backTo ?? ROUTES.SETTINGS_WALLET;
+
     return (
         <VerifyAccountPageBase
             navigateBackTo={navigateBackTo}
-            navigateForwardTo={ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route}
+            navigateForwardTo={ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE}
         />
     );
 }

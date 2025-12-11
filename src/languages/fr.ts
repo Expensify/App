@@ -3112,6 +3112,11 @@ ${
             'Ajoutez un compte bancaire pour rembourser des dépenses, émettre des cartes Expensify, encaisser des paiements de factures et payer des notes de frais, le tout à partir d’un seul endroit.',
         plaidBodyCopy: 'Offrez à vos employés un moyen plus simple de payer – et de se faire rembourser – les frais professionnels.',
         checkHelpLine: 'Votre numéro de routage et votre numéro de compte figurent sur un chèque de ce compte.',
+        bankAccountPurposeTitle: 'Que voulez-vous faire avec votre compte bancaire?',
+        getReimbursed: 'Être remboursé',
+        getReimbursedDescription: "Par l'employeur ou d'autres",
+        makePayments: 'Effectuer des paiements',
+        makePaymentsDescription: 'Payer les dépenses ou émettre des cartes Expensify',
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Pour connecter un compte bancaire, veuillez <a href="${contactMethodRoute}">ajouter une adresse e-mail comme identifiant principal</a> puis réessayer. Vous pouvez ajouter votre numéro de téléphone comme identifiant secondaire.`,
         hasBeenThrottledError: 'Une erreur s’est produite lors de l’ajout de votre compte bancaire. Veuillez patienter quelques minutes, puis réessayer.',

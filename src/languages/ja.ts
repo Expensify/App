@@ -3090,6 +3090,11 @@ ${
         toGetStarted: '1 か所から経費の払い戻し、Expensify Card の発行、請求書の支払い回収、請求書の支払いを行うために、銀行口座を追加しましょう。',
         plaidBodyCopy: '従業員が会社の経費を支払うことも、その払い戻しを受けることも、より簡単に行えるようにしましょう。',
         checkHelpLine: 'ルーティング番号と口座番号は、その口座の小切手で確認できます。',
+        bankAccountPurposeTitle: '銀行口座で何をしたいですか？',
+        getReimbursed: '払い戻しを受ける',
+        getReimbursedDescription: '雇用主または他の人から',
+        makePayments: '支払いを行う',
+        makePaymentsDescription: '経費を支払うかExpensifyカードを発行する',
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `銀行口座を連携するには、<a href="${contactMethodRoute}">メールアドレスを主なログイン方法として追加</a>してから、もう一度お試しください。電話番号はサブのログイン方法として追加できます。`,
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから、もう一度お試しください。',

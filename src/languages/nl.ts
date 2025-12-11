@@ -3092,6 +3092,11 @@ ${
         toGetStarted: 'Voeg een bankrekening toe om onkosten terug te betalen, Expensify Cards uit te geven, factuurbetalingen te innen en rekeningen te betalen, allemaal vanaf één plek.',
         plaidBodyCopy: 'Geef je werknemers een eenvoudigere manier om bedrijfskosten te betalen – en terugbetaald te worden.',
         checkHelpLine: 'Je kunt je routingnummer en rekeningnummer vinden op een cheque van de rekening.',
+        bankAccountPurposeTitle: 'Wat wil je doen met je bankrekening?',
+        getReimbursed: 'Vergoed worden',
+        getReimbursedDescription: 'Door werkgever of anderen',
+        makePayments: 'Betalingen doen',
+        makePaymentsDescription: 'Uitgaven betalen of Expensify-kaarten uitgeven',
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Om een bankrekening te koppelen, <a href="${contactMethodRoute}">voeg eerst een e‑mail toe als je primaire login</a> en probeer het opnieuw. Je kunt je telefoonnummer als secundaire login toevoegen.`,
         hasBeenThrottledError: 'Er is een fout opgetreden bij het toevoegen van je bankrekening. Wacht een paar minuten en probeer het opnieuw.',
