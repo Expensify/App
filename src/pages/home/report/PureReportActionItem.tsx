@@ -1706,7 +1706,7 @@ function PureReportActionItem({
 
     // Should show createdActionContent if:
     // - Harvest report is shown in ReportActionsList (one-transaction view)
-    const shouldShowCreatedAction = !!isHarvestCreatedExpenseReport && !!parentReportActionForTransactionThread;
+    const shouldShowCreatedAction = action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isHarvestCreatedExpenseReport && !!parentReportActionForTransactionThread;
 
     if (isTripPreview(action) && isThreadReportParentAction) {
         return <TripSummary reportID={getOriginalMessage(action)?.linkedReportID} />;
