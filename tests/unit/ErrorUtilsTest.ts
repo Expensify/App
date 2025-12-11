@@ -1,9 +1,5 @@
-import CONST from '@src/CONST';
-import translations from '@src/languages/de';
-import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
-import * as Localize from '@src/libs/Localize';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 // Mock DateUtils
