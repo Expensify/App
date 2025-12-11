@@ -140,6 +140,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const {isBetaEnabled} = usePermissions();
 
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'ArrowsLeftRight'] as const);
+
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
 
@@ -172,12 +174,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             const splitExpenseWithoutID = {...splitExpenses.at(0), transactionID: ''};
             // When we try to save one split during splits creation and if the data is identical to the original transaction we should close the split flow
             if (!childTransactions.length && deepEqual(splitFieldDataFromOriginalTransactionWithoutID, splitExpenseWithoutID)) {
-                Navigation.dismissModal();
+                Navigation.dismissToPreviousRHP();
                 return;
             }
             // When we try to save splits during editing splits and if the data is identical to the already created transactions we should close the split flow
             if (childTransactions.length && deepEqual(splitFieldDataFromChildTransactions, splitExpenses)) {
-                Navigation.dismissModal();
+                Navigation.dismissToPreviousRHP();
                 return;
             }
             // When we try to save one split during splits creation and if the data is not identical to the original transaction we should show the error
@@ -205,7 +207,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
         // When we try to save splits during editing splits and if the data is identical to the already created transactions we should close the split flow
         if (deepEqual(splitFieldDataFromChildTransactions, splitExpenses)) {
-            Navigation.dismissModal();
+            Navigation.dismissToPreviousRHP();
             return;
         }
 
@@ -353,14 +355,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 <MenuItem
                     onPress={onAddSplitExpense}
                     title={translate('iou.addSplit')}
-                    icon={expensifyIcons.Plus}
+                    icon={icons.Plus}
                     style={[styles.ph4]}
                 />
                 {isInitialSplit && (
                     <MenuItem
                         onPress={onMakeSplitsEven}
                         title={translate('iou.makeSplitsEven')}
-                        icon={expensifyIcons.ArrowsLeftRight}
+                        icon={icons.ArrowsLeftRight}
                         style={[styles.ph4]}
                     />
                 )}
@@ -377,8 +379,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         styles.flexColumn,
         styles.mt1,
         styles.mb3,
-        expensifyIcons.ArrowsLeftRight,
-        expensifyIcons.Plus,
+        icons.ArrowsLeftRight,
+        icons.Plus,
     ]);
 
     const footerContent = useMemo(() => {
