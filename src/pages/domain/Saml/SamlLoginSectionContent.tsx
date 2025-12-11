@@ -42,6 +42,7 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
     const [isOktaScimConfirmModalVisible, setIsScimConfirmModalVisible] = useState(false);
 
     useEffect(() => {
+        // Auto dismiss the saml enabled/required errors when first opening the page
         resetSamlEnabledError(accountID);
         resetSamlRequiredError(accountID);
     }, [accountID]);
