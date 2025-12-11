@@ -2266,7 +2266,8 @@ describe('actions/IOU', () => {
                                 },
                             });
                         }),
-                );
+                )
+                .then(mockFetch?.resume);
         });
 
         it('replaces workspace chat with 1:1 DM when participants do not match', () => {
@@ -2352,7 +2353,8 @@ describe('actions/IOU', () => {
                                 },
                             });
                         }),
-                );
+                )
+                .then(mockFetch?.resume);
         });
     });
 
