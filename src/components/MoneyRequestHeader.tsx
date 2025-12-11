@@ -336,7 +336,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         setRejectModalAction(null);
     };
 
-    const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
+    const secondaryActionsImplementation: Partial<
+        Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>>
+    > = {
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
             text: translate('iou.hold'),
             icon: Expensicons.Stopwatch,
@@ -430,6 +432,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: Expensicons.ThumbsDown,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT,
             onSelected: () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
                 if (dismissedRejectUseExplanation) {
                     if (parentReportAction) {
                         rejectMoneyRequestReason(parentReportAction);
@@ -441,7 +448,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         },
     };
 
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
+    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action): action is NonNullable<typeof action> => !!action);
     const shouldDisplayNarrowMoreButton = !shouldUseNarrowLayout || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
 
     return (

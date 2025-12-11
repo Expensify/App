@@ -172,8 +172,10 @@ import {
     getAllReportActions,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getDefaultApproverUpdateMessage,
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
+    getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
@@ -199,6 +201,7 @@ import {
     getReportActionText,
     getRetractedMessage,
     getSortedReportActions,
+    getSubmitsToUpdateMessage,
     getTravelUpdateMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
@@ -1193,6 +1196,12 @@ Onyx.connectWithoutView({
     },
 });
 
+let cachedSelfDMReportID: OnyxEntry<string>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SELF_DM_REPORT_ID,
+    callback: (value) => (cachedSelfDMReportID = value),
+});
+
 let hiddenTranslation = '';
 let unavailableTranslation = '';
 
@@ -1856,6 +1865,9 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 function findSelfDMReportID(): string | undefined {
+    if (cachedSelfDMReportID) {
+        return cachedSelfDMReportID;
+    }
     if (!allReports) {
         return;
     }
@@ -5817,6 +5829,15 @@ function getReportName(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED)) {
         return getWorkspaceAttendeeTrackingUpdateMessage(parentReportAction);
     }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER)) {
+        return getDefaultApproverUpdateMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO)) {
+        return getSubmitsToUpdateMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO)) {
+        return getForwardsToUpdateMessage(parentReportAction);
+    }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(parentReportAction)?.resolution) {
         return getActionableCardFraudAlertResolutionMessage(parentReportAction);
@@ -6305,11 +6326,12 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
     const rootState = navigationRef.current?.getRootState();
     const lastFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
     if (lastFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-        Navigation.dismissModal();
+        // When deleting from search, go back to Super Wide RHP to maintain search context
+        Navigation.dismissToSuperWideRHP();
         return;
     }
     if (isFromRHP) {
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
     }
     Navigation.isNavigationReady().then(() => {
         Navigation.goBack(backRoute);
@@ -11254,6 +11276,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         merchant,
         modifiedMerchant: '',
         mccGroup,
+        participants: undefined,
     } as Transaction);
 
     const filteredPolicies = Object.values(allPolicies ?? {}).filter((policy) => shouldShowPolicy(policy, false, currentUserEmail));
