@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -97,6 +98,7 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -233,6 +235,11 @@ function SearchPage({route}: SearchPageProps) {
                 return;
             }
 
+            if (isDelegateAccessRestricted) {
+                showDelegateNoAccessModal();
+                return;
+            }
+
             const activeRoute = Navigation.getActiveRoute();
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
@@ -324,7 +331,18 @@ function SearchPage({route}: SearchPageProps) {
                 clearSelectedTransactions();
             });
         },
-        [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions, policies, formatPhoneNumber],
+        [
+            clearSelectedTransactions,
+            hash,
+            isOffline,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
+            lastPaymentMethods,
+            selectedReports,
+            selectedTransactions,
+            policies,
+            formatPhoneNumber,
+        ],
     );
 
     // Check if all selected transactions are from the submitter
@@ -460,6 +478,11 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+
                     // Check if any of the selected items have DEW enabled
                     const selectedPolicyIDList = selectedReports.length
                         ? selectedReports.map((report) => report.policyID)
@@ -564,6 +587,11 @@ function SearchPage({route}: SearchPageProps) {
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
                         return;
                     }
 
@@ -724,6 +752,8 @@ function SearchPage({route}: SearchPageProps) {
         styles.fontWeightNormal,
         styles.textWrap,
         expensifyIcons,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
         dismissedHoldUseExplanation,
         dismissedRejectUseExplanation,
         areAllTransactionsFromSubmitter,

@@ -6380,6 +6380,56 @@ ${reportName}
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 与会者跟踪`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `将默认审批人更改为 ${newApprover}（原为 ${previousApprover}）` : `已将默认审批人更改为 ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `已将${members}的审批流程更改为向${approver}提交报销单`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(之前的默认审批人 ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '（之前的默认审批人）';
+            } else if (previousApprover) {
+                text += `（之前为 ${previousApprover}）`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver ? `已更改 ${members} 的审批流程，使其将报销单提交给默认审批人 ${approver}` : `已将${members}的审批流程更改为将报销单提交给默认审批人`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(之前的默认审批人 ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '（之前的默认审批人）';
+            } else if (previousApprover) {
+                text += `（之前为 ${previousApprover}）`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `将${approver}的审批流程更改为把已批准的报表转发给${forwardsTo}（之前转发给${previousForwardsTo}）`
+                : `将为${approver}的审批流程更改为将已批准的报告转发给${forwardsTo}（之前为最终批准的报告）`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo ? `已将 ${approver} 的审批流程更改为停止转发已批准的报销单（之前转发给 ${previousForwardsTo}）` : `已将 ${approver} 的审批流程更改为不再转发已批准的报销单`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? '已启用' : '已禁用'} 笔报销`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税费“${taxName}”`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已移除税费“${taxName}”`,
