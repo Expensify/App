@@ -7895,6 +7895,7 @@ function startSplitBill({
         taxCode,
         taxAmount,
         quickAction,
+        policyRecentlyUsedCurrencies,
     };
 
     if (existingSplitChatReport) {
