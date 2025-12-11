@@ -98,6 +98,20 @@ type CheckOptions = {
     verbose: boolean;
 };
 
+async function checkChangedFiles({remote, ...restOptions}: BaseCheckParameters): Promise<boolean> {
+    logInfo('Checking changed files for React Compiler compliance...');
+
+    const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
+    const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash, undefined, true);
+
+    if (changedFiles.length === 0) {
+        logSuccess('No React files changed, skipping check.');
+        return true;
+    }
+
+    return check({mode: 'incremental', files: changedFiles, ...restOptions});
+}
+
 async function check({mode = 'static', files, remote, verbose = false}: CheckParameters): Promise<boolean> {
     const options: CheckOptions = {mode, verbose};
 
@@ -130,20 +144,6 @@ async function check({mode = 'static', files, remote, verbose = false}: CheckPar
     generateReport(results);
 
     return isPassed;
-}
-
-async function checkChangedFiles({remote, ...restOptions}: BaseCheckParameters): Promise<boolean> {
-    logInfo('Checking changed files for React Compiler compliance...');
-
-    const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-    const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash, undefined, true);
-
-    if (changedFiles.length === 0) {
-        logSuccess('No React files changed, skipping check.');
-        return true;
-    }
-
-    return check({mode: 'incremental', files: changedFiles, ...restOptions});
 }
 
 function runCompilerHealthcheck(src?: string): CompilerResults {
