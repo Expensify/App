@@ -30,10 +30,6 @@ jest.mock('@rnmapbox/maps', () => {
     };
 });
 
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
-
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
