@@ -87,6 +87,16 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
         !isFromComparisonModal &&
         ((subscriptionPlan === CONST.POLICY.TYPE.TEAM && !hasTeam2025Pricing) || subscriptionPlan !== CONST.POLICY.TYPE.TEAM);
 
+    let subscriptionPlanCardActionButtonWrapStyles;
+
+    if (shouldHideSubscriptionSettingsButton) {
+        subscriptionPlanCardActionButtonWrapStyles = [];
+    } else if (shouldUseNarrowLayout) {
+        subscriptionPlanCardActionButtonWrapStyles = styles.pb5;
+    } else {
+        subscriptionPlanCardActionButtonWrapStyles = styles.pb8;
+    }
+
     return (
         <View style={[styles.borderedContentCard, styles.borderRadiusComponentLarge, styles.mt5, styles.flex1, isSelected && styles.borderColorFocus, styles.justifyContentBetween]}>
             {!privateSubscription ? (
@@ -115,7 +125,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                         <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mt3, styles.mb1]}>{description}</Text>
                         {renderBenefits()}
                     </View>
-                    <View style={shouldHideSubscriptionSettingsButton ? [] : shouldUseNarrowLayout ? styles.pb5 : styles.pb8}>
+                    <View style={subscriptionPlanCardActionButtonWrapStyles}>
                         <SubscriptionPlanCardActionButton
                             subscriptionPlan={subscriptionPlan}
                             isFromComparisonModal={isFromComparisonModal}
