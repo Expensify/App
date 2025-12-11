@@ -948,7 +948,7 @@ function changeTransactionsReport(
         if (oldReport) {
             const oldReportCurrency = oldReport.currency;
             const remainingTransactions = getReportTransactions(oldReportID).filter(
-                (t) => !transactionIDs.includes(t.transactionID) && t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                (t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !transactionIDs.includes(t.transactionID),
             );
 
             const willBeEmpty = remainingTransactions.length === 0;
