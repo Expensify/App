@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {useContext, useMemo} from 'react';
+import {useContext} from 'react';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutOnWideRHPResult from './types';
@@ -18,26 +18,11 @@ export default function useResponsiveLayoutOnWideRHP(): ResponsiveLayoutOnWideRH
 
     const {superWideRHPRouteKeys, wideRHPRouteKeys} = useContext(WideRHPContext);
 
-    const isWideRHPDisplayedOnWideLayout = useMemo(() => {
-        if (isSmallScreenWidth) {
-            return false;
-        }
+    const isWideRHPDisplayedOnWideLayout = !isSmallScreenWidth && wideRHPRouteKeys.includes(route?.key);
 
-        return wideRHPRouteKeys.includes(route?.key);
-    }, [isSmallScreenWidth, route?.key, wideRHPRouteKeys]);
+    const isSuperWideRHPDisplayedOnWideLayout = !isSmallScreenWidth && superWideRHPRouteKeys.includes(route?.key);
 
-    const isSuperWideRHPDisplayedOnWideLayout = useMemo(() => {
-        if (isSmallScreenWidth) {
-            return false;
-        }
-
-        return superWideRHPRouteKeys.includes(route?.key);
-    }, [isSmallScreenWidth, route?.key, superWideRHPRouteKeys]);
-
-    const shouldUseNarrowLayout = useMemo(
-        () => (isSmallScreenWidth || isInNarrowPaneModal) && !isSuperWideRHPDisplayedOnWideLayout && !isWideRHPDisplayedOnWideLayout,
-        [isInNarrowPaneModal, isSmallScreenWidth, isSuperWideRHPDisplayedOnWideLayout, isWideRHPDisplayedOnWideLayout],
-    );
+    const shouldUseNarrowLayout = (isSmallScreenWidth || isInNarrowPaneModal) && !isSuperWideRHPDisplayedOnWideLayout && !isWideRHPDisplayedOnWideLayout;
 
     return {
         ...responsiveLayoutValues,

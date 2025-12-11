@@ -1,6 +1,6 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
 import {
     animatedReceiptPaneRHPWidth,
@@ -126,14 +126,14 @@ function SecondaryOverlay() {
     const modalStackRoute = useRoute();
     const routeKey = getModalStackLastRoute(modalStackRoute?.key);
 
-    const isWide = useMemo(() => routeKey && wideRHPRouteKeys.includes(routeKey), [routeKey, wideRHPRouteKeys]);
-    const isSuperWide = useMemo(() => routeKey && superWideRHPRouteKeys.includes(routeKey), [routeKey, superWideRHPRouteKeys]);
+    const isWide = !!routeKey && wideRHPRouteKeys.includes(routeKey);
+    const isSuperWide = !!routeKey && superWideRHPRouteKeys.includes(routeKey);
 
-    const isRHPDisplayedOnWideRHP = useMemo(() => shouldRenderSecondaryOverlayForRHPOnWideRHP && isWide, [isWide, shouldRenderSecondaryOverlayForRHPOnWideRHP]);
+    const isRHPDisplayedOnWideRHP = shouldRenderSecondaryOverlayForRHPOnWideRHP && isWide;
 
-    const isRHPDisplayedOnSuperWideRHP = useMemo(() => shouldRenderSecondaryOverlayForRHPOnSuperWideRHP && isSuperWide, [isSuperWide, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP]);
+    const isRHPDisplayedOnSuperWideRHP = shouldRenderSecondaryOverlayForRHPOnSuperWideRHP && isSuperWide;
 
-    const isWideRHPDisplayedOnSuperWideRHP = useMemo(() => shouldRenderSecondaryOverlayForWideRHP && isSuperWide, [shouldRenderSecondaryOverlayForWideRHP, isSuperWide]);
+    const isWideRHPDisplayedOnSuperWideRHP = shouldRenderSecondaryOverlayForWideRHP && isSuperWide;
 
     if (isRHPDisplayedOnWideRHP) {
         return (
@@ -171,7 +171,7 @@ function TertiaryOverlay() {
     const modalStackRoute = useRoute();
     const routeKey = getModalStackLastRoute(modalStackRoute?.key);
 
-    const isWide = useMemo(() => routeKey && wideRHPRouteKeys.includes(routeKey), [routeKey, wideRHPRouteKeys]);
+    const isWide = routeKey && wideRHPRouteKeys.includes(routeKey);
 
     if (isWide && shouldRenderTertiaryOverlay) {
         return (

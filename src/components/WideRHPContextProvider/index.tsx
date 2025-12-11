@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import defaultWideRHPContextValue from './default';
+import getIsRHPDisplayedBelow from './getIsRHPDisplayedBelow';
 import getVisibleRHPKeys from './getVisibleRHPRouteKeys';
 import type {WideRHPContextType} from './types';
 import useShouldRenderOverlay from './useShouldRenderOverlay';
@@ -103,21 +104,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     }, [focusedRoute?.key, allWideRHPRouteKeys]);
 
     // Whether Wide RHP is displayed below the currently displayed screen
-    const {isWideRHPBelow, isSuperWideRHPBelow} = useMemo(() => {
-        const {visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys} = getVisibleRHPKeys(allSuperWideRHPRouteKeys, allWideRHPRouteKeys);
-
-        if (!focusedRoute?.key) {
-            return {
-                isWideRHPBelow: false,
-                isSuperWideRHPBelow: false,
-            };
-        }
-
-        return {
-            isWideRHPBelow: visibleWideRHPRouteKeys.length > 0 && !visibleWideRHPRouteKeys.includes(focusedRoute?.key),
-            isSuperWideRHPBelow: visibleSuperWideRHPRouteKeys.length > 0 && !visibleSuperWideRHPRouteKeys.includes(focusedRoute?.key),
-        };
-    }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys, focusedRoute?.key]);
+    const {isWideRHPBelow, isSuperWideRHPBelow} = getIsRHPDisplayedBelow(focusedRoute?.key, allSuperWideRHPRouteKeys, allWideRHPRouteKeys);
 
     // Updates the Wide RHP visible keys table from the all keys table
     const syncRHPKeys = useCallback(() => {
