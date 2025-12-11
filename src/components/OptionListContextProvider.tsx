@@ -114,7 +114,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 return prevOptions;
             }
 
-            const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
+            const updatedReportsMap = new Map(prevOptions.reports.filter((report) => report && report.reportID).map((report) => [report.reportID, report]));
             for (const reportKey of changedReportKeys) {
                 const report = changedReportsEntries[reportKey];
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
@@ -145,7 +145,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 return prevOptions;
             }
 
-            const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
+            const updatedReportsMap = new Map(prevOptions.reports.filter((report) => report && report.reportID).map((report) => [report.reportID, report]));
             for (const [key, reportAction] of changedReportActionsEntries) {
                 if (!reportAction) {
                     continue;

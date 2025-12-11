@@ -19,30 +19,56 @@ import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
+    AccountOwnerParams,
+    ActionsAreCurrentlyRestricted,
     AddedOrDeletedPolicyReportFieldParams,
     AddedPolicyApprovalRuleParams,
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
+    AddressLineParams,
     AirlineParams,
+    AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
+    ApprovedAmountParams,
     AssignedCardParams,
+    AssigneeParams,
+    AuthenticationErrorParams,
+    AutoPayApprovedReportsLimitErrorParams,
+    BadgeFreeTrialParams,
+    BankAccountLastFourParams,
     BeginningOfArchivedRoomParams,
+    BeginningOfChatHistoryAdminRoomParams,
+    BeginningOfChatHistoryAnnounceRoomParams,
+    BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
     BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
+    BillableDefaultDescriptionParams,
+    BillingBannerCardAuthenticationRequiredParams,
+    BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
     BillingBannerDisputePendingParams,
+    BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
+    BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
+    CardEndingParams,
     CardInfoParams,
+    CardNextPaymentParams,
+    CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
+    ChangeOwnerHasFailedSettlementsParams,
     ChangeOwnerSubscriptionParams,
     ChangeReportPolicyParams,
     ChangeTypeParams,
     CharacterLengthLimitParams,
+    CharacterLimitParams,
     ChatWithAccountManagerParams,
     CompanyCardBankName,
     CompanyCardFeedNameParams,
@@ -421,7 +447,7 @@ const translations: TranslationDeepObject<typeof en> = {
         currentMonth: '今月',
         ssnLast4: 'SSN の下4桁',
         ssnFull9: 'SSN の9桁すべて',
-        addressLine: (lineNumber: number) => `住所行 ${lineNumber}`,
+        addressLine: ({lineNumber}: AddressLineParams) => `住所行 ${lineNumber}`,
         personalAddress: '個人住所',
         companyAddress: '会社住所',
         noPO: '私書箱や私設私書箱などの住所は使用しないでください。',
@@ -708,6 +734,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'ドメイン',
         viewReport: 'レポートを表示',
         actionRequired: '対応が必要',
+        duplicate: '複製',
+        duplicated: '重複',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -884,7 +912,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     thirdPartySignIn: {
-        alreadySignedIn: (email: string) => `すでに ${email} としてサインインしています。`,
+        alreadySignedIn: ({email}: AlreadySignedInParams) => `すでに ${email} としてサインインしています。`,
         goBackMessage: ({provider}: GoBackMessageParams) => `${provider}でサインインしたくありませんか？`,
         continueWithMyCurrentSession: '現在のセッションを続行',
         redirectToDesktopMessage: 'サインインが完了すると、デスクトップアプリにリダイレクトします。',
@@ -952,11 +980,12 @@ const translations: TranslationDeepObject<typeof en> = {
     reportActionsView: {
         beginningOfArchivedRoom: ({reportName, reportDetailsLink}: BeginningOfArchivedRoomParams) =>
             `<strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> のパーティーに参加し損ねました。ここには何もありません。`,
-        beginningOfChatHistoryDomainRoom: (domainRoom: string) =>
+        beginningOfChatHistoryDomainRoom: ({domainRoom}: BeginningOfChatHistoryDomainRoomParams) =>
             `このチャットは、<strong>${domainRoom}</strong> ドメイン上のすべての Expensify メンバーとのチャットです。 同僚との会話、ヒントの共有、質問に利用してください。`,
-        beginningOfChatHistoryAdminRoom: (workspaceName: string) =>
+        beginningOfChatHistoryAdminRoom: ({workspaceName}: BeginningOfChatHistoryAdminRoomParams) =>
             `このチャットは<strong>${workspaceName}</strong>の管理者とのチャットです。ワークスペースの設定などについて話し合うために使用してください。`,
-        beginningOfChatHistoryAnnounceRoom: (workspaceName: string) => `このチャットは、<strong>${workspaceName}</strong> 内の全員とのチャットです。最も重要なお知らせに使用してください。`,
+        beginningOfChatHistoryAnnounceRoom: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomParams) =>
+            `このチャットは、<strong>${workspaceName}</strong> 内の全員とのチャットです。最も重要なお知らせに使用してください。`,
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `このチャットルームは、<strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> に関するあらゆる内容のためのものです。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
@@ -1299,8 +1328,8 @@ const translations: TranslationDeepObject<typeof en> = {
             amount ? `銀行口座 ${last4Digits} で ${amount} を支払いました` : `銀行口座（下4桁 ${last4Digits}）で支払い済み`,
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `銀行口座 ${last4Digits} から <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a> により ${amount ? `${amount} ` : ''} を支払いました`,
-        invoicePersonalBank: (lastFour: string) => `個人アカウント • ${lastFour}`,
-        invoiceBusinessBank: (lastFour: string) => `ビジネスアカウント • ${lastFour}`,
+        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `個人アカウント • ${lastFour}`,
+        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `ビジネスアカウント • ${lastFour}`,
         nextStep: '次のステップ',
         finished: '完了',
         flip: '反転',
@@ -1323,7 +1352,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payerSettled: ({amount}: PayerSettledParams) => `支払い済み ${amount}`,
         payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `${amount}を支払いました。支払いを受け取るには銀行口座を追加してください。`,
         automaticallyApproved: `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>で承認済み`,
-        approvedAmount: (amount: number | string) => `承認済み ${amount}`,
+        approvedAmount: ({amount}: ApprovedAmountParams) => `承認済み ${amount}`,
         approvedMessage: `承認済み`,
         unapproved: `未承認`,
         automaticallyForwarded: `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>で承認済み`,
@@ -1526,7 +1555,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'このレポートの承認者を変更する方法を選択してください。',
             description: ({workflowSettingLink}: WorkflowSettingsParam) =>
                 `すべてのレポートの承認者を恒久的に変更するには、<a href="${workflowSettingLink}">ワークフロー設定</a>から行うこともできます。`,
-            changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
             actions: {
                 addApprover: '承認者を追加',
                 addApproverSubtitle: '既存のワークフローに追加の承認者を追加してください。',
@@ -1535,7 +1564,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'このレポートを残りの承認ワークフローに回付する前に、追加の承認者を選択してください。',
+                bulkSubtitle: '残りの承認ワークフローに回す前に、これらのレポートの追加承認者を選択してください。',
             },
+            bulkSubtitle: 'これらのレポートの承認者を変更する方法を選択してください。',
         },
         chooseWorkspace: 'ワークスペースを選択',
     },
@@ -2292,6 +2323,7 @@ ${merchant} への ${amount}（${date}）`,
             title: '表示するメンバーがいません',
             expensesFromSubtitle: 'すべてのワークスペースメンバーは、すでに既存の承認ワークフローに属しています。',
             approverSubtitle: 'すべての承認者は既存のワークフローに属しています。',
+            bulkApproverSubtitle: '選択されたレポートの条件に一致する承認者がいません。',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -2393,7 +2425,7 @@ ${merchant} への ${amount}（${date}）`,
             '**Innovating the Future: A Glimpse into the Year 2050**\n\nAs we look ahead to the year 2050, the landscape of technology, society, and the environment will likely be transformed in ways that are both exciting and challenging. Here are some key areas where we can expect significant changes:\n\n---\n\n### 🌍 1. Sustainable Living and the Environment\n\nBy 2050, the effects of climate change will have forced humanity to adopt more sustainable practices:\n\n- **Renewable Energy Dominance**: Solar, wind, and other renewable sources will likely be our primary energy providers, greatly reducing reliance on fossil fuels.\n- **Smart Cities**: Urban areas will incorporate green architecture, efficient public transport, and AI-powered infrastructure to reduce pollution and improve quality of life.\n- **Circular Economy**: Recycling and reusing materials will become standard, with waste minimized at every stage of production and consumption.\n\n---\n\n### 🤖 2. Advancements in Artificial Intelligence and Automation\n\nAI will be deeply embedded in everyday life:\n\n- **Personal AI Assistants**: Far more advanced than today’s versions, they’ll manage schedules, health, finances, and even offer emotional support.\n- **Automation of Work**: Many repetitive and dangerous jobs will be handled by robots, reshaping the job market and requiring new skills.\n- **Ethics and Governance**: As AI capabilities grow, society will need robust laws and ethical frameworks to ensure fairness, privacy, and safety.\n\n---\n\n### 🧬 3. Healthcare and Biotechnology\n\nMedical technology in 2050 could dramatically improve human health and longevity:\n\n- **Personalized Medicine**: Treatments tailored to individual genetic profiles will improve outcomes and reduce side effects.\n- **Disease Prevention**: Early detection tools, wearable health monitors, and AI diagnostics will help prevent many diseases before they become severe.\n- **Regenerative Medicine**: Advances in stem cells and tissue engineering could allow damaged organs to be repaired or replaced.\n\n---\n\n### 🚀 4. Space Exploration and Colonization\n\nHumanity’s reach into space will likely expand:\n\n- **Moon and Mars Bases**: Permanent or semi-permanent habitats on the Moon and Mars could support research and possibly mining activities.\n- **Commercial Space Travel**: Space tourism might be accessible to more people, not just the ultra-wealthy.\n- **Asteroid Mining**: Extracting valuable minerals from asteroids could become a new frontier for resources.\n\n---\n\n### 🧠 5. Education, Work, and Society\n\nHow we learn and work will be very different:\n\n- **Lifelong Learning**: With rapid technological change, continuous education will be essential. Online and immersive learning environments (like VR/AR) will be the norm.\n- **Remote and Hybrid Work**: Offices will exist, but many jobs will be location-independent, allowing people greater flexibility in where they live.\n- **Global Connectivity**: Faster and more ubiquitous internet will connect even remote regions, fostering global collaboration and cultural exchange.\n\n---\n\n### ⚖️ 6. Challenges and Considerations\n\nDespite all the opportunities, 2050 will bring serious challenges:\n\n- **Inequality**: Access to advanced technology, education, and healthcare may remain unequal across regions and social groups.\n- **Privacy and Security**: With more data collected about everyone, protecting privacy and preventing abuse will be critical.\n- **Cultural and Psychological Impact**: Rapid change can create stress, identity challenges, and generational divides.\n\n---\n\n### 🔮 Conclusion\n\nThe world in 2050 will likely be more interconnected, technologically advanced, and environmentally conscious than today—but it will also require thoughtful decisions to ensure that progress benefits everyone. The choices we make now, in areas like sustainability, ethics, and equity, will shape whether 2050 becomes a thriving future for all or a time marked by deeper divides.\n\nThe future isn’t predetermined; it’s something we build—step by step—starting today.',
         addFirstPaymentMethod: 'アプリ内で直接支払いを送受信するには、支払方法を追加してください。',
         defaultPaymentMethod: 'デフォルト',
-        bankAccountLastFour: (lastFour: string) => `銀行口座 • ${lastFour}`,
+        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `銀行口座 • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -3334,7 +3366,7 @@ ${
         whatsTheBusinessName: '会社名は何ですか？',
         whatsTheBusinessAddress: '会社の住所は何ですか？',
         whatsTheBusinessContactInformation: 'ビジネスの連絡先情報は何ですか？',
-        whatsTheBusinessRegistrationNumber: (country: string) => {
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
             switch (country) {
                 case CONST.COUNTRY.GB:
                     return '会社登録番号（CRN）とは何ですか？';
@@ -3342,7 +3374,7 @@ ${
                     return '法人登録番号は何ですか？';
             }
         },
-        whatsTheBusinessTaxIDEIN: (country: string) => {
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
                     return '雇用主識別番号（EIN）とは何ですか？';
@@ -3362,7 +3394,7 @@ ${
         whatsTheBusinessAnnualPayment: 'ビジネスの年間支払額はいくらですか？',
         whatsYourExpectedAverageReimbursements: '想定している平均の精算金額はいくらですか？',
         registrationNumber: '登録番号',
-        taxIDEIN: (country: string) => {
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
                     return 'EIN';
@@ -3401,7 +3433,7 @@ ${
         findBusinessType: '事業形態を検索',
         error: {
             registrationNumber: '有効な登録番号を入力してください',
-            taxIDEIN: (country: string) => {
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
                 switch (country) {
                     case CONST.COUNTRY.US:
                         return '有効な雇用者識別番号（EIN）を入力してください';
@@ -3849,7 +3881,7 @@ ${
             existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `以前に ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} に接続したことがあるため、既存の接続を再利用するか、新しい接続を作成するかを選択できます。`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 最終同期日 ${formattedDate}`,
-            authenticationError: (connectionName: string) => `認証エラーのため、${connectionName} に接続できません。`,
+            authenticationError: ({connectionName}: AuthenticationErrorParams) => `認証エラーのため、${connectionName} に接続できません。`,
             learnMore: '詳細はこちら',
             memberAlternateText: 'メンバーはレポートを提出および承認できます。',
             adminAlternateText: '管理者は、すべてのレポートとワークスペース設定を完全に編集できます。',
@@ -4180,8 +4212,8 @@ ${
             accountsSwitchDescription: '有効化されたカテゴリは、メンバーが経費を作成する際に選択できるようになります。',
             trackingCategories: 'トラッキングカテゴリ',
             trackingCategoriesDescription: 'Expensify で Xero のトラッキングカテゴリーをどのように処理するか選択してください。',
-            mapTrackingCategoryTo: (categoryName: string) => `Xero の ${categoryName} をマッピング先に指定`,
-            mapTrackingCategoryToDescription: (categoryName: string) => `${categoryName} を Xero へエクスポートする際のマッピング先を選択してください。`,
+            mapTrackingCategoryTo: ({categoryName}: CategoryNameParams) => `Xero の ${categoryName} をマッピング先に指定`,
+            mapTrackingCategoryToDescription: ({categoryName}: CategoryNameParams) => `${categoryName} を Xero へエクスポートする際のマッピング先を選択してください。`,
             customers: '顧客へ再請求',
             customersDescription: 'Expensify で顧客への再請求を行うかどうかを選択します。Xero の顧客連絡先を経費にタグ付けでき、そのまま Xero に売上請求書としてエクスポートされます。',
             taxesDescription: 'Expensify で Xero の税金をどのように処理するか選択してください。',
@@ -4821,7 +4853,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             directFeed: 'ダイレクトフィード',
             whoNeedsCardAssigned: '誰にカードを割り当てる必要がありますか？',
             chooseCard: 'カードを選択',
-            chooseCardFor: (assignee: string) =>
+            chooseCardFor: ({assignee}: AssigneeParams) =>
                 `<strong>${assignee}</strong> に使うカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,
             noActiveCards: 'このフィードには有効なカードがありません',
             somethingMightBeBroken:
@@ -4893,21 +4925,21 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             deactivate: 'カードを無効化',
             changeCardLimit: 'カード上限を変更',
             changeLimit: '制限を変更',
-            smartLimitWarning: (limit: number | string) => `このカードの限度額を${limit}に変更すると、カードでより多くの経費を承認するまで、新しい取引は拒否されます。`,
-            monthlyLimitWarning: (limit: number | string) => `このカードの限度額を${limit}に変更すると、来月まで新しい取引は承認されません。`,
-            fixedLimitWarning: (limit: number | string) => `このカードの利用限度額を${limit}に変更すると、新しい取引は拒否されます。`,
+            smartLimitWarning: ({limit}: CharacterLimitParams) => `このカードの限度額を${limit}に変更すると、カードでより多くの経費を承認するまで、新しい取引は拒否されます。`,
+            monthlyLimitWarning: ({limit}: CharacterLimitParams) => `このカードの限度額を${limit}に変更すると、来月まで新しい取引は承認されません。`,
+            fixedLimitWarning: ({limit}: CharacterLimitParams) => `このカードの利用限度額を${limit}に変更すると、新しい取引は拒否されます。`,
             changeCardLimitType: 'カードの限度額タイプを変更',
             changeLimitType: '制限タイプを変更',
-            changeCardSmartLimitTypeWarning: (limit: number | string) =>
+            changeCardSmartLimitTypeWarning: ({limit}: CharacterLimitParams) =>
                 `このカードの上限タイプをスマート上限に変更すると、未承認の上限 ${limit} にすでに達しているため、新しい取引は拒否されます。`,
-            changeCardMonthlyLimitTypeWarning: (limit: number | string) =>
+            changeCardMonthlyLimitTypeWarning: ({limit}: CharacterLimitParams) =>
                 `このカードの上限タイプを月次に変更すると、${limit} の月次上限にはすでに達しているため、新しい取引は却下されます。`,
             addShippingDetails: '配送先の詳細を追加',
-            issuedCard: (assignee: string) => `${assignee} に Expensify Card を発行しました！カードは 2～3 営業日で到着します。`,
-            issuedCardNoShippingDetails: (assignee: string) => `${assignee} に Expensify Card を発行しました！配送先の詳細が確認されると、カードは発送されます。`,
+            issuedCard: ({assignee}: AssigneeParams) => `${assignee} に Expensify Card を発行しました！カードは 2～3 営業日で到着します。`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `${assignee} に Expensify Card を発行しました！配送先の詳細が確認されると、カードは発送されます。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `${assignee} にバーチャル Expensify Card を発行しました！${link} はすぐに使用できます。`,
-            addedShippingDetails: (assignee: string) => `${assignee} が配送先情報を追加しました。Expensify Card は 2～3 営業日で届きます。`,
-            replacedCard: (assignee: string) => `${assignee} は Expensify Card を再発行しました。新しいカードは 2～3 営業日以内に到着します。`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} が配送先情報を追加しました。Expensify Card は 2～3 営業日で届きます。`,
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} は Expensify Card を再発行しました。新しいカードは 2～3 営業日以内に到着します。`,
             replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} は自分のバーチャル Expensify Card を再発行しました！${link} はすぐに使用できます。`,
             card: 'カード',
             replacementCard: '代替カード',
@@ -5861,7 +5893,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
 サブスクリプション全体の請求管理を引き継ぎたい場合は、請求管理を引き継ぐ前に、すべてのワークスペースであなたを管理者として追加してもらってください。`,
             hasFailedSettlementsTitle: 'オーナー権限を譲渡できません',
             hasFailedSettlementsButtonText: '了解しました',
-            hasFailedSettlementsText: (email: string) =>
+            hasFailedSettlementsText: ({email}: ChangeOwnerHasFailedSettlementsParams) =>
                 `${email} に未払いの Expensify Card 精算があるため、請求の管理を引き継ぐことはできません。問題を解決するために、concierge@expensify.com まで連絡するよう依頼してください。その後、このワークスペースの請求管理を引き継ぐことができます。`,
             failedToClearBalanceTitle: '残高の消去に失敗しました',
             failedToClearBalanceButtonText: 'OK',
@@ -6066,7 +6098,7 @@ ${reportName}
         },
         restrictedAction: {
             restricted: '制限中',
-            actionsAreCurrentlyRestricted: (workspaceName: string) => `現在、${workspaceName} ワークスペースでの操作は制限されています`,
+            actionsAreCurrentlyRestricted: ({workspaceName}: ActionsAreCurrentlyRestricted) => `現在、${workspaceName} ワークスペースでの操作は制限されています`,
             workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}: WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams) =>
                 `ワークスペースのオーナーである ${workspaceOwnerName} が、ワークスペースでの新しいアクティビティを有効にするために、登録されている支払いカードを追加または更新する必要があります。`,
             youWillNeedToAddOrUpdatePaymentCard: '新しいワークスペースのアクティビティを利用するには、登録済みの支払いカードを追加または更新する必要があります。',
@@ -6106,7 +6138,7 @@ ${reportName}
                 alwaysNonReimbursable: '常に精算対象外',
                 alwaysNonReimbursableDescription: '従業員に経費が精算されることはありません',
                 billableDefault: '請求可能のデフォルト',
-                billableDefaultDescription: (tagsPageLink: string) =>
+                billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
                     `<muted-text>現金およびクレジットカード経費を、デフォルトで請求可能にするかどうかを選択します。請求可能な経費は、<a href="${tagsPageLink}">タグ</a>で有効または無効にできます。</muted-text>`,
                 billable: '請求可能',
                 billableDescription: '経費は多くの場合、クライアントに再請求されます',
@@ -6126,7 +6158,7 @@ ${reportName}
                 adultEntertainment: 'アダルトエンターテインメント',
             },
             expenseReportRules: {
-                title: '経費精算書',
+                title: '上級',
                 subtitle: '経費精算レポートのコンプライアンス、承認、支払いを自動化します。',
                 preventSelfApprovalsTitle: '自己承認を防ぐ',
                 preventSelfApprovalsSubtitle: 'ワークスペースメンバーが自分自身の経費精算レポートを承認できないようにします。',
@@ -6138,12 +6170,11 @@ ${reportName}
                 randomReportAuditDescription: '一部のレポートは、自動承認の対象であっても手動承認を必須にする。',
                 autoPayApprovedReportsTitle: '自動支払いが承認されたレポート',
                 autoPayApprovedReportsSubtitle: '自動支払いの対象となる経費レポートを設定します。',
-                autoPayApprovedReportsLimitError: (currency?: string) => `${currency ?? ''}20,000 未満の金額を入力してください`,
+                autoPayApprovedReportsLimitError: ({currency}: AutoPayApprovedReportsLimitErrorParams = {}) => `${currency ?? ''}20,000 未満の金額を入力してください`,
                 autoPayApprovedReportsLockedSubtitle: '「その他の機能」に移動してワークフローを有効にし、その後「支払い」を追加してこの機能を有効化してください。',
                 autoPayReportsUnderTitle: '以下のレポートを自動支払い',
                 autoPayReportsUnderDescription: 'この金額以下の、要件を完全に満たした経費精算書は自動的に支払われます。',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `[その他の機能](${moreFeaturesLink}) に移動してワークフローを有効にし、その後 ${featureName} を追加してこの機能を有効化してください。`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `${featureName} を追加して、この機能を有効にしてください。`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `[その他の機能](${moreFeaturesLink})に移動し、${featureName} を有効にしてこの機能をアンロックしてください。`,
             },
@@ -6152,12 +6183,13 @@ ${reportName}
                 approver: '承認者',
                 requireDescription: '説明を必須にする',
                 descriptionHint: '説明のヒント',
-                descriptionHintDescription: (categoryName: string) => `従業員に「${categoryName}」での支出について追加情報を提供するよう促します。このヒントは経費の説明欄に表示されます。`,
+                descriptionHintDescription: ({categoryName}: CategoryNameParams) =>
+                    `従業員に「${categoryName}」での支出について追加情報を提供するよう促します。このヒントは経費の説明欄に表示されます。`,
                 descriptionHintLabel: 'ヒント',
                 descriptionHintSubtitle: 'プロのヒント：短ければ短いほど良いです！',
                 maxAmount: '最大金額',
                 flagAmountsOver: '～以上の金額にフラグを付ける',
-                flagAmountsOverDescription: (categoryName: string) => `カテゴリ「${categoryName}」に適用されます。`,
+                flagAmountsOverDescription: ({categoryName}: CategoryNameParams) => `カテゴリ「${categoryName}」に適用されます。`,
                 flagAmountsOverSubtitle: 'これにより、すべての経費の上限額が上書きされます。',
                 expenseLimitTypes: {
                     expense: '個別経費',
@@ -6823,6 +6855,7 @@ ${reportName}
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `${workspaceName} で別のレポートを作成してもよろしいですか？ 空のレポートには次からアクセスできます`,
             emptyReportConfirmationPromptLink: 'レポート',
             genericWorkspaceName: 'このワークスペース',
+            emptyReportConfirmationDontShowAgain: '今後表示しない',
         },
         genericCreateReportFailureMessage: 'このチャットの作成中に予期しないエラーが発生しました。後でもう一度お試しください。',
         genericAddCommentFailureMessage: 'コメントの投稿中に予期しないエラーが発生しました。後でもう一度お試しください。',
@@ -7300,12 +7333,12 @@ ${reportName}
         authenticatePaymentCard: '支払いカードを認証',
         mobileReducedFunctionalityMessage: 'モバイルアプリではサブスクリプションを変更できません。',
         badge: {
-            freeTrial: (numOfDays: number) => `無料トライアル：残り ${numOfDays} ${numOfDays === 1 ? '日' : '日'} 日`,
+            freeTrial: ({numOfDays}: BadgeFreeTrialParams) => `無料トライアル：残り ${numOfDays} ${numOfDays === 1 ? '日' : '日'} 日`,
         },
         billingBanner: {
             policyOwnerAmountOwed: {
                 title: 'お支払い情報が古くなっています',
-                subtitle: (date: string) => `${date} までにお支払いカードを更新して、すべてのお気に入りの機能を引き続きご利用ください。`,
+                subtitle: ({date}: BillingBannerSubtitleWithDateParams) => `${date} までにお支払いカードを更新して、すべてのお気に入りの機能を引き続きご利用ください。`,
             },
             policyOwnerAmountOwedOverdue: {
                 title: 'お支払いを処理できませんでした',
@@ -7316,7 +7349,7 @@ ${reportName}
             },
             policyOwnerUnderInvoicing: {
                 title: 'お支払い情報が古くなっています',
-                subtitle: (date: string) => `お支払い期限を過ぎています。サービスの中断を避けるため、${date}までに請求書をお支払いください。`,
+                subtitle: ({date}: BillingBannerSubtitleWithDateParams) => `お支払い期限を過ぎています。サービスの中断を避けるため、${date}までに請求書をお支払いください。`,
             },
             policyOwnerUnderInvoicingOverdue: {
                 title: 'お支払い情報が古くなっています',
@@ -7329,16 +7362,18 @@ ${reportName}
             },
             cardAuthenticationRequired: {
                 title: 'お支払いカードは完全に認証されていません。',
-                subtitle: (cardEnding: string) => `お支払いカード（末尾が ${cardEnding} のカード）を有効化するには、認証プロセスを完了してください。`,
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
+                    `お支払いカード（末尾が ${cardEnding} のカード）を有効化するには、認証プロセスを完了してください。`,
             },
             insufficientFunds: {
                 title: 'あなたのカードに請求できませんでした',
-                subtitle: (amountOwed: number) =>
+                subtitle: ({amountOwed}: BillingBannerInsufficientFundsParams) =>
                     `ご利用の支払いカードは残高不足のため承認されませんでした。${amountOwed} の未払い残高を清算するため、再試行するか新しい支払いカードを追加してください。`,
             },
             cardExpired: {
                 title: 'あなたのカードに請求できませんでした',
-                subtitle: (amountOwed: number) => `お支払いカードの有効期限が切れています。未払い残高 ${amountOwed} を清算するために、新しいお支払いカードを追加してください。`,
+                subtitle: ({amountOwed}: BillingBannerCardExpiredParams) =>
+                    `お支払いカードの有効期限が切れています。未払い残高 ${amountOwed} を清算するために、新しいお支払いカードを追加してください。`,
             },
             cardExpireSoon: {
                 title: 'お使いのカードの有効期限がもうすぐ切れます',
@@ -7379,8 +7414,8 @@ ${reportName}
             title: '支払い',
             subtitle: 'Expensify のサブスクリプションを支払うためのカードを追加してください。',
             addCardButton: '支払カードを追加',
-            cardNextPayment: (nextPaymentDate: string) => `次回のお支払い日は${nextPaymentDate}です。`,
-            cardEnding: (cardNumber: string) => `末尾が${cardNumber}のカード`,
+            cardNextPayment: ({nextPaymentDate}: CardNextPaymentParams) => `次回のお支払い日は${nextPaymentDate}です。`,
+            cardEnding: ({cardNumber}: CardEndingParams) => `末尾が${cardNumber}のカード`,
             cardInfo: ({name, expiration, currency}: CardInfoParams) => `名前: ${name}, 有効期限: ${expiration}, 通貨: ${currency}`,
             changeCard: '支払いカードを変更',
             changeCurrency: '支払通貨を変更',
@@ -7583,7 +7618,7 @@ ${reportName}
         noAccessMessage: dedent(`
             このページには、コパイロットとしてアクセスできません。申し訳ありません。
         `),
-        notAllowedMessage: (accountOwnerEmail: string) =>
+        notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
             `${accountOwnerEmail} の<a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">コパイロット</a>として、この操作を行う権限がありません。申し訳ありません。`,
         copilotAccess: 'Copilot へのアクセス',
     },
