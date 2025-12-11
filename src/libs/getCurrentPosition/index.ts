@@ -1,5 +1,5 @@
 import {getCurrentPositionAsync, PermissionStatus, requestForegroundPermissionsAsync} from 'expo-location';
-import type {LocationObject, PermissionResponse} from 'expo-location';
+import type {PermissionResponse} from 'expo-location';
 import {GeolocationErrorCode} from './getCurrentPosition.types';
 import type {GetCurrentPosition} from './getCurrentPosition.types';
 
@@ -17,7 +17,7 @@ const getCurrentPosition: GetCurrentPosition = async (success, error, options) =
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
         const currentPosition = await getCurrentPositionAsync(options);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        success(currentPosition as LocationObject);
+        success(currentPosition);
     } catch (caughtError: unknown) {
         let message = 'Geolocation call failed';
         let code = GeolocationErrorCode.POSITION_UNAVAILABLE;
