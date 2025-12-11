@@ -104,7 +104,6 @@ const isQuickActionAllowed = (
         if (!quickActionPolicy?.arePerDiemRatesEnabled) {
             return false;
         }
-        // Check if per diem rates exist - if there are no rates, the quick action should not be shown
         const perDiemCustomUnit = getPerDiemCustomUnit(quickActionPolicy);
         if (isEmptyObject(perDiemCustomUnit?.rates)) {
             return false;
