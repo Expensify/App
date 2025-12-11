@@ -1702,8 +1702,9 @@ const ROUTES = {
     WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
         route: `workspaces/:policyID/workflows/approvals/${CONST.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM_ROUTE}`,
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+
         getRoute: (policyID: string, backTo?: string) =>
+                    // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             getUrlWithBackToParam(`workspaces/${policyID}/workflows/approvals/${CONST.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM_ROUTE}` as const, backTo),
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
