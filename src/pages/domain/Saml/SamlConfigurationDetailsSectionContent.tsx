@@ -80,6 +80,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                 maxLength={Infinity}
                 enabledWhenOffline={false}
                 required
+                allowHTML
             />
 
             <MenuItemWithTopDescription
