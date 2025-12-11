@@ -1,10 +1,11 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -114,6 +115,8 @@ function TransactionListItem<TItem extends ListItem>({
         );
     }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email, currentUserDetails.accountID]);
 
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+
     const handleActionButtonPress = useCallback(() => {
         handleActionButtonPressUtil(
             currentSearchHash,
@@ -125,6 +128,8 @@ function TransactionListItem<TItem extends ListItem>({
             currentSearchKey,
             onDEWModalOpen,
             isDEWBetaEnabled,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
         );
     }, [
         currentSearchHash,
@@ -138,6 +143,8 @@ function TransactionListItem<TItem extends ListItem>({
         item,
         onDEWModalOpen,
         isDEWBetaEnabled,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
     ]);
 
     const handleCheckboxPress = useCallback(() => {
@@ -200,7 +207,7 @@ function TransactionListItem<TItem extends ListItem>({
                     amountColumnSize={amountColumnSize}
                     taxAmountColumnSize={taxAmountColumnSize}
                     shouldShowCheckbox={!!canSelectMultiple}
-                    style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}, isLargeScreenWidth && styles.pr0]}
+                    style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     violations={transactionViolations}
                     onArrowRightPress={onPress}

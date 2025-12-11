@@ -1,4 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -13,6 +13,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -165,6 +166,12 @@ function AttachmentPickerWithMenuItems({
         () => hasEmptyReportsForPolicy(reportSummaries, report?.policyID, accountID) && hasDismissedEmptyReportsConfirmation !== true,
         [accountID, hasDismissedEmptyReportsConfirmation, report?.policyID, reportSummaries],
     );
+
+    const route = useRoute();
+    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useContext(WideRHPContext);
+
+    const isSuperWideRHPFocused = superWideRHPRouteKeys.includes(route?.key);
+    const isWideRHPFocused = wideRHPRouteKeys.includes(route?.key);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -365,6 +372,18 @@ function AttachmentPickerWithMenuItems({
     // 4. And the Create button is at the bottom.
     const createButtonContainerStyles = [styles.flexGrow0, styles.flexShrink0];
 
+    const anchorPosition = useMemo(() => {
+        if (isSuperWideRHPFocused) {
+            return styles.createMenuPositionSuperWideRHPReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth);
+        }
+
+        if (isWideRHPFocused) {
+            return styles.createMenuPositionWideRHPReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth);
+        }
+
+        return styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth);
+    }, [isSuperWideRHPFocused, isWideRHPFocused, styles, shouldUseNarrowLayout, windowHeight, windowWidth]);
+
     return (
         <AttachmentPicker
             allowMultiple
@@ -504,7 +523,7 @@ function AttachmentPickerWithMenuItems({
                                     });
                                 }
                             }}
-                            anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
+                            anchorPosition={anchorPosition}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,

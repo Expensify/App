@@ -7,6 +7,7 @@ import log from 'electron-log';
 import {autoUpdater} from 'electron-updater';
 import type {AuthType, PermissionType} from 'node-mac-permissions';
 import {machineId} from 'node-machine-id';
+import type {ValueOf} from 'type-fest';
 import checkForUpdates from '@libs/checkForUpdates';
 import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -14,13 +15,19 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
-import type {LocationPermissionState} from '@src/libs/getCurrentPosition/locationPermission';
-import {LOCATION_PERMISSION_STATES} from '@src/libs/getCurrentPosition/locationPermission';
 import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
+
+const LOCATION_PERMISSION_STATES = {
+    GRANTED: 'granted',
+    DENIED: 'denied',
+    PROMPT: 'prompt',
+} as const;
+
+type LocationPermissionState = ValueOf<typeof LOCATION_PERMISSION_STATES>;
 
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 

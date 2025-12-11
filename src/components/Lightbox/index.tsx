@@ -144,6 +144,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
         return !indexOutOfRange;
     }, [activePage, hasSiblingCarouselItems, page]);
     const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [isFallbackVisible, setFallbackVisible] = useState(!isLightboxVisible);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
@@ -168,7 +169,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     const isFallbackStillLoading = isFallbackVisible && !isFallbackImageLoaded;
     const isLightboxStillLoading = isLightboxVisible && !isLightboxImageLoaded;
-    const isLoading = isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading);
+    const isImageLoaded = !(isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading));
 
     // Resets the lightbox when it becomes inactive
     useEffect(() => {
@@ -208,6 +209,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     );
 
     const isALocalFile = isLocalFile(uri);
+    const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
 
     return (
         <View
@@ -249,6 +251,9 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                         setContentSize(cachedImageDimensions.get(uri));
                                         setLightboxImageLoaded(false);
                                     }}
+                                    onLoadEnd={() => {
+                                        setIsLoading(false);
+                                    }}
                                 />
                             </MultiGestureCanvas>
                         </View>
@@ -271,13 +276,13 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                     )}
 
                     {/* Show activity indicator while the lightbox is still loading the image. */}
-                    {isLoading && (!isOffline || isALocalFile) && (
+                    {!isImageLoaded && !shouldShowOfflineIndicator && (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
                         />
                     )}
-                    {isLoading && !isALocalFile && <AttachmentOfflineIndicator />}
+                    {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}
                 </>
             )}
         </View>
