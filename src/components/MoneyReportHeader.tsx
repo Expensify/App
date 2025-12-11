@@ -1456,13 +1456,13 @@ function MoneyReportHeader({
 
     const selectedTransactionsOptions = useMemo(() => {
         return originalSelectedTransactionsOptions.map((option) => {
-            if (option.text === translate('common.delete')) {
+            if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
                 return {
                     ...option,
                     onSelected: showDeleteModal,
                 };
             }
-            if (option.text === translate('search.bulkActions.reject')) {
+            if (option.value === CONST.REPORT.SECONDARY_ACTIONS.REJECT) {
                 return {
                     ...option,
                     onSelected: () => {
@@ -1476,7 +1476,7 @@ function MoneyReportHeader({
             }
             return option;
         });
-    }, [originalSelectedTransactionsOptions, translate, showDeleteModal, dismissedRejectUseExplanation]);
+    }, [originalSelectedTransactionsOptions, showDeleteModal, dismissedRejectUseExplanation]);
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
