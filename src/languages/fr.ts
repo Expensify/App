@@ -41,6 +41,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillableDefaultDescriptionParams,
@@ -732,7 +733,10 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copier dans le presse-papiers',
         thisIsTakingLongerThanExpected: 'Cela prend plus de temps que prévu...',
         domains: 'Domaines',
+        viewReport: 'Voir le rapport',
         actionRequired: 'Action requise',
+        duplicate: 'Dupliquer',
+        duplicated: 'Dupliqué',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -989,7 +993,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Ce salon de discussion est destiné à tout ce qui concerne <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `Cette discussion concerne les factures entre <strong>${invoicePayer}</strong> et <strong>${invoiceReceiver}</strong>. Utilisez le bouton + pour envoyer une facture.`,
-        beginningOfChatHistory: 'Cette discussion est avec',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `Ce chat est avec ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `C’est ici que <strong>${submitterDisplayName}</strong> soumettra des dépenses à <strong>${workspaceName}</strong>. Utilisez simplement le bouton +.`,
         beginningOfChatHistorySelfDM: 'Ceci est votre espace personnel. Utilisez-le pour vos notes, tâches, brouillons et rappels.',
@@ -1564,7 +1568,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Choisissez un approbateur supplémentaire pour ce rapport avant que nous ne le transmettions au reste du processus de validation.',
+                bulkSubtitle: 'Choisissez un approbateur supplémentaire pour ces rapports avant que nous ne les transmettions pour le reste du flux de validation.',
             },
+            bulkSubtitle: 'Choisissez une option pour changer l’approbateur de ces rapports.',
         },
         chooseWorkspace: 'Choisir un espace de travail',
     },
@@ -2333,6 +2339,7 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Aucun membre à afficher',
             expensesFromSubtitle: 'Tous les membres de l’espace de travail appartiennent déjà à un flux d’approbation existant.',
             approverSubtitle: 'Tous les approbateurs appartiennent à un workflow existant.',
+            bulkApproverSubtitle: 'Aucun approbateur ne correspond aux critères pour les rapports sélectionnés.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -6118,6 +6125,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                     toUpgrade: 'Pour mettre à niveau, cliquez',
                     selectWorkspace: 'sélectionnez un espace de travail et changez le type de forfait en',
                 },
+                upgradeWorkspaceWarning: "Impossible de mettre à niveau l'espace de travail",
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
+                    "Votre entreprise a restreint la création d'espaces de travail. Veuillez contacter un administrateur pour obtenir de l'aide.",
             },
         },
         downgrade: {
@@ -6215,7 +6225,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 adultEntertainment: 'Divertissements pour adultes',
             },
             expenseReportRules: {
-                title: 'Notes de frais',
+                title: 'Avancé',
                 subtitle: 'Automatisez la conformité, les validations et le paiement des notes de frais.',
                 preventSelfApprovalsTitle: 'Empêcher les auto-approbations',
                 preventSelfApprovalsSubtitle: 'Empêcher les membres de l’espace de travail d’approuver leurs propres notes de frais.',
@@ -6231,8 +6241,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 autoPayApprovedReportsLockedSubtitle: 'Allez dans « Plus de fonctionnalités » et activez les workflows, puis ajoutez les paiements pour déverrouiller cette fonctionnalité.',
                 autoPayReportsUnderTitle: 'Rapports de paiement automatique sous',
                 autoPayReportsUnderDescription: 'Les notes de frais entièrement conformes en dessous de ce montant seront automatiquement réglées.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez les workflows, puis ajoutez ${featureName} pour déverrouiller cette fonctionnalité.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Ajoutez ${featureName} pour débloquer cette fonctionnalité.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour déverrouiller cette fonctionnalité.`,
             },
@@ -6549,7 +6558,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `suivi des participants ${enabled ? 'activé' : 'Désactivé'}`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `Remboursements ${enabled ? 'activé' : 'Désactivé'} pour cet espace de travail`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'activé' : 'désactivé'} remboursements`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `a ajouté la taxe « ${taxName} »`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `a supprimé la taxe « ${taxName} »`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6781,6 +6790,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         groupBy: 'Grouper par',
         moneyRequestReport: {
             emptyStateTitle: 'Ce rapport n’a aucune dépense.',
+            accessPlaceHolder: 'Ouvrir pour plus de détails',
         },
         noCategory: 'Aucune catégorie',
         noTag: 'Aucune étiquette',
@@ -6924,6 +6934,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 `Êtes-vous sûr de vouloir créer un autre rapport dans ${workspaceName} ? Vous pouvez accéder à vos rapports vides dans`,
             emptyReportConfirmationPromptLink: 'Rapports',
             genericWorkspaceName: 'cet espace de travail',
+            emptyReportConfirmationDontShowAgain: 'Ne plus afficher ce message',
         },
         genericCreateReportFailureMessage: 'Erreur inattendue lors de la création de cette discussion. Veuillez réessayer plus tard.',
         genericAddCommentFailureMessage: 'Erreur inattendue lors de la publication du commentaire. Veuillez réessayer plus tard.',
@@ -7921,6 +7932,27 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             revealToken: 'Afficher le jeton',
             fetchError: 'Impossible de récupérer les détails de la configuration SAML',
             setMetadataGenericError: 'Impossible de définir les métadonnées SAML',
+        },
+        accessRestricted: {
+            title: 'Accès restreint',
+            subtitle: (domainName: string) =>
+                `Veuillez vous authentifier en tant qu’administrateur d’entreprise autorisé pour <strong>${domainName}</strong> si vous avez besoin d’avoir le contrôle sur :`,
+            companyCardManagement: 'Gestion des cartes d’entreprise',
+            accountCreationAndDeletion: 'Création et suppression de compte',
+            workspaceCreation: "Création d'espace de travail",
+            samlSSO: 'SSO SAML',
+        },
+        addDomain: {
+            title: 'Ajouter un domaine',
+            subtitle: 'Saisissez le nom du domaine privé auquel vous souhaitez accéder (par exemple expensify.com).',
+            domainName: 'Nom de domaine',
+            newDomain: 'Nouveau domaine',
+        },
+        domainAdded: {title: 'Domaine ajouté', description: 'Ensuite, vous devrez vérifier la propriété du domaine et ajuster vos paramètres de sécurité.', configure: 'Configurer'},
+        enhancedSecurity: {
+            title: 'Sécurité renforcée',
+            subtitle: "Exiger que les membres de votre domaine se connectent via l'authentification unique, restreindre la création d'espaces de travail, et plus encore.",
+            enable: 'Activer',
         },
     },
 };
