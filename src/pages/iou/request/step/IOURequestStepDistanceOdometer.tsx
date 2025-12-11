@@ -10,6 +10,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -62,8 +63,8 @@ function IOURequestStepDistanceOdometer({
     const StyleUtils = useStyleUtils();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
 
-    const startReadingInputRef = useRef<{focus: () => void} | null>(null);
-    const endReadingInputRef = useRef<{focus: () => void} | null>(null);
+    const startReadingInputRef = useRef<BaseTextInputRef | null>(null);
+    const endReadingInputRef = useRef<BaseTextInputRef | null>(null);
 
     const [startReading, setStartReading] = useState<string>('');
     const [endReading, setEndReading] = useState<string>('');
@@ -385,6 +386,7 @@ function IOURequestStepDistanceOdometer({
                             />
                         </View>
                         <PressableWithFeedback
+                            accessible={false}
                             accessibilityRole="button"
                             onPress={() => {
                                 if (odometerStartImage) {
@@ -429,6 +431,7 @@ function IOURequestStepDistanceOdometer({
                             />
                         </View>
                         <PressableWithFeedback
+                            accessible={false}
                             accessibilityRole="button"
                             onPress={() => {
                                 if (odometerEndImage) {

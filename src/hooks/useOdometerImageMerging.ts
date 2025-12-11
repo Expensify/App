@@ -4,6 +4,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import mergeImages from '@libs/mergeImages';
 import type {FileObject} from '@src/types/utils/Attachment';
+import type {IOUAction, IOUType} from '@src/CONST';
 
 type MergeConfig = {
     startImageUri: string;
@@ -15,12 +16,12 @@ type MergeConfig = {
     totalWidth: number;
     totalHeight: number;
     transactionID: string;
-    action?: string;
-    iouType?: string;
+    action?: IOUAction;
+    iouType?: IOUType;
 } | null;
 
 type UseOdometerImageMergingResult = {
-    mergeOdometerImages: (startImage: File | string, endImage: File | string, transactionID: string, action?: string, iouType?: string) => Promise<void>;
+    mergeOdometerImages: (startImage: File | string, endImage: File | string, transactionID: string, action?: IOUAction, iouType?: IOUType) => Promise<void>;
     isMerging: boolean;
     mergeError: Error | null;
     mergeViewShotComponent: React.ReactElement | null;
@@ -68,7 +69,7 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
     };
 
     const mergeOdometerImages = useCallback(
-        async (startImage: File | string | {uri?: string}, endImage: File | string | {uri?: string}, transactionID: string, action?: string, iouType?: string) => {
+        async (startImage: File | string | {uri?: string}, endImage: File | string | {uri?: string}, transactionID: string, action?: IOUAction, iouType?: IOUType) => {
             if (!startImage || !endImage) {
                 const error = new Error('Both start and end images are required');
                 setMergeError(error);
@@ -194,7 +195,7 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
                 }
 
                 // Determine if this is a draft transaction
-                const isDraft = shouldUseTransactionDraft(action, iouType);
+                const isDraft = shouldUseTransactionDraft(action as IOUAction | undefined, iouType);
 
                 // Get the source URI and filename
                 // Web: mergedImage is a File object with uri property
@@ -260,7 +261,7 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
             }
 
             const {transactionID, action, iouType} = mergeConfig;
-            const isDraft = shouldUseTransactionDraft(action, iouType);
+            const isDraft = shouldUseTransactionDraft(action as IOUAction | undefined, iouType);
 
             // Use require() to avoid circular dependency
             const {setMoneyRequestReceipt, detachOdometerStartImage, detachOdometerEndImage} = require('@libs/actions/IOU') as {
@@ -270,7 +271,11 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
             };
 
             // Store merged image in transaction.receipt
-            setMoneyRequestReceipt(transactionID, fileObject.uri, fileObject.name, isDraft, fileObject.type);
+            if (!fileObject.uri) {
+                Log.warn('[useOdometerImageMerging] fileObject.uri is missing');
+                return;
+            }
+            setMoneyRequestReceipt(transactionID, fileObject.uri, fileObject.name ?? 'odometer-merged.png', isDraft, fileObject.type ?? 'image/png');
 
             // Clear original odometer images
             detachOdometerStartImage(transactionID, isDraft);

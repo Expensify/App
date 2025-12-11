@@ -79,8 +79,8 @@ function IOURequestStepOdometerImage({
         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
             <Icon
                 src={lazyIllustrations.ReceiptUpload}
-                width={CONST.RECEIPT.ICON_WIDTH}
-                height={CONST.RECEIPT.ICON_HEIGHT}
+                width={CONST.RECEIPT.ICON_SIZE}
+                height={CONST.RECEIPT.ICON_SIZE}
                 additionalStyles={[styles.mb5]}
             />
             <Text style={[styles.textFileUpload, styles.mb2]}>{translate('receipt.upload')}</Text>

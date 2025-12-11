@@ -1079,6 +1079,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Manuel',
         scan: 'Scanner',
         map: 'Carte',
+        odometer: 'Odomètre',
     },
     spreadsheet: {
         upload: 'Téléverser une feuille de calcul',
@@ -7170,6 +7171,19 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         },
         error: {
             selectSuggestedAddress: 'Veuillez sélectionner une adresse suggérée ou utiliser la position actuelle',
+        },
+        odometer: {
+            startReading: 'Lecture de départ',
+            endReading: 'Lecture d\'arrivée',
+            captureStart: 'Capturer la lecture de départ',
+            captureEnd: 'Capturer la lecture d\'arrivée',
+            totalDistance: 'Distance totale',
+            readingRequired: 'Veuillez saisir les lectures de départ et d\'arrivée',
+            negativeDistanceNotAllowed: 'La lecture d\'arrivée doit être supérieure à la lecture de départ',
+            startTitle: 'Photo de l\'odomètre de départ',
+            endTitle: 'Photo de l\'odomètre d\'arrivée',
+            startMessage: 'Prenez une photo de votre odomètre au début de votre trajet',
+            endMessage: 'Prenez une photo de votre odomètre à la fin de votre trajet',
         },
     },
     reportCardLostOrDamaged: {

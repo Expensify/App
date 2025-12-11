@@ -32,31 +32,23 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
+import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import CONST from '@src/CONST';
-import type {Route} from '@src/ROUTES';
-import type Transaction from '@src/types/onyx/Transaction';
+import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import CameraPermission from '../IOURequestStepScan/CameraPermission';
 import {cropImageToAspectRatio} from '../IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '../IOURequestStepScan/cropImageToAspectRatio';
 import NavigationAwareCamera from '../IOURequestStepScan/NavigationAwareCamera/Camera';
 
-type IOURequestStepOdometerImageProps = {
-    route: {
-        params: {
-            transactionID: string;
-            readingType: 'start' | 'end';
-            backTo?: Route;
-        };
-    };
-    transaction: OnyxEntry<Transaction>;
-};
+type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
 
 function IOURequestStepOdometerImage({
     route: {
         params: {transactionID, readingType, backTo},
     },
+    transaction,
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -136,8 +128,8 @@ function IOURequestStepOdometerImage({
             setDidCapturePhoto(false);
             const refreshCameraPermissionStatus = () => {
                 CameraPermission?.getCameraPermissionStatus?.()
-                    .then(setCameraPermissionStatus)
-                    .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
+                    .then((status) => setCameraPermissionStatus(status as typeof RESULTS.GRANTED | typeof RESULTS.DENIED | typeof RESULTS.BLOCKED | null))
+                    .catch(() => setCameraPermissionStatus(null));
             };
 
             refreshCameraPermissionStatus();
@@ -162,14 +154,7 @@ function IOURequestStepOdometerImage({
             return;
         }
 
-        const setupCameraCapabilities = async () => {
-            const capabilities = await device.getCapabilities();
-            if ('torch' in capabilities && !!capabilities.torch) {
-                setHasFlash(true);
-            }
-        };
-
-        setupCameraCapabilities();
+        setHasFlash(!!device.hasFlash);
     }, [device]);
 
     const handleImageSelected = useCallback(

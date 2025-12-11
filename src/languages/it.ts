@@ -1077,6 +1077,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Manuale',
         scan: 'Scannerizza',
         map: 'Mappa',
+        odometer: 'Contachilometri',
     },
     spreadsheet: {
         upload: 'Carica un foglio di calcolo',
@@ -7142,6 +7143,19 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         },
         error: {
             selectSuggestedAddress: 'Seleziona un indirizzo suggerito o usa la posizione attuale',
+        },
+        odometer: {
+            startReading: 'Lettura iniziale',
+            endReading: 'Lettura finale',
+            captureStart: 'Cattura lettura iniziale',
+            captureEnd: 'Cattura lettura finale',
+            totalDistance: 'Distanza totale',
+            readingRequired: 'Inserisci sia la lettura iniziale che quella finale',
+            negativeDistanceNotAllowed: 'La lettura finale deve essere maggiore della lettura iniziale',
+            startTitle: 'Foto contachilometri iniziale',
+            endTitle: 'Foto contachilometri finale',
+            startMessage: 'Scatta una foto del tuo contachilometri all\'inizio del viaggio',
+            endMessage: 'Scatta una foto del tuo contachilometri alla fine del viaggio',
         },
     },
     reportCardLostOrDamaged: {

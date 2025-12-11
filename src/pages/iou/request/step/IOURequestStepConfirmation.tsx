@@ -271,7 +271,7 @@ function IOURequestStepConfirmation({
         const shouldMerge = isOdometerRequest && odometerStartImage && odometerEndImage && !transaction?.receipt?.source && !isMerging;
 
         if (shouldMerge) {
-            Log.info('[IOURequestStepConfirmation] Starting odometer image merge', {
+            Log.info('[IOURequestStepConfirmation] Starting odometer image merge', false, {
                 transactionID: currentTransactionID,
                 action,
                 iouType,
