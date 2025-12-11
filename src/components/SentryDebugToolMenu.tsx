@@ -50,7 +50,7 @@ function HighlightedSpanOpsInput() {
                 accessibilityLabel={translate('initialSettingsPage.troubleshoot.sentryHighlightedSpanOps')}
                 value={inputValue}
                 onChangeText={handleChange}
-                placeholder={translate('initialSettingsPage.troubleshoot.sentryHighlightedSpanOpsDescription')}
+                placeholder={translate('initialSettingsPage.troubleshoot.sentryHighlightedSpanOpsPlaceholder')}
             />
         </View>
     );

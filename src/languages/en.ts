@@ -1900,8 +1900,8 @@ const translations = {
             kill: 'Kill',
             sentryDebug: 'Sentry debug',
             sentryDebugDescription: 'Log Sentry requests to console',
-            sentryHighlightedSpanOps: 'Highlighted span operations',
-            sentryHighlightedSpanOpsDescription: 'Comma-separated list of span operations to highlight (e.g. ui.interaction.click, navigation)',
+            sentryHighlightedSpanOps: 'Highlighted span names',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Save log',
