@@ -2910,7 +2910,7 @@ ${
     privatePersonalDetails: {
         enterLegalName: 'あなたの法的な氏名は何ですか？',
         enterDateOfBirth: 'あなたの生年月日はいつですか？',
-        enterAddress: 'あなたの住����は何ですか？',
+        enterAddress: 'あなたの住所は何ですか？',
         enterPhoneNumber: '電話番号は何ですか？',
         personalDetails: '個人情報',
         privateDataMessage: 'これらの詳細は旅行と支払いに使用されます。あなたの公開プロフィールに表示されることは決してありません。',
@@ -2945,7 +2945,7 @@ ${
             `配信エラーにより、メールプロバイダーが一時的に ${login} へのメール送信を停止しました。ログインを再有効化するには、次の手順に従ってください。`,
         confirmThat: ({login}: ConfirmThatParams) =>
             `<strong>${login} が正しく綴られており、実際にメールを受信できる有効なメールアドレスであることを確認してください。</strong> 「expenses@domain.com」などのメールエイリアスは、有効な Expensify ログインとなるために、そのエイリアス専用のメール受信ボックスにアクセスできなければなりません。`,
-        ensureYourEmailClient: `<strong>お使いのメールクライアントで expensify.com からのメールが受信できるように設定してください���</strong> この手順の完了方法��<a href="${CONST.SET_NOTIFICATION_LINK}">こちら</a>で確認できますが、メール設定の構成については IT 部門のサポートが必要になる場合があります。`,
+        ensureYourEmailClient: `<strong>お使いのメールクライアントで expensify.com からのメールが受信できるように設定してください。</strong> この手順の完了方法は<a href="${CONST.SET_NOTIFICATION_LINK}">こちら</a>で確認できますが、メール設定の構成については IT 部門のサポートが必要になる場合があります。`,
         onceTheAbove: `上記の手順が完了したら、ログインのブロック解除のために<a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a>までご連絡ください。`,
     },
     openAppFailureModal: {
@@ -3776,7 +3776,7 @@ ${
             flightSeatConfirmed: ({airlineCode}: AirlineParams) => `${airlineCode}便の座席指定が確定しました。`,
             flightSeatChanged: ({airlineCode}: AirlineParams) => `ご搭乗便 ${airlineCode} の座席指定が変更されました。`,
             flightSeatCancelled: ({airlineCode}: AirlineParams) => `フライト ${airlineCode} の座席指定が解除されました。`,
-            paymentDeclined: '航空券の支払いに失敗しま������もう一度お試しください。',
+            paymentDeclined: '航空券の支払いに失敗しました。もう一度お試しください。',
             bookingCancelledByTraveler: ({type, id = ''}: TravelTypeParams) => `${type} の予約 ${id} をキャンセルしました。`,
             bookingCancelledByVendor: ({type, id = ''}: TravelTypeParams) => `ベンダーがあなたの${type}予約 ${id}をキャンセルしました。`,
             bookingRebooked: ({type, id = ''}: TravelTypeParams) => `あなたの${type}予約は再予約されました。新しい確認番号：${id}。`,
@@ -3842,8 +3842,8 @@ ${
             setAsDefault: 'デフォルトのワークスペースとして設定',
             defaultNote: `${CONST.EMAIL.RECEIPTS} に送信された領収書はこのワークスペースに表示されます。`,
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
-            deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？削除すると、すべてのカードフィードと割り当て済みカードが���除されます。',
-            unavailable: '���用���きないワークスペース',
+            deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？削除すると、すべてのカードフィードと割り当て済みカードが削除されます。',
+            unavailable: '利用できないワークスペース',
             memberNotFound: 'メンバーが見つかりません。ワークスペースに新しいメンバーを招待するには、上の招待ボタンを使用してください。',
             notAuthorized: `このページへのアクセス権がありません。このワークスペースに参加しようとしている場合は、ワークスペースのオーナーにメンバーとして追加してもらってください。ほかにお困りですか？${CONST.EMAIL.CONCIERGE} までご連絡ください。`,
             goToWorkspace: 'ワークスペースに移動',
@@ -4617,10 +4617,10 @@ NetSuite でカスタムセグメントの内部 ID を見つけるには、次�
 
 1. *Customization > Lists, Records, & Fields > Custom Segments* を開きます。
 2. カスタムセグメントをクリックします。
-3. *Custom Record Type* の横にあるハイパーリンクをクリックしま��。
-4. 下部のテーブルで内部 ID ��探しま��。
+3. *Custom Record Type* の横にあるハイパーリンクをクリックします。
+4. 下部のテーブルで内部 ID を探します。
 
-_よ��詳細な手順については、[ヘルプサイトをご覧ください](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_`,
+_より詳細な手順については、[ヘルプサイトをご覧ください](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_`,
                             customRecordInternalIDFooter: `次の手順で、NetSuite 内のカスタムレコードの内部 ID を確認できます。
 
 1. グローバル検索で「Transaction Line Fields」と入力します。
@@ -5439,7 +5439,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 cannotRemove: '自分自身またはワークスペースのオーナーは削除できません',
                 genericRemove: 'そのワークスペースメンバーの削除中に問題が発生しました',
             },
-            addedWithPrimary: '���部のメン���ーはプライマリログインで追加されました。',
+            addedWithPrimary: '一部のメンバーはプライマリログインで追加されました。',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `セカンダリログイン ${secondaryLogin} によって追加されました。`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `ワークスペースのメンバー合計: ${count}`,
             importMembers: 'メンバーをインポート',
@@ -6123,7 +6123,7 @@ ${reportName}
                 maxExpenseAmountDescription: 'カテゴリルールで上書きされない限り、この金額を超える支出にフラグを付けます。',
                 maxAge: '最大年齢',
                 maxExpenseAge: '経費の最大経過日数',
-                maxExpenseAgeDescription: '特定の��数より前の支出にフラグを付けま��。',
+                maxExpenseAgeDescription: '特定の日数より前の支出にフラグを付けます。',
                 maxExpenseAgeDays: () => ({
                     one: '1日',
                     other: (count: number) => `${count} 日`,
@@ -7098,7 +7098,7 @@ ${reportName}
     actionableMentionTrackExpense: {
         submit: '誰かに提出する',
         categorize: 'カテゴリ分けする',
-        share: '私の会計士���共有する',
+        share: '私の会計士と共有する',
         nothing: '今のところ何もありません',
     },
     teachersUnitePage: {
@@ -7207,7 +7207,7 @@ ${reportName}
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `適用された為替換算サーチャージ${surcharge}%`,
         customUnitOutOfPolicy: 'このワークスペースには有効なレートではありません',
         duplicatedTransaction: '重複の可能性',
-        fieldRequired: 'レポートフ���ールドは必須���す',
+        fieldRequired: 'レポートフィールドは必須です',
         futureDate: '未来の日付は使用できません',
         invoiceMarkup: ({invoiceMarkup}: ViolationsInvoiceMarkupParams) => `${invoiceMarkup}% 上乗せ済み`,
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `${maxAge}日より前の日付`,

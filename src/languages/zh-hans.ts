@@ -1183,8 +1183,8 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: '移除拆分',
         splitExpenseCannotBeEditedModalTitle: '此报销无法编辑',
         splitExpenseCannotBeEditedModalDescription: '已批准或已支付的费用无法编辑',
-        transactionDisplayName: ({amount, merchant}: TransactionDisplayNameParams) => `${amount} 给 ${merchant}`,
         paySomeone: ({name}: PaySomeoneParams = {}) => `支付 ${name ?? '某人'}`,
+        transactionDisplayName: ({amount, merchant}: TransactionDisplayNameParams) => `${amount} 给 ${merchant}`,
         expense: '费用',
         categorize: '分类',
         share: '分享',
@@ -3494,7 +3494,7 @@ ${
         validateButtonText: '验证',
         validationInputLabel: '交易',
         maxAttemptsReached: '由于多次尝试验证失败，此银行账户的验证已被禁用。',
-        description: `在 1–2 个工��日内，我们会从类似 “Expensify, Inc. Validation” 的名称向您的银行账户发送三（3）笔小额交易。`,
+        description: `在 1–2 个工作日内，我们会从类似 “Expensify, Inc. Validation” 的名称向您的银行账户发送三（3）笔小额交易。`,
         descriptionCTA: '请在下面的字段中输入每笔交易金额。例如：1.51。',
         letsChatText: '快完成了！我们需要你在聊天中帮忙验证最后几条信息。准备好了吗？',
         enable2FATitle: '防止欺诈，启用双重身份验证（2FA）',
@@ -4522,7 +4522,7 @@ ${
                             customRecordScriptID: '交易列 ID',
                             mapping: '显示为',
                         },
-                        removeTitle: '移除自定义分��/记录',
+                        removeTitle: '移除自定义分段/记录',
                         removePrompt: '您确定要删除此自定义段/记录吗？',
                         addForm: {
                             customSegmentName: '自定义分段名称',
@@ -6461,7 +6461,7 @@ ${reportName}
     roomMembersPage: {
         memberNotFound: '未找到成员。',
         useInviteButton: '要邀请新成员加入聊天，请使用上方的邀请按钮。',
-        notAuthorized: `您无权访问此页面。如果您正尝试加入此聊���室，请让聊天室成员将您加入。还有其他问题？请联系 ${CONST.EMAIL.CONCIERGE}`,
+        notAuthorized: `您无权访问此页面。如果您正尝试加入此聊天室，请让聊天室成员将您加入。还有其他问题？请联系 ${CONST.EMAIL.CONCIERGE}`,
         roomArchived: `此房间似乎已被归档。如有问题，请联系 ${CONST.EMAIL.CONCIERGE}。`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `您确定要将 ${memberName} 从此房间中移除吗？`,
@@ -7646,7 +7646,7 @@ ${reportName}
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',
-        saveSearchTooltip: '<tooltip><strong>在这里重命名已保存的���索</strong>！</tooltip>',
+        saveSearchTooltip: '<tooltip><strong>在这里重命名已保存的搜索</strong>！</tooltip>',
         accountSwitcher: '<tooltip>在此访问你的<strong>Copilot 账户</strong></tooltip>',
         scanTestTooltip: {
             main: '<tooltip><strong>扫描我们的测试收据</strong>来查看它是如何工作的！</tooltip>',
