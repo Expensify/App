@@ -6539,6 +6539,60 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 }
             }
         },
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `standaardgoedkeurder gewijzigd in ${newApprover} (voorheen ${previousApprover})` : `heeft de standaardgoedkeurder gewijzigd naar ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `heeft de goedkeuringsworkflow voor ${members} gewijzigd om rapporten in te dienen bij ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(voorheen standaardgoedkeurder ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(voorheen standaardgoedkeurder)';
+            } else if (previousApprover) {
+                text += `(voorheen ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `heeft de goedkeuringsworkflow voor ${members} gewijzigd zodat rapporten bij de standaardgoedkeurder ${approver} worden ingediend`
+                : `heeft de goedkeuringsworkflow voor ${members} gewijzigd zodat rapporten bij de standaardgoedkeurder worden ingediend`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(voorheen standaardgoedkeurder ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(voorheen standaardgoedkeurder)';
+            } else if (previousApprover) {
+                text += `(voorheen ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `heeft de goedkeuringsworkflow voor ${approver} gewijzigd zodat goedgekeurde rapporten worden doorgestuurd naar ${forwardsTo} (voorheen doorgestuurd naar ${previousForwardsTo})`
+                : `goedkeuringsworkflow voor ${approver} gewijzigd zodat goedgekeurde rapporten worden doorgestuurd naar ${forwardsTo} (voorheen definitief goedgekeurde rapporten)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `heeft de goedkeuringsworkflow voor ${approver} gewijzigd zodat goedgekeurde rapporten niet meer worden doorgestuurd (voorheen doorgestuurd naar ${previousForwardsTo})`
+                : `heeft de goedkeuringsworkflow voor ${approver} gewijzigd zodat goedgekeurde rapporten niet meer worden doorgestuurd`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
