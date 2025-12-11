@@ -74,17 +74,7 @@ function getMicroSecondOnyxErrorObject(error: Errors, errorKey?: number): ErrorF
 
 // We can assume that if error is a string, it has already been translated because it is server error
 function getErrorMessageWithTranslationData(error: string | null): string {
-    if (!error) {
-        return '';
-    }
-
-    const currentLocale = IntlStore.getCurrentLocale();
-
-    if (error === CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR) {
-        return translate(currentLocale, 'bankAccount.error.sameDepositAndWithdrawalAccount');
-    }
-
-    return error;
+    return error ?? '';
 }
 
 type OnyxDataWithErrors = {
@@ -110,6 +100,11 @@ function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxDa
     }
 
     const key = Object.keys(errors).sort().reverse().at(0) ?? '';
+    const currentLocale = IntlStore.getCurrentLocale();
+
+    if (errors[key] === CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR) {
+        return {key: translate(currentLocale, 'bankAccount.error.sameDepositAndWithdrawalAccount')};
+    }
 
     return {key: errors[key]};
 }

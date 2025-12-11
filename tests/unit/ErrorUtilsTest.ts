@@ -9,17 +9,6 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 // Mock DateUtils
 jest.mock('@src/libs/DateUtils');
 
-// Mock IntlStore
-jest.mock('@src/languages/IntlStore', () => ({
-    getCurrentLocale: jest.fn(),
-}));
-
-// Mock Localize
-jest.mock('@src/libs/Localize', () => ({
-    translate: jest.fn(),
-    translateLocal: jest.fn(),
-}));
-
 describe('ErrorUtils', () => {
     test('should add a new error message for a given inputID', () => {
         const errors: Errors = {};
@@ -236,37 +225,6 @@ describe('ErrorUtils', () => {
             expect(Object.keys(errorValue)).toHaveLength(1);
             expect(errorValue.translationKey).toBeDefined();
             expect(ErrorUtils.isTranslationKeyError(errorValue)).toBe(true);
-        });
-    });
-
-    describe('getErrorMessageWithTranslationData', () => {
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
-        test('should return empty string for null or empty error', () => {
-            expect(ErrorUtils.getErrorMessageWithTranslationData(null)).toBe('');
-            expect(ErrorUtils.getErrorMessageWithTranslationData('')).toBe('');
-        });
-
-        test('should return translated message for specific error in non-English locale', () => {
-            (IntlStore.getCurrentLocale as jest.Mock).mockReturnValue(CONST.LOCALES.ES);
-            (Localize.translate as jest.Mock).mockReturnValue(translations.bankAccount.error.sameDepositAndWithdrawalAccount);
-            const errorMessage = CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR;
-
-            const result = ErrorUtils.getErrorMessageWithTranslationData(errorMessage);
-
-            expect(result).toBe(translations.bankAccount.error.sameDepositAndWithdrawalAccount);
-            expect(Localize.translate).toHaveBeenCalledWith(CONST.LOCALES.ES, 'bankAccount.error.sameDepositAndWithdrawalAccount');
-        });
-
-        test('should return original error for non-matching error message in non-English locale', () => {
-            (IntlStore.getCurrentLocale as jest.Mock).mockReturnValue(CONST.LOCALES.ES);
-            const errorMessage = 'Some other error message';
-
-            const result = ErrorUtils.getErrorMessageWithTranslationData(errorMessage);
-
-            expect(result).toBe(errorMessage);
         });
     });
 });
