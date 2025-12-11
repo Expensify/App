@@ -4,11 +4,11 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 /** Formats the title for requiredFields menu item based on which fields are enabled in the policy category */
-function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], policyCategory: PolicyCategory): string {
+function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], policyCategory: PolicyCategory, isAttendeeTrackingEnabled = false): string {
     const enabledFields: string[] = [];
 
-    // Attendees field should show first when both are selected
-    if (policyCategory.areAttendeesRequired) {
+    // Attendees field should show first when both are selected and attendee tracking is enabled
+    if (isAttendeeTrackingEnabled && policyCategory.areAttendeesRequired) {
         enabledFields.push(translate('iou.attendees'));
     }
 
@@ -26,8 +26,8 @@ function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], p
     return [capitalizedFirst, ...lowercasedRest].join(', ');
 }
 
-/** Returns violation error key if there are missing attendees for the given category */
-function getMissingAttendeesViolationError(
+/** Returns whether there are missing attendees for the given category */
+function getIsMissingAttendeesViolation(
     policyCategories: PolicyCategories | undefined,
     category: string,
     iouAttendees: Attendee[] | string | undefined,
@@ -37,7 +37,7 @@ function getMissingAttendeesViolationError(
     const areAttendeesRequired = !!policyCategories?.[category ?? '']?.areAttendeesRequired;
     // If attendee tracking is disabled at the policy level, don't enforce attendee requirement
     if (!isAttendeeTrackingEnabled || !areAttendeesRequired) {
-        return '';
+        return false;
     }
 
     const creatorLogin = userPersonalDetails.login ?? '';
@@ -45,10 +45,10 @@ function getMissingAttendeesViolationError(
     const attendeesMinusCreatorCount = attendees.filter((a) => a?.login !== creatorLogin).length;
 
     if (attendees.length === 0 || attendeesMinusCreatorCount === 0) {
-        return 'violations.missingAttendees';
+        return true;
     }
 
-    return '';
+    return false;
 }
 
-export {formatRequiredFieldsTitle, getMissingAttendeesViolationError};
+export {formatRequiredFieldsTitle, getIsMissingAttendeesViolation};

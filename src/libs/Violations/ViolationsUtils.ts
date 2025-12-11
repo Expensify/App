@@ -384,12 +384,15 @@ const ViolationsUtils = {
 
         const attendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees ?? [];
         const isAttendeeTrackingEnabled = policy.isAttendeeTrackingEnabled ?? false;
+        // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
+        const ownerAccountID = iouReport?.ownerAccountID;
+        const attendeesMinusOwnerCount = attendees.filter((a) => a?.accountID !== ownerAccountID).length;
         const shouldShowMissingAttendees =
             !isInvoiceTransaction &&
             isAttendeeTrackingEnabled &&
             policyCategories?.[categoryName ?? '']?.areAttendeesRequired &&
             isControlPolicy &&
-            (attendees.length === 0 || attendees.length === 1);
+            (attendees.length === 0 || attendeesMinusOwnerCount === 0);
 
         const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
         // Add 'futureDate' violation if transaction date is in the future and policy type is corporate

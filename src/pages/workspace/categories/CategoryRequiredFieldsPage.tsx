@@ -31,11 +31,13 @@ function CategoryRequiredFieldsPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const decodedCategoryName = getDecodedCategoryName(categoryName);
 
     const policyCategory = policyCategories?.[categoryName];
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const areAttendeesRequired = policyCategory?.areAttendeesRequired ?? false;
+    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? false;
 
     return (
         <AccessOrNotFoundWrapper
@@ -74,20 +76,22 @@ function CategoryRequiredFieldsPage({
                             </View>
                         </View>
                     </OfflineWithFeedback>
-                    <OfflineWithFeedback pendingAction={policyCategory?.pendingFields?.areAttendeesRequired}>
-                        <View style={[styles.mh5]}>
-                            <View style={[styles.flexRow, styles.mv5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.categoryRules.requireAttendees')}</Text>
-                                <Switch
-                                    isOn={areAttendeesRequired}
-                                    accessibilityLabel={translate('workspace.rules.categoryRules.requireAttendees')}
-                                    onToggle={() => {
-                                        setPolicyCategoryAttendeesRequired(policyID, categoryName, !areAttendeesRequired, policyCategories);
-                                    }}
-                                />
+                    {isAttendeeTrackingEnabled && (
+                        <OfflineWithFeedback pendingAction={policyCategory?.pendingFields?.areAttendeesRequired}>
+                            <View style={[styles.mh5]}>
+                                <View style={[styles.flexRow, styles.mv5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                    <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.categoryRules.requireAttendees')}</Text>
+                                    <Switch
+                                        isOn={areAttendeesRequired}
+                                        accessibilityLabel={translate('workspace.rules.categoryRules.requireAttendees')}
+                                        onToggle={() => {
+                                            setPolicyCategoryAttendeesRequired(policyID, categoryName, !areAttendeesRequired, policyCategories);
+                                        }}
+                                    />
+                                </View>
                             </View>
-                        </View>
-                    </OfflineWithFeedback>
+                        </OfflineWithFeedback>
+                    )}
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

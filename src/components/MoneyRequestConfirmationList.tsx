@@ -30,7 +30,7 @@ import {
     setMoneyRequestTaxRate,
     setSplitShares,
 } from '@libs/actions/IOU';
-import {getMissingAttendeesViolationError} from '@libs/AttendeeUtils';
+import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -920,9 +920,9 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            const missingAttendeesViolation = getMissingAttendeesViolationError(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
-            if (missingAttendeesViolation) {
-                setFormError(missingAttendeesViolation);
+            const isMissingAttendeesViolation = getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
+            if (isMissingAttendeesViolation) {
+                setFormError('violations.missingAttendees');
                 return;
             }
 

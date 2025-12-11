@@ -30,7 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
-import {getMissingAttendeesViolationError} from '@libs/AttendeeUtils';
+import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -427,7 +427,7 @@ function MoneyRequestView({
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
-    const missingAttendeesViolation = getMissingAttendeesViolationError(
+    const isMissingAttendeesViolation = getIsMissingAttendeesViolation(
         policyCategories,
         updatedTransaction?.category ?? categoryForDisplay,
         actualAttendees,
@@ -465,8 +465,8 @@ function MoneyRequestView({
                 return translate(translationPath);
             }
 
-            if (field === 'attendees' && !!missingAttendeesViolation) {
-                return translate(missingAttendeesViolation);
+            if (field === 'attendees' && isMissingAttendeesViolation) {
+                return translate('violations.missingAttendees');
             }
 
             if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
@@ -499,7 +499,7 @@ function MoneyRequestView({
             canEdit,
             isCustomUnitOutOfPolicy,
             companyCardPageURL,
-            missingAttendeesViolation,
+            isMissingAttendeesViolation,
         ],
     );
 

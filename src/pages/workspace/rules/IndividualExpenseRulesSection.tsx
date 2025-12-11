@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -7,8 +7,10 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setPolicyCategoryAttendeesRequired} from '@libs/actions/Policy/Category';
 import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,6 +18,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -70,8 +73,25 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const {environmentURL} = useEnvironment();
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
+    const handleAttendeeTrackingToggle = useCallback(
+        (newValue: boolean) => {
+            // When disabling attendee tracking, disable areAttendeesRequired on all categories
+            // that have it enabled in order to avoid BE validation errors
+            if (!newValue && policyCategories) {
+                Object.entries(policyCategories).forEach(([categoryName, category]) => {
+                    if (category?.areAttendeesRequired) {
+                        setPolicyCategoryAttendeesRequired(policyID, categoryName, false, policyCategories);
+                    }
+                });
+            }
+            setPolicyAttendeeTrackingEnabled(policyID, newValue);
+        },
+        [policyID, policyCategories],
+    );
 
     const maxExpenseAmountNoReceiptText = useMemo(() => {
         if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE) {
@@ -232,7 +252,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
                     isActive={isAttendeeTrackingEnabled}
-                    onToggle={() => setPolicyAttendeeTrackingEnabled(policyID, !isAttendeeTrackingEnabled)}
+                    onToggle={() => handleAttendeeTrackingToggle(!isAttendeeTrackingEnabled)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                 />
             </View>

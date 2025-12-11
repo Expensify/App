@@ -126,8 +126,17 @@ function CategorySettingsPage({
         if (!policyCategory) {
             return '';
         }
-        return formatRequiredFieldsTitle(translate, policyCategory);
-    }, [policyCategory, translate]);
+        return formatRequiredFieldsTitle(translate, policyCategory, policy?.isAttendeeTrackingEnabled);
+    }, [policyCategory, translate, policy?.isAttendeeTrackingEnabled]);
+
+    const requireFieldsPendingAction = useMemo(() => {
+        if (policy?.isAttendeeTrackingEnabled) {
+            // Pending fields are objects so we can't use nullish coalescing
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return policyCategory?.pendingFields?.areAttendeesRequired || policyCategory?.pendingFields?.areCommentsRequired;
+        }
+        return policyCategory?.pendingFields?.areCommentsRequired;
+    }, [policyCategory.pendingFields, policy?.isAttendeeTrackingEnabled]);
 
     if (!policyCategory) {
         return <NotFoundPage />;
@@ -174,9 +183,6 @@ function CategorySettingsPage({
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
-    // Pending fields are objects so we can't use nullish coalescing
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const requireFieldsPendingAction = policyCategory?.pendingFields?.areCommentsRequired || policyCategory?.pendingFields?.areAttendeesRequired;
 
     return (
         <AccessOrNotFoundWrapper
