@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type BaseDomainVerifiedPageProps = {
@@ -22,12 +23,9 @@ type BaseDomainVerifiedPageProps = {
 
     /** Route to redirect to when trying to access the page for an unverified domain */
     redirectTo: Route;
-
-    /** Function to run after clicking the confirmation button */
-    navigateAfterConfirmation: () => void;
 };
 
-function BaseDomainVerifiedPage({accountID, redirectTo, navigateAfterConfirmation}: BaseDomainVerifiedPageProps) {
+function BaseDomainVerifiedPage({accountID, redirectTo}: BaseDomainVerifiedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -67,7 +65,7 @@ function BaseDomainVerifiedPage({accountID, redirectTo, navigateAfterConfirmatio
                 innerContainerStyle={styles.p10}
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
-                onButtonPress={navigateAfterConfirmation}
+                onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID))}
             />
         </ScreenWrapper>
     );

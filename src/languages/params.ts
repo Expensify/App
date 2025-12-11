@@ -5,6 +5,10 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
+type TagSelectionParams = {
+    policyTagListName?: string;
+};
+
 type AddressLineParams = {
     lineNumber: number;
 };
@@ -83,6 +87,10 @@ type BeginningOfChatHistoryPolicyExpenseChatParams = {
 type BeginningOfChatHistoryInvoiceRoomParams = {
     invoicePayer: string;
     invoiceReceiver: string;
+};
+
+type BeginningOfChatHistoryParams = {
+    users: string;
 };
 
 type LearnMoreRouteParams = {
@@ -632,7 +640,7 @@ type AssignedCardParams = {
 
 type FeatureNameParams = {
     featureName: string;
-    moreFeaturesLink: string;
+    moreFeaturesLink?: string;
 };
 
 type AutoPayApprovedReportsLimitErrorParams = {
@@ -1047,6 +1055,7 @@ export type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryUserRoomParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -1281,4 +1290,5 @@ export type {
     NextStepParams,
     ReportFieldParams,
     FocusModeUpdateParams,
+    TagSelectionParams,
 };
