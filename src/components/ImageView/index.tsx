@@ -54,8 +54,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         setContainerSize(e.nativeEvent.layout);
     };
 
-    const isImageLoaded = imageSize.width > 0 || imageSize.height > 0;
-
+    const isImageLoaded = imageSize.width > 0 && imageSize.height > 0;
     const imageLoadingStart = () => {
         if (isImageLoaded) {
             return;
@@ -195,7 +194,6 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     }
 
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isLocalToUserDeviceFile;
-
     if (canUseTouchScreen) {
         return (
             <Lightbox
