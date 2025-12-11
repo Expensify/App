@@ -41,7 +41,6 @@ const UNHOLD = 'UNHOLD';
 const MOVE = 'MOVE';
 const MERGE = 'MERGE';
 const SPLIT = 'SPLIT';
-const REJECT = 'REJECT';
 
 function useSelectedTransactionsActions({
     report,
@@ -226,7 +225,7 @@ function useSelectedTransactionsActions({
             options.push({
                 text: translate('search.bulkActions.reject'),
                 icon: expensifyIcons.ThumbsDown,
-                value: REJECT,
+                value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
                 onSelected: () => {
                     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: report.reportID}));
                 },
