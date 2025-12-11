@@ -3,17 +3,14 @@ import type {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometri
 import type {
     AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationPartialStatus,
-    MultifactorAuthenticationScenario,
-    MultifactorAuthenticationScenarioAdditionalParams,
-    MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationStep,
     MultifactorAuthenticationTrigger,
     MultifactorAuthenticationTriggerArgument,
-    MultifactorAuthenticationUIConfig,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
-import type {MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI, MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from './config';
+import type {MultifactorAuthenticationScenario} from './scenarios';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenarioAdditionalParams, MultifactorAuthenticationScenarioParams} from './scenarios/types';
 
 /**
  * Function that handles multifactorial authentication authorization of transactions.
@@ -139,30 +136,6 @@ type SetMultifactorAuthenticationStatus<T> = (
 
 /** Valid type for the useMultifactorAuthenticationStatus hook */
 type UseMultifactorAuthenticationStatus<T> = [MultifactorAuthenticationStatus<T>, SetMultifactorAuthenticationStatus<T>];
-
-type MultifactorAuthenticationScenarioConfig = typeof MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI;
-
-type FeedbackScreenConfigNames = {
-    [K in MultifactorAuthenticationScenario]: keyof MultifactorAuthenticationScenarioConfig[K];
-};
-
-type MultifactorAuthenticationNotificationType<T extends MultifactorAuthenticationScenario> = `${Lowercase<T>}-${Lowercase<FeedbackScreenConfigNames[T]>}`;
-
-type AllMultifactorAuthenticationNotificationType = MultifactorAuthenticationNotificationType<MultifactorAuthenticationScenario>;
-
-type MultifactorAuthenticationPromptType = keyof typeof MULTIFACTOR_AUTHENTICATION_PROMPT_UI;
-
-type MultifactorAuthenticationNotificationMap = Record<AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationUIConfig>;
-
-type MultifactorAuthenticationNotificationMapEntry = Record<MultifactorAuthenticationNotificationType<MultifactorAuthenticationScenario>, MultifactorAuthenticationUIConfig>;
-
-export type {
-    AllMultifactorAuthenticationNotificationType,
-    MultifactorAuthenticationNotificationMapEntry,
-    MultifactorAuthenticationNotificationMap,
-    MultifactorAuthenticationNotificationType,
-    MultifactorAuthenticationPromptType,
-};
 
 export type {
     MultifactorAuthenticationStep,

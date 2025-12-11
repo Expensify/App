@@ -1,20 +1,15 @@
 import type {ValueOf} from 'type-fest';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
-import type {
-    MultifactorAuthenticationFactor,
-    MultifactorAuthenticationPartialStatus,
-    MultifactorAuthenticationScenario,
-    MultifactorAuthenticationScenarioAdditionalParams,
-    MultifactorAuthenticationScenarioParams,
-    MultifactorAuthenticationStatus,
-} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MultifactorAuthenticationFactor, MultifactorAuthenticationPartialStatus, MultifactorAuthenticationStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
 import Navigation from '@navigation/Navigation';
 import {requestBiometricChallenge} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
 import ROUTES, {MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {AllMultifactorAuthenticationNotificationType, AuthTypeName, BiometricsStatus, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType} from './types';
+import type {MultifactorAuthenticationScenario} from './scenarios';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenarioAdditionalParams, MultifactorAuthenticationScenarioParams} from './scenarios/types';
+import type {AuthTypeName, BiometricsStatus, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType} from './types';
 
 const failedStep = {
     wasRecentStepSuccessful: false,

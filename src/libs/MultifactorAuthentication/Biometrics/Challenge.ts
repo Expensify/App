@@ -1,11 +1,13 @@
 import {resetKeys} from '@components/MultifactorAuthentication/helpers';
+import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/scenarios';
+import type {MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/scenarios/types';
 import {requestBiometricChallenge} from '@libs/actions/MultifactorAuthentication';
 import type {TranslationPaths} from '@src/languages/types';
 import {signToken as signTokenED25519} from './ED25519';
 import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
 import {isChallengeSigned, processScenario} from './helpers';
 import {PrivateKeyStore, PublicKeyStore} from './KeyStore';
-import type {MultifactorAuthenticationPartialStatus, MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from './types';
+import type {MultifactorAuthenticationPartialStatus} from './types';
 import VALUES from './VALUES';
 
 /**

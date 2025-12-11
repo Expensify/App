@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -232,4 +232,4 @@ function MultifactorAuthenticationValidateCodePage() {
 
 MultifactorAuthenticationValidateCodePage.displayName = 'MultifactorAuthenticationValidateCodePage';
 
-export default memo(MultifactorAuthenticationValidateCodePage);
+export default MultifactorAuthenticationValidateCodePage;

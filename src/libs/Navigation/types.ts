@@ -12,7 +12,7 @@ import type {
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
-import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/types';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/scenarios/types';
 import type {SearchQueryString} from '@components/Search/types';
 import type {ReplacementReason} from '@libs/actions/Card';
 import type {IOURequestType} from '@libs/actions/IOU';

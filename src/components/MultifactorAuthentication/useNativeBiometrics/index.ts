@@ -1,10 +1,10 @@
 import {useCallback} from 'react';
 import {createAuthorizeErrorStatus} from '@components/MultifactorAuthentication/helpers';
+import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/scenarios';
 import type {MultifactorAuthorization} from '@components/MultifactorAuthentication/types';
 import useMultifactorAuthenticationStatus from '@components/MultifactorAuthentication/useMultifactorAuthenticationStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import MultifactorAuthenticationChallenge from '@libs/MultifactorAuthentication/Biometrics/Challenge';
-import type {MultifactorAuthenticationScenario} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
 import useNativeBiometricsSetup from './useNativeBiometricsSetup';
 

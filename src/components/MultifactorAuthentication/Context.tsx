@@ -6,8 +6,6 @@ import {requestValidateCodeAction, triggerOnyxConnect} from '@libs/API/Multifact
 import type {
     AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationPartialStatus,
-    MultifactorAuthenticationScenario,
-    MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationTrigger,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
@@ -18,8 +16,6 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import {MULTIFACTOR_AUTHENTICATION_SCENARIOS} from './config';
-import {MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP} from './config/ui';
 import {
     convertResultIntoMultifactorAuthenticationStatus,
     EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS,
@@ -31,7 +27,10 @@ import {
     resetKeys,
     shouldAllowBiometrics,
 } from './helpers';
-import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenarioStatus, MultifactorTriggerArgument, Register, UseMultifactorAuthentication} from './types';
+import type {MultifactorAuthenticationScenario} from './scenarios';
+import {MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './scenarios';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenarioParams} from './scenarios/types';
+import type {MultifactorAuthenticationScenarioStatus, MultifactorTriggerArgument, Register, UseMultifactorAuthentication} from './types';
 import useMultifactorAuthenticationStatus from './useMultifactorAuthenticationStatus';
 import useNativeBiometrics from './useNativeBiometrics';
 
@@ -150,7 +149,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             // Navigate based on step result
             const notificationPaths = getNotificationPaths(scenario);
-            const scenarioRoute: Route = scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIOS[scenario].route : ROUTES.MULTIFACTOR_AUTHENTICATION_NOT_FOUND;
+            const scenarioRoute: Route = scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario].route : ROUTES.MULTIFACTOR_AUTHENTICATION_NOT_FOUND;
 
             if (wasRecentStepSuccessful === true && !Navigation.isActiveRoute(notificationPaths.success)) {
                 Navigation.navigate(notificationPaths.success);
@@ -188,7 +187,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     const allowedMethods = useCallback(
         <T extends MultifactorAuthenticationScenario>(scenario: T) => {
-            const {allowedAuthentication} = MULTIFACTOR_AUTHENTICATION_SCENARIOS[scenario];
+            const {allowedAuthentication} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
             const canUseBiometrics = shouldAllowBiometrics(allowedAuthentication);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const isBiometricsAllowed = canUseBiometrics && (NativeBiometrics.setup.isLocalPublicKeyInAuth || softPromptStore.current.accepted);
@@ -387,7 +386,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         const failurePath = getNotificationPath(overriddenScreens.current.failure, scenarioPrefix, 'failure');
         const pathToUse = wasRecentStepSuccessful ? successPath : failurePath;
 
-        const notificationConfig = pathToUse ? MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP[pathToUse]?.notification : undefined;
+        const notificationConfig = pathToUse ? MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP[pathToUse] : undefined;
         const defaultTitle = mergedStatus.title;
 
         let headerTitle = defaultTitle;

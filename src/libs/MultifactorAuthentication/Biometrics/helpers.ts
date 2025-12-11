@@ -1,18 +1,15 @@
 import type {ValueOf} from 'type-fest';
-import {MULTIFACTOR_AUTHENTICATION_SCENARIOS} from '@components/MultifactorAuthentication/config';
-import {registerBiometrics} from '@libs/actions/MultifactorAuthentication';
-import type {TranslationPaths} from '@src/languages/types';
-import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
+import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/scenarios';
+import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/scenarios';
 import type {
-    AllMultifactorAuthenticationFactors,
-    MultifactorAuthenticationFactor,
-    MultifactorAuthenticationPartialStatus,
-    MultifactorAuthenticationResponseTranslationPath,
-    MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioMap,
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationScenarioResponseWithSuccess,
-} from './types';
+} from '@components/MultifactorAuthentication/scenarios/types';
+import {registerBiometrics} from '@libs/actions/MultifactorAuthentication';
+import type {TranslationPaths} from '@src/languages/types';
+import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
+import type {AllMultifactorAuthenticationFactors, MultifactorAuthenticationFactor, MultifactorAuthenticationPartialStatus, MultifactorAuthenticationResponseTranslationPath} from './types';
 import VALUES, {MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS} from './VALUES';
 
 /** Helper method to create an object with an HTTP code and the reason translation path */
@@ -208,7 +205,7 @@ async function processMultifactorAuthenticationScenario<T extends MultifactorAut
 ): Promise<MultifactorAuthenticationPartialStatus<number | undefined>> {
     const factorsCheckResult = areMultifactorAuthenticationFactorsSufficient(params, factorsCombination, isStoredFactorVerified);
 
-    const currentScenario = MULTIFACTOR_AUTHENTICATION_SCENARIOS[scenario] as MultifactorAuthenticationScenarioMap[T];
+    const currentScenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] as MultifactorAuthenticationScenarioMap[T];
 
     if (factorsCheckResult.value !== true) {
         return authorizeMultifactorAuthenticationPostMethod(

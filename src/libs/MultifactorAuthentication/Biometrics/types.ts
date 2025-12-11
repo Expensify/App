@@ -1,11 +1,6 @@
-import type {ViewStyle} from 'react-native';
 import type {EmptyObject, ValueOf} from 'type-fest';
-import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
-import type DotLottieAnimation from '@components/LottieAnimations/types';
-import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config';
-import type {AllMultifactorAuthenticationNotificationType} from '@components/MultifactorAuthentication/types';
+import type {AllMultifactorAuthenticationNotificationType} from '@components/MultifactorAuthentication/scenarios/types';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Route} from '@src/ROUTES';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
@@ -14,36 +9,6 @@ type BasicMultifactorAuthenticationRequirementTypes = {
     [VALUES.FACTORS.SIGNED_CHALLENGE]: SignedChallenge;
     [VALUES.FACTORS.VALIDATE_CODE]: number;
 };
-
-type MultifactorAuthenticationNotificationConfig = {
-    headerTitle?: TranslationPaths;
-    title?: TranslationPaths;
-};
-
-type MultifactorAuthenticationCancelConfirm = {
-    description?: TranslationPaths;
-    cancelButtonText?: TranslationPaths;
-    confirmButtonText?: TranslationPaths;
-    title?: TranslationPaths;
-};
-
-type MultifactorAuthenticationUIConfig = {
-    illustration: IllustrationName;
-    iconWidth: number;
-    iconHeight: number;
-    padding: ViewStyle;
-    notification?: MultifactorAuthenticationNotificationConfig;
-};
-
-type MultifactorAuthenticationUIConfigOptions = Record<string, MultifactorAuthenticationUIConfig>;
-
-type MultifactorAuthenticationModalConfigs = {
-    cancelConfirmation: MultifactorAuthenticationCancelConfirm;
-};
-
-type MultifactorAuthenticationUIModalConfigOptions = Record<MultifactorAuthenticationScenario, Partial<MultifactorAuthenticationModalConfigs>>;
-
-type MultifactorAuthenticationNotificationUI = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationUIConfigOptions>;
 
 type MultifactorAuthenticationPartialStatusConditional<OmitStep> = OmitStep extends false
     ? {
@@ -106,32 +71,7 @@ type MultifactorAuthenticationStatus<T, OmitStep = false> = MultifactorAuthentic
     title: string;
 };
 
-/**
- * Response type for multifactorial authentication scenario operations
- */
-type MultifactorAuthenticationScenarioResponse = {
-    httpCode: number;
-    reason: TranslationPaths;
-};
-
-/**
- * Response type that includes a success indicator
- */
-type MultifactorAuthenticationScenarioResponseWithSuccess = {
-    httpCode: number | undefined;
-    successful: boolean;
-};
-
 type Simplify<T> = T extends Record<string, unknown> ? {[K in keyof T]: Simplify<T[K]>} : T;
-
-/**
- * Core type definitions for multifactorial authentication functionality
- */
-
-/**
- * Represents a specific multifactorial authentication scenario from the constants
- */
-type MultifactorAuthenticationScenario = ValueOf<typeof VALUES.SCENARIO>;
 
 /**
  * Represents a specific multifactorial authentication factor from the constants
@@ -173,44 +113,6 @@ type MultifactorAuthenticationStep = {
     isRequestFulfilled: boolean;
 };
 
-type MultifactorAuthenticationScenarioAdditionalParams<T extends MultifactorAuthenticationScenario> = T extends keyof MultifactorAuthenticationScenarioParameters
-    ? MultifactorAuthenticationScenarioParameters[T]
-    : EmptyObject;
-
-/**
- * Parameters required for a multifactorial authentication scenario, optionally including stored factor verification
- */
-type MultifactorAuthenticationScenarioParams<T extends MultifactorAuthenticationScenario> = Partial<AllMultifactorAuthenticationFactors> &
-    MultifactorAuthenticationScenarioAdditionalParams<T>;
-
-/**
- * Function signature for handling a multifactorial authentication scenario
- */
-type MultifactorAuthenticationScenarioMethod<T extends MultifactorAuthenticationScenario> = (
-    params: MultifactorAuthenticationScenarioParams<T>,
-) => Promise<MultifactorAuthenticationScenarioResponse>;
-
-type MultifactorAuthenticationScenarioData<T extends MultifactorAuthenticationScenario> = {
-    action: MultifactorAuthenticationScenarioMethod<T>;
-    allowedAuthentication: ValueOf<typeof VALUES.TYPE>;
-    route: Route;
-};
-
-type MultifactorAuthenticationPromptUIObject = {
-    animation: DotLottieAnimation;
-    title: TranslationPaths;
-    subtitle: TranslationPaths;
-};
-
-type MultifactorAuthenticationPromptUI = Record<string, MultifactorAuthenticationPromptUIObject>;
-
-/**
- * Maps scenarios to their handlers and configuration
- */
-type MultifactorAuthenticationScenarioMap = {
-    [T in MultifactorAuthenticationScenario]: MultifactorAuthenticationScenarioData<T>;
-};
-
 /**
  * Defines the requirements for each multifactorial authentication factor
  */
@@ -223,23 +125,11 @@ type MultifactorAuthenticationKeyType = ValueOf<typeof VALUES.KEY_ALIASES>;
 export type {
     MultifactorAuthenticationFactor,
     MultifactorAuthenticationStep,
-    MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationResponseTranslationPath,
-    MultifactorAuthenticationScenario,
-    MultifactorAuthenticationScenarioResponse,
-    MultifactorAuthenticationScenarioMethod,
-    MultifactorAuthenticationScenarioMap,
     MultifactorAuthenticationKeyType,
     AllMultifactorAuthenticationFactors,
-    MultifactorAuthenticationScenarioResponseWithSuccess,
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationPartialStatus,
-    MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationTrigger,
-    MultifactorAuthenticationUIConfig,
-    MultifactorAuthenticationUIConfigOptions,
-    MultifactorAuthenticationPromptUI,
-    MultifactorAuthenticationNotificationUI,
     MultifactorAuthenticationTriggerArgument,
-    MultifactorAuthenticationUIModalConfigOptions,
 };

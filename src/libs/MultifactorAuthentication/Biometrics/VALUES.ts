@@ -1,4 +1,4 @@
-import SCENARIO from '@components/MultifactorAuthentication/config/scenarios';
+import {MULTIFACTOR_AUTHENTICATION_SCENARIO_NAMES} from '@components/MultifactorAuthentication/scenarios';
 
 const MultifactorAuthenticationCallbacks: {
     onFulfill: Record<string, () => void>;
@@ -144,7 +144,7 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     },
     RAN_OUT_OF_TIME_NOTIFICATION: 'YOU_RAN_OUT_OF_TIME',
     FACTORS_ORIGIN: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN,
-    SCENARIO,
+    SCENARIO: MULTIFACTOR_AUTHENTICATION_SCENARIO_NAMES,
     TYPE: {
         BIOMETRICS_OR_PASSKEYS: 'BIOMETRICS_OR_PASSKEYS',
         BIOMETRICS: 'BIOMETRICS',
