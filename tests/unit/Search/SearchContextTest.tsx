@@ -22,9 +22,10 @@ const mockSelectedTransaction: SelectedTransactionInfo = {
     ownerAccountID: 1,
 } as const;
 
-const mockTransaction: TransactionListItemType = {
+const mockTransaction = {
     accountID: 1,
     amount: 0,
+    canDelete: true,
     category: '',
     groupAmount: 1284,
     groupCurrency: 'USD',
@@ -80,9 +81,9 @@ const mockTransaction: TransactionListItemType = {
         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_15.png',
         displayName: 'Main Applause QA',
     },
-};
+} as TransactionListItemType;
 
-const mockReport: TransactionReportGroupListItemType = {
+const mockReport = {
     accountID: 1,
     chatReportID: '4735435600700077',
     chatType: undefined,
@@ -120,7 +121,7 @@ const mockReport: TransactionReportGroupListItemType = {
     transactions: [mockTransaction],
     groupedBy: 'expense-report',
     keyForList: '515146912679679',
-};
+} as TransactionReportGroupListItemType;
 
 mockTransaction.report = mockReport;
 
