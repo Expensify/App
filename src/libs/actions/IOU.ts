@@ -15359,10 +15359,6 @@ function handleMoneyRequestStepScanParticipants({
                             participant,
                         });
                     },
-                    {
-                        maximumAge: CONST.GPS.MAX_AGE,
-                        timeout: CONST.GPS.TIMEOUT,
-                    },
                 );
                 return;
             }
