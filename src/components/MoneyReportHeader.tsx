@@ -1205,6 +1205,7 @@ function MoneyReportHeader({
 
                 duplicateExpenseTransaction([transaction]);
             },
+            shouldCloseModalOnSelect: activePolicyExpenseChat?.reportID === moneyRequestReport?.reportID,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
             text: translate('iou.changeWorkspace'),
