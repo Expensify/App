@@ -24,7 +24,6 @@ import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/action
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
@@ -101,22 +100,25 @@ function WorkspaceInviteMessageComponent({
     });
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, {canBeMissing: true});
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
-    const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
-    const memberNames = Object.values(personalDetailsOfInvitedEmails)
-        .map((personalDetail) => {
-            const displayName = getDisplayNameOrDefault(personalDetail, '', false);
-            if (displayName) {
-                return displayName;
-            }
 
-            // We don't have login details for users who are not in the database yet
-            // So we need to fallback to their login from the invitedEmailsToAccountIDsDraft
-            const accountID = personalDetail.accountID;
-            const loginFromInviteMap = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).find(([, id]) => id === accountID)?.[0];
+    // Build member names from all emails in the draft, including those with accountID 0 (DEFAULT_NUMBER_ID)
+    // which are filtered out by getPersonalDetailsForAccountIDs
+    const memberNames = useMemo(() => {
+        if (!invitedEmailsToAccountIDsDraft) {
+            return '';
+        }
 
-            return loginFromInviteMap;
-        })
-        .join(', ');
+        const names: string[] = [];
+        for (const [email, accountID] of Object.entries(invitedEmailsToAccountIDsDraft)) {
+            // Try to get personal detail for this accountID (if it's not DEFAULT_NUMBER_ID)
+            const personalDetail = accountID && accountID !== CONST.DEFAULT_NUMBER_ID ? allPersonalDetails?.[accountID] : undefined;
+            const displayName = personalDetail ? getDisplayNameOrDefault(personalDetail, '', false) : null;
+
+            // Use display name if available, otherwise use email
+            names.push(displayName ?? email);
+        }
+        return names.join(', ');
+    }, [invitedEmailsToAccountIDsDraft, allPersonalDetails]);
 
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
@@ -246,7 +248,7 @@ function WorkspaceInviteMessageComponent({
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <ReportActionAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
-                            accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
+                            accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {}).filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID)}
                             horizontalStacking={{
                                 displayInRows: true,
                             }}

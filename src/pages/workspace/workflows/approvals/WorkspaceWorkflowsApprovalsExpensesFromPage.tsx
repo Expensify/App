@@ -38,6 +38,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const {translate} = useLocalize();
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
@@ -81,6 +82,44 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const personalDetailLogins = useDeepCompareRef(Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])));
 
+    // Sync draft from approvalWorkflow.members when component mounts or members change
+    // This follows the card assignment pattern where draft is always synced from step data
+    // We merge with existing draft to preserve accountIDs that were already set (important for avatars)
+    useEffect(() => {
+        if (!approvalWorkflow?.members || !policy?.employeeList) {
+            return;
+        }
+
+        // Build draft from non-members in approvalWorkflow.members
+        // Merge with existing draft to preserve accountIDs that were already set
+        const draftFromWorkflow: Record<string, number> = {...(invitedEmailsToAccountIDsDraft ?? {})};
+        for (const member of approvalWorkflow.members) {
+            const isPolicyMember = !!policy.employeeList?.[member.email];
+            if (!isPolicyMember && member.email) {
+                // Preserve existing accountID from draft if it exists and is valid
+                const existingAccountID = draftFromWorkflow[member.email];
+                if (existingAccountID && existingAccountID !== CONST.DEFAULT_NUMBER_ID) {
+                    // Keep the existing accountID (it's already correct)
+                    continue;
+                }
+
+                // Try to get accountID from personal details
+                const personalDetail = getPersonalDetailByEmail(member.email);
+                const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+                draftFromWorkflow[member.email] = accountID;
+            }
+        }
+
+        // Only update draft if there are non-members and draft has changed
+        if (Object.keys(draftFromWorkflow).length > 0) {
+            const currentDraftStr = JSON.stringify(invitedEmailsToAccountIDsDraft ?? {});
+            const workflowDraftStr = JSON.stringify(draftFromWorkflow);
+            if (currentDraftStr !== workflowDraftStr) {
+                setWorkspaceInviteMembersDraft(route.params.policyID, draftFromWorkflow);
+            }
+        }
+    }, [approvalWorkflow?.members, policy?.employeeList, route.params.policyID, invitedEmailsToAccountIDsDraft]);
+
     useEffect(() => {
         if (!approvalWorkflow?.members) {
             return;
@@ -95,9 +134,20 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 // Get personal details for invited members who might not be in policy yet
                 const personalDetail = getPersonalDetailByEmail(member.email);
 
-                // If not a policy member yet (invited), try to get accountID from personal details
-                if (!isPolicyMember && !accountID && personalDetail?.accountID) {
-                    accountID = personalDetail.accountID;
+                // If not a policy member yet (invited), try to get accountID from:
+                // 1. Existing draft (preserves accountIDs that were already set)
+                // 2. Personal details
+                // 3. DEFAULT_NUMBER_ID as fallback
+                if (!isPolicyMember) {
+                    // First check if we have an accountID in the draft (preserves previously set accountIDs)
+                    const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];
+                    if (draftAccountID && draftAccountID !== CONST.DEFAULT_NUMBER_ID) {
+                        accountID = draftAccountID;
+                    } else if (personalDetail?.accountID) {
+                        accountID = personalDetail.accountID;
+                    } else if (!accountID) {
+                        accountID = CONST.DEFAULT_NUMBER_ID;
+                    }
                 }
 
                 const login = personalDetailLogins?.[accountID] ?? member.email;
@@ -121,7 +171,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 };
             }),
         );
-    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate, icons.FallbackAvatar]);
+    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate, icons.FallbackAvatar, invitedEmailsToAccountIDsDraft]);
 
     const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
     const allApprovers = useMemo(() => {
@@ -254,7 +304,20 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             avatar: typeof member.avatar === 'string' ? member.avatar : undefined,
         }));
 
-        // If there are users to invite, navigate to invite flow
+        // Store all members (existing + users to invite) in workflow
+        // This follows the card assignment pattern where step data always contains the current state
+        const allMembers: Member[] = [
+            ...normalizedExistingMembers,
+            ...usersToInvite.map((user) => ({
+                displayName: user.email,
+                email: user.email,
+                avatar: undefined,
+            })),
+        ];
+        setApprovalWorkflowMembers(allMembers);
+
+        // If there are users to invite, set draft and navigate to invite flow
+        // Following card assignment pattern: set draft BEFORE navigating, based on current selections
         if (usersToInvite.length > 0) {
             const invitedEmailsToAccountIDs: Record<string, number> = {};
             for (const user of usersToInvite) {
@@ -266,18 +329,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 }
             }
 
+            // Set draft BEFORE navigating, just like card flows do
             setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
-
-            // Store the existing members and users to invite in the workflow for after invite
-            const allMembers: Member[] = [
-                ...normalizedExistingMembers,
-                ...usersToInvite.map((user) => ({
-                    displayName: user.email,
-                    email: user.email,
-                    avatar: undefined,
-                })),
-            ];
-            setApprovalWorkflowMembers(allMembers);
 
             // Navigate to invite message page with backTo to continue workflow after invite
             const backToRoute = isInitialCreationFlow
@@ -288,9 +341,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         }
 
         // All selected members are existing members, proceed normally
-        const members: Member[] = normalizedExistingMembers;
-        setApprovalWorkflowMembers(members);
-
         if (isInitialCreationFlow) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
         } else {
