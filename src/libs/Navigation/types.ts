@@ -13,6 +13,7 @@ import type {
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from '@components/Search/types';
+import type {ReplacementReason} from '@libs/actions/Card';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
@@ -205,7 +206,11 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
-    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: {
+        // TODO will be removed once dynamic routes are implemented https://github.com/Expensify/App/issues/73825
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
@@ -1084,6 +1089,13 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
+    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE]: {
+        /** cardID of selected card */
+        cardID: string;
+
+        /** Reason for replacing the card */
+        reason: ReplacementReason;
+    };
     [SCREENS.KEYBOARD_SHORTCUTS]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
@@ -1153,6 +1165,11 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
+        policyID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE]: {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
@@ -2650,6 +2667,8 @@ type SearchReportActionsParamList = {
         /** Selected transactions' report ID  */
         reportID: string;
     };
+    [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: undefined;
+    [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: undefined;
 };
 
 type SearchReportParamList = {
