@@ -7,8 +7,8 @@ import {requestBiometricChallenge} from '@userActions/MultifactorAuthentication'
 import CONST from '@src/CONST';
 import ROUTES, {MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {MultifactorAuthenticationScenario} from './scenarios';
-import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenarioAdditionalParams, MultifactorAuthenticationScenarioParams} from './scenarios/types';
+import type {MultifactorAuthenticationScenario} from './config';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenarioAdditionalParams, MultifactorAuthenticationScenarioParams} from './config/types';
 import type {AuthTypeName, BiometricsStatus, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType} from './types';
 
 const failedStep = {
@@ -76,14 +76,6 @@ async function isBiometryConfigured(accountID: number) {
         isBiometryRegisteredLocally,
         isLocalPublicKeyInAuth,
     };
-}
-
-/**
- * Cleans up multifactorial authentication configuration by removing both private and public keys
- * from secure storage. Used when resetting or recovering from a failed setup.
- */
-async function resetKeys(accountID: number) {
-    await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
 }
 
 /**
@@ -321,6 +313,14 @@ const badRequestStatus = (
 };
 
 /**
+ * Cleans up multifactorial authentication configuration by removing both private and public keys
+ * from secure storage. Used when resetting or recovering from a failed setup.
+ */
+async function resetKeys(accountID: number) {
+    await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
+}
+
+/**
  * Collection of status creator functions for handling different multifactorial authentication states.
  * Each function builds a properly formatted status object for its specific case.
  */
@@ -345,12 +345,12 @@ export {
     getAuthTypeName,
     doesDeviceSupportBiometrics,
     isBiometryConfigured,
-    resetKeys,
     createAuthorizeErrorStatus,
     shouldAllowBiometrics,
     convertResultIntoMultifactorAuthenticationStatus,
     getNotificationRoute,
     getNotificationPath,
+    resetKeys,
     isOnProtectedRoute,
     isProtectedRoute,
     getCancelStatus,

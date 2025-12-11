@@ -3,7 +3,7 @@ import type {EmptyObject, ValueOf} from 'type-fest';
 import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {AllMultifactorAuthenticationFactors} from '@libs/MultifactorAuthentication/Biometrics/types';
-import type VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import type {MULTIFACTOR_AUTHENTICATION_PROMPT_UI, MULTIFACTOR_AUTHENTICATION_UI, MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParameters} from './index';
@@ -76,9 +76,11 @@ type MultifactorAuthenticationScenarioPureMethod<T> = (params: Partial<AllMultif
 
 type MultifactorAuthenticationScenarioConfig<T> = {
     action: MultifactorAuthenticationScenarioPureMethod<T>;
-    allowedAuthentication: ValueOf<typeof VALUES.TYPE>;
+    allowedAuthentication: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>;
     route: Route;
 };
+
+type MultifactorAuthenticationScenarioConfigRecord = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfig<never>>;
 
 type MultifactorAuthenticationScenarioAdditionalParams<T extends MultifactorAuthenticationScenario> = T extends keyof MultifactorAuthenticationScenarioParameters
     ? MultifactorAuthenticationScenarioParameters[T]
@@ -89,26 +91,6 @@ type MultifactorAuthenticationScenarioAdditionalParams<T extends MultifactorAuth
  */
 type MultifactorAuthenticationScenarioParams<T extends MultifactorAuthenticationScenario> = Partial<AllMultifactorAuthenticationFactors> &
     MultifactorAuthenticationScenarioAdditionalParams<T>;
-
-/**
- * Function signature for handling a multifactorial authentication scenario
- */
-type MultifactorAuthenticationScenarioMethod<T extends MultifactorAuthenticationScenario> = (
-    params: MultifactorAuthenticationScenarioParams<T>,
-) => Promise<MultifactorAuthenticationScenarioResponse>;
-
-type MultifactorAuthenticationScenarioData<T extends MultifactorAuthenticationScenario> = {
-    action: MultifactorAuthenticationScenarioMethod<T>;
-    allowedAuthentication: ValueOf<typeof VALUES.TYPE>;
-    route: Route;
-};
-
-/**
- * Maps scenarios to their handlers and configuration
- */
-type MultifactorAuthenticationScenarioMap = {
-    [T in MultifactorAuthenticationScenario]: MultifactorAuthenticationScenarioData<T>;
-};
 
 /**
  * Response type that includes a success indicator
@@ -136,6 +118,6 @@ export type {
     AllMultifactorAuthenticationNotificationType,
     MultifactorAuthenticationScenarioConfig,
     MultifactorAuthenticationUI,
+    MultifactorAuthenticationScenarioConfigRecord,
     MultifactorAuthenticationUIRecord,
-    MultifactorAuthenticationScenarioMap,
 };

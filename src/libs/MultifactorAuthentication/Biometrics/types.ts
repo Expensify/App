@@ -1,5 +1,5 @@
 import type {EmptyObject, ValueOf} from 'type-fest';
-import type {AllMultifactorAuthenticationNotificationType} from '@components/MultifactorAuthentication/scenarios/types';
+import type {AllMultifactorAuthenticationNotificationType} from '@components/MultifactorAuthentication/config/types';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';

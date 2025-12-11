@@ -1,6 +1,6 @@
+import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config';
+import type {MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
 import {resetKeys} from '@components/MultifactorAuthentication/helpers';
-import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/scenarios';
-import type {MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/scenarios/types';
 import {requestBiometricChallenge} from '@libs/actions/MultifactorAuthentication';
 import type {TranslationPaths} from '@src/languages/types';
 import {signToken as signTokenED25519} from './ED25519';

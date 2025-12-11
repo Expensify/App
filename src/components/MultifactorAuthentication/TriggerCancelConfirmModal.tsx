@@ -2,8 +2,8 @@ import React, {memo} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
-import type {MultifactorAuthenticationScenario} from './scenarios';
-import {MULTIFACTOR_AUTHENTICATION_UI} from './scenarios';
+import type {MultifactorAuthenticationScenario} from './config';
+import {MULTIFACTOR_AUTHENTICATION_UI} from './config';
 
 type MultifactorAuthenticationTriggerCancelConfirmModalProps = {
     isVisible: boolean;

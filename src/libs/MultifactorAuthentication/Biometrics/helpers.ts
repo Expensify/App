@@ -1,11 +1,7 @@
 import type {ValueOf} from 'type-fest';
-import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/scenarios';
-import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/scenarios';
-import type {
-    MultifactorAuthenticationScenarioMap,
-    MultifactorAuthenticationScenarioParams,
-    MultifactorAuthenticationScenarioResponseWithSuccess,
-} from '@components/MultifactorAuthentication/scenarios/types';
+import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config';
+import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
+import type {MultifactorAuthenticationScenarioParams, MultifactorAuthenticationScenarioResponseWithSuccess} from '@components/MultifactorAuthentication/config/types';
 import {registerBiometrics} from '@libs/actions/MultifactorAuthentication';
 import type {TranslationPaths} from '@src/languages/types';
 import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
@@ -205,7 +201,7 @@ async function processMultifactorAuthenticationScenario<T extends MultifactorAut
 ): Promise<MultifactorAuthenticationPartialStatus<number | undefined>> {
     const factorsCheckResult = areMultifactorAuthenticationFactorsSufficient(params, factorsCombination, isStoredFactorVerified);
 
-    const currentScenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] as MultifactorAuthenticationScenarioMap[T];
+    const currentScenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
 
     if (factorsCheckResult.value !== true) {
         return authorizeMultifactorAuthenticationPostMethod(

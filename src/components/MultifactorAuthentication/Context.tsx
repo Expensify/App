@@ -16,6 +16,9 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import type {MultifactorAuthenticationScenario} from './config';
+import {MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenarioParams} from './config/types';
 import {
     convertResultIntoMultifactorAuthenticationStatus,
     EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS,
@@ -27,9 +30,6 @@ import {
     resetKeys,
     shouldAllowBiometrics,
 } from './helpers';
-import type {MultifactorAuthenticationScenario} from './scenarios';
-import {MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './scenarios';
-import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenarioParams} from './scenarios/types';
 import type {MultifactorAuthenticationScenarioStatus, MultifactorTriggerArgument, Register, UseMultifactorAuthentication} from './types';
 import useMultifactorAuthenticationStatus from './useMultifactorAuthenticationStatus';
 import useNativeBiometrics from './useNativeBiometrics';

@@ -1,19 +1,17 @@
-import type {MultifactorAuthenticationScenarioConfig, MultifactorAuthenticationUI} from '@components/MultifactorAuthentication/scenarios/types';
-import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import type {MultifactorAuthenticationScenarioConfig, MultifactorAuthenticationUI} from '@components/MultifactorAuthentication/config/types';
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
 import {authorizeTransaction} from '@userActions/MultifactorAuthentication';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-
-const Name = 'AUTHORIZE-TRANSACTION' as const;
 
 type Parameters = {
     transactionID: string;
 };
 
 const Config = {
-    allowedAuthentication: VALUES.TYPE.BIOMETRICS,
+    allowedAuthentication: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS,
     action: authorizeTransaction,
     route: ROUTES.MULTIFACTOR_AUTHENTICATION_APPROVE_TRANSACTION.route,
 } as const satisfies MultifactorAuthenticationScenarioConfig<Parameters>;
@@ -68,4 +66,4 @@ const UI = {
 } as const satisfies MultifactorAuthenticationUI;
 
 export type {Parameters};
-export {UI, Config, Name};
+export {UI, Config};
