@@ -995,6 +995,8 @@ function getShareDestination(
     }
     return {
         icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, Expensicons.FallbackAvatar),
+        // Will be fixed in https://github.com/Expensify/App/issues/76852
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         displayName: ReportUtils.getReportName(report),
         subtitle,
         displayNamesWithTooltips,
