@@ -664,18 +664,14 @@ function printResults(
 
     const hasEnforcedAddedComponentFailures = enforcedAddedComponentFailures && enforcedAddedComponentFailures.size > 0;
 
-    const isPassed = !hasEnforcedAddedComponentFailures;
-    if (isPassed) {
-        logSuccess('All files pass React Compiler compliance check!');
-        return true;
-    }
-
     const distinctFileNames = new Set<string>();
     for (const failure of failures.values()) {
         distinctFileNames.add(failure.file);
     }
 
-    if (distinctFileNames.size > 0) {
+    const shouldPrintWarnings = distinctFileNames.size > 0;
+
+    if (shouldPrintWarnings) {
         log();
         logWarn(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
         log();
@@ -683,7 +679,11 @@ function printResults(
         printFailures(failures);
 
         log();
-        logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and can get ignored.');
+        logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and can be ignored.');
+    }
+
+    if (shouldPrintWarnings && !hasEnforcedAddedComponentFailures) {
+        log();
     }
 
     if (hasEnforcedAddedComponentFailures) {
@@ -704,6 +704,12 @@ function printResults(
                 printFailures(compilerFailures, 1);
             }
         }
+    }
+
+    const isPassed = !hasEnforcedAddedComponentFailures;
+    if (isPassed) {
+        logSuccess(`React Compiler compliance check passed ${shouldPrintWarnings ? 'with warnings' : ''}!`);
+        return true;
     }
 
     log();
