@@ -216,6 +216,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                         shouldShowBottomBorder={shouldShowBottomBorder}
                         onArrowRightPress={() => openReportInRHP(transaction)}
+                        shouldShowArrowRightOnNarrowLayout
                     />
                 );
                 return (
