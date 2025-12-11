@@ -223,7 +223,6 @@ function useSelectedTransactionsActions({
         const canRejectTransactions =
             selectedTransactionsList.length > 0 &&
             isMoneyRequestReport &&
-            !isReportReimbursed &&
             !!session?.email &&
             !!report &&
             canRejectReportAction(session.email, report, policy) &&
