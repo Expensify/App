@@ -82,11 +82,12 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             // When disabling attendee tracking, disable areAttendeesRequired on all categories
             // that have it enabled in order to avoid BE validation errors
             if (!newValue && policyCategories) {
-                Object.entries(policyCategories).forEach(([categoryName, category]) => {
-                    if (category?.areAttendeesRequired) {
-                        setPolicyCategoryAttendeesRequired(policyID, categoryName, false, policyCategories);
+                for (const [categoryName, category] of Object.entries(policyCategories)) {
+                    if (!category?.areAttendeesRequired) {
+                        continue;
                     }
-                });
+                    setPolicyCategoryAttendeesRequired(policyID, categoryName, false, policyCategories);
+                }
             }
             setPolicyAttendeeTrackingEnabled(policyID, newValue);
         },
