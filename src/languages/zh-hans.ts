@@ -6404,6 +6404,7 @@ ${reportName}
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将自定义报表名称公式更改为“${newValue}”（之前为“${oldValue}”）`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',

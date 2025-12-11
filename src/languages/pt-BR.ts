@@ -6533,6 +6533,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `alterou a fórmula do nome do relatório personalizado para "${newValue}" (anteriormente "${oldValue}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',

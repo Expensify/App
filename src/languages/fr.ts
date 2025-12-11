@@ -6581,6 +6581,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `a modifié la formule du nom du rapport personnalisé en « ${newValue} » (auparavant « ${oldValue} »)`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',

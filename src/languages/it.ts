@@ -6552,6 +6552,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `ha modificato la formula del nome del report personalizzato in "${newValue}" (precedentemente "${oldValue}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
