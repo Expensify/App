@@ -68,14 +68,9 @@ type CompilerFailure = {
     reason?: string;
 };
 
-type EnforcedAddedComponentFailureMap = Map<string, ManualMemoFailure>;
+type EnforcedAddedComponentFailureMap = Map<string, ManualMemoizationError[]>;
 
-type ManualMemoFailure = {
-    manualMemoizationMatches: ManualMemoizationMatch[];
-    compilerFailures: FailureMap | undefined;
-};
-
-type ManualMemoizationMatch = {
+type ManualMemoizationError = {
     keyword: ManualMemoizationKeyword;
     line: number;
     column: number;
@@ -524,10 +519,8 @@ function enforceAutomaticMemoization({success, failures}: CompilerResults, diffR
     }
 
     // Check all files whether we are enforcing automatic memoization, if so, log an error if manual memoization keywords are found and attach React compiler errors.
-    const manualMemoErrors = new Map<string, ManualMemoFailure>();
+    const manualMemoErrors = new Map<string, ManualMemoizationError[]>();
     for (const file of distinctErrorFileNames) {
-        const errors = errorsByFile.get(file);
-
         if (!enforcedAutoMemoFiles.has(file)) {
             continue;
         }
@@ -550,13 +543,7 @@ function enforceAutomaticMemoization({success, failures}: CompilerResults, diffR
             continue;
         }
 
-        errorsByFile.delete(file);
-
-        const manualMemoError: ManualMemoFailure = {
-            manualMemoizationMatches,
-            compilerFailures: errors,
-        };
-        manualMemoErrors.set(file, manualMemoError);
+        manualMemoErrors.set(file, manualMemoizationMatches);
     }
 
     const remainingReactCompilerErrors = new Map([...errorsByFile.values()].flatMap((errors) => [...errors.entries()]));
@@ -572,8 +559,8 @@ function enforceAutomaticMemoization({success, failures}: CompilerResults, diffR
  * @param source - The source code to search for manual memoization matches
  * @returns An array of manual memoization matches
  */
-function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] {
-    const matches: ManualMemoizationMatch[] = [];
+function findManualMemoizationMatches(source: string): ManualMemoizationError[] {
+    const matches: ManualMemoizationError[] = [];
 
     for (const keyword of Object.keys(MANUAL_MEMOIZATION_PATTERNS) as ManualMemoizationKeyword[]) {
         const regex = MANUAL_MEMOIZATION_PATTERNS[keyword];
@@ -679,22 +666,15 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
 
     if (hasManualMemoErrors) {
         log();
-        logError(`The following newly added components should rely on React Compiler’s automatic memoization (manual memoization is not allowed):`);
+        logError(`The following newly added components should be auto memoized by the React Compiler (manual memoization is not allowed):`);
 
-        for (const [filePath, {manualMemoizationMatches, compilerFailures}] of manualMemoFailures) {
+        for (const [filePath, manualMemoizationMatches] of manualMemoFailures) {
             log();
 
             for (const manualMemoizationMatch of manualMemoizationMatches) {
                 const location = manualMemoizationMatch.line && manualMemoizationMatch.column ? `:${manualMemoizationMatch.line}:${manualMemoizationMatch.column}` : '';
                 logBold(`${filePath}${location}`);
                 logNote(`${TAB}${MANUAL_MEMOIZATION_FAILURE_MESSAGE(manualMemoizationMatch.keyword)}`);
-            }
-
-            if (compilerFailures) {
-                log();
-                logBold(`React Compiler errors for ${filePath}:`);
-                log();
-                printFailures(compilerFailures);
             }
         }
     }
@@ -720,11 +700,6 @@ function printFailures(failuresToPrint: FailureMap, level = 0) {
     }
 }
 
-type ManualMemoFailureObject = {
-    manualMemoizationMatches: ManualMemoizationMatch[];
-    compilerFailures: Record<string, CompilerFailure>;
-};
-
 /**
  * Generates a report of the React Compiler compliance check and saves it to /tmp.
  * @param results - The compiler results to generate a report for
@@ -735,20 +710,11 @@ function generateReport({success, failures, suppressedFailures, manualMemoFailur
     const reportFileName = `react-compiler-compliance-check-report-${timestamp}.json`;
     const reportFile = path.join('/tmp', reportFileName);
 
-    const manualMemoFailuresObject: Record<string, ManualMemoFailureObject> = {};
-    for (const [filePath, manualMemoFailure] of manualMemoFailures ?? []) {
-        const manualMemoFailureObject: ManualMemoFailureObject = {
-            manualMemoizationMatches: manualMemoFailure.manualMemoizationMatches,
-            compilerFailures: Object.fromEntries(manualMemoFailure.compilerFailures?.entries() ?? []),
-        };
-        manualMemoFailuresObject[filePath] = manualMemoFailureObject;
-    }
-
     const resultsObject = {
         success: Array.from(success),
         failures: Object.fromEntries(failures.entries()),
         suppressedFailures: Object.fromEntries(suppressedFailures.entries()),
-        manualMemoFailures: manualMemoFailuresObject,
+        manualMemoFailures: Object.fromEntries(manualMemoFailures?.entries() ?? []),
     } satisfies Record<keyof CompilerResults, Record<string, unknown> | string[]>;
 
     fs.writeFileSync(
