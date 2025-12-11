@@ -7757,11 +7757,12 @@ ${reportName}
             requireError: '无法更新 SAML 要求设置',
             disableSamlRequired: '禁用 SAML 要求',
             oktaWarningPrompt: '您确定吗？这也会禁用 Okta SCIM。',
+            requireWithEmptyMetadataError: '请在下方添加身份提供商元数据以启用',
         },
         samlConfigurationDetails: {
             title: 'SAML 配置详情',
             subtitle: '使用以下详细信息来完成 SAML 设置。',
-            identityProviderMetaData: '身份提供商元数据',
+            identityProviderMetadata: '身份提供商元数据',
             entityID: '实体 ID',
             nameIDFormat: '名称 ID 格式',
             loginUrl: '登录 URL',
