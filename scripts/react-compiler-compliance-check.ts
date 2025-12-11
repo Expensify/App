@@ -107,28 +107,23 @@ async function check({mode = 'static', files, remote, verbose = false}: CheckPar
         logInfo('Running React Compiler check for all files...');
     }
 
-    const src = createFilesGlob(files);
-    let results = runCompilerHealthcheck(src);
+    let results = runCompilerHealthcheck(createFilesGlob(files));
 
-    const filterByDiff = mode === 'incremental';
-    const enforceNewComponents = true;
+    const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
+    const diffFilteringCommits: DiffFilteringCommits = {fromRef: mainBaseCommitHash};
+    const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef, undefined, true);
 
-    if (filterByDiff || enforceNewComponents) {
-        const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-        const diffFilteringCommits: DiffFilteringCommits = {fromRef: mainBaseCommitHash};
-        const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef, undefined, true);
-
-        if (filterByDiff) {
-            results = await filterResultsByDiff(results, diffFilteringCommits, diffResult, options);
-        }
-
-        if (enforceNewComponents) {
-            const {reactCompilerFailures, manualMemoFailures} = enforceAutomaticMemoization(results, diffResult);
-
-            results.manualMemoFailures = manualMemoFailures;
-            results.failures = reactCompilerFailures;
-        }
+    // If we are in incremental mode, we only want to show errors for lines
+    // that were directly modified in the git diff, not for the whole file.
+    if (mode === 'incremental') {
+        results = await filterResultsByDiff(results, diffFilteringCommits, diffResult, options);
     }
+
+    // Enforce automatic memoization for added files that are successfully compiled with React Compiler
+    const {reactCompilerFailures, manualMemoFailures} = enforceAutomaticMemoization(results, diffResult);
+
+    results.manualMemoFailures = manualMemoFailures;
+    results.failures = reactCompilerFailures;
 
     const isPassed = printResults(results, options);
 
@@ -321,19 +316,13 @@ function createFilesGlob(files?: string[]): string | undefined {
     return `**/+(${files.join('|')})`;
 }
 
-function getErrorsByFile(failures: FailureMap) {
-    const errorsByFile = new Map<string, FailureMap>();
-    for (const [errorKey, error] of failures) {
-        const filePath = error.file;
-        if (!errorsByFile.has(filePath)) {
-            errorsByFile.set(filePath, new Map([[errorKey, error]]));
-        }
-        errorsByFile.get(filePath)?.set(errorKey, error);
+function getDistinctFailureFileNames(failures: FailureMap) {
+    const distinctFileNames = new Set<string>();
+    for (const [, failure] of failures) {
+        distinctFileNames.add(failure.file);
     }
 
-    const distinctFileNames = new Set(errorsByFile.keys());
-
-    return {errorsByFile, distinctFileNames};
+    return distinctFileNames;
 }
 
 /**
@@ -499,8 +488,8 @@ async function filterResultsByDiff(results: CompilerResults, diffFilteringCommit
  * @param diffResult - The diff result to check for added files
  * @returns The compiler results partitioned into manual memo errors and react compiler errors
  */
-function enforceAutomaticMemoization({success, failures}: CompilerResults, diffResult: DiffResult) {
-    const {errorsByFile, distinctFileNames: distinctErrorFileNames} = getErrorsByFile(failures);
+function enforceAutomaticMemoization({success, failures: reactCompilerFailures}: CompilerResults, diffResult: DiffResult) {
+    const distinctFailureFileNames = getDistinctFailureFileNames(reactCompilerFailures);
 
     // Add added files from the diff that are already compiled successfully,
     // to a list of files that should have automatic memoization enforced
@@ -513,14 +502,14 @@ function enforceAutomaticMemoization({success, failures}: CompilerResults, diffR
         const isAddedFile = file.diffType === 'added';
 
         if (isReactComponentSourceFile && isSuccessfullyCompiled && isAddedFile) {
-            distinctErrorFileNames.add(filePath);
+            distinctFailureFileNames.add(filePath);
             enforcedAutoMemoFiles.add(filePath);
         }
     }
 
     // Check all files whether we are enforcing automatic memoization, if so, log an error if manual memoization keywords are found and attach React compiler errors.
-    const manualMemoErrors = new Map<string, ManualMemoizationError[]>();
-    for (const file of distinctErrorFileNames) {
+    const manualMemoFailures = new Map<string, ManualMemoizationError[]>();
+    for (const file of distinctFailureFileNames) {
         if (!enforcedAutoMemoFiles.has(file)) {
             continue;
         }
@@ -543,14 +532,12 @@ function enforceAutomaticMemoization({success, failures}: CompilerResults, diffR
             continue;
         }
 
-        manualMemoErrors.set(file, manualMemoizationMatches);
+        manualMemoFailures.set(file, manualMemoizationMatches);
     }
 
-    const remainingReactCompilerErrors = new Map([...errorsByFile.values()].flatMap((errors) => [...errors.entries()]));
-
     return {
-        manualMemoFailures: manualMemoErrors,
-        reactCompilerFailures: remainingReactCompilerErrors,
+        manualMemoFailures,
+        reactCompilerFailures,
     };
 }
 
@@ -642,7 +629,7 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
     const isPassed = didRegularCheckPass && !hasManualMemoErrors;
 
     if (failures.size > 0) {
-        const {distinctFileNames: distinctFailureFileNames} = getErrorsByFile(failures);
+        const distinctFailureFileNames = getDistinctFailureFileNames(failures);
 
         if (distinctFailureFileNames.size > 0) {
             const logMethod = shouldPrintAsWarnings ? logWarn : logError;
@@ -654,7 +641,7 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
 
             if (shouldPrintAsWarnings) {
                 log();
-                logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and should be ignored.');
+                logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and can get ignored.');
             }
         }
     }
