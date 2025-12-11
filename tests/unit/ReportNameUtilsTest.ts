@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {translate} from '@libs/Localize';
 import {computeReportName, getGroupChatName, getPolicyExpenseChatName, getReportName as getSimpleReportName} from '@libs/ReportNameUtils';
 import CONST from '@src/CONST';
@@ -10,6 +11,7 @@ import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('ReportNameUtils', () => {
+    const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
     const currentUserAccountID = 5;
     const participantsPersonalDetails: PersonalDetailsList = [
         {
@@ -73,7 +75,7 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(mockTranslate, report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
             expect(name).toBe('Ragnar Lothbrok');
         });
 
@@ -83,7 +85,7 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(mockTranslate, report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
             expect(name).toBe('floki@vikings.net');
         });
 
@@ -93,7 +95,7 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(mockTranslate, report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
             expect(name).toBe('(833) 240-3627');
         });
 
@@ -105,7 +107,7 @@ describe('ReportNameUtils', () => {
             };
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(mockTranslate, report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
             expect(name).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
     });
@@ -113,7 +115,7 @@ describe('ReportNameUtils', () => {
     describe('computeReportName - Admin room', () => {
         test('Active admin room', () => {
             const report = createAdminRoom(10);
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(mockTranslate, report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
             expect(name).toBe('#admins');
         });
 
@@ -124,6 +126,7 @@ describe('ReportNameUtils', () => {
             } as Record<string, ReportNameValuePairs>;
 
             const nameEn = computeReportName(
+                mockTranslate,
                 report,
                 emptyCollections.reports,
                 emptyCollections.policies,
@@ -135,7 +138,9 @@ describe('ReportNameUtils', () => {
             expect(nameEn).toBe('#admins (archived)');
 
             await IntlStore.load(CONST.LOCALES.ES);
+            const spanishTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.ES, path, ...params);
             const nameEs = computeReportName(
+                spanishTranslate,
                 report,
                 emptyCollections.reports,
                 emptyCollections.policies,
@@ -158,7 +163,7 @@ describe('ReportNameUtils', () => {
             };
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(mockTranslate, report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
             expect(name).toBe("Ragnar Lothbrok's expenses");
         });
     });
@@ -171,7 +176,7 @@ describe('ReportNameUtils', () => {
             };
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(mockTranslate, report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
             expect(name).toBe('Lagertha Lothbrok (you)');
         });
     });
@@ -184,7 +189,7 @@ describe('ReportNameUtils', () => {
                 reportName: htmlTaskTitle,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(mockTranslate, report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
             expect(name).toBe('heading with link');
         });
     });
@@ -217,7 +222,7 @@ describe('ReportNameUtils', () => {
             };
 
             const expected = translate(CONST.LOCALES.EN, 'iou.submitted', {memo: 'via workflow'});
-            const name = computeReportName(thread, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection);
+            const name = computeReportName(mockTranslate, thread, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection);
             expect(name).toBe(expected);
         });
 
@@ -245,7 +250,7 @@ describe('ReportNameUtils', () => {
             };
 
             const expected = translate(CONST.LOCALES.EN, 'iou.rejectedThisReport');
-            const name = computeReportName(thread, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection);
+            const name = computeReportName(mockTranslate, thread, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection);
             expect(name).toBe(expected);
         });
     });
@@ -307,6 +312,7 @@ describe('ReportNameUtils', () => {
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
             const name = computeReportName(
+                mockTranslate,
                 report,
                 emptyCollections.reports,
                 emptyCollections.policies,
