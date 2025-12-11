@@ -1246,9 +1246,13 @@ function setMoneyRequestPendingFields(transactionID: string, pendingFields: Onyx
  * @param transactionID - The transaction ID
  * @param category - The category name
  * @param policy - The policy object, or undefined for P2P transactions where tax info should be cleared
+ * @param isMovingFromTrackExpense - If the expense is moved from Track Expense
  */
-function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<OnyxTypes.Policy>) {
+function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<OnyxTypes.Policy>, isMovingFromTrackExpense?: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
+    if (isMovingFromTrackExpense) {
+        return;
+    }
     if (!policy) {
         setMoneyRequestTaxRate(transactionID, '');
         setMoneyRequestTaxAmount(transactionID, null);
@@ -6257,7 +6261,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                           category,
                           tag,
                           taxCode,
-                          taxAmount,
+                          taxAmount: Math.abs(taxAmount),
                           billable,
                           policyID: chatReport.policyID,
                           waypoints: sanitizedWaypoints,
@@ -6873,6 +6877,91 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }
 
     notifyNewAction(activeReportID, payeeAccountID);
+}
+
+function duplicateExpenseTransaction(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    optimisticChatReportID: string,
+    optimisticIOUReportID: string,
+    isASAPSubmitBetaEnabled: boolean,
+    targetPolicy?: OnyxEntry<OnyxTypes.Policy>,
+    targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    targetReport?: OnyxTypes.Report,
+) {
+    if (!transaction) {
+        return;
+    }
+
+    const participants = getMoneyRequestParticipantsFromReport(targetReport);
+    const transactionDetails = getTransactionDetails(transaction);
+
+    const params: RequestMoneyInformation = {
+        report: targetReport,
+        optimisticChatReportID,
+        optimisticCreatedReportActionID: NumberUtils.rand64(),
+        optimisticIOUReportID,
+        optimisticReportPreviewActionID: NumberUtils.rand64(),
+        participantParams: {
+            payeeAccountID: userAccountID,
+            payeeEmail: currentUserEmail,
+            participant: participants.at(0) ?? {},
+        },
+        gpsPoint: undefined,
+        action: CONST.IOU.ACTION.CREATE,
+        transactionParams: {
+            ...transaction,
+            ...transactionDetails,
+            attendees: transactionDetails?.attendees as Attendee[] | undefined,
+            comment: transactionDetails?.comment,
+            created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            customUnitRateID: transaction?.comment?.customUnit?.customUnitRateID,
+            isTestDrive: transaction?.receipt?.isTestDriveReceipt,
+            merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
+            modifiedAmount: undefined,
+            originalTransactionID: transaction?.comment?.originalTransactionID,
+            receipt: undefined,
+            source: undefined,
+            waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+        },
+        shouldHandleNavigation: false,
+        shouldGenerateTransactionThreadReport: true,
+        isASAPSubmitBetaEnabled,
+        currentUserAccountIDParam: userAccountID,
+        currentUserEmailParam: currentUserEmail,
+        transactionViolations: {},
+    };
+
+    // If no workspace is provided the expense should be unreported
+    if (!targetPolicy) {
+        const selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`];
+
+        if (!selfDMReport) {
+            return;
+        }
+
+        const trackExpenseParams: CreateTrackExpenseParams = {
+            ...params,
+            participantParams: {
+                ...(params.participantParams ?? {}),
+                participant: {accountID: userAccountID, selected: true},
+            },
+            transactionParams: {
+                ...(params.transactionParams ?? {}),
+                validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+            },
+            report: selfDMReport,
+            isDraftPolicy: false,
+        };
+        return trackExpense(trackExpenseParams);
+    }
+
+    params.policyParams = {
+        policy: targetPolicy,
+        policyTagList: getPolicyTagsData(targetPolicy.id) ?? {},
+        policyCategories: targetPolicyCategories ?? {},
+    };
+
+    return requestMoney(params);
 }
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
@@ -11792,6 +11881,7 @@ function completePaymentOnboarding(
         shouldSkipTestDriveModal: true,
     });
 }
+
 function payMoneyRequest(
     paymentType: PaymentMethodType,
     chatReport: OnyxTypes.Report,
@@ -11826,7 +11916,7 @@ function payMoneyRequest(
 
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    notifyNewAction(Navigation.getTopmostReportId() ?? iouReport?.reportID, userAccountID);
+    notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, userAccountID);
 }
 
 function payInvoice(
@@ -12149,7 +12239,14 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Repor
     let participants: Participant[] = [];
 
     if (isPolicyExpenseChatReportUtil(chatReport) || shouldAddAsReport) {
-        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: isPolicyExpenseChatReportUtil(chatReport), selected: true}];
+        participants = [
+            {
+                accountID: shouldAddAsReport && report?.ownerAccountID ? report.ownerAccountID : CONST.DEFAULT_NUMBER_ID,
+                reportID: chatReport?.reportID,
+                isPolicyExpenseChat: isPolicyExpenseChatReportUtil(chatReport),
+                selected: true,
+            },
+        ];
     } else if (isInvoiceRoom(chatReport)) {
         participants = [
             {reportID: chatReport?.reportID, selected: true},
@@ -15084,6 +15181,7 @@ export {
     deleteMoneyRequest,
     deleteTrackExpense,
     detachReceipt,
+    duplicateExpenseTransaction,
     getIOURequestPolicyID,
     getReceiverType,
     initMoneyRequest,
