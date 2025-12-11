@@ -19,8 +19,8 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
-import Permissions from '@libs/Permissions';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import Permissions from '@libs/Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,

@@ -57,7 +57,7 @@ import {
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {hasValidModifiedAmount, getOriginalTransactionWithSplitInfo, isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
