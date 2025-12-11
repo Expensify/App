@@ -50,6 +50,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`, {canBeMissing: true});
     const violations = useTransactionViolations(transaction?.transactionID);
@@ -81,12 +82,12 @@ function TransactionPreview(props: TransactionPreviewProps) {
     }, [chatReportID]);
 
     const navigateToReviewFields = useCallback(() => {
-        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policyCategories));
-    }, [route.params?.threadReportID, transaction, duplicates, policyCategories]);
+        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policyCategories, transactionReport));
+    }, [route.params?.threadReportID, transaction, duplicates, policyCategories, transactionReport]);
 
     const transactionPreview = transaction;
 
-    const {originalTransaction, isBillSplit} = getOriginalTransactionWithSplitInfo(transaction);
+    const {isBillSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
     const iouAction = action;
 
@@ -141,7 +142,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             isBillSplit={isBillSplit}
             chatReport={chatReport}
             personalDetails={personalDetails}
-            transaction={originalTransaction}
+            transaction={originalTransaction ?? transaction}
             transactionRawAmount={transactionRawAmount}
             report={report}
             violations={violations}

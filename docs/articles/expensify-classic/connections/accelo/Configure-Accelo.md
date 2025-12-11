@@ -60,13 +60,13 @@ Expensify report statuses sync to the corresponding Accelo statuses:
 
 | Expensify Report Status | Accelo Expense Status |
 |-------------------------|-----------------------|
-| Open                    | Submitted             |
-| Submitted               | Submitted             |
+| Draft                   | Submitted             |
+| Outstanding             | Submitted             |
 | Approved                | Approved              |
-| Reimbursed              | Approved              |
+| Paid                    | Approved              |
 | Rejected                | Declined              |
 | Archived                | Approved              |
-| Closed                  | Approved              |
+| Done                    | Approved              |
 
 ---
 

@@ -110,7 +110,7 @@ function getParsedMessageWithShortMentions({text, availableMentionLogins, userEm
         extras: parserOptions.extras,
     });
 
-    const textWithHandledMentions = parsedText.replace(CONST.REGEX.SHORT_MENTION_HTML, (fullMatch, group1) => {
+    const textWithHandledMentions = parsedText.replaceAll(CONST.REGEX.SHORT_MENTION_HTML, (fullMatch, group1) => {
         // Casting here is safe since our logic guarantees that if regex matches we will get group1 as non-empty string
         const shortMention = group1 as string;
         if (!Str.isValidMention(shortMention)) {

@@ -99,14 +99,14 @@ function useMarkdownStyle(hasMessageOnlyEmojis: boolean, excludeStyles: Array<ke
         };
 
         if (excludeStyles.length) {
-            excludeStyles.forEach((key) => {
+            for (const key of excludeStyles) {
                 const style: Record<string, unknown> = styling[key];
                 if (style) {
-                    Object.keys(style).forEach((styleKey) => {
+                    for (const styleKey of Object.keys(style)) {
                         style[styleKey] = nonStylingDefaultValues[styleKey] ?? style[styleKey];
-                    });
+                    }
                 }
-            });
+            }
         }
 
         return styling;

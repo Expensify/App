@@ -2,10 +2,11 @@ import React, {useRef} from 'react';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PaymentHands} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -25,10 +26,12 @@ import {showContextMenu} from './home/report/ContextMenu/ReportActionContextMenu
 type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 
 function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['PaymentHands'] as const);
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();
     let {contentType} = route.params;
@@ -49,7 +52,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
             title={translate('common.referral')}
             headerContent={
                 <Icon
-                    src={PaymentHands}
+                    src={illustrations.PaymentHands}
                     width={589}
                     height={232}
                 />
@@ -85,7 +88,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
                 title={translate('requestorStep.learnMore')}
                 icon={Expensicons.QuestionMark}
                 shouldShowRightIcon
-                iconRight={Expensicons.NewWindow}
+                iconRight={icons.NewWindow}
                 disabled={isExecuting}
                 shouldBlockSelection
                 onPress={singleExecution(() => openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}

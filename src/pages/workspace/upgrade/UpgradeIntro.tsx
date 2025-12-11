@@ -47,12 +47,14 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
 
     const formattedPrice = useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const shouldUseTeamPricing = isCategorizing || isDistanceRateUpgrade || isReporting;
         return `${convertToShortDisplayString(
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            CONST.SUBSCRIPTION_PRICES[upgradeCurrency][isCategorizing || isDistanceRateUpgrade ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
+            CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
             upgradeCurrency,
         )} `;
-    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade]);
+    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade, isReporting]);
 
     const allIconNames = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .map((feat) => feat?.icon)
@@ -131,7 +133,14 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate(feature.title)}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate(feature.description)}</Text>
                     <View style={[styles.renderHTML]}>
-                        <RenderHTML html={translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`, {formattedPrice, hasTeam2025Pricing})} />
+                        <RenderHTML
+                            html={translate(
+                                feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports'
+                                    ? 'workspace.upgrade.approvals.onlyAvailableOnPlan'
+                                    : `workspace.upgrade.${feature.id}.onlyAvailableOnPlan`,
+                                {formattedPrice, hasTeam2025Pricing},
+                            )}
+                        />
                     </View>
                 </View>
                 <Button

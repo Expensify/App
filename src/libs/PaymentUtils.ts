@@ -11,7 +11,7 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -40,6 +40,7 @@ type SelectPaymentTypeParams = {
     isUserValidated?: boolean;
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
+    iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
 };
 
 /**
@@ -89,10 +90,10 @@ function getPaymentMethodDescription(
 function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fundList: Record<string, Fund> | Fund[], styles: ThemeStyles, translate: LocalizedTranslate): PaymentMethod[] {
     const combinedPaymentMethods: PaymentMethod[] = [];
 
-    Object.values(bankAccountList).forEach((bankAccount) => {
+    for (const bankAccount of Object.values(bankAccountList)) {
         // Add all bank accounts besides the wallet
         if (bankAccount?.accountData?.type === CONST.BANK_ACCOUNT_TYPES.WALLET) {
-            return;
+            continue;
         }
 
         const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({
@@ -109,9 +110,9 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
             iconWidth,
             iconStyles,
         });
-    });
+    }
 
-    Object.values(fundList).forEach((card) => {
+    for (const card of Object.values(fundList)) {
         const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({bankName: card?.accountData?.bank, isCard: true, styles});
         combinedPaymentMethods.push({
             ...card,
@@ -122,7 +123,7 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
             iconWidth,
             iconStyles,
         });
-    });
+    }
 
     return combinedPaymentMethods;
 }
@@ -140,8 +141,21 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
  * handles direct approvals, or proceeds with basic payment processing.
  */
 const selectPaymentType = (params: SelectPaymentTypeParams) => {
-    const {event, iouPaymentType, triggerKYCFlow, policy, onPress, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, isUserValidated, confirmApproval, iouReport} =
-        params;
+    const {
+        event,
+        iouPaymentType,
+        triggerKYCFlow,
+        policy,
+        onPress,
+        currentAccountID,
+        currentEmail,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        isUserValidated,
+        confirmApproval,
+        iouReport,
+        iouReportNextStep,
+    } = params;
     if (policy && shouldRestrictUserBillableActions(policy.id)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
@@ -161,7 +175,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, true);
+            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
         }
         return;
     }

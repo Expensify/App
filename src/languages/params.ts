@@ -5,6 +5,10 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
+type TagSelectionParams = {
+    policyTagListName?: string;
+};
+
 type AddressLineParams = {
     lineNumber: number;
 };
@@ -87,6 +91,10 @@ type BeginningOfChatHistoryPolicyExpenseChatParams = {
 type BeginningOfChatHistoryInvoiceRoomParams = {
     invoicePayer: string;
     invoiceReceiver: string;
+};
+
+type BeginningOfChatHistoryParams = {
+    users: string;
 };
 
 type LearnMoreRouteParams = {
@@ -426,6 +434,8 @@ type UpdatedPolicyAuditRateParams = {oldAuditRate: number; newAuditRate: number}
 
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
 
+type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
+
 type ChangeTypeParams = {oldType: string; newType: string};
 
 type AccountOwnerParams = {accountOwnerEmail: string};
@@ -634,7 +644,7 @@ type AssignedCardParams = {
 
 type FeatureNameParams = {
     featureName: string;
-    moreFeaturesLink: string;
+    moreFeaturesLink?: string;
 };
 
 type AutoPayApprovedReportsLimitErrorParams = {
@@ -1049,6 +1059,7 @@ export type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryUserRoomParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -1228,6 +1239,7 @@ export type {
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdatePolicyCustomUnitParams,
     AddOrDeletePolicyCustomUnitRateParams,
@@ -1283,4 +1295,5 @@ export type {
     NextStepParams,
     ReportFieldParams,
     FocusModeUpdateParams,
+    TagSelectionParams,
 };

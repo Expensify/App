@@ -42,6 +42,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const {onboardingMessages} = useOnboardingMessages();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {canBeMissing: true});
 
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
@@ -131,7 +132,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         const errors = {};
 
         // First we validate the first name field
-        if (values.firstName.replace(CONST.REGEX.ANY_SPACE, '').length === 0) {
+        if (values.firstName.replaceAll(CONST.REGEX.ANY_SPACE, '').length === 0) {
             addErrorMessage(errors, 'firstName', translate('onboarding.error.requiredFirstName'));
         }
         if (!isValidDisplayName(values.firstName)) {
@@ -200,6 +201,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         label={translate('common.firstName')}
                         aria-label={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
+                        defaultValue={onboardingPersonalDetailsForm?.firstName ?? currentUserPersonalDetails?.firstName ?? ''}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.firstName && {defaultValue: currentUserPersonalDetails.firstName})}
                         shouldSaveDraft
@@ -214,6 +216,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         label={translate('common.lastName')}
                         aria-label={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
+                        defaultValue={onboardingPersonalDetailsForm?.lastName ?? currentUserPersonalDetails?.lastName ?? ''}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.lastName && {defaultValue: currentUserPersonalDetails.lastName})}
                         shouldSaveDraft

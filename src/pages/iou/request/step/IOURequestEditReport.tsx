@@ -56,7 +56,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
 
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
@@ -97,12 +97,12 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         Navigation.dismissModal();
     };
 
-    const createReportForPolicy = () => {
+    const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
         if (!policyForMovingExpensesID) {
             return;
         }
 
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID, false, shouldDismissEmptyReportsConfirmation);
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 

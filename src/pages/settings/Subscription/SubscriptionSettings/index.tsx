@@ -5,7 +5,6 @@ import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OptionsPicker from '@components/OptionsPicker';
@@ -15,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -40,19 +40,6 @@ import type {SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-const options: Array<OptionsPickerItem<SubscriptionType>> = [
-    {
-        key: CONST.SUBSCRIPTION.TYPE.ANNUAL,
-        title: 'subscription.details.annual',
-        icon: Illustrations.SubscriptionAnnual,
-    },
-    {
-        key: CONST.SUBSCRIPTION.TYPE.PAY_PER_USE,
-        title: 'subscription.details.payPerUse',
-        icon: Illustrations.SubscriptionPPU,
-    },
-];
-
 function SubscriptionSettings() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -65,7 +52,7 @@ function SubscriptionSettings() {
     const subscriptionPlan = useSubscriptionPlan();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const preferredCurrency = usePreferredCurrency();
-    const illustrations = useThemeIllustrations();
+    const themeIllustrations = useThemeIllustrations();
     const possibleCostSavings = useSubscriptionPossibleCostSavings();
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
@@ -97,6 +84,20 @@ function SubscriptionSettings() {
         }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(1));
     };
+    const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual', 'SubscriptionPPU'] as const);
+
+    const options: Array<OptionsPickerItem<SubscriptionType>> = [
+        {
+            key: CONST.SUBSCRIPTION.TYPE.ANNUAL,
+            title: 'subscription.details.annual',
+            icon: illustrations.SubscriptionAnnual,
+        },
+        {
+            key: CONST.SUBSCRIPTION.TYPE.PAY_PER_USE,
+            title: 'subscription.details.payPerUse',
+            icon: illustrations.SubscriptionPPU,
+        },
+    ];
 
     // This section is only shown when the subscription is annual
     const subscriptionSizeSection: React.JSX.Element | null =
@@ -195,7 +196,7 @@ function SubscriptionSettings() {
                 {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
                     <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
                         <Icon
-                            src={illustrations.ExpensifyApprovedLogo}
+                            src={themeIllustrations.ExpensifyApprovedLogo}
                             width={variables.modalTopIconWidth}
                             height={variables.menuIconSize}
                         />

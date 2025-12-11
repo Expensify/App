@@ -16,7 +16,7 @@ const getLocaleDigits = memoize(
         for (let i = 0; i <= 9; i++) {
             localeDigits[i] = format(locale, i);
         }
-        formatToParts(locale, 1000000.5).forEach((part) => {
+        for (const part of formatToParts(locale, 1000000.5)) {
             switch (part.type) {
                 case 'decimal':
                     localeDigits[INDEX_DECIMAL] = part.value;
@@ -30,7 +30,7 @@ const getLocaleDigits = memoize(
                 default:
                     break;
             }
-        });
+        }
         return localeDigits;
     },
     {monitoringName: 'getLocaleDigits'},

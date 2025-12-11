@@ -113,7 +113,7 @@ function openPersonalBankAccountSetupView({exitReportID, policyID, source, shoul
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {source});
         }
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
+            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute({backTo: Navigation.getActiveRoute()}));
             return;
         }
         if (shouldSetUpUSBankAccount) {
@@ -408,11 +408,11 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
         ],
     };
 
-    Object.keys(lastUsedPaymentMethods ?? {}).forEach((paymentMethodID) => {
+    for (const paymentMethodID of Object.keys(lastUsedPaymentMethods ?? {})) {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodID] as LastPaymentMethodType;
 
         if (typeof lastUsedPaymentMethod === 'string' || !lastUsedPaymentMethod) {
-            return;
+            continue;
         }
 
         if (personalPolicy?.id === paymentMethodID && lastUsedPaymentMethod.iou?.name === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
@@ -484,7 +484,7 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 },
             });
         }
-    });
+    }
 
     API.write(WRITE_COMMANDS.DELETE_PAYMENT_BANK_ACCOUNT, parameters, onyxData);
 }
