@@ -139,7 +139,7 @@ function BaseModal({
         }
 
         // When the modal becomes not visible, run dismiss logic to setReadyToFocus after it fully closes.
-        if (!(isVisible || !wasVisible)) {
+        if (!isVisible && wasVisible) {
             handleDismissModal();
         }
 
