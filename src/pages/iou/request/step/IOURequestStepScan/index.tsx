@@ -371,6 +371,12 @@ function IOURequestStepScan({
                 const receipt: Receipt = receiptFile.file ?? {};
                 receipt.source = receiptFile.source;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
+                Log.info('[SCAN_DEBUG] IOURequestStepScan - Setting receipt state to SCAN_READY', false, {
+                    transactionID: transaction?.transactionID,
+                    receiptSource: receipt.source,
+                    receiptState: receipt.state,
+                    receiptFilename: receiptFile.file?.name,
+                });
                 if (iouType === CONST.IOU.TYPE.TRACK && report) {
                     trackExpense({
                         report,

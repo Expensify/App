@@ -27,7 +27,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
-import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
+import {getAll, getOngoingRequest, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {isAnonymousUser} from './Session';
 
@@ -238,8 +238,40 @@ let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
         Log.info('Flushing logs as app is going inactive', true, {}, true);
+        
+        // Log TRACK_EXPENSE state when app backgrounds
+        const ongoingRequest = getOngoingRequest();
+        const allPersistedRequests = getAll();
+        const trackExpenseInQueue = allPersistedRequests.find((req) => req.command === WRITE_COMMANDS.TRACK_EXPENSE);
+        const isTrackExpenseOngoing = ongoingRequest?.command === WRITE_COMMANDS.TRACK_EXPENSE;
+        
+        // if (trackExpenseInQueue || isTrackExpenseOngoing) {
+            Log.info('[API_DEBUG] App going to background - TRACK_EXPENSE state', false, {
+                isOngoing: isTrackExpenseOngoing,
+                isInQueue: !!trackExpenseInQueue,
+                ongoingTransactionID: ongoingRequest?.data?.transactionID,
+                queueTransactionID: trackExpenseInQueue?.data?.transactionID,
+                queueLength: allPersistedRequests.length,
+            });
+        // }
         saveCurrentPathBeforeBackground();
     }
+
+    // When app becomes active again, flush the SequentialQueue to ensure pending requests (like TRACK_EXPENSE) are processed
+    if (nextAppState === 'active' && appState !== 'active') {
+        const ongoingRequest = getOngoingRequest();
+        const allPersistedRequests = getAll();
+        Log.info('[API_DEBUG] App became active - checking for pending requests', false, {
+            previousState: appState,
+            newState: nextAppState,
+            hasOngoingRequest: !!ongoingRequest,
+            ongoingRequestCommand: ongoingRequest?.command,
+            ongoingRequestTransactionID: ongoingRequest?.data?.transactionID,
+            persistedRequestsCount: allPersistedRequests.length,
+            persistedRequestCommands: allPersistedRequests.map((req) => req.command),
+        });
+    }
+
     appState = nextAppState;
 });
 

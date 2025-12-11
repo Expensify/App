@@ -1064,6 +1064,11 @@ function initMoneyRequest({
     // we should keep most of the existing data by using the ONYX MERGE operation
     if (currentIouRequestType === newIouRequestType) {
         // so, we just need to update the reportID, isFromGlobalCreate, created, currency
+        Log.info('[IOU] initMoneyRequest - merging draft transaction', false, {
+            transactionID: newTransactionID,
+            isOptimistic: newTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            reportID,
+        });
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
             reportID,
             isFromGlobalCreate,
@@ -1132,6 +1137,11 @@ function initMoneyRequest({
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
     // Use set() here so that there is no way that data will be leaked between objects when it gets reset
+    Log.info('[IOU] initMoneyRequest - creating draft transaction', false, {
+        transactionID: newTransactionID,
+        isOptimistic: newTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+        reportID: newTransaction.reportID,
+    });
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, newTransaction);
 
     return newTransaction;
@@ -1146,6 +1156,11 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
         ...transaction,
     };
 
+    Log.info('[IOU] createDraftTransaction - creating draft transaction', false, {
+        transactionID: transaction.transactionID,
+        isOptimistic: transaction.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+        pendingAction: transaction.pendingAction,
+    });
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
@@ -2862,7 +2877,19 @@ function buildOnyxDataForTrackExpense({
                 routes: null,
             },
         },
+    )
+
+    // Log to investigate draft transaction cleanup
+    const draftTransactionExists = !!allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`];
+    const willRemoveDraftInSuccessData = successData.some(
+        (update) => update.key?.includes(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT) && update.value === null
     );
+    Log.info('[IOU] buildOnyxDataForTrackExpense - successData prepared', false, {
+        transactionID: transaction.transactionID,
+        draftTransactionExists,
+        willRemoveDraftInSuccessData,
+        successDataKeys: successData.map((update) => update.key).filter(Boolean),
+    });
 
     if (!isEmptyObject(transactionThreadCreatedReportAction)) {
         successData.push({
@@ -5254,6 +5281,7 @@ function updateMoneyRequestTaxAmount(
     currentUserEmailParam: string,
     isASAPSubmitBetaEnabled: boolean,
 ) {
+
     const transactionChanges = {
         taxAmount,
     };
@@ -6342,6 +6370,22 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 guidedSetupData: guidedSetupData ? JSON.stringify(guidedSetupData) : undefined,
                 testDriveCommentReportActionID,
             };
+            
+            // Log RequestMoney API call
+            Log.info('[SCAN_DEBUG] RequestMoney function called - preparing API request', false, {
+                transactionID: transaction.transactionID,
+                receiptState: receipt?.state,
+                hasReceipt: !!receipt,
+                receiptSource: receipt?.source,
+                receiptFilename: receipt?.name,
+                iouReportID: iouReport.reportID,
+                chatReportID: chatReport.reportID,
+                hasOnyxData: !!onyxData,
+                optimisticDataCount: onyxData?.optimisticData?.length ?? 0,
+                successDataCount: onyxData?.successData?.length ?? 0,
+                failureDataCount: onyxData?.failureData?.length ?? 0,
+            });
+            
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
         }
@@ -6856,16 +6900,45 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 customUnitRateID,
                 description: parsedComment,
             };
+            Log.info('[SCAN_DEBUG] trackExpense - Preparing API request with receipt state', false, {
+                transactionID: transaction?.transactionID,
+                receiptState: trackedReceipt?.state,
+                hasReceipt: !!trackedReceipt,
+                receiptSource: trackedReceipt?.source,
+                receiptFilename: trackedReceipt?.name,
+            });
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
+
+            // Log to investigate draft transaction cleanup
+            const draftTransactionExists = !!allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`];
+            const transactionExists = !!allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
+            const willRemoveDraftInSuccessData = onyxData?.successData?.some(
+                (update) => update.key?.includes(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT) && update.value === null
+            );
+            Log.info('[IOU] trackExpense - calling API.write', false, {
+                transactionID: transaction?.transactionID,
+                draftTransactionExists,
+                transactionExists,
+                willRemoveDraftInSuccessData,
+                hasSuccessData: !!onyxData?.successData,
+                successDataKeys: onyxData?.successData?.map((update) => update.key).filter(Boolean),
+            });
+
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }
 
     if (shouldHandleNavigation) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeDraftTransactions());
+        InteractionManager.runAfterInteractions(() => {
+            Log.info('[IOU] trackExpense - calling removeDraftTransactions', false, {
+                transactionID: transaction?.transactionID,
+            });
+
+            removeDraftTransactions(false, allTransactionDrafts);
+        });
 
         if (!params.isRetry) {
             dismissModalAndOpenReportInInboxTab(activeReportID);
@@ -8647,6 +8720,24 @@ function updateMoneyRequestAmountAndCurrency({
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
     const {params, onyxData} = data;
+
+    // Log before making the API call
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transactionDraft = allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    Log.info('[API_DEBUG] updateMoneyRequestAmountAndCurrency - Making API call', false, {
+        command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY,
+        transactionID,
+        amount,
+        currency,
+        hasTransaction: !!transaction,
+        hasTransactionDraft: !!transactionDraft,
+        transactionPendingAction: transaction?.pendingAction,
+        draftPendingAction: transactionDraft?.pendingAction,
+        transactionExists: !!transaction,
+        draftExists: !!transactionDraft,
+    });
+
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 

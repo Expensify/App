@@ -1110,7 +1110,22 @@ function isScanning(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): boolean {
-    return [CONST.IOU.RECEIPT_STATE.SCAN_READY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
+    const receiptIsScanning = [CONST.IOU.RECEIPT_STATE.SCAN_READY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
+    
+    // Log when checking receipt scanning state (useful for debugging backgrounding issues)
+    if (transaction?.transactionID) {
+        Log.info('[SCAN_DEBUG] isReceiptBeingScanned - Checking receipt state', false, {
+            transactionID: transaction.transactionID,
+            receiptState: transaction?.receipt?.state,
+            receiptIsScanning,
+            isScanReady: transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_READY,
+            isScanningState: transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANNING,
+            isScanComplete: transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
+            isScanFailed: transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+        });
+    }
+    
+    return receiptIsScanning;
 }
 
 function didReceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {

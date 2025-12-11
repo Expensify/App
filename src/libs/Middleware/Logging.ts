@@ -1,4 +1,4 @@
-import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
@@ -78,13 +78,67 @@ function logRequestDetails(message: string, request: Request, response?: Respons
 
 const Logging: Middleware = (response, request) => {
     const startTime = Date.now();
+    
+    // Log TRACK_EXPENSE and REQUEST_MONEY specifically
+    if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+        const transactionID: string | undefined = (request.data as any)?.transactionID;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+        const receiptState: string | undefined = (request.data as any)?.receiptState;
+        Log.info(`[API_DEBUG] Logging middleware - ${request.command} request starting`, false, {
+            command: request.command,
+            transactionID,
+            receiptState,
+            requestID: request.requestID,
+        });
+    }
+    
     logRequestDetails('[Network] Making API request', request);
     return response
         .then((data) => {
+            // Log TRACK_EXPENSE and REQUEST_MONEY response
+            if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                const transactionID: string | undefined = (request.data as any)?.transactionID;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                const receiptState: string | undefined = (request.data as any)?.receiptState;
+                Log.info(`[API_DEBUG] Logging middleware - ${request.command} request completed`, false, {
+                    command: request.command,
+                    transactionID,
+                    receiptState,
+                    requestID: request.requestID,
+                    responseRequestID: data?.requestID,
+                    jsonCode: data?.jsonCode,
+                    duration: Date.now() - startTime,
+                    hasOnyxData: !!data?.onyxData,
+                    onyxDataCount: data?.onyxData?.length ?? 0,
+                });
+            }
+
             logRequestDetails(`[Network] Finished API request in ${Date.now() - startTime}ms`, request, data);
             return data;
         })
         .catch((error: HttpsError) => {
+            // Log TRACK_EXPENSE and REQUEST_MONEY errors
+            if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                const transactionID: string | undefined = (request.data as any)?.transactionID;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                const receiptState: string | undefined = (request.data as any)?.receiptState;
+                Log.warn(`[API_DEBUG] Logging middleware - ${request.command} request failed`, {
+                    command: request.command,
+                    transactionID,
+                    receiptState,
+                    requestID: request.requestID,
+                    errorName: error.name,
+                    errorMessage: error.message,
+                    errorStatus: error.status,
+                    errorTitle: error.title,
+                    duration: Date.now() - startTime,
+                    isCancelled: error.name === CONST.ERROR.REQUEST_CANCELLED,
+                });
+            }
+
             const logParams: Record<string, unknown> = {
                 message: error.message,
                 status: error.status,

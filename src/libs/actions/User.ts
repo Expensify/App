@@ -941,6 +941,32 @@ function subscribeToUserEvents() {
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: OnyxServerUpdate[]) => {
         debouncedPlaySoundForMessageType(pushJSON);
 
+        // Log receipt state updates from Pusher
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+        const receiptStateUpdates = pushJSON?.filter((update: any) => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            if (update.key?.includes('transactions_')) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                const receiptState = update.value?.receipt?.state;
+                return receiptState !== undefined;
+            }
+            return false;
+        }) ?? [];
+        
+        Log.info('[SCAN_DEBUG] Pusher - Received ONYX_API_UPDATE event', false, {
+            updateCount: pushJSON?.length ?? 0,
+            receiptStateUpdatesCount: receiptStateUpdates.length,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+            receiptStateUpdates: receiptStateUpdates.map((update: any) => ({
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+                transactionID: update.key?.replace('transactions_', ''),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                receiptState: update.value?.receipt?.state,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                onyxMethod: update.onyxMethod,
+            })),
+        });
+
         return SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) or this is not the
             // main client we don't want to update Onyx with data from Pusher
@@ -952,9 +978,21 @@ function subscribeToUserEvents() {
                 return;
             }
 
-            const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON);
-            });
+            const onyxUpdatePromise = Onyx.update(pushJSON)
+                .then(() => {
+                    // Log after Pusher updates are applied
+                    Log.info('[SCAN_DEBUG] Pusher - ONYX_API_UPDATE updates applied', false, {
+                        receiptStateUpdatesCount: receiptStateUpdates.length,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+                        receiptStateUpdates: receiptStateUpdates.map((update: any) => ({
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+                            transactionID: update.key?.replace('transactions_', ''),
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                            receiptState: update.value?.receipt?.state,
+                        })),
+                    });
+                    triggerNotifications(pushJSON);
+                });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
             // the onyx updates in order
