@@ -157,7 +157,6 @@ function resetUSDBankAccount(
         WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP,
         {
             bankAccountID,
-            ownerEmail: session.email,
             policyID,
         },
         onyxData,
