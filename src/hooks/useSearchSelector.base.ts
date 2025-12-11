@@ -193,9 +193,10 @@ function useSearchSelectorBase({
                     maxResults,
                     includeUserToInvite,
                     countryCode,
+                    policyTags: undefined,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, undefined, {
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -207,7 +208,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, undefined, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
@@ -221,6 +222,7 @@ function useSearchSelectorBase({
                     optionsWithContacts,
                     draftComments,
                     nvpDismissedProductTraining,
+                    undefined,
                     {
                         betas,
                         includeMultipleParticipantReports: true,
@@ -237,7 +239,7 @@ function useSearchSelectorBase({
                     countryCode,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
-                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, undefined, {
                     betas,
                     selectedOptions,
                     includeMultipleParticipantReports: true,
@@ -255,7 +257,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, CONST.POLICY.DEFAULT_TAG_LIST, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     includeP2P: true,

@@ -76,6 +76,7 @@ function ShareTab({ref}: ShareTabProps) {
             maxResults: 20,
             includeUserToInvite: true,
             countryCode,
+            policyTags: undefined,
         });
     }, [areOptionsInitialized, betas, draftComments, nvpDismissedProductTraining, options, textInputValue, countryCode]);
 
