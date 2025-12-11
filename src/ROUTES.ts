@@ -1260,8 +1260,7 @@ const ROUTES = {
     },
     ODOMETER_IMAGE: {
         route: 'odometer-image/:transactionID/:readingType',
-        getRoute: (transactionID: string, readingType: 'start' | 'end', backTo?: string) =>
-            getUrlWithBackToParam(`odometer-image/${transactionID}/${readingType}`, backTo),
+        getRoute: (transactionID: string, readingType: 'start' | 'end', backTo?: string) => getUrlWithBackToParam(`odometer-image/${transactionID}/${readingType}`, backTo),
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
@@ -2695,7 +2694,14 @@ const ROUTES = {
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, isFromReviewDuplicates = false, mergeTransactionID?: string, imageType?: 'start' | 'end') => {
+        getRoute: (
+            reportID: string | undefined,
+            transactionID: string | undefined,
+            readonly = false,
+            isFromReviewDuplicates = false,
+            mergeTransactionID?: string,
+            imageType?: 'start' | 'end',
+        ) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the TRANSACTION_RECEIPT route');
             }

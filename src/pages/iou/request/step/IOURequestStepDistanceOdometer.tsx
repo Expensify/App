@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import Text from '@components/Text';
+import FormHelpMessage from '@components/FormHelpMessage';
+import {Gallery} from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import FormHelpMessage from '@components/FormHelpMessage';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import {Gallery} from '@components/Icon/Expensicons';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -21,21 +21,16 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setMoneyRequestDistance, setMoneyRequestOdometerImage, setMoneyRequestOdometerReading, setMoneyRequestParticipantsFromReport} from '@libs/actions/IOU';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getRateID} from '@libs/TransactionUtils';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {isArchivedReport} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import variables from '@styles/variables';
-import {
-    setMoneyRequestOdometerReading,
-    setMoneyRequestOdometerImage,
-    setMoneyRequestDistance,
-    setMoneyRequestParticipantsFromReport,
-} from '@libs/actions/IOU';
 import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isArchivedReport} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getRateID} from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -120,18 +115,14 @@ function IOURequestStepDistanceOdometer({
     useEffect(() => {
         const currentStart = transaction?.comment?.odometerStart;
         const currentEnd = transaction?.comment?.odometerEnd;
-        
+
         // Check if transaction was cleared (had values before, now null/undefined)
         // This happens when switching tabs, not during normal typing
-        const wasCleared = 
-            (prevTransactionStartRef.current !== null && prevTransactionStartRef.current !== undefined && 
-             (currentStart === null || currentStart === undefined)) ||
-            (prevTransactionEndRef.current !== null && prevTransactionEndRef.current !== undefined && 
-             (currentEnd === null || currentEnd === undefined));
-        
-        const hasTransactionData = 
-            (currentStart !== null && currentStart !== undefined) ||
-            (currentEnd !== null && currentEnd !== undefined);
+        const wasCleared =
+            (prevTransactionStartRef.current !== null && prevTransactionStartRef.current !== undefined && (currentStart === null || currentStart === undefined)) ||
+            (prevTransactionEndRef.current !== null && prevTransactionEndRef.current !== undefined && (currentEnd === null || currentEnd === undefined));
+
+        const hasTransactionData = (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined);
 
         // Only reset if transaction was cleared (not just null initially) and we have local state
         // We check local state via refs to avoid including them in dependencies
@@ -149,7 +140,7 @@ function IOURequestStepDistanceOdometer({
             // Force TextInput remount to reset label position
             setInputKey((prev) => prev + 1);
         }
-        
+
         // Update refs to track previous values
         prevTransactionStartRef.current = currentStart;
         prevTransactionEndRef.current = currentEnd;
@@ -504,9 +495,8 @@ function IOURequestStepDistanceOdometer({
                         return false;
                     }
                     const hasReadingChanges = startReading !== initialStartReadingRef.current || endReading !== initialEndReadingRef.current;
-                    const hasImageChanges = 
-                        transaction?.comment?.odometerStartImage !== initialStartImageRef.current ||
-                        transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
+                    const hasImageChanges =
+                        transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
                     return hasReadingChanges || hasImageChanges;
                 }}
             />

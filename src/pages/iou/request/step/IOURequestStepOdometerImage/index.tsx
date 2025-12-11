@@ -13,19 +13,23 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import {setMoneyRequestOdometerImage} from '@userActions/IOU';
-import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
 
-function IOURequestStepOdometerImage({route: {params: {transactionID, readingType, backTo}}}: IOURequestStepOdometerImageProps) {
+function IOURequestStepOdometerImage({
+    route: {
+        params: {transactionID, readingType, backTo},
+    },
+}: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -72,9 +76,7 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
     );
 
     const desktopUploadView = () => (
-        <View
-            style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}
-        >
+        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
             <Icon
                 src={lazyIllustrations.ReceiptUpload}
                 width={CONST.RECEIPT.ICON_WIDTH}
@@ -82,9 +84,7 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
                 additionalStyles={[styles.mb5]}
             />
             <Text style={[styles.textFileUpload, styles.mb2]}>{translate('receipt.upload')}</Text>
-            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.lineHeightLarge]}>
-                {message}
-            </Text>
+            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.lineHeightLarge]}>{message}</Text>
 
             <AttachmentPicker>
                 {({openPicker}) => (
@@ -135,20 +135,14 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
                         </View>
                     ) : (
                         <>
-                            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                {!(isDraggingOver ?? isDraggingOverWrapper) && desktopUploadView()}
-                            </View>
+                            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>{!(isDraggingOver ?? isDraggingOverWrapper) && desktopUploadView()}</View>
                             <DragAndDropConsumer onDrop={handleDrop}>
                                 <DropZoneUI
                                     icon={lazyIcons.ReceiptScan}
                                     dropStyles={styles.receiptDropOverlay(true)}
                                     dropTitle={translate('receipt.upload')}
                                     dropTextStyles={styles.receiptDropText}
-                                    dashedBorderStyles={[
-                                        styles.dropzoneArea,
-                                        styles.easeInOpacityTransition,
-                                        styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true),
-                                    ]}
+                                    dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                                 />
                             </DragAndDropConsumer>
                         </>
@@ -167,4 +161,3 @@ const IOURequestStepOdometerImageWithFullTransactionOrNotFound = withFullTransac
 );
 
 export default IOURequestStepOdometerImageWithFullTransactionOrNotFound;
-

@@ -27,12 +27,12 @@ import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import {setMoneyRequestOdometerImage} from '@userActions/IOU';
-import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -53,7 +53,11 @@ type IOURequestStepOdometerImageProps = {
     transaction: OnyxEntry<Transaction>;
 };
 
-function IOURequestStepOdometerImage({route: {params: {transactionID, readingType, backTo}}}: IOURequestStepOdometerImageProps) {
+function IOURequestStepOdometerImage({
+    route: {
+        params: {transactionID, readingType, backTo},
+    },
+}: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -98,28 +102,21 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
 
     const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
         opacity: focusIndicatorOpacity.get(),
-        transform: [
-            {translateX: focusIndicatorPosition.get().x},
-            {translateY: focusIndicatorPosition.get().y},
-            {scale: focusIndicatorScale.get()},
-        ],
+        transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
     }));
 
-    const focusCamera = useCallback(
-        (point: Point) => {
-            if (!camera.current) {
+    const focusCamera = useCallback((point: Point) => {
+        if (!camera.current) {
+            return;
+        }
+
+        camera.current.focus(point).catch((error: Record<string, unknown>) => {
+            if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
                 return;
             }
-
-            camera.current.focus(point).catch((error: Record<string, unknown>) => {
-                if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
-                    return;
-                }
-                Log.warn('Error focusing camera', error);
-            });
-        },
-        [],
-    );
+            Log.warn('Error focusing camera', error);
+        });
+    }, []);
 
     const tapGesture = Gesture.Tap()
         .enabled(device?.supportsFocus ?? false)
@@ -178,7 +175,7 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
     const handleImageSelected = useCallback(
         (file: FileObject, source: string) => {
             // On native, we need to save the URI string, not the File object
-            const imageUri = typeof file === 'string' ? file : (file as {uri?: string}).uri ?? source;
+            const imageUri = typeof file === 'string' ? file : ((file as {uri?: string}).uri ?? source);
             setMoneyRequestOdometerImage(transactionID, readingType, imageUri, isTransactionDraft);
             navigateBack();
         },
@@ -243,13 +240,11 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
                     })
                     .then((photo: PhotoFile) => {
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
-                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation).then(
-                            ({source}) => {
-                                // Store odometer image - on native, save the URI string (source), not the File object
-                                setMoneyRequestOdometerImage(transactionID, readingType, source, isTransactionDraft);
-                                navigateBack();
-                            },
-                        );
+                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation).then(({source}) => {
+                            // Store odometer image - on native, save the URI string (source), not the File object
+                            setMoneyRequestOdometerImage(transactionID, readingType, source, isTransactionDraft);
+                            navigateBack();
+                        });
                     })
                     .catch((error: unknown) => {
                         setDidCapturePhoto(false);
@@ -412,4 +407,3 @@ IOURequestStepOdometerImage.displayName = 'IOURequestStepOdometerImage';
 const IOURequestStepOdometerImageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepOdometerImage);
 
 export default IOURequestStepOdometerImageWithFullTransactionOrNotFound;
-

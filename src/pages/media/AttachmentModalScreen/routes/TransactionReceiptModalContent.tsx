@@ -25,7 +25,16 @@ import type SCREENS from '@src/SCREENS';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
-    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, isFromReviewDuplicates: isFromReviewDuplicatesParam, mergeTransactionID, imageType} = route.params;
+    const {
+        reportID,
+        transactionID,
+        action,
+        iouType: iouTypeParam,
+        readonly: readonlyParam,
+        isFromReviewDuplicates: isFromReviewDuplicatesParam,
+        mergeTransactionID,
+        imageType,
+    } = route.params;
 
     const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const {translate} = useLocalize();
@@ -67,14 +76,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
     const readonly = readonlyParam === 'true';
     const isFromReviewDuplicates = isFromReviewDuplicatesParam === 'true';
-    
+
     // Handle odometer images when imageType is provided
     const isOdometerImage = !!imageType;
     let odometerImage: File | string | undefined;
     if (isOdometerImage) {
         odometerImage = imageType === 'start' ? transaction?.comment?.odometerStartImage : transaction?.comment?.odometerEndImage;
     }
-    
+
     // Get image source - use odometer image if imageType is provided, otherwise use receipt
     const getImageSource = () => {
         if (isOdometerImage && odometerImage) {
@@ -89,7 +98,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         }
         return isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
     };
-    
+
     const source = getImageSource();
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
@@ -200,7 +209,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
             const menuItems = [];
-            
+
             // Replace action - navigate to ODOMETER_IMAGE route for odometer images, otherwise to scan page
             if (shouldShowReplaceReceiptButton || (isOdometerImage && isDraftTransaction)) {
                 menuItems.push({
@@ -222,7 +231,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     },
                 });
             }
-            
+
             // Download action - available for odometer images and regular receipts
             if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID || isOdometerImage) {
                 menuItems.push({

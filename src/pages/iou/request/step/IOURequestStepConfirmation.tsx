@@ -21,6 +21,7 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOdometerImageMerging from '@hooks/useOdometerImageMerging';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
@@ -71,7 +72,6 @@ import {
     isOdometerDistanceRequest,
     isScanRequest,
 } from '@libs/TransactionUtils';
-import useOdometerImageMerging from '@hooks/useOdometerImageMerging';
 import type {GpsPoint} from '@userActions/IOU';
 import {
     createDistanceRequest as createDistanceRequestIOUActions,
@@ -254,27 +254,22 @@ function IOURequestStepConfirmation({
     const receiptFilename = transaction?.receipt?.filename;
     const receiptPath = transaction?.receipt?.source;
     const isEditingReceipt = hasReceipt(transaction);
-    
+
     // Odometer image merging
     const isOdometerRequest = transaction ? isOdometerDistanceRequest(transaction) : false;
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
     const {mergeOdometerImages, isMerging, mergeViewShotComponent} = useOdometerImageMerging();
-    
+
     // Merge odometer images when both exist and no receipt has been created yet
     useEffect(() => {
         // Don't proceed if transaction is not loaded yet
         if (!transaction) {
             return;
         }
-        
-        const shouldMerge = 
-            isOdometerRequest &&
-            odometerStartImage &&
-            odometerEndImage &&
-            !transaction?.receipt?.source &&
-            !isMerging;
-            
+
+        const shouldMerge = isOdometerRequest && odometerStartImage && odometerEndImage && !transaction?.receipt?.source && !isMerging;
+
         if (shouldMerge) {
             Log.info('[IOURequestStepConfirmation] Starting odometer image merge', {
                 transactionID: currentTransactionID,

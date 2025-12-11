@@ -30,8 +30,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import IOURequestStepDistanceManual from './step/IOURequestStepDistanceManual';
 import IOURequestStepDistanceMap from './step/IOURequestStepDistanceMap';
-import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 import IOURequestStepDistanceOdometer from './step/IOURequestStepDistanceOdometer';
+import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
 type DistanceRequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
     defaultSelectedTab: SelectedTabRequest;

@@ -21,18 +21,7 @@ type ImageMergeViewShotProps = {
  * and uses ViewShot to capture the merged result.
  * This is the native implementation that uses react-native-view-shot.
  */
-function ImageMergeViewShot({
-    startImageUri,
-    endImageUri,
-    isHorizontal,
-    scaledWidth1,
-    scaledWidth2,
-    scaledHeight,
-    totalWidth,
-    totalHeight,
-    onCapture,
-    onError,
-}: ImageMergeViewShotProps) {
+function ImageMergeViewShot({startImageUri, endImageUri, isHorizontal, scaledWidth1, scaledWidth2, scaledHeight, totalWidth, totalHeight, onCapture, onError}: ImageMergeViewShotProps) {
     const styles = StyleSheet.create({
         container: {
             position: 'absolute',

@@ -18,4 +18,3 @@ type MoneyRequestOdometerForm = Form<
 
 export type {MoneyRequestOdometerForm};
 export default INPUT_IDS;
-

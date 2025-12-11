@@ -1,9 +1,9 @@
-import React, {useCallback, useState, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {Platform, Image as RNImage} from 'react-native';
-import mergeImages from '@libs/mergeImages';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
-import type {FileObject} from '@src/types/utils/Attachment';
 import Log from '@libs/Log';
+import mergeImages from '@libs/mergeImages';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type MergeConfig = {
     startImageUri: string;
@@ -80,18 +80,18 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
 
             try {
                 let mergedImage: File | FileObject;
-                
+
                 if (Platform.OS === 'web') {
                     // On web, convert to File objects and merge
                     const startFile = await convertToFile(startImage);
                     const endFile = await convertToFile(endImage);
-                    
+
                     mergedImage = await mergeImages(startFile, endFile);
                 } else {
                     // On native, use ViewShot approach
                     let startUri: string;
                     let endUri: string;
-                    
+
                     if (typeof startImage === 'string') {
                         startUri = startImage;
                     } else if (startImage && typeof startImage === 'object' && 'uri' in startImage && startImage.uri) {
@@ -99,7 +99,7 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
                     } else {
                         throw new Error('Invalid start image source for native');
                     }
-                    
+
                     if (typeof endImage === 'string') {
                         endUri = endImage;
                     } else if (endImage && typeof endImage === 'object' && 'uri' in endImage && endImage.uri) {
@@ -107,7 +107,7 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
                     } else {
                         throw new Error('Invalid end image source for native');
                     }
-                    
+
                     // Get image dimensions and prepare merge config
                     const getImageSize = (uri: string): Promise<{width: number; height: number}> => {
                         return new Promise((resolveSize, rejectSize) => {
@@ -122,20 +122,20 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
                             );
                         });
                     };
-                    
+
                     const [size1, size2] = await Promise.all([getImageSize(startUri), getImageSize(endUri)]);
                     const {width: width1, height: height1} = size1;
                     const {width: width2, height: height2} = size2;
-                    
+
                     // Determine merge direction
                     const isHorizontal = width1 <= height1 && width2 <= height2;
-                    
+
                     let scaledWidth1: number;
                     let scaledWidth2: number;
                     let scaledHeight: number;
                     let totalWidth: number;
                     let totalHeight: number;
-                    
+
                     if (isHorizontal) {
                         // Scale all images to the maximum height, maintaining aspect ratio
                         const maxHeight = Math.max(height1, height2);
@@ -159,7 +159,7 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
                         totalWidth = maxWidth;
                         totalHeight = scaledHeight1 + scaledHeight2;
                     }
-                    
+
                     // Resize both images first
                     const {ImageManipulator, SaveFormat} = await import('expo-image-manipulator');
                     const scaledHeight2 = isHorizontal ? scaledHeight : totalHeight - scaledHeight;
@@ -173,7 +173,7 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
                             .renderAsync()
                             .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.PNG})),
                     ]);
-                    
+
                     // Set merge config to trigger ViewShot rendering
                     setMergeConfig({
                         startImageUri: resized1.uri,
@@ -188,7 +188,7 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
                         action,
                         iouType,
                     });
-                    
+
                     // Wait for ViewShot to capture (handled in mergeViewShotComponent)
                     return;
                 }
@@ -202,7 +202,7 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
                 let source = '';
                 let filename = 'odometer-merged.png';
                 let type = 'image/png';
-                
+
                 if (typeof mergedImage === 'string') {
                     source = mergedImage;
                 } else if ('uri' in mergedImage && mergedImage.uri) {
@@ -222,14 +222,16 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
                     filename = mergedImage.name ?? filename;
                     type = mergedImage.type ?? type;
                 }
-                
+
                 if (!source) {
                     throw new Error('Failed to get merged image source');
                 }
 
                 // Store merged image in transaction.receipt
                 // Use require() to avoid circular dependency
-                const {setMoneyRequestReceipt} = require('@libs/actions/IOU') as {setMoneyRequestReceipt: (transactionID: string, source: string, filename: string, isDraft: boolean, type: string) => void};
+                const {setMoneyRequestReceipt} = require('@libs/actions/IOU') as {
+                    setMoneyRequestReceipt: (transactionID: string, source: string, filename: string, isDraft: boolean, type: string) => void;
+                };
                 setMoneyRequestReceipt(transactionID, source, filename, isDraft, type);
 
                 // Clear original odometer images from transaction.comment after successful merge
@@ -256,61 +258,62 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
             if (!mergeConfig) {
                 return;
             }
-            
+
             const {transactionID, action, iouType} = mergeConfig;
             const isDraft = shouldUseTransactionDraft(action, iouType);
-            
+
             // Use require() to avoid circular dependency
             const {setMoneyRequestReceipt, detachOdometerStartImage, detachOdometerEndImage} = require('@libs/actions/IOU') as {
                 setMoneyRequestReceipt: (transactionID: string, source: string, filename: string, isDraft: boolean, type: string) => void;
                 detachOdometerStartImage: (transactionID: string, isDraft: boolean) => void;
                 detachOdometerEndImage: (transactionID: string, isDraft: boolean) => void;
             };
-            
+
             // Store merged image in transaction.receipt
             setMoneyRequestReceipt(transactionID, fileObject.uri, fileObject.name, isDraft, fileObject.type);
-            
+
             // Clear original odometer images
             detachOdometerStartImage(transactionID, isDraft);
             detachOdometerEndImage(transactionID, isDraft);
-            
+
             // Reset state
             setMergeConfig(null);
             setIsMerging(false);
         },
         [mergeConfig],
     );
-    
-    const handleMergeError = useCallback(
-        (error: Error) => {
-            Log.warn('[useOdometerImageMerging] Error merging images:', error.message);
-            setMergeError(error);
-            setMergeConfig(null);
-            setIsMerging(false);
-        },
-        [],
-    );
-    
+
+    const handleMergeError = useCallback((error: Error) => {
+        Log.warn('[useOdometerImageMerging] Error merging images:', error.message);
+        setMergeError(error);
+        setMergeConfig(null);
+        setIsMerging(false);
+    }, []);
+
     // Create ViewShot component when mergeConfig is set
     const mergeViewShotComponent = useMemo(() => {
         if (!mergeConfig || Platform.OS === 'web') {
             return null;
         }
-        
+
         // Lazy import ImageMergeViewShot to avoid importing react-native-view-shot on web
-        const ImageMergeViewShot = (require('@libs/mergeImages/ImageMergeViewShot') as {default: React.ComponentType<{
-            startImageUri: string;
-            endImageUri: string;
-            isHorizontal: boolean;
-            scaledWidth1: number;
-            scaledWidth2: number;
-            scaledHeight: number;
-            totalWidth: number;
-            totalHeight: number;
-            onCapture: (fileObject: FileObject) => void;
-            onError: (error: Error) => void;
-        }>}).default;
-        
+        const ImageMergeViewShot = (
+            require('@libs/mergeImages/ImageMergeViewShot') as {
+                default: React.ComponentType<{
+                    startImageUri: string;
+                    endImageUri: string;
+                    isHorizontal: boolean;
+                    scaledWidth1: number;
+                    scaledWidth2: number;
+                    scaledHeight: number;
+                    totalWidth: number;
+                    totalHeight: number;
+                    onCapture: (fileObject: FileObject) => void;
+                    onError: (error: Error) => void;
+                }>;
+            }
+        ).default;
+
         return React.createElement(ImageMergeViewShot, {
             startImageUri: mergeConfig.startImageUri,
             endImageUri: mergeConfig.endImageUri,
@@ -324,7 +327,7 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
             onError: handleMergeError,
         });
     }, [mergeConfig, handleMergeCapture, handleMergeError]);
-    
+
     return {
         mergeOdometerImages,
         isMerging,
@@ -334,4 +337,3 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
 }
 
 export default useOdometerImageMerging;
-

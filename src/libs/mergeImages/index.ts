@@ -153,4 +153,3 @@ function mergeImages(startImage: File, endImage: File): Promise<File> {
 }
 
 export default mergeImages;
-
