@@ -315,10 +315,6 @@ function IOURequestStepScan({
                     setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
                 },
                 () => {},
-                {
-                    maximumAge: CONST.GPS.MAX_AGE,
-                    timeout: CONST.GPS.TIMEOUT,
-                },
             );
         });
     }, [initialTransaction?.amount, iouType]);
@@ -523,10 +519,6 @@ function IOURequestStepScan({
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                                 createTransaction(files, participant);
                             },
-                            {
-                                maximumAge: CONST.GPS.MAX_AGE,
-                                timeout: CONST.GPS.TIMEOUT,
-                            },
                         );
                         return;
                     }
@@ -613,10 +605,10 @@ function IOURequestStepScan({
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicyCategories: policyCategories});
+            replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
             navigateBack();
         },
-        [initialTransactionID, navigateBack, policyCategories],
+        [initialTransactionID, navigateBack, policy, policyCategories],
     );
 
     const setReceiptFilesAndNavigate = (files: FileObject[]) => {
