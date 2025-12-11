@@ -14,6 +14,9 @@ type SelectedTransactionInfo = {
     /** If the transaction can be deleted */
     canDelete: boolean;
 
+    /** If the transaction can be rejected */
+    canReject: boolean;
+
     /** If the transaction can be put on hold */
     canHold: boolean;
 

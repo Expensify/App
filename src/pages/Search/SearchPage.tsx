@@ -73,6 +73,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {dismissRejectUseExplanation, initMoneyRequest, initSplitExpense, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -138,6 +139,7 @@ function SearchPage({route}: SearchPageProps) {
         'Send',
         'Trashcan',
         'ThumbsUp',
+        'ThumbsDown',
         'ArrowRight',
         'Stopwatch',
         'Exclamation',
@@ -505,6 +507,37 @@ function SearchPage({route}: SearchPageProps) {
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
                     });
+                },
+            });
+        }
+
+        // Check if all selected transactions can be rejected
+        const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => !hasTransactionBeenRejected(id));
+
+        const shouldShowRejectOption =
+            queryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
+            !isOffline &&
+            selectedTransactionsKeys.length > 0 &&
+            selectedTransactionsKeys.every((id) => selectedTransactions[id].canReject) &&
+            hasNoRejectedTransaction;
+
+        if (shouldShowRejectOption) {
+            options.push({
+                icon: expensifyIcons.ThumbsDown,
+                text: translate('search.bulkActions.reject'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    if (dismissedRejectUseExplanation) {
+                        Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+                    } else {
+                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                    }
                 },
             });
         }
@@ -993,7 +1026,8 @@ function SearchPage({route}: SearchPageProps) {
                 Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
             }
         } else {
-            // TODO: Add reject
+            dismissRejectUseExplanation();
+            Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
         }
         setRejectModalAction(null);
     }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
