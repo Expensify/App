@@ -208,7 +208,7 @@ function WorkspaceReportFieldsPage({
                         >
                             <OfflineWithFeedback
                                 pendingAction={reportTitlePendingFields.defaultValue}
-                                shouldForceOpacity={reportTitlePendingFields.defaultValue === 'update'}
+                                shouldForceOpacity={reportTitlePendingFields.defaultValue === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}
                                 errors={reportTitleErrors}
                                 errorRowStyles={[styles.mh0]}
                                 errorRowTextStyles={[styles.mv2]}
