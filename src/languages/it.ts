@@ -6436,8 +6436,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
             return `ha modificato l’indice della tariffa ${customUnitName} "${customUnitRateName}" a "${newValue}" ${oldValue ? `(precedentemente "${oldValue}")` : ''}`;
         },
-        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `ha modificato lo stato di abilitazione della tariffa ${customUnitName} "${customUnitRateName}" a "${newValue}" (precedentemente "${oldValue}")`;
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'abilitato' : 'disabilitato'} la tariffa ${customUnitName} "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `ha rimosso la tariffa "${rateName}" dell’unità personalizzata "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `aggiunto campo report ${fieldType} "${fieldName}"`,

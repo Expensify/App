@@ -6416,8 +6416,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
             return `zmienił indeks stawki ${customUnitName} "${customUnitRateName}" na "${newValue}" ${oldValue ? `(wcześniej "${oldValue}")` : ''}`;
         },
-        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `zmienił status aktywacji stawki ${customUnitName} "${customUnitRateName}" na "${newValue}" (wcześniej "${oldValue}")`;
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'włączony' : 'wyłączony'} stawka ${customUnitName} "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `usunął stawkę „${rateName}” dla „${customUnitName}”`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `dodano pole raportu ${fieldType} „${fieldName}”`,

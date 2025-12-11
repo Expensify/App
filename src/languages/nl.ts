@@ -6422,8 +6422,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
             return `heeft de index van het ${customUnitName}-tarief "${customUnitRateName}" gewijzigd naar "${newValue}" ${oldValue ? `(voorheen "${oldValue}")` : ''}`;
         },
-        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `heeft de in-/uitschakelstatus van het ${customUnitName}-tarief "${customUnitRateName}" gewijzigd naar "${newValue}" (voorheen "${oldValue}")`;
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'ingeschakeld' : 'uitgeschakeld'} ${customUnitName}-tarief "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `heeft het tarief "${rateName}" met de eenheid "${customUnitName}" verwijderd`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `rapportveld ${fieldType} "${fieldName}" toegevoegd`,

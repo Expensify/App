@@ -5946,8 +5946,8 @@ ${amount} para ${merchant} - ${date}`,
         updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}) => {
             return `cambió el índice de la tarifa de ${customUnitName} "${customUnitRateName}" a "${newValue}" ${oldValue ? `(previamente "${oldValue}")` : ''}`;
         },
-        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, oldValue, newValue}) => {
-            return `cambió el habilitado de la tarifa de ${customUnitName} "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`;
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}) => {
+            return `${newValue ? 'habilitado' : 'deshabilitado'} la tarifa de ${customUnitName} "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}) => `añadió el campo de informe ${fieldType} "${fieldName}"`,

@@ -6396,8 +6396,8 @@ ${reportName}
         updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
             return `${customUnitName} のレート "${customUnitRateName}" のインデックスを "${newValue}" に変更しました ${oldValue ? `(以前は "${oldValue}")` : ''}`;
         },
-        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `${customUnitName} のレート "${customUnitRateName}" の有効状態を "${newValue}" に変更しました (以前は "${oldValue}")`;
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? '有効化' : '無効化'} ${customUnitName} のレート "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `「${customUnitName}」のレート「${rateName}」を削除しました`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType} レポートフィールド「${fieldName}」を追加しました`,

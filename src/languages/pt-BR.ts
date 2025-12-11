@@ -6417,8 +6417,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
             return `alterou o índice da tarifa ${customUnitName} "${customUnitRateName}" para "${newValue}" ${oldValue ? `(anteriormente "${oldValue}")` : ''}`;
         },
-        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `alterou o status de habilitação da tarifa ${customUnitName} "${customUnitRateName}" para "${newValue}" (anteriormente "${oldValue}")`;
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'habilitado' : 'desabilitado'} tarifa ${customUnitName} "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removeu a taxa "${customUnitName}" "${rateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType} de relatório "${fieldName}" adicionado`,

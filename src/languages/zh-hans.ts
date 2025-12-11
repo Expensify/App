@@ -6297,8 +6297,8 @@ ${reportName}
         updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
             return `将 ${customUnitName} 费率 "${customUnitRateName}" 的索引更改为 "${newValue}" ${oldValue ? `(之前为 "${oldValue}")` : ''}`;
         },
-        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `将 ${customUnitName} 费率 "${customUnitRateName}" 的启用状态更改为 "${newValue}"（之前为 "${oldValue}"）`;
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? '已启用' : '已禁用'} ${customUnitName} 费率 "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `已移除“${customUnitName}”费率“${rateName}”`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `已添加 ${fieldType} 报告字段 “${fieldName}”`,
