@@ -751,7 +751,8 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
-    if (isDuplicateAction(report, reportTransactions)) {
+    // Disabled for now to fix deploy blockers. Will be re-enabled in https://github.com/Expensify/App/pull/77343
+    if (isDuplicateAction(report, reportTransactions) && false) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
     }
 
@@ -831,7 +832,8 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
     }
 
-    if (isDuplicateAction(parentReport, [reportTransaction])) {
+    // Disabled for now to fix deploy blockers. Will be re-enabled in https://github.com/Expensify/App/pull/77343
+    if (isDuplicateAction(parentReport, [reportTransaction]) && false) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
     }
 
