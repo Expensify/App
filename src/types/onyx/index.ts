@@ -2,6 +2,7 @@ import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
@@ -293,5 +294,6 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
+    AppReview,
     SamlMetadata,
 };
