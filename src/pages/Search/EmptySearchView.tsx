@@ -307,13 +307,9 @@ function EmptySearchViewContent({
         for (const menuItem of typeMenuItems) {
             if (menuItem.similarSearchHash === similarSearchHash && menuItem.emptyState) {
                 return {
-                    headerMediaType: menuItem.emptyState.headerMediaType,
-                    headerMedia: menuItem.emptyState.headerMedia,
+                    ...defaultViewItemHeader.fireworks,
                     title: translate(menuItem.emptyState.title),
                     subtitle: translate(menuItem.emptyState.subtitle),
-                    headerStyles: StyleUtils.getBackgroundColorStyle(theme.todoBG),
-                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.todoBG)],
-                    lottieWebViewStyles: styles.emptyStateFireworksWebStyles,
                     buttons: menuItem.emptyState.buttons?.map((button) => ({
                         ...button,
                         buttonText: translate(button.buttonText),
@@ -341,14 +337,14 @@ function EmptySearchViewContent({
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
                 if (hasResults && (!queryJSON || !isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
                     return {
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyResults.title'),
                         subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     };
                 }
                 if (!hasResults || !hasExpenseReports) {
                     return {
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyReportResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyReportResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyReportResults.subtitle'),
                         buttons: [
@@ -395,14 +391,14 @@ function EmptySearchViewContent({
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 if (hasResults && (!queryJSON || !isDefaultExpensesQuery(queryJSON) || hasTransactions)) {
                     return {
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyResults.title'),
                         subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     };
                 }
                 if (!hasResults || !hasTransactions) {
                     return {
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                         buttons: [
@@ -458,14 +454,14 @@ function EmptySearchViewContent({
                                 success: true,
                             },
                         ],
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                     };
                 }
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.CHAT:
             default:
                 return {
-                    ...defaultViewItemHeader,
+                    ...defaultViewItemHeader.folder,
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
                 };
@@ -476,9 +472,7 @@ function EmptySearchViewContent({
         similarSearchHash,
         translate,
         StyleUtils,
-        theme.todoBG,
         theme.travelBG,
-        styles.emptyStateFireworksWebStyles,
         styles.emptyStateFolderWebStyles,
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
@@ -486,7 +480,8 @@ function EmptySearchViewContent({
         tryNewDot?.hasBeenAddedToNudgeMigration,
         isUserPaidPolicyMember,
         hasResults,
-        defaultViewItemHeader,
+        defaultViewItemHeader.fireworks,
+        defaultViewItemHeader.folder,
         hasSeenTour,
         groupPoliciesWithChatEnabled.length,
         tripViewChildren,

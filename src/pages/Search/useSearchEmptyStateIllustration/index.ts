@@ -7,19 +7,36 @@ import CONST from '@src/CONST';
 import type UseSearchEmptyStateIllustration from './types';
 
 const useSearchEmptyStateIllustration: UseSearchEmptyStateIllustration = () => {
-    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Fireworks', 'FolderWithPapersAndWatch'] as const);
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
 
     return useMemo(
         () => ({
-            headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
-            headerMedia: illustrations.FolderWithPapersAndWatch,
-            headerStyles: StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG),
-            headerContentStyles: [styles.emptyStateFolderWebStyles, styles.emptyStateFolderStaticIllustration, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+            fireworks: {
+                headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
+                headerMedia: illustrations.Fireworks,
+                headerStyles: StyleUtils.getBackgroundColorStyle(theme.todoBG),
+                headerContentStyles: [styles.emptyStateFireworksStaticIllustration, StyleUtils.getBackgroundColorStyle(theme.todoBG)],
+            },
+            folder: {
+                headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
+                headerMedia: illustrations.FolderWithPapersAndWatch,
+                headerStyles: StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG),
+                headerContentStyles: [styles.emptyStateFolderWebStyles, styles.emptyStateFolderStaticIllustration, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+            },
         }),
-        [StyleUtils, illustrations.FolderWithPapersAndWatch, styles.emptyStateFolderWebStyles, styles.emptyStateFolderStaticIllustration, theme.emptyFolderBG],
+        [
+            illustrations.Fireworks,
+            illustrations.FolderWithPapersAndWatch,
+            StyleUtils,
+            theme.todoBG,
+            theme.emptyFolderBG,
+            styles.emptyStateFireworksStaticIllustration,
+            styles.emptyStateFolderWebStyles,
+            styles.emptyStateFolderStaticIllustration,
+        ],
     );
 };
 

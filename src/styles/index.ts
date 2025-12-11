@@ -5177,6 +5177,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...display.dFlex,
         },
 
+        emptyStateFireworksStaticIllustration: {
+            width: 164,
+            height: 148,
+        },
+
         tripEmptyStateLottieWebView: {
             width: 335,
             height: 220,

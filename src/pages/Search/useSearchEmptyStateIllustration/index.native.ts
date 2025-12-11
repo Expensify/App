@@ -13,12 +13,21 @@ const useSearchEmptyStateIllustration: UseSearchEmptyStateIllustration = () => {
 
     return useMemo(
         () => ({
-            headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
-            headerMedia: LottieAnimations.GenericEmptyState,
-            headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-            lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
+            fireworks: {
+                headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
+                headerMedia: LottieAnimations.Fireworks,
+                headerStyles: StyleUtils.getBackgroundColorStyle(theme.todoBG),
+                headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.todoBG)],
+                lottieWebViewStyles: styles.emptyStateFireworksWebStyles,
+            },
+            folder: {
+                headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
+                headerMedia: LottieAnimations.GenericEmptyState,
+                headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
+            },
         }),
-        [StyleUtils, styles.emptyStateFolderWebStyles, theme.emptyFolderBG],
+        [StyleUtils, styles.emptyStateFireworksWebStyles, styles.emptyStateFolderWebStyles, theme.emptyFolderBG, theme.todoBG],
     );
 };
 

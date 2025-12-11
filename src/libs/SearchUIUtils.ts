@@ -1,9 +1,7 @@
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {HeaderMedia, MediaTypes} from '@components/EmptyStateComponent/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import DotLottieAnimations from '@components/LottieAnimations';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
@@ -274,8 +272,6 @@ type SearchTypeMenuItem = {
     hash: number;
     similarSearchHash: number;
     emptyState?: {
-        headerMediaType: MediaTypes;
-        headerMedia: HeaderMedia;
         title: TranslationPaths;
         subtitle: TranslationPaths;
         buttons?: Array<{
@@ -2137,8 +2133,6 @@ function createTypeMenuSections(
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
                 emptyState: {
-                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
                     subtitle: 'search.searchResults.emptySubmitResults.subtitle',
                     buttons:
@@ -2167,8 +2161,6 @@ function createTypeMenuSections(
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE],
                 emptyState: {
-                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyApproveResults.title',
                     subtitle: 'search.searchResults.emptyApproveResults.subtitle',
                 },
@@ -2178,8 +2170,6 @@ function createTypeMenuSections(
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.PAY],
                 emptyState: {
-                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyPayResults.title',
                     subtitle: 'search.searchResults.emptyPayResults.subtitle',
                 },
@@ -2189,8 +2179,6 @@ function createTypeMenuSections(
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
                 emptyState: {
-                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyExportResults.title',
                     subtitle: 'search.searchResults.emptyExportResults.subtitle',
                 },
@@ -2213,8 +2201,6 @@ function createTypeMenuSections(
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.STATEMENTS],
                 emptyState: {
-                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyStatementsResults.title',
                     subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
                 },
@@ -2224,8 +2210,6 @@ function createTypeMenuSections(
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH],
                 emptyState: {
-                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
                     subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
                 },
@@ -2235,8 +2219,6 @@ function createTypeMenuSections(
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD],
                 emptyState: {
-                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
                     subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
                 },
@@ -2246,8 +2228,6 @@ function createTypeMenuSections(
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION],
                 emptyState: {
-                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyStatementsResults.title',
                     subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
                 },
