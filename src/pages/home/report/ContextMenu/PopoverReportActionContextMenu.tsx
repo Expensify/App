@@ -51,16 +51,16 @@ type PopoverReportActionContextMenuProps = {
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const reportIDRef = useRef<string | undefined>(undefined);
-    const typeRef = useRef<ContextMenuType | undefined>(undefined);
-    const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
-    const reportActionIDRef = useRef<string | undefined>(undefined);
-    const originalReportIDRef = useRef<string | undefined>(undefined);
-    const selectionRef = useRef('');
-    const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
-    const isReportArchived = useReportIsArchived(reportIDRef.current);
-    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
-    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
+    const [reportID, setReportID] = useState<string | undefined>(undefined);
+    const [type, setType] = useState<ContextMenuType | undefined>(undefined);
+    const [reportAction, setReportAction] = useState<NonNullable<OnyxEntry<ReportAction>> | null>(null);
+    const [reportActionID, setReportActionID] = useState<string | undefined>(undefined);
+    const [originalReportID, setOriginalReportID] = useState<string | undefined>(undefined);
+    const [selection, setSelection] = useState('');
+    const [reportActionDraftMessage, setReportActionDraftMessage] = useState<string | undefined>(undefined);
+    const isReportArchived = useReportIsArchived(reportID);
+    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportID, reportAction));
+    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportAction);
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -68,7 +68,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
 
     // The horizontal and vertical position (relative to the screen) where the popover will display.
-    const popoverAnchorPosition = useRef({
+    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({
         horizontal: 0,
         vertical: 0,
     });
@@ -92,7 +92,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
     const contextMenuAnchorRef = useRef<ContextMenuAnchor>(null);
     const contextMenuTargetNode = useRef<HTMLDivElement | null>(null);
-    const contextMenuDimensions = useRef<AnchorDimensions>({
+    const [contextMenuDimensions, setContextMenuDimensions] = useState<AnchorDimensions>({
         width: 0,
         height: 0,
     });
@@ -102,7 +102,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const onPopoverShow = useRef(() => {});
     const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
     const onPopoverHide = useRef(() => {});
-    const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>(undefined);
+    const [onEmojiPickerToggle, setOnEmojiPickerToggle] = useState<undefined | ((state: boolean) => void)>(undefined);
     const onCancelDeleteModal = useRef(() => {});
     const onConfirmDeleteModal = useRef(() => {});
 
@@ -133,10 +133,10 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 return;
             }
 
-            popoverAnchorPosition.current = {
+            setPopoverAnchorPosition({
                 horizontal: cursorRelativePosition.current.horizontal + x,
                 vertical: cursorRelativePosition.current.vertical + y,
-            };
+            });
         });
     }, [isPopoverVisible, getContextMenuMeasuredLocation]);
 
@@ -152,12 +152,11 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     }, [measureContextMenuAnchorPosition]);
 
     /** Whether Context Menu is active for the Report Action. */
-    const isActiveReportAction: ReportActionContextMenu['isActiveReportAction'] = (actionID) =>
-        !!actionID && (reportActionIDRef.current === actionID || reportActionRef.current?.reportActionID === actionID);
+    const isActiveReportAction: ReportActionContextMenu['isActiveReportAction'] = (actionID) => !!actionID && (reportActionID === actionID || reportAction?.reportActionID === actionID);
 
     const clearActiveReportAction = () => {
-        reportActionIDRef.current = undefined;
-        reportActionRef.current = null;
+        setReportActionID(undefined);
+        setReportAction(null);
     };
 
     /**
@@ -214,13 +213,13 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
         onPopoverShow.current = onShow;
         onPopoverHide.current = onHide;
-        onEmojiPickerToggle.current = setIsEmojiPickerActive;
+        setOnEmojiPickerToggle(setIsEmojiPickerActive);
 
         new Promise<void>((resolve) => {
             if (!!(!pageX && !pageY && contextMenuAnchorRef.current) || isOverflowMenu) {
                 calculateAnchorPosition(contextMenuAnchorRef.current).then((position) => {
-                    popoverAnchorPosition.current = {horizontal: position.horizontal, vertical: position.vertical};
-                    contextMenuDimensions.current = {width: position.vertical, height: position.height};
+                    setPopoverAnchorPosition({horizontal: position.horizontal, vertical: position.vertical});
+                    setContextMenuDimensions({width: position.vertical, height: position.height});
                     resolve();
                 });
             } else {
@@ -229,23 +228,23 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                         horizontal: pageX - x,
                         vertical: pageY - y,
                     };
-                    popoverAnchorPosition.current = {
+                    setPopoverAnchorPosition({
                         horizontal: pageX,
                         vertical: pageY,
-                    };
+                    });
                     resolve();
                 });
             }
         }).then(() => {
             setDisabledActions(disabledOptions);
-            typeRef.current = type;
-            reportIDRef.current = reportID;
-            reportActionIDRef.current = reportActionID;
+            setType(type);
+            setReportID(reportID);
+            setReportActionID(reportActionID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            originalReportIDRef.current = originalReportID || undefined;
-            selectionRef.current = selection;
+            setOriginalReportID(originalReportID || undefined);
+            setSelection(selection);
             setIsPopoverVisible(true);
-            reportActionDraftMessageRef.current = draftMessage;
+            setReportActionDraftMessage(draftMessage);
             setIsRoomArchived(isArchivedRoom);
             setIsChronosReportEnabled(isChronos);
             setIsChatPinned(isPinnedChat);
@@ -277,11 +276,11 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
     /** After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it */
     const runAndResetOnPopoverHide = () => {
-        reportIDRef.current = undefined;
-        reportActionIDRef.current = undefined;
-        originalReportIDRef.current = undefined;
+        setReportID(undefined);
+        setReportActionID(undefined);
+        setOriginalReportID(undefined);
         instanceIDRef.current = '';
-        selectionRef.current = '';
+        setSelection('');
 
         onPopoverHide.current = runAndResetCallback(onPopoverHide.current);
         onPopoverHideActionCallback.current = runAndResetCallback(onPopoverHideActionCallback.current);
@@ -298,8 +297,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             onPopoverHideActionCallback.current = callbacks.onHide;
         }
 
-        selectionRef.current = '';
-        reportActionDraftMessageRef.current = undefined;
+        setSelection('');
+        setReportActionDraftMessage(undefined);
         setIsPopoverVisible(false);
 
         actionSheetAwareScrollViewContext.transitionActionSheetState({
@@ -312,26 +311,26 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     };
 
     const transactionIDs: string[] = [];
-    if (isMoneyRequestAction(reportActionRef.current)) {
-        const originalMessage = getOriginalMessage(reportActionRef.current);
+    if (isMoneyRequestAction(reportAction)) {
+        const originalMessage = getOriginalMessage(reportAction);
         if (originalMessage && 'IOUTransactionID' in originalMessage && !!originalMessage.IOUTransactionID) {
             transactionIDs.push(originalMessage.IOUTransactionID);
         }
     }
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDRef.current}`, {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         canBeMissing: true,
     });
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const {currentSearchHash} = useSearchContext();
     const {deleteTransactions} = useDeleteTransactions({
         report,
-        reportActions: reportActionRef.current ? [reportActionRef.current] : [],
+        reportActions: reportAction ? [reportAction] : [],
         policy,
     });
 
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current)}`, {
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportID, reportAction)}`, {
         canBeMissing: true,
     });
     const ancestorsRef = useRef<typeof ancestors>([]);
@@ -344,15 +343,16 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     }, [originalReport, ancestors]);
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
-        const reportAction = reportActionRef.current;
-        if (isMoneyRequestAction(reportAction)) {
-            const originalMessage = getOriginalMessage(reportAction);
-            if (isTrackExpenseAction(reportAction)) {
+        const currentReportAction = reportAction;
+        if (isMoneyRequestAction(currentReportAction)) {
+            const originalMessage = getOriginalMessage(currentReportAction);
+            if (isTrackExpenseAction(currentReportAction)) {
+                const transactionID = originalMessage && 'IOUTransactionID' in originalMessage ? originalMessage.IOUTransactionID : undefined;
                 deleteTrackExpense({
-                    chatReportID: reportIDRef.current,
+                    chatReportID: reportID,
                     chatReport: report,
-                    transactionID: originalMessage?.IOUTransactionID,
-                    reportAction,
+                    transactionID,
+                    reportAction: currentReportAction,
                     iouReport,
                     chatIOUReport: chatReport,
                     transactions: duplicateTransactions,
@@ -361,19 +361,19 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isChatReportArchived: isReportArchived,
                     isChatIOUReportArchived,
                 });
-            } else if (originalMessage?.IOUTransactionID) {
+            } else if (originalMessage && 'IOUTransactionID' in originalMessage && originalMessage.IOUTransactionID) {
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
-        } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(reportAction.childReportID, email ?? '');
-        } else if (reportAction) {
+        } else if (isReportPreviewAction(currentReportAction)) {
+            deleteAppReport(currentReportAction.childReportID, email ?? '');
+        } else if (currentReportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived);
+                deleteReportComment(reportID, currentReportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived);
             });
         }
 
-        DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
+        DeviceEventEmitter.emit(`deletedReportAction_${reportID}`, currentReportAction?.reportActionID);
     }, [
         report,
         iouReport,
@@ -400,8 +400,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
         onCancelDeleteModal.current = onCancel;
         onConfirmDeleteModal.current = onConfirm;
-        reportIDRef.current = reportID;
-        reportActionRef.current = reportAction ?? null;
+        setReportID(reportID);
+        setReportAction(reportAction ?? null);
 
         const currentReportAction = reportAction ?? null;
         showConfirmModal({
@@ -446,23 +446,23 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             onClose={() => hideContextMenu()}
             onModalShow={runAndResetOnPopoverShow}
             onModalHide={runAndResetOnPopoverHide}
-            anchorPosition={popoverAnchorPosition.current}
+            anchorPosition={popoverAnchorPosition}
             animationIn="fadeIn"
             disableAnimation={false}
             shouldSetModalVisibility={false}
             fullscreen
             withoutOverlay={isWithoutOverlay}
-            anchorDimensions={contextMenuDimensions.current}
+            anchorDimensions={contextMenuDimensions}
             anchorRef={anchorRef}
             shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
         >
             <BaseReportActionContextMenu
                 isVisible={isPopoverVisible}
-                type={typeRef.current}
-                reportID={reportIDRef.current}
-                reportActionID={reportActionIDRef.current}
-                draftMessage={reportActionDraftMessageRef.current}
-                selection={selectionRef.current}
+                type={type}
+                reportID={reportID}
+                reportActionID={reportActionID}
+                draftMessage={reportActionDraftMessage}
+                selection={selection}
                 isArchivedRoom={isRoomArchived}
                 isChronosReport={isChronosReportEnabled}
                 isPinnedChat={isChatPinned}
@@ -470,9 +470,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 isThreadReportParentAction={isThreadReportParentAction}
                 anchor={contextMenuTargetNode}
                 contentRef={contentRef}
-                originalReportID={originalReportIDRef.current}
+                originalReportID={originalReportID}
                 disabledActions={disabledActions}
-                setIsEmojiPickerActive={onEmojiPickerToggle.current}
+                setIsEmojiPickerActive={onEmojiPickerToggle}
             />
         </PopoverWithMeasuredContent>
     );

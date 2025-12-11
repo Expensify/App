@@ -52,11 +52,11 @@ import {
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
-import {getReportName as getReportNameFromUtils} from '@libs/ReportNameUtils';
 import {
     generateReportID,
     getDisplayNameForParticipant,
     getIcons,
+    getReportName,
     getWorkspaceChats,
     hasEmptyReportsForPolicy,
     hasViolations as hasViolationsReportUtils,
