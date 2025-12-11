@@ -3476,7 +3476,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // This can happen when submit frequency is disabled and the user selects a different participant on the confirm page.
     // We verify that the chatReport participants match the expected participants. If it's a workspace chat or
     // the participants don't match, we'll find/create the correct 1:1 DM chat report.
-    if (chatReport && !isPolicyExpenseChat) {
+    // We also check if the chatReport itself is a Policy Expense Chat to avoid incorrectly validating Policy Expense Chats.
+    if (chatReport && !isPolicyExpenseChat && !isPolicyExpenseChatReportUtil(chatReport)) {
         const parentChatReportParticipants = Object.keys(chatReport.participants ?? {}).map(Number);
         const expectedParticipants = [payerAccountID, payeeAccountID].sort();
         const sortedParentChatReportParticipants = parentChatReportParticipants.sort();

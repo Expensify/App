@@ -2179,6 +2179,181 @@ describe('actions/IOU', () => {
 
             expect(newNonReimbursableTotal).toBe(-100);
         });
+
+        it('preserves Policy Expense Chat when participant.isPolicyExpenseChat is missing', () => {
+            const amount = 10000;
+            const comment = 'Test expense';
+            const merchant = 'Test Merchant';
+            let policyExpenseChat: OnyxEntry<Report>;
+            let createdIOUReport: OnyxEntry<Report>;
+
+            mockFetch?.pause?.();
+            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            return waitForBatchedUpdates()
+                .then(() => {
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+                                    policyExpenseChat = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    if (!policyExpenseChat) {
+                        throw new Error('Policy Expense Chat not found');
+                    }
+
+                    // Request money with Policy Expense Chat but without participant.isPolicyExpenseChat set
+                    requestMoney({
+                        report: policyExpenseChat,
+                        participantParams: {
+                            payeeEmail: RORY_EMAIL,
+                            payeeAccountID: RORY_ACCOUNT_ID,
+                            // Note: participant.isPolicyExpenseChat is NOT set (simulating the bug scenario)
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                        },
+                        transactionParams: {
+                            amount,
+                            attendees: [],
+                            currency: CONST.CURRENCY.USD,
+                            created: '',
+                            merchant,
+                            comment,
+                        },
+                        shouldGenerateTransactionThreadReport: true,
+                        isASAPSubmitBetaEnabled: false,
+                        currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                        currentUserEmailParam: CARLOS_EMAIL,
+                        transactionViolations: {},
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+                                    // The Policy Expense Chat should still exist and be preserved
+                                    const preservedPolicyExpenseChat = Object.values(allReports ?? {}).find(
+                                        (report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && report?.reportID === policyExpenseChat?.reportID,
+                                    );
+                                    expect(preservedPolicyExpenseChat).toBeDefined();
+                                    expect(preservedPolicyExpenseChat?.reportID).toBe(policyExpenseChat?.reportID);
+
+                                    // An IOU report should be created and linked to the Policy Expense Chat
+                                    createdIOUReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+                                    expect(createdIOUReport).toBeDefined();
+                                    expect(createdIOUReport?.chatReportID).toBe(policyExpenseChat?.reportID);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
+
+        it('replaces workspace chat with 1:1 DM when participants do not match', () => {
+            const amount = 10000;
+            const comment = 'Test expense';
+            const merchant = 'Test Merchant';
+            const workspaceChatReportID = 'workspace-chat-123';
+            const workspaceMemberAccountID = 999; // Different from RORY_ACCOUNT_ID
+
+            // Create a workspace chat with different participants
+            const workspaceChat: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+                reportID: workspaceChatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [workspaceMemberAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            let createdChatReport: OnyxEntry<Report>;
+            let createdIOUReport: OnyxEntry<Report>;
+
+            mockFetch?.pause?.();
+            return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat)
+                .then(() => waitForBatchedUpdates())
+                .then(() => {
+                    // Request money with workspace chat but selecting a different participant (1:1 DM)
+                    requestMoney({
+                        report: workspaceChat,
+                        participantParams: {
+                            payeeEmail: RORY_EMAIL,
+                            payeeAccountID: RORY_ACCOUNT_ID,
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                        },
+                        transactionParams: {
+                            amount,
+                            attendees: [],
+                            currency: CONST.CURRENCY.USD,
+                            created: '',
+                            merchant,
+                            comment,
+                        },
+                        shouldGenerateTransactionThreadReport: true,
+                        isASAPSubmitBetaEnabled: false,
+                        currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                        currentUserEmailParam: CARLOS_EMAIL,
+                        transactionViolations: {},
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+
+                                    // A new 1:1 DM chat should be created (not the workspace chat)
+                                    createdChatReport = Object.values(allReports ?? {}).find(
+                                        (report) =>
+                                            report?.type === CONST.REPORT.TYPE.CHAT &&
+                                            report?.reportID !== workspaceChatReportID &&
+                                            report?.participants?.[CARLOS_ACCOUNT_ID] &&
+                                            report?.participants?.[RORY_ACCOUNT_ID],
+                                    );
+                                    expect(createdChatReport).toBeDefined();
+                                    expect(createdChatReport?.reportID).not.toBe(workspaceChatReportID);
+                                    expect(createdChatReport?.participants).toEqual({
+                                        [CARLOS_ACCOUNT_ID]: expect.any(Object),
+                                        [RORY_ACCOUNT_ID]: expect.any(Object),
+                                    });
+
+                                    // The IOU report should be linked to the new 1:1 DM chat, not the workspace chat
+                                    createdIOUReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+                                    expect(createdIOUReport).toBeDefined();
+                                    expect(createdIOUReport?.chatReportID).toBe(createdChatReport?.reportID);
+                                    expect(createdIOUReport?.chatReportID).not.toBe(workspaceChatReportID);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
     });
 
     describe('createDistanceRequest', () => {
