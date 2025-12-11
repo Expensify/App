@@ -181,6 +181,7 @@ const mockReportItemWithHold = {
             action: 'view',
             allActions: ['view'],
             amount: -12300,
+            canDelete: true,
             category: '',
             comment: {
                 comment: '',
