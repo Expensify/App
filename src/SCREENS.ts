@@ -94,6 +94,10 @@ const SCREENS = {
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
+        CHANGE_APPROVER: {
+            ROOT: 'Search_Change_Approver_Root',
+            ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
+        },
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
@@ -110,6 +114,7 @@ const SCREENS = {
         ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Select_Country_Verify_Account',
         CLOSE: 'Settings_Close',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
+        REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: 'Settings_ReportCardLostOrDamaged_ConfirmMagicCode',
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
@@ -248,10 +253,7 @@ const SCREENS = {
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
         SEARCH_REPORT_ACTIONS: 'SearchReportActions',
-        // These two routes will be added in a separate PR adding Super Wide RHP routes
-        EXPENSE_REPORT: 'ExpenseReport',
         SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
-
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',
@@ -269,8 +271,10 @@ const SCREENS = {
         MERGE_TRANSACTION: 'MergeTransaction',
         REPORT_CARD_ACTIVATE: 'Report_Card_Activate',
         DOMAIN: 'Domain',
+        EXPENSE_REPORT: 'ExpenseReport',
     },
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
+    EXPENSE_REPORT_RHP: 'Expense_Report_RHP',
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
@@ -593,6 +597,7 @@ const SCREENS = {
         EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
         EXPENSIFY_CARD_LIMIT: 'Workspace_ExpensifyCard_Limit',
         EXPENSIFY_CARD_ISSUE_NEW: 'Workspace_ExpensifyCard_New',
+        EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: 'Workspace_ExpensifyCard_New_Confirm_Magic_Code',
         EXPENSIFY_CARD_NAME: 'Workspace_ExpensifyCard_Name',
         EXPENSIFY_CARD_SELECT_FEED: 'Workspace_ExpensifyCard_Select_Feed',
         EXPENSIFY_CARD_LIMIT_TYPE: 'Workspace_ExpensifyCard_LimitType',

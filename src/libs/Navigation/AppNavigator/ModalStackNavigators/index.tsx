@@ -1,18 +1,21 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
 import {
     animatedReceiptPaneRHPWidth,
     modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
-    secondOverlayProgress,
+    secondOverlayRHPOnSuperWideRHPProgress,
+    secondOverlayRHPOnWideRHPProgress,
+    secondOverlayWideRHPProgress,
     thirdOverlayProgress,
     WideRHPContext,
 } from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -23,6 +26,7 @@ import type {
     DebugParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
+    ExpenseReportNavigatorParamList,
     FlagCommentNavigatorParamList,
     MergeTransactionNavigatorParamList,
     MissingPersonalDetailsParamList,
@@ -44,6 +48,7 @@ import type {
     RoomMembersNavigatorParamList,
     ScheduleCallParamList,
     SearchAdvancedFiltersParamList,
+    SearchMoneyRequestReportParamList,
     SearchReportActionsParamList,
     SearchReportParamList,
     SearchSavedSearchParamList,
@@ -60,6 +65,7 @@ import type {
     WorkspaceDuplicateNavigatorParamList,
     WorkspacesDomainModalNavigatorParamList,
 } from '@navigation/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -107,6 +113,78 @@ function isWideRHPRouteName(routeName: string) {
     return routeName === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
 }
 
+function getModalStackLastRoute(modalStackRouteKey: string) {
+    const rootState = navigationRef.getRootState();
+    const lastRHPState = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
+    const modalStackRoute = lastRHPState?.routes?.find((innerRoute) => innerRoute.key === modalStackRouteKey);
+    return modalStackRoute?.state?.routes?.at(-1)?.key;
+}
+
+function SecondaryOverlay() {
+    const {shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForWideRHP, superWideRHPRouteKeys, wideRHPRouteKeys} =
+        useContext(WideRHPContext);
+    const modalStackRoute = useRoute();
+    const routeKey = getModalStackLastRoute(modalStackRoute?.key);
+
+    const isWide = !!routeKey && wideRHPRouteKeys.includes(routeKey);
+    const isSuperWide = !!routeKey && superWideRHPRouteKeys.includes(routeKey);
+
+    const isRHPDisplayedOnWideRHP = shouldRenderSecondaryOverlayForRHPOnWideRHP && isWide;
+
+    const isRHPDisplayedOnSuperWideRHP = shouldRenderSecondaryOverlayForRHPOnSuperWideRHP && isSuperWide;
+
+    const isWideRHPDisplayedOnSuperWideRHP = shouldRenderSecondaryOverlayForWideRHP && isSuperWide;
+
+    if (isRHPDisplayedOnWideRHP) {
+        return (
+            <Overlay
+                progress={secondOverlayRHPOnWideRHPProgress}
+                // If RHP is displayed on Wide RHP which is displayed above the Super Wide RHP, the secondary overlay's position left should be calculated from the left edge of the super wide RHP.
+                positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlayWideRHPPositionLeft : animatedReceiptPaneRHPWidth}
+            />
+        );
+    }
+
+    if (isWideRHPDisplayedOnSuperWideRHP) {
+        return (
+            <Overlay
+                progress={secondOverlayWideRHPProgress}
+                positionLeftValue={modalStackOverlayWideRHPPositionLeft}
+            />
+        );
+    }
+
+    if (isRHPDisplayedOnSuperWideRHP) {
+        return (
+            <Overlay
+                progress={secondOverlayRHPOnSuperWideRHPProgress}
+                positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
+            />
+        );
+    }
+
+    return null;
+}
+
+function TertiaryOverlay() {
+    const {shouldRenderTertiaryOverlay, wideRHPRouteKeys} = useContext(WideRHPContext);
+    const modalStackRoute = useRoute();
+    const routeKey = getModalStackLastRoute(modalStackRoute?.key);
+
+    const isWide = routeKey && wideRHPRouteKeys.includes(routeKey);
+
+    if (isWide && shouldRenderTertiaryOverlay) {
+        return (
+            <Overlay
+                progress={thirdOverlayProgress}
+                positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
+            />
+        );
+    }
+
+    return null;
+}
+
 /**
  * Create a modal stack navigator with an array of sub-screens.
  *
@@ -118,10 +196,29 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {shouldRenderSecondaryOverlay, shouldRenderTertiaryOverlay, isWideRHPFocused, superWideRHPRouteKeys, isWideRHPClosing} = useContext(WideRHPContext);
+        const {syncRHPKeys} = useContext(WideRHPContext);
         const route = useRoute();
 
-        const isFocused = useIsFocused();
+        // This hook handles the case when a wider RHP is displayed above a narrower one.
+        // In this situation, we need to synchronize the keys, as superWideRHPKeys and wideRHPKeys store the keys of the screens that are visible.
+        useFocusEffect(
+            useCallback(
+                () => () => {
+                    if (!isWideRHPRouteName(route.name) && !isSuperWideRHPRouteName(route.name)) {
+                        return;
+                    }
+
+                    // Synchronization after RHP unmount is handled in RightModalNavigator.tsx.
+                    const isRHPOpened = navigationRef?.getRootState()?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+                    if (!isRHPOpened) {
+                        return;
+                    }
+
+                    syncRHPKeys();
+                },
+                [route.name, syncRHPKeys],
+            ),
+        );
 
         // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -136,16 +233,6 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 return screenOptions({route: optionRoute});
             },
             [screenOptions],
-        );
-
-        const isRHPDisplayedOnWideRHP = useMemo(
-            () => !isSmallScreenWidth && !isWideRHPFocused && !isWideRHPClosing && shouldRenderSecondaryOverlay && (isSuperWideRHPRouteName(route.name) || isWideRHPRouteName(route.name)),
-            [isSmallScreenWidth, isWideRHPClosing, isWideRHPFocused, route.name, shouldRenderSecondaryOverlay],
-        );
-
-        const isWideRHPDisplayedOnSuperWideRHP = useMemo(
-            () => !isSmallScreenWidth && !isFocused && !!isWideRHPFocused && shouldRenderSecondaryOverlay && isSuperWideRHPRouteName(route.name),
-            [isFocused, isSmallScreenWidth, isWideRHPFocused, route.name, shouldRenderSecondaryOverlay],
         );
 
         return (
@@ -167,29 +254,14 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 {/* The width of the window for which we calculate the overlay positions is the width of the RHP window, for example for Super Wide RHP it will be 1260 px on a wide layout. */}
                 {/* We need to move the overlay left from the left edge of the RHP below to the left edge of the RHP above. */}
                 {/* To calculate this, subtract the width of the widest RHP from the width of the RHP above. */}
-                {/* Two cases were described for the secondary overlay: */}
-                {/* 1. Single RHP is displayed on Wide RHP (Super Wide or Wide) - here we additionally check the length of superWideRHPRouteKeys because Super Wide RHP route can also be displayed in Wide RHP when the number of visible transactions is less than 2.  */}
-                {/* 2. Wide RHP is displayed on Super Wide RHP route. */}
+                {/* Three cases were described for the secondary overlay: */}
+                {/* 1. Single RHP is displayed on Wide RHP */}
+                {/* 2. Single RHP is displayed on Super Wide RHP */}
+                {/* 3. Wide RHP is displayed on Super Wide RHP route. */}
                 {/* Please note that in these cases, the overlay is rendered from the RHP screen displayed below. For example, if we display RHP on Wide RHP, the secondary overlay is rendered from Wide RHP, etc. */}
                 {/* There is also a special case where three different RHP widths are displayed at the same time. In this case, an overlay under RHP should be rendered from Wide RHP. */}
-                {isRHPDisplayedOnWideRHP ? (
-                    <Overlay
-                        progress={secondOverlayProgress}
-                        positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlaySuperWideRHPPositionLeft : animatedReceiptPaneRHPWidth}
-                    />
-                ) : null}
-                {isWideRHPDisplayedOnSuperWideRHP ? (
-                    <Overlay
-                        progress={secondOverlayProgress}
-                        positionLeftValue={modalStackOverlayWideRHPPositionLeft}
-                    />
-                ) : null}
-                {!isSmallScreenWidth && shouldRenderTertiaryOverlay && isWideRHPRouteName(route.name) ? (
-                    <Overlay
-                        progress={thirdOverlayProgress}
-                        positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
-                    />
-                ) : null}
+                {!isSmallScreenWidth && <SecondaryOverlay />}
+                {!isSmallScreenWidth && <TertiaryOverlay />}
             </View>
         );
     }
@@ -605,6 +677,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/ReimbursementAccountVerifyAccountPage').default,
     [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/EnterSignerInfo').default,
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportCardLostPage').default,
+    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportCardLostConfirmMagicCodePage').default,
     [SCREENS.KEYBOARD_SHORTCUTS]: () => require<ReactComponentModule>('../../../../pages/KeyboardShortcutsPage').default,
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/ExitSurveyReasonPage').default,
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/ExitSurveyConfirmPage').default,
@@ -765,6 +838,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardEditCardNamePage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardAccountSelectCardPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/IssueNewCardPage').default,
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/IssueNewCardConfirmMagicCodePage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceCardSettingsPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceSettlementAccountPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceSettlementFrequencyPage').default,
@@ -914,11 +989,18 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRejectReasonPage').default,
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
+    [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchChangeApproverPage').default,
+    [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAddApproverPage').default,
 });
 
 // This navigator is reserved for the screen that can be displayed as Wide RHP, other screens should not be added here.
 const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
     [SCREENS.SEARCH.REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default,
+});
+
+// // This navigator is reserved for the screen that can be displayed as Super Wide RHP, other screens should not be added here.
+const SearchMoneyRequestReportModalStackNavigator = createModalStackNavigator<SearchMoneyRequestReportParamList>({
+    [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default,
 });
 
 const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<SearchAdvancedFiltersParamList>({
@@ -1005,6 +1087,10 @@ const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallPa
     [SCREENS.SCHEDULE_CALL.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallConfirmationPage').default,
 });
 
+const ExpenseReportModalStackNavigator = createModalStackNavigator<ExpenseReportNavigatorParamList>({
+    [SCREENS.EXPENSE_REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default,
+});
+
 const WorkspacesDomainModalStackNavigator = createModalStackNavigator<WorkspacesDomainModalNavigatorParamList>({
     [SCREENS.WORKSPACES_VERIFY_DOMAIN]: () => require<ReactComponentModule>('../../../../pages/domain/WorkspacesVerifyDomainPage').default,
     [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: () => require<ReactComponentModule>('../../../../pages/domain/WorkspacesDomainVerifiedPage').default,
@@ -1047,7 +1133,6 @@ export {
     ReportVerifyAccountModalStackNavigator,
     WalletStatementStackNavigator,
     TransactionDuplicateStackNavigator,
-    SearchReportActionsModalStackNavigator,
     SearchReportModalStackNavigator,
     RestrictedActionModalStackNavigator,
     SearchAdvancedFiltersModalStackNavigator,
@@ -1063,4 +1148,7 @@ export {
     MergeTransactionStackNavigator,
     ReportCardActivateStackNavigator,
     WorkspacesDomainModalStackNavigator,
+    SearchMoneyRequestReportModalStackNavigator,
+    ExpenseReportModalStackNavigator,
+    SearchReportActionsModalStackNavigator,
 };
