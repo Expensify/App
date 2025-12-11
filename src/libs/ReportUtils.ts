@@ -4714,14 +4714,14 @@ function canEditMultipleTransactions(selectedTransactions: Transaction[]): boole
             CONST.EDIT_REQUEST_FIELD.DATE,
         ];
 
-        for (const field of fieldsToCheck) {
-            if (canEditFieldOfMoneyRequest(reportAction, field, undefined, undefined, undefined, transaction, report, policy)) {
-                return true;
-            }
+        const isTransactionEditable = fieldsToCheck.some((field) => canEditFieldOfMoneyRequest(reportAction, field, undefined, undefined, undefined, transaction, report, policy));
+
+        if (!isTransactionEditable) {
+            return false;
         }
     }
 
-    return false;
+    return true;
 }
 
 /**

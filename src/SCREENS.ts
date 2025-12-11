@@ -101,8 +101,6 @@ const SCREENS = {
         EDIT_MULTIPLE_DATE_RHP: 'Search_Edit_Multiple_Date_RHP',
         EDIT_MULTIPLE_CATEGORY_RHP: 'Search_Edit_Multiple_Category_RHP',
         EDIT_MULTIPLE_TAG_RHP: 'Search_Edit_Multiple_Tag_RHP',
-        EDIT_MULTIPLE_ATTENDEES_RHP: 'Search_Edit_Multiple_Attendees_RHP',
-        EDIT_MULTIPLE_REPORT_RHP: 'Search_Edit_Multiple_Report_RHP',
         CHANGE_APPROVER: {
             ROOT: 'Search_Change_Approver_Root',
             ADD_APPROVER: 'Search_Change_Approver_Add_Approver',

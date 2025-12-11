@@ -105,14 +105,6 @@ function SearchEditMultiplePage() {
 
     const displayCurrency = draftTransaction?.currency ?? currency;
 
-    const attendeesTitle = useMemo(() => {
-        const attendees = draftTransaction?.comment?.attendees;
-        if (!Array.isArray(attendees) || attendees.length === 0) {
-            return '';
-        }
-        return attendees.map((item) => item?.displayName ?? item?.login).join(', ');
-    }, [draftTransaction?.comment?.attendees]);
-
     const fields = useMemo(() => {
         const allFields = [
             {
@@ -145,16 +137,6 @@ function SearchEditMultiplePage() {
                 title: draftTransaction?.tag ?? '',
                 route: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP,
             },
-            {
-                description: translate('iou.attendees'),
-                title: attendeesTitle,
-                route: ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP,
-            },
-            {
-                description: translate('common.report'),
-                title: draftTransaction?.reportID ?? '',
-                route: ROUTES.SEARCH_EDIT_MULTIPLE_REPORT_RHP,
-            },
         ];
 
         return allFields;
@@ -165,10 +147,8 @@ function SearchEditMultiplePage() {
         draftTransaction?.created,
         draftTransaction?.category,
         draftTransaction?.tag,
-        draftTransaction?.reportID,
         translate,
         displayCurrency,
-        attendeesTitle,
     ]);
 
     return (
