@@ -177,6 +177,7 @@ function MoneyRequestView({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isZeroExpensesBetaEnabled = isBetaEnabled(CONST.BETAS.ZERO_EXPENSES);
 
     const moneyRequestReport = parentReport;
     const isApproved = isReportApproved({report: moneyRequestReport});
@@ -436,7 +437,7 @@ function MoneyRequestView({
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
                 amount: {
-                    isError: transactionAmount === 0 && !isBetaEnabled(CONST.BETAS.ZERO_EXPENSES),
+                    isError: transactionAmount === 0 && !isZeroExpensesBetaEnabled,
                     translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
                 },
                 merchant: {
@@ -490,7 +491,7 @@ function MoneyRequestView({
             isCustomUnitOutOfPolicy,
             companyCardPageURL,
             transactionAmount,
-            isBetaEnabled,
+            isZeroExpensesBetaEnabled,
         ],
     );
 

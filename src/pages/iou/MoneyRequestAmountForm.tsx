@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
