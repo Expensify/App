@@ -12624,6 +12624,7 @@ class Git {
         const files = [];
         let currentFile = null;
         let currentHunk = null;
+        let oldFilePath = null; // Track old file path to determine fileDiffType
         for (const line of lines) {
             // File header: diff --git a/file b/file
             if (line.startsWith('diff --git')) {
@@ -12636,13 +12637,41 @@ class Git {
                 }
                 currentFile = null;
                 currentHunk = null;
+                oldFilePath = null; // Reset for next file
                 continue;
             }
-            // File path: +++ b/file
-            if (line.startsWith('+++ b/')) {
-                const diffFilePath = line.slice(6); // Remove '+++ b/'
+            // Old file path: --- a/file or --- /dev/null (for new files)
+            // This comes before +++ in git diff output
+            if (line.startsWith('--- ')) {
+                oldFilePath = line.slice(4); // Store the old file path (remove '--- ')
+                continue;
+            }
+            // New file path: +++ b/file or +++ /dev/null (for removed files)
+            if (line.startsWith('+++ ')) {
+                const newFilePath = line.slice(4); // Remove '+++ '
+                // Determine fileDiffType based on old and new file paths
+                // Note: oldFilePath should always be set by the time we see +++, but handle null for type safety
+                let fileDiffType = 'modified';
+                let diffFilePath;
+                const oldPath = oldFilePath ?? '';
+                if (oldPath === '/dev/null') {
+                    // New file: use the new file path
+                    fileDiffType = 'added';
+                    diffFilePath = newFilePath.startsWith('b/') ? newFilePath.slice(2) : newFilePath;
+                }
+                else if (newFilePath === '/dev/null') {
+                    // Removed file: use the old file path
+                    fileDiffType = 'removed';
+                    diffFilePath = oldPath.startsWith('a/') ? oldPath.slice(2) : oldPath;
+                }
+                else {
+                    // Modified file: use the new file path
+                    fileDiffType = 'modified';
+                    diffFilePath = newFilePath.startsWith('b/') ? newFilePath.slice(2) : newFilePath;
+                }
                 currentFile = {
                     filePath: diffFilePath,
+                    diffType: fileDiffType,
                     hunks: [],
                     addedLines: new Set(),
                     removedLines: new Set(),
@@ -12697,6 +12726,10 @@ class Git {
                     // Context line - skip it (we only care about added/removed lines)
                     continue;
                 }
+                else if (firstChar === '\\') {
+                    // "No newline at end of file" marker - skip it (metadata, not content)
+                    continue;
+                }
                 else {
                     throw new Error(`Unknown line type! First character of line is ${firstChar}`);
                 }
@@ -12745,24 +12778,6 @@ class Git {
             files,
             hasChanges: files.length > 0,
         };
-    }
-    /**
-     * Check if a file from a Git diff is added.
-     *
-     * @param file - The file to check
-     * @returns true if the file is added, false otherwise
-     */
-    static isAddedDiffFile(file) {
-        const hasAddedLines = file.addedLines.size > 0;
-        const hasModifiedLines = file.modifiedLines.size > 0;
-        const hasRemovedLines = file.removedLines.size > 0;
-        if (!hasAddedLines || hasModifiedLines || hasRemovedLines) {
-            return false;
-        }
-        if (file.hunks.length === 1 && file.hunks.at(0)?.oldStart === 0 && file.hunks.at(0)?.oldCount === 0) {
-            return true;
-        }
-        return false;
     }
     /**
      * Calculate the line number for a diff line based on the hunk and line type.

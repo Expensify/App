@@ -80,7 +80,6 @@ import {
     canSendInvoice,
     getGroupPaidPoliciesWithExpenseChatEnabled,
     getPolicy,
-    getSubmitToAccountID,
     hasDynamicExternalWorkflow,
     isPaidGroupPolicy,
     isPolicyAdmin,
@@ -1315,8 +1314,7 @@ function getActions(
 
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isScanning(t) || isPending(t));
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
-    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
+    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
 
     // We're not supporting approve partial amount on search page now
     if (
