@@ -49,8 +49,8 @@ function LegalNamePage() {
             if (typeof values.legalFirstName === 'string') {
                 if (!values.legalFirstName) {
                     errors.legalFirstName = translate('common.error.fieldRequired');
-                } else if (!isValidLegalName(values.legalFirstName, true)) {
-                    addErrorMessage(errors, 'legalFirstName', translate('privatePersonalDetails.error.hasInvalidCharacterWithHyphen'));
+                } else if (!isValidLegalName(values.legalFirstName)) {
+                    addErrorMessage(errors, 'legalFirstName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
                 } else if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                     addErrorMessage(
                         errors,
@@ -66,8 +66,8 @@ function LegalNamePage() {
             if (typeof values.legalLastName === 'string') {
                 if (!values.legalLastName) {
                     errors.legalLastName = translate('common.error.fieldRequired');
-                } else if (!isValidLegalName(values.legalLastName, true)) {
-                    addErrorMessage(errors, 'legalLastName', translate('privatePersonalDetails.error.hasInvalidCharacterWithHyphen'));
+                } else if (!isValidLegalName(values.legalLastName)) {
+                    addErrorMessage(errors, 'legalLastName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
                 } else if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                     addErrorMessage(
                         errors,
