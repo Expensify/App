@@ -1839,6 +1839,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.SETTINGS_WALLET,
                     exact: true,
                 },
+                [SCREENS.SETTINGS.RULES.ROOT]: {
+                    path: ROUTES.SETTINGS_RULES,
+                    exact: true,
+                },
                 [SCREENS.SETTINGS.ABOUT]: {
                     path: ROUTES.SETTINGS_ABOUT,
                     exact: true,

@@ -34,6 +34,7 @@ import type Domain from './Domain';
 import type {SamlMetadata} from './Domain';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
+import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type ExportTemplate from './ExportTemplate';
@@ -159,6 +160,7 @@ export type {
     Download,
     DuplicateWorkspace,
     WorkspaceCardsList,
+    ExpenseRule,
     ExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
