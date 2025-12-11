@@ -493,7 +493,7 @@ async function filterResultsByDiff(results: CompilerResults, mainBaseCommitHash:
  * @param diffResult - The diff result to check for added files
  * @returns The compiler results partitioned into manual memo errors and react compiler errors
  */
-function enforceAutomaticMemoization({success, failures: reactCompilerFailures}: CompilerResults, diffResult: DiffResult, {mode}: CheckOptions) {
+function enforceAutomaticMemoization({success, failures: reactCompilerFailures}: CompilerResults, diffResult: DiffResult) {
     const distinctFailureFileNames = getDistinctFailureFileNames(reactCompilerFailures);
 
     // Add added files from the diff that are already compiled successfully,
@@ -504,17 +504,11 @@ function enforceAutomaticMemoization({success, failures: reactCompilerFailures}:
 
         const isReactComponentSourceFile = MANUAL_MEMOIZATION_FILE_EXTENSIONS.some((extension) => filePath.endsWith(extension));
 
+        // We enforce automatic memoization for all successfully compiled files.
         const isSuccessfullyCompiled = success.has(filePath);
-        if (!isReactComponentSourceFile || !isSuccessfullyCompiled) {
-            continue;
-        }
-
-        // In static mode, we always enforce automatic memoization in successfully compiled files.
-        // In incremental mode, we enforce automatic memoization only for successfully compiled added files
-        const isAddedFile = file.diffType === 'added';
-        if (mode === 'static' || isAddedFile) {
-            distinctFailureFileNames.add(filePath);
+        if (isReactComponentSourceFile && isSuccessfullyCompiled) {
             enforcedAutoMemoFiles.add(filePath);
+            distinctFailureFileNames.add(filePath);
         }
     }
 
@@ -632,7 +626,7 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
     }
 
     // In Phase 1, we print all errors on modified lines and files as warnings.
-    // TODO: In Phase 2, print errors instead.
+    // TODO: Starting in Phase 2, always print errors instead.
     const shouldTreatReactCompilerErrorsAsWarnings = mode === 'incremental';
 
     const didRegularCheckPass = failures.size === 0 || shouldTreatReactCompilerErrorsAsWarnings;
