@@ -1,9 +1,12 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import AddressForm from '@components/AddressForm';
 import type {FormOnyxValues} from '@components/Form/types';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import {setDraftValues} from '@userActions/FormActions';
@@ -14,6 +17,8 @@ import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 function AddressStep({onNext, isEditing}: SubStepProps) {
+    const styles = useThemeStyles();
+
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: true});
     const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
@@ -106,18 +111,24 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
     );
 
     return (
-        <AddressForm
-            formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
-            onSubmit={updateAddress}
-            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-            city={city}
-            country={currentCountry as unknown as Country}
-            onAddressChanged={handleAddressChange}
-            state={state}
-            street1={street1}
-            street2={street2}
-            zip={zipcode}
-        />
+        <>
+            <View style={[styles.mh5, styles.mb6]}>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('personalInfoStep.whatsYourAddress')}</Text>
+                <Text style={[styles.textSupporting]}>{translate('common.noPO')}</Text>
+            </View>
+            <AddressForm
+                formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
+                onSubmit={updateAddress}
+                submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                city={city}
+                country={currentCountry as unknown as Country}
+                onAddressChanged={handleAddressChange}
+                state={state}
+                street1={street1}
+                street2={street2}
+                zip={zipcode}
+            />
+        </>
     );
 }
 
