@@ -1172,6 +1172,7 @@ const CONST = {
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             REJECT: 'reject',
+            REJECT_BULK: 'rejectBulk',
             MERGE: 'merge',
         },
         ADD_EXPENSE_OPTIONS: {
