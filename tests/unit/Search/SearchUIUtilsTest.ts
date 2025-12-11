@@ -386,6 +386,7 @@ const searchResults: OnyxTypes.SearchResults = {
         [`report_${reportID5}`]: report5,
         [`transactions_${transactionID}`]: {
             amount: -5000,
+            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -415,6 +416,7 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`transactions_${transactionID2}`]: {
             amount: -5000,
+            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -445,6 +447,7 @@ const searchResults: OnyxTypes.SearchResults = {
         ...allViolations,
         [`transactions_${transactionID3}`]: {
             amount: 1200,
+            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -474,6 +477,7 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`transactions_${transactionID4}`]: {
             amount: 3200,
+            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -759,6 +763,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction1,
         holdReportAction: undefined,
+        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -804,12 +809,13 @@ const transactionsListItems = [
     },
     {
         action: 'approve',
-        allActions: ['approve'],
+        allActions: ['approve', 'changeApprover'],
         amount: -5000,
         report: report2,
         policy,
         reportAction: reportAction2,
         holdReportAction: undefined,
+        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -871,6 +877,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction3,
         holdReportAction: undefined,
+        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -927,6 +934,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction4,
         holdReportAction: undefined,
+        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -1020,6 +1028,7 @@ const transactionReportGroupListItems = [
                 reportAction: reportAction1,
                 holdReportAction: undefined,
                 amount: -5000,
+                canDelete: true,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1071,7 +1080,7 @@ const transactionReportGroupListItems = [
         groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'approve',
-        allActions: ['approve'],
+        allActions: ['approve', 'changeApprover'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
@@ -1108,12 +1117,13 @@ const transactionReportGroupListItems = [
         transactions: [
             {
                 action: 'approve',
-                allActions: ['approve'],
+                allActions: ['approve', 'changeApprover'],
                 report: report2,
                 policy,
                 reportAction: reportAction2,
                 holdReportAction: undefined,
                 amount: -5000,
+                canDelete: true,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1855,7 +1865,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 45;
+            const expectedPropertyCount = 46;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1888,7 +1898,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 45;
+            const expectedPropertyCount = 46;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2480,6 +2490,7 @@ describe('SearchUIUtils', () => {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactions_1805965960759424086: {
                         amount: 0,
+                        canDelete: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
                         comment: {
                             comment: '',
@@ -2602,6 +2613,7 @@ describe('SearchUIUtils', () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactions_1805965960759424086: {
                     amount: 0,
+                    canDelete: false,
                     cardID: undefined,
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
