@@ -15,7 +15,7 @@ type AuthenticationErrorContext = {
 };
 
 /**
- * Track authentication errors in Sentry with consistent tagging and context.
+ * Track authentication errors in Sentry with extra context.
  *
  * @param error - The error object to capture
  * @param context - Additional context about the authentication error
