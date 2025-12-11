@@ -40,14 +40,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         const hasInlineContextFilter = inputQuery.includes(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN.toLowerCase()}:`);
         const isChatSearch = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
-        return (
-            !!queryJSON.rawFilterList ||
-            hasKeywordFilter ||
-            hasContextFilter ||
-            hasInlineKeywordFilter ||
-            hasInlineContextFilter ||
-            isChatSearch
-        );
+        return !!queryJSON.rawFilterList || hasKeywordFilter || hasContextFilter || hasInlineKeywordFilter || hasInlineContextFilter || isChatSearch;
     }, [queryJSON.flatFilters, queryJSON.rawFilterList, queryJSON.inputQuery, queryJSON.type]);
 
     const theme = useTheme();

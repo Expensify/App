@@ -55,14 +55,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         const hasInlineContextFilter = inputQuery.includes(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN.toLowerCase()}:`);
         const isChatSearch = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
-        return (
-            !!queryJSON.rawFilterList ||
-            hasKeywordFilter ||
-            hasContextFilter ||
-            hasInlineKeywordFilter ||
-            hasInlineContextFilter ||
-            isChatSearch
-        );
+        return !!queryJSON.rawFilterList || hasKeywordFilter || hasContextFilter || hasInlineKeywordFilter || hasInlineContextFilter || isChatSearch;
     }, [queryJSON]);
 
     const styles = useThemeStyles();
