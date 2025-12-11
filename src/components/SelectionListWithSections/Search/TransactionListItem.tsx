@@ -186,7 +186,7 @@ function TransactionListItem<TItem extends ListItem>({
                     amountColumnSize={amountColumnSize}
                     taxAmountColumnSize={taxAmountColumnSize}
                     shouldShowCheckbox={!!canSelectMultiple}
-                    style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}, isLargeScreenWidth && styles.pr0]}
+                    style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     violations={transactionViolations}
                     onArrowRightPress={onPress}
