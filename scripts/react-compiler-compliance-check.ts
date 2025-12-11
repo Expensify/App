@@ -128,7 +128,7 @@ async function check({mode = 'static', files, remote, verbose = false}: CheckPar
         }
 
         if (enforceNewComponents) {
-            const {reactCompilerFailures, manualMemoFailures} = enforceNewComponentGuard(results, diffResult);
+            const {reactCompilerFailures, manualMemoFailures} = enforceAutomaticMemoization(results, diffResult);
 
             results.manualMemoFailures = manualMemoFailures;
             results.failures = reactCompilerFailures;
@@ -484,13 +484,13 @@ async function filterResultsByDiff(results: CompilerResults, diffFilteringCommit
 }
 
 /**
- * Enforces the new component guard by checking for manual memoization keywords in added files and attaching React compiler errors.
- * @param errors - The compiler results to enforce the new component guard on
+ * Enforces automatic memoization by checking for manual memoization keywords in already compiled files and attaching React compiler errors.
+ * @param results - The compiler results to enforce automatic memoization on
  * @param diffResult - The diff result to check for added files
  * @returns The compiler results partitioned into manual memo errors and react compiler errors
  */
-function enforceNewComponentGuard({success, failures}: CompilerResults, diffResult: DiffResult) {
     const addedDiffFiles = new Set<string>();
+function enforceAutomaticMemoization({success, failures}: CompilerResults, diffResult: DiffResult) {
     for (const file of diffResult.files) {
         const isReactComponentSourceFile = MANUAL_MEMOIZATION_FILE_EXTENSIONS.some((extension) => file.filePath.endsWith(extension));
         const isSuccessfullyCompiled = success.has(file.filePath);
