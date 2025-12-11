@@ -143,11 +143,12 @@ function useOptions() {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    useEffect(() => {
-        if (!newGroupDraft?.participants || !listOptions) {
-            return;
+    const draftSelectedOptions = useMemo(() => {
+        if (!newGroupDraft?.participants || !listOptions?.personalDetails) {
+            return null;
         }
-        const newSelectedOptions: OptionData[] = [];
+
+        const result: OptionData[] = [];
         for (const participant of newGroupDraft.participants) {
             if (participant.accountID === personalData.accountID) {
                 continue;
@@ -161,16 +162,37 @@ function useOptions() {
             if (!participantOption) {
                 continue;
             }
-            newSelectedOptions.push({
+            result.push({
                 ...participantOption,
                 isSelected: true,
             });
         }
-        setSelectedOptions(newSelectedOptions);
-        // We intentionally use listOptions?.personalDetails instead of listOptions to avoid unnecessary re-executions when other properties change
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [newGroupDraft?.participants, listOptions?.personalDetails, personalData.accountID, setSelectedOptions]);
+
+        return result;
+    }, [listOptions?.personalDetails, newGroupDraft?.participants, personalData.accountID]);
+
+    useEffect(() => {
+        if (!draftSelectedOptions) {
+            return;
+        }
+
+        setSelectedOptions((prevSelectedOptions) => {
+            if (
+                prevSelectedOptions.length === draftSelectedOptions.length &&
+                prevSelectedOptions.every((prevOption, index) => {
+                    const nextOption = draftSelectedOptions.at(index);
+                    if (!nextOption) {
+                        return false;
+                    }
+                    return prevOption.accountID === nextOption.accountID && prevOption.login === nextOption.login;
+                })
+            ) {
+                return prevSelectedOptions;
+            }
+
+            return draftSelectedOptions;
+        });
+    }, [draftSelectedOptions, setSelectedOptions]);
 
     const handleEndReached = useCallback(() => {
         if (!hasMore || isLoadingMore || !areOptionsInitialized) {
