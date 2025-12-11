@@ -129,7 +129,6 @@ async function check({mode = 'static', files, remote, verbose = false}: CheckPar
     const {reactCompilerFailuresForModifiedFiles, reactCompilerFailuresForAddedFiles, manualMemoFailures} = splitErrorsBasedOnFileDiffType(results, diffResult);
 
     results.manualMemoFailures = manualMemoFailures;
-    results.failures;
     results.failuresForAddedFiles = reactCompilerFailuresForAddedFiles;
     results.failuresForModifiedFiles = reactCompilerFailuresForModifiedFiles;
 
@@ -618,7 +617,7 @@ function findManualMemoizationMatches(source: string): ManualMemoizationError[] 
  * @param results - The compiler results to print
  * @param options - The options for printing the results
  */
-function printResults({success, failuresForAddedFiles, failuresForModifiedFiles, suppressedFailures, manualMemoFailures}: CompilerResults, {mode, verbose}: CheckOptions): boolean {
+function printResults({success, failuresForAddedFiles, failuresForModifiedFiles, suppressedFailures, manualMemoFailures}: CompilerResults, {verbose}: CheckOptions): boolean {
     if (verbose && success.size > 0) {
         log();
         logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
@@ -669,7 +668,7 @@ function printResults({success, failuresForAddedFiles, failuresForModifiedFiles,
     const shouldPrintModifiedFilesErrors = failuresForModifiedFiles && failuresForModifiedFiles.size > 0;
     const shouldPrintAddedFilesErrors = failuresForAddedFiles && failuresForAddedFiles.size > 0;
 
-    const shouldPrintErrors = shouldPrintModifiedFilesErrors || shouldPrintAddedFilesErrors;
+    const shouldPrintErrors = !!shouldPrintModifiedFilesErrors || !!shouldPrintAddedFilesErrors;
 
     if (shouldPrintModifiedFilesErrors) {
         const {distinctErrorFileNames} = getErrorsByFile(failuresForModifiedFiles);
