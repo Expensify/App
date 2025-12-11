@@ -131,6 +131,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     >
                         <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.SEARCH_ROUTER}
+                            getComponent={() => require('../../../../components/Search/SearchRouter/SearchRouterPage').default}
+                        />
+                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SETTINGS}
                             component={ModalStackNavigators.SettingsModalStackNavigator}
                         />
