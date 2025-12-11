@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
@@ -33,46 +33,36 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
     const [searchValue, setSearchValue] = useState('');
     const [currentCountry, setCurrentCountry] = useState(selectedCountry);
 
-    const onSelectionChange = useCallback((country: Option) => {
+    const onSelectionChange = (country: Option) => {
         setCurrentCountry(country.value);
-    }, []);
+    };
 
-    const countriesList = useMemo(
-        () =>
-            countries.map((countryISO) => {
-                const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
-                return {
-                    value: countryISO,
-                    keyForList: countryISO,
-                    text: countryName,
-                    isSelected: currentCountry === countryISO,
-                    searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-                };
-            }),
-        [translate, currentCountry, countries],
-    );
+    const countriesList = countries.map((countryISO) => {
+        const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
+        return {
+            value: countryISO,
+            keyForList: countryISO,
+            text: countryName,
+            isSelected: currentCountry === countryISO,
+            searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+        };
+    });
 
     const searchResults = searchOptions(searchValue, countriesList);
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('common.search'),
-            value: searchValue,
-            onChangeText: setSearchValue,
-            headerMessage: searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
-        }),
-        [translate, searchValue, setSearchValue, searchResults.length],
-    );
+    const textInputOptions = {
+        label: translate('common.search'),
+        value: searchValue,
+        onChangeText: setSearchValue,
+        headerMessage: searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: isEditing ? translate('common.confirm') : translate('common.next'),
-            isDisabled: isOffline,
-            onConfirm: () => onCountrySelected(currentCountry),
-        }),
-        [isEditing, isOffline, onCountrySelected, translate, currentCountry],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: isEditing ? translate('common.confirm') : translate('common.next'),
+        isDisabled: isOffline,
+        onConfirm: () => onCountrySelected(currentCountry),
+    };
 
     return (
         <FullPageOfflineBlockingView>
