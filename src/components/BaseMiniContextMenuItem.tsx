@@ -52,7 +52,15 @@ type BaseMiniContextMenuItemProps = {
  * Component that renders a mini context menu item with a
  * pressable. Also renders a tooltip when hovering the item.
  */
-function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonStateComplete = true, shouldPreventDefaultFocusOnPress = true, ref, sentryLabel}: BaseMiniContextMenuItemProps) {
+function BaseMiniContextMenuItem({
+    tooltipText,
+    onPress,
+    children,
+    isDelayButtonStateComplete = true,
+    shouldPreventDefaultFocusOnPress = true,
+    ref,
+    sentryLabel,
+}: BaseMiniContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (
