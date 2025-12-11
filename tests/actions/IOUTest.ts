@@ -22,6 +22,7 @@ import {
     completeSplitBill,
     createDistanceRequest,
     deleteMoneyRequest,
+    duplicateExpenseTransaction,
     evenlyDistributeSplitExpenseAmounts,
     getIOUReportActionToApproveOrPay,
     getPerDiemExpenseInformation,
@@ -10744,6 +10745,80 @@ describe('actions/IOU', () => {
             if (invoiceInfo.invoiceRoom.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
                 expect(invoiceInfo.invoiceRoom.invoiceReceiver.accountID).toBe(userBAccountID);
             }
+        });
+    });
+
+    describe('duplicateExpenseTransaction', () => {
+        const DUPLICATION_EXCEPTIONS = new Set(['transactionID', 'createdAccountID', 'reportID', 'status', 'created', 'parentTransactionID', 'isTestDrive', 'source', 'receipt', 'filename']);
+
+        function isTransactionDuplicated(originalTransaction: Transaction, duplicatedTransaction: Transaction) {
+            for (const k of Object.keys(duplicatedTransaction)) {
+                const key = k as keyof Transaction;
+
+                if (DUPLICATION_EXCEPTIONS.has(key) || !Object.hasOwn(originalTransaction, key) || key.startsWith('original') || key.startsWith('modified')) {
+                    continue;
+                }
+
+                let originalTransactionKey = key;
+                const modifiedKey = `modified${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof Transaction;
+
+                if (modifiedKey in originalTransaction && !!originalTransaction[modifiedKey]) {
+                    originalTransactionKey = modifiedKey;
+                }
+
+                const originalValue = originalTransaction[originalTransactionKey];
+                const duplicatedValue = duplicatedTransaction[key];
+
+                expect(duplicatedValue).toEqual(originalValue);
+            }
+        }
+
+        const mockOptimisticChatReportID = '789';
+        const mockOptimisticIOUReportID = '987';
+        const mockIsASAPSubmitBetaEnabled = false;
+
+        const mockTransaction = createRandomTransaction(1);
+        const mockPolicy = createRandomPolicy(1);
+        const policyExpenseChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+        const fakePolicyCategories = createRandomPolicyCategories(3);
+
+        it('should create a duplicate expense with all fields duplicated', async () => {
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const mockCashExpenseTransaction = {
+                ...mockTransaction,
+                amount: mockTransaction.amount * -1,
+                comment: {
+                    ...restOfComment,
+                },
+            };
+
+            duplicateExpenseTransaction(
+                mockCashExpenseTransaction,
+                mockOptimisticChatReportID,
+                mockOptimisticIOUReportID,
+                mockIsASAPSubmitBetaEnabled,
+                mockPolicy,
+                fakePolicyCategories,
+                policyExpenseChat,
+            );
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            if (!duplicatedTransaction) {
+                return;
+            }
+
+            isTransactionDuplicated(mockCashExpenseTransaction, duplicatedTransaction);
         });
     });
 });
