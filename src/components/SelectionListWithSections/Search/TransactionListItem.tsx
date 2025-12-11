@@ -1,10 +1,11 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -26,8 +27,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
-import type {Policy, ReportAction, ReportActions} from '@src/types/onyx';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
+import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
@@ -56,8 +56,7 @@ function TransactionListItem<TItem extends ListItem>({
     const {currentSearchHash, currentSearchKey} = useSearchContext();
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const snapshotReport = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as SearchReport;
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
     }, [snapshot, transactionItem.reportID]);
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
@@ -71,8 +70,8 @@ function TransactionListItem<TItem extends ListItem>({
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
     const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
-        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.moneyRequestReportActionID}`],
-        [transactionItem?.moneyRequestReportActionID],
+        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.reportAction?.reportActionID}`],
+        [transactionItem?.reportAction?.reportActionID],
     );
     const [parentReportAction] = originalUseOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`,
@@ -115,6 +114,8 @@ function TransactionListItem<TItem extends ListItem>({
         );
     }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email, currentUserDetails.accountID]);
 
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+
     const handleActionButtonPress = useCallback(() => {
         handleActionButtonPressUtil(
             currentSearchHash,
@@ -125,8 +126,23 @@ function TransactionListItem<TItem extends ListItem>({
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
         );
-    }, [currentSearchHash, transactionItem, transactionPreviewData, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onSelectRow, item, onDEWModalOpen]);
+    }, [
+        currentSearchHash,
+        transactionItem,
+        transactionPreviewData,
+        snapshotReport,
+        snapshotPolicy,
+        lastPaymentMethod,
+        currentSearchKey,
+        onSelectRow,
+        item,
+        onDEWModalOpen,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+    ]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(item);
@@ -188,7 +204,7 @@ function TransactionListItem<TItem extends ListItem>({
                     amountColumnSize={amountColumnSize}
                     taxAmountColumnSize={taxAmountColumnSize}
                     shouldShowCheckbox={!!canSelectMultiple}
-                    style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}, isLargeScreenWidth && styles.pr0]}
+                    style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     violations={transactionViolations}
                     onArrowRightPress={onPress}

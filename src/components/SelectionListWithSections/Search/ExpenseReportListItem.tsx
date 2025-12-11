@@ -1,5 +1,6 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
@@ -17,8 +18,7 @@ import {isSettled} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
-import type {Policy} from '@src/types/onyx';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
+import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 
 function ExpenseReportListItem<TItem extends ListItem>({
@@ -48,8 +48,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const snapshotData = snapshot?.data;
 
     const snapshotReport = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return (snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
+        return (snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
     }, [snapshotData, reportItem.reportID]);
 
     const snapshotPolicy = useMemo(() => {
@@ -61,6 +60,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return isEmpty ?? reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
     }, [reportItem.isDisabled, reportItem.isDisabledCheckbox, reportItem.transactions.length]);
 
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress(
             currentSearchHash,
@@ -71,8 +72,21 @@ function ExpenseReportListItem<TItem extends ListItem>({
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
         );
-    }, [currentSearchHash, reportItem, onSelectRow, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onDEWModalOpen]);
+    }, [
+        currentSearchHash,
+        reportItem,
+        onSelectRow,
+        snapshotReport,
+        snapshotPolicy,
+        lastPaymentMethod,
+        currentSearchKey,
+        onDEWModalOpen,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+    ]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(reportItem as unknown as TItem);
