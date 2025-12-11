@@ -54,12 +54,10 @@ const REACT_COMPILER_HEALTHCHECK_OUTPUT_REGEXES = {
 
 type CompilerResults = {
     success: Set<string>;
-    failures: FailureMap;
-    suppressedFailures: FailureMap;
-    manualMemoFailures?: EnforcedAddedComponentFailureMap;
+    failures: Map<string, CompilerFailure>;
+    suppressedFailures: Map<string, CompilerFailure>;
+    manualMemoFailures?: Map<string, ManualMemoizationError[]>;
 };
-
-type FailureMap = Map<string, CompilerFailure>;
 
 type CompilerFailure = {
     file: string;
@@ -67,8 +65,6 @@ type CompilerFailure = {
     column?: number;
     reason?: string;
 };
-
-type EnforcedAddedComponentFailureMap = Map<string, ManualMemoizationError[]>;
 
 type ManualMemoizationError = {
     keyword: ManualMemoizationKeyword;
@@ -310,7 +306,7 @@ function createFilesGlob(files?: string[]): string | undefined {
     return `**/+(${files.join('|')})`;
 }
 
-function getDistinctFailureFileNames(failures: FailureMap) {
+function getDistinctFailureFileNames(failures: Map<string, CompilerFailure>) {
     const distinctFileNames = new Set<string>();
     for (const [, failure] of failures) {
         distinctFileNames.add(failure.file);
@@ -673,7 +669,7 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
     return false;
 }
 
-function printFailures(failuresToPrint: FailureMap, level = 0) {
+function printFailures(failuresToPrint: Map<string, CompilerFailure>, level = 0) {
     for (const failure of failuresToPrint.values()) {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
         logBold(`${TAB.repeat(level)}${failure.file}${location}`);
