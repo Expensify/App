@@ -1479,7 +1479,7 @@ function setMoneyRequestOdometerReading(transactionID: string, startReading: num
  * @param file - The image file (File object on web, URI string on native)
  * @param isDraft - Whether this is a draft transaction
  */
-function setMoneyRequestOdometerImage(transactionID: string, imageType: 'start' | 'end', file: File | string, isDraft: boolean, source?: string) {
+function setMoneyRequestOdometerImage(transactionID: string, imageType: 'start' | 'end', file: File | string, isDraft: boolean) {
     const imageKey = imageType === 'start' ? 'odometerStartImage' : 'odometerEndImage';
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {

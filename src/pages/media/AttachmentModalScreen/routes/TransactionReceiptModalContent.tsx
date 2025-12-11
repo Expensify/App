@@ -70,9 +70,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     
     // Handle odometer images when imageType is provided
     const isOdometerImage = !!imageType;
-    const odometerImage = isOdometerImage 
-        ? (imageType === 'start' ? transaction?.comment?.odometerStartImage : transaction?.comment?.odometerEndImage)
-        : undefined;
+    let odometerImage: File | string | undefined;
+    if (isOdometerImage) {
+        odometerImage = imageType === 'start' ? transaction?.comment?.odometerStartImage : transaction?.comment?.odometerEndImage;
+    }
     
     // Get image source - use odometer image if imageType is provided, otherwise use receipt
     const getImageSource = () => {
@@ -158,9 +159,12 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             : moneyRequestReportID !== transaction?.reportID;
 
     const originalFileName = isDraftTransaction ? transaction?.receipt?.filename : receiptURIs?.filename;
-    const headerTitle = isOdometerImage 
-        ? (imageType === 'start' ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle'))
-        : translate('common.receipt');
+    let headerTitle: string;
+    if (isOdometerImage) {
+        headerTitle = imageType === 'start' ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
+    } else {
+        headerTitle = translate('common.receipt');
+    }
 
     /**
      * Detach the receipt and close the modal.
@@ -226,12 +230,15 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     text: translate('common.download'),
                     onSelected: () => {
                         // For odometer images, use the odometer image source
-                        const downloadSource = isOdometerImage && odometerImage 
-                            ? (typeof odometerImage === 'string' ? odometerImage : (odometerImage instanceof File ? URL.createObjectURL(odometerImage) : innerSource))
-                            : innerSource;
-                        const downloadFile = isOdometerImage && odometerImage && odometerImage instanceof File
-                            ? odometerImage
-                            : file;
+                        let downloadSource = innerSource;
+                        if (isOdometerImage && odometerImage) {
+                            if (typeof odometerImage === 'string') {
+                                downloadSource = odometerImage;
+                            } else if (odometerImage instanceof File) {
+                                downloadSource = URL.createObjectURL(odometerImage);
+                            }
+                        }
+                        const downloadFile = isOdometerImage && odometerImage && odometerImage instanceof File ? odometerImage : file;
                         onDownloadAttachment({source: downloadSource, file: downloadFile});
                     },
                 });
@@ -276,6 +283,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isOdometerImage,
             imageType,
             odometerImage,
+            isDraftTransaction,
         ],
     );
 

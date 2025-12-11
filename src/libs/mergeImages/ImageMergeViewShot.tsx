@@ -1,4 +1,3 @@
-import React from 'react';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type ImageMergeViewShotProps = {
@@ -19,7 +18,7 @@ type ImageMergeViewShotProps = {
  * This component should never be used on web - image merging on web is handled
  * directly in useOdometerImageMerging hook using canvas API.
  */
-function ImageMergeViewShot(_props: ImageMergeViewShotProps) {
+function ImageMergeViewShot() {
     // This component should never be rendered on web
     // If it is, it means there's a bug in the code
     return null;

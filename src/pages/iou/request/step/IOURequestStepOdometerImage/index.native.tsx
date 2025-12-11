@@ -20,8 +20,6 @@ import Text from '@components/Text';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
@@ -29,7 +27,6 @@ import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
-import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
@@ -37,7 +34,6 @@ import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTrans
 import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -57,7 +53,7 @@ type IOURequestStepOdometerImageProps = {
     transaction: OnyxEntry<Transaction>;
 };
 
-function IOURequestStepOdometerImage({route: {params: {transactionID, readingType, backTo}}, transaction}: IOURequestStepOdometerImageProps) {
+function IOURequestStepOdometerImage({route: {params: {transactionID, readingType, backTo}}}: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -93,19 +89,19 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
     const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
 
     const blinkStyle = useAnimatedStyle(() => ({
-        opacity: blinkOpacity.value,
+        opacity: blinkOpacity.get(),
     }));
 
     const showBlink = useCallback(() => {
-        blinkOpacity.value = withSequence(withTiming(1, {duration: 0}), withDelay(50, withTiming(0, {duration: 100})));
+        blinkOpacity.set(withSequence(withTiming(1, {duration: 0}), withDelay(50, withTiming(0, {duration: 100}))));
     }, [blinkOpacity]);
 
     const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: focusIndicatorOpacity.value,
+        opacity: focusIndicatorOpacity.get(),
         transform: [
-            {translateX: focusIndicatorPosition.value.x},
-            {translateY: focusIndicatorPosition.value.y},
-            {scale: focusIndicatorScale.value},
+            {translateX: focusIndicatorPosition.get().x},
+            {translateY: focusIndicatorPosition.get().y},
+            {scale: focusIndicatorScale.get()},
         ],
     }));
 
@@ -130,10 +126,10 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 
-            focusIndicatorOpacity.value = withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250})));
-            focusIndicatorScale.value = 2;
-            focusIndicatorScale.value = withSpring(1, {damping: 10, stiffness: 200});
-            focusIndicatorPosition.value = point;
+            focusIndicatorOpacity.set(withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250}))));
+            focusIndicatorScale.set(2);
+            focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
+            focusIndicatorPosition.set(point);
 
             scheduleOnRN(focusCamera, point);
         });
@@ -182,7 +178,7 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
     const handleImageSelected = useCallback(
         (file: FileObject, source: string) => {
             // On native, we need to save the URI string, not the File object
-            const imageUri = typeof file === 'string' ? file : (file as {uri?: string}).uri || source;
+            const imageUri = typeof file === 'string' ? file : (file as {uri?: string}).uri ?? source;
             setMoneyRequestOdometerImage(transactionID, readingType, imageUri, isTransactionDraft);
             navigateBack();
         },
@@ -193,7 +189,7 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
         if (files.length === 0) {
             return;
         }
-        const file = files[0];
+        const file = files.at(0);
         if (!file) {
             return;
         }
@@ -248,17 +244,18 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
                     .then((photo: PhotoFile) => {
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation).then(
-                            ({file, filename, source}) => {
+                            ({source}) => {
                                 // Store odometer image - on native, save the URI string (source), not the File object
                                 setMoneyRequestOdometerImage(transactionID, readingType, source, isTransactionDraft);
                                 navigateBack();
                             },
                         );
                     })
-                    .catch((error: string) => {
+                    .catch((error: unknown) => {
                         setDidCapturePhoto(false);
                         showCameraAlert();
-                        Log.warn('Error taking photo', error);
+                        const errorMessage = error instanceof Error ? error.message : String(error);
+                        Log.warn('Error taking photo', errorMessage);
                     });
             });
     }, [cameraPermissionStatus, didCapturePhoto, translate, flash, hasFlash, isPlatformMuted, transactionID, readingType, isTransactionDraft, navigateBack, askForPermissions]);
@@ -273,7 +270,7 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
             includeSafeAreaPaddingBottom
             headerTitle={title}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={true}
+            shouldShowWrapper
             testID="IOURequestStepOdometerImage"
         >
             <View style={styles.flex1}>

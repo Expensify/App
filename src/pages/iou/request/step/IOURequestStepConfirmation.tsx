@@ -125,13 +125,6 @@ function IOURequestStepConfirmation({
     transaction: initialTransaction,
     isLoadingTransaction,
 }: IOURequestStepConfirmationProps) {
-    console.log('[IOURequestStepConfirmation] Component rendered', {
-        transactionID: initialTransactionID,
-        iouType,
-        action,
-        hasInitialTransaction: !!initialTransaction,
-    });
-    
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const allPolicyCategories = usePolicyCategories();
@@ -266,41 +259,14 @@ function IOURequestStepConfirmation({
     const isOdometerRequest = transaction ? isOdometerDistanceRequest(transaction) : false;
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
-    const {mergeOdometerImages, isMerging, mergeError, mergeViewShotComponent} = useOdometerImageMerging();
+    const {mergeOdometerImages, isMerging, mergeViewShotComponent} = useOdometerImageMerging();
     
     // Merge odometer images when both exist and no receipt has been created yet
     useEffect(() => {
-        // Always log to see if useEffect is being called
-        console.log('[IOURequestStepConfirmation] useEffect called for odometer merge', {
-            hasTransaction: !!transaction,
-            transactionID: currentTransactionID,
-            isOdometerRequest,
-            hasStartImage: !!odometerStartImage,
-            hasEndImage: !!odometerEndImage,
-            hasReceipt: !!transaction?.receipt?.source,
-            isMerging,
-            iouRequestType: transaction?.iouRequestType,
-            odometerStart: transaction?.comment?.odometerStart,
-            odometerEnd: transaction?.comment?.odometerEnd,
-        });
-        
         // Don't proceed if transaction is not loaded yet
         if (!transaction) {
-            console.log('[IOURequestStepConfirmation] Transaction not loaded yet, skipping merge');
             return;
         }
-        
-        // Log all conditions for debugging
-        const debugInfo = {
-            isOdometerRequest,
-            hasStartImage: !!odometerStartImage,
-            hasEndImage: !!odometerEndImage,
-            hasReceipt: !!transaction?.receipt?.source,
-            isMerging,
-            transactionID: currentTransactionID,
-        };
-        
-        Log.info('[IOURequestStepConfirmation] Odometer merge check', debugInfo);
         
         const shouldMerge = 
             isOdometerRequest &&
@@ -309,32 +275,15 @@ function IOURequestStepConfirmation({
             !transaction?.receipt?.source &&
             !isMerging;
             
-        console.log('[IOURequestStepConfirmation] shouldMerge:', shouldMerge, debugInfo);
-        
         if (shouldMerge) {
-            console.log('[IOURequestStepConfirmation] Starting merge!', {
-                startImageType: typeof odometerStartImage,
-                endImageType: typeof odometerEndImage,
-                startImageIsFile: odometerStartImage instanceof File,
-                endImageIsFile: odometerEndImage instanceof File,
-            });
             Log.info('[IOURequestStepConfirmation] Starting odometer image merge', {
                 transactionID: currentTransactionID,
                 action,
                 iouType,
             });
-            mergeOdometerImages(odometerStartImage, odometerEndImage, currentTransactionID, action, iouType)
-                .then(() => {
-                    console.log('[IOURequestStepConfirmation] Merge completed successfully');
-                })
-                .catch((error) => {
-                    console.error('[IOURequestStepConfirmation] Merge error:', error);
-                    Log.warn('[IOURequestStepConfirmation] Failed to merge odometer images:', error);
-                });
-        } else {
-            console.log('[IOURequestStepConfirmation] Merge conditions not met', {
-                shouldMerge: false,
-                ...debugInfo,
+            mergeOdometerImages(odometerStartImage, odometerEndImage, currentTransactionID, action, iouType).catch((error: unknown) => {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                Log.warn('[IOURequestStepConfirmation] Failed to merge odometer images:', errorMessage);
             });
         }
         // mergeOdometerImages is stable (useCallback with empty deps), so we don't need it in dependencies

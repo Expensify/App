@@ -93,22 +93,17 @@ function mergeImages(startImage: File, endImage: File): Promise<File> {
                 }
 
                 // Convert canvas to blob, then to File
-                console.log('[mergeImages] Converting canvas to blob...');
                 canvas.toBlob(
                     (blob) => {
-                        console.log('[mergeImages] toBlob callback called', {hasBlob: !!blob});
                         if (!blob) {
-                            console.error('[mergeImages] Failed to create blob');
                             reject(new Error('Failed to create merged image blob'));
                             return;
                         }
 
-                        console.log('[mergeImages] Creating File object...');
                         const mergedFile = new File([blob], 'odometer-merged.png', {type: 'image/png'});
                         // Add uri property for compatibility using Object.defineProperty
                         // This ensures the property is properly set and not writable
                         const blobUrl = URL.createObjectURL(blob);
-                        console.log('[mergeImages] Created blob URL:', blobUrl);
                         Object.defineProperty(mergedFile, 'uri', {
                             value: blobUrl,
                             writable: false,
@@ -120,7 +115,6 @@ function mergeImages(startImage: File, endImage: File): Promise<File> {
                         URL.revokeObjectURL(objectUrl1);
                         URL.revokeObjectURL(objectUrl2);
 
-                        console.log('[mergeImages] Resolving with merged file', {hasUri: !!mergedFile.uri});
                         resolve(mergedFile);
                     },
                     'image/png',

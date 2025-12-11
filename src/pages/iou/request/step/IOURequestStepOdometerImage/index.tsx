@@ -1,7 +1,5 @@
-import React, {useCallback, useContext, useRef, useState} from 'react';
-import type {LayoutRectangle} from 'react-native';
+import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
@@ -12,7 +10,6 @@ import Text from '@components/Text';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
@@ -24,16 +21,14 @@ import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
 
-function IOURequestStepOdometerImage({route: {params: {transactionID, readingType, backTo}}, transaction}: IOURequestStepOdometerImageProps) {
+function IOURequestStepOdometerImage({route: {params: {transactionID, readingType, backTo}}}: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const {isDraggingOver} = useContext(DragAndDropContext);
     const lazyIllustrations = useMemoizedLazyIllustrations(['ReceiptUpload']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
@@ -47,7 +42,7 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
     }, [backTo]);
 
     const handleImageSelected = useCallback(
-        (file: FileObject, source: string) => {
+        (file: FileObject) => {
             setMoneyRequestOdometerImage(transactionID, readingType, file as File, isTransactionDraft);
             navigateBack();
         },
@@ -58,13 +53,12 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
         if (files.length === 0) {
             return;
         }
-        const file = files[0];
+        const file = files.at(0);
         if (!file) {
             return;
         }
         // For file selection, source is the blob URL
-        const source = typeof file === 'string' ? file : URL.createObjectURL(file as Blob);
-        handleImageSelected(file, source);
+        handleImageSelected(file);
     });
 
     const handleDrop = useCallback(
@@ -114,7 +108,7 @@ function IOURequestStepOdometerImage({route: {params: {transactionID, readingTyp
         <StepScreenDragAndDropWrapper
             headerTitle={title}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={true}
+            shouldShowWrapper
             testID="IOURequestStepOdometerImage"
         >
             {(isDraggingOverWrapper) => (

@@ -1,5 +1,5 @@
 import React, {useEffect, useRef} from 'react';
-import {Image, View, StyleSheet} from 'react-native';
+import {Image, StyleSheet} from 'react-native';
 import ViewShot from 'react-native-view-shot';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -33,6 +33,18 @@ function ImageMergeViewShot({
     onCapture,
     onError,
 }: ImageMergeViewShotProps) {
+    const styles = StyleSheet.create({
+        container: {
+            position: 'absolute',
+            left: -9999,
+            top: -9999,
+            opacity: 0,
+        },
+        image: {
+            backgroundColor: 'transparent',
+        },
+    });
+
     const viewShotRef = useRef<ViewShot>(null);
     const [imagesLoaded, setImagesLoaded] = React.useState({start: false, end: false});
 
@@ -64,24 +76,27 @@ function ImageMergeViewShot({
                                     height: totalHeight,
                                 });
                             })
-                            .catch((error) => {
-                                onError(new Error(`Failed to get file size: ${error.message}`));
+                            .catch((error: unknown) => {
+                                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                                onError(new Error(`Failed to get file size: ${errorMessage}`));
                             });
                     });
                 })
-                .catch((error) => {
-                    onError(new Error(`Failed to capture merged image: ${error.message}`));
+                .catch((error: unknown) => {
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                    onError(new Error(`Failed to capture merged image: ${errorMessage}`));
                 });
         }, 200);
 
         return () => clearTimeout(timer);
-    }, [imagesLoaded, onCapture, onError, totalWidth, totalHeight]);
+    }, [imagesLoaded.start, imagesLoaded.end, onCapture, onError, totalWidth, totalHeight]);
 
     useEffect(() => {
-        if (imagesLoaded.start && imagesLoaded.end) {
-            return captureMergedImage();
+        if (!imagesLoaded.start || !imagesLoaded.end) {
+            return;
         }
-    }, [imagesLoaded, captureMergedImage]);
+        return captureMergedImage();
+    }, [imagesLoaded.start, imagesLoaded.end, captureMergedImage]);
 
     return (
         <ViewShot
@@ -131,17 +146,5 @@ function ImageMergeViewShot({
         </ViewShot>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        position: 'absolute',
-        left: -9999,
-        top: -9999,
-        opacity: 0,
-    },
-    image: {
-        backgroundColor: 'transparent',
-    },
-});
 
 export default ImageMergeViewShot;

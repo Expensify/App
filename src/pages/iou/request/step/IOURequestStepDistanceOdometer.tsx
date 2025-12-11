@@ -67,8 +67,8 @@ function IOURequestStepDistanceOdometer({
     const StyleUtils = useStyleUtils();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
 
-    const startReadingInputRef = useRef<any>(null);
-    const endReadingInputRef = useRef<any>(null);
+    const startReadingInputRef = useRef<{focus: () => void} | null>(null);
+    const endReadingInputRef = useRef<{focus: () => void} | null>(null);
 
     const [startReading, setStartReading] = useState<string>('');
     const [endReading, setEndReading] = useState<string>('');
@@ -129,14 +129,14 @@ function IOURequestStepDistanceOdometer({
             (prevTransactionEndRef.current !== null && prevTransactionEndRef.current !== undefined && 
              (currentEnd === null || currentEnd === undefined));
         
-        const hasNoTransactionData = 
-            (currentStart === null || currentStart === undefined) &&
-            (currentEnd === null || currentEnd === undefined);
+        const hasTransactionData = 
+            (currentStart !== null && currentStart !== undefined) ||
+            (currentEnd !== null && currentEnd !== undefined);
 
         // Only reset if transaction was cleared (not just null initially) and we have local state
         // We check local state via refs to avoid including them in dependencies
         const hasLocalState = startReadingRef.current || endReadingRef.current;
-        if (wasCleared && hasNoTransactionData && hasLocalState && !isSavedRef.current && hasInitializedRefs.current) {
+        if (wasCleared && !hasTransactionData && hasLocalState && !isSavedRef.current && hasInitializedRefs.current) {
             setStartReading('');
             setEndReading('');
             startReadingRef.current = '';
@@ -157,31 +157,33 @@ function IOURequestStepDistanceOdometer({
 
     // Initialize initial values refs on mount for DiscardChangesConfirmation
     useEffect(() => {
-        if (!hasInitializedRefs.current) {
-            initialStartReadingRef.current = '';
-            initialEndReadingRef.current = '';
-            initialStartImageRef.current = transaction?.comment?.odometerStartImage;
-            initialEndImageRef.current = transaction?.comment?.odometerEndImage;
-            hasInitializedRefs.current = true;
+        if (hasInitializedRefs.current) {
+            return;
         }
+        initialStartReadingRef.current = '';
+        initialEndReadingRef.current = '';
+        initialStartImageRef.current = transaction?.comment?.odometerStartImage;
+        initialEndImageRef.current = transaction?.comment?.odometerEndImage;
+        hasInitializedRefs.current = true;
     }, [transaction?.comment?.odometerStartImage, transaction?.comment?.odometerEndImage]);
 
     // Update refs after saving to mark current state as "saved"
     useEffect(() => {
-        if (isSavedRef.current) {
-            initialStartReadingRef.current = startReading;
-            initialEndReadingRef.current = endReading;
-            initialStartImageRef.current = transaction?.comment?.odometerStartImage;
-            initialEndImageRef.current = transaction?.comment?.odometerEndImage;
-            isSavedRef.current = false;
+        if (!isSavedRef.current) {
+            return;
         }
+        initialStartReadingRef.current = startReading;
+        initialEndReadingRef.current = endReading;
+        initialStartImageRef.current = transaction?.comment?.odometerStartImage;
+        initialEndImageRef.current = transaction?.comment?.odometerEndImage;
+        isSavedRef.current = false;
     }, [startReading, endReading, transaction?.comment?.odometerStartImage, transaction?.comment?.odometerEndImage]);
 
     // Calculate total distance - updated live after every input change
     const totalDistance = useMemo(() => {
         const start = parseFloat(startReading);
         const end = parseFloat(endReading);
-        if (isNaN(start) || isNaN(end) || !startReading || !endReading) {
+        if (Number.isNaN(start) || Number.isNaN(end) || !startReading || !endReading) {
             return null;
         }
         const distance = end - start;
@@ -223,7 +225,7 @@ function IOURequestStepDistanceOdometer({
     const handleStartReadingChange = useCallback(
         (text: string) => {
             // Only allow digits
-            const digitsOnly = text.replace(/[^0-9]/g, '');
+            const digitsOnly = text.replaceAll(/[^0-9]/g, '');
             setStartReading(digitsOnly);
             startReadingRef.current = digitsOnly;
             if (formError) {
@@ -232,7 +234,7 @@ function IOURequestStepDistanceOdometer({
             // Save to transaction immediately
             const startValue = digitsOnly ? parseFloat(digitsOnly) : null;
             const endValue = endReading ? parseFloat(endReading) : null;
-            if (startValue !== null && !isNaN(startValue)) {
+            if (startValue !== null && !Number.isNaN(startValue)) {
                 setMoneyRequestOdometerReading(transactionID, startValue, endValue ?? null, isTransactionDraft);
             }
         },
@@ -242,7 +244,7 @@ function IOURequestStepDistanceOdometer({
     const handleEndReadingChange = useCallback(
         (text: string) => {
             // Only allow digits
-            const digitsOnly = text.replace(/[^0-9]/g, '');
+            const digitsOnly = text.replaceAll(/[^0-9]/g, '');
             setEndReading(digitsOnly);
             endReadingRef.current = digitsOnly;
             if (formError) {
@@ -251,7 +253,7 @@ function IOURequestStepDistanceOdometer({
             // Save to transaction immediately
             const startValue = startReading ? parseFloat(startReading) : null;
             const endValue = digitsOnly ? parseFloat(digitsOnly) : null;
-            if (endValue !== null && !isNaN(endValue)) {
+            if (endValue !== null && !Number.isNaN(endValue)) {
                 setMoneyRequestOdometerReading(transactionID, startValue ?? null, endValue, isTransactionDraft);
             }
         },
@@ -351,7 +353,7 @@ function IOURequestStepDistanceOdometer({
         const start = parseFloat(startReading);
         const end = parseFloat(endReading);
 
-        if (isNaN(start) || isNaN(end)) {
+        if (Number.isNaN(start) || Number.isNaN(end)) {
             setFormError(translate('distance.odometer.readingRequired'));
             return;
         }
@@ -392,7 +394,7 @@ function IOURequestStepDistanceOdometer({
                             />
                         </View>
                         <PressableWithFeedback
-                            accessible={false}
+                            accessibilityRole="button"
                             onPress={() => {
                                 if (odometerStartImage) {
                                     handleViewOdometerImage('start');
@@ -408,7 +410,7 @@ function IOURequestStepDistanceOdometer({
                             ]}
                         >
                             <ReceiptImage
-                                source={startImageSource ? startImageSource : ''}
+                                source={startImageSource ?? ''}
                                 shouldUseThumbnailImage
                                 thumbnailContainerStyles={styles.bgTransparent}
                                 isAuthTokenRequired
@@ -436,7 +438,7 @@ function IOURequestStepDistanceOdometer({
                             />
                         </View>
                         <PressableWithFeedback
-                            accessible={false}
+                            accessibilityRole="button"
                             onPress={() => {
                                 if (odometerEndImage) {
                                     handleViewOdometerImage('end');
@@ -452,7 +454,7 @@ function IOURequestStepDistanceOdometer({
                             ]}
                         >
                             <ReceiptImage
-                                source={endImageSource ? endImageSource : ''}
+                                source={endImageSource ?? ''}
                                 shouldUseThumbnailImage
                                 thumbnailContainerStyles={styles.bgTransparent}
                                 isAuthTokenRequired
@@ -475,7 +477,7 @@ function IOURequestStepDistanceOdometer({
                 </View>
                 <View>
                     {/* Form Error Message */}
-                    {formError && (
+                    {!!formError && (
                         <FormHelpMessage
                             style={[styles.mb4]}
                             message={formError}
