@@ -208,7 +208,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                             onButtonPress={() => {
                                 openReportInRHP(transaction);
                             }}
-                            style={[styles.noBorderRadius, !isLargeScreenWidth ? [styles.p3, styles.pt3] : [styles.pl3, styles.pv1Half], styles.flex1]}
+                            style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv1Half], styles.flex1]}
                             isReportItemChild
                             isInSingleTransactionReport={isInSingleTransactionReport}
                             areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
