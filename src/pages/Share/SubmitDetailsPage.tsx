@@ -196,10 +196,6 @@ function SubmitDetailsPage({
                     Log.info('[SubmitDetailsPage] getCurrentPosition failed', false, errorData);
                     finishRequestAndNavigate(participant, receipt);
                 },
-                {
-                    maximumAge: CONST.GPS.MAX_AGE,
-                    timeout: CONST.GPS.TIMEOUT,
-                },
             );
             return;
         }
