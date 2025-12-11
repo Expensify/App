@@ -185,8 +185,8 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 /**
- * Insert ZWNJ between digits and emoji to prevent Safari keycap bug
- * This prevents Safari from converting digit+emoji combinations into keycap emojis
+ * Insert ZWNJ between digits and emoji to prevent Safari character corruption bug
+ * This prevents Safari from corrupting digit+emoji combinations
  * Only applies on Safari browsers (mobile and desktop)
  */
 function insertZWNJBetweenDigitAndEmoji(input: string): string {
