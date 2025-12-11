@@ -15286,7 +15286,7 @@ function updateMultipleMoneyRequests(transactionIDs: string[], transactionChange
 
         const params = {
             transactionID,
-            modifiedExpenseReportActionID,
+            reportActionID: modifiedExpenseReportActionID,
             updates: JSON.stringify(updates),
         };
 
