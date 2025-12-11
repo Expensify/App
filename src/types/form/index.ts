@@ -100,3 +100,4 @@ export type {MoneyRequestRejectReasonForm} from './MoneyRequestRejectReasonForm'
 export type {MoneyRequestOdometerForm} from './MoneyRequestOdometerForm';
 export type {EnableGlobalReimbursementsForm} from './EnableGlobalReimbursementsForm';
 export type {EnterSignerInfoForm} from './EnterSignerInfoForm';
+export type {CreateDomainForm} from './CreateDomainForm';
