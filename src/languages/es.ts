@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {BeginningOfChatHistoryParams, TagSelectionParams, ViolationsRterParams, EmployeesSeeTagsAsParams} from './params';
+import type {BeginningOfChatHistoryParams, TagSelectionParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -4834,7 +4834,7 @@ ${amount} para ${merchant} - ${date}`,
             invalidTagNameError: 'El nombre de la etiqueta no puede ser 0. Por favor, elige un valor diferente.',
             genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
             importedFromAccountingSoftware: 'Las etiquetas se gestionan en tu',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => ` <muted-text>Los empleados ven las etiquetas como <strong>${customTagName}</strong>.</muted-text>`,
+            employeesSeeTagsAs: ({customTagName}) => ` <muted-text>Los empleados ven las etiquetas como <strong>${customTagName}</strong>.</muted-text>`,
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
             tagRules: 'Reglas de etiquetas',
