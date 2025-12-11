@@ -801,11 +801,18 @@ function getSecondaryReportActions({
 
     const shouldShowCancelPayment = isCancelPaymentAction(report, reportTransactions, policy);
     // eslint-disable-next-line no-console
-    console.log('[getSecondaryReportActions] Cancel Payment Check', JSON.stringify({
-        reportID: report.reportID,
-        shouldShowCancelPayment,
-        optionsBeforePush: options,
-    }, null, 2));
+    console.log(
+        '[getSecondaryReportActions] Cancel Payment Check',
+        JSON.stringify(
+            {
+                reportID: report.reportID,
+                shouldShowCancelPayment,
+                optionsBeforePush: options,
+            },
+            null,
+            2,
+        ),
+    );
 
     if (shouldShowCancelPayment) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
@@ -865,11 +872,18 @@ function getSecondaryReportActions({
     }
 
     // eslint-disable-next-line no-console
-    console.log('[getSecondaryReportActions] FINAL OPTIONS', JSON.stringify({
-        reportID: report.reportID,
-        options,
-        includesCancelPayment: options.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT),
-    }, null, 2));
+    console.log(
+        '[getSecondaryReportActions] FINAL OPTIONS',
+        JSON.stringify(
+            {
+                reportID: report.reportID,
+                options,
+                includesCancelPayment: options.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT),
+            },
+            null,
+            2,
+        ),
+    );
 
     return options;
 }
