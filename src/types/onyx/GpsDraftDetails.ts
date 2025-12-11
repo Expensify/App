@@ -4,13 +4,13 @@
 type GpsDraftDetails = {
     /** Captured GPS points */
     gpsPoints: Array<{
-        /** Longitude */
-        lat: number;
         /** Latitude */
+        lat: number;
+        /** Longitude */
         long: number;
     }>;
 
-    /** Distance between all consecutive points from gpsPoints in meters */
+    /** Sum of geodesic distances between all consecutive points from gpsPoints in meters */
     distanceInMeters: number;
 
     /** Start address derived from coordinates of the first point from gpsPoints */
