@@ -6914,7 +6914,7 @@ function duplicateExpenseTransaction(
             isTestDrive: transaction?.receipt?.isTestDriveReceipt,
             merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
             modifiedAmount: undefined,
-            originalTransactionID: transaction?.comment?.originalTransactionID,
+            originalTransactionID: undefined,
             receipt: undefined,
             source: undefined,
             waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
