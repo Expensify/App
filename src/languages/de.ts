@@ -6217,7 +6217,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 adultEntertainment: 'Unterhaltung für Erwachsene',
             },
             expenseReportRules: {
-                title: 'Spesenabrechnungen',
+                title: 'Fortgeschritten',
                 subtitle: 'Automatisieren Sie die Einhaltung von Spesenrichtlinien, Genehmigungen und Zahlungen.',
                 preventSelfApprovalsTitle: 'Selbstgenehmigungen verhindern',
                 preventSelfApprovalsSubtitle: 'Verhindern Sie, dass Workspace-Mitglieder ihre eigenen Spesenberichte genehmigen.',
@@ -6234,8 +6234,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 autoPayApprovedReportsLockedSubtitle: 'Gehen Sie zu „Weitere Funktionen“ und aktivieren Sie „Workflows“, dann fügen Sie „Zahlungen“ hinzu, um diese Funktion freizuschalten.',
                 autoPayReportsUnderTitle: 'Berichte automatisch bezahlen unter',
                 autoPayReportsUnderDescription: 'Vollständig konforme Spesenabrechnungen unter diesem Betrag werden automatisch bezahlt.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Gehe zu [weitere Funktionen](${moreFeaturesLink}) und aktiviere Workflows, dann füge ${featureName} hinzu, um diese Funktion freizuschalten.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Fügen Sie ${featureName} hinzu, um diese Funktion freizuschalten.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Gehe zu [Weitere Funktionen](${moreFeaturesLink}) und aktiviere ${featureName}, um diese Funktion freizuschalten.`,
             },
