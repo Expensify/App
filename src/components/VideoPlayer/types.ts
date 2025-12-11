@@ -1,84 +1,36 @@
-import type {SourceLoadEventPayload} from 'expo-video';
+import type {Video} from 'expo-av';
+import type {AVPlaybackStatus} from 'expo-av/build/AV';
+import type {VideoFullscreenUpdateEvent, VideoReadyForDisplayEvent} from 'expo-av/build/Video.types';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
+type VideoWithOnFullScreenUpdate = Video & {_onFullscreenUpdate: (event: VideoFullscreenUpdateEvent) => void};
+
 type VideoPlayerProps = {
-    /**
-     * Video source used to initialize the player.
-     */
     url: string;
-
-    /**
-     * Callback fired when the sourceLoad event is triggered.
-     * @param event Data containing information about the video source that finished loading.
-     */
-    onSourceLoaded?: (event: SourceLoadEventPayload) => void;
-
-    /**
-     * Whether the video should automatically replay after it ends.
-     */
+    onVideoLoaded?: (event: VideoReadyForDisplayEvent) => void;
+    resizeMode?: string;
     isLooping?: boolean;
-
-    /**
-     * Style applied to the entire VideoPlayer component.
-     */
+    // style for the whole video player component
     style?: StyleProp<ViewStyle>;
-
-    /**
-     * Style applied to the VideoView inside the VideoPlayer component.
-     */
+    // style for the video player inside the component
     videoPlayerStyle?: StyleProp<ViewStyle>;
-
-    /**
-     * Style applied to the video player controls.
-     */
+    // style for the video element inside the video player
+    videoStyle?: StyleProp<ViewStyle>;
     videoControlsStyle?: StyleProp<ViewStyle>;
-
-    /**
-     * Duration of the video resource, in milliseconds.
-     */
     videoDuration?: number;
-
-    /**
-     * Whether the VideoPlayer should use a shared video element.
-     */
     shouldUseSharedVideoElement?: boolean;
-
-    /**
-     * Whether the video controls should be displayed in a compact layout.
-     */
     shouldUseSmallVideoControls?: boolean;
-
-    /**
-     * Whether the VideoPlayer is currently hovered.
-     */
+    shouldShowVideoControls?: boolean;
     isVideoHovered?: boolean;
-
-    /**
-     * Whether the videoControlsStyle should include additional bottom margin.
-     */
+    onFullscreenUpdate?: (event: VideoFullscreenUpdateEvent) => void;
+    onPlaybackStatusUpdate?: (status: AVPlaybackStatus) => void;
     shouldUseControlsBottomMargin?: boolean;
-
-    /**
-     * Current status of the video controls.
-     */
     controlsStatus?: ValueOf<typeof CONST.VIDEO_PLAYER.CONTROLS_STATUS>;
-
-    /**
-     * Whether the video should play automatically after loading.
-     */
     shouldPlay?: boolean;
-
-    /**
-     * Whether the VideoPlayer is displayed inside a message preview.
-     */
     isPreview?: boolean;
-
-    /**
-     * Report ID of the video resource.
-     */
     reportID?: string;
 };
 
-export default VideoPlayerProps;
+export type {VideoPlayerProps, VideoWithOnFullScreenUpdate};

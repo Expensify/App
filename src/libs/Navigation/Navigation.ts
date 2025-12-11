@@ -1,16 +1,18 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
-import {InteractionManager} from 'react-native';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
+import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
+import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +35,17 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
+import type {
+    ExpenseReportNavigatorParamList,
+    NavigationPartialRoute,
+    NavigationRef,
+    NavigationRoute,
+    NavigationStateRoute,
+    ReportsSplitNavigatorParamList,
+    RootNavigatorParamList,
+    SearchMoneyRequestReportParamList,
+    State,
+} from './types';
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES = new Set<Route>([
@@ -155,7 +167,7 @@ function getReportRHPActiveRoute(): string {
  * @returns The cleaned route path.
  */
 function cleanRoutePath(routePath: string): string {
-    return routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replace(/\?.*/, '');
+    return routePath.replaceAll(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replaceAll(/\?.*/g, '');
 }
 
 /**
@@ -197,24 +209,34 @@ function navigate(route: Route, options?: LinkToOptions) {
     }
 
     // Start a Sentry span for report navigation
-    if (route.startsWith('r/') || route.startsWith('search/r/')) {
-        const reportIDMatch = route.match(/^(?:search\/)?r\/(\w+)/);
-        if (reportIDMatch?.at(1)) {
-            const reportID = reportIDMatch.at(1);
-            const spanName = route.startsWith('r/') ? '/r/*' : '/search/r/*';
-            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
-                name: spanName,
-                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-                attributes: {
-                    reportID,
-                },
+    if (route.startsWith('r/') || route.startsWith('search/r/') || route.startsWith('e/')) {
+        const routePath = Str.cutAfter(route, '?');
+        const reportIDMatch = route.match(/^(?:search\/)?(?:r|e)\/(\w+)/);
+        const reportID = reportIDMatch?.at(1);
+        if (reportID) {
+            const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
+            let span = getSpan(spanId);
+            if (!span) {
+                let spanName = '/r/*';
+                if (route.startsWith('search/r/')) {
+                    spanName = '/search/r/*';
+                } else if (route.startsWith('e/')) {
+                    spanName = '/e/*';
+                }
+                span = startSpan(spanId, {
+                    name: spanName,
+                    op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+                });
+            }
+            span.setAttributes({
+                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
+                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(routePath, '?'),
             });
         }
     }
-
     linkTo(navigationRef.current, route, options);
 }
-
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
  * these parameters shouldn't be included in the comparison.
@@ -453,7 +475,7 @@ function setParams(params: Record<string, unknown>, routeKey = '') {
  * Returns the current active route without the URL params.
  */
 function getActiveRouteWithoutParams(): string {
-    return getActiveRoute().replace(/\?.*/, '');
+    return getActiveRoute().replaceAll(/\?.*/g, '');
 }
 
 /**
@@ -559,18 +581,57 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 }
 
 /**
+ * Get the report ID from the topmost Super Wide RHP modal in the navigation stack.
+ */
+function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.getRootState()): string | undefined {
+    if (!state) {
+        return;
+    }
+
+    const topmostRightModalNavigator = state.routes?.at(-1);
+
+    if (!topmostRightModalNavigator || topmostRightModalNavigator.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return;
+    }
+
+    const topmostSuperWideRHPModalStack = topmostRightModalNavigator.state?.routes.findLast((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name));
+
+    if (!topmostSuperWideRHPModalStack) {
+        return;
+    }
+
+    const topmostSuperWideRHP = topmostSuperWideRHPModalStack.state?.routes.findLast(
+        (route) => route.name === SCREENS.EXPENSE_REPORT_RHP || route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT,
+    );
+    const topmostReportParams = topmostSuperWideRHP?.params as
+        | SearchMoneyRequestReportParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT]
+        | ExpenseReportNavigatorParamList[typeof SCREENS.EXPENSE_REPORT_RHP]
+        | undefined;
+
+    return topmostReportParams?.reportID;
+}
+
+/**
  * Closes the modal navigator (RHP, onboarding).
+ *
+ * @param options - Configuration object
+ * @param options.ref - Navigation ref to use (defaults to navigationRef)
+ * @param options.callback - Optional callback to execute after the modal has finished closing.
+ *                           The callback fires when RightModalNavigator unmounts.
+ *
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  */
-const dismissModal = (ref = navigationRef) => {
+const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; callback?: () => void} = {}) => {
     isNavigationReady().then(() => {
+        if (callback) {
+            const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {
+                subscription.remove();
+                callback();
+            });
+        }
+
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
-        // Let React Navigation finish modal transition
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            fireModalDismissed();
-        });
     });
 };
 
@@ -581,8 +642,16 @@ const dismissModal = (ref = navigationRef) => {
  */
 const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT], ref = navigationRef) => {
     isNavigationReady().then(() => {
+        const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
+        let areReportsIDsDefined = !!topmostSuperWideRHPReportID && !!reportID;
+
+        if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
+            dismissToPreviousRHP();
+            return;
+        }
+
         const topmostReportID = getTopmostReportId();
-        const areReportsIDsDefined = !!topmostReportID && !!reportID;
+        areReportsIDsDefined = !!topmostReportID && !!reportID;
         const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             dismissModal();
@@ -689,18 +758,49 @@ function clearPreloadedRoutes() {
     navigationRef.reset(rootStateWithoutPreloadedRoutes);
 }
 
-const modalDismissedListeners: Array<() => void> = [];
+/**
+ * When multiple screens are open in RHP, returns to the last modal stack specified in the parameter. If none are found, it dismisses the entire modal.
+ *
+ * @param modalStackNames - names of the modal stacks we want to dismiss to
+ */
+function dismissToModalStack(modalStackNames: Set<string>) {
+    const rootState = navigationRef.getRootState();
+    if (!rootState) {
+        return;
+    }
 
-function onModalDismissedOnce(callback: () => void) {
-    modalDismissedListeners.push(callback);
+    const rhpState = rootState.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
+
+    if (!rhpState) {
+        return;
+    }
+
+    const lastFoundModalStackIndex = rhpState.routes.slice(0, -1).findLastIndex((route) => modalStackNames.has(route.name));
+    const routesToPop = rhpState.routes.length - lastFoundModalStackIndex - 1;
+
+    if (routesToPop <= 0 || lastFoundModalStackIndex === -1) {
+        dismissModal();
+        return;
+    }
+
+    navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
 }
 
-// Wrap modal dismissal so listeners get called
-function fireModalDismissed() {
-    while (modalDismissedListeners.length) {
-        const cb = modalDismissedListeners.pop();
-        cb?.();
+/**
+ * Dismiss top layer modal and go back to the Wide/Super Wide RHP.
+ */
+function dismissToPreviousRHP() {
+    return dismissToModalStack(ALL_WIDE_RIGHT_MODALS);
+}
+
+function dismissToSuperWideRHP() {
+    // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
+    if (getIsNarrowLayout()) {
+        dismissModal();
+        return;
     }
+    // On wide layouts, dismiss back to the Super Wide RHP modal stack
+    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
 }
 
 export default {
@@ -737,9 +837,9 @@ export default {
     isTopmostRouteModalScreen,
     isOnboardingFlow,
     clearPreloadedRoutes,
-    onModalDismissedOnce,
-    fireModalDismissed,
     isValidateLoginFlow,
+    dismissToPreviousRHP,
+    dismissToSuperWideRHP,
 };
 
 export {navigationRef};

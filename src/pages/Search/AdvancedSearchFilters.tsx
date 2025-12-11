@@ -374,9 +374,9 @@ function getFilterDisplayTitle(
     if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         const values: string[] = [];
 
-        Object.entries(filters).forEach(([fieldKey, fieldValue]) => {
+        for (const [fieldKey, fieldValue] of Object.entries(filters)) {
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX) || !fieldValue || !fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
-                return;
+                continue;
             }
 
             const fieldName = fieldKey
@@ -410,7 +410,7 @@ function getFilterDisplayTitle(
                 const valueString = translate('search.filters.reportField', {name: fieldName, value: fieldValue as string});
                 values.push(valueString);
             }
-        });
+        }
 
         return values.length ? values.join(', ') : undefined;
     }
@@ -512,12 +512,12 @@ function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
     }
 
     const result: string[] = [];
-    Object.entries(taxRates).forEach(([taxRateName, taxRateKeys]) => {
+    for (const [taxRateName, taxRateKeys] of Object.entries(taxRates)) {
         if (!taxRateKeys.some((taxRateKey) => selectedTaxRateKeys.includes(taxRateKey)) || result.includes(taxRateName)) {
-            return;
+            continue;
         }
         result.push(taxRateName);
-    });
+    }
 
     return result.join(', ');
 }
@@ -550,12 +550,13 @@ function AdvancedSearchFilters() {
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList, true), [userCardList, workspaceCardFeeds]);
-    const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: emailSelector});
+
+    const taxRates = getAllTaxRates(policies);
 
     const {sections: workspaces} = useWorkspaceList({
         policies,
@@ -650,7 +651,7 @@ function AdvancedSearchFilters() {
         },
     ];
 
-    sections.forEach((section) => {
+    for (const section of sections) {
         section.items.sort((a, b) => {
             if (a.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
                 return -1;
@@ -660,7 +661,7 @@ function AdvancedSearchFilters() {
             }
             return localeCompare(a.description, b.description);
         });
-    });
+    }
 
     return (
         <>

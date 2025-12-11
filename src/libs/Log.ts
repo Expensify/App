@@ -15,6 +15,7 @@ import {shouldAttachLog} from './Console';
 import getPlatform from './getPlatform';
 import {post} from './Network';
 import requireParameters from './requireParameters';
+import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
 let timeout: NodeJS.Timeout;
 let shouldCollectLogs = false;
@@ -59,6 +60,8 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(requestParams.parameters);
     }
+    // Mirror backend log payload into Telemetry logger for better context
+    forwardLogsToSentry(requestParams.logPacket);
     clearTimeout(timeout);
     timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
     return LogCommand(requestParams);
@@ -91,7 +94,7 @@ AppLogs.configure({appGroupName, interval: -1});
 AppLogs.registerHandler({
     filter: '[NotificationService]',
     handler: ({filter, logs}) => {
-        logs.forEach((log) => {
+        for (const log of logs) {
             // Both native and JS logs are captured by the filter so we replace the filter before logging to avoid an infinite loop
             const message = `[PushNotification] ${log.message.replace(filter, 'NotificationService -')}`;
 
@@ -100,7 +103,7 @@ AppLogs.registerHandler({
             } else {
                 Log.info(message);
             }
-        });
+        }
     },
 });
 

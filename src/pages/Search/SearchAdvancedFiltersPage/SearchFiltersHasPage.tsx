@@ -5,9 +5,9 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
-import SelectionList from '@components/SelectionListWithSections';
-import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +30,7 @@ function SearchFiltersHasPage() {
         return searchAdvancedFiltersForm.has;
     });
 
-    const items = useMemo(() => getHasOptions(currentType), [currentType]);
+    const items = useMemo(() => getHasOptions(translate, currentType), [translate, currentType]);
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((hasOption) => ({
@@ -84,10 +84,10 @@ function SearchFiltersHasPage() {
             />
             <View style={[styles.flex1]}>
                 <SelectionList
-                    shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
+                    data={listData}
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
+                    shouldSingleExecuteRowSelect
                 />
             </View>
             <FixedFooter style={styles.mtAuto}>

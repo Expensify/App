@@ -1,13 +1,12 @@
-import {useEvent, useEventListener} from 'expo';
-import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, TimeUpdateEventPayload, VideoPlayer} from 'expo-video';
-import {useVideoPlayer, VideoView} from 'expo-video';
+/* eslint-disable no-underscore-dangle */
+import type {AVPlaybackStatus, VideoFullscreenUpdateEvent} from 'expo-av';
+import {ResizeMode, Video, VideoFullscreenUpdate} from 'expo-av';
 import debounce from 'lodash/debounce';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
-import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
+import {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
@@ -21,10 +20,11 @@ import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import {isSafari} from '@libs/Browser';
+import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
-import type VideoPlayerProps from './types';
+import shouldReplayVideo from './shouldReplayVideo';
+import type {VideoPlayerProps, VideoWithOnFullScreenUpdate} from './types';
 import useHandleNativeVideoControls from './useHandleNativeVideoControls';
 import * as VideoUtils from './utils';
 import VideoErrorIndicator from './VideoErrorIndicator';
@@ -32,22 +32,26 @@ import VideoPlayerControls from './VideoPlayerControls';
 
 function BaseVideoPlayer({
     url,
-    onSourceLoaded,
+    resizeMode = ResizeMode.CONTAIN,
+    onVideoLoaded,
     isLooping = false,
     style,
     videoPlayerStyle,
+    videoStyle,
     videoControlsStyle,
     videoDuration = 0,
+    controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
     shouldUseSharedVideoElement = false,
     shouldUseSmallVideoControls = false,
+    onPlaybackStatusUpdate,
+    onFullscreenUpdate,
+    shouldPlay,
     // TODO: investigate what is the root cause of the bug with unexpected video switching
     // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
     // but current workaround is just not to use it here for now. This causes not displaying the video controls when
     // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isVideoHovered = false,
-    controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
-    shouldPlay,
     isPreview,
     reportID,
 }: VideoPlayerProps & {reportID: string}) {
@@ -55,22 +59,24 @@ function BaseVideoPlayer({
     const {
         pauseVideo,
         playVideo,
-        replayVideo,
         currentlyPlayingURL,
         sharedElement,
         originalParent,
         shareVideoPlayerElements,
         currentVideoPlayerRef,
-        currentVideoViewRef,
         updateCurrentURLAndReportID,
+        videoResumeTryNumberRef,
         setCurrentlyPlayingURL,
-        mountedVideoPlayersRef,
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
-    const [duration, setDuration] = useState(videoDuration);
+    const [duration, setDuration] = useState(videoDuration * 1000);
+    const [position, setPosition] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [isEnded, setIsEnded] = useState(false);
-    const [isFirstLoad, setIsFirstLoad] = useState(true);
+    const [isBuffering, setIsBuffering] = useState(true);
+    const [hasError, setHasError] = useState(false);
     // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
     const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -81,36 +87,7 @@ function BaseVideoPlayer({
         opacity: controlsOpacity.get(),
     }));
 
-    /* eslint-disable no-param-reassign */
-    const videoPlayerRef = useRef<VideoPlayer>(
-        useVideoPlayer(sourceURL, (player) => {
-            player.loop = isLooping;
-            player.muted = true;
-            player.timeUpdateEventInterval = 0.1;
-        }),
-    );
-    /* eslint-enable no-param-reassign */
-
-    const isPlaying = videoPlayerRef.current.playing;
-    const {currentTime, bufferedPosition} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
-    const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: 'idle'} as StatusChangeEventPayload);
-
-    const [isSafariLoading, setIsSafariLoading] = useState(false);
-    const isLoading = useMemo(() => {
-        return status === 'loading' || isSafariLoading;
-    }, [isSafariLoading, status]);
-
-    const hasError = useMemo(() => {
-        // No need to set hasError while offline, since the offline indicator is already shown.
-        // Once the user reconnects, if the video is unsupported, the error will be triggered again.
-        return status === 'error' && !isOffline;
-    }, [isOffline, status]);
-
-    const isBuffering = useMemo(() => {
-        return bufferedPosition <= 0;
-    }, [bufferedPosition]);
-
-    const videoViewRef = useRef<VideoView | null>(null);
+    const videoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
@@ -118,47 +95,35 @@ function BaseVideoPlayer({
     const canUseTouchScreen = canUseTouchScreenLib();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
-    const shouldShowLoadingIndicator = useMemo(() => {
-        return !isPlaying && !isOffline && !hasError && isLoading;
-    }, [hasError, isLoading, isOffline, isPlaying]);
+    const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume, lastNonZeroVolume} = useVolumeContext();
     useHandleNativeVideoControls({
-        videoViewRef,
+        videoPlayerRef,
         isOffline,
         isLocalFile: isUploading,
     });
-    const {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuContext();
+    const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
+    const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
+    const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
 
     const togglePlayCurrentVideo = useCallback(() => {
+        setIsEnded(false);
+        videoResumeTryNumberRef.current = 0;
         if (!isCurrentlyURLSet) {
             updateCurrentURLAndReportID(url, reportID);
-            return;
-        }
-
-        const player = videoPlayerRef.current;
-        if (isLoading || !player) {
-            return;
-        }
-
-        if (player.playing) {
+        } else if (isPlaying) {
             pauseVideo();
-            return;
+        } else {
+            playVideo();
         }
-
-        if (isEnded) {
-            replayVideo();
-            return;
-        }
-
-        playVideo();
-    }, [isCurrentlyURLSet, isLoading, updateCurrentURLAndReportID, url, reportID, pauseVideo, isEnded, playVideo, replayVideo]);
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, reportID, updateCurrentURLAndReportID, url, videoResumeTryNumberRef]);
 
     const hideControl = useCallback(() => {
         if (isEnded) {
             return;
         }
 
-        controlsOpacity.set(withTiming(0, {duration: 500}, () => scheduleOnRN(setControlStatusState, CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE)));
+        controlsOpacity.set(withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE)));
     }, [controlsOpacity, isEnded]);
     const debouncedHideControl = useMemo(() => debounce(hideControl, 1500), [hideControl]);
 
@@ -199,73 +164,150 @@ function BaseVideoPlayer({
     }, [controlStatusState, controlsOpacity, hideControl]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
-        updateVideoPopoverMenuPlayerRef(videoPlayerRef.current);
-        if (!videoPlayerRef.current?.playbackRate) {
-            return;
-        }
-        updatePlaybackSpeed(videoPlayerRef.current.playbackRate as PlaybackSpeed);
-        setIsPopoverVisible(true);
-
-        updatePopoverMenuSource(url);
+        videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
+        videoPlayerRef.current?.getStatusAsync().then((status) => {
+            if (!('rate' in status && status.rate)) {
+                return;
+            }
+            if (shouldUseNewRate) {
+                setCurrentPlaybackSpeed(status.rate as PlaybackSpeed);
+            }
+            setIsPopoverVisible(true);
+        });
+        setPopoverMenuSource(url);
         if (!event || !('nativeEvent' in event)) {
             return;
         }
         setPopoverAnchorPosition({horizontal: event.nativeEvent.pageX, vertical: event.nativeEvent.pageY});
     };
 
-    useEventListener(videoPlayerRef.current, 'mutedChange', (payload: MutedChangeEventPayload) => {
-        if (payload.muted || !payload.oldMuted) {
+    const hidePopoverMenu = () => {
+        setIsPopoverVisible(false);
+    };
+
+    // fix for iOS mWeb: preventing iOS native player default behavior from pausing the video when exiting fullscreen
+    const preventPausingWhenExitingFullscreen = useCallback(
+        (isVideoPlaying: boolean) => {
+            if (videoResumeTryNumberRef.current === 0 || isVideoPlaying) {
+                return;
+            }
+            if (videoResumeTryNumberRef.current === 1) {
+                playVideo();
+            }
+            // eslint-disable-next-line react-compiler/react-compiler
+            videoResumeTryNumberRef.current -= 1;
+        },
+        [playVideo, videoResumeTryNumberRef],
+    );
+    const prevIsMuted = useSharedValue(true);
+    const prevVolume = useSharedValue(0);
+
+    const handlePlaybackStatusUpdate = useCallback(
+        (status: AVPlaybackStatus) => {
+            if (!status.isLoaded) {
+                preventPausingWhenExitingFullscreen(false);
+                setIsPlaying(false);
+                setIsLoading(true); // when video is ready to display duration is not NaN
+                setIsBuffering(false);
+                setDuration(videoDuration * 1000);
+                setPosition(0);
+                onPlaybackStatusUpdate?.(status);
+                return;
+            }
+            if (status.didJustFinish) {
+                setIsEnded(status.didJustFinish && !status.isLooping);
+                setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
+                controlsOpacity.set(1);
+            } else if (status.isPlaying && isEnded) {
+                setIsEnded(false);
+            }
+
+            // These two conditions are essential for the mute and unmute functionality to work properly during
+            // fullscreen playback on the web
+            if (prevIsMuted.get() && prevVolume.get() === 0 && !status.isMuted && status.volume === 0) {
+                updateVolume(lastNonZeroVolume.get());
+            }
+
+            if (isFullScreenRef.current && prevVolume.get() !== 0 && status.volume === 0 && !status.isMuted) {
+                currentVideoPlayerRef.current?.setStatusAsync({isMuted: true});
+            }
+            prevIsMuted.set(status.isMuted);
+            prevVolume.set(status.volume);
+
+            const isVideoPlaying = status.isPlaying;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const currentDuration = status.durationMillis || videoDuration * 1000;
+            const currentPosition = status.positionMillis || 0;
+
+            if (shouldReplayVideo(status, isVideoPlaying, currentDuration, currentPosition) && !isEnded) {
+                videoPlayerRef.current?.setStatusAsync({positionMillis: 0, shouldPlay: true});
+            }
+
+            preventPausingWhenExitingFullscreen(isVideoPlaying);
+            setIsPlaying(isVideoPlaying);
+            setIsLoading(Number.isNaN(status.durationMillis)); // when video is ready to display duration is not NaN
+            setIsBuffering(status.isBuffering);
+            setDuration(currentDuration);
+            setPosition(currentPosition);
+
+            videoStateRef.current = status;
+            onPlaybackStatusUpdate?.(status);
+        },
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this when isPlaying changes because isPlaying is only used inside shouldReplayVideo
+        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration, isEnded],
+    );
+
+    const handleFullscreenUpdate = useCallback(
+        (event: VideoFullscreenUpdateEvent) => {
+            onFullscreenUpdate?.(event);
+
+            if (event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_PRESENT) {
+                // When the video is in fullscreen, we don't want the scroll to be captured by the InvertedFlatList of report screen.
+                // This will also allow the user to scroll the video playback speed.
+                if (videoPlayerElementParentRef.current && 'addEventListener' in videoPlayerElementParentRef.current) {
+                    videoPlayerElementParentRef.current.addEventListener('wheel', stopWheelPropagation);
+                }
+            }
+
+            if (event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
+                if (videoPlayerElementParentRef.current && 'removeEventListener' in videoPlayerElementParentRef.current) {
+                    videoPlayerElementParentRef.current.removeEventListener('wheel', stopWheelPropagation);
+                }
+                isFullScreenRef.current = false;
+
+                // Sync volume updates in full screen mode after leaving it
+                currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
+                    if (!('isMuted' in status)) {
+                        return;
+                    }
+                    updateVolume(status.isMuted ? 0 : status.volume || 1);
+                });
+
+                // we need to use video state ref to check if video is playing, to catch proper state after exiting fullscreen
+                // and also fix a bug with fullscreen mode dismissing when handleFullscreenUpdate function changes
+                if (videoStateRef.current && (!('isPlaying' in videoStateRef.current) || videoStateRef.current.isPlaying)) {
+                    pauseVideo();
+                    playVideo();
+                    videoResumeTryNumberRef.current = 3;
+                }
+            }
+        },
+        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumberRef, updateVolume, currentVideoPlayerRef, stopWheelPropagation],
+    );
+
+    const bindFunctions = useCallback(() => {
+        const currentVideoPlayer = currentVideoPlayerRef.current;
+        if (!currentVideoPlayer) {
             return;
         }
-        updateVolume(lastNonZeroVolume.get());
-    });
+        currentVideoPlayer._onPlaybackStatusUpdate = handlePlaybackStatusUpdate;
+        currentVideoPlayer._onFullscreenUpdate = handleFullscreenUpdate;
 
-    useEventListener(videoPlayerRef.current, 'playingChange', (payload: PlayingChangeEventPayload) => {
-        const isVideoPlaying = payload.isPlaying;
-        if (isVideoPlaying && isEnded) {
-            setIsEnded(false);
-        }
-    });
-
-    useEventListener(videoPlayerRef.current, 'statusChange', (payload: StatusChangeEventPayload) => {
-        if (isSafariLoading) {
-            setIsSafariLoading(false);
-        }
-        if (payload.status !== 'readyToPlay') {
-            return;
-        }
-        isReadyForDisplayRef.current = true;
-        if (videoPlayerRef.current === currentVideoPlayerRef.current && isFirstLoad) {
-            playVideo();
-            setIsFirstLoad(false);
-        }
-    });
-
-    useEventListener(videoPlayerRef.current, 'playToEnd', () => {
-        setIsEnded(true);
-        setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
-        controlsOpacity.set(1);
-    });
-
-    useEventListener(videoPlayerRef.current, 'sourceLoad', (event) => {
-        onSourceLoaded?.(event);
-    });
-
-    useEffect(() => {
-        if (!videoPlayerRef.current.duration) {
-            return;
-        }
-        setDuration(videoPlayerRef.current.duration);
-    }, [videoPlayerRef.current.duration]);
-
-    useEffect(() => {
-        mountedVideoPlayersRef.current.push(url);
-        return () => {
-            const mountedVideoPlayersCurrentRef = mountedVideoPlayersRef;
-            const urlIndex = mountedVideoPlayersCurrentRef.current.indexOf(url);
-            mountedVideoPlayersCurrentRef.current.splice(urlIndex, 1);
-        };
-    }, [mountedVideoPlayersRef, url]);
+        // update states after binding
+        currentVideoPlayer.getStatusAsync().then((status) => {
+            handlePlaybackStatusUpdate(status);
+        });
+    }, [currentVideoPlayerRef, handleFullscreenUpdate, handlePlaybackStatusUpdate]);
 
     // use `useLayoutEffect` instead of `useEffect` because ref is null when unmount in `useEffect` hook
     // ref url: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
@@ -274,14 +316,11 @@ function BaseVideoPlayer({
             if (shouldUseSharedVideoElement || videoPlayerRef.current !== currentVideoPlayerRef.current) {
                 return;
             }
-            if (currentVideoPlayerRef.current) {
-                currentVideoPlayerRef.current.pause();
-                // eslint-disable-next-line react-compiler/react-compiler
-                currentVideoPlayerRef.current.currentTime = 0;
+            currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false, positionMillis: 0}).then(() => {
                 currentVideoPlayerRef.current = null;
-            }
+            });
         },
-        [currentVideoPlayerRef, mountedVideoPlayersRef, shouldUseSharedVideoElement, url],
+        [currentVideoPlayerRef, shouldUseSharedVideoElement],
     );
 
     useEffect(() => {
@@ -295,8 +334,7 @@ function BaseVideoPlayer({
         }
 
         currentVideoPlayerRef.current = videoPlayerRef.current;
-        currentVideoViewRef.current = videoViewRef.current;
-    }, [url, currentVideoPlayerRef, isUploading, pauseVideo, currentVideoViewRef]);
+    }, [url, currentVideoPlayerRef, isUploading, pauseVideo]);
 
     const isCurrentlyURLSetRef = useRef<boolean | undefined>(undefined);
     isCurrentlyURLSetRef.current = isCurrentlyURLSet;
@@ -317,16 +355,28 @@ function BaseVideoPlayer({
         // On mobile safari, we need to auto-play when sharing video element here
         shareVideoPlayerElements(
             videoPlayerRef.current,
-            videoViewRef.current,
             videoPlayerElementParentRef.current,
             videoPlayerElementRef.current,
-            isUploading || isFullScreenRef.current || !isReadyForDisplayRef.current || hasError,
+            isUploading || isFullScreenRef.current || (!isReadyForDisplayRef.current && !isMobileSafari()),
             {shouldUseSharedVideoElement, url, reportID},
         );
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, reportID, videoPlayerRef, isFullScreenRef, hasError]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef, reportID]);
+
+    // Call bindFunctions() through the refs to avoid adding it to the dependency array of the DOM mutation effect, as doing so would change the DOM when the functions update.
+    const bindFunctionsRef = useRef<(() => void) | null>(null);
+    const shouldBindFunctionsRef = useRef(false);
+
+    useEffect(() => {
+        bindFunctionsRef.current = bindFunctions;
+        if (shouldBindFunctionsRef.current) {
+            bindFunctions();
+        }
+    }, [bindFunctions]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
+        shouldBindFunctionsRef.current = false;
+
         if (url !== currentlyPlayingURL || !sharedElement || isFullScreenRef.current) {
             return;
         }
@@ -339,16 +389,12 @@ function BaseVideoPlayer({
             }
             return;
         }
-        if (currentVideoPlayerRef.current) {
-            videoPlayerRef.current = currentVideoPlayerRef.current;
-            videoViewRef.current = currentVideoViewRef.current;
-        }
+
+        videoPlayerRef.current = currentVideoPlayerRef.current;
         if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef) {
-            if (newParentRef.hasChildNodes()) {
-                newParentRef.firstElementChild?.replaceWith(sharedElement as HTMLDivElement);
-            } else {
-                newParentRef.appendChild(sharedElement as HTMLDivElement);
-            }
+            newParentRef.appendChild(sharedElement as HTMLDivElement);
+            bindFunctionsRef.current?.();
+            shouldBindFunctionsRef.current = true;
         }
         return () => {
             if (!originalParent || !('appendChild' in originalParent)) {
@@ -359,13 +405,9 @@ function BaseVideoPlayer({
             if (!newParentRef || !('childNodes' in newParentRef)) {
                 return;
             }
-            const mountedVideoPlayersCurrentRef = mountedVideoPlayersRef;
-            if (mountedVideoPlayersCurrentRef.current.filter((u) => u === url).length > 0) {
-                return;
-            }
             newParentRef.childNodes[0]?.remove();
         };
-    }, [currentVideoPlayerRef, currentVideoViewRef, currentlyPlayingURL, isFullScreenRef, mountedVideoPlayersRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {
@@ -374,15 +416,9 @@ function BaseVideoPlayer({
         updateCurrentURLAndReportID(url, reportID);
     }, [reportID, shouldPlay, updateCurrentURLAndReportID, url]);
 
-    // ensure that video loads after page refresh on iOS Safari
     useEffect(() => {
-        const videoElement = videoViewRef.current?.nativeRef?.current as HTMLVideoElement;
-        if (!videoElement || hasError || !isSafari() || sharedElement) {
-            return;
-        }
-        videoElement.load();
-        setIsSafariLoading(true);
-    }, [hasError, sharedElement]);
+        videoPlayerRef.current?.setStatusAsync({isMuted: true});
+    }, []);
 
     return (
         <>
@@ -436,73 +472,78 @@ function BaseVideoPlayer({
                                             videoPlayerElementParentRef.current = el;
                                         }}
                                     >
-                                        <VideoView
-                                            allowsFullscreen
-                                            player={videoPlayerRef.current}
+                                        <Video
+                                            ref={videoPlayerRef}
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
-                                            nativeControls={isFullScreenRef.current}
-                                            playsInline
-                                            testID={CONST.VIDEO_PLAYER_TEST_ID}
-                                            ref={videoViewRef}
-                                            contentFit="contain"
-                                            onFullscreenEnter={() => {
-                                                isFullScreenRef.current = true;
-
-                                                if (!(videoPlayerElementParentRef.current && 'addEventListener' in videoPlayerElementParentRef.current)) {
+                                            videoStyle={[styles.w100, styles.h100, videoStyle]}
+                                            source={{
+                                                // if video is loading and is offline, we want to change uri to "" to
+                                                // reset the video player after connection is back
+                                                uri: !isLoading || (isLoading && !isOffline) ? sourceURL : '',
+                                            }}
+                                            shouldPlay={shouldPlay}
+                                            useNativeControls={false}
+                                            resizeMode={resizeMode as ResizeMode}
+                                            isLooping={isLooping}
+                                            onReadyForDisplay={(e) => {
+                                                isReadyForDisplayRef.current = true;
+                                                onVideoLoaded?.(e);
+                                                if (shouldUseNewRate) {
                                                     return;
                                                 }
-                                                // When the video is in fullscreen, we don't want the scroll to be captured by the InvertedFlatList of report screen.
-                                                // This will also allow the user to scroll the video playback speed.
-                                                videoPlayerElementParentRef.current.addEventListener('wheel', stopWheelPropagation);
+                                                videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
                                             }}
-                                            onFullscreenExit={() => {
-                                                isFullScreenRef.current = false;
-
-                                                if (videoPlayerElementParentRef.current && 'removeEventListener' in videoPlayerElementParentRef.current) {
-                                                    videoPlayerElementParentRef.current.removeEventListener('wheel', stopWheelPropagation);
+                                            onLoad={() => {
+                                                if (hasError) {
+                                                    setHasError(false);
                                                 }
-
-                                                // Sync volume updates in full screen mode after leaving it
-                                                updateVolume(videoPlayerRef.current.muted ? 0 : videoPlayerRef.current.volume || 1);
+                                                if (!isCurrentlyURLSet || isUploading) {
+                                                    return;
+                                                }
+                                                playVideo();
                                             }}
+                                            onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+                                            onFullscreenUpdate={handleFullscreenUpdate}
+                                            onError={() => {
+                                                // No need to set hasError while offline, since the offline indicator is already shown.
+                                                // Once the user reconnects, if the video is unsupported, the error will be triggered again.
+                                                if (isOffline) {
+                                                    return;
+                                                }
+                                                setHasError(true);
+                                            }}
+                                            testID={CONST.VIDEO_PLAYER_TEST_ID}
                                         />
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
-                            {hasError && !isOffline && <VideoErrorIndicator isPreview={isPreview} />}
-                            {shouldShowLoadingIndicator && (
-                                <FullScreenLoadingIndicator
-                                    style={[styles.opacity1, styles.bgTransparent]}
-                                    shouldUseGoBackButton={false}
+                            {hasError && !isBuffering && !isOffline && <VideoErrorIndicator isPreview={isPreview} />}
+                            {((isLoading && !isOffline && !hasError) || (isBuffering && !isPlaying && !hasError)) && (
+                                <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
+                            )}
+                            {isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
+                            {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
+                                <VideoPlayerControls
+                                    duration={duration}
+                                    position={position}
+                                    url={url}
+                                    videoPlayerRef={videoPlayerRef}
+                                    isPlaying={isPlaying}
+                                    small={shouldUseSmallVideoControls}
+                                    style={[videoControlsStyle, controlsAnimatedStyle]}
+                                    togglePlayCurrentVideo={togglePlayCurrentVideo}
+                                    controlsStatus={controlStatusState}
+                                    showPopoverMenu={showPopoverMenu}
+                                    reportID={reportID}
                                 />
                             )}
-                            {!isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
-                            {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE &&
-                                !shouldShowLoadingIndicator &&
-                                !(hasError && !isOffline) &&
-                                (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
-                                    <VideoPlayerControls
-                                        duration={duration ?? 0}
-                                        position={currentTime ?? 0}
-                                        url={url}
-                                        videoPlayerRef={videoPlayerRef}
-                                        videoViewRef={videoViewRef}
-                                        isPlaying={isPlaying}
-                                        small={shouldUseSmallVideoControls}
-                                        style={[videoControlsStyle, controlsAnimatedStyle]}
-                                        togglePlayCurrentVideo={togglePlayCurrentVideo}
-                                        controlsStatus={controlStatusState}
-                                        showPopoverMenu={showPopoverMenu}
-                                        reportID={reportID}
-                                    />
-                                )}
                         </View>
                     )}
                 </Hoverable>
             </PressableWithoutFeedback>
             <VideoPopoverMenu
                 isPopoverVisible={isPopoverVisible}
-                hidePopover={() => setIsPopoverVisible(false)}
+                hidePopover={hidePopoverMenu}
                 anchorPosition={popoverAnchorPosition}
             />
         </>

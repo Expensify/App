@@ -8,13 +8,13 @@ import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
-import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SwipeableView from '@components/SwipeableView';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -93,8 +93,10 @@ function ReportFooter({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetail = useCurrentUserPersonalDetails();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
@@ -130,7 +132,7 @@ function ReportFooter({
             if (!match) {
                 return false;
             }
-            let title = match[3] ? match[3].trim().replace(/\n/g, ' ') : undefined;
+            let title = match[3] ? match[3].trim().replaceAll('\n', ' ') : undefined;
             if (!title) {
                 return false;
             }
@@ -160,7 +162,7 @@ function ReportFooter({
                 }
             }
             createTaskAndNavigate({
-                parentReportID: report.reportID,
+                parentReport: report,
                 title,
                 description: '',
                 assigneeEmail: assignee?.login ?? '',
@@ -175,8 +177,11 @@ function ReportFooter({
             });
             return true;
         },
-        [allPersonalDetails, ancestors, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report.policyID, report.reportID],
+        [allPersonalDetails, ancestors, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report],
     );
+
+    const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? report.reportID}`, {canBeMissing: true});
+    const targetReportAncestors = useAncestors(targetReport);
 
     const onSubmitComment = useCallback(
         (text: string) => {
@@ -187,10 +192,10 @@ function ReportFooter({
             // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
             // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
             const targetReportID = transactionThreadReportID ?? report.reportID;
-            addComment(targetReportID, report.reportID, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
+            addComment(targetReportID, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [report.reportID, handleCreateTask, transactionThreadReportID],
+        [report.reportID, handleCreateTask, transactionThreadReportID, targetReportAncestors],
     );
 
     const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
@@ -225,7 +230,7 @@ function ReportFooter({
                         <Banner
                             containerStyles={[styles.chatFooterBanner]}
                             text={translate('adminOnlyCanPost')}
-                            icon={Expensicons.Lightbulb}
+                            icon={expensifyIcons.Lightbulb}
                             shouldShowIcon
                         />
                     )}

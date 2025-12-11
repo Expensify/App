@@ -9,12 +9,14 @@ import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import {ArrowCircleClockwise, Gallery} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {ArrowCircleClockwise} from '@components/Icon/Expensicons';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -131,6 +133,7 @@ function AttachmentView({
     reportID,
     transaction: transactionProp,
 }: AttachmentViewProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Gallery'] as const);
     const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const transaction = transactionProp ?? transactionFromOnyx;
     const {translate} = useLocalize();
@@ -155,6 +158,9 @@ function AttachmentView({
         }
         const videoSource = isVideo && typeof source === 'string' ? source : undefined;
         updateCurrentURLAndReportID(videoSource, reportID);
+        if (videoSource && currentlyPlayingURL === videoSource) {
+            playVideo();
+        }
     }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, playVideo, currentlyPlayingURL]);
 
     const [imageError, setImageError] = useState(false);
@@ -308,7 +314,7 @@ function AttachmentView({
                     <>
                         <View style={[styles.imageModalImageCenterContainer, styles.ph10]}>
                             <DefaultAttachmentView
-                                icon={Gallery}
+                                icon={icons.Gallery}
                                 fileName={file?.name}
                                 shouldShowDownloadIcon={shouldShowDownloadIcon}
                                 shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}

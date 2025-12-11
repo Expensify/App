@@ -1,6 +1,32 @@
 import {defineConfig} from 'eslint/config';
 import mainConfig from './eslint.config.mjs';
 
+const restrictedIconImportPaths = [
+    {
+        name: '@components/Icon/Illustrations',
+        message:
+            'Direct imports from @components/Icon/Illustrations are deprecated. Please use lazy loading hooks instead. Use `useMemoizedLazyIllustrations` from @hooks/useLazyAsset. See docs/LAZY_ICONS_AND_ILLUSTRATIONS.md for details.',
+    },
+    {
+        name: '@components/Icon/Expensicons',
+        message:
+            'Direct imports from @components/Icon/Expensicons are deprecated. Please use lazy loading hooks instead. Use `useMemoizedLazyExpensifyIcons` from @hooks/useLazyAsset. See docs/LAZY_ICONS_AND_ILLUSTRATIONS.md for details.',
+    },
+];
+
+const restrictedIconImportPatterns = [
+    {
+        group: ['**/Icon/Illustrations', '**/components/Icon/Illustrations'],
+        message:
+            'Direct imports from Icon/Illustrations are deprecated. Please use lazy loading hooks instead. Use `useMemoizedLazyIllustrations` from @hooks/useLazyAsset. See docs/LAZY_ICONS_AND_ILLUSTRATIONS.md for details.',
+    },
+    {
+        group: ['**/Icon/Expensicons', '**/components/Icon/Expensicons'],
+        message:
+            'Direct imports from Icon/Expensicons are deprecated. Please use lazy loading hooks instead. Use `useMemoizedLazyExpensifyIcons` from @hooks/useLazyAsset. See docs/LAZY_ICONS_AND_ILLUSTRATIONS.md for details.',
+    },
+];
+
 const config = defineConfig([
     ...mainConfig,
 
@@ -20,6 +46,20 @@ const config = defineConfig([
                 {
                     selector: 'ImportNamespaceSpecifier[parent.source.value=/^@userActions/]',
                     message: 'Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from "@userActions/module"',
+                },
+            ],
+        },
+    },
+
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        ignores: ['**/libs/**/*.{ts,tsx}'],
+        rules: {
+            'no-restricted-imports': [
+                'warn',
+                {
+                    paths: restrictedIconImportPaths,
+                    patterns: restrictedIconImportPatterns,
                 },
             ],
         },

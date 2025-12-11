@@ -1,6 +1,6 @@
-import type {VideoPlayer, VideoView} from 'expo-video';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {View} from 'react-native';
+import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -16,8 +16,6 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [sharedElement, setSharedElement] = useState<PlaybackContextValues['sharedElement']>(null);
     const [originalParent, setOriginalParent] = useState<OriginalParent>(null);
     const [currentRouteReportID, setCurrentRouteReportID] = useState<ProtectedCurrentRouteReportID>(NO_REPORT_ID);
-    const mountedVideoPlayersRef = useRef([]);
-
     const resetContextProperties = () => {
         setSharedElement(null);
         setOriginalParent(null);
@@ -33,15 +31,15 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            if (currentlyPlayingURL && url !== currentlyPlayingURL) {
-                video.pause();
+            if (!url) {
+                if (currentlyPlayingURL) {
+                    video.pause();
+                }
+                return;
             }
 
-            // If there's no URL (image case), pause the player by setting currentlyPlayingURL
-            // without triggering the resetPlayerData in useEffect below
-            if (!url) {
-                setCurrentlyPlayingURL(reportID);
-                return;
+            if (currentlyPlayingURL && url !== currentlyPlayingURL) {
+                video.pause();
             }
 
             const report = getReportOrDraftReport(reportID);
@@ -66,8 +64,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
     const shareVideoPlayerElements: PlaybackContextValues['shareVideoPlayerElements'] = useCallback(
         (
-            videoPlayerRef: VideoPlayer | null,
-            videoViewRef: VideoView | null,
+            ref: VideoWithOnFullScreenUpdate | null,
             parent: View | HTMLDivElement | null,
             child: View | HTMLDivElement | null,
             shouldNotAutoPlay: boolean,
@@ -77,7 +74,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            video.updateRefs(videoPlayerRef, videoViewRef);
+            video.updateRef(ref);
             setOriginalParent(parent);
             setSharedElement(child);
             // Prevents autoplay when uploading the attachment
@@ -121,17 +118,29 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             sharedElement,
             shareVideoPlayerElements,
             setCurrentlyPlayingURL,
-            currentVideoPlayerRef: video.playerRef,
-            currentVideoViewRef: video.viewRef,
+            currentVideoPlayerRef: video.ref,
             playVideo: video.play,
             pauseVideo: video.pause,
-            replayVideo: video.replay,
             stopVideo: video.stop,
             checkIfVideoIsPlaying: video.isPlaying,
+            videoResumeTryNumberRef: video.resumeTryNumberRef,
             resetVideoPlayerData: video.resetPlayerData,
-            mountedVideoPlayersRef,
         }),
-        [updateCurrentURLAndReportID, currentlyPlayingURL, currentRouteReportID, originalParent, sharedElement, video, shareVideoPlayerElements],
+        [
+            updateCurrentURLAndReportID,
+            currentlyPlayingURL,
+            currentRouteReportID,
+            originalParent,
+            sharedElement,
+            video.ref,
+            video.play,
+            video.pause,
+            video.stop,
+            video.isPlaying,
+            video.resumeTryNumberRef,
+            video.resetPlayerData,
+            shareVideoPlayerElements,
+        ],
     );
 
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;

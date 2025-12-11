@@ -17,9 +17,7 @@ function VolumeContextProvider({children}: ChildrenProps) {
             if (!currentVideoPlayerRef.current) {
                 return;
             }
-            // eslint-disable-next-line react-compiler/react-compiler
-            currentVideoPlayerRef.current.volume = newVolume;
-            currentVideoPlayerRef.current.muted = newVolume === 0;
+            currentVideoPlayerRef.current.setStatusAsync({volume: newVolume, isMuted: newVolume === 0});
 
             volume.set(newVolume);
         },

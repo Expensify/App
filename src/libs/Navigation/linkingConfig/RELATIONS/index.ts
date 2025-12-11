@@ -18,12 +18,12 @@ import WORKSPACES_LIST_TO_RHP from './WORKSPACES_LIST_TO_RHP';
 function createInverseRelation<T extends string, K extends string>(relations: Partial<Record<T, K | K[]>>): Record<K, T> {
     const reversedRelations = {} as Record<K, T>;
 
-    Object.entries(relations).forEach(([key, values]) => {
+    for (const [key, values] of Object.entries(relations)) {
         const valuesWithType = (Array.isArray(values) ? values : [values]) as K[];
-        valuesWithType.forEach((value: K) => {
+        for (const value of valuesWithType) {
             reversedRelations[value] = key as T;
-        });
-    });
+        }
+    }
     return reversedRelations;
 }
 
