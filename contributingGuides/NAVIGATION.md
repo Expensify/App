@@ -13,6 +13,9 @@ The navigation in the app is built on top of the `react-navigation` library. To 
     - [Dismissing modals with opening a report](#dismissing-modals-with-opening-a-report)
     - [Summary](#summary)
   - [Adding new screens](#adding-new-screens)
+  - [Multi-step flows with URL synchronization](#multi-step-flows-with-url-synchronization)
+    - [When to use](#when-to-use)
+    - [Implementation pattern](#implementation-pattern)
   - [Debugging](#debugging)
     - [Reading state when it changes](#reading-state-when-it-changes)
     - [Finding the code that calls the navigation function](#finding-the-code-that-calls-the-navigation-function)
@@ -328,6 +331,196 @@ export default NewSettingsScreen;
 ```
 
 5. Link the component to the screen. To do that you need to find a proper navigator:
+
+## Multi-step flows with URL synchronization
+
+Multi-step flows (wizards, forms with multiple screens) should use URL-based navigation via the `useSubPage` hook. This approach ensures browser navigation works correctly, users can bookmark or share specific steps, and page refreshes preserve the current position.
+
+### When to use
+
+Use `useSubPage` for any multi-step flow where:
+- Users progress through a series of screens to complete a task
+- Each step collects or displays different information
+- The flow has a final confirmation or summary step
+
+Common examples include:
+- Account setup wizards
+- Form flows with multiple sections
+- Settings configuration flows
+
+### Implementation pattern
+
+#### 1. Define your routes
+
+Add routes with a `subPage` parameter to `ROUTES.ts`. The `action` parameter is used for edit mode:
+
+```ts
+MY_FLOW: {
+    route: 'my-flow/:subPage/:action?',
+    getRoute: (subPage: string, action?: 'edit') => `my-flow/${subPage}${action ? `/${action}` : ''}` as const,
+},
+```
+
+#### 2. Add navigation config
+
+Register the screen in `linkingConfig/config.ts`:
+
+```ts
+[SCREENS.MY_FLOW]: {
+    path: ROUTES.MY_FLOW.route,
+    exact: true,
+},
+```
+
+#### 3. Define page constants
+
+Add page name constants to `CONST.ts`:
+
+```ts
+MY_FLOW: {
+    PAGE_NAME: {
+        STEP_ONE: 'step-one',
+        STEP_TWO: 'step-two',
+        CONFIRMATION: 'confirmation',
+    },
+},
+```
+
+#### 4. Create sub-page components
+
+Each sub-page receives `SubPageProps` and any custom props you define:
+
+```ts
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
+type CustomSubPageProps = SubPageProps & {
+    // Add custom props specific to your flow
+    formValues: MyFormType;
+};
+
+function StepOne({isEditing, onNext, onMove, formValues}: CustomSubPageProps) {
+    const handleSubmit = (data: FormData) => {
+        saveData(data);
+        onNext();
+    };
+
+    return (
+        <FormProvider onSubmit={handleSubmit}>
+            {/* Form fields */}
+        </FormProvider>
+    );
+}
+```
+
+#### 5. Implement the main flow component
+
+```ts
+import useSubPage from '@hooks/useSubPage';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
+type CustomSubPageProps = SubPageProps & {
+    formValues: MyFormType;
+};
+
+const pages = [
+    {pageName: CONST.MY_FLOW.PAGE_NAME.STEP_ONE, component: StepOne},
+    {pageName: CONST.MY_FLOW.PAGE_NAME.STEP_TWO, component: StepTwo},
+    {pageName: CONST.MY_FLOW.PAGE_NAME.CONFIRMATION, component: Confirmation},
+];
+
+function MyFlowContent() {
+    const {
+        CurrentPage,
+        isEditing,
+        currentPageName,
+        pageIndex,
+        prevPage,
+        nextPage,
+        lastPageIndex,
+        moveTo,
+        goToLastPage,
+    } = useSubPage<CustomSubPageProps>({
+        pages,
+        initialPageName: CONST.MY_FLOW.PAGE_NAME.STEP_ONE,
+        onFinished: () => {
+            // Handle flow completion
+            Navigation.goBack();
+        },
+        buildRoute: (pageName, action) => ROUTES.MY_FLOW.getRoute(pageName, action),
+    });
+
+    const handleBackButtonPress = () => {
+        if (isEditing) {
+            goToLastPage();
+            return;
+        }
+
+        if (currentPageName === CONST.MY_FLOW.PAGE_NAME.STEP_ONE) {
+            Navigation.goBack();
+            return;
+        }
+
+        prevPage();
+    };
+
+    return (
+        <ScreenWrapper>
+            <HeaderWithBackButton
+                title={translate('myFlow.title')}
+                onBackButtonPress={handleBackButtonPress}
+            />
+            <CurrentPage
+                isEditing={isEditing}
+                onNext={nextPage}
+                onMove={moveTo}
+                prevPage={prevPage}
+                currentPageName={currentPageName}
+                formValues={formValues}
+            />
+        </ScreenWrapper>
+    );
+}
+```
+
+#### 6. Handle edit mode
+
+The hook automatically manages edit mode via the `action=edit` URL parameter. When users navigate to a previous step using `moveTo()`, they enter edit mode. In edit mode, calling `nextPage()` returns them to the confirmation/last page instead of advancing sequentially:
+
+```ts
+// In Confirmation component - allow editing previous steps
+function Confirmation({onMove, formValues}: CustomSubPageProps) {
+    return (
+        <View>
+            <MenuItem
+                title={formValues.name}
+                description={translate('myFlow.name')}
+                onPress={() => onMove(CONST.MY_FLOW.PAGE_NAME.STEP_ONE)}
+            />
+            {/* More review items */}
+        </View>
+    );
+}
+```
+
+#### 7. Skip pages conditionally
+
+Use `skipPages` to conditionally skip steps based on user input or feature flags:
+
+```ts
+const skipPages = useMemo(() => {
+    const pagesToSkip: string[] = [];
+    if (!requiresAdditionalInfo) {
+        pagesToSkip.push(CONST.MY_FLOW.PAGE_NAME.STEP_TWO);
+    }
+    return pagesToSkip;
+}, [requiresAdditionalInfo]);
+
+const {...} = useSubPage<CustomSubPageProps>({
+    pages,
+    skipPages,
+    // ...other props
+});
+```
 
     - If you add a central screen, you will probably want to add it to one of the full-screen navigators (SettingsSplitNavigator, SearchFullScreenNavigator, etc.).
 

@@ -15,7 +15,7 @@ function findPageIndex<TProps extends SubPageProps>(pages: Array<PageConfig<TPro
 
 function findLastPageIndex<TProps extends SubPageProps>(pages: Array<PageConfig<TProps>>, skipPages: string[] = []): number {
     let lastIndex = pages.length - 1;
-    while (lastIndex >= 0 && skipPages.includes(pages.at(lastIndex).pageName)) {
+    while (lastIndex >= 0 && skipPages.includes(pages.at(lastIndex)?.pageName ?? '')) {
         lastIndex -= 1;
     }
     return lastIndex;
@@ -62,7 +62,7 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
 
     const prevPage = useCallback(() => {
         let targetIndex = pageIndex - 1;
-        while (targetIndex >= 0 && skipPages.includes(pages.at(targetIndex).pageName)) {
+        while (targetIndex >= 0 && skipPages.includes(pages.at(targetIndex)?.pageName ?? '')) {
             targetIndex -= 1;
         }
 
@@ -84,7 +84,7 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
             }
 
             let targetIndex = pageIndex + 1;
-            while (targetIndex < pages.length && skipPages.includes(pages.at(targetIndex).pageName)) {
+            while (targetIndex < pages.length && skipPages.includes(pages.at(targetIndex)?.pageName ?? '')) {
                 targetIndex += 1;
             }
 
@@ -120,9 +120,10 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
     );
 
     const goToLastPage = useCallback(() => {
-        if (lastPageName) {
-            navigateToPage(lastPageName);
+        if (!lastPageName) {
+            return;
         }
+        navigateToPage(lastPageName);
     }, [lastPageName, navigateToPage]);
 
     const currentPage = pages.at(pageIndex);
@@ -132,10 +133,10 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
         CurrentPage: currentPage?.component as ComponentType<SubPageProps & TProps>,
         isEditing,
         currentPageName,
-        pageIndex, // Keep for InteractiveStepSubHeader compatibility
+        pageIndex,
         prevPage,
         nextPage,
-        lastPageIndex, // Keep for InteractiveStepSubHeader compatibility
+        lastPageIndex,
         moveTo,
         resetToPage,
         goToLastPage,
