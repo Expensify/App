@@ -21,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import getSearchTopmostReportParams from './getSearchTopmostReportParams';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
@@ -36,7 +37,6 @@ import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationRef, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
-import getSearchTopmostReportParams from './getSearchTopmostReportParams';
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES = new Set<Route>([
