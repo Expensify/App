@@ -14,6 +14,8 @@ export default function (): void {
         return;
     }
 
+    badcode();
+    this.anothrtBadCode();
     const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, browserTracingIntegration].filter((integration) => !!integration);
 
     Sentry.init({
