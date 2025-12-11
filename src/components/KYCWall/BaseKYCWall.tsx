@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, View} from 'react-native';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
@@ -58,7 +59,12 @@ function KYCWall({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {formatPhoneNumber} = useLocalize();
-
+    const currentUserDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserDetails.email ?? '';
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.parentReportID}`, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const employeeEmail = personalDetails?.[iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login ?? '';
+    const reportPreviewAction = iouReport?.parentReportActionID ? parentReportActions?.[iouReport?.parentReportActionID] : undefined;
     const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
@@ -148,7 +154,8 @@ function KYCWall({
                         return;
                     }
 
-                    const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = createWorkspaceFromIOUPayment(iouReport) ?? {};
+                    const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} =
+                        createWorkspaceFromIOUPayment(iouReport, reportPreviewAction, currentUserEmail, employeeEmail) ?? {};
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
