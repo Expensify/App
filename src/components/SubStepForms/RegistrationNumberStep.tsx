@@ -92,6 +92,7 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
                 shouldSaveDraft={!isEditing}
                 autoFocus={!shouldDelayAutoFocus}
                 ref={internalInputRef}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
                 <Icon

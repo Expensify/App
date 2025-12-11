@@ -62,6 +62,7 @@ function SocialSecurityNumber({onNext, onMove, isEditing}: SubStepProps) {
             defaultValue={defaultSsnLast4}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             enabledWhenOffline
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }

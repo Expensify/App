@@ -2,7 +2,7 @@ import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import type {EventMapCore, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
@@ -14,7 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import onTabSelectHandler from './onTabSelectHandler';
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
 type OnyxTabNavigatorProps = ChildrenProps & {
@@ -111,7 +110,6 @@ function OnyxTabNavigator({
     equalWidth = false,
     ...rest
 }: OnyxTabNavigatorProps) {
-    const isFirstMount = useRef(true);
     // Mapping of tab name to focus trap container element
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`, {canBeMissing: true});
@@ -184,12 +182,6 @@ function OnyxTabNavigator({
                         const state = event.data.state;
                         const index = state.index;
                         const routeNames = state.routeNames;
-                        // For web-based platforms we need to focus the selected tab input once on first mount as well as
-                        // when the tab selection is changed via internal Pager onPageSelected (passed to the navigator)
-                        if (isFirstMount.current) {
-                            onTabSelectHandler(index, onTabSelect);
-                            isFirstMount.current = false;
-                        }
                         const newSelectedTab = routeNames.at(index);
                         if (selectedTab === newSelectedTab) {
                             return;

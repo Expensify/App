@@ -170,10 +170,15 @@ function IOURequestStepConfirmation({
     /*
      * We want to use a report from the transaction if it exists
      * Also if the report was submitted and delayed submission is on, then we should use an initial report
+     * Additionally, if neither reportReal nor reportDraft exist, we fallback to the transactionReport
+     * to ensure proper navigation after expense creation.
      */
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
-    const shouldUseTransactionReport =
-        transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
+    const reportWithDraftFallback = useMemo(() => reportReal ?? reportDraft, [reportDraft, reportReal]);
+    const canUseReport = !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
+
+    const shouldUseTransactionReport = !!transactionReport && (canUseReport || !reportWithDraftFallback);
+
     const report = useMemo(() => {
         if (isUnreported) {
             return undefined;
@@ -181,8 +186,8 @@ function IOURequestStepConfirmation({
         if (shouldUseTransactionReport) {
             return transactionReport;
         }
-        return reportReal ?? reportDraft;
-    }, [isUnreported, shouldUseTransactionReport, transactionReport, reportReal, reportDraft]);
+        return reportWithDraftFallback;
+    }, [isUnreported, shouldUseTransactionReport, transactionReport, reportWithDraftFallback]);
 
     const policy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : (policyReal ?? policyDraft);
     const policyID = isCreatingTrackExpense || isUnreported ? policyForMovingExpensesID : getIOURequestPolicyID(transaction, report);
@@ -193,6 +198,8 @@ function IOURequestStepConfirmation({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -277,7 +284,7 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, reportDrafts);
+                return participant.accountID ? getParticipantsOption(participant, personalDetails, true) : getReportOption(participant, reportAttributesDerived, reportDrafts);
             }) ?? [],
         [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts],
     );
@@ -347,10 +354,10 @@ function IOURequestStepConfirmation({
         }
 
         startMoneyRequest(
-            CONST.IOU.TYPE.CREATE,
-            // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+            iouType ?? CONST.IOU.TYPE.CREATE,
+            // When starting to create an expense from the global FAB, If there is not an existing report yet, a random optimistic reportID is generated and used
             // for all of the routes in the creation flow.
-            generateReportID(),
+            reportID ?? generateReportID(),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [isLoadingTransaction]);
@@ -364,7 +371,7 @@ function IOURequestStepConfirmation({
                 if (existingCategory) {
                     const isExistingCategoryEnabled = policyCategories?.[existingCategory]?.enabled;
                     if (isExistingCategoryEnabled) {
-                        setMoneyRequestCategory(item.transactionID, existingCategory, policy?.id);
+                        setMoneyRequestCategory(item.transactionID, existingCategory, policy);
                     }
                 }
                 continue;
@@ -382,7 +389,7 @@ function IOURequestStepConfirmation({
             if (!isDistanceRequest || !!item?.category) {
                 continue;
             }
-            setMoneyRequestCategory(item.transactionID, defaultCategory, policy?.id);
+            setMoneyRequestCategory(item.transactionID, defaultCategory, policy, isMovingTransactionFromTrackExpense);
         }
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -802,6 +809,7 @@ function IOURequestStepConfirmation({
                 backToReport,
                 isASAPSubmitBetaEnabled,
                 transactionViolations,
+                quickAction,
             });
         },
         [
@@ -822,6 +830,7 @@ function IOURequestStepConfirmation({
             backToReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            quickAction,
         ],
     );
 
@@ -886,6 +895,7 @@ function IOURequestStepConfirmation({
                             taxAmount: transactionTaxAmount,
                             shouldPlaySound: index === transactions.length - 1,
                             policyRecentlyUsedCategories,
+                            quickAction,
                         });
                     }
                 }
@@ -917,6 +927,7 @@ function IOURequestStepConfirmation({
                         policyRecentlyUsedCategories,
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
+                        quickAction,
                     });
                 }
                 return;
@@ -945,6 +956,7 @@ function IOURequestStepConfirmation({
                         policyRecentlyUsedCategories,
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
+                        quickAction,
                     });
                 }
                 return;
@@ -993,10 +1005,6 @@ function IOURequestStepConfirmation({
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                                 trackExpense(selectedParticipants);
                             },
-                            {
-                                maximumAge: CONST.GPS.MAX_AGE,
-                                timeout: CONST.GPS.TIMEOUT,
-                            },
                         );
                         return;
                     }
@@ -1043,10 +1051,6 @@ function IOURequestStepConfirmation({
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                             requestMoney(selectedParticipants);
                         },
-                        {
-                            maximumAge: CONST.GPS.MAX_AGE,
-                            timeout: CONST.GPS.TIMEOUT,
-                        },
                     );
                     return;
                 }
@@ -1061,9 +1065,9 @@ function IOURequestStepConfirmation({
         [
             iouType,
             transaction,
-            transactions,
             isDistanceRequest,
             isMovingTransactionFromTrackExpense,
+            isUnreported,
             receiptFiles,
             isCategorizingTrackExpense,
             isSharingTrackExpense,
@@ -1072,21 +1076,22 @@ function IOURequestStepConfirmation({
             createDistanceRequest,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
+            transactions,
             report,
             transactionTaxCode,
             transactionTaxAmount,
+            policyRecentlyUsedCategories,
+            quickAction,
+            isASAPSubmitBetaEnabled,
+            transactionViolations,
+            receiverParticipantAccountID,
+            existingInvoiceReport,
             policy,
             policyTags,
             policyCategories,
-            policyRecentlyUsedCategories,
             trackExpense,
             userLocation,
             submitPerDiemExpense,
-            existingInvoiceReport,
-            isUnreported,
-            isASAPSubmitBetaEnabled,
-            receiverParticipantAccountID,
-            transactionViolations,
         ],
     );
 
@@ -1107,6 +1112,7 @@ function IOURequestStepConfirmation({
                 setIsConfirmed(true);
                 sendMoneyElsewhere(
                     report,
+                    quickAction,
                     transaction.amount,
                     currency,
                     trimmedComment,
@@ -1123,6 +1129,7 @@ function IOURequestStepConfirmation({
                 setIsConfirmed(true);
                 sendMoneyWithWallet(
                     report,
+                    quickAction,
                     transaction.amount,
                     currency,
                     trimmedComment,
@@ -1145,6 +1152,7 @@ function IOURequestStepConfirmation({
             report,
             currentUserPersonalDetails.accountID,
             receiptFiles,
+            quickAction,
         ],
     );
 
@@ -1241,7 +1249,8 @@ function IOURequestStepConfirmation({
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
-    const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
+    const shouldShowSmartScanFields =
+        !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}

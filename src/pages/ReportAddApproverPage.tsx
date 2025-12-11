@@ -43,6 +43,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
 
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`, {canBeMissing: true});
 
     const employeeList = policy?.employeeList;
     const allApprovers = useMemo(() => {
@@ -97,9 +98,10 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             policy,
             hasViolations,
             isASAPSubmitBetaEnabled,
+            reportNextStep,
         );
-        Navigation.dismissModal();
-    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled]);
+        Navigation.dismissToPreviousRHP();
+    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep]);
 
     const button = useMemo(() => {
         return (

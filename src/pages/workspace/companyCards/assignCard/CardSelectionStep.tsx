@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -39,6 +40,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
     const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass'] as const);
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
@@ -67,7 +69,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             />
         ) : (
             <Icon
-                src={getCardFeedIcon(getCompanyCardFeed(feed), illustrations)}
+                src={getCardFeedIcon(getCompanyCardFeed(feed), illustrations, companyCardFeedIcons)}
                 height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={[styles.mr3, styles.cardIcon]}

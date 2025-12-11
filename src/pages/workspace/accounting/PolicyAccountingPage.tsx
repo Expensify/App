@@ -92,7 +92,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'NewWindow', 'ExpensifyCard'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'NewWindow', 'Key', 'Pencil', 'ExpensifyCard'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Accounting'] as const);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
@@ -134,7 +134,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(shouldShowEnterCredentials
                 ? [
                       {
-                          icon: Expensicons.Key,
+                          icon: icons.Key,
                           text: translate('workspace.accounting.enterCredentials'),
                           onSelected: () => startIntegrationFlow({name: connectedIntegration}),
                           shouldCallAfterModalHide: true,
@@ -157,7 +157,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldCallAfterModalHide: true,
             },
         ],
-        [icons.NewWindow, shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow],
+        [icons.Key, icons.NewWindow, shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow],
     );
 
     useFocusEffect(
@@ -326,7 +326,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
         const configurationOptions = [
             {
-                icon: Expensicons.Pencil,
+                icon: icons.Pencil,
                 iconRight: Expensicons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.import'),
@@ -401,6 +401,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         ];
     }, [
         icons.Gear,
+        icons.Pencil,
         policy,
         isSyncInProgress,
         policyID,

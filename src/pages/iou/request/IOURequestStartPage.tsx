@@ -27,7 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates, getPerDiemCustomUnit, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -69,7 +69,9 @@ function IOURequestStartPage({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
+    const [lastSelectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
+    const [selectedTab, setSelectedTab] = useState(lastSelectedTab);
+
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -82,6 +84,7 @@ function IOURequestStartPage({
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -137,6 +140,27 @@ function IOURequestStartPage({
         Navigation.closeRHPFlow();
     };
 
+    // This useEffect is used to initialize the money request, so that currency will be reset to default currency on page reload.
+    useEffect(() => {
+        if (transaction?.amount !== 0) {
+            return;
+        }
+        initMoneyRequest({
+            reportID,
+            policy,
+            isFromGlobalCreate,
+            currentIouRequestType: transaction?.iouRequestType,
+            newIouRequestType: transaction?.iouRequestType,
+            report,
+            parentReport,
+            currentDate,
+            lastSelectedDistanceRates,
+            currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
+        });
+        // eslint-disable-next-line
+    }, []);
+
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
             Keyboard.dismiss();
@@ -155,6 +179,7 @@ function IOURequestStartPage({
                 currentDate,
                 lastSelectedDistanceRates,
                 currentUserPersonalDetails,
+                hasOnlyPersonalPolicies,
             });
         },
         [
@@ -168,7 +193,16 @@ function IOURequestStartPage({
             currentDate,
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
         ],
+    );
+
+    const onTabSelected = useCallback(
+        (newIouType: IOURequestType) => {
+            setSelectedTab(newIouType);
+            resetIOUTypeIfChanged(newIouType);
+        },
+        [resetIOUTypeIfChanged],
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
@@ -251,7 +285,7 @@ function IOURequestStartPage({
                             <OnyxTabNavigator
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 defaultSelectedTab={defaultSelectedTab}
-                                onTabSelected={resetIOUTypeIfChanged}
+                                onTabSelected={onTabSelected}
                                 tabBar={TabSelector}
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}

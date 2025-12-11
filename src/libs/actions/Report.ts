@@ -170,7 +170,7 @@ import {
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {hasValidModifiedAmount, isOnHold} from '@libs/TransactionUtils';
+import {isOnHold} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -292,14 +292,6 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.CONCIERGE_REPORT_ID,
     callback: (value) => (conciergeReportID = value),
-});
-
-let preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE;
-Onyx.connect({
-    key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    callback: (value) => {
-        preferredSkinTone = EmojiUtils.getPreferredSkinToneIndex(value);
-    },
 });
 
 // map of reportID to all reportActions for that report
@@ -3054,6 +3046,7 @@ function createNewReport(
     isASAPSubmitBetaEnabled: boolean,
     policyID?: string,
     shouldNotifyNewAction = false,
+    shouldDismissEmptyReportsConfirmation?: boolean,
 ) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -3072,9 +3065,21 @@ function createNewReport(
         isASAPSubmitBetaEnabled,
     );
 
+    if (shouldDismissEmptyReportsConfirmation) {
+        Onyx.merge(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, true);
+    }
+
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
-        {reportName: optimisticReportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID, reportPreviewReportActionID},
+        {
+            reportName: optimisticReportName,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID,
+            reportID: optimisticReportID,
+            reportActionID,
+            reportPreviewReportActionID,
+            ...(shouldDismissEmptyReportsConfirmation ? {shouldDismissEmptyReportsConfirmation} : {}),
+        },
         {optimisticData, successData, failureData},
     );
     if (shouldNotifyNewAction) {
@@ -3467,7 +3472,7 @@ function clearIOUError(reportID: string | undefined) {
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  */
-function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: string | number = preferredSkinTone) {
+function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: number) {
     const createdAt = timezoneFormat(toZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3480,7 +3485,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
-                                [skinTone ?? CONST.EMOJI_DEFAULT_SKIN_TONE]: createdAt,
+                                [skinTone]: createdAt,
                             },
                         },
                     },
@@ -3561,7 +3566,7 @@ function toggleEmojiReaction(
     reportAction: ReportAction,
     reactionObject: Emoji,
     existingReactions: OnyxEntry<ReportActionReactions>,
-    paramSkinTone: number = preferredSkinTone,
+    paramSkinTone: number,
     ignoreSkinToneOnCompare = false,
 ) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -3582,7 +3587,7 @@ function toggleEmojiReaction(
     const existingReactionObject = existingReactions?.[emoji.name];
 
     // Only use skin tone if emoji supports it
-    const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
+    const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;
 
     if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
@@ -3952,6 +3957,13 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
+}
+
+/** Invites people to a room via concierge whisper */
+function inviteToRoomAction(reportID: string, ancestors: Ancestor[], inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, timezoneParam: Timezone) {
+    const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
+
+    addComment(reportID, reportID, ancestors, inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, false);
 }
 
 function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
@@ -5482,7 +5494,7 @@ function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, poli
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
             amount: -transaction.amount,
-            modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
+            modifiedAmount: transaction.modifiedAmount ? -transaction.modifiedAmount : 0,
         };
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
@@ -6280,6 +6292,7 @@ export {
     inviteToGroupChat,
     buildInviteToRoomOnyxData,
     inviteToRoom,
+    inviteToRoomAction,
     joinRoom,
     leaveGroupChat,
     leaveRoom,

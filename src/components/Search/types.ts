@@ -14,8 +14,17 @@ type SelectedTransactionInfo = {
     /** If the transaction can be deleted */
     canDelete: boolean;
 
+    /** If the transaction can be rejected */
+    canReject: boolean;
+
     /** If the transaction can be put on hold */
     canHold: boolean;
+
+    /** If the transaction can be splitted */
+    canSplit: boolean;
+
+    /** If the transaction has been splitted */
+    hasBeenSplit: boolean;
 
     /** If the transaction can be moved to other report */
     canChangeReport: boolean;
@@ -66,6 +75,11 @@ type SelectedReports = {
     total: number;
     currency?: string;
     chatReportID: string | undefined;
+    managerID?: number;
+    ownerAccountID?: number;
+    parentReportActionID?: string;
+    parentReportID?: string;
+    type?: string;
 };
 
 /** Model of payment data used by Search bulk actions */
