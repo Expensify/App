@@ -15,10 +15,9 @@ import FileUtils from './utils/FileUtils';
 import Git from './utils/Git';
 import type {DiffResult} from './utils/Git';
 import {log, bold as logBold, error as logError, info as logInfo, note as logNote, success as logSuccess, warn as logWarn} from './utils/Logger';
+import mapToObject from './utils/mapToObject';
 
 const TAB = '    ';
-
-const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
 
 const SUPPRESSED_COMPILER_ERRORS = [
     // This error is caused by an internal limitation of React Compiler
@@ -97,15 +96,13 @@ type BaseCheckOptions = PrintResultsOptions & {
     remote?: string;
     filterByDiff?: boolean;
     enforceNewComponents?: boolean;
-    report?: boolean;
-    reportFileName?: string;
 };
 
 type CheckOptions = BaseCheckOptions & {
     files?: string[];
 };
 
-async function check({files, remote, filterByDiff, enforceNewComponents, logLevel, verbose, report, reportFileName}: CheckOptions): Promise<boolean> {
+async function check({files, remote, filterByDiff, enforceNewComponents, logLevel, verbose}: CheckOptions): Promise<boolean> {
     const printResultsOptions: PrintResultsOptions = {logLevel, verbose};
 
     if (files) {
@@ -136,9 +133,7 @@ async function check({files, remote, filterByDiff, enforceNewComponents, logLeve
 
     const isPassed = printResults(results, printResultsOptions);
 
-    if (report) {
-        generateReport(results, reportFileName);
-    }
+    generateReport(results);
 
     return isPassed;
 }
@@ -726,36 +721,51 @@ function printFailures(failuresToPrint: FailureMap, level = 0) {
     }
 }
 
-/**
- * Generates a report of the React Compiler compliance check.
- * @param results - The compiler results to generate a report for
- * @param outputFileName - The file name to save the report to
- */
-function generateReport(results: CompilerResults, outputFileName = DEFAULT_REPORT_FILENAME): void {
-    log('\n');
-    logInfo('Creating React Compiler Compliance Check report:');
+type ManualMemoFailureObject = {
+    manualMemoizationMatches: ManualMemoizationMatch[];
+    compilerFailures: Record<string, CompilerFailure>;
+};
 
-    // Save detailed report
-    const reportFile = path.join(process.cwd(), outputFileName);
+/**
+ * Generates a report of the React Compiler compliance check and saves it to /tmp.
+ * @param results - The compiler results to generate a report for
+ */
+function generateReport({success, failures, suppressedFailures, enforcedAddedComponentFailures}: CompilerResults): void {
+    // Generate a unique filename with timestamp
+    const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
+    const reportFileName = `react-compiler-compliance-check-report-${timestamp}.json`;
+    const reportFile = path.join('/tmp', reportFileName);
+
+    const enforcedAddedComponentFailuresObject: Record<string, ManualMemoFailureObject> = {};
+    for (const [filePath, manualMemoFailure] of enforcedAddedComponentFailures ?? []) {
+        const manualMemoFailureObject: ManualMemoFailureObject = {
+            manualMemoizationMatches: manualMemoFailure.manualMemoizationMatches,
+            compilerFailures: mapToObject(manualMemoFailure.compilerFailures),
+        };
+        enforcedAddedComponentFailuresObject[filePath] = manualMemoFailureObject;
+    }
+
+    const resultsObject = {
+        success: Array.from(success),
+        failures: mapToObject(failures),
+        suppressedFailures: mapToObject(suppressedFailures),
+        enforcedAddedComponentFailures: enforcedAddedComponentFailuresObject,
+    };
+
     fs.writeFileSync(
         reportFile,
         JSON.stringify(
             {
                 timestamp: new Date().toISOString(),
-                summary: {
-                    total: results.success.size + results.failures.size,
-                    success: results.success.size,
-                    failure: results.failures.size,
-                },
-                success: results.success,
-                failures: results.failures,
+                results: resultsObject,
             },
             null,
             2,
         ),
     );
 
-    logSuccess(`Detailed report saved to: ${reportFile}`);
+    log();
+    logInfo(`Report saved to: ${reportFile}`);
 }
 
 const Checker = {
@@ -809,11 +819,6 @@ async function main() {
                     return val;
                 },
             },
-            reportFileName: {
-                description: 'File name to save the report to',
-                required: false,
-                default: DEFAULT_REPORT_FILENAME,
-            },
         },
         flags: {
             filterByDiff: {
@@ -831,25 +836,18 @@ async function main() {
                 required: false,
                 default: false,
             },
-            report: {
-                description: 'Generate a report of the results',
-                required: false,
-                default: false,
-            },
         },
     });
 
     const {command, file} = cli.positionalArgs;
-    const {remote, logLevel = 'error', reportFileName = DEFAULT_REPORT_FILENAME} = cli.namedArgs;
-    const {filterByDiff, enforceNewComponents, verbose, report} = cli.flags;
+    const {remote, logLevel = 'error'} = cli.namedArgs;
+    const {filterByDiff, enforceNewComponents, verbose} = cli.flags;
 
     const commonOptions: BaseCheckOptions = {
         filterByDiff,
         enforceNewComponents,
         logLevel: logLevel as LogLevel,
         verbose,
-        report,
-        reportFileName,
     };
 
     async function runCommand() {
