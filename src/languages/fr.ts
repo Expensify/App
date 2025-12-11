@@ -2936,10 +2936,9 @@ ${
         legalLastName: 'Nom de famille légal',
         address: 'Adresse',
         error: {
-            dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La date doit être antérieure au ${dateString}`,
-            dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La date doit être postérieure au ${dateString}`,
-            hasInvalidCharacter: 'Le nom ne peut inclure que des caractères latins',
-            hasInvalidCharacterWithHyphen: 'Le champ accepte les lettres, les espaces et les tirets',
+            dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La date doit être avant ${dateString}`,
+            dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La date doit être après ${dateString}`,
+            hasInvalidCharacter: 'Le nom ne peut inclure que des caractères latins.',
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Format de code postal incorrect${zipFormat ? `Format acceptable : ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Veuillez vous assurer que le numéro de téléphone est valide (p. ex. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },

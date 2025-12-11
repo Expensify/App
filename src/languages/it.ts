@@ -2926,9 +2926,8 @@ ${
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La data deve essere precedente a ${dateString}`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La data deve essere successiva a ${dateString}`,
             hasInvalidCharacter: 'Il nome può includere solo caratteri latini',
-            hasInvalidCharacterWithHyphen: 'Il campo accetta lettere, spazi e trattini',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Formato del codice postale non corretto${zipFormat ? `Formato accettabile: ${zipFormat}` : ''}`,
-            invalidPhoneNumber: `Assicurati che il numero di telefono sia valido (ad es. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Formato del codice postale errato${zipFormat ? `Formato accettabile: ${zipFormat}` : ''}`,
+            invalidPhoneNumber: `Si prega di assicurarsi che il numero di telefono sia valido (ad esempio ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
     resendValidationForm: {

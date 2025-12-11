@@ -2933,12 +2933,11 @@ ${
         legalLastName: 'Rechtlicher Nachname',
         address: 'Adresse',
         error: {
-            dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Das Datum sollte vor dem ${dateString} liegen`,
-            dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Datum muss nach ${dateString} liegen`,
-            hasInvalidCharacter: 'Name darf nur lateinische Zeichen enthalten',
-            hasInvalidCharacterWithHyphen: 'Das Feld akzeptiert Buchstaben, Leerzeichen und Bindestriche',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Ungültiges Postleitzahlformat${zipFormat ? `Akzeptables Format: ${zipFormat}` : ''}`,
-            invalidPhoneNumber: `Bitte stelle sicher, dass die Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Das Datum sollte vor dem ${dateString} liegen.`,
+            dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Das Datum sollte nach ${dateString} liegen.`,
+            hasInvalidCharacter: 'Der Name darf nur lateinische Zeichen enthalten.',
+            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Ungültiges Postleitzahlenformat${zipFormat ? `Acceptable format: ${zipFormat}` : ''}`,
+            invalidPhoneNumber: `Bitte stellen Sie sicher, dass die Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
     resendValidationForm: {

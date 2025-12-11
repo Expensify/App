@@ -2917,12 +2917,11 @@ ${
         legalLastName: '法的な姓',
         address: '住所',
         error: {
-            dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `日付は${dateString}より前でなければなりません`,
-            dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `日付は${dateString}より後である必要があります`,
-            hasInvalidCharacter: '名前にはラテン文字のみ使用できます',
-            hasInvalidCharacterWithHyphen: 'このフィールドでは、文字・スペース・ハイフンが使用できます',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `郵便番号の形式が正しくありません${zipFormat ? `許容される形式：${zipFormat}` : ''}`,
-            invalidPhoneNumber: `電話番号が有効であることを確認してください（例：${CONST.EXAMPLE_PHONE_NUMBER}）`,
+            dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `日付は${dateString}より前でなければなりません。`,
+            dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `日付は${dateString}以降である必要があります。`,
+            hasInvalidCharacter: '名前にはラテン文字のみを含めることができます。',
+            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `無効な郵便番号形式${zipFormat ? `許容される形式: ${zipFormat}` : ''}`,
+            invalidPhoneNumber: `電話番号が有効であることを確認してください (例: ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
     resendValidationForm: {

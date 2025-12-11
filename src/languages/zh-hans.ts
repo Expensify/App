@@ -2883,7 +2883,6 @@ ${
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `日期应早于 ${dateString}`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `日期应晚于 ${dateString}`,
             hasInvalidCharacter: '名称只能包含拉丁字符',
-            hasInvalidCharacterWithHyphen: '该字段可接受字母、空格和连字符',
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `邮政编码格式不正确${zipFormat ? `可接受的格式：${zipFormat}` : ''}`,
             invalidPhoneNumber: `请确保电话号码有效（例如：${CONST.EXAMPLE_PHONE_NUMBER}）`,
         },
