@@ -648,7 +648,9 @@ function MoneyReportHeader({
             }
         } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
-            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: moneyRequestReport?.reportID ?? ''}));
+            if (moneyRequestReport?.reportID) {
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: moneyRequestReport.reportID}));
+            }
         } else {
             dismissRejectUseExplanation();
             if (requestParentReportAction) {
