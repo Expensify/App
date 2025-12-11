@@ -14615,15 +14615,9 @@ function updateSplitTransactions({
             processedChildTransactionIDs.push(splitTransaction.transactionID);
         }
 
-        const splitReportActions = getAllReportActions(isReverseSplitOperation ? expenseReport?.reportID : splitTransaction?.reportID);
-        const currentReportAction = Object.values(splitReportActions).find((action) => {
-            const transactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
-            return transactionID === existingTransactionID;
-        });
-
-        // Determine if this split expense is going to a selfDM report
-        // If reportID is UNREPORTED_REPORT_ID (0), it's a selfDM split
-        let isSelfDMSplit = splitExpense.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        // Determine if this split expense is going to a selfDM report FIRST
+        // We need this before finding report actions because selfDM report actions are stored in selfDM report, not in "0"
+        let isSelfDMSplit = splitExpense.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || splitTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         let selfDMReportID: string | undefined = isSelfDMSplit ? originalSelfDMReportID : undefined;
 
         // If not already determined as selfDM, check the report hierarchy
@@ -14643,6 +14637,22 @@ function updateSplitTransactions({
                 selfDMReportID = splitExpenseChatReport?.reportID;
             }
         }
+
+        // For selfDM, report actions are stored in the selfDM report, not in "0"
+        let reportActionsReportID: string | undefined;
+        if (isReverseSplitOperation) {
+            reportActionsReportID = expenseReport?.reportID;
+        } else if (isSelfDMSplit) {
+            reportActionsReportID = selfDMReportID ?? originalSelfDMReportID;
+        } else {
+            reportActionsReportID = splitTransaction?.reportID;
+        }
+
+        const splitReportActions = getAllReportActions(reportActionsReportID);
+        const currentReportAction = Object.values(splitReportActions).find((action) => {
+            const transactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+            return transactionID === existingTransactionID;
+        });
 
         const requestMoneyInformation = {
             participantParams: {
@@ -14805,20 +14815,26 @@ function updateSplitTransactions({
 
     for (const undeletedTransaction of undeletedTransactions) {
         const splitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction?.transactionID}`];
-        const splitReportActions = getAllReportActions(splitTransaction?.reportID);
+        const isSelfDMTransaction = splitTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const reportActionsReportID = isSelfDMTransaction ? originalSelfDMReportID : splitTransaction?.reportID;
+        const splitReportActions = getAllReportActions(reportActionsReportID);
         const reportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${splitTransaction?.reportID}`];
         const isReportArchived = isArchivedReport(reportNameValuePairs);
         const currentReportAction = Object.values(splitReportActions).find((action) => {
             const transactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
             return transactionID === undeletedTransaction?.transactionID;
-        }) as ReportAction;
+        }) as ReportAction | undefined;
+
+        if (!currentReportAction) {
+            continue;
+        }
 
         const {
             optimisticData: deleteExpenseOptimisticData,
             failureData: deleteExpenseFailureData,
             successData: deleteExpenseSuccessData,
         } = getDeleteTrackExpenseInformation(
-            splitTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+            isSelfDMTransaction ? (originalSelfDMReportID ?? String(CONST.DEFAULT_NUMBER_ID)) : (splitTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)),
             undeletedTransaction?.transactionID,
             currentReportAction,
             undefined,
