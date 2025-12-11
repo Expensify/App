@@ -66,6 +66,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         let modalStyle: GetModalStyles['modalStyle'] = {
             margin: 0,
             ...outerStyle,
+            zIndex: variables.modalBaseZIndex,
         };
 
         let modalContainerStyle: GetModalStyles['modalContainerStyle'];
@@ -276,6 +277,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     flexDirection: 'row',
                     justifyContent: 'flex-end',
                     height: '100%',
+                    zIndex: variables.modalRightDockedZIndex,
                 };
                 modalContainerStyle = {
                     width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
