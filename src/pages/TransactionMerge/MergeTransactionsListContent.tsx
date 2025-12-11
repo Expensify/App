@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     fillMissingReceiptSource,
     getMergeableDataAndConflictFields,
@@ -47,9 +48,9 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const {isOffline} = useNetwork();
-    const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [originalTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
+    const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: false});
+    const [originalTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(targetTransaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransaction?.reportID)}`, {canBeMissing: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;

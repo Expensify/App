@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     buildMergeFieldsData,
     getMergeableDataAndConflictFields,
@@ -50,17 +51,20 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const styles = useThemeStyles();
     const {transactionID, backTo} = route.params;
 
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
-    const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
-        canBeMissing: true,
-    });
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(
+        `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(mergeTransaction?.targetTransactionID)}`,
+        {
+            canBeMissing: true,
+        },
+    );
 
-    const [hasOnceLoadedTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${targetTransaction?.reportID}`, {
+    const [hasOnceLoadedTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(targetTransaction?.reportID)}`, {
         selector: hasOnceLoadedTransactionThreadReportActionsSelector,
         canBeMissing: true,
     });
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
-    const [iouReportForTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
+    const [iouReportForTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransaction?.reportID)}`, {canBeMissing: true});
     const iouActionForTargetTransactionSelector = useCallback(
         (value: OnyxEntry<ReportActions>) => {
             if (!hasOnceLoadedTransactionThreadReportActions || !!targetTransactionThreadReportID || !targetTransaction?.transactionID) {
@@ -72,16 +76,19 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     );
 
     const [iouActionForTargetTransaction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction?.reportID}`,
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(targetTransaction?.reportID)}`,
         {
             selector: iouActionForTargetTransactionSelector,
             canBeMissing: true,
         },
         [iouActionForTargetTransactionSelector],
     );
-    const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
-        canBeMissing: true,
-    });
+    const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(
+        `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(mergeTransaction?.sourceTransactionID)}`,
+        {
+            canBeMissing: true,
+        },
+    );
     const [originalTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});

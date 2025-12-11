@@ -31,6 +31,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getSections} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -73,16 +74,18 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const currentUserDetails = useCurrentUserPersonalDetails();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
-    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportID}`, {canBeMissing: true});
+    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`, {canBeMissing: true});
     const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
-    const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionItem?.transactionID}`, {canBeMissing: true});
+    const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(oneTransactionItem?.transactionID)}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
         [oneTransactionItem?.reportAction?.reportActionID],
     );
-    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionItem?.reportID}`, {selector: parentReportActionSelector, canBeMissing: true}, [
-        oneTransactionItem,
-    ]);
+    const [parentReportAction] = originalUseOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`,
+        {selector: parentReportActionSelector, canBeMissing: true},
+        [oneTransactionItem],
+    );
     const transactionPreviewData: TransactionPreviewData = useMemo(
         () => ({hasParentReport: !!parentReport, hasTransaction: !!oneTransaction, hasParentReportAction: !!parentReportAction, hasTransactionThreadReport: !!oneTransactionThreadReport}),
         [parentReport, oneTransaction, parentReportAction, oneTransactionThreadReport],
