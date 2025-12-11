@@ -15,7 +15,6 @@ import FileUtils from './utils/FileUtils';
 import Git from './utils/Git';
 import type {DiffResult} from './utils/Git';
 import {log, bold as logBold, error as logError, info as logInfo, note as logNote, success as logSuccess, warn as logWarn} from './utils/Logger';
-import mapToObject from './utils/mapToObject';
 
 const TAB = '    ';
 
@@ -740,15 +739,15 @@ function generateReport({success, failures, suppressedFailures, enforcedAddedCom
     for (const [filePath, manualMemoFailure] of enforcedAddedComponentFailures ?? []) {
         const manualMemoFailureObject: ManualMemoFailureObject = {
             manualMemoizationMatches: manualMemoFailure.manualMemoizationMatches,
-            compilerFailures: mapToObject(manualMemoFailure.compilerFailures),
+            compilerFailures: Object.fromEntries(manualMemoFailure.compilerFailures?.entries() ?? []),
         };
         enforcedAddedComponentFailuresObject[filePath] = manualMemoFailureObject;
     }
 
     const resultsObject = {
         success: Array.from(success),
-        failures: mapToObject(failures),
-        suppressedFailures: mapToObject(suppressedFailures),
+        failures: Object.fromEntries(failures.entries()),
+        suppressedFailures: Object.fromEntries(suppressedFailures.entries()),
         enforcedAddedComponentFailures: enforcedAddedComponentFailuresObject,
     };
 
