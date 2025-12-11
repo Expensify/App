@@ -9690,7 +9690,11 @@ function shouldShowFlagComment(reportAction: OnyxInputOrEntry<ReportAction>, rep
  * Used for compatibility with the backend auth validator for AddComment, and to account for MD in comments
  * @returns The comment's total length as seen from the backend
  */
-function getCommentLength(textComment: string, parsingDetails?: ParsingDetails): number {
+function getCommentLength(textComment: string, parsingDetails?: ParsingDetails, unicodeCharLength = false): number {
+    if (unicodeCharLength) {
+        return getParsedComment(textComment, parsingDetails).trim().length;
+    }
+
     return getParsedComment(textComment, parsingDetails)
         .replaceAll(/[^ -~]/g, '\\u????')
         .trim().length;

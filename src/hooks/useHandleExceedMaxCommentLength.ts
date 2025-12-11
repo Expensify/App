@@ -7,7 +7,7 @@ const useHandleExceedMaxCommentLength = () => {
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
 
     const validateCommentMaxLength = useCallback((value: string, parsingDetails?: ParsingDetails) => {
-        const exceeded = getCommentLength(value, parsingDetails) > CONST.MAX_COMMENT_LENGTH;
+        const exceeded = getCommentLength(value, parsingDetails, true) > CONST.MAX_COMMENT_LENGTH;
         setHasExceededMaxCommentLength(exceeded);
         return !exceeded;
     }, []);
