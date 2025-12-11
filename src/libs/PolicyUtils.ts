@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate, Transaction} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -180,6 +180,24 @@ function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | unde
  */
 function getPerDiemCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+}
+
+/**
+ * Finds a policy that contains the customUnitID from the transaction
+ */
+function getPolicyByCustomUnitID(transaction: OnyxEntry<Transaction>, policies: OnyxCollection<Policy>): OnyxEntry<Policy> {
+    const customUnitID = transaction?.comment?.customUnit?.customUnitID;
+
+    if (!customUnitID || !policies) {
+        return undefined;
+    }
+
+    return Object.values(policies).find((policy) => {
+        if (!policy?.customUnits || !policy?.arePerDiemRatesEnabled) {
+            return false;
+        }
+        return customUnitID in policy.customUnits;
+    });
 }
 
 /**
@@ -1677,6 +1695,7 @@ export {
     getSageIntacctBankAccounts,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
+    getPolicyByCustomUnitID,
     getDistanceRateCustomUnitRate,
     getPerDiemRateCustomUnitRate,
     sortWorkspacesBySelected,
