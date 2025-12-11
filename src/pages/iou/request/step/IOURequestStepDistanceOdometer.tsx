@@ -265,6 +265,14 @@ function IOURequestStepDistanceOdometer({
         [transactionID],
     );
 
+    const handleViewOdometerImage = useCallback(
+        (imageType: 'start' | 'end') => {
+            // Navigate to receipt modal with imageType parameter
+            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, false, false, undefined, imageType));
+        },
+        [reportID, transactionID],
+    );
+
     // Navigate to confirmation page helper - following Manual tab pattern
     const navigateToConfirmationPage = useCallback(() => {
         switch (iouType) {
@@ -385,7 +393,13 @@ function IOURequestStepDistanceOdometer({
                         </View>
                         <PressableWithFeedback
                             accessible={false}
-                            onPress={() => handleCaptureImage('start')}
+                            onPress={() => {
+                                if (odometerStartImage) {
+                                    handleViewOdometerImage('start');
+                                } else {
+                                    handleCaptureImage('start');
+                                }
+                            }}
                             style={[
                                 StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
                                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
@@ -423,7 +437,13 @@ function IOURequestStepDistanceOdometer({
                         </View>
                         <PressableWithFeedback
                             accessible={false}
-                            onPress={() => handleCaptureImage('end')}
+                            onPress={() => {
+                                if (odometerEndImage) {
+                                    handleViewOdometerImage('end');
+                                } else {
+                                    handleCaptureImage('end');
+                                }
+                            }}
                             style={[
                                 StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
                                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
@@ -449,8 +469,7 @@ function IOURequestStepDistanceOdometer({
                     {/* Total Distance Display - always shown, updated live */}
                     <View style={[styles.mb4, styles.borderRadiusComponentNormal, {backgroundColor: theme.componentBG}]}>
                         <Text style={[styles.textSupporting]}>
-                            {translate('distance.odometer.totalDistance')}:{' '}
-                            {totalDistance !== null ? roundToTwoDecimalPlaces(totalDistance) : '0'} {unit}
+                            {`${translate('distance.odometer.totalDistance')}: ${totalDistance !== null ? roundToTwoDecimalPlaces(totalDistance) : '0'} ${unit}`}
                         </Text>
                     </View>
                 </View>

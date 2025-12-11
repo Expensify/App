@@ -68,8 +68,10 @@ import {
     hasReceipt,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isOdometerDistanceRequest,
     isScanRequest,
 } from '@libs/TransactionUtils';
+import useOdometerImageMerging from '@hooks/useOdometerImageMerging';
 import type {GpsPoint} from '@userActions/IOU';
 import {
     createDistanceRequest as createDistanceRequestIOUActions,
@@ -123,6 +125,13 @@ function IOURequestStepConfirmation({
     transaction: initialTransaction,
     isLoadingTransaction,
 }: IOURequestStepConfirmationProps) {
+    console.log('[IOURequestStepConfirmation] Component rendered', {
+        transactionID: initialTransactionID,
+        iouType,
+        action,
+        hasInitialTransaction: !!initialTransaction,
+    });
+    
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const allPolicyCategories = usePolicyCategories();
@@ -252,6 +261,85 @@ function IOURequestStepConfirmation({
     const receiptFilename = transaction?.receipt?.filename;
     const receiptPath = transaction?.receipt?.source;
     const isEditingReceipt = hasReceipt(transaction);
+    
+    // Odometer image merging
+    const isOdometerRequest = transaction ? isOdometerDistanceRequest(transaction) : false;
+    const odometerStartImage = transaction?.comment?.odometerStartImage;
+    const odometerEndImage = transaction?.comment?.odometerEndImage;
+    const {mergeOdometerImages, isMerging, mergeError, mergeViewShotComponent} = useOdometerImageMerging();
+    
+    // Merge odometer images when both exist and no receipt has been created yet
+    useEffect(() => {
+        // Always log to see if useEffect is being called
+        console.log('[IOURequestStepConfirmation] useEffect called for odometer merge', {
+            hasTransaction: !!transaction,
+            transactionID: currentTransactionID,
+            isOdometerRequest,
+            hasStartImage: !!odometerStartImage,
+            hasEndImage: !!odometerEndImage,
+            hasReceipt: !!transaction?.receipt?.source,
+            isMerging,
+            iouRequestType: transaction?.iouRequestType,
+            odometerStart: transaction?.comment?.odometerStart,
+            odometerEnd: transaction?.comment?.odometerEnd,
+        });
+        
+        // Don't proceed if transaction is not loaded yet
+        if (!transaction) {
+            console.log('[IOURequestStepConfirmation] Transaction not loaded yet, skipping merge');
+            return;
+        }
+        
+        // Log all conditions for debugging
+        const debugInfo = {
+            isOdometerRequest,
+            hasStartImage: !!odometerStartImage,
+            hasEndImage: !!odometerEndImage,
+            hasReceipt: !!transaction?.receipt?.source,
+            isMerging,
+            transactionID: currentTransactionID,
+        };
+        
+        Log.info('[IOURequestStepConfirmation] Odometer merge check', debugInfo);
+        
+        const shouldMerge = 
+            isOdometerRequest &&
+            odometerStartImage &&
+            odometerEndImage &&
+            !transaction?.receipt?.source &&
+            !isMerging;
+            
+        console.log('[IOURequestStepConfirmation] shouldMerge:', shouldMerge, debugInfo);
+        
+        if (shouldMerge) {
+            console.log('[IOURequestStepConfirmation] Starting merge!', {
+                startImageType: typeof odometerStartImage,
+                endImageType: typeof odometerEndImage,
+                startImageIsFile: odometerStartImage instanceof File,
+                endImageIsFile: odometerEndImage instanceof File,
+            });
+            Log.info('[IOURequestStepConfirmation] Starting odometer image merge', {
+                transactionID: currentTransactionID,
+                action,
+                iouType,
+            });
+            mergeOdometerImages(odometerStartImage, odometerEndImage, currentTransactionID, action, iouType)
+                .then(() => {
+                    console.log('[IOURequestStepConfirmation] Merge completed successfully');
+                })
+                .catch((error) => {
+                    console.error('[IOURequestStepConfirmation] Merge error:', error);
+                    Log.warn('[IOURequestStepConfirmation] Failed to merge odometer images:', error);
+                });
+        } else {
+            console.log('[IOURequestStepConfirmation] Merge conditions not met', {
+                shouldMerge: false,
+                ...debugInfo,
+            });
+        }
+        // mergeOdometerImages is stable (useCallback with empty deps), so we don't need it in dependencies
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [transaction, isOdometerRequest, odometerStartImage, odometerEndImage, transaction?.receipt?.source, currentTransactionID, action, iouType, isMerging]);
     const customUnitRateID = getRateID(transaction) ?? '';
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
@@ -1326,7 +1414,7 @@ function IOURequestStepConfirmation({
                         receiptFilename={receiptFilename}
                         iouType={iouType}
                         reportID={reportID}
-                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest) && !isPerDiemRequest}
+                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerRequest) && !isPerDiemRequest}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policyID}
                         iouMerchant={transaction?.merchant}
@@ -1343,6 +1431,8 @@ function IOURequestStepConfirmation({
                         expensesNumber={transactions.length}
                         isReceiptEditable
                     />
+                    {/* Render ViewShot component for image merging (hidden, off-screen) */}
+                    {mergeViewShotComponent}
                 </View>
                 <ConfirmModal
                     title={translate('iou.removeExpense')}
@@ -1362,7 +1452,4 @@ function IOURequestStepConfirmation({
 IOURequestStepConfirmation.displayName = 'IOURequestStepConfirmation';
 
 /* eslint-disable rulesdir/no-negated-variables */
-const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmation);
-/* eslint-disable rulesdir/no-negated-variables */
-const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationWithFullTransactionOrNotFound);
-export default IOURequestStepConfirmationWithWritableReportOrNotFound;
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepConfirmation));

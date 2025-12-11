@@ -2297,6 +2297,7 @@ export {
     isDistanceRequest,
     isMapDistanceRequest,
     isManualDistanceRequest,
+    isOdometerDistanceRequest,
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
