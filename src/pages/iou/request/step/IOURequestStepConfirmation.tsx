@@ -196,6 +196,7 @@ function IOURequestStepConfirmation({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${realPolicyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedCurrencies = []] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
@@ -810,6 +811,7 @@ function IOURequestStepConfirmation({
                 isASAPSubmitBetaEnabled,
                 transactionViolations,
                 quickAction,
+                policyRecentlyUsedCurrencies,
             });
         },
         [
@@ -896,6 +898,7 @@ function IOURequestStepConfirmation({
                             shouldPlaySound: index === transactions.length - 1,
                             policyRecentlyUsedCategories,
                             quickAction,
+                            policyRecentlyUsedCurrencies,
                         });
                     }
                 }
@@ -928,6 +931,7 @@ function IOURequestStepConfirmation({
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
                         quickAction,
+                        policyRecentlyUsedCurrencies,
                     });
                 }
                 return;
@@ -957,6 +961,7 @@ function IOURequestStepConfirmation({
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
                         quickAction,
+                        policyRecentlyUsedCurrencies,
                     });
                 }
                 return;
