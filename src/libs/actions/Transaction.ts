@@ -955,13 +955,30 @@ function changeTransactionsReport(
 
             if (oldReportCurrency === transactionCurrency || willBeEmpty) {
                 const baseTotal = willBeEmpty ? 0 : (updatedReportTotals[oldReportID] ?? oldReportTotal);
-                updatedReportTotals[oldReportID] = baseTotal + (willBeEmpty ? 0 : transactionAmount);
 
                 const baseNonReimb = willBeEmpty ? 0 : (updatedReportNonReimbursableTotals[oldReportID] ?? oldReport?.nonReimbursableTotal ?? 0);
-                updatedReportNonReimbursableTotals[oldReportID] = baseNonReimb + (willBeEmpty ? 0 : transaction?.reimbursable ? 0 : transactionAmount);
 
                 const baseUnheld = willBeEmpty ? 0 : (updatedReportUnheldNonReimbursableTotals[oldReportID] ?? oldReport?.unheldNonReimbursableTotal ?? 0);
-                updatedReportUnheldNonReimbursableTotals[oldReportID] = baseUnheld + (willBeEmpty ? 0 : transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
+
+                let addToTotal = 0;
+                let addToNonReimb = 0;
+                let addToUnheld = 0;
+
+                if (!willBeEmpty) {
+                    addToTotal = transactionAmount;
+
+                    if (!transaction?.reimbursable) {
+                        addToNonReimb = transactionAmount;
+
+                        if (!isOnHold(transaction)) {
+                            addToUnheld = transactionAmount;
+                        }
+                    }
+                }
+
+                updatedReportTotals[oldReportID] = baseTotal + addToTotal;
+                updatedReportNonReimbursableTotals[oldReportID] = baseNonReimb + addToNonReimb;
+                updatedReportUnheldNonReimbursableTotals[oldReportID] = baseUnheld + addToUnheld;
             }
         }
 
