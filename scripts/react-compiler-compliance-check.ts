@@ -617,7 +617,7 @@ function printResults({success, reactCompilerErrors, suppressedErrors, manualMem
 
         for (const [error, suppressedErrorFiles] of suppressedErrorMap) {
             logBold(error);
-            const filesLine = suppressedErrorFiles.map((error) => getUniqueFileKey(error)).join(', ');
+            const filesLine = suppressedErrorFiles.map((suppressedError) => getUniqueFileKey(suppressedError)).join(', ');
             logNote(`${TAB} - ${filesLine}`);
         }
 
