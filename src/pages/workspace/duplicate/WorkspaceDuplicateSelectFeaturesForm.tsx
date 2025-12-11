@@ -1,13 +1,14 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {PressableWithFeedback} from '@components/Pressable';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -31,11 +32,11 @@ type WorkspaceDuplicateFormProps = {
 function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
     const isCollect = isCollectPolicy(policy);
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
     const [duplicatedWorkspaceAvatar, setDuplicatedWorkspaceAvatar] = useState<File | undefined>();
-    const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
     const allIds = getMemberAccountIDsForWorkspace(policy?.employeeList);
     const totalMembers = Object.keys(allIds).length;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -231,21 +232,33 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         Navigation.closeRHPFlow();
     }, [duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, policyCategories, selectedItems, translate, duplicatedWorkspaceAvatar]);
 
-    const confirmDuplicateAndHideModal = useCallback(() => {
-        setIsDuplicateModalOpen(false);
-        if (!policy || !duplicateWorkspace?.name || !duplicateWorkspace?.policyID) {
-            return;
-        }
-        confirmDuplicate();
-    }, [confirmDuplicate, duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy]);
-
-    const onConfirmSelectList = useCallback(() => {
+    const onConfirmSelectList = useCallback(async () => {
         if (!totalMembers || totalMembers < 2 || !selectedItems.includes('members')) {
             confirmDuplicate();
             return;
         }
-        setIsDuplicateModalOpen(true);
-    }, [confirmDuplicate, selectedItems, totalMembers]);
+
+        const result = await showConfirmModal({
+            title: translate('workspace.common.duplicateWorkspace'),
+            prompt: (
+                <>
+                    <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting, styles.mb3]}>
+                        {translate('workspace.duplicateWorkspace.confirmTitle', {
+                            newWorkspaceName: duplicateWorkspace?.name,
+                            totalMembers,
+                        })}
+                    </Text>
+                    <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.duplicateWorkspace.confirmDuplicate')}</Text>
+                </>
+            ),
+            confirmText: translate('workspace.common.duplicateWorkspace'),
+            cancelText: translate('common.cancel'),
+        });
+
+        if (result.action === ModalActions.CONFIRM && policy && duplicateWorkspace?.name && duplicateWorkspace?.policyID) {
+            confirmDuplicate();
+        }
+    }, [confirmDuplicate, selectedItems, totalMembers, showConfirmModal, translate, styles, duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy]);
 
     const toggleAllItems = useCallback(() => {
         if (selectedItems.length === items.length) {
@@ -358,26 +371,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                     />
                 </View>
             </>
-            <ConfirmModal
-                title={translate('workspace.common.duplicateWorkspace')}
-                isVisible={isDuplicateModalOpen}
-                onConfirm={confirmDuplicateAndHideModal}
-                onCancel={() => setIsDuplicateModalOpen(false)}
-                prompt={
-                    <Text>
-                        <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting, styles.mb3]}>
-                            {translate('workspace.duplicateWorkspace.confirmTitle', {
-                                newWorkspaceName: duplicateWorkspace?.name,
-                                totalMembers,
-                            })}
-                        </Text>
-                        <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.duplicateWorkspace.confirmDuplicate')}</Text>
-                    </Text>
-                }
-                confirmText={translate('common.proceed')}
-                cancelText={translate('common.cancel')}
-                success
-            />
         </>
     );
 }

@@ -2,11 +2,12 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
@@ -36,6 +37,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const {policyID, cardID, backTo} = route.params;
 
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
 
     const policy = usePolicy(policyID);
@@ -52,7 +54,6 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
             : 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning';
 
     const [typeSelected, setTypeSelected] = useState(initialLimitType);
-    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const currency = useCurrencyForExpensifyCard({policyID});
     const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE;
@@ -71,15 +72,12 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
 
     useFocusEffect(fetchCardLimitTypeData);
 
-    const updateCardLimitType = () => {
-        setIsConfirmModalVisible(false);
-
+    const updateCardLimitType = useCallback(() => {
         updateExpensifyCardLimitType(defaultFundID, Number(cardID), typeSelected, card?.nameValuePairs?.limitType);
-
         goBack();
-    };
+    }, [defaultFundID, cardID, typeSelected, card?.nameValuePairs?.limitType, goBack]);
 
-    const submit = () => {
+    const submit = useCallback(async () => {
         let shouldShowConfirmModal = false;
         if (!!card?.unapprovedSpend && card?.nameValuePairs?.unapprovedExpenseLimit) {
             // Spends are coming as negative numbers from the backend and we need to make it positive for the correct expression.
@@ -101,11 +99,32 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         }
 
         if (shouldShowConfirmModal) {
-            setIsConfirmModalVisible(true);
+            const result = await showConfirmModal({
+                title: translate('workspace.expensifyCard.changeCardLimitType'),
+                prompt: translate(promptTranslationKey, {limit: convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)}),
+                confirmText: translate('workspace.expensifyCard.changeLimitType'),
+                cancelText: translate('common.cancel'),
+                danger: true,
+                shouldEnableNewFocusManagement: true,
+            });
+
+            if (result.action === ModalActions.CONFIRM) {
+                updateCardLimitType();
+            }
         } else {
             updateCardLimitType();
         }
-    };
+    }, [
+        card?.unapprovedSpend,
+        card?.nameValuePairs?.unapprovedExpenseLimit,
+        initialLimitType,
+        typeSelected,
+        showConfirmModal,
+        translate,
+        promptTranslationKey,
+        updateCardLimitType,
+        currency,
+    ]);
 
     const data = useMemo(() => {
         const options = [];
@@ -177,17 +196,6 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                         shouldUpdateFocusedIndex
                         alternateNumberOfSupportedLines={2}
                         initiallyFocusedItemKey={typeSelected}
-                    />
-                    <ConfirmModal
-                        title={translate('workspace.expensifyCard.changeCardLimitType')}
-                        isVisible={isConfirmModalVisible}
-                        onConfirm={updateCardLimitType}
-                        onCancel={() => setIsConfirmModalVisible(false)}
-                        prompt={translate(promptTranslationKey, {limit: convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)})}
-                        confirmText={translate('workspace.expensifyCard.changeLimitType')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                        shouldEnableNewFocusManagement
                     />
                     <Button
                         success
