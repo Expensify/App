@@ -171,7 +171,7 @@ function IOURequestEditReportCommon({
                 return true;
             })
             .filter((report) => {
-                if (canAddTransaction(report)) {
+                if (canAddTransaction(report, undefined, true)) {
                     return true;
                 }
 
@@ -188,6 +188,7 @@ function IOURequestEditReportCommon({
                     // We set it to null here to prevent showing RBR for reports https://github.com/Expensify/App/issues/65960.
                     brickRoadIndicator: null,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     text: getReportName(report),
                     value: report.reportID,
                     keyForList: report.reportID,

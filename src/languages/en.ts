@@ -723,6 +723,8 @@ const translations = {
         thisIsTakingLongerThanExpected: 'This is taking longer than expected...',
         domains: 'Domains',
         actionRequired: 'Action required',
+        duplicate: 'Duplicate',
+        duplicated: 'Duplicated',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -6071,7 +6073,7 @@ const translations = {
                 adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
-                title: 'Expense reports',
+                title: 'Advanced',
                 subtitle: 'Automate expense report compliance, approvals, and payment.',
                 preventSelfApprovalsTitle: 'Prevent self-approvals',
                 preventSelfApprovalsSubtitle: 'Prevent workspace members from approving their own expense reports.',
@@ -6087,8 +6089,7 @@ const translations = {
                 autoPayApprovedReportsLockedSubtitle: 'Go to more features and enable workflows, then add payments to unlock this feature.',
                 autoPayReportsUnderTitle: 'Auto-pay reports under',
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Go to [more features](${moreFeaturesLink}) and enable workflows, then add ${featureName} to unlock this feature.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
             },
             categoryRules: {
@@ -6403,6 +6404,60 @@ const translations = {
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `changed the default approver to ${newApprover} (previously ${previousApprover})` : `changed the default approver to ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `changed the approval workflow for ${members} to submit reports to ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previously default approver ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (previously default approver)';
+            } else if (previousApprover) {
+                text += ` (previously ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `changed the approval workflow for ${members} to submit reports to the default approver ${approver}`
+                : `changed the approval workflow for ${members} to submit reports to the default approver`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previously default approver ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (previously default approver)';
+            } else if (previousApprover) {
+                text += ` (previously ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `changed the approval workflow for ${approver} to forward approved reports to ${forwardsTo} (previously forwarded to ${previousForwardsTo})`
+                : `changed the approval workflow for ${approver} to forward approved reports to ${forwardsTo} (previously final approved reports)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `changed the approval workflow for ${approver} to stop forwarding approved reports (previously forwarded to ${previousForwardsTo})`
+                : `changed the approval workflow for ${approver} to stop forwarding approved reports`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
