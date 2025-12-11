@@ -493,7 +493,7 @@ async function filterResultsByDiff(results: CompilerResults, mainBaseCommitHash:
  * @param diffResult - The diff result to check for added files
  * @returns The compiler results partitioned into manual memo errors and react compiler errors
  */
-function enforceAutomaticMemoization({success, failures: reactCompilerFailures}: CompilerResults, diffResult: DiffResult) {
+function enforceAutomaticMemoization({success, failures: reactCompilerFailures}: CompilerResults, diffResult: DiffResult, {mode}: CheckOptions) {
     const distinctFailureFileNames = getDistinctFailureFileNames(reactCompilerFailures);
 
     // Add added files from the diff that are already compiled successfully,
@@ -503,10 +503,16 @@ function enforceAutomaticMemoization({success, failures: reactCompilerFailures}:
         const filePath = file.filePath;
 
         const isReactComponentSourceFile = MANUAL_MEMOIZATION_FILE_EXTENSIONS.some((extension) => filePath.endsWith(extension));
-        const isSuccessfullyCompiled = success.has(filePath);
-        const isAddedFile = file.diffType === 'added';
 
-        if (isReactComponentSourceFile && isSuccessfullyCompiled && isAddedFile) {
+        const isSuccessfullyCompiled = success.has(filePath);
+        if (!isReactComponentSourceFile || !isSuccessfullyCompiled) {
+            continue;
+        }
+
+        // In static mode, we always enforce automatic memoization in successfully compiled files.
+        // In incremental mode, we enforce automatic memoization only for successfully compiled added files
+        const isAddedFile = file.diffType === 'added';
+        if (mode === 'static' || isAddedFile) {
             distinctFailureFileNames.add(filePath);
             enforcedAutoMemoFiles.add(filePath);
         }
