@@ -221,12 +221,7 @@ function useSelectedTransactionsActions({
 
         const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(id));
         const canRejectTransactions =
-            selectedTransactionsList.length > 0 &&
-            isMoneyRequestReport &&
-            !!session?.email &&
-            !!report &&
-            canRejectReportAction(session.email, report, policy) &&
-            hasNoRejectedTransaction;
+            selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report, policy) && hasNoRejectedTransaction;
         if (canRejectTransactions) {
             options.push({
                 text: translate('search.bulkActions.reject'),
