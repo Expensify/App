@@ -1048,7 +1048,7 @@ function handleBulkPayItemSelected(params: {
     latestBankItems: BankAccountMenuItem[] | undefined;
     activeAdminPolicies: Policy[];
     isUserValidated: boolean | undefined;
-    userAccountID: number | undefined:
+    userAccountID: number | undefined;
     isDelegateAccessRestricted: boolean;
     showDelegateNoAccessModal: () => void;
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void;
