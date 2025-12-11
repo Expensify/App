@@ -2988,6 +2988,22 @@ function getPolicyChangeLogDefaultReimbursableMessage(action: ReportAction): str
     return getReportActionText(action);
 }
 
+function getPolicyChangeLogDefaultTitleMessage(action: ReportAction): string {
+    const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE>) as
+        | {oldDefaultTitle?: string; newDefaultTitle?: string}
+        | undefined;
+
+    if (originalMessage?.newDefaultTitle !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.changedCustomReportNameFormula', {
+            newValue: originalMessage.newDefaultTitle,
+            oldValue: originalMessage.oldDefaultTitle ?? '',
+        });
+    }
+
+    return getReportActionText(action);
+}
+
 function getPolicyChangeLogDefaultTitleEnforcedMessage(action: ReportAction): string {
     const {value} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED>) ?? {};
 
@@ -3552,6 +3568,7 @@ export {
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceReportFieldAddMessage,
