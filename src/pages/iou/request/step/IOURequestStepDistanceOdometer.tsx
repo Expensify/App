@@ -259,6 +259,9 @@ function IOURequestStepDistanceOdometer({
 
     const handleViewOdometerImage = useCallback(
         (imageType: 'start' | 'end') => {
+            if (!reportID || !transactionID) {
+                return;
+            }
             // Navigate to receipt modal with imageType parameter
             Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, false, false, undefined, imageType));
         },
@@ -267,6 +270,9 @@ function IOURequestStepDistanceOdometer({
 
     // Navigate to confirmation page helper - following Manual tab pattern
     const navigateToConfirmationPage = useCallback(() => {
+        if (!transactionID || !reportID) {
+            return;
+        }
         switch (iouType) {
             case CONST.IOU.TYPE.REQUEST:
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
@@ -316,7 +322,9 @@ function IOURequestStepDistanceOdometer({
         }
 
         // If there was no reportID, navigate to participant page
-        navigateToParticipantPage(iouType, transactionID, reportID);
+        if (transactionID && reportID) {
+            navigateToParticipantPage(iouType, transactionID, reportID);
+        }
     }, [
         startReading,
         endReading,
