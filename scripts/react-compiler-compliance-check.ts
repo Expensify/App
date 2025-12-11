@@ -154,7 +154,7 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 function addFailureIfDoesNotExist(failureMap: Map<string, CompilerFailure>, newFailure: CompilerFailure): boolean {
-    const key = getUniqueFileKey(newFailure);
+    const key = getFailureKey(newFailure);
     const existingFailure = failureMap.get(key);
 
     if (existingFailure) {
@@ -260,7 +260,22 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         }
     }
 
+    // Sort results by file name, line number, and column number
+    results.success = new Set(Array.from(results.success).sort((a, b) => a.localeCompare(b)));
+    results.failures = sortFailures(results.failures);
+    results.suppressedFailures = sortFailures(results.suppressedFailures);
+
     return results;
+}
+
+function sortFailures(failures: Map<string, CompilerFailure>) {
+    const arr = Array.from(failures.entries());
+    arr.sort(([, a], [, b]) => {
+        const keyA = getFailureKey(a);
+        const keyB = getFailureKey(b);
+        return keyA.localeCompare(keyB);
+    });
+    return new Map(arr);
 }
 
 /**
@@ -282,7 +297,7 @@ function shouldSuppressCompilerError(reason: string | undefined): boolean {
  * @param failure - The compiler failure to create a unique key for
  * @returns A unique key for the compiler failure
  */
-function getUniqueFileKey({file, line, column}: CompilerFailure): string {
+function getFailureKey({file, line, column}: CompilerFailure): string {
     const isLineSet = line !== undefined;
     const isLineAndColumnSet = isLineSet && column !== undefined;
 
@@ -603,7 +618,7 @@ function printResults({success, failures, suppressedFailures, manualMemoFailures
 
         for (const [error, suppressedErrorFiles] of suppressedErrorMap) {
             logBold(error);
-            const filesLine = suppressedErrorFiles.map((failure) => getUniqueFileKey(failure)).join(', ');
+            const filesLine = suppressedErrorFiles.map((failure) => getFailureKey(failure)).join(', ');
             logNote(`${TAB} - ${filesLine}`);
         }
 
