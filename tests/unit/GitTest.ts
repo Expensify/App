@@ -530,6 +530,34 @@ describe('Git', () => {
             expect(file.addedLines.size).toBe(1);
             expect(file.removedLines.size).toBe(0);
         });
+
+        it('handles "No newline at end of file" markers correctly', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/file.ts b/file.ts
+                index 1234567..abcdefg 100644
+                --- a/file.ts
+                +++ b/file.ts
+                @@ -1,1 +1,1 @@
+                -const old = 'value';
+                \\ No newline at end of file
+                +const new = 'value';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.filePath).toBe('file.ts');
+            expect(file.hunks).toHaveLength(1);
+            expect(file.modifiedLines.size).toBe(1);
+            // The "No newline" marker should be ignored, not counted as a line
+            expect(file.hunks.at(0)?.lines.length).toBe(2); // One removed, one added
+        });
     });
 
     describe('fileDiffType', () => {

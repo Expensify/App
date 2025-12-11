@@ -6158,7 +6158,7 @@ ${reportName}
                 adultEntertainment: 'アダルトエンターテインメント',
             },
             expenseReportRules: {
-                title: '経費精算書',
+                title: '上級',
                 subtitle: '経費精算レポートのコンプライアンス、承認、支払いを自動化します。',
                 preventSelfApprovalsTitle: '自己承認を防ぐ',
                 preventSelfApprovalsSubtitle: 'ワークスペースメンバーが自分自身の経費精算レポートを承認できないようにします。',
@@ -6174,8 +6174,7 @@ ${reportName}
                 autoPayApprovedReportsLockedSubtitle: '「その他の機能」に移動してワークフローを有効にし、その後「支払い」を追加してこの機能を有効化してください。',
                 autoPayReportsUnderTitle: '以下のレポートを自動支払い',
                 autoPayReportsUnderDescription: 'この金額以下の、要件を完全に満たした経費精算書は自動的に支払われます。',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `[その他の機能](${moreFeaturesLink}) に移動してワークフローを有効にし、その後 ${featureName} を追加してこの機能を有効化してください。`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `${featureName} を追加して、この機能を有効にしてください。`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `[その他の機能](${moreFeaturesLink})に移動し、${featureName} を有効にしてこの機能をアンロックしてください。`,
             },
@@ -6480,6 +6479,60 @@ ${reportName}
                     return `${enabled ? '有効' : '無効'} ${featureName}`;
             }
         },
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `デフォルトの承認者を${newApprover}に変更しました（以前は${previousApprover}）` : `デフォルトの承認者を${newApprover}に変更しました`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `${members} の承認ワークフローを変更し、レポートを ${approver} に提出するようにしました`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(以前のデフォルト承認者 ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '（以前のデフォルト承認者）';
+            } else if (previousApprover) {
+                text += `(以前は${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `${members}の承認ワークフローを、デフォルトの承認者${approver}にレポートを提出するように変更しました`
+                : `${members}の承認ワークフローを変更し、レポートをデフォルトの承認者に提出するようにしました`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(以前のデフォルト承認者 ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '（以前のデフォルト承認者）';
+            } else if (previousApprover) {
+                text += `(以前は${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `${approver} の承認ワークフローを変更し、承認済みレポートを ${forwardsTo} に転送するようにしました（以前は ${previousForwardsTo} に転送していました）`
+                : `${approver} の承認ワークフローを変更し、承認済みレポートを ${forwardsTo} に転送するようにしました（以前は最終承認済みレポートのみを転送）`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `承認済みレポートの転送を停止するように${approver}の承認ワークフローを変更しました（以前は${previousForwardsTo}に転送していました）`
+                : `承認済みレポートの転送を停止するように、${approver} の承認ワークフローを変更しました`,
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 出席者の追跡`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? '有効' : '無効'} 件の払い戻し`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `税「${taxName}」を追加しました`,
