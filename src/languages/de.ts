@@ -6548,6 +6548,60 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Teilnehmerverfolgung`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `Standardgenehmiger auf ${newApprover} geändert (zuvor ${previousApprover})` : `den Standardgenehmiger auf ${newApprover} geändert`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `hat den Genehmigungsworkflow für ${members} geändert, sodass Berichte an ${approver} eingereicht werden`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(bisheriger Standardgenehmiger ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(früher Standardgenehmiger)';
+            } else if (previousApprover) {
+                text += `(zuvor ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `hat den Genehmigungsworkflow für ${members} so geändert, dass Berichte an den Standardgenehmiger ${approver} eingereicht werden`
+                : `den Genehmigungsworkflow für ${members} geändert, sodass Berichte beim Standardgenehmiger eingereicht werden`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(bisheriger Standardgenehmiger ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(früher Standardgenehmiger)';
+            } else if (previousApprover) {
+                text += `(zuvor ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `Genehmigungsworkflow für ${approver} geändert, um genehmigte Berichte an ${forwardsTo} weiterzuleiten (zuvor weitergeleitet an ${previousForwardsTo})`
+                : `Genehmigungs-Workflow für ${approver} geändert, um genehmigte Berichte an ${forwardsTo} weiterzuleiten (zuvor endgültig genehmigte Berichte)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `hat den Genehmigungsworkflow für ${approver} so geändert, dass genehmigte Berichte nicht mehr weitergeleitet werden (zuvor weitergeleitet an ${previousForwardsTo})`
+                : `hat den Genehmigungsworkflow für ${approver} so geändert, dass genehmigte Berichte nicht mehr weitergeleitet werden`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'aktiviert' : 'deaktiviert'} Erstattungen`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `die Steuer „${taxName}“ hinzugefügt`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer „${taxName}“ entfernt`,

@@ -34,7 +34,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -96,13 +96,17 @@ function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
     itemTransaction: OnyxEntry<Transaction>,
     originalItemTransaction: OnyxEntry<Transaction>,
+    currentUserLogin: string,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+    const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
+
     return [
         item.keyForList,
         {
             isSelected: true,
+            canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
@@ -178,6 +182,7 @@ function prepareTransactionsList(
     itemTransaction: OnyxEntry<Transaction>,
     originalItemTransaction: OnyxEntry<Transaction>,
     selectedTransactions: SelectedTransactions,
+    currentUserLogin: string,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
@@ -187,11 +192,13 @@ function prepareTransactionsList(
     }
 
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+    const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
 
     return {
         ...selectedTransactions,
         [item.keyForList]: {
             isSelected: true,
+            canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
@@ -276,7 +283,9 @@ function Search({
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useContext(WideRHPContext);
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
@@ -460,7 +469,7 @@ function Search({
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
 
-        const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && searchResults === undefined;
+        const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && isEmptyObject(searchResults?.data);
         if (!comingBackOnlineWithNoResults && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
             return;
         }
@@ -510,6 +519,7 @@ function Search({
                         transactionItem,
                         transactionItem.policy,
                     );
+                    const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report, transactionItem.policy) : false;
 
                     const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                     const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
@@ -533,6 +543,7 @@ function Search({
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
+                        canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
                         amount: transactionItem.modifiedAmount ?? transactionItem.amount,
@@ -559,6 +570,7 @@ function Search({
                     transactionItem,
                     transactionItem.policy,
                 );
+                const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report, transactionItem.policy) : false;
 
                 const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
@@ -582,6 +594,7 @@ function Search({
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
+                    canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
                     amount: transactionItem.modifiedAmount ?? transactionItem.amount,
@@ -662,7 +675,10 @@ function Search({
                 }
                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                setSelectedTransactions(prepareTransactionsList(item, itemTransaction, originalItemTransaction, selectedTransactions, outstandingReportsByPolicyID), filteredData);
+                setSelectedTransactions(
+                    prepareTransactionsList(item, itemTransaction, originalItemTransaction, selectedTransactions, email ?? '', outstandingReportsByPolicyID),
+                    filteredData,
+                );
                 return;
             }
 
@@ -687,14 +703,14 @@ function Search({
                             .map((transactionItem) => {
                                 const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, outstandingReportsByPolicyID);
+                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID);
                             }),
                     ),
                 },
                 filteredData,
             );
         },
-        [setSelectedTransactions, selectedTransactions, filteredData, transactions, outstandingReportsByPolicyID, searchResults?.data],
+        [setSelectedTransactions, selectedTransactions, filteredData, transactions, outstandingReportsByPolicyID, searchResults?.data, email],
     );
 
     const onSelectRow = useCallback(
@@ -785,6 +801,13 @@ function Search({
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
                     }
                 }
+
+                if (item.transactions.length > 1) {
+                    markReportIDAsMultiTransactionExpense(reportID);
+                } else {
+                    unmarkReportIDAsMultiTransactionExpense(reportID);
+                }
+
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
@@ -803,7 +826,16 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [
+            isMobileSelectionModeEnabled,
+            markReportIDAsExpense,
+            toggleTransaction,
+            queryJSON,
+            handleSearch,
+            searchKey,
+            markReportIDAsMultiTransactionExpense,
+            unmarkReportIDAsMultiTransactionExpense,
+        ],
     );
 
     const currentColumns = useMemo(() => {
@@ -911,7 +943,7 @@ function Search({
                             .map((transactionItem) => {
                                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, outstandingReportsByPolicyID);
+                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID);
                             }),
                     ),
                 ),
@@ -928,7 +960,7 @@ function Search({
                     .map((transactionItem) => {
                         const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, outstandingReportsByPolicyID);
+                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID);
                     }),
             ),
             filteredData,
@@ -943,6 +975,7 @@ function Search({
         transactions,
         outstandingReportsByPolicyID,
         searchResults?.data,
+        email,
     ]);
 
     const onLayout = useCallback(() => {
