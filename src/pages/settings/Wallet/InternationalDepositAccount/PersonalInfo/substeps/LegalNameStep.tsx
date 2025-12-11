@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import FullNameStep from '@components/SubStepForms/FullNameStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,19 +14,18 @@ function LegalNameStep({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
 
-    const defaultValues = useMemo(
-        () => ({
-            firstName: privatePersonalDetails?.legalFirstName ?? '',
-            lastName: privatePersonalDetails?.legalLastName ?? '',
-        }),
-        [privatePersonalDetails?.legalFirstName, privatePersonalDetails?.legalLastName],
-    );
+    const getDefaultValues = () => ({
+        firstName: privatePersonalDetails?.legalFirstName ?? '',
+        lastName: privatePersonalDetails?.legalLastName ?? '',
+    });
 
     const handleSubmit = usePersonalBankAccountDetailsFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    const defaultValues = getDefaultValues();
 
     return (
         <FullNameStep<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>

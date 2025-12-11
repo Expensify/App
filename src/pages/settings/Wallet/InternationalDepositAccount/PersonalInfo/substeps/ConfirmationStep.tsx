@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import CommonConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -28,7 +28,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
     const isLoading = personalBankAccount?.isLoading ?? false;
     const error = getLatestErrorMessage(personalBankAccount ?? DEFAULT_OBJECT);
 
-    const personalDetails = useMemo(() => {
+    const getPersonalDetails = () => {
         const currentAddress = getCurrentAddress(privatePersonalDetails);
         const phone = bankAccountPersonalDetails?.phoneNumber ?? privatePersonalDetails?.phoneNumber;
         return {
@@ -40,28 +40,17 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
             addressState: bankAccountPersonalDetails?.addressState ?? currentAddress?.state ?? '',
             addressZip: bankAccountPersonalDetails?.addressZipCode ?? currentAddress?.zip ?? '',
         };
-    }, [
-        bankAccountPersonalDetails?.addressCity,
-        bankAccountPersonalDetails?.addressState,
-        bankAccountPersonalDetails?.addressStreet,
-        bankAccountPersonalDetails?.addressZipCode,
-        bankAccountPersonalDetails?.legalFirstName,
-        bankAccountPersonalDetails?.legalLastName,
-        bankAccountPersonalDetails?.phoneNumber,
-        privatePersonalDetails,
-    ]);
+    };
 
-    const moveToEditStep = useCallback(
-        (step: number) => {
-            if (error) {
-                clearPersonalBankAccountErrors();
-            }
-            onMove(step);
-        },
-        [error, onMove],
-    );
+    const moveToEditStep = (step: number) => {
+        if (error) {
+            clearPersonalBankAccountErrors();
+        }
+        onMove(step);
+    };
 
-    const summaryItems = useMemo(() => {
+    const getSummaryItems = () => {
+        const personalDetails = getPersonalDetails();
         const selectedPlaidAccount = plaidData?.bankAccounts?.find((bankAccount) => bankAccount?.plaidAccountID === bankAccountPersonalDetails?.selectedPlaidAccountID);
         const bankConnection = isManual
             ? [
@@ -120,16 +109,9 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
                 },
             },
         ];
-    }, [
-        bankAccountPersonalDetails?.accountNumber,
-        bankAccountPersonalDetails?.routingNumber,
-        bankAccountPersonalDetails?.selectedPlaidAccountID,
-        isManual,
-        moveToEditStep,
-        personalDetails,
-        plaidData?.bankAccounts,
-        translate,
-    ]);
+    };
+
+    const summaryItems = getSummaryItems();
 
     return (
         <CommonConfirmationStep

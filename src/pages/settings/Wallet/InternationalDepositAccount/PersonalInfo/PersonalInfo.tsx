@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -29,7 +29,7 @@ function PersonalInfoPage() {
 
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
 
-    const submitBankAccountForm = useCallback(() => {
+    const submitBankAccountForm = () => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
 
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccount?.selectedPlaidAccountID);
@@ -45,9 +45,9 @@ function PersonalInfoPage() {
             ...bankAccountWithToken,
         };
         addPersonalBankAccount(accountData);
-    }, [plaidData?.bankAccounts, plaidData?.plaidAccessToken, privatePersonalDetails, personalBankAccount]);
+    };
 
-    const skipSteps = useMemo(() => getSkippedStepsPersonalInfo(privatePersonalDetails), [privatePersonalDetails]);
+    const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails);
 
     const {
         componentToRender: SubStep,

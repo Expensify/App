@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
@@ -21,23 +21,20 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const defaultPhoneNumber = privatePersonalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> => {
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.phoneNumber) {
-                const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber, countryCode);
-                const e164FormattedPhoneNumber = formatE164PhoneNumber(values.phoneNumber, countryCode);
+        if (values.phoneNumber) {
+            const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber, countryCode);
+            const e164FormattedPhoneNumber = formatE164PhoneNumber(values.phoneNumber, countryCode);
 
-                if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidUSPhone(e164FormattedPhoneNumber)) {
-                    errors.phoneNumber = translate('common.error.phoneNumber');
-                }
+            if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidUSPhone(e164FormattedPhoneNumber)) {
+                errors.phoneNumber = translate('common.error.phoneNumber');
             }
+        }
 
-            return errors;
-        },
-        [countryCode, translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = usePersonalBankAccountDetailsFormSubmit({
         fieldIds: STEP_FIELDS,

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AddressForm from '@components/AddressForm';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -64,51 +64,45 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [address?.state, address?.country, address?.city, address?.zip]);
 
-    const handleAddressChange = useCallback(
-        (value: unknown, key: unknown) => {
-            const addressPart = value as string;
-            const addressPartKey = key as keyof Address;
+    const handleAddressChange = (value: unknown, key: unknown) => {
+        const addressPart = value as string;
+        const addressPartKey = key as keyof Address;
 
-            if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
-                return;
-            }
-            if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
-                setCurrentCountry(addressPart as Country | '');
-                setState('');
-                setCity('');
-                setZipcode('');
-                return;
-            }
-            if (addressPartKey === INPUT_IDS.STATE) {
-                setState(addressPart);
-                setCity('');
-                setZipcode('');
-                return;
-            }
-            if (addressPartKey === INPUT_IDS.CITY) {
-                setCity(addressPart);
-                setZipcode('');
-                return;
-            }
-            setZipcode(addressPart);
-        },
-        [currentCountry],
-    );
+        if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
+            setCurrentCountry(addressPart as Country | '');
+            setState('');
+            setCity('');
+            setZipcode('');
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.STATE) {
+            setState(addressPart);
+            setCity('');
+            setZipcode('');
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.CITY) {
+            setCity(addressPart);
+            setZipcode('');
+            return;
+        }
+        setZipcode(addressPart);
+    };
 
-    const updateAddress = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
-            setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {
-                addressStreet: values.addressLine1?.trim() ?? '',
-                addressStreet2: values.addressLine2?.trim() ?? '',
-                addressCity: values.city?.trim() ?? '',
-                addressState: values.state?.trim() ?? '',
-                addressZipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
-                country: currentCountry,
-            });
-            onNext();
-        },
-        [currentCountry, onNext],
-    );
+    const updateAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
+        setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {
+            addressStreet: values.addressLine1?.trim() ?? '',
+            addressStreet2: values.addressLine2?.trim() ?? '',
+            addressCity: values.city?.trim() ?? '',
+            addressState: values.state?.trim() ?? '',
+            addressZipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
+            country: currentCountry,
+        });
+        onNext();
+    };
 
     return (
         <>

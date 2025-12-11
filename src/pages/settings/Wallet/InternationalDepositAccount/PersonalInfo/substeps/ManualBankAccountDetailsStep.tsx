@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -27,42 +27,39 @@ function ManualBankAccountDetailsStep({onNext, isEditing}: ManualProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const defaultValues = useMemo(
-        () => ({
-            routingNumber: bankAccountPersonalDetails?.routingNumber,
-            accountNumber: bankAccountPersonalDetails?.accountNumber,
-        }),
-        [bankAccountPersonalDetails?.accountNumber, bankAccountPersonalDetails?.routingNumber],
-    );
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
-            const routingNumber = values.routingNumber?.trim();
+    const getDefaultValues = () => ({
+        routingNumber: bankAccountPersonalDetails?.routingNumber,
+        accountNumber: bankAccountPersonalDetails?.accountNumber,
+    });
 
-            if (
-                values.accountNumber &&
-                !CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) &&
-                !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim())
-            ) {
-                errors.accountNumber = translate('bankAccount.error.accountNumber');
-            } else if (values.accountNumber && values.accountNumber === routingNumber) {
-                errors.accountNumber = translate('bankAccount.error.routingAndAccountNumberCannotBeSame');
-            }
-            if (routingNumber && (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !isValidRoutingNumber(routingNumber))) {
-                errors.routingNumber = translate('bankAccount.error.routingNumber');
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> => {
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+        const routingNumber = values.routingNumber?.trim();
 
-            return errors;
-        },
-        [translate],
-    );
+        if (
+            values.accountNumber &&
+            !CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) &&
+            !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim())
+        ) {
+            errors.accountNumber = translate('bankAccount.error.accountNumber');
+        } else if (values.accountNumber && values.accountNumber === routingNumber) {
+            errors.accountNumber = translate('bankAccount.error.routingAndAccountNumberCannotBeSame');
+        }
+        if (routingNumber && (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !isValidRoutingNumber(routingNumber))) {
+            errors.routingNumber = translate('bankAccount.error.routingNumber');
+        }
+
+        return errors;
+    };
 
     const handleSubmit = usePersonalBankAccountDetailsFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: true,
     });
+
+    const defaultValues = getDefaultValues();
 
     return (
         <FormProvider
