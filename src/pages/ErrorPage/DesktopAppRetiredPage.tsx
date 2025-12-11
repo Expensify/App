@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {Linking, View} from 'react-native';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -18,6 +19,11 @@ function DesktopAppRetiredPage() {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['LaptopOnDeskDeprecated'] as const);
     const insets = useSafeAreaInsets();
+    const [environmentUrl, setEnvironmentUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        getEnvironmentURL().then(setEnvironmentUrl);
+    }, []);
 
     return (
         <View style={[styles.appBG, styles.h100, StyleUtils.getPlatformSafeAreaPadding(insets)]}>
@@ -42,7 +48,7 @@ function DesktopAppRetiredPage() {
                     success
                     large
                     onPress={() => {
-                        Linking.openURL(CONST.NEW_EXPENSIFY_URL);
+                        Linking.openURL(environmentUrl ?? CONST.NEW_EXPENSIFY_URL);
                     }}
                     text={translate('desktopAppRetiredPage.goToWeb')}
                     style={styles.desktopAppRetiredViewTextContainer}
