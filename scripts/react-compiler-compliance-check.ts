@@ -501,7 +501,7 @@ async function filterResultsByDiff(results: CompilerResults, mainBaseCommitHash:
 
 /**
  * Splits React Compiler errors based on whether the file has been added or modified
- * Adds erros for enforced automatic memoization by checking for manual memoization keywords in already compiled files.
+ * Adds errors for enforced automatic memoization by checking for manual memoization keywords in already compiled files.
  * @param results - The compiler results to enforce automatic memoization on
  * @param diffResult - The diff result to check for added files
  * @returns The compiler results partitioned into manual memo errors and react compiler errors
