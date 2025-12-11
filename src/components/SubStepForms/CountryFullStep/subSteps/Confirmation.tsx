@@ -63,7 +63,9 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
     };
 
     const handleSubmit = () => {
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: selectedCountry});
+        if (selectedCountry !== countryDefaultValue) {
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: selectedCountry});
+        }
         onNext();
     };
 
