@@ -1,7 +1,7 @@
-import {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import {showReportActionNotification} from '@libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 
 export default function triggerNotifications(onyxUpdates: OnyxServerUpdate[]): void {
