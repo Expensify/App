@@ -262,7 +262,6 @@ function PaymentCardForm({
                 submitButtonText={submitButtonText}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
-                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             >
                 <InputWrapper
                     InputComponent={TextInput}
@@ -275,6 +274,7 @@ function PaymentCardForm({
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     onChangeText={onChangeCardNumber}
                     value={cardNumber}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -285,6 +285,7 @@ function PaymentCardForm({
                     role={CONST.ROLE.PRESENTATION}
                     containerStyles={[styles.mt5]}
                     spellCheck={false}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
                 <View style={[styles.flexRow, styles.mt5]}>
                     <View style={[styles.mr2, styles.flex1]}>
@@ -301,6 +302,7 @@ function PaymentCardForm({
                             placeholder={translate(label.defaults.expirationDate)}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
                             maxLength={5}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                     </View>
                     <View style={styles.flex1}>
@@ -313,6 +315,7 @@ function PaymentCardForm({
                             role={CONST.ROLE.PRESENTATION}
                             maxLength={4}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                     </View>
                 </View>
@@ -327,6 +330,7 @@ function PaymentCardForm({
                             maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                             // Limit the address search only to the USA until we fully can support international debit cards
                             limitSearchesToCountry={CONST.COUNTRY.US}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                     </View>
                 )}

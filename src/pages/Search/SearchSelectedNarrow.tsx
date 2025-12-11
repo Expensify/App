@@ -3,6 +3,7 @@ import React, {useContext, useRef} from 'react';
 import {View} from 'react-native';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
@@ -46,6 +47,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
     const selectedOptionRef = useRef<DropdownOption<SearchHeaderOptionValue> | null>(null);
     const {accountID} = useCurrentUserPersonalDetails();
     const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const handleOnMenuItemPress = (option: DropdownOption<SearchHeaderOptionValue>) => {
         if (option?.shouldCloseModalOnSelect) {
@@ -75,18 +77,19 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                         onPress={() => null}
                         onOptionSelected={(item) => handleOnMenuItemPress(item)}
                         onSubItemSelected={(subItem) =>
-                            handleBulkPayItemSelected(
-                                subItem,
+                            handleBulkPayItemSelected({
+                                item: subItem,
                                 triggerKYCFlow,
                                 isAccountLocked,
                                 showLockedAccountModal,
-                                currentPolicy,
+                                policy: currentPolicy,
                                 latestBankItems,
                                 activeAdminPolicies,
                                 isUserValidated,
-                                session?.accountID,
+                                isDelegateAccessRestricted,
+                                showDelegateNoAccessModal,
                                 confirmPayment,
-                            )
+                            })
                         }
                         success
                         isSplitButton={false}

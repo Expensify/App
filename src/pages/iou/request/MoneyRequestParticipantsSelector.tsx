@@ -171,7 +171,10 @@ function MoneyRequestParticipantsSelector({
 
     const getValidOptionsConfig = useMemo(
         () => ({
-            selectedOptions: participants as Participant[],
+            selectedOptions: participants.map((participant) => ({
+                ...participant,
+                login: participant.login ?? personalDetails?.[participant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login,
+            })) as OptionData[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
@@ -188,6 +191,7 @@ function MoneyRequestParticipantsSelector({
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
             isRestrictedToPreferredPolicy,
             preferredPolicyID,
+            shouldExcludeSelectedByReportID: true,
         }),
         [
             participants,
@@ -200,6 +204,7 @@ function MoneyRequestParticipantsSelector({
             isPaidGroupPolicy,
             isRestrictedToPreferredPolicy,
             preferredPolicyID,
+            personalDetails,
         ],
     );
 
@@ -291,6 +296,7 @@ function MoneyRequestParticipantsSelector({
             true,
             undefined,
             reportAttributesDerived,
+            true,
         );
 
         newSections.push(formatResults.section);

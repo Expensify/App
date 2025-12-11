@@ -1,7 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -50,6 +50,7 @@ import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
+import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
@@ -77,6 +78,8 @@ function handleActionButtonPress(
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
     currentSearchKey?: SearchKey,
     onDEWModalOpen?: () => void,
+    isDelegateAccessRestricted?: boolean,
+    onDelegateAccessRestricted?: () => void,
 ) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -91,9 +94,17 @@ function handleActionButtonPress(
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
+            if (isDelegateAccessRestricted) {
+                onDelegateAccessRestricted?.();
+                return;
+            }
             getPayActionCallback(hash, item, goToItem, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
+            if (isDelegateAccessRestricted) {
+                onDelegateAccessRestricted?.();
+                return;
+            }
             if (hasDynamicExternalWorkflow(snapshotPolicy)) {
                 onDEWModalOpen?.();
                 return;
@@ -723,8 +734,9 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     }
 }
 
-function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: string, transactionIDs: string[]) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+function rejectMoneyRequestInBulk(reportID: string, comment: string, policy: OnyxEntry<Policy>, transactionIDs: string[], hash?: number) {
+    const loadingData = hash !== undefined ? getOnyxLoadingData(hash) : {optimisticData: [] as OnyxUpdate[], finallyData: [] as OnyxUpdate[]};
+    const {optimisticData, finallyData} = loadingData;
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const transactionIDToRejectReportAction: Record<
@@ -735,7 +747,7 @@ function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: strin
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, undefined, true);
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, undefined, true);
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);
@@ -754,7 +766,18 @@ function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: strin
     );
 }
 
-function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string, allPolicies: OnyxCollection<Policy>, allReports: OnyxCollection<Report>) {
+/** Minimal transaction info needed for reject - only reportID is used */
+type TransactionReportInfo = {
+    reportID: string;
+};
+
+function rejectMoneyRequestsOnSearch(
+    hash: number,
+    selectedTransactions: Record<string, TransactionReportInfo>,
+    comment: string,
+    allPolicies: OnyxCollection<Policy>,
+    allReports: OnyxCollection<Report>,
+) {
     const transactionIDs = Object.keys(selectedTransactions);
 
     const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {
@@ -770,19 +793,22 @@ function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Selecte
     }, {});
 
     for (const [reportID, selectedTransactionIDs] of Object.entries(transactionsByReport)) {
-        const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
-        const areAllExpensesSelected = allTransactionIDs.every((transactionID) => selectedTransactionIDs.includes(transactionID));
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        const totalReportTransactions = report?.transactionCount ?? 0;
+
+        // Subtract pending deletes to get accurate count when transactions are deleted offline
+        const pendingDeleteCount = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+        const effectiveTransactionCount = totalReportTransactions - pendingDeleteCount;
+        const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(hash, reportID, comment, allTransactionIDs);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, hash);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, {sharedRejectedToReportID});
+                rejectMoneyRequest(transactionID, reportID, comment, policy, {sharedRejectedToReportID});
             }
         }
     }
@@ -1013,18 +1039,40 @@ function isValidBulkPayOption(item: PopoverMenuItem) {
 /**
  * Handles the click event when user selects bulk pay action.
  */
-function handleBulkPayItemSelected(
-    item: PopoverMenuItem,
-    triggerKYCFlow: (params: ContinueActionParams) => void,
-    isAccountLocked: boolean,
-    showLockedAccountModal: () => void,
-    policy: OnyxEntry<Policy>,
-    latestBankItems: BankAccountMenuItem[] | undefined,
-    activeAdminPolicies: Policy[],
-    isUserValidated: boolean | undefined,
-    userAccountID: number | undefined,
-    confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void,
-) {
+function handleBulkPayItemSelected(params: {
+    item: PopoverMenuItem;
+    triggerKYCFlow: (params: ContinueActionParams) => void;
+    isAccountLocked: boolean;
+    showLockedAccountModal: () => void;
+    policy: OnyxEntry<Policy>;
+    latestBankItems: BankAccountMenuItem[] | undefined;
+    activeAdminPolicies: Policy[];
+    isUserValidated: boolean | undefined;
+    userAccountID: number | undefined:
+    isDelegateAccessRestricted: boolean;
+    showDelegateNoAccessModal: () => void;
+    confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void;
+}) {
+    const {
+        item,
+        triggerKYCFlow,
+        isAccountLocked,
+        showLockedAccountModal,
+        policy,
+        latestBankItems,
+        activeAdminPolicies,
+        isUserValidated,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+        confirmPayment,
+    } = params;
+
+    // If delegate access is restricted, we should not allow bulk pay with business bank account or bulk pay
+    if (isDelegateAccessRestricted && 'value' in item && (item.value === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || item.value === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT)) {
+        showDelegateNoAccessModal();
+        return;
+    }
+
     const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
     // Policy id is also a last payment method so we shouldn't early return here for that case.
     if (!isValidBulkPayOption(item) && !selectedPolicy) {
@@ -1040,11 +1088,12 @@ function handleBulkPayItemSelected(
         return;
     }
 
+    if (!isUserValidated) {
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+        return;
+    }
+
     if (!!selectedPolicy || shouldSelectPaymentMethod) {
-        if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
-            return;
-        }
         triggerKYCFlow({
             event: undefined,
             iouPaymentType: paymentType,
@@ -1061,13 +1110,15 @@ function handleBulkPayItemSelected(
     confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData);
 }
 
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
+
 /**
  * Return true if selected reports/transactions have the same USD currency.
  */
 function isCurrencySupportWalletBulkPay(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions) {
     return selectedReports?.length > 0
-        ? Object.values(selectedReports).every((report) => report?.currency === CONST.CURRENCY.USD)
-        : Object.values(selectedTransactions).every((transaction) => transaction.currency === CONST.CURRENCY.USD);
+        ? Object.values(selectedReports).every((report) => isCurrencySupportedForGlobalReimbursement(report?.currency as CurrencyType))
+        : Object.values(selectedTransactions).every((transaction) => isCurrencySupportedForGlobalReimbursement(transaction.currency as CurrencyType));
 }
 
 /**
@@ -1111,7 +1162,8 @@ function getTotalFormattedAmount(selectedReports: SelectedReports[], selectedTra
  * Note: we don't create anything new, we just optimistically generate the data that we know will be returned by API.
  */
 function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemType, transactionPreviewData: TransactionPreviewData, IOUTransactionID?: string) {
-    const {moneyRequestReportActionID, reportID, report, amount, currency, transactionID, created, policyID} = item;
+    const {reportID, report, amount, currency, transactionID, created, policyID} = item;
+    const moneyRequestReportActionID = item?.reportAction?.reportActionID;
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
     const onyxUpdates: OnyxUpdate[] = [];
 
