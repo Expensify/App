@@ -30,7 +30,6 @@ import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isArchivedReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getRateID} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -104,7 +103,6 @@ function IOURequestStepDistanceOdometer({
         [iouType, defaultExpensePolicy],
     );
 
-    const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
     // Get odometer images from transaction (only for display, not for initialization)
