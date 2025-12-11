@@ -10,6 +10,8 @@ This skill encapsulates proven patterns for communicating PR review feedback thr
 2. **PR Reactions** - Quick approval signals (👍) when no issues found
 3. **Summary Comments** - Overall assessment with scoring and recommendations
 
+**Inline comment formatting:** Always start with `### ❌ [RULE-ID] [(docs)](link)` and include a plain code fence for the fix. Target the exact changed lines.
+
 ## Structure
 
 ```

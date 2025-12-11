@@ -26,6 +26,27 @@ Use inline comments for:
 
 ## Comment Format Templates
 
+### Required Structure (always follow)
+
+- Start the title with `###` and include the rule ID plus docs link
+- Use plain Markdown code fences by default; only use GitHub `````suggestion````` fences when you are fully certain the auto-applied change is exact and scoped to the touched lines
+- Target the exact changed line; avoid broad line ranges
+- Keep one issue per comment
+
+**Mandatory pattern:**
+```markdown
+### ❌ [RULE-ID] [(docs)](URL-TO-RULE-DOCS)
+
+[Reasoning explaining why this is a violation in 1–3 sentences]
+
+**Suggested fix:**
+```tsx
+// Plain code block with matching language (preferred, e.g., ```ts for .ts files)
+// If 100% confident and minimal, a ```suggestion fence is acceptable to allow auto-apply
+// Show the corrected snippet that applies to the exact changed lines
+```
+```
+
 ### Template 1: Rule-Based Format (with Documentation Links)
 
 Best for structured review rules with documentation.
@@ -102,6 +123,10 @@ keywords: [feature, related terms]
 ```
 
 **When to use:** Formatting issues, missing elements, obvious bugs.
+
+### Use suggestion fences sparingly
+
+Use GitHub `suggestion` code fences only when the exact auto-applied change is correct, minimal, and limited to the touched lines. Otherwise, use plain code fences with a language tag.
 
 ## Writing Effective Comments
 

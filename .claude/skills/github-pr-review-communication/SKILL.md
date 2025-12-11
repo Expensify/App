@@ -15,7 +15,19 @@ This skill provides patterns for effectively communicating PR review feedback on
 
 **Tool:** `mcp__github_inline_comment__create_inline_comment`
 
-**Format:** Use standard MCP tool calling format as provided by your environment.
+**Required body format (default to plain fences; a plain fence is ``` with a language tag matching the file, e.g., ```ts for TypeScript. Use GitHub `suggestion` fences only when you are certain the exact change is correct and fully scoped to the touched lines):**
+```markdown
+### ❌ [RULE-ID] [(docs)](URL-TO-RULE-DOCS)
+
+[1–3 sentence reasoning about the violation]
+
+**Suggested fix:**
+```tsx
+// Plain code fence with matching language (preferred, e.g., ```ts for .ts files)
+// If 100% confident and scoped, you may use ```suggestion to allow auto-apply
+// Show the corrected snippet for the exact changed line(s)
+```
+```
 
 **Example:**
 ```
@@ -23,9 +35,9 @@ mcp__github_inline_comment__create_inline_comment:
   path: 'src/components/List.tsx'
   line: 128
   body: |
-    ### Issue Description
+    ### ❌ PERF-1 [(docs)](https://github.com/Expensify/App/blob/main/.claude/agents/code-inline-reviewer.md#perf-1)
     
-    Creating new objects with spread operators inside `renderItem` prevents React optimizations.
+    Creating new objects with spread operators inside `renderItem` prevents React optimizations and forces every item to re-render.
     
     **Suggested fix:**
     ```tsx
@@ -106,12 +118,15 @@ Use these patterns to determine when to combine communication methods:
 - ✅ Explain why it matters (briefly)
 - ✅ Use consistent formatting
 - ✅ Create comments immediately when violations found
+- ✅ Use plain code fences by default and target exact changed lines
+- ✅ Use GitHub `suggestion` fences only when the auto-applied change is exact, minimal, and risk-free
 
 **DON'T:**
 - ❌ Make vague suggestions without solutions
 - ❌ Over-explain obvious fixes
 - ❌ Batch analysis without posting comments
 - ❌ Assume the developer knows the context
+- ❌ Use GitHub `suggestion` fences when uncertain or when the change spans multiple contexts
 
 ### Using Reactions Appropriately
 
