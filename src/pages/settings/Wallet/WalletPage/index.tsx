@@ -198,21 +198,63 @@ function WalletPage() {
     const deletePaymentMethod = useCallback(() => {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
+        let newBankAccountID;
+        let newFundID;
+        if (paymentMethod.isSelectedPaymentMethodDefault) {
+            const paymentCardList = fundList ?? {};
+            const allPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
+
+            const remainingPaymentMethods = allPaymentMethods
+                .filter((method) => {
+                    if (method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && method.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
+                        return false;
+                    }
+
+                    if (method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && method.accountData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) {
+                        return false;
+                    }
+
+                    if (method.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                        return false;
+                    }
+
+                    if (method.methodID === paymentMethod.methodID) {
+                        return false;
+                    }
+
+                    return true;
+                })
+                .sort((a, b) => {
+                    const aCreated = a.accountData?.created ?? '';
+                    const bCreated = b.accountData?.created ?? '';
+                    if (!aCreated) return 1;
+                    if (!bCreated) return -1;
+                    return new Date(bCreated).getTime() - new Date(aCreated).getTime();
+                });
+
+            if (remainingPaymentMethods.length > 0) {
+                const newDefaultMethod = remainingPaymentMethods[0];
+                newBankAccountID = newDefaultMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? (newDefaultMethod.accountData?.bankAccountID ?? 0) : 0;
+                newFundID = newDefaultMethod.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD ? (newDefaultMethod.accountData?.fundID ?? 0) : 0;
+            }
+        }
+
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
             const bankAccount = bankAccountList?.[paymentMethod.methodID] ?? {};
-            deletePaymentBankAccount(bankAccountID, lastUsedPaymentMethods, bankAccount);
+            deletePaymentBankAccount(bankAccountID, lastUsedPaymentMethods, bankAccount, newBankAccountID, newFundID);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
-        setShowConfirmDeleteModal(false);
-        resetSelectedPaymentMethodData();
     }, [
         paymentMethod.selectedPaymentMethod.bankAccountID,
         paymentMethod.selectedPaymentMethod.fundID,
         paymentMethod.selectedPaymentMethodType,
+        paymentMethod.isSelectedPaymentMethodDefault,
         paymentMethod.methodID,
-        resetSelectedPaymentMethodData,
+        fundList,
         bankAccountList,
+        styles,
+        translate,
         lastUsedPaymentMethods,
     ]);
 
