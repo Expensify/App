@@ -23,11 +23,13 @@ Onyx.connectWithoutView({
     },
 });
 
+const SENTRY_LOG_PREFIX = '[SENTRY]';
+
 function formatLogPrefix(category: string, op?: string): string {
     if (op) {
-        return `[SENTRY][${category}][${op}]`;
+        return `${SENTRY_LOG_PREFIX}[${category}][${op}]`;
     }
-    return `[SENTRY][${category}]`;
+    return `${SENTRY_LOG_PREFIX}[${category}]`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -101,7 +103,7 @@ function isSentryDebugLogEntry(logEntry: unknown): boolean {
     if (!isRecord(logEntry) || !('body' in logEntry) || !isString(logEntry.body)) {
         return false;
     }
-    return logEntry.body.startsWith('[SENTRY]');
+    return logEntry.body.startsWith(SENTRY_LOG_PREFIX);
 }
 
 /**
