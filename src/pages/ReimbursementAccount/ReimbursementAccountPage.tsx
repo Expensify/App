@@ -144,14 +144,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [isResettingBankAccount, setIsResettingBankAccount] = useState(false);
-    const [isNonUSDSetup, setIsNonUSDSetup] = useState(Boolean(policyCurrency && policyCurrency !== CONST.CURRENCY.USD));
+    const [isNonUSDSetup, setIsNonUSDSetup] = useState(!!(policyCurrency && policyCurrency !== CONST.CURRENCY.USD));
 
     useEffect(() => {
         if (!policyCurrency || isNonUSDSetup === (policyCurrency !== CONST.CURRENCY.USD)) {
             return;
         }
         setIsNonUSDSetup(policyCurrency !== CONST.CURRENCY.USD);
-    }, [policyCurrency]);
+    }, [policyCurrency, isNonUSDSetup]);
 
     useEffect(() => {
         const achContractValues = lodashPick(reimbursementAccountDraft, ['isAuthorizedToUseBankAccount', 'certifyTrueInformation', 'acceptTermsAndConditions']);
@@ -434,7 +434,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             default:
                 Navigation.dismissModal();
         }
-    }, [achData, currentStep, onfidoToken, policyIDParam]);
+    }, [achData, currentStep, onfidoToken]);
 
     const isLoading =
         (isLoadingApp || (reimbursementAccount?.isLoading && !reimbursementAccount?.isCreateCorpayBankAccount)) &&
