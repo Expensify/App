@@ -45,7 +45,7 @@ const ESLINT_DISABLE_PATTERNS = {
     LINT_RULES: ['react-compiler/react-compiler', 'react-hooks'],
 } as const;
 
-const VERBOSE_OUTPUT_LINE_REGEXES = {
+const REACT_COMPILER_HEALTHCHECK_OUTPUT_REGEXES = {
     SUCCESS: /Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/,
     FAILURE_WITH_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/,
     FAILURE_WITHOUT_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\./,
@@ -157,7 +157,7 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function addFailureIfDoesNotExist(failureMap: FailureMap, newFailure: CompilerFailure): boolean {
+function addFailureIfDoesNotExist(failureMap: Map<string, CompilerFailure>, newFailure: CompilerFailure): boolean {
     const key = getUniqueFileKey(newFailure);
     const existingFailure = failureMap.get(key);
 
@@ -195,7 +195,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
     // Parse verbose output
     for (const line of lines) {
         // Parse successful file paths
-        const successMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.SUCCESS);
+        const successMatch = line.match(REACT_COMPILER_HEALTHCHECK_OUTPUT_REGEXES.SUCCESS);
         if (successMatch) {
             const filePath = successMatch[2];
             results.success.add(filePath);
@@ -203,7 +203,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         }
 
         // Parse failed file paths with file, location, and reason all on one line
-        const failureWithReasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITH_REASON);
+        const failureWithReasonMatch = line.match(REACT_COMPILER_HEALTHCHECK_OUTPUT_REGEXES.FAILURE_WITH_REASON);
         if (failureWithReasonMatch) {
             const newFailure: CompilerFailure = {
                 file: failureWithReasonMatch[1],
@@ -225,7 +225,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         }
 
         // Parse failed compilation with file and location only (fallback)
-        const failureWithoutReasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITHOUT_REASON);
+        const failureWithoutReasonMatch = line.match(REACT_COMPILER_HEALTHCHECK_OUTPUT_REGEXES.FAILURE_WITHOUT_REASON);
         if (failureWithoutReasonMatch) {
             const newFailure: CompilerFailure = {
                 file: failureWithoutReasonMatch[1],
@@ -242,7 +242,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         }
 
         // Parse reason line (fallback for multi-line reasons)
-        const reasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.REASON);
+        const reasonMatch = line.match(REACT_COMPILER_HEALTHCHECK_OUTPUT_REGEXES.REASON);
         if (reasonMatch && currentFailureWithoutReason) {
             const reason = reasonMatch[1];
 
