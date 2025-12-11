@@ -86,9 +86,6 @@ function prepareRequest<TCommand extends ApiCommand>(
 
     const {optimisticData, successData, failureData, ...onyxDataWithoutOptimisticData} = onyxData;
 
-    let processedSuccessData = successData;
-    let processedFailureData = failureData;
-
     if (optimisticData && shouldApplyOptimisticData) {
         Log.info('[API] Applying optimistic data', false, {command, type});
         Onyx.update(optimisticData);
@@ -118,8 +115,8 @@ function prepareRequest<TCommand extends ApiCommand>(
         initiatedOffline: isOffline(),
         requestID: requestIndex++,
         ...onyxDataWithoutOptimisticData,
-        successData: processedSuccessData,
-        failureData: processedFailureData,
+        successData,
+        failureData,
         ...conflictResolver,
     };
 
