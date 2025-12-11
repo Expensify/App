@@ -10,7 +10,7 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchContextProps, SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {
     AddReportApproverParams,
@@ -776,7 +776,7 @@ type UpdateSplitTransactionsParams = {
         splitExpenses: SplitExpense[];
         splitExpensesTotal?: number;
     };
-    hash: number;
+    searchContext?: Partial<SearchContextProps>;
     policyCategories: OnyxTypes.PolicyCategories | undefined;
     policy: OnyxTypes.Policy | undefined;
     policyRecentlyUsedCategories: OnyxTypes.RecentlyUsedCategories | undefined;
@@ -1246,9 +1246,13 @@ function setMoneyRequestPendingFields(transactionID: string, pendingFields: Onyx
  * @param transactionID - The transaction ID
  * @param category - The category name
  * @param policy - The policy object, or undefined for P2P transactions where tax info should be cleared
+ * @param isMovingFromTrackExpense - If the expense is moved from Track Expense
  */
-function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<OnyxTypes.Policy>) {
+function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<OnyxTypes.Policy>, isMovingFromTrackExpense?: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
+    if (isMovingFromTrackExpense) {
+        return;
+    }
     if (!policy) {
         setMoneyRequestTaxRate(transactionID, '');
         setMoneyRequestTaxAmount(transactionID, null);
@@ -6257,7 +6261,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                           category,
                           tag,
                           taxCode,
-                          taxAmount,
+                          taxAmount: Math.abs(taxAmount),
                           billable,
                           policyID: chatReport.policyID,
                           waypoints: sanitizedWaypoints,
@@ -6873,6 +6877,91 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }
 
     notifyNewAction(activeReportID, payeeAccountID);
+}
+
+function duplicateExpenseTransaction(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    optimisticChatReportID: string,
+    optimisticIOUReportID: string,
+    isASAPSubmitBetaEnabled: boolean,
+    targetPolicy?: OnyxEntry<OnyxTypes.Policy>,
+    targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    targetReport?: OnyxTypes.Report,
+) {
+    if (!transaction) {
+        return;
+    }
+
+    const participants = getMoneyRequestParticipantsFromReport(targetReport);
+    const transactionDetails = getTransactionDetails(transaction);
+
+    const params: RequestMoneyInformation = {
+        report: targetReport,
+        optimisticChatReportID,
+        optimisticCreatedReportActionID: NumberUtils.rand64(),
+        optimisticIOUReportID,
+        optimisticReportPreviewActionID: NumberUtils.rand64(),
+        participantParams: {
+            payeeAccountID: userAccountID,
+            payeeEmail: currentUserEmail,
+            participant: participants.at(0) ?? {},
+        },
+        gpsPoint: undefined,
+        action: CONST.IOU.ACTION.CREATE,
+        transactionParams: {
+            ...transaction,
+            ...transactionDetails,
+            attendees: transactionDetails?.attendees as Attendee[] | undefined,
+            comment: transactionDetails?.comment,
+            created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            customUnitRateID: transaction?.comment?.customUnit?.customUnitRateID,
+            isTestDrive: transaction?.receipt?.isTestDriveReceipt,
+            merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
+            modifiedAmount: undefined,
+            originalTransactionID: transaction?.comment?.originalTransactionID,
+            receipt: undefined,
+            source: undefined,
+            waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+        },
+        shouldHandleNavigation: false,
+        shouldGenerateTransactionThreadReport: true,
+        isASAPSubmitBetaEnabled,
+        currentUserAccountIDParam: userAccountID,
+        currentUserEmailParam: currentUserEmail,
+        transactionViolations: {},
+    };
+
+    // If no workspace is provided the expense should be unreported
+    if (!targetPolicy) {
+        const selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`];
+
+        if (!selfDMReport) {
+            return;
+        }
+
+        const trackExpenseParams: CreateTrackExpenseParams = {
+            ...params,
+            participantParams: {
+                ...(params.participantParams ?? {}),
+                participant: {accountID: userAccountID, selected: true},
+            },
+            transactionParams: {
+                ...(params.transactionParams ?? {}),
+                validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+            },
+            report: selfDMReport,
+            isDraftPolicy: false,
+        };
+        return trackExpense(trackExpenseParams);
+    }
+
+    params.policyParams = {
+        policy: targetPolicy,
+        policyTagList: getPolicyTagsData(targetPolicy.id) ?? {},
+        policyCategories: targetPolicyCategories ?? {},
+    };
+
+    return requestMoney(params);
 }
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
@@ -11792,6 +11881,7 @@ function completePaymentOnboarding(
         shouldSkipTestDriveModal: true,
     });
 }
+
 function payMoneyRequest(
     paymentType: PaymentMethodType,
     chatReport: OnyxTypes.Report,
@@ -11826,7 +11916,7 @@ function payMoneyRequest(
 
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    notifyNewAction(Navigation.getTopmostReportId() ?? iouReport?.reportID, userAccountID);
+    notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, userAccountID);
 }
 
 function payInvoice(
@@ -14394,7 +14484,7 @@ function updateSplitTransactions({
     allReportsList,
     allReportNameValuePairsList,
     transactionData,
-    hash,
+    searchContext,
     policyCategories,
     policy,
     policyRecentlyUsedCategories,
@@ -14739,7 +14829,7 @@ function updateSplitTransactions({
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
@@ -14750,7 +14840,7 @@ function updateSplitTransactions({
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransaction,
@@ -14807,6 +14897,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
     const transactionThreadReportID = params.firstIOU?.childReportID;
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
+
+    // Reset selected transactions in search after saving split expenses
+    params?.searchContext?.clearSelectedTransactions?.(undefined, true);
 
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
         Navigation.dismissModal();
@@ -15081,6 +15174,7 @@ export {
     deleteMoneyRequest,
     deleteTrackExpense,
     detachReceipt,
+    duplicateExpenseTransaction,
     getIOURequestPolicyID,
     getReceiverType,
     initMoneyRequest,
