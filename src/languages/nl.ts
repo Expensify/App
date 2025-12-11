@@ -734,6 +734,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domeinen',
         viewReport: 'Rapport bekijken',
         actionRequired: 'Actie vereist',
+        duplicate: 'Dupliceren',
+        duplicated: 'Gedupliceerd',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -6181,7 +6183,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 adultEntertainment: 'Volwassenenentertainment',
             },
             expenseReportRules: {
-                title: 'Onkostendeclaraties',
+                title: 'Geavanceerd',
                 subtitle: 'Automatiseer naleving, goedkeuringen en betalingen van onkostendeclaraties.',
                 preventSelfApprovalsTitle: 'Zelfgoedkeuringen voorkomen',
                 preventSelfApprovalsSubtitle: 'Voorkom dat werkruimtedeelnemers hun eigen onkostendeclaraties goedkeuren.',
@@ -6197,8 +6199,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 autoPayApprovedReportsLockedSubtitle: 'Ga naar Meer functies en schakel Workflows in, voeg vervolgens Betalingen toe om deze functie te ontgrendelen.',
                 autoPayReportsUnderTitle: 'Rapporten automatisch betalen onder',
                 autoPayReportsUnderDescription: 'Volledig conforme onkostendeclaraties onder dit bedrag worden automatisch betaald.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Ga naar [meer functies](${moreFeaturesLink}) en schakel workflows in, voeg vervolgens ${featureName} toe om deze functie te ontgrendelen.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Voeg ${featureName} toe om deze functie te ontgrendelen.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,
             },
@@ -6540,6 +6541,60 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         },
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `heeft de formule voor de aangepaste rapportnaam gewijzigd in "${newValue}" (voorheen "${oldValue}")`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `standaardgoedkeurder gewijzigd in ${newApprover} (voorheen ${previousApprover})` : `heeft de standaardgoedkeurder gewijzigd naar ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `heeft de goedkeuringsworkflow voor ${members} gewijzigd om rapporten in te dienen bij ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(voorheen standaardgoedkeurder ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(voorheen standaardgoedkeurder)';
+            } else if (previousApprover) {
+                text += `(voorheen ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `heeft de goedkeuringsworkflow voor ${members} gewijzigd zodat rapporten bij de standaardgoedkeurder ${approver} worden ingediend`
+                : `heeft de goedkeuringsworkflow voor ${members} gewijzigd zodat rapporten bij de standaardgoedkeurder worden ingediend`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(voorheen standaardgoedkeurder ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(voorheen standaardgoedkeurder)';
+            } else if (previousApprover) {
+                text += `(voorheen ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `heeft de goedkeuringsworkflow voor ${approver} gewijzigd zodat goedgekeurde rapporten worden doorgestuurd naar ${forwardsTo} (voorheen doorgestuurd naar ${previousForwardsTo})`
+                : `goedkeuringsworkflow voor ${approver} gewijzigd zodat goedgekeurde rapporten worden doorgestuurd naar ${forwardsTo} (voorheen definitief goedgekeurde rapporten)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `heeft de goedkeuringsworkflow voor ${approver} gewijzigd zodat goedgekeurde rapporten niet meer worden doorgestuurd (voorheen doorgestuurd naar ${previousForwardsTo})`
+                : `heeft de goedkeuringsworkflow voor ${approver} gewijzigd zodat goedgekeurde rapporten niet meer worden doorgestuurd`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -7870,11 +7925,12 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             requireError: 'Kon de SAML-vereiste-instelling niet bijwerken',
             disableSamlRequired: '‘SAML vereist’ uitschakelen',
             oktaWarningPrompt: 'Weet je het zeker? Dit schakelt ook Okta SCIM uit.',
+            requireWithEmptyMetadataError: 'Voeg hieronder de Identity Provider-metadata toe om in te schakelen',
         },
         samlConfigurationDetails: {
             title: 'SAML-configuratiegegevens',
             subtitle: 'Gebruik deze gegevens om SAML in te stellen.',
-            identityProviderMetaData: 'Identity Provider-meta-gegevens',
+            identityProviderMetadata: 'Identity Provider-meta-gegevens',
             entityID: 'Entiteit-ID',
             nameIDFormat: 'Naam-ID-indeling',
             loginUrl: 'Login-URL',
