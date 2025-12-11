@@ -201,7 +201,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         }
     };
 
-    /** Include the search bar when there are 8 or more active members in the selection list */
+    /** Include the search bar when there are STANDARD_LIST_ITEM_LIMIT or more active members in the selection list */
     const shouldShowTextInput = useMemo(() => {
         // Get the active chat members by filtering out the pending members with delete action
         const activeParticipants = participants.filter((accountID) => {

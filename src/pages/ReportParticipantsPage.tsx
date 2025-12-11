@@ -125,7 +125,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         return !pendingMember || isOffline || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     });
 
-    // Include the search bar when there are 8 or more active members in the selection list
+    // Include the search bar when there are STANDARD_LIST_ITEM_LIMIT or more active members in the selection list
     const shouldShowTextInput = activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     useEffect(() => {
