@@ -9694,7 +9694,6 @@ function getCommentLength(textComment: string, parsingDetails?: ParsingDetails, 
     if (unicodeCharLength) {
         return getParsedComment(textComment, parsingDetails).trim().length;
     }
-
     return getParsedComment(textComment, parsingDetails)
         .replaceAll(/[^ -~]/g, '\\u????')
         .trim().length;
