@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
@@ -24,18 +25,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function ExpenseRulesPage() {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses', 'Flash']);
-    const [expenseRules] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES, {canBeMissing: true});
+    const [expenseRules, {status}] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
     const hasRules = expenseRules ? expenseRules.length > 0 : false;
+    const isLoading = !hasRules && status === 'loading';
+
     const rulesList = useMemo<ListItem[]>(() => {
         if (!expenseRules || !hasRules) {
             return [];
         }
-        return expenseRules.map((item, index) => ({
-            text: item.merchantToMatch,
-            keyForList: `${item.merchantToMatch}${index}`,
+        return expenseRules.map((rule, index) => ({
+            text: rule.merchantToMatch,
+            keyForList: `${rule.merchantToMatch}${index}`,
             isDisabledCheckbox: true,
             isDisabled: true,
             rightElement: (
@@ -44,7 +47,7 @@ function ExpenseRulesPage() {
                         numberOfLines={1}
                         style={[styles.alignSelfStart]}
                     >
-                        {translate('expenseRulesPage.updateTo', item)}
+                        {translate('expenseRulesPage.updateTo', {rule})}
                     </Text>
                 </View>
             ),
@@ -84,8 +87,14 @@ function ExpenseRulesPage() {
                     Navigation.popToSidebar();
                 }}
             />
-            {!hasRules && headerContent}
-            {!hasRules && (
+            {(!hasRules || isLoading) && headerContent}
+            {isLoading && (
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={[styles.flex1]}
+                />
+            )}
+            {!hasRules && !isLoading && (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                     <EmptyStateComponent
                         SkeletonComponent={TableListItemSkeleton}
@@ -99,7 +108,7 @@ function ExpenseRulesPage() {
                     />
                 </ScrollView>
             )}
-            {hasRules && (
+            {hasRules && !isLoading && (
                 <SelectionListWithModal
                     addBottomSafeAreaPadding
                     canSelectMultiple={false}

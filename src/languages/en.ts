@@ -5,7 +5,6 @@ import StringUtils from '@libs/StringUtils';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type ExpenseRule from '@src/types/onyx/ExpenseRule';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {
     AccountOwnerParams,
@@ -98,6 +97,7 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
+    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -2402,7 +2402,7 @@ const translations = {
             title: "You haven't created any rules",
             subtitle: 'Add a rule to automate expense reporting.',
         },
-        updateTo: (rule: ExpenseRule) =>
+        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
             Object.entries(rule)
                 .map(([key, value]) => {
                     if (!value) {
