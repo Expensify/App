@@ -3,8 +3,8 @@ import {Platform, Image as RNImage} from 'react-native';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import mergeImages from '@libs/mergeImages';
-import type {FileObject} from '@src/types/utils/Attachment';
 import type {IOUAction, IOUType} from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type MergeConfig = {
     startImageUri: string;
@@ -195,7 +195,7 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
                 }
 
                 // Determine if this is a draft transaction
-                const isDraft = shouldUseTransactionDraft(action as IOUAction | undefined, iouType);
+                const isDraft = shouldUseTransactionDraft(action, iouType);
 
                 // Get the source URI and filename
                 // Web: mergedImage is a File object with uri property
@@ -261,7 +261,7 @@ function useOdometerImageMerging(): UseOdometerImageMergingResult {
             }
 
             const {transactionID, action, iouType} = mergeConfig;
-            const isDraft = shouldUseTransactionDraft(action as IOUAction | undefined, iouType);
+            const isDraft = shouldUseTransactionDraft(action, iouType);
 
             // Use require() to avoid circular dependency
             const {setMoneyRequestReceipt, detachOdometerStartImage, detachOdometerEndImage} = require('@libs/actions/IOU') as {

@@ -4,7 +4,6 @@ import {Alert, AppState, StyleSheet, View} from 'react-native';
 import type {LayoutRectangle} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
@@ -30,6 +29,10 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
+import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/NavigationAwareCamera/Camera';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -37,10 +40,6 @@ import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
-import CameraPermission from '../IOURequestStepScan/CameraPermission';
-import {cropImageToAspectRatio} from '../IOURequestStepScan/cropImageToAspectRatio';
-import type {ImageObject} from '../IOURequestStepScan/cropImageToAspectRatio';
-import NavigationAwareCamera from '../IOURequestStepScan/NavigationAwareCamera/Camera';
 
 type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
 
@@ -48,7 +47,6 @@ function IOURequestStepOdometerImage({
     route: {
         params: {transactionID, readingType, backTo},
     },
-    transaction,
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -87,10 +85,6 @@ function IOURequestStepOdometerImage({
     const blinkStyle = useAnimatedStyle(() => ({
         opacity: blinkOpacity.get(),
     }));
-
-    const showBlink = useCallback(() => {
-        blinkOpacity.set(withSequence(withTiming(1, {duration: 0}), withDelay(50, withTiming(0, {duration: 100}))));
-    }, [blinkOpacity]);
 
     const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
         opacity: focusIndicatorOpacity.get(),
@@ -389,6 +383,7 @@ function IOURequestStepOdometerImage({
 
 IOURequestStepOdometerImage.displayName = 'IOURequestStepOdometerImage';
 
+// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepOdometerImageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepOdometerImage);
 
 export default IOURequestStepOdometerImageWithFullTransactionOrNotFound;

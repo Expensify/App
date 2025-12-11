@@ -7154,7 +7154,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             negativeDistanceNotAllowed: 'La lettura finale deve essere maggiore della lettura iniziale',
             startTitle: 'Foto contachilometri iniziale',
             endTitle: 'Foto contachilometri finale',
-            startMessage: 'Scatta una foto del tuo contachilometri all\'inizio del viaggio',
+            startMessage: "Scatta una foto del tuo contachilometri all'inizio del viaggio",
             endMessage: 'Scatta una foto del tuo contachilometri alla fine del viaggio',
         },
     },

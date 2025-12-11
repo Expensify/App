@@ -379,6 +379,7 @@ function IOURequestStepDistanceOdometer({
                                 key={`start-${inputKey}`}
                                 ref={startReadingInputRef}
                                 label={translate('distance.odometer.startReading')}
+                                accessibilityLabel={translate('distance.odometer.startReading')}
                                 value={startReading}
                                 onChangeText={handleStartReadingChange}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
@@ -424,6 +425,7 @@ function IOURequestStepDistanceOdometer({
                                 key={`end-${inputKey}`}
                                 ref={endReadingInputRef}
                                 label={translate('distance.odometer.endReading')}
+                                accessibilityLabel={translate('distance.odometer.endReading')}
                                 value={endReading}
                                 onChangeText={handleEndReadingChange}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}

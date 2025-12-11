@@ -1,18 +1,3 @@
-import type {FileObject} from '@src/types/utils/Attachment';
-
-type ImageMergeViewShotProps = {
-    startImageUri: string;
-    endImageUri: string;
-    isHorizontal: boolean;
-    scaledWidth1: number;
-    scaledWidth2: number;
-    scaledHeight: number;
-    totalWidth: number;
-    totalHeight: number;
-    onCapture: (fileObject: FileObject) => void;
-    onError: (error: Error) => void;
-};
-
 /**
  * Web stub for ImageMergeViewShot.
  * This component should never be used on web - image merging on web is handled
