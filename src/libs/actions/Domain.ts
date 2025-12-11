@@ -104,6 +104,13 @@ function setSamlIdentity(accountID: number, domainName: string, metaIdentity: st
                 metaIdentity,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+            value: {
+                samlRequiredError: null,
+            },
+        },
     ];
     const failureData: OnyxUpdate[] = [
         {

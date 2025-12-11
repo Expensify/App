@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -40,6 +40,11 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
     });
     const [metaIdentity] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`, {canBeMissing: true, selector: metaIdentitySelector});
     const [isOktaScimConfirmModalVisible, setIsScimConfirmModalVisible] = useState(false);
+
+    useEffect(() => {
+        resetSamlEnabledError(accountID);
+        resetSamlRequiredError(accountID);
+    }, [accountID]);
 
     return (
         <>
