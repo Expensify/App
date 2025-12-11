@@ -325,13 +325,21 @@ function createFilesGlob(files?: string[]): string | undefined {
     return `**/+(${files.join('|')})`;
 }
 
-function getDistinctFailureFileNames(failures: Map<string, CompilerFailure>) {
-    const distinctFileNames = new Set<string>();
-    for (const [, failure] of failures) {
-        distinctFileNames.add(failure.file);
+function getErrorsByFile(failures: Map<string, CompilerFailure>) {
+    const errorsByFile = new Map<string, Map<string, CompilerFailure>>();
+    for (const [key, failure] of failures.entries()) {
+        if (!errorsByFile.has(failure.file)) {
+            errorsByFile.set(failure.file, new Map());
+        }
+        errorsByFile.get(failure.file)?.set(key, failure);
     }
 
-    return distinctFileNames;
+    const distinctErrorFileNames = new Set<string>(errorsByFile.keys());
+
+    return {
+        errorsByFile,
+        distinctErrorFileNames,
+    };
 }
 
 /**
@@ -492,13 +500,14 @@ async function filterResultsByDiff(results: CompilerResults, mainBaseCommitHash:
 }
 
 /**
- * Enforces automatic memoization by checking for manual memoization keywords in already compiled files and attaching React compiler errors.
+ * Splits React Compiler errors based on whether the file has been added or modified
+ * Adds erros for enforced automatic memoization by checking for manual memoization keywords in already compiled files.
  * @param results - The compiler results to enforce automatic memoization on
  * @param diffResult - The diff result to check for added files
  * @returns The compiler results partitioned into manual memo errors and react compiler errors
  */
 function splitErrorsBasedOnFileDiffType({success, failures: reactCompilerFailures}: CompilerResults, diffResult: DiffResult) {
-    const distinctFailureFileNames = getDistinctFailureFileNames(reactCompilerFailures);
+    const {distinctErrorFileNames: distinctFailureFileNames, errorsByFile} = getErrorsByFile(reactCompilerFailures);
 
     // Add added files from the diff that are already compiled successfully,
     // to a list of files that should have automatic memoization enforced
@@ -508,8 +517,9 @@ function splitErrorsBasedOnFileDiffType({success, failures: reactCompilerFailure
     for (const file of diffResult.files) {
         const filePath = file.filePath;
 
+        distinctFailureFileNames.add(filePath);
+
         if (file.diffType === 'added') {
-            distinctFailureFileNames.add(filePath);
             addedFiles.add(filePath);
         }
 
@@ -529,10 +539,14 @@ function splitErrorsBasedOnFileDiffType({success, failures: reactCompilerFailure
     // Check all files whether we are enforcing automatic memoization, if so, log an error if manual memoization keywords are found and attach React compiler errors.
     for (const file of distinctFailureFileNames) {
         if (!enforcedAutoMemoFiles.has(file)) {
+            const errors = errorsByFile.get(file);
+
             // Split up the React Compiler failures into modified and added files
             if (addedFiles.has(file)) {
-                reactCompilerFailuresForAddedFiles.set(file, reactCompilerFailures.get(file) ?? {file});
-                reactCompilerFailures.delete(file);
+                for (const [errorKey, error] of errors?.entries() ?? []) {
+                    reactCompilerFailuresForAddedFiles.set(errorKey, error);
+                    reactCompilerFailures.delete(errorKey);
+                }
             }
 
             continue;
@@ -658,11 +672,11 @@ function printResults({success, failuresForAddedFiles, failuresForModifiedFiles,
     const shouldPrintErrors = shouldPrintModifiedFilesErrors || shouldPrintAddedFilesErrors;
 
     if (shouldPrintModifiedFilesErrors) {
-        const distinctFailureFileNames = getDistinctFailureFileNames(failuresForModifiedFiles);
+        const {distinctErrorFileNames} = getErrorsByFile(failuresForModifiedFiles);
 
-        if (distinctFailureFileNames.size > 0) {
+        if (distinctErrorFileNames.size > 0) {
             log();
-            logWarn(`Failed to compile ${distinctFailureFileNames.size} modified files with React Compiler:`);
+            logWarn(`Failed to compile ${distinctErrorFileNames.size} modified files with React Compiler:`);
             log();
 
             printFailures(failuresForModifiedFiles);
@@ -673,11 +687,11 @@ function printResults({success, failuresForAddedFiles, failuresForModifiedFiles,
     }
 
     if (shouldPrintAddedFilesErrors) {
-        const distinctFailureFileNames = getDistinctFailureFileNames(failuresForAddedFiles);
+        const {distinctErrorFileNames} = getErrorsByFile(failuresForAddedFiles);
 
-        if (distinctFailureFileNames.size > 0) {
+        if (distinctErrorFileNames.size > 0) {
             log();
-            logError(`Failed to compile ${distinctFailureFileNames.size} added files with React Compiler:`);
+            logError(`Failed to compile ${distinctErrorFileNames.size} added files with React Compiler:`);
             log();
 
             printFailures(failuresForAddedFiles);
