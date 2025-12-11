@@ -41,6 +41,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillableDefaultDescriptionParams,
@@ -732,7 +733,10 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiuj do schowka',
         thisIsTakingLongerThanExpected: 'To trwa dłużej, niż się spodziewaliśmy…',
         domains: 'Domeny',
+        viewReport: 'Wyświetl raport',
         actionRequired: 'Wymagane działanie',
+        duplicate: 'Duplikat',
+        duplicated: 'Zduplikowano',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -986,7 +990,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Ten czat jest przeznaczony na wszystko, co dotyczy <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `Ten czat służy do faktur między <strong>${invoicePayer}</strong> a <strong>${invoiceReceiver}</strong>. Użyj przycisku +, aby wysłać fakturę.`,
-        beginningOfChatHistory: 'Ten czat jest z',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `Ta rozmowa jest z ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `Tutaj <strong>${submitterDisplayName}</strong> będzie przesyłać wydatki do <strong>${workspaceName}</strong>. Wystarczy użyć przycisku +.`,
         beginningOfChatHistorySelfDM: 'To jest Twoja osobista przestrzeń. Używaj jej do notatek, zadań, szkiców i przypomnień.',
@@ -1556,7 +1560,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Wybierz dodatkową osobę zatwierdzającą ten raport, zanim uruchomimy dalszą część procesu akceptacji.',
+                bulkSubtitle: 'Wybierz dodatkowego akceptującego dla tych raportów, zanim przekażemy je dalej w pozostałej części procesu zatwierdzania.',
             },
+            bulkSubtitle: 'Wybierz opcję, aby zmienić akceptującego dla tych raportów.',
         },
         chooseWorkspace: 'Wybierz przestrzeń roboczą',
     },
@@ -2319,6 +2325,7 @@ ${amount} dla ${merchant} - ${date}`,
             title: 'Brak członków do wyświetlenia',
             expensesFromSubtitle: 'Wszyscy członkowie przestrzeni roboczej należą już do istniejącego obiegu zatwierdzania.',
             approverSubtitle: 'Wszyscy zatwierdzający należą do istniejącego przepływu pracy.',
+            bulkApproverSubtitle: 'Żaden akceptujący nie spełnia kryteriów dla wybranych raportów.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -6070,6 +6077,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     toUpgrade: 'Aby zaktualizować, kliknij',
                     selectWorkspace: 'wybierz przestrzeń roboczą i zmień typ planu na',
                 },
+                upgradeWorkspaceWarning: 'Nie można ulepszyć przestrzeni roboczej',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Twoja firma ograniczyła tworzenie przestrzeni roboczych. Skontaktuj się z administratorem, aby uzyskać pomoc.',
             },
         },
         downgrade: {
@@ -6168,7 +6177,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 adultEntertainment: 'Rozrywka dla dorosłych',
             },
             expenseReportRules: {
-                title: 'Raporty wydatków',
+                title: 'Zaawansowany',
                 subtitle: 'Zautomatyzuj zgodność raportów wydatków, proces zatwierdzania i płatności.',
                 preventSelfApprovalsTitle: 'Zapobiegaj samodzielnym zatwierdzeniom',
                 preventSelfApprovalsSubtitle: 'Uniemożliwiaj członkom przestrzeni roboczej zatwierdzanie własnych raportów wydatków.',
@@ -6184,8 +6193,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 autoPayApprovedReportsLockedSubtitle: 'Przejdź do „Więcej funkcji” i włącz „Workflowy”, a następnie dodaj „Płatności”, aby odblokować tę funkcję.',
                 autoPayReportsUnderTitle: 'Automatycznie opłacaj raporty poniżej',
                 autoPayReportsUnderDescription: 'W pełni zgodne raporty wydatków poniżej tej kwoty zostaną automatycznie opłacone.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Przejdź do [więcej funkcji](${moreFeaturesLink}) i włącz przepływy pracy, a następnie dodaj ${featureName}, aby odblokować tę funkcję.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Dodaj ${featureName}, aby odblokować tę funkcję.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Przejdź do [więcej funkcji](${moreFeaturesLink}) i włącz ${featureName}, aby odblokować tę funkcję.`,
             },
@@ -6497,7 +6505,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `śledzenie uczestników ${enabled ? 'włączone' : 'Wyłączone'}`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'włączone' : 'Wyłączone'} zwrotów kosztów dla tego obszaru roboczego`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'włączone' : 'wyłączone'} zwroty kosztów`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `dodano podatek „${taxName}”`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `usunął podatek „${taxName}”`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6730,6 +6738,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         groupBy: 'Grupuj według',
         moneyRequestReport: {
             emptyStateTitle: 'Ten raport nie ma żadnych wydatków.',
+            accessPlaceHolder: 'Otwórz, aby zobaczyć szczegóły',
         },
         noCategory: 'Brak kategorii',
         noTag: 'Brak tagu',
@@ -6872,6 +6881,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Czy na pewno chcesz utworzyć kolejny raport w ${workspaceName}? Możesz uzyskać dostęp do swoich pustych raportów w`,
             emptyReportConfirmationPromptLink: 'Raporty',
+            emptyReportConfirmationDontShowAgain: 'Nie pokazuj tego ponownie',
             genericWorkspaceName: 'to miejsce pracy',
         },
         genericCreateReportFailureMessage: 'Nieoczekiwany błąd podczas tworzenia tego czatu. Spróbuj ponownie później.',
@@ -7867,6 +7877,26 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             revealToken: 'Pokaż token',
             fetchError: 'Nie udało się pobrać szczegółów konfiguracji SAML',
             setMetadataGenericError: 'Nie można ustawić metadanych SAML',
+        },
+        accessRestricted: {
+            title: 'Dostęp ograniczony',
+            subtitle: (domainName: string) => `Proszę zweryfikować się jako autoryzowany administrator firmy dla <strong>${domainName}</strong>, jeśli potrzebujesz kontroli nad:`,
+            companyCardManagement: 'Zarządzanie kartami firmowymi',
+            accountCreationAndDeletion: 'Tworzenie i usuwanie konta',
+            workspaceCreation: 'Tworzenie obszaru roboczego',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Dodaj domenę',
+            subtitle: 'Wprowadź nazwę prywatnej domeny, do której chcesz uzyskać dostęp (np. expensify.com).',
+            domainName: 'Nazwa domeny',
+            newDomain: 'Nowa domena',
+        },
+        domainAdded: {title: 'Dodano domenę', description: 'Następnie musisz zweryfikować własność domeny i dostosować ustawienia zabezpieczeń.', configure: 'Skonfiguruj'},
+        enhancedSecurity: {
+            title: 'Zwiększone bezpieczeństwo',
+            subtitle: 'Wymagaj, aby członkowie Twojej domeny logowali się przez Single Sign-On (SSO), ograniczaj tworzenie obszarów roboczych i nie tylko.',
+            enable: 'Włącz',
         },
     },
 };

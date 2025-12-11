@@ -41,6 +41,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillableDefaultDescriptionParams,
@@ -731,7 +732,10 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '予想より時間がかかっています…',
         domains: 'ドメイン',
+        viewReport: 'レポートを表示',
         actionRequired: '対応が必要',
+        duplicate: '複製',
+        duplicated: '重複',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -986,7 +990,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `このチャットルームは、<strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> に関するあらゆる内容のためのものです。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `このチャットは<strong>${invoicePayer}</strong>と<strong>${invoiceReceiver}</strong>の間の請求書用です。+ ボタンを使って請求書を送信してください。`,
-        beginningOfChatHistory: 'このチャットの相手は',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `このチャットは${users}とのチャットです。`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `ここは、<strong>${submitterDisplayName}</strong> が <strong>${workspaceName}</strong> に経費を提出する場所です。+ ボタンを使用してください。`,
         beginningOfChatHistorySelfDM: 'これはあなたの個人スペースです。メモ、タスク、下書き、リマインダーとして使用してください。',
@@ -1560,7 +1564,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'このレポートを残りの承認ワークフローに回付する前に、追加の承認者を選択してください。',
+                bulkSubtitle: '残りの承認ワークフローに回す前に、これらのレポートの追加承認者を選択してください。',
             },
+            bulkSubtitle: 'これらのレポートの承認者を変更する方法を選択してください。',
         },
         chooseWorkspace: 'ワークスペースを選択',
     },
@@ -2317,6 +2323,7 @@ ${merchant} への ${amount}（${date}）`,
             title: '表示するメンバーがいません',
             expensesFromSubtitle: 'すべてのワークスペースメンバーは、すでに既存の承認ワークフローに属しています。',
             approverSubtitle: 'すべての承認者は既存のワークフローに属しています。',
+            bulkApproverSubtitle: '選択されたレポートの条件に一致する承認者がいません。',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -6052,6 +6059,8 @@ ${reportName}
                     toUpgrade: 'アップグレードするには、クリックしてください',
                     selectWorkspace: 'ワークスペースを選択し、プランの種類を 次に変更してください',
                 },
+                upgradeWorkspaceWarning: 'ワークスペースをアップグレードできません',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '会社がワークスペースの作成を制限しています。管理者に連絡してください。',
             },
         },
         downgrade: {
@@ -6149,7 +6158,7 @@ ${reportName}
                 adultEntertainment: 'アダルトエンターテインメント',
             },
             expenseReportRules: {
-                title: '経費精算書',
+                title: '上級',
                 subtitle: '経費精算レポートのコンプライアンス、承認、支払いを自動化します。',
                 preventSelfApprovalsTitle: '自己承認を防ぐ',
                 preventSelfApprovalsSubtitle: 'ワークスペースメンバーが自分自身の経費精算レポートを承認できないようにします。',
@@ -6165,8 +6174,7 @@ ${reportName}
                 autoPayApprovedReportsLockedSubtitle: '「その他の機能」に移動してワークフローを有効にし、その後「支払い」を追加してこの機能を有効化してください。',
                 autoPayReportsUnderTitle: '以下のレポートを自動支払い',
                 autoPayReportsUnderDescription: 'この金額以下の、要件を完全に満たした経費精算書は自動的に支払われます。',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `[その他の機能](${moreFeaturesLink}) に移動してワークフローを有効にし、その後 ${featureName} を追加してこの機能を有効化してください。`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `${featureName} を追加して、この機能を有効にしてください。`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `[その他の機能](${moreFeaturesLink})に移動し、${featureName} を有効にしてこの機能をアンロックしてください。`,
             },
@@ -6472,7 +6480,7 @@ ${reportName}
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 出席者の追跡`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `このワークスペースの${enabled ? '有効' : '無効'}払い戻し`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? '有効' : '無効'} 件の払い戻し`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `税「${taxName}」を追加しました`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `税「${taxName}」を削除しました`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6704,6 +6712,7 @@ ${reportName}
         groupBy: 'グループ化',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
+            accessPlaceHolder: '詳細を開く',
         },
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',
@@ -6846,6 +6855,7 @@ ${reportName}
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `${workspaceName} で別のレポートを作成してもよろしいですか？ 空のレポートには次からアクセスできます`,
             emptyReportConfirmationPromptLink: 'レポート',
             genericWorkspaceName: 'このワークスペース',
+            emptyReportConfirmationDontShowAgain: '今後表示しない',
         },
         genericCreateReportFailureMessage: 'このチャットの作成中に予期しないエラーが発生しました。後でもう一度お試しください。',
         genericAddCommentFailureMessage: 'コメントの投稿中に予期しないエラーが発生しました。後でもう一度お試しください。',
@@ -7839,6 +7849,26 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             revealToken: 'トークンを表示',
             fetchError: 'SAML 設定の詳細を取得できませんでした',
             setMetadataGenericError: 'SAMLメタデータを設定できませんでした',
+        },
+        accessRestricted: {
+            title: 'アクセスが制限されています',
+            subtitle: (domainName: string) => `以下を管理する必要がある場合は、<strong>${domainName}</strong> の認可された会社管理者であることを確認してください:`,
+            companyCardManagement: '法人カードの管理',
+            accountCreationAndDeletion: 'アカウントの作成と削除',
+            workspaceCreation: 'ワークスペースの作成',
+            samlSSO: 'SAML シングルサインオン',
+        },
+        addDomain: {
+            title: 'ドメインを追加',
+            subtitle: 'アクセスしたいプライベートドメイン名を入力してください（例：expensify.com）。',
+            domainName: 'ドメイン名',
+            newDomain: '新しいドメイン',
+        },
+        domainAdded: {title: 'ドメインが追加されました', description: '次に、ドメインの所有権を確認し、セキュリティ設定を調整する必要があります。', configure: '設定'},
+        enhancedSecurity: {
+            title: '強化されたセキュリティ',
+            subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須化し、ワークスペースの作成を制限するなど、さらに多くのことができます。',
+            enable: '有効にする',
         },
     },
 };
