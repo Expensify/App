@@ -470,7 +470,8 @@ function BaseVideoPlayer({
                                         }}
                                     >
                                         <VideoView
-                                            fullscreenOptions={{enable: true}}
+                                            // has to be switched to fullscreenOptions={{enable: true}} when mobile Safari gets fixed
+                                            allowsFullscreen
                                             player={videoPlayerRef.current}
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
                                             nativeControls={isFullScreenRef.current}
