@@ -19,7 +19,7 @@ export default function (): void {
         dsn: CONFIG.SENTRY_DSN,
         transport: isDevelopment() ? makeDebugTransport : undefined,
         tracesSampleRate: 1.0,
-        profilesSampleRate: 1.0,
+        profilesSampleRate: 0.4,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
         integrations,
