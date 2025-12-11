@@ -6929,12 +6929,6 @@ function duplicateExpenseTransaction(
 
     // If no workspace is provided the expense should be unreported
     if (!targetPolicy) {
-        const selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`];
-
-        if (!selfDMReport) {
-            return;
-        }
-
         const trackExpenseParams: CreateTrackExpenseParams = {
             ...params,
             participantParams: {
@@ -6945,7 +6939,7 @@ function duplicateExpenseTransaction(
                 ...(params.transactionParams ?? {}),
                 validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
             },
-            report: selfDMReport,
+            report: undefined,
             isDraftPolicy: false,
         };
         return trackExpense(trackExpenseParams);
