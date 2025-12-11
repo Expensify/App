@@ -604,6 +604,10 @@ function getSubscriptionPlanInfo(
     };
 }
 
+function isSubscriptionTypeOfInvoicing(privateSubscriptionType: SubscriptionType | undefined) {
+    return privateSubscriptionType === CONST.SUBSCRIPTION.TYPE.INVOICING;
+}
+
 export {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
@@ -626,6 +630,7 @@ export {
     shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
+    isSubscriptionTypeOfInvoicing,
 };
 
 export type {SubscriptionPlanIllustrations};

@@ -2,6 +2,7 @@ import React, {useContext} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -27,7 +28,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
+import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {formatSubscriptionEndDate} from '@pages/settings/Subscription/utils';
@@ -165,8 +166,12 @@ function SubscriptionSettings() {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
     };
 
-    if (!subscriptionPlan || (hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM)) {
+    if (!subscriptionPlan || (hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM) || isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
         return <NotFoundPage />;
+    }
+
+    if (!privateSubscription) {
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
