@@ -48,7 +48,6 @@ import {
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
@@ -56,7 +55,8 @@ import {
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getTransactionDetails,
-    getTripIDFromTransactionParentReportID,
+    getTripIDFromTransactionParentReportID, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getReportName,
     isInvoiceReport,
     isPaidGroupPolicy,
     isReportApproved,
