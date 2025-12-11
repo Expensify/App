@@ -297,6 +297,7 @@ function IOURequestStepDistance({
             lastSelectedDistanceRates,
             setDistanceRequestData,
             translate,
+            quickAction,
         });
     }, [
         transaction,

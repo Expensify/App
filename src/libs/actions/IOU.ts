@@ -872,6 +872,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     isAutoReporting: boolean;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     files: ReceiptFile[];
     isTestTransaction: boolean;
     locationPermissionGranted: boolean;
@@ -903,6 +904,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     setDistanceRequestData?: (participants: Participant[]) => void;
     translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -15244,6 +15246,7 @@ function handleMoneyRequestStepScanParticipants({
     isAutoReporting,
     isASAPSubmitBetaEnabled,
     transactionViolations,
+    quickAction,
     files,
     isTestTransaction = false,
     locationPermissionGranted = false,
@@ -15305,6 +15308,7 @@ function handleMoneyRequestStepScanParticipants({
                     currency: initialTransaction?.currency ?? 'USD',
                     taxCode: initialTransaction.taxCode,
                     taxAmount: initialTransaction.taxAmount,
+                    quickAction,
                 });
                 return;
             }
@@ -15456,6 +15460,7 @@ function handleMoneyRequestStepDistanceNavigation({
     lastSelectedDistanceRates,
     setDistanceRequestData,
     translate,
+    quickAction,
 }: MoneyRequestStepDistanceNavigationParams) {
     if (transaction?.splitShares && !manualDistance) {
         resetSplitShares(transaction);
@@ -15537,6 +15542,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 backToReport,
                 isASAPSubmitBetaEnabled,
                 transactionViolations,
+                quickAction,
             });
             return;
         }

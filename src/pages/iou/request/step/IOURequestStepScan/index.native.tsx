@@ -282,6 +282,7 @@ function IOURequestStepScan({
                 isAutoReporting: !!personalPolicy?.autoReporting,
                 isASAPSubmitBetaEnabled,
                 transactionViolations,
+                quickAction,
                 files,
                 isTestTransaction,
                 locationPermissionGranted,
