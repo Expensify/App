@@ -11,7 +11,7 @@ Expensify supports Single Sign-On (SSO) through the SAML protocol, allowing you 
 
 # Set Up SAML Single Sign-On
 
-⚠️ **Note:** Your domain must be verified before you can enable SAML. [Learn how to verify a domain](https://help.expensify.com/articles/new-expensify/workspaces/Verify-a-Domain)
+⚠️ **Note:** Your domain must be verified before you can enable SAML. [Learn how to claim and verify a domain](https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain)
 
 Once your domain is verified, you can configure SAML-based login for enhanced authentication.
 
