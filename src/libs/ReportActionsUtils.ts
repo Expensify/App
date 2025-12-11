@@ -235,6 +235,70 @@ function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): report
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
+function isDynamicExternalWorkflowSubmitFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED);
+}
+
+function getMostRecentActiveDEWSubmitFailedAction(reportActions: OnyxEntry<ReportActions> | ReportAction[]): ReportAction | undefined {
+    const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
+
+    // Find the most recent DEW_SUBMIT_FAILED action
+    const mostRecentDewSubmitFailedAction = actionsArray
+        .filter((action): action is ReportAction => isDynamicExternalWorkflowSubmitFailedAction(action))
+        .reduce<ReportAction | undefined>((latest, current) => {
+            if (!latest || (current.created && latest.created && current.created > latest.created)) {
+                return current;
+            }
+            return latest;
+        }, undefined);
+
+    if (!mostRecentDewSubmitFailedAction) {
+        return undefined;
+    }
+
+    // Find the most recent SUBMITTED action
+    const mostRecentSubmittedAction = actionsArray
+        .filter((action): action is ReportAction => isSubmittedAction(action))
+        .reduce<ReportAction | undefined>((latest, current) => {
+            if (!latest || (current.created && latest.created && current.created > latest.created)) {
+                return current;
+            }
+            return latest;
+        }, undefined);
+
+    // Return the DEW action if there's no SUBMITTED action, or if DEW_SUBMIT_FAILED is more recent
+    if (!mostRecentSubmittedAction || mostRecentDewSubmitFailedAction.created > mostRecentSubmittedAction.created) {
+        return mostRecentDewSubmitFailedAction;
+    }
+
+    return undefined;
+}
+
+/**
+ * Checks if there's a pending SUBMITTED action (submission in progress).
+ * This is used to detect when a DEW submission is in progress (offline submission).
+ */
+function hasPendingDEWSubmit(reportActions: OnyxEntry<ReportActions> | ReportAction[]): boolean {
+    const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
+    return actionsArray.some((action): action is ReportAction => isSubmittedAction(action) && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+}
+
+/**
+ * Checks if there's a DEW submit that has failed or is currently pending.
+ * This is used to determine if we should show the VIEW action instead of SUBMIT.
+ */
+function hasDEWSubmitPendingOrFailed(reportActions: OnyxEntry<ReportActions> | ReportAction[], isDEWPolicy: boolean): boolean {
+    if (!isDEWPolicy) {
+        return false;
+    }
+
+    if (getMostRecentActiveDEWSubmitFailedAction(reportActions)) {
+        return true;
+    }
+
+    return hasPendingDEWSubmit(reportActions);
+}
+
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
 }
@@ -3615,6 +3679,10 @@ export {
     isApprovedAction,
     isUnapprovedAction,
     isForwardedAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
+    getMostRecentActiveDEWSubmitFailedAction,
+    hasPendingDEWSubmit,
+    hasDEWSubmitPendingOrFailed,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,

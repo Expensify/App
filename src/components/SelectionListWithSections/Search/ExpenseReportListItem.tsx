@@ -33,6 +33,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     shouldSyncFocus,
     onCheckboxPress,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
@@ -72,6 +73,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDEWBetaEnabled,
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
         );
@@ -84,6 +86,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         lastPaymentMethod,
         currentSearchKey,
         onDEWModalOpen,
+        isDEWBetaEnabled,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
     ]);

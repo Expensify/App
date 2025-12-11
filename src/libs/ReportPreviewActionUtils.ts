@@ -159,6 +159,7 @@ function getReportPreviewAction(
     isPaidAnimationRunning?: boolean,
     isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
+    hasDEWSubmitPendingOrFailed?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -175,6 +176,11 @@ function getReportPreviewAction(
     }
     if (isAddExpenseAction(report, transactions ?? [], isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
+    }
+
+    // If DEW submit failed or there's a pending DEW submission, show VIEW
+    if (hasDEWSubmitPendingOrFailed && isOpenReport(report)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
     if (canSubmit(report, isReportArchived, currentUserAccountID, policy, transactions)) {

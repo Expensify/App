@@ -47,6 +47,7 @@ function TransactionListItem<TItem extends ListItem>({
     areAllOptionalColumnsHidden,
     violations,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -126,6 +127,7 @@ function TransactionListItem<TItem extends ListItem>({
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDEWBetaEnabled,
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
         );
@@ -140,6 +142,7 @@ function TransactionListItem<TItem extends ListItem>({
         onSelectRow,
         item,
         onDEWModalOpen,
+        isDEWBetaEnabled,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
     ]);

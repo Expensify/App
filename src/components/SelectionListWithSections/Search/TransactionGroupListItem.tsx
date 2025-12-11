@@ -63,6 +63,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     newTransactionID,
     violations,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
@@ -268,6 +269,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         isIndeterminate={isIndeterminate}
                         isHovered={hovered}
                         onDEWModalOpen={onDEWModalOpen}
+                        isDEWBetaEnabled={isDEWBetaEnabled}
                         onDownArrowClick={onExpandIconPress}
                         isExpanded={isExpanded}
                     />
@@ -291,6 +293,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             isSelectAllChecked,
             isIndeterminate,
             onDEWModalOpen,
+            isDEWBetaEnabled,
             groupBy,
             isExpanded,
             onExpandIconPress,

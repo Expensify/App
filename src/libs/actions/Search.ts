@@ -78,6 +78,7 @@ function handleActionButtonPress(
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
     currentSearchKey?: SearchKey,
     onDEWModalOpen?: () => void,
+    isDEWBetaEnabled?: boolean,
     isDelegateAccessRestricted?: boolean,
     onDelegateAccessRestricted?: () => void,
 ) {
@@ -112,7 +113,7 @@ function handleActionButtonPress(
             approveMoneyRequestOnSearch(hash, [item.reportID], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            if (hasDynamicExternalWorkflow(snapshotPolicy)) {
+            if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
                 onDEWModalOpen?.();
                 return;
             }
