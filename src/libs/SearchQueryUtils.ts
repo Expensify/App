@@ -899,7 +899,7 @@ function buildFilterFormValuesFromQuery(
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
-            filtersForm[key as typeof filterKey] = validBooleanTypes.filter((value) => filterValues.includes(value)).join(',');
+            filtersForm[key as typeof filterKey] = validBooleanTypes.filter((value) => filterValues.includes(value));
         }
 
         if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {

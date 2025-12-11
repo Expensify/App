@@ -436,13 +436,13 @@ function getFilterDisplayTitle(
             .join(', ');
     }
 
-    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
         return filters[key];
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
-        const filterValue = filters[key];
-        return filterValue ? translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.BOOLEAN>}`) : undefined;
+        const filterValues = filters[key] ?? [];
+        return filterValues.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.BOOLEAN>}`)).join(', ');
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
