@@ -1,19 +1,21 @@
 diff --git a/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.js b/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.js
 new file mode 100644
-index 0000000..ef3fc72
+index 0000000..f6edb80
 --- /dev/null
 +++ b/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.js
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,46 @@
 +"use strict";
 +
 +let isInitialized = false;
 +let justFinishedEdgeGestureFromLeft = false;
 +let expectingTouchend = false;
 +
++/// This returns information if the user just performed edge gesture on iOS safari to navigate in the browser history.
 +export const getIsEdgeDragGesture = () => {
 +  return expectingTouchend || justFinishedEdgeGestureFromLeft;
 +};
 +
++// We need to manualy reset this flag after deciding if there should be animation for navigation.
 +export const resetExpectingTouchendWithDelay = () => {
 +  setTimeout(() => {
 +    expectingTouchend = false;
@@ -26,12 +28,15 @@ index 0000000..ef3fc72
 +  isInitialized = true;
 +  let timer;
 +
++  // Gestures that would trigger navigation forward are broken on iOS safari.
++  // They don't have touchend event fired so we can look at expectingTouchEnd flag to detect if we should run animation.
 +  const handleTouchStart = () => {
 +    expectingTouchend = true;
 +  };
 +  const handleTouchEnd = e => {
 +    let changedTouches;
 +    const pageX = (changedTouches = e.changedTouches[0]) === null || changedTouches === void 0 ? void 0 : changedTouches.pageX;
++    // PageX for gesture that would trigger navigation back is negative.
 +    if (pageX < 0) {
 +      if (timer) {
 +        clearTimeout(timer);
@@ -44,17 +49,23 @@ index 0000000..ef3fc72
 +  document.addEventListener('touchstart', handleTouchStart);
 +  document.addEventListener('touchend', handleTouchEnd);
 +};
++//# sourceMappingURL=edgeDragGestureMonitor.js.map
+\ No newline at end of file
 diff --git a/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.native.js b/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.native.js
 new file mode 100644
-index 0000000..93b3e20
+index 0000000..9c7b703
 --- /dev/null
 +++ b/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.native.js
-@@ -0,0 +1,5 @@
+@@ -0,0 +1,8 @@
 +"use strict";
++
++// We don't need edgeDragGestureMonitor for native platforms.
 +
 +export const getIsEdgeDragGesture = () => false;
 +export const resetExpectingTouchendWithDelay = () => {};
 +export const maybeInitializeEdgeDragGestureMonitor = () => {};
++//# sourceMappingURL=edgeDragGestureMonitor.native.js.map
+\ No newline at end of file
 diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
 index b680e64..bf1e145 100644
 --- a/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
@@ -84,7 +95,7 @@ index b680e64..bf1e145 100644
            onFinish();
          }
 diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
-index 2f9a4a9..a1b2c3d 100644
+index a0c13a7..2e9bb70 100644
 --- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
 +++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
 @@ -4,6 +4,7 @@ import { getDefaultHeaderHeight, SafeAreaProviderCompat } from '@react-navigatio
