@@ -20,7 +20,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
@@ -95,9 +95,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const reportID = report?.reportID;
 
-    // Prevents creating duplicate transaction threads for legacy transactions
-    const hasCreatedLegacyThreadRef = useRef(false);
-
     // Get transaction from search snapshot if not available in main collections
     const {snapshotTransaction, snapshotViolations} = useMemo(() => {
         if (!snapshot?.data || Object.keys(allReportTransactions).length > 0) {
@@ -124,60 +121,19 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
 
+        if ((Object.keys(allReportTransactions).length === 1 || snapshotTransaction) && !transactionThreadReportID) {
+            const transaction = Object.values(allReportTransactions).at(0) ?? snapshotTransaction;
+            if (transaction && (!transaction?.moneyRequestReportActionID || transaction.moneyRequestReportActionID === '0')) {
+                const violations = allReportViolations[transaction.transactionID] ?? snapshotViolations;
+                createTransactionThreadReport(report, undefined, transaction, violations);
+                return;
+            }
+        }
+
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
         // We don't want this hook to re-run on the every report change
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [reportIDFromRoute, transactionThreadReportID]);
-
-    useEffect(() => {
-        hasCreatedLegacyThreadRef.current = false;
-    }, [reportIDFromRoute]);
-
-    // Create transaction thread for legacy transactions that don't have one yet.
-    // Wait for all data to load to avoid duplicates or stale data when navigating between reports.
-    useEffect(() => {
-        if (hasCreatedLegacyThreadRef.current || transactionThreadReportID || (Object.keys(allReportTransactions).length !== 1 && !snapshotTransaction)) {
-            return;
-        }
-
-        // Use main collection transaction or fallback to snapshot
-        const transaction = Object.values(allReportTransactions).at(0) ?? snapshotTransaction;
-        if (!transaction || (transaction && transaction.reportID !== reportIDFromRoute)) {
-            return;
-        }
-
-        // Check that reportActions belong to the current report to avoid using stale data from the previous report
-        const hasMatchingReportActions = reportActions.some((action) => {
-            const iouReportID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUReportID : undefined;
-            return iouReportID?.toString() === reportIDFromRoute;
-        });
-
-        if (!hasMatchingReportActions && reportActions.length > 1) {
-            return;
-        }
-
-        const iouAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        if (iouAction) {
-            return;
-        }
-
-        hasCreatedLegacyThreadRef.current = true;
-
-        const violations = allReportViolations[transaction.transactionID] ?? snapshotViolations;
-        createTransactionThreadReport(report, undefined, transaction, violations);
-    }, [
-        allReportTransactions,
-        allReportViolations,
-        report,
-        reportActions,
-        reportIDFromRoute,
-        reportMetadata?.isLoadingInitialReportActions,
-        snapshot,
-        snapshotTransaction,
-        snapshotViolations,
-        transactionThreadReportID,
-        visibleTransactions,
-    ]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
