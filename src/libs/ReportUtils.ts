@@ -6286,11 +6286,12 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, translate: Local
 
     const parentReportID = parentReport?.reportID;
     const computedReportName = reportAttributes?.[parentReportID]?.reportName;
+    const workspaceName = getPolicyName({report: parentReport, returnEmptyIfNotFound: true});
 
     if (computedReportName) {
         return {
             reportName: computedReportName,
-            workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
+            workspaceName
         };
     }
 
@@ -6305,7 +6306,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, translate: Local
             allPersonalDetails,
             allReportActions,
         ),
-        workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
+        workspaceName
     };
 }
 
