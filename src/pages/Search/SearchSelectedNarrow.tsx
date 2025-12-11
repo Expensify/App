@@ -74,6 +74,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                         shouldAlwaysShowDropdownMenu
                         isDisabled={options.length === 0}
                         onPress={() => null}
+                        shouldPopoverUseScrollView={options.length >= 5}
                         onOptionSelected={(item) => handleOnMenuItemPress(item)}
                         onSubItemSelected={(subItem) =>
                             handleBulkPayItemSelected({
