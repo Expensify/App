@@ -2256,13 +2256,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
  */
 function hasExpenses(reportID?: string, transactions?: Array<OnyxEntry<Transaction>>): boolean {
     if (transactions) {
-        return !!transactions?.find((transaction) => {
-            if (!transaction) {
-                return false;
-            }
-            const tx = transaction as Transaction | OnyxEntry<Transaction>;
-            return tx?.reportID === reportID;
-        });
+        return !!transactions?.find((transaction) => transaction?.reportID === reportID);
     }
     return !!Object.values(allTransactions ?? {}).find((transaction) => transaction?.reportID === reportID);
 }
@@ -2270,7 +2264,7 @@ function hasExpenses(reportID?: string, transactions?: Array<OnyxEntry<Transacti
 /**
  * Whether the provided report is a closed expense report with no expenses
  */
-function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: Transaction[] | Array<OnyxEntry<Transaction>>): boolean {
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: Array<OnyxEntry<Transaction>>): boolean {
     if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
         return false;
     }
@@ -4492,14 +4486,13 @@ function getTransactionDetails(
         return;
     }
 
-    const transactionReportID = 'reportID' in transaction ? transaction.reportID : undefined;
-    const report = getReportOrDraftReport(transactionReportID, undefined, 'report' in transaction ? transaction.report : undefined);
+    const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
 
-    return {
+     return {
         created: getFormattedCreated(transaction, createdDateFormat),
-        amount: getTransactionAmount(transaction, isFromExpenseReport, transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
+        amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
         attendees: getAttendees(transaction, currentUserDetails),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
         taxCode: getTaxCode(transaction),
@@ -4549,7 +4542,7 @@ function canEditMoneyRequest(
     isChatReportArchived = false,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
-    linkedTransaction?: OnyxEntry<Transaction> | Transaction,
+    linkedTransaction?: OnyxEntry<Transaction>,
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
 
@@ -4567,13 +4560,7 @@ function canEditMoneyRequest(
 
     const transaction = linkedTransaction ?? getLinkedTransaction(reportAction ?? undefined);
 
-    // In case the transaction is failed to be created, we should disable editing the money request
-    if (!transaction || !('transactionID' in transaction) || !transaction.transactionID) {
-        return false;
-    }
-    const transactionPendingAction = 'pendingAction' in transaction ? transaction.pendingAction : undefined;
-    const transactionErrors = 'errors' in transaction ? transaction.errors : undefined;
-    if (transactionPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && transactionErrors && !isEmptyObject(transactionErrors)) {
+    if (!transaction?.transactionID || (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(transaction.errors))) {
         return false;
     }
 
@@ -4994,18 +4981,14 @@ function areAllRequestsBeingSmartScanned(iouReportID: string | undefined, report
  *
  * NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use useOnyx instead.
  */
-function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: Transaction[]): OnyxEntry<Transaction> | Transaction | undefined {
+function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: Transaction[]): OnyxEntry<Transaction> {
     let transactionID: string | undefined;
 
     if (isMoneyRequestAction(reportAction)) {
         transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
     }
 
-    if (transactions) {
-        const found = transactions.find((transaction) => transaction.transactionID === transactionID);
-        return found;
-    }
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    return transactions ? transactions.find((transaction) => transaction.transactionID === transactionID) : allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
 
 /**
