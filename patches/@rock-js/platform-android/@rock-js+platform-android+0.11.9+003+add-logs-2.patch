@@ -1,0 +1,80 @@
+diff --git a/node_modules/@rock-js/platform-android/dist/src/lib/commands/signAndroid/signAndroid.js b/node_modules/@rock-js/platform-android/dist/src/lib/commands/signAndroid/signAndroid.js
+index dddcd13..444aade 100644
+--- a/node_modules/@rock-js/platform-android/dist/src/lib/commands/signAndroid/signAndroid.js
++++ b/node_modules/@rock-js/platform-android/dist/src/lib/commands/signAndroid/signAndroid.js
+@@ -108,30 +108,52 @@ async function replaceJsBundle({ archivePath, jsBundlePath, }) {
+     try {
+         logger.log(`Replacing bundle in: ${archivePath}`);
+         logger.log(`New bundle path: ${jsBundlePath}`);
+-        logger.log(`Bundle size: ${fs.statSync(jsBundlePath).size} bytes`);
++        const newBundleBuffer = fs.readFileSync(jsBundlePath);
++        logger.log(`Bundle size: ${newBundleBuffer.length} bytes`);
+         const zip = new AdmZip(archivePath);
+         const assetsPath = isAab(archivePath) ? 'base/assets' : 'assets';
+         const bundlePath = path.join(assetsPath, 'index.android.bundle');
+-        // Log old bundle info
++        // Capture original compression method BEFORE any modifications
+         const oldEntry = zip.getEntry(bundlePath);
++        const originalCompressionMethod = oldEntry?.header.method ?? 8; // default to DEFLATED
+         if (oldEntry) {
+-            const oldMethod = oldEntry.header.method === 0 ? 'STORED' : 'DEFLATED';
+-            logger.log(`Old bundle compression: ${oldMethod} (method=${oldEntry.header.method})`);
++            const oldMethodText = oldEntry.header.method === 0 ? 'STORED' : 'DEFLATED';
++            logger.log(`Old bundle compression: ${oldMethodText} (method=${oldEntry.header.method})`);
+             logger.log(`Old bundle size: ${oldEntry.header.size} bytes`);
+         }
++        // Delete the old bundle
+         zip.deleteFile(bundlePath);
+         logger.log(`Deleted old bundle: ${bundlePath}`);
+-        zip.addLocalFile(jsBundlePath, assetsPath, 'index.android.bundle');
+-        logger.log(`Added new bundle using addLocalFile()`);
+-        // Log new bundle info
++        // Add new bundle and immediately configure compression BEFORE writeZip
++        zip.addFile(bundlePath, newBundleBuffer);
+         const newEntry = zip.getEntry(bundlePath);
+         if (newEntry) {
+-            const newMethod = newEntry.header.method === 0 ? 'STORED' : 'DEFLATED';
+-            logger.log(`New bundle compression: ${newMethod} (method=${newEntry.header.method})`);
+-            logger.log(`New bundle compressed size: ${newEntry.header.compressedSize} bytes`);
++            // Force compression method to match original
++            // This MUST be set before writeZip() is called
++            newEntry.header.method = originalCompressionMethod;
++            if (originalCompressionMethod === 0) {
++                // For STORED (uncompressed), set compressed size = uncompressed size
++                newEntry.header.compressedSize = newBundleBuffer.length;
++                logger.log(`Configured for STORED compression (no compression)`);
++            }
++            else {
++                logger.log(`Configured for DEFLATED compression`);
++            }
++            const method = newEntry.header.method === 0 ? 'STORED' : 'DEFLATED';
++            logger.log(`Set compression: ${method} (method=${newEntry.header.method})`);
+         }
++        // Write the modified APK
+         zip.writeZip(archivePath);
+         logger.log(`Wrote updated APK: ${archivePath}`);
++        // Verify the result by reading it back
++        const verifyZip = new AdmZip(archivePath);
++        const verifyEntry = verifyZip.getEntry(bundlePath);
++        if (verifyEntry) {
++            const finalMethod = verifyEntry.header.method === 0 ? 'STORED' : 'DEFLATED';
++            logger.log(`Verified - Final bundle compression: ${finalMethod} (method=${verifyEntry.header.method})`);
++            logger.log(`Verified - Final bundle size: ${verifyEntry.header.size} bytes`);
++            logger.log(`Verified - Final compressed size: ${verifyEntry.header.compressedSize} bytes`);
++        }
+     }
+     catch (error) {
+         throw new RockError(`Failed to replace JS bundle in destination file: ${archivePath}`, { cause: error });
+@@ -163,11 +185,8 @@ Please follow instructions at: https://reactnative.dev/docs/set-up-your-environm
+     logger.log(`Input: ${inputArchivePath}`);
+     logger.log(`Output: ${outputPath}`);
+     try {
+-        const result = await spawn(zipAlignPath, zipalignArgs);
++        await spawn(zipAlignPath, zipalignArgs);
+         logger.log(`zipalign completed successfully`);
+-        if (result.stdout) {
+-            logger.log(`zipalign output: ${result.stdout}`);
+-        }
+     }
+     catch (error) {
+         throw new RockError(`Failed to align archive file: ${zipAlignPath} ${zipalignArgs.join(' ')}`, { cause: error.stderr });
