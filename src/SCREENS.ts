@@ -852,6 +852,7 @@ const SCREENS = {
         VERIFIED: 'Domain_Verified',
         INITIAL: 'Domain_Initial',
         SAML: 'Domain_SAML',
+        ADMINS: 'Domain_Admins',
     },
 } as const;
 

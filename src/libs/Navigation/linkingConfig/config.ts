@@ -1931,6 +1931,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.DOMAIN.SAML]: {
                     path: ROUTES.DOMAIN_SAML.route,
                 },
+                [SCREENS.DOMAIN.ADMINS]: {
+                    path: ROUTES.DOMAIN_ADMINS.route,
+                },
             },
         },
 
