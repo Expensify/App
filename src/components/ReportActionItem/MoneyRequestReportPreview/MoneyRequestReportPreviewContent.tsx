@@ -248,25 +248,25 @@ function MoneyRequestReportPreviewContent({
             } else if (chatReport && iouReport) {
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(
-                        type,
+                    payInvoice({
+                        paymentMethodType: type,
                         chatReport,
-                        iouReport,
+                        invoiceReport: iouReport,
                         introSelected,
-                        currentUserDetails.accountID,
-                        currentUserDetails.email ?? '',
+                        currentUserAccountID: currentUserDetails.accountID,
+                        currentUserEmail: currentUserDetails.email ?? '',
                         payAsBusiness,
                         existingB2BInvoiceReport,
                         methodID,
                         paymentMethod,
                         activePolicy,
-                    );
+                    });
                 } else {
                     payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy);
                 }
             }
         },
-        [isDelegateAccessRestricted, iouReport, chatReport, showDelegateNoAccessModal, startAnimation, introSelected, existingB2BInvoiceReport, activePolicy],
+        [isDelegateAccessRestricted, iouReport, chatReport, showDelegateNoAccessModal, startAnimation, introSelected, existingB2BInvoiceReport, activePolicy, currentUserDetails],
     );
 
     const confirmApproval = () => {

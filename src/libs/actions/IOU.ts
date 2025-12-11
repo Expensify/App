@@ -319,6 +319,20 @@ type MoneyRequestInformation = {
     reimbursable?: boolean;
 };
 
+type PayInvoiceArgs = {
+    paymentMethodType: PaymentMethodType;
+    chatReport: OnyxTypes.Report;
+    invoiceReport: OnyxEntry<OnyxTypes.Report>;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+    payAsBusiness?: boolean;
+    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
+    methodID?: number;
+    paymentMethod?: PaymentMethod;
+    activePolicy?: OnyxTypes.Policy;
+};
+
 type RejectMoneyRequestData = {
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
@@ -11927,19 +11941,19 @@ function payMoneyRequest(
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, userAccountID);
 }
 
-function payInvoice(
-    paymentMethodType: PaymentMethodType,
-    chatReport: OnyxTypes.Report,
-    invoiceReport: OnyxEntry<OnyxTypes.Report>,
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
+function payInvoice({
+    paymentMethodType,
+    chatReport,
+    invoiceReport,
+    introSelected,
+    currentUserAccountID,
+    currentUserEmail,
     payAsBusiness = false,
-    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>,
-    methodID?: number,
-    paymentMethod?: PaymentMethod,
-    activePolicy?: OnyxTypes.Policy,
-) {
+    existingB2BInvoiceReport,
+    methodID,
+    paymentMethod,
+    activePolicy,
+}: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
         optimisticData,
@@ -11967,8 +11981,8 @@ function payInvoice(
         bankAccountID: methodID,
         existingB2BInvoiceReport,
         activePolicy,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
+        currentUserAccountIDParam: currentUserAccountID,
+        currentUserEmailParam: currentUserEmail,
         introSelectedParam: introSelected,
     });
 
