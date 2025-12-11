@@ -248,7 +248,19 @@ function MoneyRequestReportPreviewContent({
             } else if (chatReport && iouReport) {
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(type, chatReport, iouReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod, activePolicy);
+                    payInvoice(
+                        type,
+                        chatReport,
+                        iouReport,
+                        introSelected,
+                        currentUserDetails.accountID,
+                        currentUserDetails.email ?? '',
+                        payAsBusiness,
+                        existingB2BInvoiceReport,
+                        methodID,
+                        paymentMethod,
+                        activePolicy,
+                    );
                 } else {
                     payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy);
                 }

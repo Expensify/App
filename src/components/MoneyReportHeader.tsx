@@ -500,7 +500,7 @@ function MoneyReportHeader({
                 }
             } else if (isInvoiceReport) {
                 startAnimation();
-                payInvoice(type, chatReport, moneyRequestReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod, activePolicy);
+                payInvoice(type, chatReport, moneyRequestReport, introSelected, accountID, email ?? '', payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod, activePolicy);
             } else {
                 startAnimation();
                 payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy);
