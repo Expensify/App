@@ -2922,7 +2922,7 @@ ${
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Datum moet vóór ${dateString} zijn`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Datum moet na ${dateString} zijn`,
             hasInvalidCharacter: 'Naam mag alleen Latijnse tekens bevatten',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Onjuist postcodeformaat${zipFormat ? `Acceptabel formaat: ${zipFormat}` : ''}`,
+            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Ongeldig postcodeformaat${zipFormat ? `Acceptabel formaat: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Zorg ervoor dat het telefoonnummer geldig is (bijv. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },

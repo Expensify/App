@@ -2921,8 +2921,8 @@ ${
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Data powinna być wcześniejsza niż ${dateString}`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Data powinna być późniejsza niż ${dateString}`,
             hasInvalidCharacter: 'Nazwa może zawierać tylko znaki łacińskie',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Nieprawidłowy format kodu pocztowego${zipFormat ? `Dopuszczalny format: ${zipFormat}` : ''}`,
-            invalidPhoneNumber: `Proszę upewnić się, że numer telefonu jest prawidłowy (np. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Nieprawidłowy format kodu pocztowego${zipFormat ? `Akceptowalny format: ${zipFormat}` : ''}`,
+            invalidPhoneNumber: `Upewnij się, że numer telefonu jest prawidłowy (np. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
     resendValidationForm: {

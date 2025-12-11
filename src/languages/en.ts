@@ -2895,9 +2895,9 @@ const translations = {
         legalLastName: 'Legal last name',
         address: 'Address',
         error: {
-            dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}`,
-            dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}`,
-            hasInvalidCharacter: 'Name can only include Latin characters',
+            dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La date doit être antérieure au ${dateString}`,
+            dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La date doit être postérieure au ${dateString}`,
+            hasInvalidCharacter: 'Le nom ne peut inclure que des caractères latins',
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Incorrect zip code format${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Please ensure the phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
