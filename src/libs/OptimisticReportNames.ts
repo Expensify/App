@@ -1,7 +1,5 @@
 import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
@@ -10,34 +8,12 @@ import type {FormulaContext} from './Formula';
 import {compute, FORMULA_PART_TYPES, parse, requiresBackendComputation} from './Formula';
 import Log from './Log';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
-import Permissions from './Permissions';
-import {getTitleReportField, isArchivedReport} from './ReportUtils';
+import {getTitleReportField} from './ReportUtils';
 
 type ReportNameUpdate = {
     name: string | undefined;
     isPending?: boolean;
 };
-
-type ProcessedUpdates = {
-    optimisticData: OnyxUpdate[];
-    successData?: OnyxUpdate[];
-    failureData?: OnyxUpdate[];
-};
-
-type AdditionalUpdates = {
-    optimisticData: OnyxUpdate[];
-    successData: OnyxUpdate[];
-    failureData: OnyxUpdate[];
-};
-
-/**
- * Get the title field from report name value pairs
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this will be used in near future
-function getTitleFieldFromRNVP(reportID: string, context: UpdateContext) {
-    const reportNameValuePairs = context.allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-    return reportNameValuePairs?.expensify_text_title;
-}
 
 /**
  * Temporary function to get the title field from a policy. Eventually we want to move this to report name value pairs.
@@ -88,14 +64,6 @@ function getPolicyIDFromKey(key: string): string {
 }
 
 /**
- * Extract transaction ID from an Onyx key
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this will be used in near future
-function getTransactionIDFromKey(key: string): string {
-    return key.replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
-}
-
-/**
  * Get report by ID from the reports collection
  */
 function getReportByID(reportID: string, allReports: Record<string, Report>): Report | undefined {
@@ -120,39 +88,6 @@ function getTransactionByID(transactionID: string, allTransactions: Record<strin
 }
 
 /**
- * Get all reports associated with a policy ID
- */
-function getReportsForNameComputation(policyID: string, allReports: Record<string, Report>, context: UpdateContext): Report[] {
-    if (policyID === CONST.POLICY.ID_FAKE) {
-        return [];
-    }
-    return Object.values(allReports).filter((report) => {
-        if (report?.policyID !== policyID) {
-            return false;
-        }
-
-        // Filter by type - only reports that support custom names
-        if (!isValidReportType(report.type)) {
-            return false;
-        }
-
-        // Filter by state - exclude reports in high states (like approved or higher)
-        const stateThreshold = CONST.REPORT.STATE_NUM.APPROVED;
-        if (report.stateNum && report.stateNum > stateThreshold) {
-            return false;
-        }
-
-        // Filter by isArchived - exclude archived reports
-        const reportNameValuePairs = context.allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        if (isArchivedReport(reportNameValuePairs)) {
-            return false;
-        }
-
-        return true;
-    });
-}
-
-/**
  * Get the report associated with a transaction ID
  */
 function getReportByTransactionID(transactionID: string, context: UpdateContext): Report | undefined {
@@ -168,13 +103,6 @@ function getReportByTransactionID(transactionID: string, context: UpdateContext)
 
     // Get the report using the transaction's reportID from context
     return getReportByID(transaction.reportID, context.allReports);
-}
-
-/**
- * Generate the Onyx key for a report
- */
-function getReportKey(reportID: string): OnyxKey {
-    return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as OnyxKey;
 }
 
 /**
@@ -307,129 +235,5 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
     return null;
 }
 
-/**
- * Add computed report name updates to the provided update buckets.
- * Appends optimistic data and clears pending fields on success/failure if needed.
- */
-function addAdditionalUpdates(reportID: string, reportNameUpdate: ReportNameUpdate, additionalUpdates: AdditionalUpdates) {
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    additionalUpdates.optimisticData.push({
-        key: getReportKey(reportID),
-        onyxMethod: Onyx.METHOD.MERGE,
-        value: {
-            reportName: reportNameUpdate.name,
-            ...(reportNameUpdate.isPending && {
-                pendingFields: {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-            }),
-        },
-    });
-
-    // If there's a pending field, add updates to clear it in success/failure data
-    if (reportNameUpdate.isPending) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        const clearPendingUpdate: OnyxUpdate = {
-            key: getReportKey(reportID),
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {pendingFields: {reportName: null}},
-        };
-
-        additionalUpdates.successData.push(clearPendingUpdate);
-        additionalUpdates.failureData.push(clearPendingUpdate);
-    }
-}
-
-/**
- * Update optimistic report names based on incoming updates
- * This is the main middleware function that processes optimistic data
- */
-function updateOptimisticReportNamesFromUpdates(optimisticData: OnyxUpdate[], context: UpdateContext, successData?: OnyxUpdate[], failureData?: OnyxUpdate[]): ProcessedUpdates {
-    const {betas, allReports, betaConfiguration} = context;
-
-    // Check if the feature is enabled
-    if (!Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, betas, betaConfiguration)) {
-        return {
-            optimisticData,
-            successData,
-            failureData,
-        };
-    }
-
-    Log.info('[OptimisticReportNames] Processing optimistic updates for report names', false, {
-        updatesCount: optimisticData.length,
-    });
-
-    const additionalUpdates: AdditionalUpdates = {
-        optimisticData: [],
-        successData: [],
-        failureData: [],
-    };
-
-    for (const update of optimisticData) {
-        const objectType = determineObjectTypeByKey(update.key);
-
-        switch (objectType) {
-            case 'report': {
-                const reportID = getReportIDFromKey(update.key);
-                const report = getReportByID(reportID, allReports);
-
-                // Handle both existing and new reports with the same function
-                const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
-
-                if (reportNameUpdate) {
-                    addAdditionalUpdates(reportID, reportNameUpdate, additionalUpdates);
-                }
-                break;
-            }
-
-            case 'policy': {
-                const policyID = getPolicyIDFromKey(update.key);
-                const affectedReports = getReportsForNameComputation(policyID, allReports, context);
-                for (const report of affectedReports) {
-                    const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
-
-                    if (reportNameUpdate) {
-                        addAdditionalUpdates(report.reportID, reportNameUpdate, additionalUpdates);
-                    }
-                }
-                break;
-            }
-
-            case 'transaction': {
-                let report: Report | undefined;
-                const transactionUpdate = update.value as Partial<Transaction>;
-                if (transactionUpdate.reportID) {
-                    report = getReportByID(transactionUpdate.reportID, allReports);
-                } else {
-                    report = getReportByTransactionID(getTransactionIDFromKey(update.key), context);
-                }
-
-                if (report) {
-                    const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
-
-                    if (reportNameUpdate) {
-                        addAdditionalUpdates(report.reportID, reportNameUpdate, additionalUpdates);
-                    }
-                }
-                break;
-            }
-
-            default:
-                continue;
-        }
-    }
-
-    Log.info('[OptimisticReportNames] Processing completed', false, {
-        additionalOptimisticUpdatesCount: additionalUpdates.optimisticData.length,
-        additionalSuccessUpdatesCount: additionalUpdates.successData.length,
-        additionalFailureUpdatesCount: additionalUpdates.failureData.length,
-    });
-
-    return {
-        optimisticData: optimisticData.concat(additionalUpdates.optimisticData),
-        successData: successData ? successData.concat(additionalUpdates.successData) : additionalUpdates.successData,
-        failureData: failureData ? failureData.concat(additionalUpdates.failureData) : additionalUpdates.failureData,
-    };
-}
-
-export {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates};
+export {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName};
 export type {UpdateContext};
