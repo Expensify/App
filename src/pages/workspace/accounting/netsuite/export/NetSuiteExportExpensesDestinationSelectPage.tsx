@@ -67,14 +67,15 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
                     confirmText: translate('common.confirm'),
                     cancelText: translate('common.cancel'),
                 }).then((result) => {
-                    if (result.action === ModalActions.CONFIRM) {
-                        if (isReimbursable) {
-                            updateNetSuiteReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT);
-                        } else {
-                            updateNetSuiteNonReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL);
-                        }
-                        goBack();
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
                     }
+                    if (isReimbursable) {
+                        updateNetSuiteReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT);
+                    } else {
+                        updateNetSuiteNonReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL);
+                    }
+                    goBack();
                 });
                 return;
             }

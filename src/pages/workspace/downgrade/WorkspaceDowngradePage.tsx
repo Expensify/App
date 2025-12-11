@@ -86,9 +86,10 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                 cancelText: translate('common.cancel'),
                 danger: true,
             }).then((result) => {
-                if (result.action === ModalActions.CONFIRM && policyID) {
-                    dismissModalAndNavigate(policyID);
+                if (result.action !== ModalActions.CONFIRM || !policyID) {
+                    return;
                 }
+                dismissModalAndNavigate(policyID);
             });
             return;
         }

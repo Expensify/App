@@ -42,6 +42,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
 
     const editedUserDimensionName: string = route.params.dimensionName;
     const policy = usePolicy(route.params.policyID);
+    /* eslint-disable-next-line rulesdir/no-default-id-values */
     const policyID: string = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
     const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
