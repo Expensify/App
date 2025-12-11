@@ -132,7 +132,7 @@ function IOURequestStepMerchant({
         }
 
         if (!backTo) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, undefined, undefined, Navigation.getActiveRoute()));
             return;
         }
 
