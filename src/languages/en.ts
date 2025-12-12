@@ -7850,6 +7850,8 @@ const translations = {
         },
         admins: {
             title: 'Admins',
+            addAdmin: 'Add admin',
+            invite: 'Invite',
             findAdmin: 'Find admin',
         },
     },
