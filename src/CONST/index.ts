@@ -7527,6 +7527,17 @@ const CONST = {
             FLOATING_ACTION_BUTTON: 'NavigationTabBar-FloatingActionButton',
             FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
         },
+        FAB_MENU: {
+            CREATE_EXPENSE: 'FABMenu-CreateExpense',
+            TRACK_DISTANCE: 'FABMenu-TrackDistance',
+            CREATE_REPORT: 'FABMenu-CreateReport',
+            START_CHAT: 'FABMenu-StartChat',
+            SEND_INVOICE: 'FABMenu-SendInvoice',
+            BOOK_TRAVEL: 'FABMenu-BookTravel',
+            TEST_DRIVE: 'FABMenu-TestDrive',
+            NEW_WORKSPACE: 'FABMenu-NewWorkspace',
+            QUICK_ACTION: 'FABMenu-QuickAction',
+        },
     },
 } as const;
 
