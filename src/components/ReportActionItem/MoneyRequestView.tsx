@@ -466,9 +466,11 @@ function MoneyRequestView({
             }
 
             // Return violations if there are any
-            if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
+            if (field !== 'merchant') {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-                return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)).join('. ')}.`;
+                if (violations.length > 0) {
+                    return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)).join('. ')}.`;
+                }
             }
 
             return '';
@@ -481,7 +483,6 @@ function MoneyRequestView({
             transactionDate,
             readonly,
             hasErrors,
-            hasViolations,
             translate,
             getViolationsForField,
             canEditDate,
