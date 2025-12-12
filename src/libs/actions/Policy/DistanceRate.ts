@@ -397,6 +397,7 @@ function deletePolicyDistanceRates(
     transactionIDsAffected: string[],
     transactionViolations: OnyxCollection<TransactionViolation[]>,
 ) {
+    const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Partial<Rate>> = {};
     const failureRates: Record<string, Partial<Rate>> = {};
 
@@ -406,6 +407,7 @@ function deletePolicyDistanceRates(
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         };
         failureRates[rateID] = {
+            enabled: currentRates[rateID].enabled,
             pendingAction: null,
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
         };
