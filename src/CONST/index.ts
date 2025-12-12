@@ -7556,6 +7556,15 @@ const CONST = {
             QUICK_REACTION: 'MiniContextMenu-QuickReaction',
             EMOJI_PICKER_BUTTON: 'MiniContextMenu-EmojiPickerButton',
         },
+        TASK: {
+            PREVIEW_CARD: 'Task-PreviewCard',
+            PREVIEW_CHECKBOX: 'Task-PreviewCheckbox',
+            VIEW_TITLE: 'Task-ViewTitle',
+            VIEW_CHECKBOX: 'Task-ViewCheckbox',
+            VIEW_DESCRIPTION: 'Task-ViewDescription',
+            VIEW_ASSIGNEE: 'Task-ViewAssignee',
+            HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
+        },
     },
 } as const;
 
