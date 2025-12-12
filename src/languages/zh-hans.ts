@@ -41,6 +41,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillableDefaultDescriptionParams,
@@ -727,7 +728,10 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这比预期花费的时间更长...',
         domains: '域名',
+        viewReport: '查看报告',
         actionRequired: '需要操作',
+        duplicate: '复制',
+        duplicated: '已重复',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -977,8 +981,8 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `此聊天室用于讨论任何与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 相关的内容。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `此聊天用于 <strong>${invoicePayer}</strong> 与 <strong>${invoiceReceiver}</strong> 之间的发票。使用 “+” 按钮发送发票。`,
-        beginningOfChatHistory: '此聊天对象是',
+            `此聊天用于 <strong>${invoicePayer}</strong> 与 <strong>${invoiceReceiver}</strong> 之间的发票。使用 "+" 按钮发送发票。`,
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `此聊天是与${users}的聊天。`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `这是 <strong>${submitterDisplayName}</strong> 向 <strong>${workspaceName}</strong> 提交报销的地方。只需使用“+”按钮即可。`,
         beginningOfChatHistorySelfDM: '这是你的个人空间。可用于记录笔记、任务、草稿和提醒。',
@@ -5965,6 +5969,8 @@ ${reportName}
                     toUpgrade: '要升级，请点击',
                     selectWorkspace: '选择一个工作区，并将套餐类型更改为',
                 },
+                upgradeWorkspaceWarning: '无法升级工作区',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '您的公司已限制工作区创建。请联系管理员寻求帮助。',
             },
         },
         downgrade: {
@@ -6059,7 +6065,7 @@ ${reportName}
                 adultEntertainment: '成人娱乐',
             },
             expenseReportRules: {
-                title: '报销报告',
+                title: '高级',
                 subtitle: '自动化处理费用报表的合规性、审批和付款。',
                 preventSelfApprovalsTitle: '防止自我审批',
                 preventSelfApprovalsSubtitle: '防止工作区成员批准自己的报销报告。',
@@ -6075,8 +6081,7 @@ ${reportName}
                 autoPayApprovedReportsLockedSubtitle: '前往“更多功能”并启用“工作流”，然后添加“付款”以解锁此功能。',
                 autoPayReportsUnderTitle: '自动支付报表至',
                 autoPayReportsUnderDescription: '金额低于此数且完全合规的报销单将自动支付。',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `前往[更多功能](${moreFeaturesLink})并启用工作流，然后添加 ${featureName} 以解锁此功能。`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `添加 ${featureName} 以解锁此功能。`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) => `前往[更多功能](${moreFeaturesLink})并启用 ${featureName} 以解锁此功能。`,
             },
             categoryRules: {
@@ -6375,6 +6380,56 @@ ${reportName}
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 与会者跟踪`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `将默认审批人更改为 ${newApprover}（原为 ${previousApprover}）` : `已将默认审批人更改为 ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `已将${members}的审批流程更改为向${approver}提交报销单`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(之前的默认审批人 ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '（之前的默认审批人）';
+            } else if (previousApprover) {
+                text += `（之前为 ${previousApprover}）`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver ? `已更改 ${members} 的审批流程，使其将报销单提交给默认审批人 ${approver}` : `已将${members}的审批流程更改为将报销单提交给默认审批人`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(之前的默认审批人 ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '（之前的默认审批人）';
+            } else if (previousApprover) {
+                text += `（之前为 ${previousApprover}）`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `将${approver}的审批流程更改为把已批准的报表转发给${forwardsTo}（之前转发给${previousForwardsTo}）`
+                : `将为${approver}的审批流程更改为将已批准的报告转发给${forwardsTo}（之前为最终批准的报告）`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo ? `已将 ${approver} 的审批流程更改为停止转发已批准的报销单（之前转发给 ${previousForwardsTo}）` : `已将 ${approver} 的审批流程更改为不再转发已批准的报销单`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? '已启用' : '已禁用'} 笔报销`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税费“${taxName}”`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已移除税费“${taxName}”`,
@@ -6608,6 +6663,7 @@ ${reportName}
         groupBy: '分组依据',
         moneyRequestReport: {
             emptyStateTitle: '此报表没有任何报销。',
+            accessPlaceHolder: '打开以查看详情',
         },
         noCategory: '无类别',
         noTag: '无标签',
@@ -6748,6 +6804,7 @@ ${reportName}
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `您确定要在 ${workspaceName} 中创建另一份报表吗？您可以在 中访问您的空报表`,
             emptyReportConfirmationPromptLink: '报表',
             genericWorkspaceName: '此工作区',
+            emptyReportConfirmationDontShowAgain: '不再显示此内容',
         },
         genericCreateReportFailureMessage: '创建此聊天时发生意外错误。请稍后再试。',
         genericAddCommentFailureMessage: '发表评论时发生意外错误。请稍后重试。',
@@ -7700,11 +7757,12 @@ ${reportName}
             requireError: '无法更新 SAML 要求设置',
             disableSamlRequired: '禁用 SAML 要求',
             oktaWarningPrompt: '您确定吗？这也会禁用 Okta SCIM。',
+            requireWithEmptyMetadataError: '请在下方添加身份提供商元数据以启用',
         },
         samlConfigurationDetails: {
             title: 'SAML 配置详情',
             subtitle: '使用以下详细信息来完成 SAML 设置。',
-            identityProviderMetaData: '身份提供商元数据',
+            identityProviderMetadata: '身份提供商元数据',
             entityID: '实体 ID',
             nameIDFormat: '名称 ID 格式',
             loginUrl: '登录 URL',
@@ -7717,6 +7775,17 @@ ${reportName}
             fetchError: '无法获取 SAML 配置详情',
             setMetadataGenericError: '无法设置 SAML MetaData',
         },
+        accessRestricted: {
+            title: '访问受限',
+            subtitle: (domainName: string) => `如果您需要对以下内容进行管理，请验证您是 <strong>${domainName}</strong> 的授权公司管理员：`,
+            companyCardManagement: '公司卡管理',
+            accountCreationAndDeletion: '账户创建和删除',
+            workspaceCreation: '工作区创建',
+            samlSSO: 'SAML 单点登录',
+        },
+        addDomain: {title: '添加域', subtitle: '请输入您想访问的私有域名（例如：expensify.com）。', domainName: '域名', newDomain: '新域名'},
+        domainAdded: {title: '已添加域名', description: '接下来，您需要验证域名的所有权并调整您的安全设置。', configure: '配置'},
+        enhancedSecurity: {title: '增强的安全性', subtitle: '要求您域内的成员使用单点登录登录、限制工作区创建等。', enable: '启用'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

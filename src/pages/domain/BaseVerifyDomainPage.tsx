@@ -51,17 +51,16 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
 
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
-    const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
     const doesDomainExist = !!domain;
 
     const {asset: Exclamation} = useMemoizedLazyAsset(() => loadExpensifyIcon('Exclamation'));
 
     useEffect(() => {
-        if (!domain?.validated) {
+        if (!domain?.hasValidationSucceeded) {
             return;
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(forwardTo, {forceReplace: true}));
-    }, [accountID, domain?.validated, forwardTo]);
+    }, [accountID, domain?.hasValidationSucceeded, forwardTo]);
 
     useEffect(() => {
         if (!doesDomainExist) {
@@ -77,11 +76,11 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
         resetDomainValidationError(accountID);
     }, [accountID, doesDomainExist]);
 
-    if (isLoadingOnyxValue(domainMetadata, isAdminMetadata)) {
+    if (isLoadingOnyxValue(domainMetadata)) {
         return <FullScreenLoadingIndicator />;
     }
 
-    if (!domain || !isAdmin) {
+    if (!domain) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
     }
 
@@ -146,7 +145,10 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
                                 fill={theme.icon}
                                 medium
                             />
-                            <Text style={styles.mutedNormalTextLabel}>{translate('domain.verifyDomain.warning')}</Text>
+
+                            <View style={styles.flex1}>
+                                <Text style={styles.mutedNormalTextLabel}>{translate('domain.verifyDomain.warning')}</Text>
+                            </View>
                         </View>
                     </View>
                 </ScrollView>
