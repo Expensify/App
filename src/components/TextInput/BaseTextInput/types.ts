@@ -200,6 +200,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps & {
     navigation?: Omit<NavigationProp<ReactNavigation.RootParamList>, 'getState'> & {
         getState(): NavigationState | undefined;
     };
+
+    /** Label for Sentry tracking */
+    sentryLabel?: string;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

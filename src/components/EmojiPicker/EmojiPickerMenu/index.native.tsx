@@ -126,6 +126,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     role={CONST.ROLE.PRESENTATION}
                     onChangeText={filterEmojis}
                     blurOnSubmit={filteredEmojis.length > 0}
+                    sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}
                 />
             </View>
             <BaseEmojiPickerMenu

@@ -73,6 +73,7 @@ function EmojiPickerButtonDropdown(
                 id="emojiDropdownButton"
                 accessibilityLabel="statusEmoji"
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.BUTTON_DROPDOWN}
             >
                 {({hovered, pressed}) => (
                     <View style={styles.emojiPickerButtonDropdownContainer}>

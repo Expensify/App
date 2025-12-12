@@ -7539,6 +7539,23 @@ const CONST = {
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
         },
+        EMOJI_PICKER: {
+            BUTTON: 'EmojiPicker-Button',
+            BUTTON_DROPDOWN: 'EmojiPicker-ButtonDropdown',
+            MENU_ITEM: 'EmojiPicker-MenuItem',
+            SKIN_TONE_TOGGLE: 'EmojiPicker-SkinToneToggle',
+            SKIN_TONE_ITEM: 'EmojiPicker-SkinToneItem',
+            CATEGORY_SHORTCUT: 'EmojiPicker-CategoryShortcut',
+            SEARCH_INPUT: 'EmojiPicker-SearchInput',
+        },
+        EMOJI_REACTIONS: {
+            REACTION_BUBBLE: 'EmojiReactions-ReactionBubble',
+            ADD_REACTION_BUBBLE: 'EmojiReactions-AddReactionBubble',
+        },
+        MINI_CONTEXT_MENU: {
+            QUICK_REACTION: 'MiniContextMenu-QuickReaction',
+            EMOJI_PICKER_BUTTON: 'MiniContextMenu-EmojiPickerButton',
+        },
     },
 } as const;
 
