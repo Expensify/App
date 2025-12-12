@@ -1325,7 +1325,7 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
     };
     [SCREENS.DOMAIN.ADD_ADMIN]: {
-        accountID: number;
+        domainAccountID: number;
     };
 } & ReimbursementAccountNavigatorParamList;
 

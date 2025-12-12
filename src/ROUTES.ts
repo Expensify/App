@@ -3459,8 +3459,8 @@ const ROUTES = {
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins` as const,
     },
     DOMAIN_ADD_ADMIN: {
-        route: 'domain/:accountID/admins/invite',
-        getRoute: (accountID: number) => `domain/${accountID}/admins/invite` as const,
+        route: 'domain/:domainAccountID/admins/invite',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/invite` as const,
     },
 } as const;
 

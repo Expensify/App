@@ -1,5 +1,6 @@
+import {adminAccountIDsSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -15,7 +16,6 @@ import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {selectAdminIDs} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OptionData} from '@libs/ReportUtils';
@@ -32,17 +32,18 @@ type Sections = SectionListData<OptionData, Section<OptionData>>;
 type DomainAddAdminProps = WithNavigationTransitionEndProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_ADMIN>;
 
 function DomainAddAdminPage({route}: DomainAddAdminProps) {
+    const {domainAccountID} = route.params;
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [actualSelectedUser, setActualSelectedUser] = useState<OptionData | null>(null);
-    const domainID = route.params.accountID;
-    const [domain, domainMetaData] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {canBeMissing: true});
+    const [currentlySelectedUser, setCurrentlySelectedUser] = useState<OptionData | null>(null);
+    const [domain, domainMetaData] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
-    const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {
+    const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
-        selector: selectAdminIDs,
+        selector: adminAccountIDsSelector,
     });
     const {searchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -52,7 +53,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         shouldInitialize: didScreenTransitionEnd,
         onSingleSelect: (option) => {
             const result = {...option, isSelected: true};
-            setActualSelectedUser(result);
+            setCurrentlySelectedUser(result);
         },
     });
 
@@ -63,66 +64,56 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         [toggleSelection],
     );
 
-    const sections: Sections[] = useMemo(() => {
-        const sectionsArr: Sections[] = [];
-
-        if (!areOptionsInitialized) {
-            return [];
-        }
-
-        if (actualSelectedUser) {
-            sectionsArr.push({
+    const sections: Sections[] = [];
+    if (areOptionsInitialized) {
+        if (currentlySelectedUser) {
+            sections.push({
                 title: undefined,
-                data: [actualSelectedUser],
+                data: [currentlySelectedUser],
             });
         }
 
         const filteredPersonalDetails = availableOptions.personalDetails
-            .filter((option) => option.accountID !== actualSelectedUser?.accountID)
+            .filter((option) => option.accountID !== currentlySelectedUser?.accountID)
             .filter((option) => option.accountID && !adminIDs?.includes(option.accountID));
 
         if (filteredPersonalDetails.length > 0) {
-            sectionsArr.push({
+            sections.push({
                 title: translate('common.contacts'),
                 data: filteredPersonalDetails,
             });
         }
 
         if (availableOptions.userToInvite) {
-            const isSelected = actualSelectedUser?.login === availableOptions.userToInvite.login;
+            const isSelected = currentlySelectedUser?.login === availableOptions.userToInvite.login;
 
             if (!isSelected) {
-                sectionsArr.push({
+                sections.push({
                     title: undefined,
                     data: [availableOptions.userToInvite],
                 });
             }
         }
+    }
 
-        return sectionsArr;
-    }, [areOptionsInitialized, actualSelectedUser, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
-
-    const inviteUser = useCallback(() => {
-        if (!actualSelectedUser || !actualSelectedUser.accountID || !actualSelectedUser.login || !domainName) {
+    const inviteUser = () => {
+        if (!currentlySelectedUser || !currentlySelectedUser.accountID || !currentlySelectedUser.login || !domainName) {
             return;
         }
 
-        addAdminToDomain(domainID, actualSelectedUser.accountID, actualSelectedUser.login, domainName);
+        addAdminToDomain(domainAccountID, currentlySelectedUser.accountID, currentlySelectedUser.login, domainName);
         Navigation.dismissModal();
-    }, [actualSelectedUser, domainID, domainName]);
+    };
 
-    const footerContent = useMemo(
-        () => (
-            <FormAlertWithSubmitButton
-                isDisabled={!actualSelectedUser}
-                isAlertVisible={false}
-                buttonText={translate('domain.admins.invite')}
-                onSubmit={inviteUser}
-                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                enabledWhenOffline
-            />
-        ),
-        [actualSelectedUser, inviteUser, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
+    const footerContent = (
+        <FormAlertWithSubmitButton
+            isDisabled={!currentlySelectedUser}
+            isAlertVisible={false}
+            buttonText={translate('domain.admins.invite')}
+            onSubmit={inviteUser}
+            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+            enabledWhenOffline
+        />
     );
 
     useEffect(() => {
@@ -145,7 +136,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                 <HeaderWithBackButton
                     title={translate('domain.admins.addAdmin')}
                     onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainID));
+                        Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID));
                     }}
                 />
                 <SelectionList
@@ -172,6 +163,6 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     );
 }
 
-DomainAddAdminPage.displayName = 'WorkspaceInvitePage';
+DomainAddAdminPage.displayName = 'DomainAddAdminPage';
 
 export default DomainAddAdminPage;
