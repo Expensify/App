@@ -111,6 +111,7 @@ type TransactionItemRowProps = {
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: () => void;
+    isHover?: boolean;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -152,6 +153,7 @@ function TransactionItemRow({
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
+    isHover = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -560,16 +562,12 @@ function TransactionItemRow({
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
                         >
-                            {({hovered}) => {
-                                return (
-                                    <Icon
-                                        src={Expensicons.ArrowRight}
-                                        fill={theme.icon}
-                                        additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                        small
-                                    />
-                                );
-                            }}
+                            <Icon
+                                src={Expensicons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={!isHover && styles.opacitySemiTransparent}
+                                small
+                            />
                         </PressableWithFeedback>
                     )}
                 </View>
