@@ -24,9 +24,6 @@ jest.mock('@rnmapbox/maps', () => {
         setAccessToken: jest.fn(),
     };
 });
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
 jest.mock('@libs/actions/IOU', () => {
     const actualNav = jest.requireActual<typeof IOU>('@libs/actions/IOU');
     return {

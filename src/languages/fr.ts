@@ -735,6 +735,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domaines',
         viewReport: 'Voir le rapport',
         actionRequired: 'Action requise',
+        duplicate: 'Dupliquer',
+        duplicated: 'Dupliqué',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1566,9 +1568,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Choisissez un approbateur supplémentaire pour ce rapport avant que nous ne le transmettions au reste du processus de validation.',
-                bulkSubtitle: 'Choisissez un approbateur supplémentaire pour ces rapports avant que nous ne les transmettions pour le reste du flux de validation.',
             },
-            bulkSubtitle: 'Choisissez une option pour changer l’approbateur de ces rapports.',
         },
         chooseWorkspace: 'Choisir un espace de travail',
     },
@@ -2337,7 +2337,6 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Aucun membre à afficher',
             expensesFromSubtitle: 'Tous les membres de l’espace de travail appartiennent déjà à un flux d’approbation existant.',
             approverSubtitle: 'Tous les approbateurs appartiennent à un workflow existant.',
-            bulkApproverSubtitle: 'Aucun approbateur ne correspond aux critères pour les rapports sélectionnés.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -6222,7 +6221,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 adultEntertainment: 'Divertissements pour adultes',
             },
             expenseReportRules: {
-                title: 'Notes de frais',
+                title: 'Avancé',
                 subtitle: 'Automatisez la conformité, les validations et le paiement des notes de frais.',
                 preventSelfApprovalsTitle: 'Empêcher les auto-approbations',
                 preventSelfApprovalsSubtitle: 'Empêcher les membres de l’espace de travail d’approuver leurs propres notes de frais.',
@@ -6238,8 +6237,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 autoPayApprovedReportsLockedSubtitle: 'Allez dans « Plus de fonctionnalités » et activez les workflows, puis ajoutez les paiements pour déverrouiller cette fonctionnalité.',
                 autoPayReportsUnderTitle: 'Rapports de paiement automatique sous',
                 autoPayReportsUnderDescription: 'Les notes de frais entièrement conformes en dessous de ce montant seront automatiquement réglées.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez les workflows, puis ajoutez ${featureName} pour déverrouiller cette fonctionnalité.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Ajoutez ${featureName} pour débloquer cette fonctionnalité.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour déverrouiller cette fonctionnalité.`,
             },
@@ -6581,6 +6579,60 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 }
             }
         },
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `a modifié l'approbateur par défaut pour ${newApprover} (précédemment ${previousApprover})` : `a remplacé l'approbateur par défaut par ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `a modifié le processus d’approbation pour que ${members} soumettent des rapports à ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(ancien approbateur par défaut ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(auparavant approbateur par défaut)';
+            } else if (previousApprover) {
+                text += `(auparavant ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `a modifié le flux d’approbation pour ${members} afin qu’ils soumettent des rapports à l’approbateur par défaut ${approver}`
+                : `a modifié le flux d’approbation pour que ${members} soumettent des rapports à l'approbateur par défaut`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(auparavant approbateur par défaut ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(auparavant approbateur par défaut)';
+            } else if (previousApprover) {
+                text += `(auparavant ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `a modifié le flux d’approbation pour ${approver} afin de transmettre les rapports approuvés à ${forwardsTo} (auparavant transmis à ${previousForwardsTo})`
+                : `a modifié le flux d’approbation pour ${approver} afin de transmettre les rapports approuvés à ${forwardsTo} (auparavant, les rapports approuvés définitivement)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `a modifié le flux d’approbation pour ${approver} afin de ne plus transférer les rapports approuvés (auparavant transférés à ${previousForwardsTo})`
+                : `a modifié le flux d'approbation pour ${approver} afin de ne plus transférer les rapports approuvés`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -7914,11 +7966,12 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             requireError: 'Impossible de mettre à jour le paramètre d’exigence SAML',
             disableSamlRequired: 'Désactiver l’exigence SAML',
             oktaWarningPrompt: 'Êtes-vous sûr ? Cela désactivera également Okta SCIM.',
+            requireWithEmptyMetadataError: 'Veuillez ajouter les métadonnées du fournisseur d’identité ci-dessous pour activer',
         },
         samlConfigurationDetails: {
             title: 'Détails de configuration SAML',
             subtitle: 'Utilisez ces informations pour configurer SAML.',
-            identityProviderMetaData: 'Métadonnées du fournisseur d’identité',
+            identityProviderMetadata: 'Métadonnées du fournisseur d’identité',
             entityID: 'ID d’entité',
             nameIDFormat: 'Format d’identifiant de nom',
             loginUrl: 'URL de connexion',

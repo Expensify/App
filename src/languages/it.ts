@@ -735,6 +735,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domini',
         viewReport: 'Visualizza rendiconto',
         actionRequired: 'Azione richiesta',
+        duplicate: 'Duplica',
+        duplicated: 'Duplicato',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1561,9 +1563,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Scegli un approvatore aggiuntivo per questo resoconto prima che lo instradiamo attraverso il resto del flusso di approvazione.',
-                bulkSubtitle: 'Scegli un approvatore aggiuntivo per questi report prima che li instradiamo attraverso il resto del flusso di approvazione.',
             },
-            bulkSubtitle: "Scegli un'opzione per cambiare l'approvatore di questi report.",
         },
         chooseWorkspace: 'Scegli uno spazio di lavoro',
     },
@@ -2328,7 +2328,6 @@ ${amount} per ${merchant} - ${date}`,
             title: 'Nessun membro da visualizzare',
             expensesFromSubtitle: 'Tutti i membri dello spazio di lavoro appartengono già a un flusso di approvazione esistente.',
             approverSubtitle: 'Tutti gli approvatori appartengono a un workflow esistente.',
-            bulkApproverSubtitle: 'Nessun approvatore corrisponde ai criteri per i report selezionati.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -6193,7 +6192,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 adultEntertainment: 'Intrattenimento per adulti',
             },
             expenseReportRules: {
-                title: 'Note spese',
+                title: 'Avanzato',
                 subtitle: 'Automatizza la conformità delle note spese, le approvazioni e i pagamenti.',
                 preventSelfApprovalsTitle: 'Impedisci autoapprovazioni',
                 preventSelfApprovalsSubtitle: 'Impedisci ai membri dello spazio di lavoro di approvare i propri report spese.',
@@ -6209,8 +6208,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 autoPayApprovedReportsLockedSubtitle: 'Vai su Altre funzionalità e abilita i workflow, quindi aggiungi i pagamenti per sbloccare questa funzionalità.',
                 autoPayReportsUnderTitle: 'Pagamento automatico dei report inferiori a',
                 autoPayReportsUnderDescription: 'Le note spese completamente conformi inferiori a questo importo verranno rimborsate automaticamente.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Vai a [altre funzionalità](${moreFeaturesLink}) e abilita i flussi di lavoro, quindi aggiungi ${featureName} per sbloccare questa funzionalità.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Aggiungi ${featureName} per sbloccare questa funzionalità.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Vai a [altre funzionalità](${moreFeaturesLink}) e abilita ${featureName} per sbloccare questa funzione.`,
             },
@@ -6526,6 +6524,60 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     return `${enabled ? 'abilitato' : 'disabilitato'} ${featureName}`;
             }
         },
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `ha cambiato l'approvatore predefinito in ${newApprover} (in precedenza ${previousApprover})` : `ha modificato l'approvatore predefinito in ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `ha modificato il flusso di approvazione per ${members} in modo che inviino i report a ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(in precedenza approvatore predefinito ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(in precedenza approvatore predefinito)';
+            } else if (previousApprover) {
+                text += `(precedentemente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `ha modificato il flusso di approvazione per ${members} per inviare i report all'approvatore predefinito ${approver}`
+                : `ha modificato il flusso di approvazione per ${members} per inviare i report all'approvatore predefinito`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(in precedenza approvatore predefinito ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(in precedenza approvatore predefinito)';
+            } else if (previousApprover) {
+                text += `(precedentemente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `ha modificato il flusso di approvazione per ${approver} per inoltrare i report approvati a ${forwardsTo} (in precedenza inoltrati a ${previousForwardsTo})`
+                : `ha modificato il flusso di approvazione per ${approver} in modo da inoltrare i report approvati a ${forwardsTo} (in precedenza solo i report approvati finali)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `ha modificato il flusso di approvazione per ${approver} per interrompere l'inoltro dei report approvati (in precedenza inoltrati a ${previousForwardsTo})`
+                : `ha modificato il flusso di approvazione per ${approver} per interrompere l'inoltro dei report approvati`,
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `Monitoraggio partecipanti ${enabled ? 'abilitato' : 'disabilitato'}`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'abilitato' : 'disabilitato'} rimborsi`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `ha aggiunto l’imposta "${taxName}"`,
@@ -7886,11 +7938,12 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             requireError: "Impossibile aggiornare l'impostazione dei requisiti SAML",
             disableSamlRequired: 'Disabilita SAML obbligatorio',
             oktaWarningPrompt: 'Sei sicuro? Questo disabiliterà anche Okta SCIM.',
+            requireWithEmptyMetadataError: 'Aggiungi di seguito i metadati del provider di identità per abilitare',
         },
         samlConfigurationDetails: {
             title: 'Dettagli di configurazione SAML',
             subtitle: 'Usa questi dettagli per configurare SAML.',
-            identityProviderMetaData: 'Metadati del provider di identità',
+            identityProviderMetadata: 'Metadati del provider di identità',
             entityID: 'ID entità',
             nameIDFormat: 'Formato ID nome',
             loginUrl: 'URL di accesso',

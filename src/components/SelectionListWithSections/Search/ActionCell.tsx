@@ -1,8 +1,9 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
@@ -34,7 +35,6 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
     exportToAccounting: 'common.export',
     done: 'common.done',
     paid: 'iou.settledExpensify',
-    changeApprover: 'iou.changeApprover.title',
 };
 
 type ActionCellProps = {
@@ -73,6 +73,7 @@ function ActionCell({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Checkbox'] as const);
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
@@ -89,10 +90,16 @@ function ActionCell({
             if (!type || !reportID || !hash || !amount) {
                 return;
             }
+
+            if (isDelegateAccessRestricted) {
+                showDelegateNoAccessModal();
+                return;
+            }
+
             const invoiceParams = getPayMoneyOnSearchInvoiceParams(policyID, payAsBusiness, methodID, paymentMethod);
             payMoneyRequestOnSearch(hash, [{amount, paymentType: type, reportID, ...(isInvoiceReport(iouReport) ? invoiceParams : {})}]);
         },
-        [reportID, hash, amount, policyID, iouReport],
+        [reportID, hash, amount, policyID, iouReport, isDelegateAccessRestricted, showDelegateNoAccessModal],
     );
 
     if (!isChildListItem && ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE)) {

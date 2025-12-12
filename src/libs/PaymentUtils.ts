@@ -136,6 +136,27 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
 }
 
 /**
+ * Navigates the user to the appropriate account verification page based on the current route context.
+ */
+const handleUnvalidatedAccount = (iouReport: OnyxEntry<Report>) => {
+    const activeRoute = Navigation.getActiveRoute();
+    const reportID = iouReport?.reportID;
+    if (!reportID) {
+        // Technically possible but should never happen in real life
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+        return;
+    }
+
+    if (activeRoute.includes(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}))) {
+        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+    } else if (activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID}))) {
+        Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+    } else {
+        Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+    }
+};
+
+/**
  * Determines the appropriate payment action based on user validation and policy restrictions.
  * It navigates users to verification pages if necessary, triggers KYC flows for specific payment methods,
  * handles direct approvals, or proceeds with basic payment processing.
@@ -163,8 +184,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
 
     if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
-            return;
+            return handleUnvalidatedAccount(iouReport);
         }
         triggerKYCFlow({event, iouPaymentType});
         setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
@@ -201,10 +221,10 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
  * Get the appropriate payment type, selected policy, and whether a payment method should be selected
  * based on the provided payment method, active admin policies, and latest bank items.
  */
-function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined) {
+function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined, policyID?: string | undefined) {
     const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(paymentMethod as ValueOf<typeof CONST.PAYMENT_METHODS>);
     const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
-    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
+    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyID);
 
     let paymentType;
     switch (paymentMethod) {
@@ -231,6 +251,7 @@ export {
     getPaymentMethodDescription,
     formatPaymentMethods,
     calculateWalletTransferBalanceFee,
+    handleUnvalidatedAccount,
     selectPaymentType,
     isSecondaryActionAPaymentOption,
     getActivePaymentType,

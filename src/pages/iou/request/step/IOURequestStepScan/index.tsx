@@ -315,10 +315,6 @@ function IOURequestStepScan({
                     setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
                 },
                 () => {},
-                {
-                    maximumAge: CONST.GPS.MAX_AGE,
-                    timeout: CONST.GPS.TIMEOUT,
-                },
             );
         });
     }, [initialTransaction?.amount, iouType]);
@@ -522,10 +518,6 @@ function IOURequestStepScan({
                                 Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                                 createTransaction(files, participant);
-                            },
-                            {
-                                maximumAge: CONST.GPS.MAX_AGE,
-                                timeout: CONST.GPS.TIMEOUT,
                             },
                         );
                         return;
