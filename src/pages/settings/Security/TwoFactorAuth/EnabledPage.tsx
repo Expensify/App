@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
@@ -12,6 +11,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -32,6 +32,7 @@ function EnabledPage() {
     const [isVisible, setIsVisible] = useState(false);
     const fetchedPolicyIdsRef = useRef<Set<string>>(new Set());
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
+    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
     const {login} = useCurrentUserPersonalDetails();
     const selector = useCallback(
         (policies: OnyxCollection<Policy>) => {
@@ -51,13 +52,13 @@ function EnabledPage() {
         if (!adminPolicies) {
             return;
         }
-        adminPolicies.forEach((policy) => {
+        for (const policy of adminPolicies) {
             if (!policy.areConnectionsEnabled || !!policy.connections || fetchedPolicyIdsRef.current.has(policy.id)) {
-                return;
+                continue;
             }
             fetchedPolicyIdsRef.current.add(policy.id);
             fetchPolicyData(policy.id);
-        });
+        }
     }, [adminPolicies, fetchPolicyData]);
     const {translate} = useLocalize();
 
@@ -90,7 +91,7 @@ function EnabledPage() {
                         }
                         Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
                     }}
-                    icon={Expensicons.Close}
+                    icon={icons.Close}
                     iconFill={theme.danger}
                 />
                 <ConfirmModal
