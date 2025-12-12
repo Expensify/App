@@ -1831,7 +1831,7 @@ function PureReportActionItem({
                                                     &nbsp;
                                                 </Text>
                                                 <DisplayNames
-                                                    fullTitle={getWhisperDisplayNames(whisperedTo) ?? ''}
+                                                    fullTitle={getWhisperDisplayNames(formatPhoneNumber, whisperedTo) ?? ''}
                                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                                     tooltipEnabled
                                                     numberOfLines={1}
