@@ -8,6 +8,7 @@ import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
@@ -114,6 +115,7 @@ function SearchFiltersBar({
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: searchResultsErrorSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter'] as const);
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const taxRates = getAllTaxRates(allPolicies);
 
@@ -831,17 +833,19 @@ function SearchFiltersBar({
                                 customText={selectionButtonText}
                                 options={headerButtonsOptions}
                                 onSubItemSelected={(subItem) =>
-                                    handleBulkPayItemSelected(
-                                        subItem,
+                                    handleBulkPayItemSelected({
+                                        item: subItem,
                                         triggerKYCFlow,
                                         isAccountLocked,
                                         showLockedAccountModal,
-                                        currentPolicy,
+                                        policy: currentPolicy,
                                         latestBankItems,
                                         activeAdminPolicies,
                                         isUserValidated,
+                                        isDelegateAccessRestricted,
+                                        showDelegateNoAccessModal,
                                         confirmPayment,
-                                    )
+                                    })
                                 }
                                 isSplitButton={false}
                                 buttonRef={buttonRef}
