@@ -2,6 +2,7 @@ import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
 import {TabActions} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -43,8 +44,10 @@ type IconTitleAndTestID = {
     testID?: string;
 };
 
+const MEMOIZED_LAZY_TAB_SELECTOR_ICONS = ['CalendarSolid', 'UploadAlt', 'User', 'Car', 'Hashtag', 'Map', 'Pencil', 'Crosshair'] as const;
+
 function getIconTitleAndTestID(
-    icons: Record<'CalendarSolid' | 'UploadAlt' | 'User' | 'Car' | 'Hashtag' | 'Map' | 'Pencil', IconAsset>,
+    icons: Record<TupleToUnion<typeof MEMOIZED_LAZY_TAB_SELECTOR_ICONS>, IconAsset>,
     route: string,
     translate: LocaleContextProps['translate'],
 ): IconTitleAndTestID {
@@ -75,6 +78,8 @@ function getIconTitleAndTestID(
             return {icon: icons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
         case CONST.TAB_REQUEST.DISTANCE_MANUAL:
             return {icon: icons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
+        case CONST.TAB_REQUEST.DISTANCE_GPS:
+            return {icon: icons.Crosshair, title: translate('tabSelector.gps'), testID: 'distanceGPS'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -91,7 +96,7 @@ function TabSelector({
     renderProductTrainingTooltip,
     equalWidth = false,
 }: TabSelectorProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'UploadAlt', 'User', 'Car', 'Hashtag', 'Map', 'Pencil'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(MEMOIZED_LAZY_TAB_SELECTOR_ICONS);
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
