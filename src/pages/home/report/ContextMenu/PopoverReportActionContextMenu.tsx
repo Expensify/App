@@ -367,9 +367,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         } else if (isReportPreviewAction(reportAction)) {
             const transactions = getReportTransactions(reportAction.childReportID);
             const reportActionTransactions: OnyxCollection<Transaction> = {};
-            transactions.forEach((transaction) => {
+            for (const transaction of transactions) {
                 reportActionTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
-            });
+            }
             deleteAppReport(reportAction.childReportID, email ?? '', reportActionTransactions);
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
