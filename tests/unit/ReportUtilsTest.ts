@@ -3323,7 +3323,7 @@ describe('ReportUtils', () => {
 
         it('should disable on thread-disabled actions', () => {
             const reportAction = buildOptimisticCreatedReportAction('email1@test.com');
-            expect(shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
+            expect(shouldDisableThread(reportAction, false)).toBeTruthy();
         });
 
         it('should disable thread on split expense actions', () => {
@@ -3335,7 +3335,7 @@ describe('ReportUtils', () => {
                 participants: [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
                 transactionID: NumberUtils.rand64(),
             }) as ReportAction;
-            expect(shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
+            expect(shouldDisableThread(reportAction, false)).toBeTruthy();
         });
 
         it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
@@ -3345,14 +3345,14 @@ describe('ReportUtils', () => {
                     whisperedTo: [123456],
                 },
             } as ReportAction;
-            expect(shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
+            expect(shouldDisableThread(reportAction, false)).toBeTruthy();
         });
 
         it('should disable on thread first chat', () => {
             const reportAction = {
                 childReportID: reportID,
             } as ReportAction;
-            expect(shouldDisableThread(reportAction, reportID, true)).toBeTruthy();
+            expect(shouldDisableThread(reportAction, true)).toBeTruthy();
         });
 
         describe('deleted threads', () => {
@@ -3371,7 +3371,7 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false);
+                const isThreadDisabled = shouldDisableThread(reportAction, false);
 
                 // Then the thread should be enabled
                 expect(isThreadDisabled).toBeFalsy();
@@ -3392,7 +3392,7 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false);
+                const isThreadDisabled = shouldDisableThread(reportAction, false);
 
                 // Then the thread should be enabled
                 expect(isThreadDisabled).toBeFalsy();
@@ -3412,7 +3412,7 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false);
+                const isThreadDisabled = shouldDisableThread(reportAction, false);
 
                 // Then the thread should be enabled
                 expect(isThreadDisabled).toBeFalsy();
@@ -3433,7 +3433,7 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false);
+                const isThreadDisabled = shouldDisableThread(reportAction, false);
 
                 // Then the thread should be disabled
                 expect(isThreadDisabled).toBeTruthy();
@@ -3459,7 +3459,7 @@ describe('ReportUtils', () => {
                 const isReportArchived = false;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false, isReportArchived);
+                const isThreadDisabled = shouldDisableThread(reportAction, false, isReportArchived);
 
                 // Then the thread should be enabled
                 expect(isThreadDisabled).toBeFalsy();
@@ -3482,7 +3482,7 @@ describe('ReportUtils', () => {
                 const isReportArchived = false;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false, isReportArchived);
+                const isThreadDisabled = shouldDisableThread(reportAction, false, isReportArchived);
 
                 // Then the thread should be enabled
                 expect(isThreadDisabled).toBeFalsy();
@@ -3505,7 +3505,7 @@ describe('ReportUtils', () => {
                 const isReportArchived = true;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false, isReportArchived);
+                const isThreadDisabled = shouldDisableThread(reportAction, false, isReportArchived);
 
                 // Then the thread should be enabled
                 expect(isThreadDisabled).toBeFalsy();
@@ -3528,7 +3528,7 @@ describe('ReportUtils', () => {
                 const isReportArchived = true;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false, isReportArchived);
+                const isThreadDisabled = shouldDisableThread(reportAction, false, isReportArchived);
 
                 // Then the thread should be disabled
                 expect(isThreadDisabled).toBeTruthy();
