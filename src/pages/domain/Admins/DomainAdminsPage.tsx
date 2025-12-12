@@ -4,7 +4,6 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import SelectionList from '@components/SelectionListWithSections';
@@ -126,26 +125,20 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     icon={illustrations.Members}
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />
-
-                <ScrollView
-                    keyboardShouldPersistTaps="handled"
+                <SelectionList
+                    sections={[{data: filteredData}]}
+                    canSelectMultiple={false}
+                    listHeaderContent={listHeaderContent}
+                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                    ListItem={TableListItem}
+                    onSelectRow={() => {}}
+                    shouldShowListEmptyContent={false}
+                    listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
+                    showScrollIndicator={false}
                     addBottomSafeAreaPadding
-                    style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                >
-                    <SelectionList
-                        sections={[{data: filteredData}]}
-                        canSelectMultiple={false}
-                        listHeaderContent={listHeaderContent}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        ListItem={TableListItem}
-                        onSelectRow={() => {}}
-                        shouldShowListEmptyContent={false}
-                        listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
-                        showScrollIndicator={false}
-                        addBottomSafeAreaPadding
-                        customListHeader={getCustomListHeader()}
-                    />
-                </ScrollView>
+                    customListHeader={getCustomListHeader()}
+                />
+                `
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
