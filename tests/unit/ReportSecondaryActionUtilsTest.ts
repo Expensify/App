@@ -1653,6 +1653,222 @@ describe('getSecondaryAction', () => {
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
+
+    // Will be re-enabled in https://github.com/Expensify/App/pull/77343
+    // it('include DUPLICATE option for single-transaction expense report', () => {
+    //     const report = {
+    //         reportID: REPORT_ID,
+    //         type: CONST.REPORT.TYPE.EXPENSE,
+    //         ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+    //         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+    //         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+    //     } as unknown as Report;
+
+    //     const TRANSACTION_ID = 'TRANSACTION_ID';
+
+    //     const transaction1 = {
+    //         transactionID: TRANSACTION_ID,
+    //         reportID: REPORT_ID,
+    //     } as unknown as Transaction;
+
+    //     const reportActions = [
+    //         {
+    //             reportActionID: '1',
+    //             actorAccountID: EMPLOYEE_ACCOUNT_ID,
+    //             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    //             originalMessage: {
+    //                 IOUTransactionID: TRANSACTION_ID,
+    //                 IOUReportID: REPORT_ID,
+    //             },
+    //         },
+    //     ] as unknown as ReportAction[];
+
+    //     const policy = {} as unknown as Policy;
+
+    //     const result = getSecondaryReportActions({
+    //         currentUserEmail: EMPLOYEE_EMAIL,
+    //         currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+    //         report,
+    //         chatReport,
+    //         reportTransactions: [transaction1],
+    //         originalTransaction: {} as Transaction,
+    //         violations: {},
+    //         policy,
+    //         reportActions,
+    //     });
+    //     expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(true);
+    // });
+
+    it('does not include DUPLICATE option if there are no transactions', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+        } as unknown as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [],
+            violations: {},
+            originalTransaction: {} as Transaction,
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
+    });
+
+    it('does not include DUPLICATE option for expense report with multiple transactions', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        } as unknown as Report;
+
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const TRANSACTION_ID_2 = 'TRANSACTION_ID_2';
+
+        const transaction1 = {
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+        } as unknown as Transaction;
+
+        const transaction2 = {
+            transactionID: TRANSACTION_ID_2,
+            reportID: REPORT_ID,
+        } as unknown as Transaction;
+
+        const reportActions = [
+            {
+                reportActionID: '1',
+                actorAccountID: EMPLOYEE_ACCOUNT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: TRANSACTION_ID,
+                    IOUReportID: REPORT_ID,
+                },
+            },
+            {
+                reportActionID: '2',
+                actorAccountID: EMPLOYEE_ACCOUNT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: TRANSACTION_ID_2,
+                    IOUReportID: REPORT_ID,
+                },
+            },
+        ] as unknown as ReportAction[];
+
+        const policy = {} as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction1, transaction2],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+            reportActions,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
+    });
+
+    it('does not include DUPLICATE option for card transaction', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        } as unknown as Report;
+
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            managedCard: true,
+        } as unknown as Transaction;
+
+        const policy = {
+            id: POLICY_ID,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            approver: APPROVER_EMAIL,
+        } as unknown as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
+    });
+
+    it('does not include DUPLICATE option for expenses from other users', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: APPROVER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        } as unknown as Report;
+
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+
+        const transaction1 = {
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+        } as unknown as Transaction;
+
+        const reportActions = [
+            {
+                reportActionID: '1',
+                actorAccountID: APPROVER_ACCOUNT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: TRANSACTION_ID,
+                    IOUReportID: REPORT_ID,
+                },
+            },
+        ] as unknown as ReportAction[];
+
+        const policy = {} as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction1],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+            reportActions,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
+    });
 });
 
 describe('getSecondaryExportReportActions', () => {
@@ -2267,6 +2483,127 @@ describe('getSecondaryTransactionThreadActions', () => {
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
+        });
+    });
+
+    describe('REPORT_LAYOUT action', () => {
+        it('should not include REPORT_LAYOUT for non-expense reports', () => {
+            const report = {
+                reportID: REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+            } as unknown as Report;
+            const transactions = [{transactionID: '1'} as unknown as Transaction, {transactionID: '2'} as unknown as Transaction];
+
+            const result = getSecondaryReportActions({
+                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: transactions,
+                originalTransaction: {} as Transaction,
+                violations: {},
+            });
+
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(false);
+        });
+
+        it('should not include REPORT_LAYOUT for IOU reports', () => {
+            const report = {
+                reportID: REPORT_ID,
+                type: CONST.REPORT.TYPE.IOU,
+            } as unknown as Report;
+            const transactions = [{transactionID: '1'} as unknown as Transaction, {transactionID: '2'} as unknown as Transaction];
+
+            const result = getSecondaryReportActions({
+                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: transactions,
+                originalTransaction: {} as Transaction,
+                violations: {},
+            });
+
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(false);
+        });
+
+        it('should not include REPORT_LAYOUT for expense reports with less than 2 transactions', () => {
+            const report = {
+                reportID: REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            } as unknown as Report;
+            const transactions = [{transactionID: '1'} as unknown as Transaction];
+
+            const result = getSecondaryReportActions({
+                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: transactions,
+                originalTransaction: {} as Transaction,
+                violations: {},
+            });
+
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(false);
+        });
+
+        it('should not include REPORT_LAYOUT for expense reports with no transactions', () => {
+            const report = {
+                reportID: REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            } as unknown as Report;
+
+            const result = getSecondaryReportActions({
+                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [],
+                originalTransaction: {} as Transaction,
+                violations: {},
+            });
+
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(false);
+        });
+
+        it('should include REPORT_LAYOUT for expense reports with 2 transactions', () => {
+            const report = {
+                reportID: REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            } as unknown as Report;
+            const transactions = [{transactionID: '1'} as unknown as Transaction, {transactionID: '2'} as unknown as Transaction];
+
+            const result = getSecondaryReportActions({
+                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: transactions,
+                originalTransaction: {} as Transaction,
+                violations: {},
+            });
+
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(true);
+        });
+
+        it('should include REPORT_LAYOUT for expense reports with more than 2 transactions', () => {
+            const report = {
+                reportID: REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            } as unknown as Report;
+            const transactions = [{transactionID: '1'} as unknown as Transaction, {transactionID: '2'} as unknown as Transaction, {transactionID: '3'} as unknown as Transaction];
+
+            const result = getSecondaryReportActions({
+                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: transactions,
+                originalTransaction: {} as Transaction,
+                violations: {},
+            });
+
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(true);
         });
     });
 });

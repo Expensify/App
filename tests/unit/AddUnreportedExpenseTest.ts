@@ -15,7 +15,6 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
         tag: '',
         billable: false,
         receipt: {},
-        filename: '',
         taxCode: '',
         taxAmount: 0,
         pendingAction: undefined,
@@ -82,10 +81,9 @@ describe('AddUnreportedExpense', () => {
             const sections = createUnreportedExpenseSections(transactions);
 
             expect(sections.at(0)?.data).toHaveLength(3);
-            // eslint-disable-next-line unicorn/no-array-for-each
-            sections.at(0)?.data.forEach((transaction) => {
+            for (const transaction of sections.at(0)?.data ?? []) {
                 expect(transaction.isDisabled).toBe(false);
-            });
+            }
         });
 
         it('should handle transaction list with only deleted transactions', () => {
@@ -107,11 +105,10 @@ describe('AddUnreportedExpense', () => {
             const sections = createUnreportedExpenseSections(transactions);
 
             expect(sections.at(0)?.data).toHaveLength(2);
-            // eslint-disable-next-line unicorn/no-array-for-each
-            sections.at(0)?.data.forEach((transaction) => {
+            for (const transaction of sections.at(0)?.data ?? []) {
                 expect(transaction.isDisabled).toBe(true);
                 expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-            });
+            }
         });
     });
 });
