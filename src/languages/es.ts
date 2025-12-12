@@ -695,6 +695,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Manual',
         scan: 'Escanear',
         map: 'Map',
+        odometer: 'Odómetro',
     },
     spreadsheet: {
         upload: 'Importar',
@@ -7159,6 +7160,19 @@ ${amount} para ${merchant} - ${date}`,
         },
         error: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual',
+        },
+        odometer: {
+            startReading: 'Lectura inicial',
+            endReading: 'Lectura final',
+            captureStart: 'Capturar lectura inicial',
+            captureEnd: 'Capturar lectura final',
+            totalDistance: 'Distancia total',
+            readingRequired: 'Por favor, ingresa ambas lecturas, inicial y final',
+            negativeDistanceNotAllowed: 'La lectura final debe ser mayor que la lectura inicial',
+            startTitle: 'Foto del odómetro inicial',
+            endTitle: 'Foto del odómetro final',
+            startMessage: 'Toma una foto de tu odómetro al inicio de tu viaje',
+            endMessage: 'Toma una foto de tu odómetro al final de tu viaje',
         },
     },
     reportCardLostOrDamaged: {

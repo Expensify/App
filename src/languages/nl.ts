@@ -1076,6 +1076,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Handmatig',
         scan: 'Scannen',
         map: 'Kaart',
+        odometer: 'Kilometerteller',
     },
     spreadsheet: {
         upload: 'Een spreadsheet uploaden',
@@ -7182,6 +7183,19 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         },
         error: {
             selectSuggestedAddress: 'Selecteer een voorgesteld adres of gebruik huidige locatie',
+        },
+        odometer: {
+            startReading: 'Startstand',
+            endReading: 'Eindstand',
+            captureStart: 'Startstand vastleggen',
+            captureEnd: 'Eindstand vastleggen',
+            totalDistance: 'Totale afstand',
+            readingRequired: 'Voer zowel de start- als eindstand in',
+            negativeDistanceNotAllowed: 'Eindstand moet groter zijn dan startstand',
+            startTitle: 'Kilometerteller startfoto',
+            endTitle: 'Kilometerteller eindfoto',
+            startMessage: 'Maak een foto van je kilometerteller aan het begin van je rit',
+            endMessage: 'Maak een foto van je kilometerteller aan het einde van je rit',
         },
     },
     reportCardLostOrDamaged: {

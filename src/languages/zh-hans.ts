@@ -1065,6 +1065,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: '手动',
         scan: '扫描',
         map: '地图',
+        odometer: '里程表',
     },
     spreadsheet: {
         upload: '上传电子表格',
@@ -7035,6 +7036,19 @@ ${reportName}
         },
         error: {
             selectSuggestedAddress: '请选择一个建议地址或使用当前位置',
+        },
+        odometer: {
+            startReading: '起始读数',
+            endReading: '结束读数',
+            captureStart: '拍摄起始读数',
+            captureEnd: '拍摄结束读数',
+            totalDistance: '总距离',
+            readingRequired: '请输入起始读数和结束读数',
+            negativeDistanceNotAllowed: '结束读数必须大于起始读数',
+            startTitle: '里程表起始照片',
+            endTitle: '里程表结束照片',
+            startMessage: '在行程开始时拍摄里程表照片',
+            endMessage: '在行程结束时拍摄里程表照片',
         },
     },
     reportCardLostOrDamaged: {

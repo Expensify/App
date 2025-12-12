@@ -1077,6 +1077,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: '手動',
         scan: 'スキャン',
         map: '地図',
+        odometer: 'オドメーター',
     },
     spreadsheet: {
         upload: 'スプレッドシートをアップロード',
@@ -7146,6 +7147,19 @@ ${reportName}
         },
         error: {
             selectSuggestedAddress: '候補の住所を選択するか、現在地を使用してください',
+        },
+        odometer: {
+            startReading: '開始時の走行距離',
+            endReading: '終了時の走行距離',
+            captureStart: '開始時の走行距離を撮影',
+            captureEnd: '終了時の走行距離を撮影',
+            totalDistance: '総距離',
+            readingRequired: '開始時と終了時の両方の走行距離を入力してください',
+            negativeDistanceNotAllowed: '終了時の走行距離は開始時の走行距離より大きくなければなりません',
+            startTitle: 'オドメーター開始写真',
+            endTitle: 'オドメーター終了写真',
+            startMessage: '旅行の開始時にオドメーターの写真を撮ってください',
+            endMessage: '旅行の終了時にオドメーターの写真を撮ってください',
         },
     },
     reportCardLostOrDamaged: {

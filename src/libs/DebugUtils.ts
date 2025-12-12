@@ -1099,6 +1099,10 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    odometerStartImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    odometerEndImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1139,6 +1143,10 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 splitExpenses: 'array',
                 isDemoTransaction: 'boolean',
                 splitExpensesTotal: 'number',
+                odometerStart: 'number',
+                odometerEnd: 'number',
+                odometerStartImage: 'string',
+                odometerEndImage: 'string',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {

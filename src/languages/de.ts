@@ -1079,6 +1079,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Manuell',
         scan: 'Scannen',
         map: 'Karte',
+        odometer: 'Tachometer',
     },
     spreadsheet: {
         upload: 'Eine Tabellenkalkulation hochladen',
@@ -7216,6 +7217,19 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         },
         error: {
             selectSuggestedAddress: 'Bitte wählen Sie eine vorgeschlagene Adresse aus oder verwenden Sie den aktuellen Standort',
+        },
+        odometer: {
+            startReading: 'Startanzeige',
+            endReading: 'Endanzeige',
+            captureStart: 'Startanzeige erfassen',
+            captureEnd: 'Endanzeige erfassen',
+            totalDistance: 'Gesamtstrecke',
+            readingRequired: 'Bitte geben Sie sowohl Start- als auch Endanzeige ein',
+            negativeDistanceNotAllowed: 'Endanzeige muss größer als Startanzeige sein',
+            startTitle: 'Tachometer Startfoto',
+            endTitle: 'Tachometer Endfoto',
+            startMessage: 'Machen Sie ein Foto von Ihrem Tachometer zu Beginn Ihrer Fahrt',
+            endMessage: 'Machen Sie ein Foto von Ihrem Tachometer am Ende Ihrer Fahrt',
         },
     },
     reportCardLostOrDamaged: {

@@ -1077,6 +1077,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Ręczny',
         scan: 'Skanuj',
         map: 'Mapa',
+        odometer: 'Licznik kilometrów',
     },
     spreadsheet: {
         upload: 'Prześlij arkusz kalkulacyjny',
@@ -7173,6 +7174,19 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         error: {
             selectSuggestedAddress: 'Wybierz sugerowany adres lub użyj bieżącej lokalizacji',
+        },
+        odometer: {
+            startReading: 'Odczyt początkowy',
+            endReading: 'Odczyt końcowy',
+            captureStart: 'Zrób zdjęcie odczytu początkowego',
+            captureEnd: 'Zrób zdjęcie odczytu końcowego',
+            totalDistance: 'Całkowita odległość',
+            readingRequired: 'Wprowadź zarówno odczyt początkowy, jak i końcowy',
+            negativeDistanceNotAllowed: 'Odczyt końcowy musi być większy niż odczyt początkowy',
+            startTitle: 'Zdjęcie licznika początkowego',
+            endTitle: 'Zdjęcie licznika końcowego',
+            startMessage: 'Zrób zdjęcie licznika kilometrów na początku podróży',
+            endMessage: 'Zrób zdjęcie licznika kilometrów na końcu podróży',
         },
     },
     reportCardLostOrDamaged: {
