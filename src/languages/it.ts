@@ -5078,11 +5078,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 feed: {
                     title: 'Porta le tue carte (BYOC)',
                     features: {
-                        support: 'Supporto per tutti i principali fornitori di carte',
-                        assignCards: 'Assegna carte a tutto il team',
-                        automaticImport: 'Importazione automatica delle transazioni',
+                        support: 'Collega carte da oltre 10.000 banche',
+                        assignCards: 'Collega le carte esistenti del tuo team',
+                        automaticImport: 'Importeremo automaticamente le transazioni',
                     },
-                    subtitle: "Collega le carte che hai già per l'importazione automatica delle transazioni, l'abbinamento delle ricevute e la riconciliazione.",
+                    subtitle: 'Collega le carte che hai già per l’importazione automatica delle transazioni, l’abbinamento delle ricevute e la riconciliazione.',
                 },
                 bankConnectionError: 'Problema di connessione bancaria',
                 connectWithPlaid: 'connetti tramite Plaid',

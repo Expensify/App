@@ -5092,15 +5092,15 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             },
             companyCards: {
                 title: 'Firmenkarten',
-                subtitle: 'Ausgaben von vorhandenen Firmenkarten importieren.',
+                subtitle: 'Verbinde die Karten, die du bereits hast.',
                 feed: {
-                    title: 'Firmenkarten importieren',
+                    title: 'Eigene Karten mitbringen (BYOC)',
                     features: {
-                        support: 'Verbinde Karten von über 10.000 Banken',
-                        assignCards: 'Verknüpfe die vorhandenen Karten deines Teams',
-                        automaticImport: 'Wir importieren Transaktionen automatisch.',
+                        support: 'Karten von über 10.000 Banken verbinden',
+                        assignCards: 'Verknüpfen Sie die vorhandenen Karten Ihres Teams',
+                        automaticImport: 'Wir werden Transaktionen automatisch abrufen',
                     },
-                    subtitle: 'Verknüpfe die Karten, die du bereits hast, für den automatischen Transaktionsimport, Belegabgleich und Abstimmung.',
+                    subtitle: 'Verknüpfe die Karten, die du bereits hast, um Transaktionen automatisch zu importieren, Belege abzugleichen und Abstimmungen durchzuführen.',
                 },
                 bankConnectionError: 'Problem mit Bankverbindung',
                 connectWithPlaid: 'Über Plaid verbinden',
