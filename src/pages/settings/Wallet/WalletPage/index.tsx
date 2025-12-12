@@ -60,7 +60,6 @@ function WalletPage() {
         selector: fundListSelector,
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [bankAccountShareDetails] = useOnyx(ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS, {canBeMissing: true});
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
@@ -93,12 +92,7 @@ function WalletPage() {
 
     const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
-    const hasEligibleActiveAdmin = hasEligibleActiveAdminFromWorkspaces(
-        allPolicies,
-        currentUserLogin,
-        paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString(),
-        bankAccountShareDetails,
-    );
+    const hasEligibleActiveAdmin = hasEligibleActiveAdminFromWorkspaces(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
         // In order to prevent a loop, only update state of the spinner if there is a change

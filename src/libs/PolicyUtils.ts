@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {BankAccountShareDetails, OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate, Transaction} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -212,12 +212,7 @@ function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRate
 }
 
 /** Return admins from active policies */
-function getEligibleBankAccountShareRecipients(
-    policies: OnyxCollection<Policy> | null,
-    currentUserLogin: string | undefined,
-    bankAccountID: string | undefined,
-    bankAccountShareDetails: Record<string, BankAccountShareDetails | undefined> | undefined,
-): MemberForList[] {
+function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): MemberForList[] {
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
     const activePolicies = getActivePolicies(policies, currentUserLogin);
 
@@ -230,9 +225,6 @@ function getEligibleBankAccountShareRecipients(
     // O(1) checks for already-shared emails
     const shareesSet = new Set(currentBankAccount?.accountData?.sharees ?? []);
 
-    // Build prefix once (avoids string concat in loop)
-    const shareKeyPrefix = bankAccountID ? `${ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS}${bankAccountID}_` : undefined;
-
     for (const policy of Object.values(activePolicies)) {
         for (const admin of getAdminEmployees(policy)) {
             const email = admin?.email;
@@ -240,17 +232,6 @@ function getEligibleBankAccountShareRecipients(
             // Cheap skips first
             if (!email || email === currentUserLogin || adminMap.has(email) || shareesSet.has(email)) {
                 continue;
-            }
-
-            // Only compute accountID and share check if bankAccountID exists
-            if (bankAccountID && shareKeyPrefix) {
-                const accountID = getAccountIDsByLogins([email]).at(0);
-                if (accountID) {
-                    const isBankAlreadyShared = !!bankAccountShareDetails?.[`${shareKeyPrefix}${accountID}`];
-                    if (isBankAlreadyShared) {
-                        continue;
-                    }
-                }
             }
 
             const personalDetails = getPersonalDetailByEmail(email);
@@ -277,12 +258,7 @@ function getEligibleBankAccountShareRecipients(
 }
 
 /** Return true if there is at least one eligible admin in active policies */
-function hasEligibleActiveAdminFromWorkspaces(
-    policies: OnyxCollection<Policy> | null,
-    currentUserLogin: string | undefined,
-    bankAccountID: string | undefined,
-    bankAccountShareDetails: Record<string, BankAccountShareDetails | undefined> | undefined,
-): boolean {
+function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
     const activePolicies = getActivePolicies(policies, currentUserLogin);
 
@@ -293,42 +269,16 @@ function hasEligibleActiveAdminFromWorkspaces(
     // Normalize sharees to a Set for O(1) lookups
     const alreadySharedSharees = new Set(currentBankAccount?.accountData?.sharees ?? []);
 
-    // Precompute key prefix once
-    const shareKeyPrefix = bankAccountID ? `${ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS}${bankAccountID}_` : undefined;
-
-    // Track seen admins to avoid duplicates
-    const seenAdmins = new Set<string>();
-
     for (const policy of Object.values(activePolicies)) {
         const admins = getAdminEmployees(policy);
         for (const admin of admins) {
             const email = admin?.email;
 
             // same skips as original
-            if (!email || email === currentUserLogin || seenAdmins.has(email) || alreadySharedSharees.has(email)) {
+            if (!email || email === currentUserLogin || alreadySharedSharees.has(email)) {
                 continue;
             }
 
-            let isBankAlreadyShared = false;
-            if (bankAccountID && shareKeyPrefix) {
-                const accountID = getAccountIDsByLogins([email]).at(0);
-                if (accountID) {
-                    isBankAlreadyShared = !!bankAccountShareDetails?.[`${shareKeyPrefix}${accountID}`];
-                }
-            }
-
-            if (isBankAlreadyShared) {
-                seenAdmins.add(email);
-                continue;
-            }
-
-            const personalDetails = getPersonalDetailByEmail(email);
-            if (!personalDetails) {
-                seenAdmins.add(email);
-                continue;
-            }
-
-            // Found at least one eligible admin -> done
             return true;
         }
     }

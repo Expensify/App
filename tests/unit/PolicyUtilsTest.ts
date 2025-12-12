@@ -1497,7 +1497,7 @@ describe('PolicyUtils', () => {
                 '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
             };
-            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1', undefined);
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
             expect(result).toHaveLength(0);
         });
         it('should return array with admins', () => {
@@ -1513,26 +1513,21 @@ describe('PolicyUtils', () => {
                 },
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
             };
-            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1', undefined);
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
             expect(result).toHaveLength(1);
         });
         it('should not return user with already shared bank account', async () => {
             const bankAccountID = '1';
             const currentUserLogin = adminEmail;
-            const bankAccountShareDetails = {
-                [`${ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS}${bankAccountID}_${adminAccountID}`]: {
-                    addressName: '1',
-                    accountName: '1',
-                    shareeEmail: 'string',
-                    shareComplete: true,
-                    bankAccountID: 123,
-                    routingNumber: '123',
-                    accountNumber: '1',
-                    allowDebit: false,
-                    processor: 'string',
-                    validating: true,
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        sharees: [adminEmail],
+                    },
                 },
-            };
+            });
 
             const policies = {
                 '1': {
@@ -1544,7 +1539,7 @@ describe('PolicyUtils', () => {
                 },
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
             };
-            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID, bankAccountShareDetails);
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
             expect(result).toHaveLength(0);
         });
         it('should not return current user for sharing account', async () => {
@@ -1566,7 +1561,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, bankAccountID, undefined);
+            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, bankAccountID);
             expect(result).toHaveLength(1);
         });
     });

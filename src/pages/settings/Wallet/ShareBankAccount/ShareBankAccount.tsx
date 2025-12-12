@@ -39,7 +39,6 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
 
     const {isOffline} = useNetwork();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [bankAccountShareDetails] = useOnyx(ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS, {canBeMissing: false});
 
     const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT, {canBeMissing: true});
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
@@ -52,7 +51,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const admins = getEligibleBankAccountShareRecipients(allPolicies, currentUserLogin, bankAccountID, bankAccountShareDetails);
+    const admins = getEligibleBankAccountShareRecipients(allPolicies, currentUserLogin, bankAccountID);
     const shouldShowTextInput = admins && admins?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
 
