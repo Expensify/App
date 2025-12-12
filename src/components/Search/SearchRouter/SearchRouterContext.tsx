@@ -1,15 +1,14 @@
 import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import getPlatform from '@libs/getPlatform';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import {closeSearch, openSearch} from './toggleSearch';
 
 type SearchRouterContext = {
     isSearchRouterDisplayed: boolean;
@@ -42,10 +41,6 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     const [isSearchRouterDisplayed, setIsSearchRouterDisplayed] = useState(false);
     const searchRouterDisplayedRef = useRef(false);
     const searchPageInputRef = useRef<AnimatedTextInputRef | undefined>(undefined);
-    const backToRef = useRef<string>('');
-    const platform = getPlatform();
-    const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
-
     useEffect(() => {
         if (!canListenPopState) {
             return;
@@ -81,15 +76,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             }
             close(
                 () => {
-                    if (isNative) {
-                        const currentRoute = Navigation.getActiveRoute();
-                        if (currentRoute !== ROUTES.SEARCH_ROUTER) {
-                            backToRef.current = Navigation.getActiveRoute();
-                        }
-                        Navigation.navigate(ROUTES.SEARCH_ROUTER);
-                    } else {
-                        setIsSearchRouterDisplayed(true);
-                    }
+                    openSearch(setIsSearchRouterDisplayed);
                     searchRouterDisplayedRef.current = true;
                 },
                 false,
@@ -97,13 +84,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             );
         };
         const closeSearchRouter = () => {
-            if (isNative) {
-                const uri = backToRef.current;
-                // TODO determine if we need backToRef.current
-                Navigation.dismissModal();
-            } else {
-                setIsSearchRouterDisplayed(false);
-            }
+            closeSearch(setIsSearchRouterDisplayed);
             searchRouterDisplayedRef.current = false;
             if (isBrowserWithHistory) {
                 const state = window.history.state as HistoryState | null;

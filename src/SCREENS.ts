@@ -40,7 +40,6 @@ const SCREENS = {
         TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
         VERIFY_ACCOUNT: 'Travel_VerifyAccount',
     },
-    SEARCH_ROUTER: 'Search_Router',
     SEARCH: {
         ROOT: 'Search_Root',
         ROOT_VERIFY_ACCOUNT: 'Search_Root_Verify_Account',

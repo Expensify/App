@@ -1,5 +1,6 @@
-// On native devices SearchRouter is served from 'SearchRouterPage'
-function SearchRouterModal() {
+/**
+ * On native devices SearchRouter is served from SearchRouterPage, on web from SearchRouterModal.
+ */ function SearchRouterModal() {
     return null;
 }
 
