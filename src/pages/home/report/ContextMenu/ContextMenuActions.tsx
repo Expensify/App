@@ -454,7 +454,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
         icon: Expensicons.Bell,
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
@@ -462,12 +462,14 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
+            const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
             return (
                 !subscribed &&
                 !isWhisperAction &&
                 !isTaskAction &&
                 !isExpenseReportAction &&
                 !isThreadReportParentAction &&
+                !isHarvestCreatedExpenseReportAction &&
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
