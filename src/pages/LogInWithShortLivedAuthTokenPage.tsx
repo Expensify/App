@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
 import Log from '@libs/Log';
@@ -19,6 +19,8 @@ type LogInWithShortLivedAuthTokenPageProps = PlatformStackScreenProps<PublicScre
 function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenPageProps) {
     const {shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [hasInitiatedAuth, setHasInitiatedAuth] = useState(false);
 
     useEffect(() => {
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
@@ -30,6 +32,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         }
 
         if (!account?.isLoading && authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT) {
+            setHasInitiatedAuth(true);
             signInWithSupportAuthToken(shortLivedAuthToken);
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
@@ -41,6 +44,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
 
         // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
         if (token && !account?.isLoading) {
+            setHasInitiatedAuth(true);
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
             signInWithShortLivedAuthToken(token);
             return;
@@ -58,11 +62,25 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
                 Navigation.navigate(exitTo as Route);
             });
         }
-        // The only dependencies of the effect are based on props.route
+        // The only dependencies of the effect are based on props.route so we do not restart the auth flow when Onyx data/state updates mid-transition.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route]);
 
-    if (account?.isLoading) {
+    useEffect(() => {
+        if (!hasInitiatedAuth) {
+            return;
+        }
+
+        if (account?.isLoading || session?.isAuthenticatingWithShortLivedToken) {
+            return;
+        }
+
+        setHasInitiatedAuth(false);
+    }, [account?.isLoading, session?.isAuthenticatingWithShortLivedToken, hasInitiatedAuth]);
+
+    const isAuthenticatingWithShortLivedToken = !!session?.isAuthenticatingWithShortLivedToken;
+
+    if (account?.isLoading || hasInitiatedAuth || isAuthenticatingWithShortLivedToken) {
         return <FullScreenLoadingIndicator />;
     }
 
