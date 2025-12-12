@@ -39,6 +39,7 @@ import SMSDeliveryFailurePage from './SMSDeliveryFailurePage';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
+import Text from '@components/Text';
 
 type SignInPageProps = {
     ref?: Ref<SignInPageRef>;
@@ -300,6 +301,10 @@ function SignInPage({ref}: SignInPageProps) {
     return (
         <ColorSchemeWrapper>
             <CustomStatusBarAndBackground isNested />
+            <Text>Test rock cached build</Text>
+            <Text>Test rock cached build</Text>
+            <Text>Test rock cached build</Text>
+            <Text>Test rock cached build</Text>
             <LoginProvider>
                 <SignInPageLayout
                     welcomeHeader={welcomeHeader}
