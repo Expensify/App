@@ -23,6 +23,7 @@ import {
     completeSplitBill,
     createDistanceRequest,
     deleteMoneyRequest,
+    duplicateExpenseTransaction,
     evenlyDistributeSplitExpenseAmounts,
     getIOUReportActionToApproveOrPay,
     getPerDiemExpenseInformation,
@@ -120,6 +121,8 @@ const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
+    dismissToPreviousRHP: jest.fn(),
+    dismissToSuperWideRHP: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => topMostReportID),
@@ -3139,7 +3142,9 @@ describe('actions/IOU', () => {
                     splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                     splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
                 },
-                hash: 1,
+                searchContext: {
+                    currentSearchHash: -2,
+                },
                 policyCategories: undefined,
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
@@ -3243,7 +3248,9 @@ describe('actions/IOU', () => {
                     splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                     splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
                 },
-                hash,
+                searchContext: {
+                    currentSearchHash: hash,
+                },
                 policyCategories: undefined,
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
@@ -3360,7 +3367,9 @@ describe('actions/IOU', () => {
                     splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                     splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
                 },
-                hash,
+                searchContext: {
+                    currentSearchHash: hash,
+                },
                 policyCategories: undefined,
                 policy: undefined,
                 policyRecentlyUsedCategories: [],
@@ -5428,10 +5437,8 @@ describe('actions/IOU', () => {
                                     });
                                     resolve();
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, true)).toBe(true);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(true);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
                                 },
                             });
                         }),
@@ -5451,10 +5458,8 @@ describe('actions/IOU', () => {
                                     expect(expenseReport?.stateNum).toBe(0);
                                     expect(expenseReport?.statusNum).toBe(0);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
                                 },
                             });
                         }),
@@ -5481,10 +5486,8 @@ describe('actions/IOU', () => {
                                     expect(expenseReport?.stateNum).toBe(2);
                                     expect(expenseReport?.statusNum).toBe(2);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, true)).toBe(true);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(true);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
                                 },
                             });
                         }),
@@ -5524,10 +5527,8 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
                                     resolve();
                                 },
                             });
@@ -5624,10 +5625,8 @@ describe('actions/IOU', () => {
                                         stateNum: 0,
                                     });
 
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, true)).toBe(true);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(true);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(true);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
                                     resolve();
                                 },
                             });
@@ -5672,10 +5671,8 @@ describe('actions/IOU', () => {
                                     // Report was submitted with some fail
                                     expect(expenseReport?.stateNum).toBe(0);
                                     expect(expenseReport?.statusNum).toBe(0);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
-                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], true)).toBe(false);
+                                    expect(canIOUBePaid(expenseReport, chatReport, policy, [], false)).toBe(false);
                                     resolve();
                                 },
                             });
@@ -6897,13 +6894,13 @@ describe('actions/IOU', () => {
     });
 
     describe('canIOUBePaid', () => {
-        it('should return false if the report has negative total and onlyShowPayElsewhere is false', () => {
+        it('should return false if the report has negative total and onlyShowPayElsewhere is false', async () => {
             const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
             const fakePolicy: Policy = {
                 ...createRandomPolicy(Number('AA')),
                 id: 'AA',
                 type: CONST.POLICY.TYPE.TEAM,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 role: CONST.POLICY.ROLE.ADMIN,
             };
@@ -6920,8 +6917,10 @@ describe('actions/IOU', () => {
                 total: 100, // positive amount in the DB means negative amount in the UI
             };
 
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], false, undefined, undefined, false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], true, undefined, undefined, false)).toBeTruthy();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, [], true)).toBeTruthy();
         });
     });
 
@@ -7076,6 +7075,7 @@ describe('actions/IOU', () => {
                         parentReport: fakeParentReport,
                         currentDate,
                         currentUserPersonalDetails,
+                        hasOnlyPersonalPolicies: false,
                     });
                 })
                 .then(async () => {
@@ -7096,6 +7096,7 @@ describe('actions/IOU', () => {
                         parentReport: fakeParentReport,
                         currentDate,
                         currentUserPersonalDetails,
+                        hasOnlyPersonalPolicies: false,
                     });
                 })
                 .then(async () => {
@@ -7116,6 +7117,7 @@ describe('actions/IOU', () => {
                         parentReport: fakeParentReport,
                         currentDate,
                         currentUserPersonalDetails,
+                        hasOnlyPersonalPolicies: false,
                     });
                 })
                 .then(async () => {
@@ -8087,7 +8089,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // When the receipt is replaced
-            replaceReceipt({transactionID, file, source});
+            replaceReceipt({transactionID, file, source, transactionPolicy: undefined});
             await waitForBatchedUpdates();
 
             // Then the transaction should have the new receipt source
@@ -8144,7 +8146,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // When the receipt is replaced
-            replaceReceipt({transactionID, file, source});
+            replaceReceipt({transactionID, file, source, transactionPolicy: undefined});
             await waitForBatchedUpdates();
 
             // Then the transaction should have the new receipt source
@@ -8450,7 +8452,9 @@ describe('actions/IOU', () => {
                         splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                         splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
                     },
-                    hash: -2,
+                    searchContext: {
+                        currentSearchHash: -2,
+                    },
                     policyCategories: undefined,
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
@@ -8598,7 +8602,9 @@ describe('actions/IOU', () => {
                         splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                         splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
                     },
-                    hash: -2,
+                    searchContext: {
+                        currentSearchHash: -2,
+                    },
                     policyCategories: undefined,
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
@@ -8760,7 +8766,9 @@ describe('actions/IOU', () => {
                         splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                         splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
                     },
-                    hash: -2,
+                    searchContext: {
+                        currentSearchHash: -2,
+                    },
                     policyCategories: undefined,
                     policy: undefined,
                     policyRecentlyUsedCategories: [],
@@ -10136,7 +10144,7 @@ describe('actions/IOU', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            const result = rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment);
+            const result = rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy);
 
             // Then: Should return navigation route to chat report
             expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
@@ -10152,7 +10160,7 @@ describe('actions/IOU', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment);
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is added
@@ -10755,6 +10763,80 @@ describe('actions/IOU', () => {
             if (invoiceInfo.invoiceRoom.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
                 expect(invoiceInfo.invoiceRoom.invoiceReceiver.accountID).toBe(userBAccountID);
             }
+        });
+    });
+
+    describe('duplicateExpenseTransaction', () => {
+        const DUPLICATION_EXCEPTIONS = new Set(['transactionID', 'createdAccountID', 'reportID', 'status', 'created', 'parentTransactionID', 'isTestDrive', 'source', 'receipt', 'filename']);
+
+        function isTransactionDuplicated(originalTransaction: Transaction, duplicatedTransaction: Transaction) {
+            for (const k of Object.keys(duplicatedTransaction)) {
+                const key = k as keyof Transaction;
+
+                if (DUPLICATION_EXCEPTIONS.has(key) || !Object.hasOwn(originalTransaction, key) || key.startsWith('original') || key.startsWith('modified')) {
+                    continue;
+                }
+
+                let originalTransactionKey = key;
+                const modifiedKey = `modified${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof Transaction;
+
+                if (modifiedKey in originalTransaction && !!originalTransaction[modifiedKey]) {
+                    originalTransactionKey = modifiedKey;
+                }
+
+                const originalValue = originalTransaction[originalTransactionKey];
+                const duplicatedValue = duplicatedTransaction[key];
+
+                expect(duplicatedValue).toEqual(originalValue);
+            }
+        }
+
+        const mockOptimisticChatReportID = '789';
+        const mockOptimisticIOUReportID = '987';
+        const mockIsASAPSubmitBetaEnabled = false;
+
+        const mockTransaction = createRandomTransaction(1);
+        const mockPolicy = createRandomPolicy(1);
+        const policyExpenseChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+        const fakePolicyCategories = createRandomPolicyCategories(3);
+
+        it('should create a duplicate expense with all fields duplicated', async () => {
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const mockCashExpenseTransaction = {
+                ...mockTransaction,
+                amount: mockTransaction.amount * -1,
+                comment: {
+                    ...restOfComment,
+                },
+            };
+
+            duplicateExpenseTransaction(
+                mockCashExpenseTransaction,
+                mockOptimisticChatReportID,
+                mockOptimisticIOUReportID,
+                mockIsASAPSubmitBetaEnabled,
+                mockPolicy,
+                fakePolicyCategories,
+                policyExpenseChat,
+            );
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            if (!duplicatedTransaction) {
+                return;
+            }
+
+            isTransactionDuplicated(mockCashExpenseTransaction, duplicatedTransaction);
         });
     });
 });
