@@ -52,7 +52,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     });
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
-    const data: AdminOption[] = []
+    const data: AdminOption[] = [];
     for (const accountID of adminIDs ?? []) {
         const details = personalDetails?.[accountID];
         data.push({
