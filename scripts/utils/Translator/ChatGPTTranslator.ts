@@ -1,4 +1,3 @@
-import dedent from '@libs/StringUtils/dedent';
 import getBasePrompt from '@prompts/translation/base';
 import getContextPrompt from '@prompts/translation/context';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
@@ -34,38 +33,26 @@ class ChatGPTTranslator extends Translator {
     }
 
     protected async performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string> {
-        let systemPrompt = dedent(`
-            <system_prompt>
-            <base_prompt>
-            ${getBasePrompt(targetLang)}
-            </base_prompt>
-        `);
+        let systemPrompt = '<system_prompt>\n';
+        systemPrompt += '<base_prompt>\n';
+        systemPrompt += getBasePrompt(targetLang);
+        systemPrompt += '\n</base_prompt>';
 
-        // Load locale-specific prompt if it exists
         const localeSpecificPrompt = await getLocaleSpecificPrompt(targetLang);
         if (localeSpecificPrompt) {
-            systemPrompt += dedent(`
-                <locale_specific_prompt language="${targetLang}">
-                ${localeSpecificPrompt}
-                </locale_specific_prompt>
-            `);
+            systemPrompt += '\n\n<locale_specific_prompt language="' + targetLang + '">\n';
+            systemPrompt += localeSpecificPrompt;
+            systemPrompt += '\n</locale_specific_prompt>';
         }
 
-        // Load context prompt if it exists
         const contextPrompt = getContextPrompt(context);
         if (contextPrompt) {
-            systemPrompt += dedent(`
-                <phrase_context>
-                ${contextPrompt}
-                </phrase_context>
-            `);
+            systemPrompt += '\n\n<phrase_context>\n';
+            systemPrompt += contextPrompt;
+            systemPrompt += '\n</phrase_context>';
         }
 
-        systemPrompt += dedent(`
-            </system_prompt>
-        `);
-
-        console.log('RORY_DEBUG ChatGPTTranslator system prompt:', systemPrompt);
+        systemPrompt += '\n</system_prompt>';
 
         let attempt = 0;
         while (attempt <= ChatGPTTranslator.MAX_RETRIES) {
