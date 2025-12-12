@@ -56,7 +56,7 @@ import {
     isMerchantMissing,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
-import {hasInvoicingDetails} from '@userActions/Policy/Policy';
+import {clearGetAccessiblePoliciesErrors, hasInvoicingDetails} from '@userActions/Policy/Policy';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -930,7 +930,7 @@ function MoneyRequestConfirmationList({
                 setFormError('violations.missingAttendees');
                 return;
             }
-            
+
             if (shouldShowTax && !Object.keys(policy?.taxRates?.taxes ?? {}).some((key) => key === transaction.taxCode)) {
                 setFormError('violations.taxOutOfPolicy');
                 return;
@@ -1034,6 +1034,10 @@ function MoneyRequestConfirmationList({
         }
         if (isTypeSplit && !shouldShowReadOnlySplits) {
             return debouncedFormError && translate(debouncedFormError);
+        }
+        // Don't show error at the bottom of the form for missing attendees
+        if (formError === 'violations.missingAttendees') {
+            return;
         }
         return formError && translate(formError);
     }, [routeError, isTypeSplit, shouldShowReadOnlySplits, debouncedFormError, formError, translate]);
