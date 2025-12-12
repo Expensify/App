@@ -1,5 +1,5 @@
 import {adminAccountIDsSelector} from '@selectors/Domain';
-import React, {useMemo} from 'react';
+import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
@@ -71,16 +71,6 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
         debouncedSearchTerm !== '' ? tokenizedSearch(data, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? '']) : data;
     const filteredData = sortAlphabetically(filteredApprovers, 'text', localeCompare);
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('selectionList.findMember'),
-            value: searchTerm,
-            onChangeText: setSearchTerm,
-            headerMessage: searchTerm && !data?.length ? translate('common.noResultsFound') : '',
-        }),
-        [translate, searchTerm, setSearchTerm, data?.length],
-    );
-
     return (
         <ScreenWrapper
             testID={DomainAddPrimaryContactPage.displayName}
@@ -105,7 +95,12 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                     initiallyFocusedItemKey={technicalContactEmailKey}
                     shouldScrollToFocusedIndex
                     shouldShowTextInput
-                    textInputOptions={textInputOptions}
+                    textInputOptions={{
+                        label: translate('selectionList.findMember'),
+                        value: searchTerm,
+                        onChangeText: setSearchTerm,
+                        headerMessage: searchTerm && !data?.length ? translate('common.noResultsFound') : '',
+                    }}
                     addBottomSafeAreaPadding
                     showScrollIndicator
                 />
