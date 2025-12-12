@@ -362,6 +362,8 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     };
 
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     // The function scrolls to the focused input to prevent keyboard occlusion.
     // It ensures the entire list item is visible, not just the input field.
     // Added specifically for SplitExpensePage
@@ -370,11 +372,16 @@ function BaseSelectionList<TItem extends ListItem>({
             return;
         }
 
-        // Delay scrolling by 100ms to allow the keyboard to open.
+        // Clear any existing timer before starting a new one
+        if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+        }
+
+        // Delay scrolling by 300ms to allow the keyboard to open.
         // This ensures FlashList calculates the correct window size.
         setTimeout(() => {
             listRef.current?.scrollToItem({item, viewPosition: 1, animated: true, viewOffset: 4});
-        }, 300);
+        }, CONST.ANIMATED_TRANSITION);
     }, []);
 
     const scrollAndHighlightItem = useCallback(
