@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -162,18 +161,17 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     icon: expensifyIcons.Camera,
                     text: translate('common.replace'),
                     onSelected: () => {
-                        Navigation.dismissModal();
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        InteractionManager.runAfterInteractions(() => {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                    action ?? CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    draftTransactionID ?? transaction?.transactionID,
-                                    report?.reportID,
-                                    Navigation.getActiveRoute(),
+                        Navigation.dismissModal({
+                            callback: () =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                        action ?? CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        draftTransactionID ?? transaction?.transactionID,
+                                        report?.reportID,
+                                        Navigation.getActiveRoute(),
+                                    ),
                                 ),
-                            );
                         });
                     },
                 });
