@@ -42,9 +42,12 @@ type FloatingActionButtonProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<HTMLDivElement | ViewType | TextType>;
+
+    /** Label for Sentry INP tracking */
+    sentryLabel?: string;
 };
 
-function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref}: FloatingActionButtonProps) {
+function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref, sentryLabel}: FloatingActionButtonProps) {
     const {buttonDefaultBG, buttonHoveredBG, icon} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
@@ -115,6 +118,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 role={role}
                 shouldUseHapticsOnLongPress
                 testID="floating-action-button"
+                sentryLabel={sentryLabel}
             >
                 {({hovered}) => {
                     isHovered.set(hovered);
@@ -154,6 +158,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 styles.flex1,
             ]}
             testID="create-action-button"
+            sentryLabel={sentryLabel}
         >
             <View
                 testID="fab-container"

@@ -7524,6 +7524,8 @@ const CONST = {
             REPORTS: 'NavigationTabBar-Reports',
             WORKSPACES: 'NavigationTabBar-Workspaces',
             ACCOUNT: 'NavigationTabBar-Account',
+            FLOATING_ACTION_BUTTON: 'NavigationTabBar-FloatingActionButton',
+            FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
         },
     },
 } as const;

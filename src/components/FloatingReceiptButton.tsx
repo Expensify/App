@@ -19,9 +19,12 @@ type FloatingReceiptButtonProps = {
 
     /* An accessibility role for the button */
     role: Role;
+
+    /** Label for Sentry INP tracking */
+    sentryLabel?: string;
 };
 
-function FloatingReceiptButton({onPress, accessibilityLabel, role}: FloatingReceiptButtonProps) {
+function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}: FloatingReceiptButtonProps) {
     const {successHover, textLight} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
@@ -49,6 +52,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role}: FloatingRece
             role={role}
             shouldUseHapticsOnLongPress
             testID="floating-receipt-button"
+            sentryLabel={sentryLabel}
         >
             {({hovered}) => (
                 <View
