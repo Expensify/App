@@ -1319,10 +1319,10 @@ type SettingsNavigatorParamList = {
         subRateID: string;
     };
     [SCREENS.DOMAIN.VERIFY]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.DOMAIN.VERIFIED]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.DOMAIN.ADMINS_SETTINGS]: {
         accountID: number;
@@ -2114,10 +2114,10 @@ type MergeTransactionNavigatorParamList = {
 
 type WorkspacesDomainModalNavigatorParamList = {
     [SCREENS.WORKSPACES_VERIFY_DOMAIN]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.WORKSPACES_ADD_DOMAIN]: undefined;
     [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: undefined;
@@ -2125,7 +2125,7 @@ type WorkspacesDomainModalNavigatorParamList = {
         accountID: number;
     };
     [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: {
-        accountID: number;
+        domainAccountID: number;
     };
 };
 
@@ -2413,13 +2413,13 @@ type WorkspaceSplitNavigatorParamList = {
 
 type DomainSplitNavigatorParamList = {
     [SCREENS.DOMAIN.INITIAL]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.DOMAIN.SAML]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.DOMAIN.ADMINS]: {
-        accountID: number;
+        domainAccountID: number;
     };
 };
 
@@ -2681,8 +2681,6 @@ type SearchReportActionsParamList = {
         /** Selected transactions' report ID  */
         reportID: string;
     };
-    [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: undefined;
-    [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: undefined;
 };
 
 type SearchReportParamList = {

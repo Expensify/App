@@ -1,17 +1,18 @@
-import React, {useCallback} from 'react';
+import {adminAccountIDsSelector} from '@selectors/Domain';
+import React from 'react';
 import {View} from 'react-native';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar, Gear} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import SelectionList from '@components/SelectionListWithSections';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -25,12 +26,12 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
-import {selectAdminIDs} from '@src/libs/DomainUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.SAML>;
+type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS>;
 
 type AdminOption = Omit<ListItem, 'accountID' | 'login'> & {
     accountID: number;
@@ -38,25 +39,25 @@ type AdminOption = Omit<ListItem, 'accountID' | 'login'> & {
 };
 
 function DomainAdminsPage({route}: DomainAdminsPageProps) {
-    const {accountID: domainID} = route.params;
+    const {domainAccountID} = route.params;
 
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Members'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {canBeMissing: true});
-    const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {
+    const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
-        selector: selectAdminIDs,
+        selector: adminAccountIDsSelector,
     });
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const currentUserAccountID = getCurrentUserAccountID();
-    const isAdmin = adminIDs?.includes(currentUserAccountID) ?? false;
+    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     const data: AdminOption[] = [];
-    for (const accountID of adminIDs ?? []) {
+    for (const accountID of adminAccountIDs ?? []) {
         const details = personalDetails?.[accountID];
         data.push({
             keyForList: String(accountID),
@@ -66,7 +67,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             alternateText: formatPhoneNumber(details?.login ?? ''),
             icons: [
                 {
-                    source: details?.avatar ?? FallbackAvatar,
+                    source: details?.avatar ?? icons.FallbackAvatar,
                     name: formatPhoneNumber(details?.login ?? ''),
                     type: CONST.ICON_TYPE_AVATAR,
                     id: accountID,
@@ -75,11 +76,11 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         });
     }
 
-    const filterMember = useCallback((adminOption: AdminOption, searchQuery: string) => {
+    const filterMember = (adminOption: AdminOption, searchQuery: string) => {
         const results = tokenizedSearch([adminOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
         return results.length > 0;
-    }, []);
-    const sortMembers = useCallback((adminOptions: AdminOption[]) => sortAlphabetically(adminOptions, 'text', localeCompare), [localeCompare]);
+    };
+    const sortMembers = (adminOptions: AdminOption[]) => sortAlphabetically(adminOptions, 'text', localeCompare);
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
     const getCustomListHeader = () => {
@@ -114,6 +115,20 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         );
     };
 
+    const listHeaderContent =
+        data.length > CONST.SEARCH_ITEM_LIMIT ? (
+            <SearchBar
+                inputValue={inputValue}
+                onChangeText={setInputValue}
+                label={translate('domain.admins.findAdmin')}
+                shouldShowEmptyState={!filteredData.length}
+            />
+        ) : null;
+
+    if (isLoadingOnyxValue(domainMetadata)) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -123,7 +138,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={!domain || !isAdmin}
+                shouldShow={!isAdmin}
                 shouldForceFullScreen
             >
                 <HeaderWithBackButton
@@ -136,7 +151,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 </HeaderWithBackButton>
 
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <ScrollViewWithContext
+                <ScrollView
                     keyboardShouldPersistTaps="handled"
                     addBottomSafeAreaPadding
                     style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
@@ -144,16 +159,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     <SelectionList
                         sections={[{data: filteredData}]}
                         canSelectMultiple={false}
-                        listHeaderContent={
-                            data.length > CONST.SEARCH_ITEM_LIMIT ? (
-                                <SearchBar
-                                    inputValue={inputValue}
-                                    onChangeText={setInputValue}
-                                    label={translate('domain.admins.findAdmin')}
-                                    shouldShowEmptyState={!filteredData.length}
-                                />
-                            ) : null
-                        }
+                        listHeaderContent={listHeaderContent}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         ListItem={TableListItem}
                         onSelectRow={() => {}}
@@ -163,7 +169,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                         addBottomSafeAreaPadding
                         customListHeader={getCustomListHeader()}
                     />
-                </ScrollViewWithContext>
+                </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
