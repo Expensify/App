@@ -2746,7 +2746,7 @@ function getWorkspaceReportFieldAddMessage(action: ReportAction): string {
 
     if (fieldName && fieldType) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.addedReportField', fieldName, translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase());
+        return translateLocal('workspaceActions.addedReportField', translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(), fieldName);
     }
 
     return getReportActionText(action);
@@ -2807,7 +2807,7 @@ function getWorkspaceReportFieldDeleteMessage(action: ReportAction): string {
 
     if (fieldType && fieldName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.deleteReportField', fieldName, translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase());
+        return translateLocal('workspaceActions.deleteReportField', translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(), fieldName);
     }
 
     return getReportActionText(action);
