@@ -538,8 +538,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     <View style={[styles.flex1, styles.pr3]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.common.customField2')}</Text>
                     </View>
-                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.pr2]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfEnd]}>{translate('common.role')}</Text>
+                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr6, styles.pl2]}>
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('common.role')}</Text>
                     </View>
                 </View>
             );
@@ -556,6 +556,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.member')}
                 rightHeaderText={translate('common.role')}
+                shouldShowRightCaret
             />
         );
     };
@@ -590,20 +591,20 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
 
         const memberOption = {
-            text: translate('workspace.people.makeMember'),
+            text: translate('workspace.people.makeMember', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
             icon: icons.User,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
         };
         const adminOption = {
-            text: translate('workspace.people.makeAdmin'),
+            text: translate('workspace.people.makeAdmin', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
             icon: icons.MakeAdmin,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
         };
 
         const auditorOption = {
-            text: translate('workspace.people.makeAuditor'),
+            text: translate('workspace.people.makeAuditor', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_AUDITOR,
             icon: icons.UserEye,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
@@ -826,6 +827,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
+                        shouldShowRightCaret
                     />
                 </>
             )}
