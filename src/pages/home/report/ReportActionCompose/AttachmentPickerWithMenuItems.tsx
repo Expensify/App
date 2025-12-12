@@ -353,7 +353,9 @@ function AttachmentPickerWithMenuItems({
         calculatePopoverPosition(actionButtonRef as React.RefObject<View>, {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-        }).then(setPopoverAnchorPosition);
+        }).then((position) => {
+            setPopoverAnchorPosition({...position, vertical: position.vertical - CONST.MODAL.POPOVER_MENU_PADDING});
+        });
     }, [isMenuVisible, calculatePopoverPosition, actionButtonRef]);
 
     // 1. Limit the container width to a single column.
