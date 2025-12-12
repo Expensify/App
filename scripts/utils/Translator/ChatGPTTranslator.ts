@@ -34,34 +34,38 @@ class ChatGPTTranslator extends Translator {
     }
 
     protected async performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string> {
-        let systemPrompt = getBasePrompt(targetLang);
+        let systemPrompt = dedent(`
+            <system_prompt>
+            <base_prompt>
+            ${getBasePrompt(targetLang)}
+            </base_prompt>
+        `);
 
         // Load locale-specific prompt if it exists
         const localeSpecificPrompt = await getLocaleSpecificPrompt(targetLang);
         if (localeSpecificPrompt) {
             systemPrompt += dedent(`
-
-                ==================
-
+                <locale_specific_prompt language="${targetLang}">
                 ${localeSpecificPrompt}
+                </locale_specific_prompt>
             `);
         }
 
-        // Load context prompt
+        // Load context prompt if it exists
         const contextPrompt = getContextPrompt(context);
         if (contextPrompt) {
             systemPrompt += dedent(`
-
-                ==================
-
+                <phrase_context>
                 ${contextPrompt}
+                </phrase_context>
             `);
         }
 
         systemPrompt += dedent(`
-
-            ~~~~~~~~~~~
+            </system_prompt>
         `);
+
+        console.log('RORY_DEBUG ChatGPTTranslator system prompt:', systemPrompt);
 
         let attempt = 0;
         while (attempt <= ChatGPTTranslator.MAX_RETRIES) {

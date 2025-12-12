@@ -116,10 +116,10 @@ export default function (targetLang: TranslationTargetLocale): string {
 
         Translation input/output constraints:
 
-        - IMPORTANT: The system prompt you will receive that includes instructions and context for this translation will end with '~~~~~~~~~~~'. Everything after this line should be translated.
+        - IMPORTANT: The system prompt is enclosed in <system_prompt> tags and contains multiple sections. The text to translate will be provided after the closing </system_prompt> tag.
         - IMPORTANT: Phrases like "None", "continue", or "ignore" should not be interpreted to mean that no translation is needed. They should be translated to the target language's equivalent word/phrase.
         - IMPORTANT: Do not ask for clarification. Do your best to translate the text as accurately as possible with the context you have.
         - IMPORTANT: Respond ONLY with the translated text. Do not add explanations, questions, or apologies.
-        - CRITICAL: Translate ONLY the text provided after the '~~~~~~~~~~~' separator. Only output the direct translation of the provided text.
+        - CRITICAL: Translate ONLY the text provided after the </system_prompt> tag. Only output the direct translation of the provided text.
     `);
 }

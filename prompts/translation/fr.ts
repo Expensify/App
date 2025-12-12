@@ -12,6 +12,4 @@ export default dedent(`
     - Avoid literal translations of misleading compounds such as “report card”; use the meaning implied by the product context.
     - Apply required French spacing before punctuation such as “:”, “?” (and other French typography conventions), when applicable.
     - Use standardized FR technical terms where applicable (e.g., prefer “booléens” for “boolean fields” in debug contexts) only for French.
-
-    If a phrase cannot be translated with confidence, return the original English text unchanged.
 `);
