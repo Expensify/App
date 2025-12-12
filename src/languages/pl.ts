@@ -1560,9 +1560,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Wybierz dodatkową osobę zatwierdzającą ten raport, zanim uruchomimy dalszą część procesu akceptacji.',
-                bulkSubtitle: 'Wybierz dodatkowego akceptującego dla tych raportów, zanim przekażemy je dalej w pozostałej części procesu zatwierdzania.',
             },
-            bulkSubtitle: 'Wybierz opcję, aby zmienić akceptującego dla tych raportów.',
         },
         chooseWorkspace: 'Wybierz przestrzeń roboczą',
     },
@@ -2334,7 +2332,6 @@ ${amount} dla ${merchant} - ${date}`,
             title: 'Brak członków do wyświetlenia',
             expensesFromSubtitle: 'Wszyscy członkowie przestrzeni roboczej należą już do istniejącego obiegu zatwierdzania.',
             approverSubtitle: 'Wszyscy zatwierdzający należą do istniejącego przepływu pracy.',
-            bulkApproverSubtitle: 'Żaden akceptujący nie spełnia kryteriów dla wybranych raportów.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -6539,6 +6536,60 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 }
             }
         },
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `zmieniono domyślnego zatwierdzającego na ${newApprover} (wcześniej ${previousApprover})` : `zmieniono domyślnego zatwierdzającego na ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `zmieniono obieg zatwierdzania dla ${members}, aby przesyłali raporty do ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(wcześniej domyślny zatwierdzający ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(wcześniej domyślny zatwierdzający)';
+            } else if (previousApprover) {
+                text += `(wcześniej ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `zmieniono przepływ zatwierdzania dla ${members}, aby składali raporty do domyślnego zatwierdzającego ${approver}`
+                : `zmieniono przepływ zatwierdzania dla ${members}, aby raporty były przesyłane do domyślnego zatwierdzającego`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(wcześniej domyślny zatwierdzający ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(wcześniej domyślny zatwierdzający)';
+            } else if (previousApprover) {
+                text += `(wcześniej ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `zmieniono obieg zatwierdzania dla ${approver}, aby przekazywać zatwierdzone raporty do ${forwardsTo} (wcześniej przekazywano do ${previousForwardsTo})`
+                : `zmieniono przepływ zatwierdzania dla ${approver}, aby przekazywać zatwierdzone raporty do ${forwardsTo} (wcześniej ostatecznie zatwierdzone raporty)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `zmieniono proces zatwierdzania dla ${approver}, aby przestać przekazywać zatwierdzone raporty (wcześniej przekazywane do ${previousForwardsTo})`
+                : `zmieniono przepływ zatwierdzania dla ${approver}, aby nie przekazywać dalej zatwierdzonych raportów`,
     },
     roomMembersPage: {
         memberNotFound: 'Użytkownik nie został znaleziony.',
@@ -7870,11 +7921,12 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             requireError: 'Nie można było zaktualizować ustawienia wymogu SAML',
             disableSamlRequired: 'Wyłącz wymóg SAML',
             oktaWarningPrompt: 'Czy na pewno? Spowoduje to również wyłączenie Okta SCIM.',
+            requireWithEmptyMetadataError: 'Dodaj poniżej metadane dostawcy tożsamości, aby włączyć',
         },
         samlConfigurationDetails: {
             title: 'Szczegóły konfiguracji SAML',
             subtitle: 'Użyj tych danych, aby skonfigurować SAML.',
-            identityProviderMetaData: 'Metadane dostawcy tożsamości',
+            identityProviderMetadata: 'Metadane dostawcy tożsamości',
             entityID: 'ID jednostki',
             nameIDFormat: 'Format identyfikatora nazwy',
             loginUrl: 'URL logowania',
