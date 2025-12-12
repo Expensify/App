@@ -3355,6 +3355,29 @@ describe('ReportUtils', () => {
             expect(shouldDisableThread(reportAction, true)).toBeTruthy();
         });
 
+        it('should disable thread for messages sent by MANAGER_MCTEST', () => {
+            // Given a report action from MANAGER_MCTEST
+            const reportAction = {
+                actorAccountID: CONST.ACCOUNT_ID.MANAGER_MCTEST,
+                message: [
+                    {
+                        translationKey: '',
+                        type: 'COMMENT',
+                        html: 'Test message from Manager McTest',
+                        text: 'Test message from Manager McTest',
+                    },
+                ],
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            } as ReportAction;
+
+            // When it's checked to see if the thread should be disabled
+            const isThreadDisabled = shouldDisableThread(reportAction, false);
+
+            // Then the thread should be disabled
+            // This ensures "Reply in thread" and "Join thread" context menu options won't be shown
+            expect(isThreadDisabled).toBeTruthy();
+        });
+
         describe('deleted threads', () => {
             it('should be enabled if the report action is not-deleted and child visible action count is 1', () => {
                 // Given a normal report action with one child visible action count
