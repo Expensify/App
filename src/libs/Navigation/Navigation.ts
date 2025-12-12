@@ -50,9 +50,13 @@ import type {
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES = new Set<Route>([
-    ROUTES.SETTINGS_2FA_ROOT.getRoute(),
-    ROUTES.SETTINGS_2FA_VERIFY.getRoute(),
-    ROUTES.SETTINGS_2FA_SUCCESS.getRoute(),
+    ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.route,
+    ROUTES.SETTINGS_2FA_ROOT.route,
+    ROUTES.SETTINGS_2FA_VERIFY.route,
+    ROUTES.SETTINGS_2FA_SUCCESS.route,
+    ROUTES.SETTINGS_2FA_DISABLE,
+    ROUTES.SETTINGS_2FA_DISABLED,
+    ROUTES.SETTINGS_SECURITY,
 ]);
 
 let account: OnyxEntry<Account>;
