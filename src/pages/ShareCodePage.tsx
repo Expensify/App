@@ -99,6 +99,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         return currentUserPersonalDetails.login;
     }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber]);
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title = isReport ? getReportName(report) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
