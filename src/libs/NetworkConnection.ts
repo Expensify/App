@@ -313,11 +313,16 @@ function clearReconnectionCallbacks() {
 
 /**
  * Refresh NetInfo state.
+ * Throttle reachability checks to avoid spamming PING requests
  */
-function recheckNetworkConnection() {
-    Log.info('[NetworkConnection] recheck NetInfo');
-    NetInfo.refresh();
-}
+const recheckNetworkConnection = throttle(
+    () => {
+        Log.info('[NetworkConnection] refresh NetInfo');
+        NetInfo.refresh();
+    },
+    CONST.NETWORK.MAX_PENDING_TIME_MS,
+    { leading: true, trailing: false },
+);
 
 export default {
     clearReconnectionCallbacks,
