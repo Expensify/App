@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -52,39 +52,31 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     });
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
-    const data: AdminOption[] = useMemo(() => {
-        if (!adminIDs) {
-            return [];
-        }
+    const data: AdminOption[] = []
+    for (const accountID of adminIDs ?? []) {
+        const details = personalDetails?.[accountID];
+        data.push({
+            keyForList: String(accountID),
+            accountID,
+            login: details?.login ?? '',
+            text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+            alternateText: formatPhoneNumber(details?.login ?? ''),
+            icons: [
+                {
+                    source: details?.avatar ?? icons.FallbackAvatar,
+                    name: formatPhoneNumber(details?.login ?? ''),
+                    type: CONST.ICON_TYPE_AVATAR,
+                    id: accountID,
+                },
+            ],
+        });
+    }
 
-        const result = [];
-        for (const accountID of adminIDs) {
-            const details = personalDetails?.[accountID];
-            result.push({
-                keyForList: String(accountID),
-                accountID,
-                login: details?.login ?? '',
-                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
-                alternateText: formatPhoneNumber(details?.login ?? ''),
-                icons: [
-                    {
-                        source: details?.avatar ?? icons.FallbackAvatar,
-                        name: formatPhoneNumber(details?.login ?? ''),
-                        type: CONST.ICON_TYPE_AVATAR,
-                        id: accountID,
-                    },
-                ],
-            });
-        }
-
-        return result;
-    }, [adminIDs, formatPhoneNumber, icons.FallbackAvatar, personalDetails]);
-
-    const filterMember = useCallback((adminOption: AdminOption, searchQuery: string) => {
+    const filterMember = (adminOption: AdminOption, searchQuery: string) => {
         const results = tokenizedSearch([adminOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
         return results.length > 0;
-    }, []);
-    const sortMembers = useCallback((adminOptions: AdminOption[]) => sortAlphabetically(adminOptions, 'text', localeCompare), [localeCompare]);
+    };
+    const sortMembers = (adminOptions: AdminOption[]) => sortAlphabetically(adminOptions, 'text', localeCompare);
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
     const getCustomListHeader = () => {
