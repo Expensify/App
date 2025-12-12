@@ -30,7 +30,7 @@ function TextInputClearButton({style, onPressButton, sentryLabel}: TextInputClea
                     e.preventDefault();
                 }}
                 onPress={onPressButton}
-                sentryLabel={sentryLabel ? `${sentryLabel}-ClearButton` : undefined}
+                sentryLabel={sentryLabel}
             >
                 <Icon
                     src={Expensicons.Clear}

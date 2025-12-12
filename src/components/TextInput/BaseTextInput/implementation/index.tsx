@@ -473,7 +473,7 @@ function BaseTextInput({
                                             onClearInput?.();
                                         }}
                                         style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
-                                        sentryLabel={sentryLabel}
+                                        sentryLabel={sentryLabel ? `${sentryLabel}-ClearButton` : undefined}
                                     />
                                 </View>
                             )}
