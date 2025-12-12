@@ -178,7 +178,7 @@ function useReportActionAvatars({
     const shouldUseAccountIDs = accountIDs.length > 0;
     const shouldShowAllActors = displayAllActors && !reportPreviewSenderID;
     const isChatThreadOutsideTripRoom = isChatThread(chatReport) && !isATripRoom;
-    const shouldShowSubscriptAvatar = shouldReportShowSubscript(iouReport ?? chatReport, isReportArchived) && isWorkspacePolicy;
+    const shouldShowSubscriptAvatar = shouldReportShowSubscript(iouReport ?? chatReport, isReportArchived);
     const shouldShowConvertedSubscriptAvatar = (shouldStackHorizontally || shouldUseAccountIDs) && shouldShowSubscriptAvatar && !reportPreviewSenderID;
     const isExpense = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.ACTION.CREATE;
     const isWorkspaceExpense = isWorkspacePolicy && isExpense;
