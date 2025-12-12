@@ -315,6 +315,11 @@ function MoneyRequestView({
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isPaidGroupPolicy(report));
+    const hasViolations = useCallback(
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
+            getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
+        [getViolationsForField],
+    );
 
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
@@ -461,11 +466,9 @@ function MoneyRequestView({
             }
 
             // Return violations if there are any
-            if (field !== 'merchant') {
+            if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-                if (violations.length > 0) {
-                    return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)).join('. ')}.`;
-                }
+                return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)).join('. ')}.`;
             }
 
             return '';
@@ -478,6 +481,7 @@ function MoneyRequestView({
             transactionDate,
             readonly,
             hasErrors,
+            hasViolations,
             translate,
             getViolationsForField,
             canEditDate,
