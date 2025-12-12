@@ -56,7 +56,7 @@ import {
     isMerchantMissing,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
-import {clearGetAccessiblePoliciesErrors, hasInvoicingDetails} from '@userActions/Policy/Policy';
+import {hasInvoicingDetails} from '@userActions/Policy/Policy';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
