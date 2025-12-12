@@ -186,7 +186,7 @@ function RoomInvitePage({
         [selectedOptions],
     );
 
-    const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions]);
+    const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions.length]);
 
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;
@@ -194,6 +194,8 @@ function RoomInvitePage({
     const backRoute = useMemo(() => {
         return reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
     }, [isPolicyEmployee, reportID, backTo, isReportArchived]);
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = useMemo(() => getReportName(report), [report]);
 
     const ancestors = useAncestors(report);

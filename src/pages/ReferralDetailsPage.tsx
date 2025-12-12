@@ -6,7 +6,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -26,11 +26,12 @@ import {showContextMenu} from './home/report/ContextMenu/ReportActionContextMenu
 type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 
 function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'QuestionMark'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['PaymentHands'] as const);
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();
     let {contentType} = route.params;
@@ -85,9 +86,9 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
                 wrapperStyle={styles.mb4}
                 ref={popoverAnchor}
                 title={translate('requestorStep.learnMore')}
-                icon={Expensicons.QuestionMark}
+                icon={icons.QuestionMark}
                 shouldShowRightIcon
-                iconRight={Expensicons.NewWindow}
+                iconRight={icons.NewWindow}
                 disabled={isExecuting}
                 shouldBlockSelection
                 onPress={singleExecution(() => openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}

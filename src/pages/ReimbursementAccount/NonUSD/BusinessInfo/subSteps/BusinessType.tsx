@@ -24,9 +24,12 @@ function BusinessType({onNext, isEditing, onMove}: BusinessTypeProps) {
     const country = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const isBusinessTypeRequired = country !== CONST.COUNTRY.CA;
 
-    const incorporationTypeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.ApplicantType), [corpayOnboardingFields]);
-    const natureOfBusinessListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.NatureOfBusiness), [corpayOnboardingFields]);
-    const businessTypeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.BusinessType), [corpayOnboardingFields]);
+    const incorporationTypeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.ApplicantType), [corpayOnboardingFields?.picklists.ApplicantType]);
+    const natureOfBusinessListOptions = useMemo(
+        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.NatureOfBusiness),
+        [corpayOnboardingFields?.picklists.NatureOfBusiness],
+    );
+    const businessTypeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.BusinessType), [corpayOnboardingFields?.picklists.BusinessType]);
 
     const incorporationTypeDefaultValue = reimbursementAccount?.achData?.corpay?.[APPLICANT_TYPE_ID] ?? '';
     const businessCategoryDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CATEGORY] ?? '';

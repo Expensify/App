@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -28,6 +28,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/home/report/ReportActionsView';
 import ReportFooter from '@pages/home/report/ReportFooter';
@@ -117,7 +118,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const {transactions: reportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportID);
     const hasPendingDeletionTransaction = Object.values(reportTransactions ?? {}).some((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions), [reportTransactions, reportActions]);
+    const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions, isOffline, true), [reportTransactions, reportActions, isOffline]);
 
     const visibleTransactions = transactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
@@ -186,6 +187,11 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
+    // We need to cancel telemetry span when user leaves the screen before full report data is loaded
+    useEffect(() => {
+        return () => cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+    }, [reportID]);
+
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
         return <InitialLoadingSkeleton styles={styles} />;
     }
@@ -246,7 +252,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             </ScrollView>
                         </Animated.View>
                     )}
-                    <View style={[[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]]}>
+                    <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                         {shouldDisplayMoneyRequestActionsList ? (
                             <MoneyRequestReportActionsList
                                 report={report}
@@ -259,6 +265,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 hasOlderActions={hasOlderActions}
                                 hasNewerActions={hasNewerActions}
                                 showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
+                                reportPendingAction={reportPendingAction}
                             />
                         ) : (
                             <ReportActionsView

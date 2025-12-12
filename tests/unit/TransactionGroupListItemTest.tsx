@@ -26,10 +26,9 @@ jest.mock('@libs/SearchUIUtils', () => ({
 const mockTransaction: TransactionListItemType = {
     accountID: 1,
     amount: 0,
-    canDelete: true,
     category: '',
-    convertedAmount: 1284,
-    convertedCurrency: 'USD',
+    groupAmount: 1284,
+    groupCurrency: 'USD',
     created: '2025-09-19',
     currency: 'USD',
     policy: {
@@ -56,7 +55,6 @@ const mockTransaction: TransactionListItemType = {
     reportID: '515146912679679',
     tag: '',
     transactionID: '1',
-    transactionThreadReportID: '2925191332104975',
     action: 'approve',
     allActions: ['approve'],
     formattedFrom: 'Main Applause QA',
@@ -118,6 +116,7 @@ const mockReport: TransactionReportGroupListItemType = {
         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_15.png',
         displayName: 'Main Applause QA',
     },
+    shouldShowYear: false,
     action: 'view',
     transactions: [],
     groupedBy: 'expense-report',
