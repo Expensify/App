@@ -110,6 +110,7 @@ export default {
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
+    popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
     gutterWidth: 12,
