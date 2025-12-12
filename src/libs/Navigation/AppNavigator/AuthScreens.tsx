@@ -1,6 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import {useNavigationState} from '@react-navigation/native';
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {memo, useContext, useEffect, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
@@ -34,7 +34,7 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation, { getDeepestFocusedScreenName, isTwoFactorSetupScreen } from '@libs/Navigation/Navigation';
+import Navigation, {getDeepestFocusedScreenName, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';

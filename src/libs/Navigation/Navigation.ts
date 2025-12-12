@@ -54,7 +54,7 @@ const SET_UP_2FA_SCREENS = new Set<string>([
 ]);
 
 function isTwoFactorSetupScreen(screen: string | undefined): boolean {
-    return screen ? SET_UP_2FA_SCREENS.has(screen) : false
+    return screen ? SET_UP_2FA_SCREENS.has(screen) : false;
 }
 
 let resolveNavigationIsReadyPromise: () => void;
@@ -86,9 +86,7 @@ function getShouldPopToSidebar() {
  * Unlike findFocusedRoute, this also handles the case where the nested navigator
  * hasn't been mounted yet and the target screen is in params instead of state.
  */
-function getDeepestFocusedScreenName(
-    route: NavigationRoute | NavigationState | PartialState<NavigationState> | undefined,
-): string | undefined {
+function getDeepestFocusedScreenName(route: NavigationRoute | NavigationState | PartialState<NavigationState> | undefined): string | undefined {
     if (!route) {
         return undefined;
     }
@@ -123,7 +121,7 @@ function getDeepestFocusedScreenName(
 type CanNavigateParams = {
     route?: Route;
     backToRoute?: Route;
-}
+};
 
 /**
  * Checks if navigation is ready.
