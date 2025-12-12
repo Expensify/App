@@ -243,9 +243,10 @@ export default createOnyxDerivedValueConfig({
 
         // Apply the error status to the parent chat reports.
         for (const chatReportID of chatReportIDsWithErrors) {
-            if (reportAttributes[chatReportID]) {
-                reportAttributes[chatReportID].brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+            if (!reportAttributes[chatReportID]) {
+                continue;
             }
+            reportAttributes[chatReportID].brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
 
         // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
