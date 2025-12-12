@@ -4329,15 +4329,17 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(report?.policyID, {[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`]: policy});
     const isApproved = isReportApproved({report});
+    const isFormulaField = reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
+
     if (!isAdmin && (isReportSettled || isReportClosed || isApproved)) {
         return true;
     }
 
-    if (isTitleField) {
+    if (isTitleField || isFormulaField) {
         return !reportField?.deletable;
     }
 
-    return reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
+    return false;
 }
 
 /**
