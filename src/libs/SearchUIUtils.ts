@@ -2666,7 +2666,7 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
-function getTableMinWidth(columns) {
+function getTableMinWidth(columns: SearchColumnType[]) {
     // Starts at 24px to account for the checkbox width that's not a defined column
     let minWidth = 24;
     for (const column of columns) {
@@ -2732,5 +2732,6 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getTransactionFromTransactionListItem,
+    getTableMinWidth,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
