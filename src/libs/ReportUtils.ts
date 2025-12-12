@@ -256,6 +256,7 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
+import SidebarUtils from './SidebarUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
     getAttendees,
@@ -9376,6 +9377,7 @@ function hasReportErrorsOtherThanFailedReceipt(
     chatReport: OnyxEntry<Report>,
     doesReportHaveViolations: boolean,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    transactions: OnyxCollection<Transaction>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     const allReportErrors = reportAttributes?.[report?.reportID]?.reportErrors ?? {};
@@ -9390,7 +9392,8 @@ function hasReportErrorsOtherThanFailedReceipt(
         doesTransactionThreadReportHasViolations ||
         doesReportHaveViolations ||
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        Object.values(allReportErrors).some((error) => error?.[0] !== translateLocal('iou.error.genericSmartscanFailureMessage'))
+        Object.values(allReportErrors).some((error) => error?.[0] !== translateLocal('iou.error.genericSmartscanFailureMessage')) ||
+        !!SidebarUtils.getReceiptUploadErrorReason(report, chatReport, transactionReportActions, transactions)
     );
 }
 
