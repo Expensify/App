@@ -110,6 +110,8 @@ type TransactionParams = {
     participants?: Participant[];
     pendingAction?: PendingAction;
     distance?: number;
+    odometerStart?: number | null;
+    odometerEnd?: number | null;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -149,7 +151,8 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
         return (
             transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
             transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
         );
     }
 
@@ -187,6 +190,21 @@ function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return hasDistanceCustomUnit(transaction) && isEmptyObject(transaction?.comment?.waypoints);
 }
 
+function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    // Odometer requests have odometerStart and odometerEnd in comment, and no waypoints
+    return (
+        hasDistanceCustomUnit(transaction) &&
+        isEmptyObject(transaction?.comment?.waypoints) &&
+        (transaction?.comment?.odometerStart !== undefined || transaction?.comment?.odometerEnd !== undefined)
+    );
+}
+
 function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -213,6 +231,9 @@ function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolea
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
+    if (isOdometerDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
+    }
     if (isManualDistanceRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     }
@@ -348,12 +369,20 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         splitExpensesTotal,
         participants,
         pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        odometerStart,
+        odometerEnd,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
     const transactionID = existingTransactionID ?? rand64();
 
     const commentJSON: Comment = {comment, attendees};
+    if (odometerStart !== undefined) {
+        commentJSON.odometerStart = odometerStart;
+    }
+    if (odometerEnd !== undefined) {
+        commentJSON.odometerEnd = odometerEnd;
+    }
     if (isDemoTransactionParam) {
         commentJSON.isDemoTransaction = true;
     }
@@ -372,7 +401,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
 
     const isMapDistanceTransaction = !!pendingFields?.waypoints;
     const isManualDistanceTransaction = isManualDistanceRequest(existingTransaction);
-    if (isMapDistanceTransaction || isManualDistanceTransaction) {
+    const isOdometerDistanceTransaction = isOdometerDistanceRequest(existingTransaction);
+    if (isMapDistanceTransaction || isManualDistanceTransaction || isOdometerDistanceTransaction) {
         // Set the distance unit, which comes from the policy distance unit or the P2P rate data
         lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
         lodashSet(commentJSON, 'customUnit.quantity', distance);
@@ -535,10 +565,27 @@ function getUpdatedTransaction({
 
     // The comment property does not have its modifiedComment counterpart
     if (Object.hasOwn(transactionChanges, 'comment')) {
-        updatedTransaction.comment = {
-            ...updatedTransaction.comment,
-            comment: transactionChanges.comment,
-        };
+        if (typeof transactionChanges.comment === 'string') {
+            // If comment is a string, it's the comment text
+            updatedTransaction.comment = {
+                ...updatedTransaction.comment,
+                comment: transactionChanges.comment,
+            };
+        } else if (typeof transactionChanges.comment === 'object' && transactionChanges.comment !== null) {
+            // If comment is an object, it might contain odometerStart/odometerEnd or other comment properties
+            updatedTransaction.comment = {
+                ...updatedTransaction.comment,
+                ...(typeof (transactionChanges.comment as {comment?: string}).comment === 'string' && {
+                    comment: (transactionChanges.comment as {comment: string}).comment,
+                }),
+                ...('odometerStart' in transactionChanges.comment && {
+                    odometerStart: (transactionChanges.comment as {odometerStart?: number | null}).odometerStart,
+                }),
+                ...('odometerEnd' in transactionChanges.comment && {
+                    odometerEnd: (transactionChanges.comment as {odometerEnd?: number | null}).odometerEnd,
+                }),
+            };
+        }
     }
     if (Object.hasOwn(transactionChanges, 'created')) {
         updatedTransaction.modifiedCreated = transactionChanges.created;
@@ -2284,6 +2331,7 @@ export {
     isDistanceRequest,
     isMapDistanceRequest,
     isManualDistanceRequest,
+    isOdometerDistanceRequest,
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
