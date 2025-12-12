@@ -2644,7 +2644,7 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
     const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
 
     if (!policy) {
-        Log.warn('Missing transactionID during the change of the money request hold status');
+        Log.warn('Missing policy during isPayer check');
 
         return false;
     }
