@@ -14,6 +14,12 @@ import AppStateMonitor from './AppStateMonitor';
 import DateUtils from './DateUtils';
 import Log from './Log';
 
+// Timestamp of when the last reachability request was completed
+let lastReachabilityCheckTimestamp = 0;
+
+// Minimum interval between reachability checks to avoid spamming requests
+const MIN_REACHABILITY_CHECK_INTERVAL = CONST.NETWORK.MAX_PENDING_TIME_MS;
+
 let isOffline = false;
 type NetworkStatus = ValueOf<typeof CONST.NETWORK.NETWORK_STATUS>;
 
@@ -315,8 +321,18 @@ function clearReconnectionCallbacks() {
  * Refresh NetInfo state.
  */
 function recheckNetworkConnection() {
+
+    // Throttle reachability checks to avoid spamming PING requests
+    const now = Date.now();
+    if (now - lastReachabilityCheckTimestamp < MIN_REACHABILITY_CHECK_INTERVAL) {
+        Log.info(`[NetworkConnection] Throttled recheck; last check at ${lastReachabilityCheckTimestamp}`);
+        return;
+    }
     Log.info('[NetworkConnection] recheck NetInfo');
-    NetInfo.refresh();
+    Promise.resolve(NetInfo.refresh()).finally(() => {
+        lastReachabilityCheckTimestamp = Date.now();
+        Log.info(`[NetworkConnection] Reachability (PING) finished at ${lastReachabilityCheckTimestamp}`);
+    });
 }
 
 export default {
