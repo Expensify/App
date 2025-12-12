@@ -5,7 +5,6 @@ import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
@@ -19,8 +18,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import {needsTwoFactorAuthSetupSelector} from '@src/selectors/Account';
-import type {Account} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getStateFromPath from './helpers/getStateFromPath';
@@ -48,28 +45,18 @@ import type {
     State,
 } from './types';
 
-// Routes which are part of the flow to set up 2FA
-const SET_UP_2FA_ROUTES = new Set<Route>([
-    ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.route,
-    ROUTES.SETTINGS_2FA_ROOT.route,
-    ROUTES.SETTINGS_2FA_VERIFY.route,
-    ROUTES.SETTINGS_2FA_SUCCESS.route,
-    ROUTES.SETTINGS_2FA_DISABLE,
-    ROUTES.SETTINGS_2FA_DISABLED,
-    ROUTES.SETTINGS_SECURITY,
+// Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
+const SET_UP_2FA_SCREENS: Set<string> = new Set([
+    SCREENS.TWO_FACTOR_AUTH.ROOT,
+    SCREENS.TWO_FACTOR_AUTH.VERIFY,
+    SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT,
+    SCREENS.TWO_FACTOR_AUTH.SUCCESS,
+    SCREENS.TWO_FACTOR_AUTH.DISABLED,
+    SCREENS.TWO_FACTOR_AUTH.DISABLE,
 ]);
 
-let account: OnyxEntry<Account>;
-// We have used `connectWithoutView` here because it is not connected to any UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value;
-    },
-});
-
-function shouldShowRequire2FAPage() {
-    return needsTwoFactorAuthSetupSelector(account);
+export function isTwoFactorSetupScreen(screen: string | undefined): boolean {
+    return screen ? SET_UP_2FA_SCREENS.has(screen) : false
 }
 
 let resolveNavigationIsReadyPromise: () => void;
@@ -96,21 +83,42 @@ function getShouldPopToSidebar() {
     return shouldPopToSidebar;
 }
 
+/**
+ * Gets the deepest focused screen name from the navigation state.
+ * Unlike findFocusedRoute, this also handles the case where the nested navigator
+ * hasn't been mounted yet and the target screen is in params instead of state.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getDeepestFocusedScreenName(route: {name?: string; state?: any; params?: any} | undefined): string | undefined {
+    if (!route) {
+        return undefined;
+    }
+
+    // If there's a state, use it to find the focused route (standard case after navigation)
+    if (route.state?.routes && route.state?.index !== undefined) {
+        const focusedRoute = route.state.routes[route.state.index];
+        return getDeepestFocusedScreenName(focusedRoute);
+    }
+
+    // If there's no state but params.screen exists, the nested navigator hasn't been navigated yet
+    // and the target screen info is in params (initial navigation case)
+    if (route.params?.screen) {
+        return getDeepestFocusedScreenName({name: route.params.screen, params: route.params.params});
+    }
+
+    // No more nesting, return the current screen name
+    return route.name;
+}
+
 type CanNavigateParams = {
     route?: Route;
     backToRoute?: Route;
-};
+}
 
 /**
- * Checks if the route can be navigated to based on whether the navigation ref is ready and if 2FA is required to be set up.
+ * Checks if navigation is ready.
  */
 function canNavigate(methodName: string, params: CanNavigateParams = {}): boolean {
-    // Block navigation if 2FA is required and the targetRoute is not part of the flow to enable 2FA
-    const targetRoute = params.route ?? params.backToRoute;
-    if (shouldShowRequire2FAPage() && targetRoute && !SET_UP_2FA_ROUTES.has(targetRoute)) {
-        Log.info(`[Navigation] Blocked navigation because 2FA is required to be set up to access route: ${targetRoute}`);
-        return false;
-    }
     if (navigationRef.isReady()) {
         return true;
     }
