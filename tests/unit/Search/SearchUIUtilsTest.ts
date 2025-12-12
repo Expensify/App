@@ -807,7 +807,7 @@ const transactionsListItems = [
     },
     {
         action: 'approve',
-        allActions: ['approve', 'changeApprover'],
+        allActions: ['approve'],
         amount: -5000,
         report: report2,
         policy,
@@ -1078,7 +1078,7 @@ const transactionReportGroupListItems = [
         groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'approve',
-        allActions: ['approve', 'changeApprover'],
+        allActions: ['approve'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
@@ -1115,7 +1115,7 @@ const transactionReportGroupListItems = [
         transactions: [
             {
                 action: 'approve',
-                allActions: ['approve', 'changeApprover'],
+                allActions: ['approve'],
                 report: report2,
                 policy,
                 reportAction: reportAction2,
