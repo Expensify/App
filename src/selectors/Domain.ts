@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {CardFeeds, Domain} from '@src/types/onyx';
+import type {CardFeeds, Domain, SamlMetadata} from '@src/types/onyx';
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
 
@@ -16,4 +16,6 @@ const domainSamlSettingsStateSelector = (domain: OnyxEntry<Domain>) =>
 
 const domainNameSelector = (domain: OnyxEntry<Domain>) => (domain?.email ? Str.extractEmailDomain(domain.email) : undefined);
 
-export {domainMemberSamlSettingsSelector, domainSamlSettingsStateSelector, domainNameSelector};
+const metaIdentitySelector = (samlMetadata: OnyxEntry<SamlMetadata>) => samlMetadata?.metaIdentity;
+
+export {domainMemberSamlSettingsSelector, domainSamlSettingsStateSelector, domainNameSelector, metaIdentitySelector};

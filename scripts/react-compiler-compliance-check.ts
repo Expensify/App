@@ -506,7 +506,7 @@ async function filterResultsByDiff(
 function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffResult) {
     const addedDiffFiles = new Set<string>();
     for (const file of diffResult.files) {
-        if (Git.isAddedDiffFile(file)) {
+        if (file.diffType === 'added') {
             addedDiffFiles.add(file.filePath);
         }
     }

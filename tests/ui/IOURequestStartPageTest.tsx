@@ -27,10 +27,6 @@ jest.mock('react-native-tab-view', () => ({
     TabBar: 'TabBar',
 }));
 
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
-
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
 }));
