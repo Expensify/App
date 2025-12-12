@@ -8,6 +8,11 @@ type DomainErrors = {
      * Errors related to the technical contact email
      */
     technicalContactEmailErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the "use technical contact billing card" setting
+     */
+    useTechnicalContactBillingCardErrors?: OnyxCommon.Errors;
 };
 
 export default DomainErrors;
