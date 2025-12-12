@@ -44,7 +44,7 @@ import * as SessionUtils from '@libs/SessionUtils';
 import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
+import RequireTwoFactorAuthOverlay from './RequireTwoFactorAuthOverlay';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import * as App from '@userActions/App';
@@ -158,6 +158,9 @@ function AuthScreens() {
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
         useContext(WideRHPContext);
 
+    // Check if user is currently in the 2FA setup flow (in the RHP)
+    const isIn2FASetupFlow = currentUrl.includes('settings/security/two-factor-auth');
+
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
@@ -264,7 +267,7 @@ function AuthScreens() {
             shortcutsOverviewShortcutConfig.shortcutKey,
             () => {
                 Modal.close(() => {
-                    if (Navigation.isOnboardingFlow()) {
+                    if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
                         return;
                     }
 
@@ -286,7 +289,7 @@ function AuthScreens() {
             searchShortcutConfig.shortcutKey,
             () => {
                 Session.callFunctionIfActionIsAllowed(() => {
-                    if (Navigation.isOnboardingFlow()) {
+                    if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
                         return;
                     }
                     toggleSearch();
@@ -300,7 +303,7 @@ function AuthScreens() {
         const unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
-                if (Navigation.isOnboardingFlow()) {
+                if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
                     return;
                 }
                 Modal.close(Session.callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
@@ -670,13 +673,6 @@ function AuthScreens() {
                         }}
                     />
                 )}
-                {shouldShowRequire2FAPage && (
-                    <RootStack.Screen
-                        name={SCREENS.REQUIRE_TWO_FACTOR_AUTH}
-                        options={{...rootNavigatorScreenOptions.fullScreen, gestureEnabled: false}}
-                        component={RequireTwoFactorAuthenticationPage}
-                    />
-                )}
                 <RootStack.Screen
                     name={SCREENS.WORKSPACE_JOIN_USER}
                     options={{
@@ -716,6 +712,7 @@ function AuthScreens() {
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
+            {shouldShowRequire2FAPage && !isIn2FASetupFlow && <RequireTwoFactorAuthOverlay />}
             <SearchRouterModal />
             <OpenAppFailureModal />
             <PriorityModeController />

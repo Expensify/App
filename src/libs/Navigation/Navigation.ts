@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
+import {needsTwoFactorAuthSetupSelector} from '@src/selectors/Account';
 import type {Account} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
@@ -49,10 +50,9 @@ import type {
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES = new Set<Route>([
-    ROUTES.REQUIRE_TWO_FACTOR_AUTH,
-    ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
-    ROUTES.SETTINGS_2FA_VERIFY.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
-    ROUTES.SETTINGS_2FA_SUCCESS.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
+    ROUTES.SETTINGS_2FA_ROOT.getRoute(),
+    ROUTES.SETTINGS_2FA_VERIFY.getRoute(),
+    ROUTES.SETTINGS_2FA_SUCCESS.getRoute(),
 ]);
 
 let account: OnyxEntry<Account>;
@@ -65,7 +65,7 @@ Onyx.connectWithoutView({
 });
 
 function shouldShowRequire2FAPage() {
-    return !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth;
+    return needsTwoFactorAuthSetupSelector(account);
 }
 
 let resolveNavigationIsReadyPromise: () => void;

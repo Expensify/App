@@ -7,4 +7,10 @@ const isUserValidatedSelector = (account: OnyxEntry<Account>) => account?.valida
 
 const primaryLoginSelector = (account: OnyxEntry<Account>) => account?.primaryLogin;
 
-export {isActingAsDelegateSelector, isUserValidatedSelector, primaryLoginSelector};
+/**
+ * Determines if the user needs to complete 2FA setup.
+ * This is the base condition - components may have additional conditions.
+ */
+const needsTwoFactorAuthSetupSelector = (account: OnyxEntry<Account>) => !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth;
+
+export {isActingAsDelegateSelector, isUserValidatedSelector, primaryLoginSelector, needsTwoFactorAuthSetupSelector};
