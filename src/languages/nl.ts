@@ -7962,6 +7962,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             subtitle: 'Verplicht leden van je domein om in te loggen via single sign-on, beperk het aanmaken van werkruimten en meer.',
             enable: 'Inschakelen',
         },
+        admins: {title: 'Beheerders', findAdmin: 'Beheerder zoeken'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
