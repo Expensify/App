@@ -1,10 +1,10 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getMoneyRequestActionsSelector} from '@selectors/ReportAction';
+import type {OnyxCollection} from 'react-native-onyx';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import useOnyx from './useOnyx';
-
-const moneyRequestActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[] => Object.values(actions ?? {}).filter(isMoneyRequestAction);
 
 /**
  * Hook to get transactions linked to money request actions for a specific report.
@@ -12,27 +12,19 @@ const moneyRequestActionsSelector = (actions: OnyxEntry<ReportActions>): ReportA
  */
 
 function useReportActionTransactions(reportID: string | undefined): OnyxCollection<Transaction> {
-    const [moneyRequestActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+    const [moneyRequestActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {
         canBeMissing: true,
-        selector: moneyRequestActionsSelector,
+        selector: getMoneyRequestActionsSelector,
     });
 
     // Build a set of transaction IDs from money request actions
-    const transactionIDSet = (() => {
-        if (!moneyRequestActions) {
-            return new Set<string>();
+    const transactionIDSet = new Set<string>();
+    for (const reportAction of moneyRequestActions ?? []) {
+        const transactionID = getLinkedTransactionID(reportAction);
+        if (transactionID) {
+            transactionIDSet.add(transactionID);
         }
-
-        const transactionIDs = new Set<string>();
-        for (const reportAction of moneyRequestActions) {
-            const transactionID = getLinkedTransactionID(reportAction);
-            if (transactionID) {
-                transactionIDs.add(transactionID);
-            }
-        }
-
-        return transactionIDs;
-    })();
+    }
 
     const transactionsSelector = (allTransactions: OnyxCollection<Transaction>) => {
         const filtered: OnyxCollection<Transaction> = {};
