@@ -4412,12 +4412,19 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
 
     const fields = mergedFieldIds.map((id) => {
         const field = report?.fieldList?.[getReportFieldKey(id)];
+        const policyReportField = policyReportFields.find(({fieldID}) => fieldID === id);
 
         if (field) {
-            return field;
+            return {
+                ...field,
+                ...(policyReportField
+                    ? {
+                          disabledOptions: policyReportField.disabledOptions,
+                          values: policyReportField.values,
+                      }
+                    : {}),
+            };
         }
-
-        const policyReportField = policyReportFields.find(({fieldID}) => fieldID === id);
 
         if (policyReportField) {
             return policyReportField;
@@ -12973,6 +12980,12 @@ function checkBulkRejectHydration(
     };
 }
 
+function shouldHideSingleReportField(reportField: PolicyReportField) {
+    const hasEnableOption = reportField.type !== CONST.REPORT_FIELD_TYPES.LIST || reportField.disabledOptions.some((option) => !option);
+
+    return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -13401,6 +13414,7 @@ export {
     shouldBlockSubmitDueToStrictPolicyRules,
     isWorkspaceChat,
     isOneTransactionReport,
+    shouldHideSingleReportField,
 };
 export type {
     Ancestor,
