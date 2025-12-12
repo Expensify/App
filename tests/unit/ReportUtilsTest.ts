@@ -3744,7 +3744,7 @@ describe('ReportUtils', () => {
                 policyID: '11',
             };
 
-            const expensseReportpolicy = {
+            const expenseReportPolicy = {
                 id: '11',
                 employeeList: {
                     [currentUserEmail]: {
@@ -3754,7 +3754,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}11`, expensseReportpolicy); // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport,
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}11`, expenseReportPolicy); // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport,
             // since it relies on the session subscription for currentUserAccountID.
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connectWithoutView({
