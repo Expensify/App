@@ -1,3 +1,4 @@
+import {adminAccountIDsSelector} from '@selectors/Domain';
 import React, {useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,7 +20,6 @@ import {choosePrimaryContact} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {adminAccountIDsSelector} from '@selectors/Domain';
 
 type AdminOption = Omit<ListItem, 'accountID' | 'login'> & {
     accountID: number;
