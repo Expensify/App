@@ -157,6 +157,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Reference to the outer element */
     ref?: React.Ref<ButtonWithDropdownMenuRef>;
+
+    /** Label for Sentry tracking */
+    sentryLabel?: string;
 };
 
 type ButtonWithDropdownMenuRef = {

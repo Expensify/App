@@ -7525,6 +7525,46 @@ const CONST = {
             WORKSPACES: 'NavigationTabBar-Workspaces',
             ACCOUNT: 'NavigationTabBar-Account',
         },
+        REPORT_PREVIEW: {
+            CARD: 'ReportPreview-Card',
+            CAROUSEL_PREVIOUS: 'ReportPreview-CarouselPrevious',
+            CAROUSEL_NEXT: 'ReportPreview-CarouselNext',
+            SUBMIT_BUTTON: 'ReportPreview-SubmitButton',
+            APPROVE_BUTTON: 'ReportPreview-ApproveButton',
+            PAY_BUTTON: 'ReportPreview-PayButton',
+            EXPORT_BUTTON: 'ReportPreview-ExportButton',
+            VIEW_BUTTON: 'ReportPreview-ViewButton',
+            ADD_EXPENSE_BUTTON: 'ReportPreview-AddExpenseButton',
+        },
+        TRANSACTION_PREVIEW: {
+            CARD: 'TransactionPreview-Card',
+        },
+        EMOJI_PICKER: {
+            BUTTON: 'EmojiPicker-Button',
+            BUTTON_DROPDOWN: 'EmojiPicker-ButtonDropdown',
+            MENU_ITEM: 'EmojiPicker-MenuItem',
+            SKIN_TONE_TOGGLE: 'EmojiPicker-SkinToneToggle',
+            SKIN_TONE_ITEM: 'EmojiPicker-SkinToneItem',
+            CATEGORY_SHORTCUT: 'EmojiPicker-CategoryShortcut',
+            SEARCH_INPUT: 'EmojiPicker-SearchInput',
+        },
+        EMOJI_REACTIONS: {
+            REACTION_BUBBLE: 'EmojiReactions-ReactionBubble',
+            ADD_REACTION_BUBBLE: 'EmojiReactions-AddReactionBubble',
+        },
+        MINI_CONTEXT_MENU: {
+            QUICK_REACTION: 'MiniContextMenu-QuickReaction',
+            EMOJI_PICKER_BUTTON: 'MiniContextMenu-EmojiPickerButton',
+        },
+        TASK: {
+            PREVIEW_CARD: 'Task-PreviewCard',
+            PREVIEW_CHECKBOX: 'Task-PreviewCheckbox',
+            VIEW_TITLE: 'Task-ViewTitle',
+            VIEW_CHECKBOX: 'Task-ViewCheckbox',
+            VIEW_DESCRIPTION: 'Task-ViewDescription',
+            VIEW_ASSIGNEE: 'Task-ViewAssignee',
+            HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
+        },
     },
 } as const;
 

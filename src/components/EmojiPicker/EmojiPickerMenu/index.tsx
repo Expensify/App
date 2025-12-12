@@ -342,6 +342,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     onBlur={() => setIsFocused(false)}
                     autoCorrect={false}
                     blurOnSubmit={filteredEmojis.length > 0}
+                    sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}
                 />
             </View>
             <BaseEmojiPickerMenu

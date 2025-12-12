@@ -74,6 +74,7 @@ function EmojiPickerMenuItem({
             ]}
             accessibilityLabel={emoji}
             role={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.MENU_ITEM}
         >
             <Text style={[themeStyles.emojiText]}>{emoji}</Text>
         </PressableWithoutFeedback>
