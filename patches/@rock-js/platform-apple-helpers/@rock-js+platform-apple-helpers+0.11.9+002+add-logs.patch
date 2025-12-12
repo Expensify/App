@@ -1,0 +1,207 @@
+diff --git a/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/commands/sign/modifyApp.js b/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/commands/sign/modifyApp.js
+index fa2ac99..03582f4 100644
+--- a/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/commands/sign/modifyApp.js
++++ b/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/commands/sign/modifyApp.js
+@@ -19,16 +19,33 @@ export const modifyApp = async (options) => {
+     const appPaths = getAppPaths(options.outputPath ?? options.appPath);
+     if (options.buildJsBundle) {
+         loader.start('Building JS bundle');
++        logger.log(`Building bundle to: ${appPaths.jsBundle}`);
++        logger.log(`Assets destination: ${appPaths.assetsDest}`);
++        logger.log(`Use Hermes: ${options.useHermes ?? true}`);
+         await buildJsBundle({
+             bundleOutputPath: appPaths.jsBundle,
+             assetsDestPath: appPaths.assetsDest,
+             useHermes: options.useHermes ?? true,
+         });
++        // Log bundle info after building
++        if (fs.existsSync(appPaths.jsBundle)) {
++            const bundleSize = fs.statSync(appPaths.jsBundle).size;
++            logger.log(`Built bundle size: ${bundleSize} bytes`);
++        }
+         loader.stop(`Built JS bundle: ${colorLink(relativeToCwd(appPaths.jsBundle))}`);
+     }
+     else if (options.jsBundlePath) {
+         loader.start('Replacing JS bundle');
++        logger.log(`Replacing bundle: ${appPaths.jsBundle}`);
++        logger.log(`New bundle: ${options.jsBundlePath}`);
++        logger.log(`New bundle size: ${fs.statSync(options.jsBundlePath).size} bytes`);
++        // Log old bundle info
++        if (fs.existsSync(appPaths.jsBundle)) {
++            const oldSize = fs.statSync(appPaths.jsBundle).size;
++            logger.log(`Old bundle size: ${oldSize} bytes`);
++        }
+         fs.copyFileSync(options.jsBundlePath, appPaths.jsBundle);
++        logger.log(`Bundle replaced successfully`);
+         loader.stop(`Replaced JS bundle with ${colorLink(relativeToCwd(options.jsBundlePath))}`);
+     }
+     logger.log(`Modified APP file with new JS bundle. Available at: ${colorLink(relativeToCwd(options.outputPath ?? options.appPath))}`);
+diff --git a/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/commands/sign/modifyIpa.js b/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/commands/sign/modifyIpa.js
+index 88e9fef..f18b12b 100644
+--- a/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/commands/sign/modifyIpa.js
++++ b/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/commands/sign/modifyIpa.js
+@@ -17,16 +17,33 @@ export const modifyIpa = async (options) => {
+     const appPaths = getAppPaths(appPath);
+     if (options.buildJsBundle) {
+         loader.start('Building JS bundle');
++        logger.log(`Building bundle to: ${appPaths.jsBundle}`);
++        logger.log(`Assets destination: ${appPaths.assetsDest}`);
++        logger.log(`Use Hermes: ${options.useHermes ?? true}`);
+         await buildJsBundle({
+             bundleOutputPath: appPaths.jsBundle,
+             assetsDestPath: appPaths.assetsDest,
+             useHermes: options.useHermes ?? true,
+         });
++        // Log bundle info after building
++        if (fs.existsSync(appPaths.jsBundle)) {
++            const bundleSize = fs.statSync(appPaths.jsBundle).size;
++            logger.log(`Built bundle size: ${bundleSize} bytes`);
++        }
+         loader.stop(`Built JS bundle: ${colorLink(relativeToCwd(appPaths.jsBundle))}`);
+     }
+     else if (options.jsBundlePath) {
+         loader.start('Replacing JS bundle');
++        logger.log(`Replacing bundle: ${appPaths.jsBundle}`);
++        logger.log(`New bundle: ${options.jsBundlePath}`);
++        logger.log(`New bundle size: ${fs.statSync(options.jsBundlePath).size} bytes`);
++        // Log old bundle info
++        if (fs.existsSync(appPaths.jsBundle)) {
++            const oldSize = fs.statSync(appPaths.jsBundle).size;
++            logger.log(`Old bundle size: ${oldSize} bytes`);
++        }
+         fs.copyFileSync(options.jsBundlePath, appPaths.jsBundle);
++        logger.log(`Bundle replaced successfully`);
+         loader.stop(`Replaced JS bundle with ${colorLink(relativeToCwd(options.jsBundlePath))}`);
+     }
+     // 3. Sign the IPA contents
+@@ -35,7 +52,7 @@ export const modifyIpa = async (options) => {
+     if (!identity) {
+         const currentIdentity = await getIdentityFromProvisioningPlist(tempPaths.provisioningPlist);
+         if (currentIdentity) {
+-            logger.debug(`Extracted identity from provisioning profile: ${currentIdentity}`);
++            logger.log(`Extracted identity from provisioning profile: ${currentIdentity}`);
+         }
+         identity = await promptSigningIdentity(currentIdentity);
+     }
+@@ -52,10 +69,26 @@ export const modifyIpa = async (options) => {
+         tempPaths.entitlementsPlist,
+         appPath,
+     ];
++    logger.log(`Running codesign with identity: ${identity}`);
++    logger.log(`Signing: ${appPath}`);
++    logger.log(`Entitlements: ${tempPaths.entitlementsPlist}`);
+     try {
+-        await spawn('codesign', codeSignArgs, { cwd: tempPaths.content });
++        const result = await spawn('codesign', codeSignArgs, { cwd: tempPaths.content });
++        logger.log(`codesign completed successfully`);
++        if (result.stdout) {
++            logger.log(`codesign output: ${result.stdout}`);
++        }
++        // Verify the signature
++        logger.log(`Verifying signature...`);
++        const verifyResult = await spawn('codesign', [
++            '--verify',
++            '--verbose',
++            appPath,
++        ]);
++        logger.log(`Signature verification: ${verifyResult.stdout || 'OK'}`);
+     }
+     catch (error) {
++        logger.error(`codesign failed: ${error.stderr}`);
+         throw new RockError('Codesign failed', {
+             cause: error.stderr,
+         });
+diff --git a/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/commands/sign/utils.js b/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/commands/sign/utils.js
+index cfc9a22..a91b66b 100644
+--- a/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/commands/sign/utils.js
++++ b/node_modules/@rock-js/platform-apple-helpers/dist/src/lib/commands/sign/utils.js
+@@ -1,6 +1,6 @@
+-import { existsSync, mkdirSync, rmSync } from 'node:fs';
++import { existsSync, mkdirSync, rmSync, statSync } from 'node:fs';
+ import path from 'node:path';
+-import { findDirectoriesWithPattern, getDotRockPath, RockError, } from '@rock-js/tools';
++import { findDirectoriesWithPattern, getDotRockPath, logger, RockError, } from '@rock-js/tools';
+ import AdmZip from 'adm-zip';
+ /**
+  * Temporary paths for sign operation.
+@@ -40,12 +40,27 @@ export function getAppPaths(appPath) {
+  * @returns Path to .app directory (package) inside the IPA file.
+  */
+ export const unpackIpa = (ipaPath, destination) => {
++    logger.log(`Unpacking IPA: ${ipaPath}`);
++    logger.log(`IPA size: ${statSync(ipaPath).size} bytes`);
++    logger.log(`Destination: ${destination}`);
+     if (existsSync(destination)) {
+         rmSync(destination, { recursive: true, force: true });
+     }
+     mkdirSync(destination, { recursive: true });
+     const zip = new AdmZip(ipaPath);
++    const entries = zip.getEntries();
++    logger.log(`IPA contains ${entries.length} entries`);
++    // Log bundle info if present
++    const bundleEntry = entries.find((e) => e.entryName.includes('main.jsbundle'));
++    if (bundleEntry) {
++        const compressionMethod = bundleEntry.header.method === 0 ? 'STORED' : 'DEFLATED';
++        logger.log(`Original bundle: ${bundleEntry.entryName}`);
++        logger.log(`Original bundle compression: ${compressionMethod} (method=${bundleEntry.header.method})`);
++        logger.log(`Original bundle size: ${bundleEntry.header.size} bytes`);
++        logger.log(`Original bundle compressed size: ${bundleEntry.header.compressedSize} bytes`);
++    }
+     zip.extractAllTo(destination, true);
++    logger.log(`Extracted to: ${destination}`);
+     const payloadPath = `${destination}/Payload`;
+     if (!existsSync(payloadPath)) {
+         throw new Error('Payload folder not found in the extracted IPA file');
+@@ -54,6 +69,13 @@ export const unpackIpa = (ipaPath, destination) => {
+     if (!appPath) {
+         throw new RockError(`.app package not found in the extracted IPA file ${payloadPath}`);
+     }
++    logger.log(`Found .app at: ${appPath}`);
++    // Log bundle file info if exists
++    const jsBundlePath = path.join(appPath, 'main.jsbundle');
++    if (existsSync(jsBundlePath)) {
++        const bundleSize = statSync(jsBundlePath).size;
++        logger.log(`Extracted bundle size: ${bundleSize} bytes`);
++    }
+     return appPath;
+ };
+ /**
+@@ -63,12 +85,37 @@ export const unpackIpa = (ipaPath, destination) => {
+  * @returns Path to the output IPA file.
+  */
+ export const packIpa = (contentPath, ipaPath) => {
++    logger.log(`Packing IPA from: ${contentPath}`);
+     if (existsSync(ipaPath)) {
+         rmSync(ipaPath, { recursive: true, force: true });
+     }
++    // Find and log bundle info before packing
++    const appDirs = findDirectoriesWithPattern(path.join(contentPath, 'Payload'), /\.app$/);
++    if (appDirs.length > 0) {
++        const jsBundlePath = path.join(appDirs[0], 'main.jsbundle');
++        if (existsSync(jsBundlePath)) {
++            const bundleSize = statSync(jsBundlePath).size;
++            logger.log(`Bundle to pack: ${jsBundlePath}`);
++            logger.log(`Bundle size: ${bundleSize} bytes`);
++        }
++    }
+     const zip = new AdmZip();
+     zip.addLocalFolder(contentPath);
++    logger.log(`Added folder contents to zip`);
++    // Log what compression was applied
++    const entries = zip.getEntries();
++    logger.log(`Packed ${entries.length} entries`);
++    const bundleEntry = entries.find((e) => e.entryName.includes('main.jsbundle'));
++    if (bundleEntry) {
++        const compressionMethod = bundleEntry.header.method === 0 ? 'STORED' : 'DEFLATED';
++        logger.log(`Packed bundle: ${bundleEntry.entryName}`);
++        logger.log(`Packed bundle compression: ${compressionMethod} (method=${bundleEntry.header.method})`);
++        logger.log(`Packed bundle size: ${bundleEntry.header.size} bytes`);
++        logger.log(`Packed bundle compressed size: ${bundleEntry.header.compressedSize} bytes`);
++    }
+     zip.writeZip(ipaPath);
++    logger.log(`Wrote IPA: ${ipaPath}`);
++    logger.log(`Final IPA size: ${statSync(ipaPath).size} bytes`);
+     return ipaPath;
+ };
+ //# sourceMappingURL=utils.js.map
+\ No newline at end of file
