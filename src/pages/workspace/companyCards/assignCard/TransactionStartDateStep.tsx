@@ -135,7 +135,11 @@ function TransactionStartDateStep() {
                                     value={startDate}
                                     label={translate('iou.startDate')}
                                     onInputChange={(value) => {
-                                        setErrorText('');
+                                        if (!isRequiredFulfilled(value)) {
+                                            setErrorText(translate('common.error.fieldRequired'));
+                                        } else {
+                                            setErrorText('');
+                                        }
                                         setStartDate(value);
                                     }}
                                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}

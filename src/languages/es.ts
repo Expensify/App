@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {TagSelectionParams, ViolationsRterParams} from './params';
+import type {BeginningOfChatHistoryParams, TagSelectionParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -60,6 +60,7 @@ const translations: TranslationDeepObject<typeof en> = {
         wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
+        viewReport: 'Ver informe',
         review: (reviewParams) => `Revisar${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'No',
         privacyPolicy: 'la Política de Privacidad de Expensify',
@@ -374,6 +375,8 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Está tardando más de lo esperado...',
         domains: 'Dominios',
         actionRequired: 'Acción requerida',
+        duplicate: 'Duplicar',
+        duplicated: 'Duplicado',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -609,7 +612,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Esta sala de chat es para cualquier cosa relacionada con <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}) =>
             `Este chat es para facturas entre <strong>${invoicePayer}</strong> y <strong>${invoiceReceiver}</strong>. Usa el botón + para enviar una factura.`,
-        beginningOfChatHistory: 'Este chat es con ',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `Este chat es con ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}) =>
             `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón +.`,
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
@@ -2030,9 +2033,10 @@ ${amount} para ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}) => `en ${policyName}`,
-        generatingPDF: 'Creando PDF...',
-        waitForPDF: 'Por favor, espera mientras creamos el PDF',
+        generatingPDF: 'Generar PDF',
+        waitForPDF: 'Por favor, espera mientras creamos el PDF.',
         errorPDF: 'Ocurrió un error al crear el PDF',
+        successPDF: '¡Tu PDF ha sido generado! Si no se descargó automáticamente, usa el botón de abajo.',
     },
     reportDescriptionPage: {
         roomDescription: 'Descripción de la sala de chat',
@@ -2297,10 +2301,11 @@ ${amount} para ${merchant} - ${date}`,
 
                         ${
                             integrationName && CONST.connectionsVideoPaths[integrationName]
-                                ? `[Ir a contabilidad](${workspaceAccountingLink}).\n\n![Conéctate a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                ? `[Ir a contabilidad](${workspaceAccountingLink}).
+
+                        ![Conéctate a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
                                 : `[Ir a contabilidad](${workspaceAccountingLink}).`
-                        }
-                    `),
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Conecta [tu tarjeta corporativa](${corporateCardLink})`,
@@ -4969,9 +4974,18 @@ ${amount} para ${merchant} - ${date}`,
             removeMemberPrompt: ({memberName}) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',
-            makeMember: 'Hacer miembro',
-            makeAdmin: 'Hacer administrador',
-            makeAuditor: 'Hacer auditor',
+            makeMember: () => ({
+                one: 'Convertir en miembro',
+                other: 'Convertir en miembros',
+            }),
+            makeAdmin: () => ({
+                one: 'Hacer administrador',
+                other: 'Convertir en administradores',
+            }),
+            makeAuditor: () => ({
+                one: 'Convertir en auditor',
+                other: 'Convertir en auditores',
+            }),
             selectAll: 'Seleccionar todo',
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo',
@@ -5274,7 +5288,6 @@ ${amount} para ${merchant} - ${date}`,
                 cardType: 'Tipo de tarjeta',
                 limit: 'Limite',
                 limitType: 'Tipo de limite',
-                name: 'Nombre',
                 disabledApprovalForSmartLimitError: 'Por favor, habilita las aprobaciones en <strong>Flujos de trabajo > Aprobaciones</strong> antes de configurar los límites inteligentes',
             },
             deactivateCardModal: {
@@ -5613,6 +5626,9 @@ ${amount} para ${merchant} - ${date}`,
                     toUpgrade: 'Para mejorar, haz clic en',
                     selectWorkspace: 'selecciona un espacio de trabajo y cambia el tipo de plan a',
                 },
+                upgradeWorkspaceWarning: 'No se puede actualizar el espacio de trabajo',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
+                    'Su empresa ha restringido la creación de espacios de trabajo. Por favor, contacte a un administrador para obtener ayuda.',
             },
         },
         downgrade: {
@@ -5711,7 +5727,7 @@ ${amount} para ${merchant} - ${date}`,
                 adultEntertainment: 'Entretenimiento para adultos',
             },
             expenseReportRules: {
-                title: 'Informes de gastos',
+                title: 'Avanzado',
                 subtitle: 'Automatiza el cumplimiento, la aprobación y el pago de los informes de gastos.',
                 preventSelfApprovalsTitle: 'Evitar autoaprobaciones',
                 preventSelfApprovalsSubtitle: 'Evita que los miembros del espacio de trabajo aprueben sus propios informes de gastos.',
@@ -5727,8 +5743,7 @@ ${amount} para ${merchant} - ${date}`,
                 autoPayApprovedReportsLockedSubtitle: 'Ve a más funciones y habilita flujos de trabajo, luego agrega pagos para desbloquear esta función.',
                 autoPayReportsUnderTitle: 'Pagar automáticamente informes por debajo de',
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de esta cantidad se pagarán automáticamente.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}) =>
-                    `Ir a [más características](${moreFeaturesLink}) y habilita flujos de trabajo, luego agrega ${featureName} para desbloquear esta función.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}) => `Añade ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}) => `Ir a [más características](${moreFeaturesLink}) y habilita ${featureName} para desbloquear esta función.`,
             },
             categoryRules: {
@@ -5748,7 +5763,7 @@ ${amount} para ${merchant} - ${date}`,
                     expense: 'Gasto individual',
                     expenseSubtitle: 'Señala importes de gastos por categoría. Esta regla anula la regla general del espacio de trabajo para el importe máximo de gastos.',
                     daily: 'Total por categoría',
-                    dailySubtitle: 'Marcar el gasto total por categoría en cada informe de gastos.',
+                    dailySubtitle: 'Marcar el gasto total por día por categoría en cada informe de gastos.',
                 },
                 requireReceiptsOver: 'Requerir recibos para importes superiores a',
                 requireReceiptsOverList: {
@@ -5984,7 +5999,7 @@ ${amount} para ${merchant} - ${date}`,
         downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
         updatedAuditRate: ({oldAuditRate, newAuditRate}) =>
             `cambió la tasa de informes enviados aleatoriamente para aprobación manual a ${Math.round(newAuditRate * 100)}% (previamente ${Math.round(oldAuditRate * 100)}%)`,
-        updateReimbursementEnabled: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} los reembolsos para este espacio de trabajo`,
+        updateReimbursementEnabled: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} los reembolsos`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
         updatedFeatureEnabled: ({enabled, featureName}) => {
             switch (featureName) {
@@ -6017,6 +6032,60 @@ ${amount} para ${merchant} - ${date}`,
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de asistentes`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `cambió el aprobador predeterminado a ${newApprover} (anteriormente ${previousApprover})` : `cambió el aprobador predeterminado a ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `cambió el flujo de aprobación para ${members} para enviar informes a ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (aprobador predeterminado anterior: ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (anteriormente aprobador predeterminado)';
+            } else if (previousApprover) {
+                text += ` (anteriormente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `cambió el flujo de aprobación para ${members} para enviar informes al aprobador predeterminado ${approver}`
+                : `cambió el flujo de aprobación para ${members} para enviar informes al aprobador predeterminado`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (aprobador predeterminado anterior: ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (anteriormente aprobador predeterminado)';
+            } else if (previousApprover) {
+                text += ` (anteriormente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `cambió el flujo de aprobación para ${approver} para reenviar informes aprobados a ${forwardsTo} (anteriormente reenviados a ${previousForwardsTo})`
+                : `cambió el flujo de aprobación para ${approver} para reenviar informes aprobados a ${forwardsTo} (anteriormente informes aprobados finales)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados (anteriormente reenviados a ${previousForwardsTo})`
+                : `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados`,
         addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
         deleteTax: ({taxName}) => `eliminó el impuesto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}) => {
@@ -6245,6 +6314,7 @@ ${amount} para ${merchant} - ${date}`,
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos.',
+            accessPlaceHolder: 'Abrir para ver detalles',
         },
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
@@ -6379,12 +6449,14 @@ ${amount} para ${merchant} - ${date}`,
     },
     report: {
         newReport: {
+            createExpense: 'Crear gasto',
             createReport: 'Crear informe',
             chooseWorkspace: 'Elige un espacio de trabajo para este informe.',
             emptyReportConfirmationTitle: 'Ya tienes un informe vacío',
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `¿Estás seguro de que quieres crear otro informe en ${workspaceName}? Puedes acceder a tus informes vacíos en`,
             emptyReportConfirmationPromptLink: 'Informes',
+            emptyReportConfirmationDontShowAgain: 'No me muestres esto otra vez',
             genericWorkspaceName: 'este espacio de trabajo',
         },
         genericCreateReportFailureMessage: 'Error inesperado al crear el chat. Por favor, inténtalo más tarde.',
@@ -7825,11 +7897,14 @@ ${amount} para ${merchant} - ${date}`,
             anyMemberWillBeRequired: 'Cualquier miembro que haya iniciado sesión con un método diferente deberá volver a autenticarse usando SAML.',
             enableError: 'No se pudo actualizar la configuración de habilitación de SAML',
             requireError: 'No se pudo actualizar la configuración de requerimiento de SAML',
+            disableSamlRequired: 'Deshabilitar requisito de SAML',
+            oktaWarningPrompt: '¿Estás seguro? Esto también deshabilitará Okta SCIM.',
+            requireWithEmptyMetadataError: 'Por favor, añade los metadatos del Proveedor de Identidad a continuación para habilitar',
         },
         samlConfigurationDetails: {
             title: 'Detalles de configuración de SAML',
             subtitle: 'Utiliza estos detalles para configurar SAML.',
-            identityProviderMetaData: 'Metadatos del proveedor de identidad',
+            identityProviderMetadata: 'Metadatos del proveedor de identidad',
             entityID: 'ID de entidad',
             nameIDFormat: 'Formato de ID de nombre',
             loginUrl: 'URL de inicio de sesión',
@@ -7841,6 +7916,30 @@ ${amount} para ${merchant} - ${date}`,
             revealToken: 'Revelar token',
             fetchError: 'No se pudieron obtener los detalles de configuración de SAML',
             setMetadataGenericError: 'No se pudieron establecer los metadatos de SAML',
+        },
+        accessRestricted: {
+            title: 'Acceso restringido',
+            subtitle: (domainName: string) => `Por favor, verifícate como un administrador autorizado de la empresa para <strong>${domainName}</strong> si necesitas control sobre:`,
+            companyCardManagement: 'Gestión de tarjetas de la empresa',
+            accountCreationAndDeletion: 'Creación y eliminación de cuentas',
+            workspaceCreation: 'Creación de espacios de trabajo',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Añadir dominio',
+            subtitle: 'Introduce el nombre del dominio privado al que deseas acceder (por ejemplo, expensify.com).',
+            domainName: 'Nombre de dominio',
+            newDomain: 'Nuevo dominio',
+        },
+        domainAdded: {
+            title: 'Dominio añadido',
+            description: 'A continuación, deberás verificar la propiedad del dominio y ajustar tu configuración de seguridad.',
+            configure: 'Configurar',
+        },
+        enhancedSecurity: {
+            title: 'Seguridad mejorada',
+            subtitle: 'Solicita que los miembros de tu dominio inicien sesión mediante inicio de sesión único, restringe la creación de espacios de trabajo y más.',
+            enable: 'Habilitar',
         },
     },
 };

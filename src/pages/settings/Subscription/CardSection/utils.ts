@@ -7,8 +7,9 @@ import DateUtils from '@libs/DateUtils';
 import {getAmountOwed, getOverdueGracePeriodDate, getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import type {StripeCustomerID} from '@src/types/onyx';
-import type {AccountData} from '@src/types/onyx/Fund';
 import type Locale from '@src/types/onyx/Locale';
+import type BillingStatus from '@src/types/onyx/BillingStatus';
+import type {AccountData, FundList} from '@src/types/onyx/Fund';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -32,7 +33,9 @@ type GetBillingStatusProps = {
     retryBillingSuccessful: OnyxEntry<boolean>;
     billingDisputePending: number | undefined;
     retryBillingFailed: boolean | undefined;
+    billingStatus: OnyxEntry<BillingStatus>;
     creditCardEyesIcon?: IconAsset;
+    fundList: OnyxEntry<FundList>;
     locale?: Locale;
 };
 
@@ -44,14 +47,16 @@ function getBillingStatus({
     retryBillingSuccessful,
     billingDisputePending,
     retryBillingFailed,
+    billingStatus,
     creditCardEyesIcon,
+    fundList,
     locale,
 }: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
     const amountOwed = getAmountOwed();
 
-    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed);
+    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus);
 
     const endDate = getOverdueGracePeriodDate();
 

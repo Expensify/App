@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -43,8 +44,9 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const StyleUtils = useStyleUtils();
     const {translate, preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRightLong', 'Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage'] as const);
 
-    const reservationIcon = getTripReservationIcon(reservation.type);
+    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type);
 
     const getFormattedDate = () => {
         switch (reservation.type) {

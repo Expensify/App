@@ -2,7 +2,7 @@ import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
@@ -20,6 +20,7 @@ import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestRe
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -152,7 +153,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
@@ -167,6 +168,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+
+    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useContext(WideRHPContext);
+    const isDisplayedInWidePaneModal = wideRHPRouteKeys.includes(route.key) || superWideRHPRouteKeys.includes(route.key);
+    const isWideRHPOpened = wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0;
     const currentReportIDValue = useCurrentReportID();
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
@@ -372,7 +377,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(
         (prioritizeBackTo = false) => {
-            if (backTo === SCREENS.SEARCH.REPORT_RHP) {
+            if (backTo === SCREENS.SEARCH.REPORT_RHP || isDisplayedInWidePaneModal || isWideRHPOpened) {
                 Navigation.goBack();
                 return;
             }
@@ -394,7 +399,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
             Navigation.goBack();
         },
-        [isInNarrowPaneModal, backTo],
+        [backTo, isDisplayedInWidePaneModal, isWideRHPOpened, isInNarrowPaneModal],
     );
 
     let headerView = (
@@ -876,9 +881,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        // Check if it's a legacy transaction from:
-        // - IOU action exists
-        // - Transaction is pending addition
+        // Skip legacy transaction handling if:
+        // - IOU action already exists (not a legacy transaction)
+        // - Transaction is pending addition (new transaction, not legacy)
         const iouAction = getIOUActionForReportID(reportID, transaction.transactionID);
         if (iouAction || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             return;
@@ -966,7 +971,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     onClose={dismissBanner}
                                     onButtonPress={chatWithAccountManager}
                                     shouldShowCloseButton
-                                    icon={Expensicons.Lightbulb}
+                                    icon={expensifyIcons.Lightbulb}
                                     shouldShowIcon
                                     shouldShowButton
                                 />
@@ -1013,6 +1018,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             hasOlderActions={hasOlderActions}
                                             hasNewerActions={hasNewerActions}
                                             showReportActionsLoadingState={showReportActionsLoadingState}
+                                            reportPendingAction={reportPendingAction}
                                         />
                                     ) : null}
                                     {isCurrentReportLoadedFromOnyx ? (
