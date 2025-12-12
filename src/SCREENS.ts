@@ -278,7 +278,6 @@ const SCREENS = {
         EXPENSE_REPORT: 'ExpenseReport',
     },
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
-    EXPENSE_REPORT_RHP: 'Expense_Report_RHP',
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SAML_SIGN_IN: 'SAMLSignIn',
     WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
