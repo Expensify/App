@@ -285,17 +285,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         // Show GL Code column only on wide screens for control policies
         if (isControlPolicyWithWideLayout) {
             return (
-                <View style={[styles.ph9, styles.pv3, styles.pb5]}>
-                    <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
-                        <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
-                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.name')}</Text>
-                        </View>
-                        <View style={[styles.flex1, styles.pr16]}>
-                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.categories.glCode')}</Text>
-                        </View>
-                        <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr5]}>
-                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.enabled')}</Text>
-                        </View>
+                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
+                    <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.name')}</Text>
+                    </View>
+                    <View style={[styles.flex1, styles.pr16]}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.categories.glCode')}</Text>
+                    </View>
+                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr5]}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.enabled')}</Text>
                     </View>
                 </View>
             );
