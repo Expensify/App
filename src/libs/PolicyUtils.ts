@@ -212,7 +212,7 @@ function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRate
 }
 
 /** Return admins from active policies */
-function getActiveAllAdminsFromWorkspaces(
+function getEligibleBankAccountShareRecipients(
     policies: OnyxCollection<Policy> | null,
     currentUserLogin: string | undefined,
     bankAccountID: string | undefined,
@@ -1808,7 +1808,7 @@ export {
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
-    getActiveAllAdminsFromWorkspaces,
+    getEligibleBankAccountShareRecipients,
     getFilteredReimbursableAccountOptions,
     getNetSuiteReimbursableAccountOptions,
     getFilteredCollectionAccountOptions,

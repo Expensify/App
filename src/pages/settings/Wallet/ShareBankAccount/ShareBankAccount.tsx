@@ -18,7 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
-import {getActiveAllAdminsFromWorkspaces} from '@libs/PolicyUtils';
+import {getEligibleBankAccountShareRecipients} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -52,7 +52,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const admins = getActiveAllAdminsFromWorkspaces(allPolicies, currentUserLogin, bankAccountID, bankAccountShareDetails);
+    const admins = getEligibleBankAccountShareRecipients(allPolicies, currentUserLogin, bankAccountID, bankAccountShareDetails);
     const shouldShowTextInput = admins && admins?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
 
@@ -138,10 +138,10 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     );
 
     const toggleSelectAll = useCallback(() => {
-        const someSelected = selectedOptions.length > 0;
+        const hasSelectedOptions = selectedOptions.length > 0;
         setIsAlertVisible(false);
 
-        if (someSelected) {
+        if (hasSelectedOptions) {
             setSelectedOptions([]);
         } else {
             const everyLogin = adminsList?.map((member) => ({

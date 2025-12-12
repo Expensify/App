@@ -5,9 +5,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
-    getActiveAllAdminsFromWorkspaces,
     getActivePolicies,
     getCustomUnitsForDuplication,
+    getEligibleBankAccountShareRecipients,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
     getPolicyNameByID,
@@ -1483,7 +1483,7 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getActiveAllAdminsFromWorkspaces', () => {
+    describe('getEligibleBankAccountShareRecipients', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
@@ -1497,7 +1497,7 @@ describe('PolicyUtils', () => {
                 '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
             };
-            const result = getActiveAllAdminsFromWorkspaces(policies, approverEmail, '1', undefined);
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1', undefined);
             expect(result).toHaveLength(0);
         });
         it('should return array with admins', () => {
@@ -1513,7 +1513,7 @@ describe('PolicyUtils', () => {
                 },
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
             };
-            const result = getActiveAllAdminsFromWorkspaces(policies, approverEmail, '1', undefined);
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1', undefined);
             expect(result).toHaveLength(1);
         });
         it('should not return user with already shared bank account', async () => {
@@ -1544,7 +1544,7 @@ describe('PolicyUtils', () => {
                 },
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
             };
-            const result = getActiveAllAdminsFromWorkspaces(policies, approverEmail, bankAccountID, bankAccountShareDetails);
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID, bankAccountShareDetails);
             expect(result).toHaveLength(0);
         });
         it('should not return current user for sharing account', async () => {
@@ -1566,7 +1566,7 @@ describe('PolicyUtils', () => {
                     },
                 },
             };
-            const result = getActiveAllAdminsFromWorkspaces(policies, adminEmail, bankAccountID, undefined);
+            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, bankAccountID, undefined);
             expect(result).toHaveLength(1);
         });
     });
