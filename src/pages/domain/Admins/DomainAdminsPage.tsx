@@ -91,6 +91,16 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         );
     };
 
+    const listHeaderContent =
+        data.length > CONST.SEARCH_ITEM_LIMIT ? (
+            <SearchBar
+                inputValue={inputValue}
+                onChangeText={setInputValue}
+                label={translate('domain.admins.findAdmin')}
+                shouldShowEmptyState={!filteredData.length}
+            />
+        ) : null;
+
     if (isLoadingOnyxValue(domainMetadata)) {
         return <FullScreenLoadingIndicator />;
     }
@@ -125,16 +135,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     <SelectionList
                         sections={[{data: filteredData}]}
                         canSelectMultiple={false}
-                        listHeaderContent={
-                            data.length > CONST.SEARCH_ITEM_LIMIT ? (
-                                <SearchBar
-                                    inputValue={inputValue}
-                                    onChangeText={setInputValue}
-                                    label={translate('domain.admins.findAdmin')}
-                                    shouldShowEmptyState={!filteredData.length}
-                                />
-                            ) : null
-                        }
+                        listHeaderContent={listHeaderContent}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         ListItem={TableListItem}
                         onSelectRow={() => {}}
