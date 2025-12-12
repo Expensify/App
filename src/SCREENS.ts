@@ -94,10 +94,6 @@ const SCREENS = {
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
-        CHANGE_APPROVER: {
-            ROOT: 'Search_Change_Approver_Root',
-            ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
-        },
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
@@ -253,10 +249,7 @@ const SCREENS = {
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
         SEARCH_REPORT_ACTIONS: 'SearchReportActions',
-        // These two routes will be added in a separate PR adding Super Wide RHP routes
-        EXPENSE_REPORT: 'ExpenseReport',
         SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
-
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',
@@ -274,8 +267,10 @@ const SCREENS = {
         MERGE_TRANSACTION: 'MergeTransaction',
         REPORT_CARD_ACTIVATE: 'Report_Card_Activate',
         DOMAIN: 'Domain',
+        EXPENSE_REPORT: 'ExpenseReport',
     },
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
+    EXPENSE_REPORT_RHP: 'Expense_Report_RHP',
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
@@ -661,7 +656,6 @@ const SCREENS = {
         WORKFLOWS_APPROVALS_APPROVER: 'Workspace_Workflows_Approvals_Approver',
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
         WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
-        WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: 'Workspace_Workflows_Connect_Existing_Bank_Account',
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
@@ -786,6 +780,7 @@ const SCREENS = {
     ADD_PERSONAL_BANK_ACCOUNT_ROOT: 'AddPersonalBankAccount_Root',
     REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root',
     REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT: 'Reimbursement_Account_Verify_Account',
+    CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT: 'Connect_Existing_Business_Bank_Account_Root',
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',

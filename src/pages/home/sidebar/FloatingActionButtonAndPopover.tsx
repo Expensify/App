@@ -424,7 +424,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             shouldTeleportPortalToModalLayer: true,
         };
 
-        if (quickAction?.action) {
+        if (quickAction?.action && quickActionReport) {
             if (!isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, isRestrictedToPreferredPolicy)) {
                 return [];
             }

@@ -1158,7 +1158,6 @@ const translations: TranslationDeepObject<typeof en> = {
         changeApprover: {
             title: 'Cambiar aprobador',
             subtitle: 'Elige una opción para cambiar el aprobador de este informe.',
-            bulkSubtitle: 'Elige una opción para cambiar el aprobador de estos informes.',
             description: ({workflowSettingLink}) =>
                 `También puedes cambiar el aprobador de forma permanente para todos los informes en tu <a href="${workflowSettingLink}">configuración de flujo de trabajo</a>.`,
             changedApproverMessage: ({managerID}) => `cambió el aprobador a <mention-user accountID="${managerID}"/>`,
@@ -1170,7 +1169,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Elige un aprobador adicional para este informe antes de que lo enviemos por el resto del flujo de aprobación.',
-                bulkSubtitle: 'Elige un aprobador adicional para estos informes antes de que los enviemos por el resto del flujo de aprobación.',
             },
         },
         chooseWorkspace: 'Elige un espacio de trabajo',
@@ -1904,7 +1902,6 @@ ${amount} para ${merchant} - ${date}`,
             title: 'No hay miembros para mostrar',
             expensesFromSubtitle: 'Todos los miembros del espacio de trabajo ya pertenecen a un flujo de aprobación existente.',
             approverSubtitle: 'Todos los aprobadores pertenecen a un flujo de trabajo existente.',
-            bulkApproverSubtitle: 'Ningún aprobador coincide con los criterios de los informes seleccionados.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -6054,6 +6051,60 @@ ${amount} para ${merchant} - ${date}`,
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de asistentes`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `cambió el aprobador predeterminado a ${newApprover} (anteriormente ${previousApprover})` : `cambió el aprobador predeterminado a ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `cambió el flujo de aprobación para ${members} para enviar informes a ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (aprobador predeterminado anterior: ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (anteriormente aprobador predeterminado)';
+            } else if (previousApprover) {
+                text += ` (anteriormente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `cambió el flujo de aprobación para ${members} para enviar informes al aprobador predeterminado ${approver}`
+                : `cambió el flujo de aprobación para ${members} para enviar informes al aprobador predeterminado`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (aprobador predeterminado anterior: ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (anteriormente aprobador predeterminado)';
+            } else if (previousApprover) {
+                text += ` (anteriormente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `cambió el flujo de aprobación para ${approver} para reenviar informes aprobados a ${forwardsTo} (anteriormente reenviados a ${previousForwardsTo})`
+                : `cambió el flujo de aprobación para ${approver} para reenviar informes aprobados a ${forwardsTo} (anteriormente informes aprobados finales)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados (anteriormente reenviados a ${previousForwardsTo})`
+                : `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados`,
         addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
         deleteTax: ({taxName}) => `eliminó el impuesto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}) => {
@@ -7867,11 +7918,12 @@ ${amount} para ${merchant} - ${date}`,
             requireError: 'No se pudo actualizar la configuración de requerimiento de SAML',
             disableSamlRequired: 'Deshabilitar requisito de SAML',
             oktaWarningPrompt: '¿Estás seguro? Esto también deshabilitará Okta SCIM.',
+            requireWithEmptyMetadataError: 'Por favor, añade los metadatos del Proveedor de Identidad a continuación para habilitar',
         },
         samlConfigurationDetails: {
             title: 'Detalles de configuración de SAML',
             subtitle: 'Utiliza estos detalles para configurar SAML.',
-            identityProviderMetaData: 'Metadatos del proveedor de identidad',
+            identityProviderMetadata: 'Metadatos del proveedor de identidad',
             entityID: 'ID de entidad',
             nameIDFormat: 'Formato de ID de nombre',
             loginUrl: 'URL de inicio de sesión',
