@@ -485,38 +485,6 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-<<<<<<< HEAD
-        // Check if all selected transactions can be rejected
-        const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => !hasTransactionBeenRejected(id));
-
-        const shouldShowRejectOption =
-            queryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
-            !isOffline &&
-            selectedTransactionsKeys.length > 0 &&
-            selectedTransactionsKeys.every((id) => selectedTransactions[id].canReject) &&
-            hasNoRejectedTransaction;
-
-        if (shouldShowRejectOption) {
-            options.push({
-                icon: expensifyIcons.ThumbsDown,
-                text: translate('search.bulkActions.reject'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
-                    if (dismissedRejectUseExplanation) {
-                        Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
-                    } else {
-                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
-                    }
-                },
-            });
-        }
-
         const shouldShowSubmitOption =
             !isOffline &&
             areSelectedTransactionsIncludedInReports &&
