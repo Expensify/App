@@ -35,7 +35,7 @@ function adminAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
 
     return (
         Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
-            if (!key.startsWith(ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX) && !value) {
+            if (!key.startsWith(ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX) || value === undefined || value === null) {
                 return acc;
             }
 
