@@ -7042,7 +7042,7 @@ function getUnreportedTransactionMessage(action: ReportAction) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(fromReport) ?? fromReport?.reportName ?? '';
 
-    let reportUrl = `${environmentURL}/r/${fromReport?.reportID}`;
+    let reportUrl = getReportURLForCurrentContext(fromReportID);
 
     if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
