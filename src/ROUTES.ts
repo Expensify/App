@@ -129,8 +129,6 @@ const ROUTES = {
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
     SEARCH_REJECT_REASON_RHP: 'search/reject',
     MOVE_TRANSACTIONS_SEARCH_RHP: 'search/move-transactions',
-    CHANGE_APPROVER_SEARCH_RHP: 'search/change-approver',
-    CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP: 'search/change-approver/add',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
@@ -3441,24 +3439,24 @@ const ROUTES = {
         getRoute: (accountID: number) => `workspaces/domain-access-restricted/${accountID}` as const,
     },
     DOMAIN_INITIAL: {
-        route: 'domain/:accountID',
-        getRoute: (accountID: number) => `domain/${accountID}` as const,
+        route: 'domain/:domainAccountID',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}` as const,
     },
     DOMAIN_SAML: {
-        route: 'domain/:accountID/saml',
-        getRoute: (accountID: number) => `domain/${accountID}/saml` as const,
+        route: 'domain/:domainAccountID/saml',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml` as const,
     },
     DOMAIN_VERIFY: {
-        route: 'domain/:accountID/verify',
-        getRoute: (accountID: number) => `domain/${accountID}/verify` as const,
+        route: 'domain/:domainAccountID/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verify` as const,
     },
     DOMAIN_VERIFIED: {
-        route: 'domain/:accountID/verified',
-        getRoute: (accountID: number) => `domain/${accountID}/verified` as const,
+        route: 'domain/:domainAccountID/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verified` as const,
     },
     DOMAIN_ADMINS: {
-        route: 'domain/:accountID/admins',
-        getRoute: (accountID: number) => `domain/${accountID}/admins` as const,
+        route: 'domain/:domainAccountID/admins',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins` as const,
     },
     DOMAIN_ADD_ADMIN: {
         route: 'domain/:accountID/admins/invite',

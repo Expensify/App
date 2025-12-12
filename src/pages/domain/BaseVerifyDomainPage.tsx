@@ -145,7 +145,10 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
                                 fill={theme.icon}
                                 medium
                             />
-                            <Text style={styles.mutedNormalTextLabel}>{translate('domain.verifyDomain.warning')}</Text>
+
+                            <View style={styles.flex1}>
+                                <Text style={styles.mutedNormalTextLabel}>{translate('domain.verifyDomain.warning')}</Text>
+                            </View>
                         </View>
                     </View>
                 </ScrollView>
