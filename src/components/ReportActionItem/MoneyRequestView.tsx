@@ -186,20 +186,17 @@ function MoneyRequestView({
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
 
-    let policy;
-    let policyID;
     // If the expense is unreported the policy should be the user's default policy, if the expense is a per diem request and is unreported
     // the policy should be the one where the per diem rates are enabled, otherwise it should be the expense's report policy
-    if (isExpenseUnreported && !isPerDiemRequest) {
-        policy = policyForMovingExpenses;
-        policyID = policyForMovingExpensesID;
-    } else if (isExpenseUnreported && isPerDiemRequest) {
-        policy = perDiemOriginalPolicy;
-        policyID = perDiemOriginalPolicy?.id;
-    } else {
-        policy = expensePolicy;
-        policyID = report?.policyID;
-    }
+    const {policy, policyID} = useMemo(() => {
+        if (isExpenseUnreported && !isPerDiemRequest) {
+            return {policy: policyForMovingExpenses, policyID: policyForMovingExpensesID};
+        }
+        if (isExpenseUnreported && isPerDiemRequest) {
+            return {policy: perDiemOriginalPolicy, policyID: perDiemOriginalPolicy?.id};
+        }
+        return {policy: expensePolicy, policyID: report?.policyID};
+    }, [isExpenseUnreported, isPerDiemRequest, policyForMovingExpenses, policyForMovingExpensesID, perDiemOriginalPolicy, expensePolicy, report?.policyID])
 
     const allPolicyCategories = usePolicyCategories();
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
