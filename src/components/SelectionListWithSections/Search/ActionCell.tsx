@@ -34,7 +34,6 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
     exportToAccounting: 'common.export',
     done: 'common.done',
     paid: 'iou.settledExpensify',
-    changeApprover: 'iou.changeApprover.title',
 };
 
 type ActionCellProps = {
