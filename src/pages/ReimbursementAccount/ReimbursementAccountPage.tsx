@@ -89,6 +89,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
     const prevPolicyCurrency = usePrevious(policyCurrency);
+    const achContractValuesRef = useRef<{
+        isAuthorizedToUseBankAccount?: boolean;
+        certifyTrueInformation?: boolean;
+        acceptTermsAndConditions?: boolean;
+    }>({});
+    const isLoadingWorkspaceReimbursement = policy?.isLoadingWorkspaceReimbursement;
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const hasUnsupportedCurrency =
         isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && isNonUSDWorkspace
@@ -131,6 +137,22 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [isResettingBankAccount, setIsResettingBankAccount] = useState(false);
+
+    useEffect(() => {
+        const achContractValues = lodashPick(reimbursementAccountDraft, ['isAuthorizedToUseBankAccount', 'certifyTrueInformation', 'acceptTermsAndConditions']);
+
+        if (!isEmptyObject(achContractValues)) {
+            achContractValuesRef.current = achContractValues;
+        }
+    }, [reimbursementAccountDraft]);
+
+    useEffect(() => {
+        if (reimbursementAccountDraft || isEmptyObject(achContractValuesRef.current) || currentStep !== CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT) {
+            return;
+        }
+
+        updateReimbursementAccountDraft(achContractValuesRef.current);
+    }, [reimbursementAccountDraft, currentStep]);
 
     function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
         return {
@@ -426,7 +448,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
     // eslint-disable-next-line react-compiler/react-compiler
-    if ((!hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef?.current)) {
+    if ((!hasACHDataBeenLoaded || isLoading || isLoadingWorkspaceReimbursement) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef?.current)) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
