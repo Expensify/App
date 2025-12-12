@@ -82,9 +82,9 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
         canBeMissing: true,
     });
+    const [originalTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
-
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
     const [isCheckingDataBeforeGoNext, setIsCheckingDataBeforeGoNext] = useState<boolean>(false);
@@ -94,11 +94,11 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             return;
         }
 
-        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare);
+        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, originalTargetTransaction, localeCompare);
 
         setMergeTransactionKey(transactionID, mergeableData);
         setConflictFields(detectedConflictFields as MergeFieldKey[]);
-    }, [targetTransaction, sourceTransaction, transactionID, localeCompare]);
+    }, [targetTransaction, sourceTransaction, originalTargetTransaction, transactionID, localeCompare]);
 
     useEffect(() => {
         if (!isCheckingDataBeforeGoNext) {
@@ -166,7 +166,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                 } as Partial<Record<MergeFieldKey, string>>,
             });
         },
-        [mergeTransaction, transactionID],
+        [mergeTransaction?.selectedTransactionByField, transactionID],
     );
 
     // Handle continue
@@ -176,13 +176,13 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         }
 
         const newHasErrors: Partial<Record<MergeFieldKey, boolean>> = {};
-        conflictFields.forEach((field) => {
+        for (const field of conflictFields) {
             if (!isEmptyMergeValue(mergeTransaction[field])) {
-                return;
+                continue;
             }
 
             newHasErrors[field] = true;
-        });
+        }
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {

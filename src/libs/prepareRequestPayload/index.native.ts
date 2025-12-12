@@ -11,7 +11,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
     const formData = new FormData();
     let promiseChain = Promise.resolve();
 
-    Object.keys(data).forEach((key) => {
+    for (const key of Object.keys(data)) {
         promiseChain = promiseChain.then(() => {
             const value = data[key];
 
@@ -60,7 +60,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
 
             return Promise.resolve();
         });
-    });
+    }
 
     return promiseChain.then(() => formData);
 };

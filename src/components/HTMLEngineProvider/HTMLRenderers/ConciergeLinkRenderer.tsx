@@ -16,7 +16,7 @@ function navigateToConciergeChat() {
     navigateToConciergeChatAction();
 }
 
-function ConciergeLinkRenderer({tnode}: ConciergeLinkRendererProps) {
+function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     const styles = useThemeStyles();
 
     // Define link style based on context
@@ -34,7 +34,7 @@ function ConciergeLinkRenderer({tnode}: ConciergeLinkRendererProps) {
 
     return (
         <Text
-            style={linkStyle}
+            style={[style as TextStyle, linkStyle]}
             onPress={navigateToConciergeChat}
             suppressHighlighting
         >

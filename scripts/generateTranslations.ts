@@ -125,6 +125,12 @@ class TranslationGenerator {
      */
     private readonly translatedSpanHashToEnglishSpanHash = new Map<number, number>();
 
+    /**
+     * Set of translation keys for strings that are arguments to dedent() calls.
+     * These need special handling to preserve whitespace structure.
+     */
+    private readonly dedentStringKeys = new Set<number>();
+
     constructor(config: {
         targetLanguages: TranslationTargetLocale[];
         languagesDir: string;
@@ -180,7 +186,25 @@ class TranslationGenerator {
                     // This means that the translation for this key was already parsed from an existing translation file, so we don't need to translate it with ChatGPT
                     continue;
                 }
-                const translationPromise = promisePool.add(() => this.translator.translate(targetLanguage, text, context).then((result) => translationsForLocale.set(key, result)));
+
+                // Special handling for dedent strings - preserve leading newline
+                let textToTranslate = text;
+                let hadLeadingNewline = false;
+                if (this.dedentStringKeys.has(key)) {
+                    hadLeadingNewline = text.startsWith('\n');
+                    textToTranslate = dedent(text);
+                }
+
+                const translationPromise = promisePool.add(async () => {
+                    let result = await this.translator.translate(targetLanguage, textToTranslate, context);
+
+                    // Special handling for dedent strings - add back leading newline if it was removed
+                    if (hadLeadingNewline) {
+                        result = `\n${result}`;
+                    }
+
+                    translationsForLocale.set(key, result);
+                });
                 translationPromises.push(translationPromise);
             }
             await Promise.allSettled(translationPromises);
@@ -251,6 +275,12 @@ class TranslationGenerator {
             fs.writeFileSync(outputPath, finalFileContent, 'utf8');
 
             // Format the file with prettier
+            await Prettier.format(outputPath);
+
+            // Apply dedent formatting after Prettier so we have accurate source positions
+            this.formatDedentCallsInFile(outputPath);
+
+            // Format again with Prettier to ensure consistent formatting after dedent transformation
             await Prettier.format(outputPath);
 
             console.log(`✅ Translated file created: ${outputPath}`);
@@ -373,6 +403,18 @@ class TranslationGenerator {
     }
 
     /**
+     * Check if a node is a direct argument to a dedent() call.
+     */
+    private isArgumentToDedent(node: ts.Node): boolean {
+        if (!node.parent || !ts.isCallExpression(node.parent)) {
+            return false;
+        }
+
+        const callExpression = node.parent;
+        return ts.isIdentifier(callExpression.expression) && callExpression.expression.text === 'dedent' && callExpression.arguments.includes(node as ts.Expression);
+    }
+
+    /**
      * Is a given expression (i.e: template placeholder) "simple"?
      * We define an expression as "simple" if it is an identifier or property access expression. Anything else is complex.
      *
@@ -464,8 +506,8 @@ class TranslationGenerator {
         let keyBase = node
             .getText()
             .trim()
-            .replace(/^['"`]/, '')
-            .replace(/['"`]$/, '');
+            .replaceAll(/^['"`]/g, '')
+            .replaceAll(/['"`]$/g, '');
 
         const context = this.getContextForNode(node);
         if (context) {
@@ -491,6 +533,11 @@ class TranslationGenerator {
             const context = this.getContextForNode(node);
             const translationKey = this.getTranslationKey(node);
 
+            // Track if this node is an argument to dedent()
+            if (this.isArgumentToDedent(node)) {
+                this.dedentStringKeys.add(translationKey);
+            }
+
             // String literals and no-substitution templates can be translated directly
             if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
                 stringsToTranslate.set(translationKey, {text: node.text, context});
@@ -504,7 +551,9 @@ class TranslationGenerator {
                     if (this.verbose) {
                         console.debug('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
                     }
-                    node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate, currentPath));
+                    for (const span of node.templateSpans) {
+                        this.extractStringsToTranslate(span, stringsToTranslate, currentPath);
+                    }
                     stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
                 }
             }
@@ -626,8 +675,8 @@ class TranslationGenerator {
             this.extractPathsFromChangedLines(translationsNode, new Set([...changedLines.addedLines, ...changedLines.modifiedLines]), changedLines.removedLines);
 
             // For removed paths, we need to traverse the old version of en.ts
-            if (changedLines.removedLines.size > 0 || changedLines.modifiedLines.size > 0) {
-                this.extractRemovedPaths(new Set([...changedLines.removedLines, ...changedLines.modifiedLines]));
+            if (changedLines.removedLines.size > 0) {
+                this.extractRemovedPaths(changedLines.removedLines);
             }
 
             // Handle the case where the same path has both additions and removals (treat as modified, not deleted)
@@ -758,7 +807,11 @@ class TranslationGenerator {
 
         if (ts.isNoSubstitutionTemplateLiteral(node)) {
             const translatedText = translations.get(this.getTranslationKey(node));
-            return translatedText ? ts.factory.createNoSubstitutionTemplateLiteral(translatedText) : nodeToUse;
+            if (!translatedText) {
+                return nodeToUse;
+            }
+
+            return ts.factory.createNoSubstitutionTemplateLiteral(translatedText);
         }
 
         if (ts.isTemplateExpression(node)) {
@@ -854,6 +907,130 @@ class TranslationGenerator {
             }
             return {action: TransformerAction.Continue};
         });
+    }
+
+    /**
+     * Format all dedent() calls in a file to ensure proper indentation.
+     * This should be called after Prettier has formatted the file.
+     */
+    private formatDedentCallsInFile(filePath: string): void {
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const sourceFile = ts.createSourceFile(filePath, fileContent, ts.ScriptTarget.Latest, true);
+
+        const result = ts.transform(sourceFile, [this.createDedentFormattingTransformer()]);
+        const transformedFile = result.transformed.at(0);
+
+        if (transformedFile) {
+            const formattedCode = decodeUnicode(tsPrinter.printFile(transformedFile));
+            fs.writeFileSync(filePath, formattedCode, 'utf8');
+        }
+
+        result.dispose();
+    }
+
+    /**
+     * Create a transformer that formats dedent() call arguments with proper indentation.
+     * This runs after translation to ensure that template strings inside dedent() calls
+     * have the correct indentation structure.
+     */
+    private createDedentFormattingTransformer(): ts.TransformerFactory<ts.SourceFile> {
+        return (context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => {
+            const visit = (node: ts.Node): ts.Node => {
+                if (!ts.isCallExpression(node) || !ts.isIdentifier(node.expression) || node.expression.text !== 'dedent' || !node.arguments[0]) {
+                    return ts.visitEachChild(node, visit, context);
+                }
+
+                const argument = node.arguments[0];
+                const templateIndentation = TSCompilerUtils.getIndentationOfNode(argument, sourceFile);
+                const contentIndentation = templateIndentation + 4;
+
+                // isTail = true for complete templates or final fragment before closing backtick
+                const formatFragment = (text: string, isTail: boolean) => this.formatDedentTemplateContent(text, contentIndentation, templateIndentation, isTail);
+
+                if (ts.isNoSubstitutionTemplateLiteral(argument)) {
+                    return ts.factory.createCallExpression(node.expression, node.typeArguments, [ts.factory.createNoSubstitutionTemplateLiteral(formatFragment(argument.text, true))]);
+                }
+
+                if (ts.isTemplateExpression(argument)) {
+                    const newHead = ts.factory.createTemplateHead(formatFragment(argument.head.text, false));
+                    const newSpans = argument.templateSpans.map((span, i) => {
+                        const isTail = i === argument.templateSpans.length - 1;
+                        const formattedText = formatFragment(span.literal.text, isTail);
+                        const newLiteral = isTail ? ts.factory.createTemplateTail(formattedText) : ts.factory.createTemplateMiddle(formattedText);
+                        return ts.factory.createTemplateSpan(span.expression, newLiteral);
+                    });
+
+                    return ts.factory.createCallExpression(node.expression, node.typeArguments, [ts.factory.createTemplateExpression(newHead, newSpans)]);
+                }
+
+                return node;
+            };
+
+            return ts.visitNode(sourceFile, visit) as ts.SourceFile;
+        };
+    }
+
+    /**
+     * Format the content of a template literal inside a dedent() call.
+     * Adds proper indentation while preserving relative indentation (e.g., bullet points with extra spaces).
+     *
+     * @param isTail - True if this is the last fragment before closing backtick (adds trailing newline if needed)
+     */
+    private formatDedentTemplateContent(text: string, contentIndentation: number, closingIndentation: number, isTail: boolean): string {
+        if (!text.includes('\n')) {
+            return text;
+        }
+
+        const lines = text.split('\n');
+        const hasLeadingNewline = text.startsWith('\n');
+
+        // Find minimum indentation (skip first line since it may be on same line as opening backtick)
+        let minIndent = Number.MAX_SAFE_INTEGER;
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines.at(i);
+            if (line?.trim()) {
+                const indent = line.match(/^ */)?.[0].length ?? 0;
+                minIndent = Math.min(minIndent, indent);
+            }
+        }
+        minIndent = minIndent === Number.MAX_SAFE_INTEGER ? 0 : minIndent;
+
+        // Apply base indentation while preserving extra indentation beyond the minimum
+        const getIndentedLine = (line: string) => {
+            const currentIndent = line.match(/^ */)?.[0].length ?? 0;
+            const relativeIndent = currentIndent - minIndent;
+            return `${' '.repeat(contentIndentation + relativeIndent)}${line.replace(/^ */, '')}`;
+        };
+
+        const formattedLines = lines.map((line, i) => {
+            const isFirstLine = i === 0;
+            const isLastLine = i === lines.length - 1;
+
+            if (isFirstLine && hasLeadingNewline) {
+                return '';
+            }
+            if (isFirstLine) {
+                return line ?? '';
+            }
+            if (!line?.trim()) {
+                return isLastLine && isTail && text.endsWith('\n') ? ' '.repeat(closingIndentation) : '';
+            }
+
+            return getIndentedLine(line);
+        });
+
+        // Add closing line with proper indentation for pretty formatting
+        if (isTail && (text.endsWith(' '.repeat(closingIndentation)) || !text.endsWith('\n'))) {
+            if (text.endsWith(' '.repeat(closingIndentation))) {
+                formattedLines.pop();
+            }
+
+            if (!text.endsWith('\n')) {
+                formattedLines.push(' '.repeat(closingIndentation));
+            }
+        }
+
+        return formattedLines.join('\n');
     }
 
     /**

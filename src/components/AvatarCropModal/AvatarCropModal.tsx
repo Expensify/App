@@ -4,7 +4,8 @@ import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import ImageSize from 'react-native-image-size';
-import {interpolate, runOnUI, useSharedValue} from 'react-native-reanimated';
+import {interpolate, useSharedValue} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
@@ -16,6 +17,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -59,6 +61,8 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Zoom'] as const);
+
     const originalImageWidth = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -399,14 +403,14 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                 />
                                 <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                     <Icon
-                                        src={Expensicons.Zoom}
+                                        src={expensifyIcons.Zoom}
                                         fill={theme.icon}
                                     />
 
                                     <PressableWithoutFeedback
                                         style={[styles.mh5, styles.flex1]}
                                         onLayout={initializeSliderContainer}
-                                        onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
+                                        onPressIn={(e) => scheduleOnUI(sliderOnPress, e.nativeEvent.locationX)}
                                         accessibilityLabel="slider"
                                         role={CONST.ROLE.SLIDER}
                                     >

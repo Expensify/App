@@ -42,7 +42,7 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}

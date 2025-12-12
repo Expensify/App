@@ -119,8 +119,6 @@ export default function (targetLang: TranslationTargetLocale): string {
         - SAP Concur
         - Xero
         - Zenefits
-        ${Object.values(LOCALE_TO_LANGUAGE_STRING)
-            .map((str) => `- ${str}`)
-            .join('\n')}
+        - Language names (these are reference only, not part of the text to translate): ${Object.values(LOCALE_TO_LANGUAGE_STRING).join(', ')}
     `);
 }

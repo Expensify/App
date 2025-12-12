@@ -33,12 +33,12 @@ const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResu
         const prefix = key;
 
         // Get all keys that start with the prefix
-        Object.entries(snapshotData?.data ?? {}).forEach(([dataKey, value]) => {
+        for (const [dataKey, value] of Object.entries(snapshotData?.data ?? {})) {
             if (!dataKey.startsWith(prefix)) {
-                return;
+                continue;
             }
             result[dataKey] = value as OnyxEntry<TKey>;
-        });
+        }
         return (Object.keys(result).length > 0 ? result : undefined) as TReturnValue;
     }
     return getDataByPath(snapshotData?.data, key) as TReturnValue;
