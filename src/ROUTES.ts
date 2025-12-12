@@ -3459,12 +3459,12 @@ const ROUTES = {
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins` as const,
     },
     DOMAIN_ADMINS_SETTINGS: {
-        route: 'domain/:accountID/admins/settings',
-        getRoute: (accountID: number) => `domain/${accountID}/admins/settings` as const,
+        route: 'domain/:domainAccountID/admins/settings',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings` as const,
     },
     DOMAIN_ADD_PRIMARY_CONTACT: {
-        route: 'domain/:accountID/admins/settings/primary-contact',
-        getRoute: (accountID: number) => `domain/${accountID}/admins/settings/primary-contact` as const,
+        route: 'domain/:domainAccountID/admins/settings/primary-contact',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings/primary-contact` as const,
     },
 } as const;
 

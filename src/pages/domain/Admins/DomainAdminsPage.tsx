@@ -44,7 +44,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Members'] as const);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Gear'] as const);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -104,10 +104,10 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             <View style={[styles.flexRow, styles.gap2]}>
                 <Button
                     onPress={() => {
-                        Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainID));
+                        Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
                     }}
                     text={translate('domain.admins.settings')}
-                    icon={Gear}
+                    icon={icons.Gear}
                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 />

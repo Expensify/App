@@ -9,7 +9,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {selectAdminIDs} from '@libs/DomainUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -20,6 +19,7 @@ import {choosePrimaryContact} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {adminAccountIDsSelector} from '@selectors/Domain';
 
 type AdminOption = Omit<ListItem, 'accountID' | 'login'> & {
     accountID: number;
@@ -28,29 +28,29 @@ type AdminOption = Omit<ListItem, 'accountID' | 'login'> & {
 type DomainAddPrimaryContactPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_PRIMARY_CONTACT>;
 
 function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) {
-    const domainID = route.params.accountID;
+    const {domainAccountID} = route.params;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
-    const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {
+    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
-        selector: selectAdminIDs,
+        selector: adminAccountIDsSelector,
     });
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainID}`, {
+    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
     });
-    const selectedUser = domainSettings?.settings?.technicalContactEmail;
-    let selectedKey: string | undefined;
+    const technicalContactEmail = domainSettings?.settings?.technicalContactEmail;
+    let technicalContactEmailKey: string | undefined;
 
     const data: AdminOption[] = [];
-    for (const accountID of adminIDs ?? []) {
+    for (const accountID of adminAccountIDs ?? []) {
         const details = personalDetails?.[accountID];
-        if (details?.login === selectedUser) {
-            selectedKey = String(accountID ?? '');
+        if (details?.login === technicalContactEmail) {
+            technicalContactEmailKey = String(accountID ?? '');
         }
         data.push({
-            isSelected: details?.login === selectedUser,
+            isSelected: details?.login === technicalContactEmail,
             keyForList: String(accountID ?? ''),
             accountID,
             login: details?.login ?? '',
@@ -97,12 +97,12 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                 <SelectionList
                     data={filteredData}
                     onSelectRow={(option) => {
-                        choosePrimaryContact(route.params.accountID, option.login === selectedUser ? null : (option.login ?? ''), selectedUser);
+                        choosePrimaryContact(domainAccountID, option.login === technicalContactEmail ? null : (option.login ?? ''), technicalContactEmail);
                         Navigation.goBack();
                     }}
                     ListItem={InviteMemberListItem}
                     canSelectMultiple={false}
-                    initiallyFocusedItemKey={selectedKey}
+                    initiallyFocusedItemKey={technicalContactEmailKey}
                     shouldScrollToFocusedIndex
                     shouldShowTextInput
                     textInputOptions={textInputOptions}

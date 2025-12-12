@@ -1325,10 +1325,10 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
     };
     [SCREENS.DOMAIN.ADMINS_SETTINGS]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
-        accountID: number;
+        domainAccountID: number;
     };
 } & ReimbursementAccountNavigatorParamList;
 

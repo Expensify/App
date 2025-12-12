@@ -17,15 +17,17 @@ import type SCREENS from '@src/SCREENS';
 type DomainAdminsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS_SETTINGS>;
 
 function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
+    const {domainAccountID} = route.params;
+
     const {translate} = useLocalize();
 
-    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${route.params.accountID}`, {
+    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         canBeMissing: true,
     });
-    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${route.params.accountID}`, {
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         canBeMissing: true,
     });
-    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${route.params.accountID}`, {
+    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
     });
     const currentlySelectedUser = domainSettings?.settings?.technicalContactEmail;
@@ -46,13 +48,13 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
             <OfflineWithFeedback
                 pendingAction={domainPendingActions?.technicalContactEmail}
                 errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
-                onClose={() => clearChoosePrimaryContactError(route.params.accountID)}
+                onClose={() => clearChoosePrimaryContactError(domainAccountID)}
             >
                 <MenuItemWithTopDescription
                     description={translate('domain.admins.primaryContact')}
                     title={currentlySelectedUser}
                     shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(route.params.accountID))}
+                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
                 />
             </OfflineWithFeedback>
         </ScreenWrapper>
