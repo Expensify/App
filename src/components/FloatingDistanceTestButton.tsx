@@ -10,8 +10,12 @@ import variables from '@styles/variables';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type CreateDistanceRequestParams from '@libs/API/parameters/CreateDistanceRequestParams';
+import {generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
+import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from '@hooks/useOnyx';
 
 type FloatingDistanceTestButtonProps = {
     /* An accessibility label for the button */
@@ -27,6 +31,11 @@ function FloatingDistanceTestButton({accessibilityLabel, role}: FloatingDistance
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | ViewType | Text | null>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location'] as const);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id, allReports)?.reportID;
 
     const handlePress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         // Drop focus to avoid blue focus ring.
@@ -8967,9 +8976,8 @@ function FloatingDistanceTestButton({accessibilityLabel, role}: FloatingDistance
         // Note: These are example/test values. In a real scenario, these would come from the transaction/report context
         const parameters: CreateDistanceRequestParams = {
             transactionID: `test-${Date.now()}`,
-            chatReportID: `3671130438874187`,
-            iouReportID: '1932488932231548',
-            reportActionID: `test-action-${Date.now()}`,
+            chatReportID: currentUserPolicyExpenseChatReportID ?? '',
+            reportActionID: generateReportID(),
             waypoints: JSON.stringify(exampleWaypoints),
             customUnitRateID: '',
             comment: 'Test distance request',
