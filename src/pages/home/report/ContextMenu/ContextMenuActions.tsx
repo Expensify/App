@@ -1,8 +1,7 @@
 import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text, View} from 'react-native';
+import type {GestureResponderEvent, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 // eslint-disable-next-line no-restricted-imports
@@ -245,9 +244,33 @@ type ContextMenuActionWithContent = {
 
 type ContextMenuActionWithIcon = {
     textTranslateKey: TranslationPaths;
-    icon: IconAsset | Extract<ExpensifyIconName, 'Download' | 'Pencil' | 'ThreeDots'>;
+    icon:
+        | IconAsset
+        | Extract<
+              ExpensifyIconName,
+              'Download' | 'ThreeDots' | 'ChatBubbleReply' | 'ChatBubbleUnread' | 'Mail' | 'Pencil' | 'Stopwatch' | 'Bell' | 'Copy' | 'LinkCopy' | 'Pin' | 'Flag' | 'Bug' | 'Trashcan'
+          >;
     successTextTranslateKey?: TranslationPaths;
-    successIcon?: IconAsset | Extract<ExpensifyIconName, 'Download'>;
+    successIcon?:
+        | IconAsset
+        | Extract<
+              ExpensifyIconName,
+              | 'Download'
+              | 'ChatBubbleReply'
+              | 'ChatBubbleUnread'
+              | 'Checkmark'
+              | 'Mail'
+              | 'Pencil'
+              | 'Stopwatch'
+              | 'Bell'
+              | 'Copy'
+              | 'LinkCopy'
+              | 'Pin'
+              | 'Flag'
+              | 'Bug'
+              | 'Trashcan'
+              | 'ThreeDots'
+          >;
     onPress: OnPress;
     getDescription: GetDescription;
 };
@@ -318,7 +341,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.replyInThread',
-        icon: Expensicons.ChatBubbleReply,
+        icon: 'ChatBubbleReply',
         shouldShow: ({type, reportAction, reportID, isThreadReportParentAction, isArchivedRoom}) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !reportID) {
                 return false;
@@ -342,8 +365,8 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.markAsUnread',
-        icon: Expensicons.ChatBubbleUnread,
-        successIcon: Expensicons.Checkmark,
+        icon: 'ChatBubbleUnread',
+        successIcon: 'Checkmark',
         shouldShow: ({type, isUnreadChat}) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
         onPress: (closePopover, {reportAction, reportID}) => {
             markCommentAsUnread(reportID, reportAction);
@@ -356,8 +379,8 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.markAsRead',
-        icon: Expensicons.Mail,
-        successIcon: Expensicons.Checkmark,
+        icon: 'Mail',
+        successIcon: 'Checkmark',
         shouldShow: ({type, isUnreadChat}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
         onPress: (closePopover, {reportID}) => {
             readNewestAction(reportID, true);
@@ -409,7 +432,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'iou.unhold',
-        icon: Expensicons.Stopwatch,
+        icon: 'Stopwatch',
         shouldShow: ({type, moneyRequestReport, moneyRequestAction, moneyRequestPolicy, areHoldRequirementsMet, iouTransaction}) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !areHoldRequirementsMet) {
                 return false;
@@ -431,7 +454,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'iou.hold',
-        icon: Expensicons.Stopwatch,
+        icon: 'Stopwatch',
         shouldShow: ({type, moneyRequestReport, moneyRequestAction, moneyRequestPolicy, areHoldRequirementsMet, iouTransaction}) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !areHoldRequirementsMet) {
                 return false;
@@ -453,7 +476,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
-        icon: Expensicons.Bell,
+        icon: 'Bell',
         shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
@@ -531,9 +554,9 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
-        icon: Expensicons.Copy,
+        icon: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
-        successIcon: Expensicons.Checkmark,
+        successIcon: 'Checkmark',
         shouldShow: ({type}) => type === CONST.CONTEXT_MENU_TYPES.LINK,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(selection);
@@ -544,9 +567,9 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: true,
         textTranslateKey: 'common.copyToClipboard',
-        icon: Expensicons.Copy,
+        icon: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
-        successIcon: Expensicons.Checkmark,
+        successIcon: 'Checkmark',
         shouldShow: ({type}) => type === CONST.CONTEXT_MENU_TYPES.TEXT,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(selection);
@@ -557,9 +580,9 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
-        icon: Expensicons.Copy,
+        icon: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
-        successIcon: Expensicons.Checkmark,
+        successIcon: 'Checkmark',
         shouldShow: ({type}) => type === CONST.CONTEXT_MENU_TYPES.EMAIL,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(EmailUtils.trimMailTo(selection));
@@ -570,9 +593,9 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyMessage',
-        icon: Expensicons.Copy,
+        icon: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
-        successIcon: Expensicons.Checkmark,
+        successIcon: 'Checkmark',
         shouldShow: ({type, reportAction}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isReportActionAttachment(reportAction) && !isMessageDeleted(reportAction) && !isTripPreview(reportAction),
 
@@ -853,8 +876,8 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyLink',
-        icon: Expensicons.LinkCopy,
-        successIcon: Expensicons.Checkmark,
+        icon: 'LinkCopy',
+        successIcon: 'Checkmark',
         successTextTranslateKey: 'reportActionContextMenu.copied',
         shouldShow: ({type, reportAction, menuTarget}) => {
             const isAttachment = isReportActionAttachment(reportAction);
@@ -876,7 +899,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'common.pin',
-        icon: Expensicons.Pin,
+        icon: 'Pin',
         shouldShow: ({type, isPinnedChat}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !isPinnedChat,
         onPress: (closePopover, {reportID}) => {
             togglePinnedState(reportID, false);
@@ -889,7 +912,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'common.unPin',
-        icon: Expensicons.Pin,
+        icon: 'Pin',
         shouldShow: ({type, isPinnedChat}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && isPinnedChat,
         onPress: (closePopover, {reportID}) => {
             togglePinnedState(reportID, true);
@@ -902,7 +925,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.flagAsOffensive',
-        icon: Expensicons.Flag,
+        icon: 'Flag',
         shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
             canFlagReportAction(reportAction, reportID) &&
@@ -959,9 +982,9 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyOnyxData',
-        icon: Expensicons.Copy,
+        icon: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
-        successIcon: Expensicons.Checkmark,
+        successIcon: 'Checkmark',
         shouldShow: ({type, isProduction}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !isProduction,
         onPress: (closePopover, {report}) => {
             Clipboard.setString(JSON.stringify(report, null, 4));
@@ -972,7 +995,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: true,
         textTranslateKey: 'debug.debug',
-        icon: Expensicons.Bug,
+        icon: 'Bug',
         shouldShow: ({type, isDebugModeEnabled}) => [CONST.CONTEXT_MENU_TYPES.REPORT_ACTION, CONST.CONTEXT_MENU_TYPES.REPORT].some((value) => value === type) && !!isDebugModeEnabled,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (reportAction) {
@@ -987,7 +1010,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'common.delete',
-        icon: Expensicons.Trashcan,
+        icon: 'Trashcan',
         shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID: reportIDParam, moneyRequestAction, iouTransaction, transactions, childReportActions}) => {
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             let reportID = reportIDParam;
