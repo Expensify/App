@@ -194,7 +194,7 @@ function AccessOrNotFoundWrapper({
         // We don't need to run the effect on policyID change as we only use it to get the route to navigate to.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pendingField, isOffline, isFeatureEnabled]);
+    }, [pendingField, isOffline, isFeatureEnabled, isFocused]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
