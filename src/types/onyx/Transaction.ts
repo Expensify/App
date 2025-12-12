@@ -78,13 +78,13 @@ type Comment = {
     /** Contains information pertaining to time tracking */
     units?: {
         /** Count of the unit */
-        count: number;
+        count?: number;
 
         /** Rate of the unit in cents */
-        rate: number;
+        rate?: number;
 
         /** Unit of the unit (e.g. 'h' for hours) */
-        unit: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
+        unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
     };
 
     /** In custom unit transactions this holds the information of the custom unit */
