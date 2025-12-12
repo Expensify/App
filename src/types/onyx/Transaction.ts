@@ -98,6 +98,12 @@ type Comment = {
 
     /** Defines the type of liability for the transaction */
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number | null;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number | null;
 };
 
 /** Model of transaction custom unit */

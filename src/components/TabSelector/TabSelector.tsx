@@ -44,7 +44,7 @@ type IconTitleAndTestID = {
 };
 
 function getIconTitleAndTestID(
-    icons: Record<'CalendarSolid' | 'UploadAlt' | 'User' | 'Car' | 'Hashtag' | 'Map' | 'Pencil', IconAsset>,
+    icons: Record<'CalendarSolid' | 'UploadAlt' | 'User' | 'Car' | 'Hashtag' | 'Map' | 'Pencil' | 'Meter', IconAsset>,
     route: string,
     translate: LocaleContextProps['translate'],
 ): IconTitleAndTestID {
@@ -75,6 +75,8 @@ function getIconTitleAndTestID(
             return {icon: icons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
         case CONST.TAB_REQUEST.DISTANCE_MANUAL:
             return {icon: icons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
+        case CONST.TAB_REQUEST.DISTANCE_ODOMETER:
+            return {icon: icons.Meter, title: translate('tabSelector.odometer'), testID: 'distanceOdometer'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -91,7 +93,7 @@ function TabSelector({
     renderProductTrainingTooltip,
     equalWidth = false,
 }: TabSelectorProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'UploadAlt', 'User', 'Car', 'Hashtag', 'Map', 'Pencil'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'UploadAlt', 'User', 'Car', 'Hashtag', 'Map', 'Pencil', 'Meter'] as const);
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();

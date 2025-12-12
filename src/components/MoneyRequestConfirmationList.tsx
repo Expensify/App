@@ -151,6 +151,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is a manual distance expense */
     isManualDistanceRequest: boolean;
 
+    /** Whether the expense is an odometer distance expense */
+    isOdometerDistanceRequest?: boolean;
+
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
 
@@ -212,6 +215,7 @@ function MoneyRequestConfirmationList({
     iouAmount,
     isDistanceRequest,
     isManualDistanceRequest,
+    isOdometerDistanceRequest = false,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     iouCategory = '',
@@ -1151,6 +1155,7 @@ function MoneyRequestConfirmationList({
             isCategoryRequired={isCategoryRequired}
             isDistanceRequest={isDistanceRequest}
             isManualDistanceRequest={isManualDistanceRequest}
+            isOdometerDistanceRequest={isOdometerDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
             isMerchantEmpty={isMerchantEmpty}
             isMerchantRequired={isMerchantRequired}
