@@ -41,6 +41,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillableDefaultDescriptionParams,
@@ -733,6 +734,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domänen',
         viewReport: 'Bericht anzeigen',
         actionRequired: 'Aktion erforderlich',
+        duplicate: 'Duplizieren',
+        duplicated: 'Dupliziert',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -988,7 +991,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Dieser Chatraum ist für alles, was mit <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> zu tun hat.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `Dieser Chat ist für Rechnungen zwischen <strong>${invoicePayer}</strong> und <strong>${invoiceReceiver}</strong>. Verwende die +‑Taste, um eine Rechnung zu senden.`,
-        beginningOfChatHistory: 'Dieser Chat ist mit',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `Dieser Chat ist mit ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `Hier reicht <strong>${submitterDisplayName}</strong> Ausgaben bei <strong>${workspaceName}</strong> ein. Verwende einfach die +‑Schaltfläche.`,
         beginningOfChatHistorySelfDM: 'Dies ist dein persönlicher Bereich. Verwende ihn für Notizen, Aufgaben, Entwürfe und Erinnerungen.',
@@ -6110,6 +6113,9 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                     toUpgrade: 'Zum Aktualisieren klicken',
                     selectWorkspace: 'Wähle einen Workspace aus und ändere den Plantyp in',
                 },
+                upgradeWorkspaceWarning: 'Arbeitsbereich kann nicht aktualisiert werden',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
+                    'Ihr Unternehmen hat die Erstellung von Arbeitsbereichen eingeschränkt. Bitte wenden Sie sich an einen Administrator.',
             },
         },
         downgrade: {
@@ -6208,7 +6214,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 adultEntertainment: 'Unterhaltung für Erwachsene',
             },
             expenseReportRules: {
-                title: 'Spesenabrechnungen',
+                title: 'Fortgeschritten',
                 subtitle: 'Automatisieren Sie die Einhaltung von Spesenrichtlinien, Genehmigungen und Zahlungen.',
                 preventSelfApprovalsTitle: 'Selbstgenehmigungen verhindern',
                 preventSelfApprovalsSubtitle: 'Verhindern Sie, dass Workspace-Mitglieder ihre eigenen Spesenberichte genehmigen.',
@@ -6225,8 +6231,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 autoPayApprovedReportsLockedSubtitle: 'Gehen Sie zu „Weitere Funktionen“ und aktivieren Sie „Workflows“, dann fügen Sie „Zahlungen“ hinzu, um diese Funktion freizuschalten.',
                 autoPayReportsUnderTitle: 'Berichte automatisch bezahlen unter',
                 autoPayReportsUnderDescription: 'Vollständig konforme Spesenabrechnungen unter diesem Betrag werden automatisch bezahlt.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Gehe zu [weitere Funktionen](${moreFeaturesLink}) und aktiviere Workflows, dann füge ${featureName} hinzu, um diese Funktion freizuschalten.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Fügen Sie ${featureName} hinzu, um diese Funktion freizuschalten.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Gehe zu [Weitere Funktionen](${moreFeaturesLink}) und aktiviere ${featureName}, um diese Funktion freizuschalten.`,
             },
@@ -6540,6 +6545,60 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Teilnehmerverfolgung`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `Standardgenehmiger auf ${newApprover} geändert (zuvor ${previousApprover})` : `den Standardgenehmiger auf ${newApprover} geändert`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `hat den Genehmigungsworkflow für ${members} geändert, sodass Berichte an ${approver} eingereicht werden`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(bisheriger Standardgenehmiger ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(früher Standardgenehmiger)';
+            } else if (previousApprover) {
+                text += `(zuvor ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `hat den Genehmigungsworkflow für ${members} so geändert, dass Berichte an den Standardgenehmiger ${approver} eingereicht werden`
+                : `den Genehmigungsworkflow für ${members} geändert, sodass Berichte beim Standardgenehmiger eingereicht werden`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(bisheriger Standardgenehmiger ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(früher Standardgenehmiger)';
+            } else if (previousApprover) {
+                text += `(zuvor ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `Genehmigungsworkflow für ${approver} geändert, um genehmigte Berichte an ${forwardsTo} weiterzuleiten (zuvor weitergeleitet an ${previousForwardsTo})`
+                : `Genehmigungs-Workflow für ${approver} geändert, um genehmigte Berichte an ${forwardsTo} weiterzuleiten (zuvor endgültig genehmigte Berichte)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `hat den Genehmigungsworkflow für ${approver} so geändert, dass genehmigte Berichte nicht mehr weitergeleitet werden (zuvor weitergeleitet an ${previousForwardsTo})`
+                : `hat den Genehmigungsworkflow für ${approver} so geändert, dass genehmigte Berichte nicht mehr weitergeleitet werden`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'aktiviert' : 'deaktiviert'} Erstattungen`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `die Steuer „${taxName}“ hinzugefügt`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer „${taxName}“ entfernt`,
@@ -6916,6 +6975,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Sind Sie sicher, dass Sie einen weiteren Bericht in ${workspaceName} erstellen möchten? Sie können auf Ihre leeren Berichte zugreifen in`,
             emptyReportConfirmationPromptLink: 'Berichte',
+            emptyReportConfirmationDontShowAgain: 'Nicht mehr anzeigen',
             genericWorkspaceName: 'dieser Workspace',
         },
         genericCreateReportFailureMessage: 'Unerwarteter Fehler beim Erstellen dieses Chats. Bitte versuche es später erneut.',
@@ -7898,11 +7958,12 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             requireError: 'SAML-Anforderungseinstellung konnte nicht aktualisiert werden',
             disableSamlRequired: 'SAML-Anforderung deaktivieren',
             oktaWarningPrompt: 'Bist du sicher? Dadurch wird auch Okta SCIM deaktiviert.',
+            requireWithEmptyMetadataError: 'Bitte fügen Sie unten die Identity-Provider-Metadaten hinzu, um zu aktivieren',
         },
         samlConfigurationDetails: {
             title: 'SAML-Konfigurationsdetails',
             subtitle: 'Verwenden Sie diese Details, um SAML einzurichten.',
-            identityProviderMetaData: 'Identitätsanbieter-Metadaten',
+            identityProviderMetadata: 'Identitätsanbieter-Metadaten',
             entityID: 'Entitäts-ID',
             nameIDFormat: 'Namens-ID-Format',
             loginUrl: 'Login-URL',
@@ -7914,6 +7975,31 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             revealToken: 'Token anzeigen',
             fetchError: 'SAML-Konfigurationsdetails konnten nicht abgerufen werden',
             setMetadataGenericError: 'SAML-Metadaten konnten nicht festgelegt werden',
+        },
+        accessRestricted: {
+            title: 'Zugriff eingeschränkt',
+            subtitle: (domainName: string) =>
+                `Bitte verifizieren Sie sich als autorisierte/r Unternehmensadministrator/in für <strong>${domainName}</strong>, wenn Sie Kontrolle über Folgendes benötigen:`,
+            companyCardManagement: 'Firmenkartenverwaltung',
+            accountCreationAndDeletion: 'Kontoerstellung und -löschung',
+            workspaceCreation: 'Erstellung des Arbeitsbereichs',
+            samlSSO: 'SAML-SSO',
+        },
+        addDomain: {
+            title: 'Domain hinzufügen',
+            subtitle: 'Geben Sie den Namen der privaten Domain ein, auf die Sie zugreifen möchten (z. B. expensify.com).',
+            domainName: 'Domainname',
+            newDomain: 'Neue Domain',
+        },
+        domainAdded: {
+            title: 'Domain hinzugefügt',
+            description: 'Als Nächstes müssen Sie die Inhaberschaft der Domain bestätigen und Ihre Sicherheitseinstellungen anpassen.',
+            configure: 'Konfigurieren',
+        },
+        enhancedSecurity: {
+            title: 'Verbesserte Sicherheit',
+            subtitle: 'Erzwingen Sie für Mitglieder Ihrer Domain die Anmeldung per Single Sign-On, schränken Sie die Erstellung von Workspaces ein und vieles mehr.',
+            enable: 'Aktivieren',
         },
     },
 };

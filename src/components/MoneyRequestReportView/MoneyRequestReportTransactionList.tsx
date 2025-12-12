@@ -5,11 +5,9 @@ import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
@@ -17,11 +15,13 @@ import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -29,7 +29,6 @@ import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {getReportLayoutGroupBy} from '@libs/actions/ReportLayout';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import FS from '@libs/Fullstory';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -165,9 +164,11 @@ function MoneyRequestReportTransactionList({
     useCopySelectionHelper();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location'] as const);
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const {markReportIDAsExpense} = useContext(WideRHPContext);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
@@ -185,9 +186,11 @@ function MoneyRequestReportTransactionList({
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
+    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare'] as const);
+
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [report?.reportID, policy, lastDistanceExpenseType],
+        () => getAddExpenseDropdownOptions(expensifyIcons, report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
+        [report?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
     );
 
     const hasPendingAction = useMemo(() => {
@@ -197,7 +200,6 @@ function MoneyRequestReportTransactionList({
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const personalDetailsList = usePersonalDetails();
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
@@ -428,8 +430,6 @@ function MoneyRequestReportTransactionList({
 
     const listHorizontalPadding = styles.ph5;
 
-    const transactionItemFSClass = FS.getChatFSClass(personalDetailsList, report);
-
     if (isEmptyTransactions) {
         return (
             <>
@@ -530,7 +530,6 @@ function MoneyRequestReportTransactionList({
                                               amountColumnSize={amountColumnSize}
                                               taxAmountColumnSize={taxAmountColumnSize}
                                               scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
-                                              forwardedFSClass={transactionItemFSClass}
                                               onArrowRightPress={handleArrowRightPress}
                                           />
                                       );
@@ -554,7 +553,6 @@ function MoneyRequestReportTransactionList({
                               amountColumnSize={amountColumnSize}
                               taxAmountColumnSize={taxAmountColumnSize}
                               scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
-                              forwardedFSClass={transactionItemFSClass}
                               onArrowRightPress={handleArrowRightPress}
                           />
                       ))}
@@ -640,7 +638,7 @@ function MoneyRequestReportTransactionList({
             >
                 <MenuItem
                     title={translate('common.select')}
-                    icon={Expensicons.CheckSquare}
+                    icon={icons.CheckSquare}
                     onPress={() => {
                         if (!isMobileSelectionModeEnabled) {
                             turnOnMobileSelectionMode();
