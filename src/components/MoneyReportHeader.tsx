@@ -232,6 +232,10 @@ function MoneyReportHeader({
         'Info',
         'Export',
         'Document',
+        'XeroExport',
+        'QBOExport',
+        'NetSuiteExport',
+        'SageIntacctExport',
         'Feed',
         'Close',
         'Location',
@@ -788,7 +792,10 @@ function MoneyReportHeader({
             [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 text: translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegrationFallback!}),
-                icon: getIntegrationExportIcon(connectedIntegration ?? connectedIntegrationFallback),
+                icon: (() => {
+                    const iconName = getIntegrationExportIcon(connectedIntegration ?? connectedIntegrationFallback);
+                    return iconName ? expensifyIcons[iconName] : undefined;
+                })(),
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
                 onSelected: () => {
                     if (!connectedIntegration || !moneyRequestReport) {
@@ -803,7 +810,10 @@ function MoneyReportHeader({
             },
             [CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED]: {
                 text: translate('workspace.common.markAsExported'),
-                icon: getIntegrationExportIcon(connectedIntegration ?? connectedIntegrationFallback),
+                icon: (() => {
+                    const iconName = getIntegrationExportIcon(connectedIntegration ?? connectedIntegrationFallback);
+                    return iconName ? expensifyIcons[iconName] : undefined;
+                })(),
                 value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
                 onSelected: () => {
                     if (!connectedIntegration || !moneyRequestReport) {

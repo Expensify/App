@@ -10,7 +10,7 @@ import getIconForAction from './getIconForAction';
 import {canCreateRequest} from './ReportUtils';
 
 const getQuickActionIcon = (
-    icons: Record<'CalendarSolid' | 'Car' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'ReceiptScan' | 'MoneyCircle', IconAsset>,
+    icons: Record<'CalendarSolid' | 'Car' | 'Task' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'ReceiptScan' | 'MoneyCircle', IconAsset>,
     action: QuickActionName,
 ): IconAsset => {
     switch (action) {
@@ -29,7 +29,7 @@ const getQuickActionIcon = (
         case CONST.QUICK_ACTIONS.SEND_MONEY:
             return getIconForAction(CONST.IOU.TYPE.SEND, icons);
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            return Expensicons.Task;
+            return icons.Task;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return icons.Car;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:

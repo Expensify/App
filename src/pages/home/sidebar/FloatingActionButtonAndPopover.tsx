@@ -124,6 +124,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         'Car',
         'Location',
         'Suitcase',
+        'Task',
         'InvoiceGeneric',
         'ReceiptScan',
         'ChatBubble',
