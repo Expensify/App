@@ -37,7 +37,6 @@ import {
     getChangedApproverActionMessage,
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
-    getHarvestCreatedExpenseReportMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getLastVisibleMessage,
@@ -118,7 +117,6 @@ import {
     isDM,
     isDraftReport,
     isExpenseReport,
-    isHarvestCreatedExpenseReport,
     isHiddenForCurrentUser,
     isInvoiceRoom,
     isMoneyRequest,
@@ -648,15 +646,6 @@ function getLastMessageTextForReport({
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 lastMessageTextFromReport = translateLocal(`reportArchiveReasons.default`);
             }
-        }
-    } else if (report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-        if (isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
-            const harvestReport = getReportOrDraftReport(reportNameValuePairs?.originalID);
-            lastMessageTextFromReport = formatReportLastMessageText(
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                Parser.htmlToText(getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, getReportName(harvestReport), translateLocal)),
-            );
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, lastReportAction, true, false, null, true);
