@@ -551,7 +551,7 @@ describe('Transaction', () => {
                 ...generateTransaction({
                     reportID: oldExpenseReport.reportID,
                 }),
-                amount: -100,
+                amount: -200,
                 reimbursable: false,
             };
             const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
@@ -589,7 +589,7 @@ describe('Transaction', () => {
             expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal - transaction.amount);
         });
 
-        it('should not update the old report total when the currency is different', async () => {
+        it('should reset the old report total to 0 when no expenses remain, even if the currencies differ', async () => {
             const oldExpenseReport = {
                 ...createRandomReport(1, undefined),
                 total: -200,
@@ -634,8 +634,8 @@ describe('Transaction', () => {
                 });
             });
 
-            expect(report?.total).toBe(oldExpenseReport.total);
-            expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal);
+            expect(report?.total).toBe(0);
+            expect(report?.nonReimbursableTotal).toBe(0);
         });
 
         it('should show "waiting for you to submit expense" next step message when moving expense to a new report ', async () => {
