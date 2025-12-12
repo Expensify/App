@@ -711,6 +711,7 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
+        ZERO_EXPENSES: 'zeroExpenses',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
