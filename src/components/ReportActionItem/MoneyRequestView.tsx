@@ -186,17 +186,20 @@ function MoneyRequestView({
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
 
+    let policy;
+    let policyID;
     // If the expense is unreported the policy should be the user's default policy, if the expense is a per diem request and is unreported
     // the policy should be the one where the per diem rates are enabled, otherwise it should be the expense's report policy
-    const {policy, policyID} = useMemo(() => {
-        if (isExpenseUnreported && !isPerDiemRequest) {
-            return {policy: policyForMovingExpenses, policyID: policyForMovingExpensesID};
-        }
-        if (isExpenseUnreported && isPerDiemRequest) {
-            return {policy: perDiemOriginalPolicy, policyID: perDiemOriginalPolicy?.id};
-        }
-        return {policy: expensePolicy, policyID: report?.policyID};
-    }, [isExpenseUnreported, isPerDiemRequest, policyForMovingExpenses, policyForMovingExpensesID, perDiemOriginalPolicy, expensePolicy, report?.policyID])
+    if (isExpenseUnreported && !isPerDiemRequest) {
+        policy = policyForMovingExpenses;
+        policyID = policyForMovingExpensesID;
+    } else if (isExpenseUnreported && isPerDiemRequest) {
+        policy = perDiemOriginalPolicy;
+        policyID = perDiemOriginalPolicy?.id;
+    } else {
+        policy = expensePolicy;
+        policyID = report?.policyID;
+    }
 
     const allPolicyCategories = usePolicyCategories();
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
@@ -253,6 +256,7 @@ function MoneyRequestView({
         () => getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {},
         [allowNegativeAmount, currentUserPersonalDetails, transaction],
     );
+    const isZeroTransactionAmount = transactionAmount === 0;
     const isEmptyMerchant =
         transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transactionMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -470,7 +474,7 @@ function MoneyRequestView({
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
                 amount: {
-                    isError: transactionAmount === 0 && !isZeroExpensesBetaEnabled,
+                    isError: isZeroTransactionAmount && !isZeroExpensesBetaEnabled,
                     translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
                 },
                 merchant: {
@@ -523,7 +527,7 @@ function MoneyRequestView({
             canEdit,
             isCustomUnitOutOfPolicy,
             companyCardPageURL,
-            transactionAmount,
+            isZeroTransactionAmount,
             isZeroExpensesBetaEnabled,
         ],
     );
