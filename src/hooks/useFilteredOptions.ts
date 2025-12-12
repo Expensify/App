@@ -71,7 +71,6 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
     const totalReportsRef = useRef(0);
-    const prevReportsLengthRef = useRef(0);
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
@@ -95,8 +94,6 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             searchTerm,
             betas,
         });
-
-        prevReportsLengthRef.current = result.reports.length;
 
         return result;
     }, [allReports, allPersonalDetails, reportAttributesDerived, enabled, reportsLimit, includeP2P, searchTerm, betas]);
