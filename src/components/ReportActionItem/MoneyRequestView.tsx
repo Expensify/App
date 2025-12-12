@@ -315,11 +315,6 @@ function MoneyRequestView({
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isPaidGroupPolicy(report));
-    const hasViolations = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
-            getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
-        [getViolationsForField],
-    );
 
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
