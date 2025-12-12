@@ -44,7 +44,6 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         canBeMissing: true,
         selector: selectAdminIDs,
     });
-
     const {searchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
