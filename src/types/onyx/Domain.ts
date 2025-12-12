@@ -1,4 +1,10 @@
+import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from './OnyxCommon';
+
+/**
+ * A utility type that creates a record where all keys are strings that start with a specified prefix.
+ */
+type PrefixedRecord<Prefix extends string, ValueType> = Record<`${Prefix}${string}`, ValueType>;
 
 /** Model of domain data */
 type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -40,7 +46,8 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether setting SAML required setting has failed and why */
     samlRequiredError?: OnyxCommon.Errors;
-}>;
+}> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX, number>;
 
 /** Model of SAML metadata */
 type SamlMetadata = {
