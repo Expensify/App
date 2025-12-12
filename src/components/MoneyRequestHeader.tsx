@@ -383,7 +383,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(allTransactions, allReports, transaction);
+                initSplitExpense(allTransactions, allReports, transaction, report);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
