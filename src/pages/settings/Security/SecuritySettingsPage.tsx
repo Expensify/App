@@ -58,7 +58,7 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'UserLock', 'UserPlus', 'Fingerprint', 'Shield', 'ArrowCollapse'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus', 'Shield', 'Fingerprint'] as const);
     const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
@@ -132,7 +132,7 @@ function SecuritySettingsPage() {
         const baseMenuItems: BaseMenuItemType[] = [
             {
                 translationKey: 'twoFactorAuth.headerTitle',
-                icon: Expensicons.Shield,
+                icon: icons.Shield,
                 action: () => {
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
@@ -233,6 +233,7 @@ function SecuritySettingsPage() {
     }, [
         icons.Fingerprint,
         icons.UserLock,
+        icons.Shield,
         userHasRegisteredOnAtLeastOneDevice,
         isAccountLocked,
         isDelegateAccessRestricted,

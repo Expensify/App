@@ -73,6 +73,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {dismissRejectUseExplanation, initMoneyRequest, initSplitExpense, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -138,13 +139,13 @@ function SearchPage({route}: SearchPageProps) {
         'Send',
         'Trashcan',
         'ThumbsUp',
+        'ThumbsDown',
         'ArrowRight',
         'Stopwatch',
         'Exclamation',
         'SmartScan',
         'MoneyBag',
         'ArrowSplit',
-        'Workflows',
     ] as const);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -509,20 +510,34 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowChangeApproverOption =
-            queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
-            !isAnyTransactionOnHold &&
-            areSelectedTransactionsIncludedInReports &&
-            selectedReports.length &&
-            selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER));
+        // Check if all selected transactions can be rejected
+        const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => !hasTransactionBeenRejected(id));
 
-        if (shouldShowChangeApproverOption) {
+        const shouldShowRejectOption =
+            queryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
+            !isOffline &&
+            selectedTransactionsKeys.length > 0 &&
+            selectedTransactionsKeys.every((id) => selectedTransactions[id].canReject) &&
+            hasNoRejectedTransaction;
+
+        if (shouldShowRejectOption) {
             options.push({
-                icon: expensifyIcons.Workflows,
-                text: translate('iou.changeApprover.title'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER,
+                icon: expensifyIcons.ThumbsDown,
+                text: translate('search.bulkActions.reject'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.CHANGE_APPROVER_SEARCH_RHP),
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    if (dismissedRejectUseExplanation) {
+                        Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+                    } else {
+                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                    }
+                },
             });
         }
 
@@ -993,7 +1008,8 @@ function SearchPage({route}: SearchPageProps) {
                 Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
             }
         } else {
-            // TODO: Add reject
+            dismissRejectUseExplanation();
+            Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
         }
         setRejectModalAction(null);
     }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
