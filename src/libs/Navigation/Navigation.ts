@@ -1,11 +1,10 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
+import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
-import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -14,7 +13,6 @@ import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
@@ -46,7 +44,7 @@ import type {
 } from './types';
 
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
-const SET_UP_2FA_SCREENS: Set<string> = new Set([
+const SET_UP_2FA_SCREENS = new Set<string>([
     SCREENS.TWO_FACTOR_AUTH.ROOT,
     SCREENS.TWO_FACTOR_AUTH.VERIFY,
     SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT,
@@ -55,7 +53,7 @@ const SET_UP_2FA_SCREENS: Set<string> = new Set([
     SCREENS.TWO_FACTOR_AUTH.DISABLE,
 ]);
 
-export function isTwoFactorSetupScreen(screen: string | undefined): boolean {
+function isTwoFactorSetupScreen(screen: string | undefined): boolean {
     return screen ? SET_UP_2FA_SCREENS.has(screen) : false
 }
 
@@ -84,30 +82,42 @@ function getShouldPopToSidebar() {
 }
 
 /**
- * Gets the deepest focused screen name from the navigation state.
+ * Recursively get the deepest focused screen name from the navigation state.
  * Unlike findFocusedRoute, this also handles the case where the nested navigator
  * hasn't been mounted yet and the target screen is in params instead of state.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getDeepestFocusedScreenName(route: {name?: string; state?: any; params?: any} | undefined): string | undefined {
+function getDeepestFocusedScreenName(
+    route: NavigationRoute | NavigationState | PartialState<NavigationState> | undefined,
+): string | undefined {
     if (!route) {
         return undefined;
     }
 
-    // If there's a state, use it to find the focused route (standard case after navigation)
-    if (route.state?.routes && route.state?.index !== undefined) {
-        const focusedRoute = route.state.routes[route.state.index];
+    // NavigationState case - has routes array and index
+    if ('routes' in route && 'index' in route && Array.isArray(route.routes) && typeof route.index === 'number') {
+        const focusedRoute = route.routes[route.index];
         return getDeepestFocusedScreenName(focusedRoute);
     }
 
-    // If there's no state but params.screen exists, the nested navigator hasn't been navigated yet
-    // and the target screen info is in params (initial navigation case)
-    if (route.params?.screen) {
-        return getDeepestFocusedScreenName({name: route.params.screen, params: route.params.params});
+    // Route with nested state case
+    if ('state' in route && route.state) {
+        return getDeepestFocusedScreenName(route.state);
     }
 
-    // No more nesting, return the current screen name
-    return route.name;
+    // Route with params.screen case (initial navigation before navigator mounts)
+    if ('params' in route && route.params && typeof route.params === 'object' && 'screen' in route.params) {
+        const params = route.params as {screen?: string; params?: Record<string, unknown>};
+        if (params.screen) {
+            return getDeepestFocusedScreenName({name: params.screen, params: params.params});
+        }
+    }
+
+    // Leaf route - return the name
+    if ('name' in route) {
+        return route.name;
+    }
+
+    return undefined;
 }
 
 type CanNavigateParams = {
@@ -854,4 +864,4 @@ export default {
     dismissToSuperWideRHP,
 };
 
-export {navigationRef};
+export {navigationRef, getDeepestFocusedScreenName, isTwoFactorSetupScreen};
