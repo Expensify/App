@@ -1150,6 +1150,14 @@ function getTransactionViolationsOfTransaction(transactionID: string) {
 }
 
 /**
+ * Check if a transaction has been rejected
+ */
+function hasTransactionBeenRejected(transactionID: string): boolean {
+    const transactionViolations = getTransactionViolationsOfTransaction(transactionID);
+    return transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+}
+
+/**
  * Check if there is pending rter violation in transactionViolations.
  */
 function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
@@ -1727,7 +1735,9 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
  */
 function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
+    // transaction?.taxCode may be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode || defaultTaxCode))?.modifiedName;
 }
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
@@ -2336,6 +2346,7 @@ export {
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
     getTransactionViolationsOfTransaction,
+    hasTransactionBeenRejected,
     isExpenseSplit,
     getAttendeesListDisplayString,
     isCorporateCardTransaction,
