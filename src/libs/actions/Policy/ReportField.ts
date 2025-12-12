@@ -1,5 +1,5 @@
 import cloneDeep from 'lodash/cloneDeep';
-import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -20,42 +20,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WorkspaceReportFieldForm} from '@src/types/form/WorkspaceReportFieldForm';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
-import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
+import type {Policy, PolicyReportField} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-const allPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (value, key) => {
-        if (!key) {
-            return;
-        }
-        if (value === null || value === undefined) {
-            // If we are deleting a policy, we have to check every report linked to that policy
-            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
-            // More info: https://github.com/Expensify/App/issues/14260
-            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
-            const policyReports = ReportUtils.getAllPolicyReports(policyID);
-            const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
-            policyReports.forEach((policyReport) => {
-                if (!policyReport) {
-                    return;
-                }
-                const {reportID} = policyReport;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
-            });
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
-            Onyx.multiSet(cleanUpSetQueries);
-            delete allPolicies[key];
-            return;
-        }
-
-        allPolicies[key] = value;
-    },
-});
 
 type CreateReportFieldsListValueParams = {
     valueName: string;
@@ -84,8 +51,38 @@ type DeleteReportFieldsListValueParams = {
 type CreateReportFieldParams = Pick<WorkspaceReportFieldForm, 'name' | 'type' | 'initialValue'> & {
     listValues: string[];
     disabledListValues: boolean[];
-    policyID: string;
     policyExpenseReportIDs: Array<string | undefined> | undefined;
+    policy: OnyxEntry<Policy>;
+};
+
+type DeleteReportFieldsParams = {
+    reportFieldsToUpdate: string[];
+    policy: OnyxEntry<Policy>;
+};
+
+type RemoveReportFieldListValueParams = {
+    valueIndexes: number[];
+    reportFieldID: string;
+    policy: OnyxEntry<Policy>;
+};
+
+type AddReportFieldListValueParams = {
+    valueName: string;
+    reportFieldID: string;
+    policy: OnyxEntry<Policy>;
+};
+
+type UpdateReportFieldListValueEnabledParams = {
+    valueIndexes: number[];
+    enabled: boolean;
+    reportFieldID: string;
+    policy: OnyxEntry<Policy>;
+};
+
+type UpdateReportFieldInitialValueParams = {
+    newInitialValue: string;
+    reportFieldID: string;
+    policy: OnyxEntry<Policy>;
 };
 
 function openPolicyReportFieldsPage(policyID: string) {
@@ -138,9 +135,9 @@ function renameReportFieldsListValue({valueIndex, newValueName, listValues}: Ren
 function setReportFieldsListValueEnabled({valueIndexes, enabled, disabledListValues}: SetReportFieldsListValueEnabledParams) {
     const disabledListValuesCopy = [...disabledListValues];
 
-    valueIndexes.forEach((valueIndex) => {
+    for (const valueIndex of valueIndexes) {
         disabledListValuesCopy[valueIndex] = !enabled;
-    });
+    }
 
     Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
         [INPUT_IDS.DISABLED_LIST_VALUES]: disabledListValuesCopy,
@@ -154,12 +151,10 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
     const listValuesCopy = [...listValues];
     const disabledListValuesCopy = [...disabledListValues];
 
-    valueIndexes
-        .sort((a, b) => b - a)
-        .forEach((valueIndex) => {
-            listValuesCopy.splice(valueIndex, 1);
-            disabledListValuesCopy.splice(valueIndex, 1);
-        });
+    for (const valueIndex of valueIndexes.sort((a, b) => b - a)) {
+        listValuesCopy.splice(valueIndex, 1);
+        disabledListValuesCopy.splice(valueIndex, 1);
+    }
 
     Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
         [INPUT_IDS.LIST_VALUES]: listValuesCopy,
@@ -170,13 +165,23 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
 /**
  * Creates a new report field.
  */
-function createReportField({name, type, initialValue, listValues, disabledListValues, policyID, policyExpenseReportIDs}: CreateReportFieldParams) {
-    const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
+function createReportField({name, type, initialValue, listValues, disabledListValues, policyExpenseReportIDs, policy}: CreateReportFieldParams) {
+    if (!policy) {
+        Log.warn('Policy data is not present');
+        return;
+    }
+
+    const previousFieldList = policy?.fieldList ?? {};
     const fieldID = WorkspaceReportFieldUtils.generateFieldID(name);
     const fieldKey = ReportUtils.getReportFieldKey(fieldID);
+
+    // User selected type Text but entered a formula Initial value, treat it as a Formula type for optimistic UI
+    const shouldTreatTextAsFormula = type === CONST.REPORT_FIELD_TYPES.TEXT && WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue(initialValue);
+    const optimisticType = shouldTreatTextAsFormula ? CONST.REPORT_FIELD_TYPES.FORMULA : type;
+
     const optimisticReportFieldDataForPolicy: Omit<OnyxValueWithOfflineFeedback<PolicyReportField>, 'value'> = {
         name,
-        type,
+        type: optimisticType,
         target: 'expense',
         defaultValue: initialValue,
         values: listValues,
@@ -191,7 +196,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
 
     const optimisticData = [
         {
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
                 fieldList: {
@@ -213,7 +218,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
 
     const failureData = [
         {
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
                 fieldList: {
@@ -239,7 +244,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
         optimisticData,
         successData: [
             {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
@@ -253,15 +258,19 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
     };
 
     const parameters: CreateWorkspaceReportFieldParams = {
-        policyID,
+        policyID: policy?.id,
         reportFields: JSON.stringify([optimisticReportFieldDataForPolicy]),
     };
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD, parameters, onyxData);
 }
 
-function deleteReportFields(policyID: string, reportFieldsToUpdate: string[]) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsParams) {
+    if (!policy) {
+        Log.warn('Policy data is not present');
+        return;
+    }
+
     const allReportFields = policy?.fieldList ?? {};
 
     const updatedReportFields = Object.fromEntries(Object.entries(allReportFields).filter(([key]) => !reportFieldsToUpdate.includes(key)));
@@ -284,7 +293,7 @@ function deleteReportFields(policyID: string, reportFieldsToUpdate: string[]) {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 value: {
                     fieldList: optimisticReportFields,
                 },
@@ -293,7 +302,7 @@ function deleteReportFields(policyID: string, reportFieldsToUpdate: string[]) {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 value: {
                     fieldList: successReportFields,
                     errorFields: null,
@@ -303,7 +312,7 @@ function deleteReportFields(policyID: string, reportFieldsToUpdate: string[]) {
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 value: {
                     fieldList: failureReportFields,
                     errorFields: {
@@ -315,7 +324,7 @@ function deleteReportFields(policyID: string, reportFieldsToUpdate: string[]) {
     };
 
     const parameters: DeletePolicyReportField = {
-        policyID,
+        policyID: policy?.id,
         reportFields: JSON.stringify(Object.values(updatedReportFields)),
     };
 
@@ -325,17 +334,32 @@ function deleteReportFields(policyID: string, reportFieldsToUpdate: string[]) {
 /**
  * Updates the initial value of a report field.
  */
-function updateReportFieldInitialValue(policyID: string, reportFieldID: string, newInitialValue: string) {
-    const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
+function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}: UpdateReportFieldInitialValueParams) {
+    if (!policy) {
+        Log.warn('Policy data is not present');
+        return;
+    }
+
+    const previousFieldList = policy?.fieldList ?? {};
     const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+    const existingField = previousFieldList[fieldKey];
+
+    // Dynamically adjust type for text/formula fields based on the new initial value for optimistic UI
+    let nextType = existingField?.type;
+    const isTextOrFormula = existingField?.type === CONST.REPORT_FIELD_TYPES.TEXT || existingField?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
+    if (isTextOrFormula || !existingField) {
+        nextType = WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue(newInitialValue) ? CONST.REPORT_FIELD_TYPES.FORMULA : CONST.REPORT_FIELD_TYPES.TEXT;
+    }
+
     const updatedReportField: PolicyReportField = {
-        ...previousFieldList[fieldKey],
+        ...existingField,
+        type: nextType,
         defaultValue: newInitialValue,
     };
     const onyxData: OnyxData = {
         optimisticData: [
             {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
@@ -347,7 +371,7 @@ function updateReportFieldInitialValue(policyID: string, reportFieldID: string, 
         ],
         successData: [
             {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
@@ -359,7 +383,7 @@ function updateReportFieldInitialValue(policyID: string, reportFieldID: string, 
         ],
         failureData: [
             {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
@@ -373,34 +397,39 @@ function updateReportFieldInitialValue(policyID: string, reportFieldID: string, 
         ],
     };
     const parameters: UpdateWorkspaceReportFieldInitialValueParams = {
-        policyID,
+        policyID: policy?.id,
         reportFields: JSON.stringify([updatedReportField]),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE, parameters, onyxData);
 }
 
-function updateReportFieldListValueEnabled(policyID: string, reportFieldID: string, valueIndexes: number[], enabled: boolean) {
-    const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
+function updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes, enabled}: UpdateReportFieldListValueEnabledParams) {
+    if (!policy) {
+        Log.warn('Policy data is not present');
+        return;
+    }
+
+    const previousFieldList = policy?.fieldList ?? {};
     const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
     const reportField = previousFieldList[fieldKey];
 
     const updatedReportField = cloneDeep(reportField);
 
-    valueIndexes.forEach((valueIndex) => {
+    for (const valueIndex of valueIndexes) {
         updatedReportField.disabledOptions[valueIndex] = !enabled;
         const shouldResetDefaultValue = !enabled && reportField.defaultValue === reportField.values.at(valueIndex);
 
         if (shouldResetDefaultValue) {
             updatedReportField.defaultValue = '';
         }
-    });
+    }
 
     // We are using the offline pattern A (optimistic without feedback)
     const onyxData: OnyxData = {
         optimisticData: [
             {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
@@ -412,7 +441,7 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
     };
 
     const parameters: EnableWorkspaceReportFieldListValueParams = {
-        policyID,
+        policyID: policy?.id,
         reportFields: JSON.stringify([updatedReportField]),
     };
 
@@ -422,8 +451,13 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
 /**
  * Adds a new option to the list type report field on a workspace.
  */
-function addReportFieldListValue(policyID: string, reportFieldID: string, valueName: string) {
-    const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
+function addReportFieldListValue({policy, reportFieldID, valueName}: AddReportFieldListValueParams) {
+    if (!policy) {
+        Log.warn('Policy data is not present');
+        return;
+    }
+
+    const previousFieldList = policy?.fieldList ?? {};
     const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
     const reportField = previousFieldList[reportFieldKey];
     const updatedReportField = cloneDeep(reportField);
@@ -435,7 +469,7 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
     const onyxData: OnyxData = {
         optimisticData: [
             {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
@@ -447,7 +481,7 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
     };
 
     const parameters: CreateWorkspaceReportFieldListValueParams = {
-        policyID,
+        policyID: policy?.id,
         reportFields: JSON.stringify([updatedReportField]),
     };
 
@@ -457,30 +491,33 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
 /**
  * Removes a list value from the workspace report fields.
  */
-function removeReportFieldListValue(policyID: string, reportFieldID: string, valueIndexes: number[]) {
-    const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
+function removeReportFieldListValue({policy, reportFieldID, valueIndexes}: RemoveReportFieldListValueParams) {
+    if (!policy) {
+        Log.warn('Policy data is not present');
+        return;
+    }
+
+    const previousFieldList = policy?.fieldList ?? {};
     const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
     const reportField = previousFieldList[reportFieldKey];
     const updatedReportField = cloneDeep(reportField);
 
-    valueIndexes
-        .sort((a, b) => b - a)
-        .forEach((valueIndex) => {
-            const shouldResetDefaultValue = reportField.defaultValue === reportField.values.at(valueIndex);
+    for (const valueIndex of valueIndexes.sort((a, b) => b - a)) {
+        const shouldResetDefaultValue = reportField.defaultValue === reportField.values.at(valueIndex);
 
-            if (shouldResetDefaultValue) {
-                updatedReportField.defaultValue = '';
-            }
+        if (shouldResetDefaultValue) {
+            updatedReportField.defaultValue = '';
+        }
 
-            updatedReportField.values.splice(valueIndex, 1);
-            updatedReportField.disabledOptions.splice(valueIndex, 1);
-        });
+        updatedReportField.values.splice(valueIndex, 1);
+        updatedReportField.disabledOptions.splice(valueIndex, 1);
+    }
 
     // We are using the offline pattern A (optimistic without feedback)
     const onyxData: OnyxData = {
         optimisticData: [
             {
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
@@ -492,7 +529,7 @@ function removeReportFieldListValue(policyID: string, reportFieldID: string, val
     };
 
     const parameters: RemoveWorkspaceReportFieldListValueParams = {
-        policyID,
+        policyID: policy?.id,
         reportFields: JSON.stringify([updatedReportField]),
     };
 

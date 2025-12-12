@@ -10,6 +10,7 @@ import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {getDevicePreferredLocale, translate as translateLocalize} from '@libs/Localize';
 import localeEventCallback from '@libs/Localize/localeEventCallback';
 import {format} from '@libs/NumberFormatUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import {setLocale} from '@userActions/App';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale, isSupportedLocale} from '@src/CONST/LOCALES';
@@ -63,6 +64,8 @@ type LocaleContextProps = {
     /** The user's preferred locale e.g. 'en', 'es' */
     preferredLocale: Locale | undefined;
 };
+
+type LocalizedTranslate = LocaleContextProps['translate'];
 
 const LocaleContext = createContext<LocaleContextProps>({
     translate: () => '',
@@ -127,9 +130,10 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         }
 
         setCurrentLocale(locale);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
     }, [areTranslationsLoading]);
 
-    const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);
+    const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails?.timezone?.selected]);
 
     const collator = useMemo(() => new Intl.Collator(currentLocale, COLLATOR_OPTIONS), [currentLocale]);
 
@@ -224,4 +228,4 @@ LocaleContextProvider.displayName = 'LocaleContextProvider';
 
 export {LocaleContext, LocaleContextProvider};
 
-export type {Locale, LocaleContextProps};
+export type {Locale, LocaleContextProps, LocalizedTranslate};

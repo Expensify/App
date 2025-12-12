@@ -1,25 +1,27 @@
 import type {ArrayValues} from 'type-fest';
-import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {Reservation, ReservationTimeDetails, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {AirPnr, CarPnr, HotelPnr, Pnr, PnrData, PnrTraveler, RailPnr, TripData} from '@src/types/onyx/TripData';
 import type IconAsset from '@src/types/utils/IconAsset';
+import SafeString from '@src/utils/SafeString';
 import {getMoneyRequestSpendBreakdown} from './ReportUtils';
 
-function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
+type TripReservationIcons = Record<'Plane' | 'Bed' | 'CarWithKey' | 'Train' | 'Luggage', IconAsset>;
+
+function getTripReservationIcon(icons: TripReservationIcons, reservationType?: ReservationType): IconAsset {
     switch (reservationType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
-            return Expensicons.Plane;
+            return icons.Plane;
         case CONST.RESERVATION_TYPE.HOTEL:
-            return Expensicons.Bed;
+            return icons.Bed;
         case CONST.RESERVATION_TYPE.CAR:
-            return Expensicons.CarWithKey;
+            return icons.CarWithKey;
         case CONST.RESERVATION_TYPE.TRAIN:
-            return Expensicons.Train;
+            return icons.Train;
         default:
-            return Expensicons.Luggage;
+            return icons.Luggage;
     }
 }
 
@@ -46,15 +48,15 @@ function getReservationsFromTripTransactions(transactions: Transaction[]): Reser
         .sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
 }
 
-function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
+function getTripEReceiptIcon(icons: Record<'Plane' | 'Bed', IconAsset>, transaction?: Transaction): IconAsset | undefined {
     const reservationType = transaction ? transaction.receipt?.reservationList?.[0]?.type : '';
 
     switch (reservationType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
         case CONST.RESERVATION_TYPE.CAR:
-            return Expensicons.Plane;
+            return icons.Plane;
         case CONST.RESERVATION_TYPE.HOTEL:
-            return Expensicons.Bed;
+            return icons.Bed;
         default:
             return undefined;
     }
@@ -82,7 +84,7 @@ function parseDurationToSeconds(duration: string): number {
 function getSeatByLegAndFlight(travelerInfo: ArrayValues<AirPnr['travelerInfos']>, legIdx: number, flightIdx: number): string | undefined {
     const seats = travelerInfo.booking?.seats?.filter((seat) => seat.legIdx === legIdx && seat.flightIdx === flightIdx);
     if (seats && seats.length > 0) {
-        return seats.join(', ');
+        return seats.map(SafeString).join(', ');
     }
     return '';
 }
@@ -102,7 +104,7 @@ function getTravelerName(traveler: ArrayValues<PnrData['pnrTravelers']>['persona
         name += ` ${traveler.name.given}`;
     }
 
-    return name.trim();
+    return name?.trim();
 }
 
 function getAddressFromLocation(
@@ -149,10 +151,10 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
     const airlineInfo = pnr.data.additionalMetadata?.airlineInfo ?? [];
     const airports = pnr.data.additionalMetadata?.airportInfo ?? [];
 
-    pnrData.travelerInfos.forEach((travelerInfo) => {
-        travelerInfo.tickets.forEach((ticket) => {
+    for (const travelerInfo of pnrData.travelerInfos) {
+        for (const ticket of travelerInfo.tickets) {
             const flightCoupons = ticket.flightCoupons;
-            flightCoupons.forEach((flightDetails, index) => {
+            for (const [index, flightDetails] of flightCoupons.sort((a, b) => a.legIdx - b.legIdx).entries()) {
                 const legIdx = flightDetails.legIdx;
                 const flightIdx = flightDetails.flightIdx;
                 const flightObject = pnrData.legs?.at(legIdx)?.flights.at(flightIdx);
@@ -218,9 +220,9 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
                 };
 
                 reservationList.push({reservation: reservationObject, reservationIndex: index});
-            });
-        });
-    });
+            }
+        }
+    }
 
     return reservationList;
 }
@@ -335,8 +337,8 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
     }
     const pnrData: RailPnr = pnr.data.railPnr;
 
-    pnrData.tickets.forEach((ticket) => {
-        ticket.legs.forEach((legIdx, legIndex) => {
+    for (const ticket of pnrData.tickets) {
+        for (const [legIndex, legIdx] of ticket.legs.entries()) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const leg = pnrData.legInfos.at(legIdx)!;
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -384,8 +386,8 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
                     },
                 },
             });
-        });
-    });
+        }
+    }
 
     return reservationList;
 }
@@ -446,7 +448,7 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
 
     const pnrMap = new Map<string, ReservationPNRData>();
 
-    reservations.forEach((reservation) => {
+    for (const reservation of reservations) {
         // eslint-disable-next-line rulesdir/no-default-id-values
         const pnrID = reservation.reservation.reservationID ?? '';
         if (!pnrMap.has(pnrID)) {
@@ -461,7 +463,7 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
         if (reservationData) {
             reservationData.reservations.push(reservation);
         }
-    });
+    }
 
     return Array.from(pnrMap.values()).map((pnrData) => {
         const pnrPayloadData = tripReport?.tripData?.payload?.pnrs?.find((pnr) => pnrData.pnrID === pnr.pnrId);
@@ -487,14 +489,14 @@ function getTripTotal(tripReport: Report): {
     return getMoneyRequestSpendBreakdown(tripReport);
 }
 
-function getReservationDetailsFromSequence(tripReservations: ReservationData[], sequenceIndex: number) {
+function getReservationDetailsFromSequence(icons: TripReservationIcons, tripReservations: ReservationData[], sequenceIndex: number) {
     const reservationDataIndex = tripReservations?.findIndex((reservation) => reservation.sequenceIndex === sequenceIndex);
     const reservationData = tripReservations.at(reservationDataIndex);
     const prevReservationData = Number(reservationData?.reservationIndex) > 0 ? tripReservations?.at(reservationDataIndex - 1) : undefined;
     const reservation = reservationData?.reservation;
     const prevReservation = prevReservationData?.reservation;
     const reservationType = reservation?.type;
-    const reservationIcon = getTripReservationIcon(reservation?.type);
+    const reservationIcon = getTripReservationIcon(icons, reservation?.type);
     return {
         reservation,
         prevReservation,
@@ -512,5 +514,6 @@ export {
     getReservationDetailsFromSequence,
     formatAirportInfo,
     getPNRReservationDataFromTripReport,
+    getAirReservations,
 };
 export type {ReservationData};

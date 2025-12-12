@@ -11,6 +11,7 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -19,7 +20,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedIcon} from '@libs/CardUtils';
 import {getUserDetailTooltipText, sortIconsByName} from '@libs/ReportUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -187,6 +188,7 @@ function ReportActionAvatarSubscript({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
     const containerStyle = StyleUtils.getContainerStyles(size);
@@ -285,7 +287,7 @@ function ReportActionAvatarSubscript({
                     dataSet={{dragArea: false}}
                 >
                     <Icon
-                        src={getCardFeedIcon(subscriptCardFeed, illustrations)}
+                        src={getCardFeedIcon(subscriptCardFeed, illustrations, companyCardFeedIcons)}
                         width={variables.cardAvatarWidth}
                         height={variables.cardAvatarHeight}
                         additionalStyles={styles.alignSelfCenter}

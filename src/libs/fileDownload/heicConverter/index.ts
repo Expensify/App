@@ -1,6 +1,6 @@
 import {canvasFallback, hasHeicOrHeifExtension} from '@libs/fileDownload/FileUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type {HeicConverterFunction} from './types';
 
 type HeicConverter = {
@@ -54,7 +54,7 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
                         return heicConverter
                             .heicTo({blob, type: CONST.IMAGE_FILE_FORMAT.JPEG})
                             .then((convertedBlob) => {
-                                const jpegFile = Object.assign(new File([convertedBlob], fileName.replace(/\.(heic|heif)$/i, '.jpg'), {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {
+                                const jpegFile = Object.assign(new File([convertedBlob], fileName.replaceAll(/\.(heic|heif)$/gi, '.jpg'), {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {
                                     uri: URL.createObjectURL(convertedBlob),
                                 });
                                 onSuccess(jpegFile as FileObject);

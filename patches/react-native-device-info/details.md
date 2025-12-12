@@ -5,7 +5,7 @@
 - Reason:
   
     ```
-    This patch adds new arch support.
+    This patch adds new arch support. It deliberately renames the file before modifying it to avoid this known issue: https://github.com/ds300/patch-package/issues/518
     ```
   
 - Upstream PR/issue: https://github.com/react-native-device-info/react-native-device-info/pull/1509

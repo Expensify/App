@@ -41,13 +41,13 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
             const addressRequiredFields = [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.CITY, INPUT_IDS.COUNTRY, INPUT_IDS.STATE] as const;
-            addressRequiredFields.forEach((fieldKey) => {
+            for (const fieldKey of addressRequiredFields) {
                 const fieldValue = values[fieldKey] ?? '';
                 if (isRequiredFulfilled(fieldValue)) {
-                    return;
+                    continue;
                 }
                 errors[fieldKey] = translate('common.error.fieldRequired');
-            });
+            }
 
             if (values.addressLine2.length > CONST.FORM_CHARACTER_LIMIT) {
                 errors.addressLine2 = translate('common.error.characterLimitExceedCounter', {

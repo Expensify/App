@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import {clearXeroErrorField, enablePolicyReportFields} from '@libs/actions/Policy/Policy';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, settingsPendingAction} from '@libs/PolicyUtils';
@@ -29,6 +30,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const categoryId = params?.categoryId ?? '';
     const categoryName = decodeURIComponent(params?.categoryName ?? '');
+    const decodedCategoryName = getDecodedCategoryName(categoryName);
     const policyID = policy?.id;
     const {config} = policy?.connections?.xero ?? {};
     const {trackingCategories} = policy?.connections?.xero?.data ?? {};
@@ -54,10 +56,10 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName})}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName: decodedCategoryName})}</Text>
             </View>
         ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, categoryName],
+        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, decodedCategoryName],
     );
 
     const updateMapping = useCallback(
@@ -89,7 +91,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
         },
-        [categoryId, currentTrackingCategoryValue, reportFieldTrackingCategories, policy, policyID],
+        [categoryId, currentTrackingCategoryValue, reportFieldTrackingCategories.length, policy, policyID],
     );
 
     return (

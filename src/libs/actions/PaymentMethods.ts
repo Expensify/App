@@ -1,9 +1,8 @@
-import {createRef} from 'react';
 import type {RefObject} from 'react';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {ContinueActionParams} from '@components/KYCWall/types';
+import type {KYCWallRef} from '@components/KYCWall/types';
 import * as API from '@libs/API';
 import type {
     AddPaymentCardParams,
@@ -24,24 +23,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
-import type {BankAccountList, FundList} from '@src/types/onyx';
+import type {BankAccountList, CardList, FundList} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
-type KYCWallRef = {
-    continueAction?: (params: ContinueActionParams) => void;
-};
-
-/**
- * Sets up a ref to an instance of the KYC Wall component.
- */
-const kycWallRef: RefObject<KYCWallRef | null> = createRef<KYCWallRef>();
-
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
  */
-function continueSetup(fallbackRoute?: Route) {
+function continueSetup(kycWallRef: RefObject<KYCWallRef | null>, fallbackRoute?: Route) {
     if (!kycWallRef.current?.continueAction) {
         Navigation.goBack(fallbackRoute);
         return;
@@ -52,7 +42,7 @@ function continueSetup(fallbackRoute?: Route) {
     kycWallRef.current.continueAction({goBackRoute: fallbackRoute});
 }
 
-function getPaymentMethods() {
+function getPaymentMethods(includePartiallySetupBankAccounts?: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -75,11 +65,15 @@ function getPaymentMethods() {
         },
     ];
 
-    return API.read(READ_COMMANDS.OPEN_PAYMENTS_PAGE, null, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    return API.read(
+        READ_COMMANDS.OPEN_PAYMENTS_PAGE,
+        {includePartiallySetupBankAccounts},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 function getMakeDefaultPaymentOnyxData(
@@ -223,6 +217,7 @@ function addSubscriptionPaymentCard(
         addressZip: string;
         currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
     },
+    fundList: OnyxEntry<FundList>,
 ) {
     const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
 
@@ -272,7 +267,7 @@ function addSubscriptionPaymentCard(
             failureData,
         });
     }
-    if (getCardForSubscriptionBilling()) {
+    if (getCardForSubscriptionBilling(fundList)) {
         Log.info(`[GTM] Not logging ${CONST.ANALYTICS.EVENT.PAID_ADOPTION} because a card was already added`);
     } else {
         GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
@@ -417,8 +412,8 @@ function dismissSuccessfulTransferBalancePage() {
  * Looks through each payment method to see if there is an existing error
  *
  */
-function hasPaymentMethodError(bankList: OnyxEntry<BankAccountList>, fundList: OnyxEntry<FundList>): boolean {
-    const combinedPaymentMethods = {...bankList, ...fundList};
+function hasPaymentMethodError(bankList: OnyxEntry<BankAccountList>, fundList: OnyxEntry<FundList>, cardList: OnyxEntry<CardList>): boolean {
+    const combinedPaymentMethods = {...bankList, ...fundList, ...cardList};
 
     return Object.values(combinedPaymentMethods).some((item) => Object.keys(item.errors ?? {}).length);
 }
@@ -583,7 +578,6 @@ export {
     addPaymentCard,
     getPaymentMethods,
     makeDefaultPaymentMethod,
-    kycWallRef,
     continueSetup,
     addSubscriptionPaymentCard,
     clearPaymentCardFormErrorAndSubmit,

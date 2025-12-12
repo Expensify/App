@@ -56,6 +56,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     const fabSize = isLHBVisible ? variables.iconSizeSmall : variables.iconSizeNormal;
 
     const sharedValue = useSharedValue(isActive ? 1 : 0);
+    const isHovered = useSharedValue(false);
     const buttonRef = ref;
 
     useEffect(() => {
@@ -68,7 +69,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     }, [isActive, sharedValue]);
 
     const animatedStyle = useAnimatedStyle(() => {
-        const backgroundColor = interpolateColor(sharedValue.get(), [0, 1], [buttonDefaultBG, buttonHoveredBG]);
+        const backgroundColor = isHovered.get() && !sharedValue.get() ? buttonHoveredBG : interpolateColor(sharedValue.get(), [0, 1], [buttonDefaultBG, buttonHoveredBG]);
 
         return {
             transform: [{rotate: `${sharedValue.get() * 135}deg`}],
@@ -115,22 +116,26 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 shouldUseHapticsOnLongPress
                 testID="floating-action-button"
             >
-                {({hovered}) => (
-                    <Animated.View
-                        style={[styles.floatingActionButton, {borderRadius}, styles.floatingActionButtonSmall, animatedStyle, hovered && {backgroundColor: buttonHoveredBG}]}
-                        testID="fab-animated-container"
-                    >
-                        <Svg
-                            width={fabSize}
-                            height={fabSize}
+                {({hovered}) => {
+                    isHovered.set(hovered);
+
+                    return (
+                        <Animated.View
+                            style={[styles.floatingActionButton, {borderRadius}, styles.floatingActionButtonSmall, animatedStyle]}
+                            testID="fab-animated-container"
                         >
-                            <AnimatedPath
-                                d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
-                                fill={icon}
-                            />
-                        </Svg>
-                    </Animated.View>
-                )}
+                            <Svg
+                                width={fabSize}
+                                height={fabSize}
+                            >
+                                <AnimatedPath
+                                    d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
+                                    fill={icon}
+                                />
+                            </Svg>
+                        </Animated.View>
+                    );
+                }}
             </PressableWithoutFeedback>
         );
     }

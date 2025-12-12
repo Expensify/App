@@ -5,9 +5,9 @@ import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselIte
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
-import {translateLocal} from '@libs/Localize';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 describe('CarouselItem', () => {

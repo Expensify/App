@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {addDays, addMinutes, format, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
-import {toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
+import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
@@ -49,11 +49,11 @@ describe('DateUtils', () => {
     });
 
     const datetime = '2022-11-07 00:00:00';
-    const timezone = 'America/Los_Angeles';
+    const timezone = 'Atlantic/Reykjavik';
 
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
         const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone);
-        expect(zoneAbbreviation).toBe('GMT-8');
+        expect(zoneAbbreviation).toBe('GMT');
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
@@ -72,7 +72,7 @@ describe('DateUtils', () => {
 
     it('should return a date object with the formatted datetime when calling getLocalDateFromDatetime', () => {
         const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, timezone, datetime);
-        expect(tzFormat(localDate, CONST.DATE.FNS_TIMEZONE_FORMAT_STRING, {timeZone: timezone})).toEqual('2022-11-06T16:00:00-08:00');
+        expect(tzFormat(localDate, CONST.DATE.FNS_TIMEZONE_FORMAT_STRING, {timeZone: timezone})).toEqual('2022-11-07T00:00:00Z');
     });
 
     it('should fallback to current date when getLocalDateFromDatetime is failing', () => {
@@ -332,6 +332,100 @@ describe('DateUtils', () => {
             const endTime = '2022-11-06T14:00:00Z';
 
             expect(DateUtils.isCurrentTimeWithinRange(startTime, endTime)).toBe(false);
+        });
+    });
+
+    describe('getStatusUntilDate', () => {
+        const currentTimeZone = 'America/Los_Angeles' as SelectedTimezone;
+        const inputTimeZoneNY = 'America/New_York' as SelectedTimezone;
+        const inputTimeZoneParis = 'Europe/Paris' as SelectedTimezone;
+        const inputTimeZoneTokyo = 'Asia/Tokyo' as SelectedTimezone;
+
+        beforeEach(() => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-10-19T17:00:00Z'));
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('returns empty string when input date is empty', () => {
+            expect(DateUtils.getStatusUntilDate('', inputTimeZoneNY, currentTimeZone)).toBe('');
+        });
+
+        it('returns "Until h:mm a" when input and current timezone are same', () => {
+            const nowInTZ = toZonedTime(new Date(), currentTimeZone);
+            const targetTime = set(nowInTZ, {hours: 15, minutes: 34, seconds: 0, milliseconds: 0});
+            const inputDateStr = tzFormat(targetTime, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
+
+            const result = DateUtils.getStatusUntilDate(inputDateStr, currentTimeZone, currentTimeZone);
+            const expectedLabel = tzFormat(targetTime, CONST.DATE.LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
+
+            expect(result).toBe(`Until ${expectedLabel}`);
+        });
+
+        it('returns "Until tomorrow" when end of day is in the same timezone', () => {
+            const nowInCurrent = toZonedTime(new Date(), currentTimeZone);
+            const endOfTodayCurrent = endOfDay(nowInCurrent);
+
+            const inputDateStrNY = tzFormat(endOfTodayCurrent, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneNY});
+
+            const result = DateUtils.getStatusUntilDate(inputDateStrNY, inputTimeZoneNY, inputTimeZoneNY);
+            expect(result).toBe('Until tomorrow');
+        });
+
+        it('returns "Until h:mm a" for later today in a different timezone', () => {
+            const targetTimeLA = set(toZonedTime(new Date(), currentTimeZone), {hours: 15, minutes: 34, seconds: 0, milliseconds: 0});
+            const inputDateStrNY = tzFormat(targetTimeLA, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneNY});
+
+            const result = DateUtils.getStatusUntilDate(inputDateStrNY, inputTimeZoneNY, currentTimeZone);
+
+            const date = fromZonedTime(inputDateStrNY, inputTimeZoneNY);
+            const converted = toZonedTime(date, currentTimeZone);
+            const expectedLabel = tzFormat(converted, CONST.DATE.LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
+
+            expect(result).toBe(`Until ${expectedLabel}`);
+        });
+
+        it('returns "Until MM-dd h:mm a" for future date within the same year in a different timezone', () => {
+            const twoDaysLaterLA = addDays(set(toZonedTime(new Date(), currentTimeZone), {hours: 15, minutes: 0, seconds: 0, milliseconds: 0}), 2);
+            const inputDateStrParis = tzFormat(twoDaysLaterLA, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneParis});
+
+            const result = DateUtils.getStatusUntilDate(inputDateStrParis, inputTimeZoneParis, currentTimeZone);
+
+            const date = fromZonedTime(inputDateStrParis, inputTimeZoneParis);
+            const converted = toZonedTime(date, currentTimeZone);
+            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+
+            expect(result).toBe(`Until ${expectedLabel}`);
+        });
+
+        it('returns "Until MM-dd h:mm a" when "until today" crosses into next day in current timezone', () => {
+            const endOfTodayTokyo = endOfDay(toZonedTime(new Date(), inputTimeZoneTokyo));
+            const inputDateStrTokyo = tzFormat(endOfTodayTokyo, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneTokyo});
+
+            const result = DateUtils.getStatusUntilDate(inputDateStrTokyo, inputTimeZoneTokyo, currentTimeZone);
+
+            const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
+            const converted = toZonedTime(date, currentTimeZone);
+
+            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+
+            expect(result).toBe(`Until ${expectedLabel}`);
+        });
+
+        it('returns "Until yyyy-MM-dd h:mm a" for a date in a different year across timezones', () => {
+            const laFutureDateStr = '2026-01-02 09:15:00';
+            const inputDateStrTokyo = tzFormat(fromZonedTime(laFutureDateStr, currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneTokyo});
+
+            const result = DateUtils.getStatusUntilDate(inputDateStrTokyo, inputTimeZoneTokyo, currentTimeZone);
+
+            const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
+            const converted = toZonedTime(date, currentTimeZone);
+            const expectedLabel = tzFormat(converted, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+
+            expect(result).toBe(`Until ${expectedLabel}`);
         });
     });
 });

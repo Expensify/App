@@ -7,6 +7,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Plus} from '@components/Icon/Expensicons';
+import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -16,8 +17,6 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -66,7 +65,6 @@ function WorkspaceReportFieldsPage({
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
-    const {environmentURL} = useEnvironment();
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
@@ -79,7 +77,7 @@ function WorkspaceReportFieldsPage({
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
-    }, [policy]);
+    }, [policy?.fieldList]);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
     const illustrations = useMemoizedLazyIllustrations(['ReportReceipt'] as const);
@@ -125,16 +123,14 @@ function WorkspaceReportFieldsPage({
     );
 
     const getHeaderText = () =>
-        !hasSyncError && isConnectionVerified ? (
+        !hasSyncError && isConnectionVerified && currentConnectionName ? (
             <Text style={[styles.mr5, styles.mt1]}>
-                <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.reportFields.importedFromAccountingSoftware')} `}</Text>
-                <TextLink
-                    style={[styles.textNormal, styles.link]}
-                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                >
-                    {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                </TextLink>
-                <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                <ImportedFromAccountingSoftware
+                    policyID={policyID}
+                    currentConnectionName={currentConnectionName}
+                    connectedIntegration={connectedIntegration}
+                    translatedText={translate('workspace.reportFields.importedFromAccountingSoftware')}
+                />
             </Text>
         ) : (
             <Text style={[styles.textNormal, styles.colorMuted, styles.mr5, styles.mt1]}>{translate('workspace.reportFields.subtitle')}</Text>
@@ -169,6 +165,8 @@ function WorkspaceReportFieldsPage({
     const clearTitleFieldError = () => {
         clearPolicyTitleFieldError(policyID);
     };
+
+    const toggleTitleStyle = useMemo(() => [styles.pv2, styles.pr3], [styles.pv2, styles.pr3]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -212,14 +210,15 @@ function WorkspaceReportFieldsPage({
                                 pendingAction={reportTitlePendingFields.defaultValue}
                                 shouldForceOpacity={!!reportTitlePendingFields.defaultValue}
                                 errors={reportTitleErrors}
-                                errorRowStyles={styles.mh0}
+                                errorRowStyles={[styles.mh0]}
+                                errorRowTextStyles={[styles.mv2]}
                                 onClose={clearTitleFieldError}
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
                                     title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
                                     shouldShowRightIcon
-                                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                                    style={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                     onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
                                 />
                             </OfflineWithFeedback>
@@ -227,8 +226,8 @@ function WorkspaceReportFieldsPage({
                                 pendingAction={reportTitlePendingFields.deletable}
                                 title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                                titleStyle={styles.pv2}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
+                                titleStyle={toggleTitleStyle}
                                 isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
                                 onToggle={(isEnabled) => {
                                     if (isEnabled && !isControlPolicy(policy)) {
@@ -280,6 +279,7 @@ function WorkspaceReportFieldsPage({
                                                     data={reportFieldsSections}
                                                     renderItem={renderItem}
                                                     keyExtractor={keyExtractor}
+                                                    maintainVisibleContentPosition={{disabled: true}}
                                                 />
                                             </View>
                                             {!hasAccountingConnections && (

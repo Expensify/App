@@ -4,8 +4,8 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -77,7 +77,7 @@ function VisibilityPage({report}: VisibilityProps) {
                 />
                 <SelectionList
                     shouldPreventDefaultFocusOnSelectRow
-                    sections={[{data: visibilityOptions}]}
+                    data={visibilityOptions}
                     onSelectRow={(option) => {
                         if (option.value === CONST.REPORT.VISIBILITY.PUBLIC) {
                             setShowConfirmModal(true);
@@ -86,7 +86,7 @@ function VisibilityPage({report}: VisibilityProps) {
                         changeVisibility(option.value);
                     }}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={visibilityOptions.find((visibility) => visibility.isSelected)?.keyForList}
+                    initiallyFocusedItemKey={visibilityOptions.find((visibility) => visibility.isSelected)?.keyForList}
                     ListItem={RadioListItem}
                 />
                 <ConfirmModal

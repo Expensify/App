@@ -33,7 +33,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
             if (!url) {
                 if (currentlyPlayingURL) {
-                    video.stop();
+                    video.pause();
                 }
                 return;
             }
@@ -126,7 +126,21 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             videoResumeTryNumberRef: video.resumeTryNumberRef,
             resetVideoPlayerData: video.resetPlayerData,
         }),
-        [updateCurrentURLAndReportID, currentlyPlayingURL, currentRouteReportID, originalParent, sharedElement, video, shareVideoPlayerElements],
+        [
+            updateCurrentURLAndReportID,
+            currentlyPlayingURL,
+            currentRouteReportID,
+            originalParent,
+            sharedElement,
+            video.ref,
+            video.play,
+            video.pause,
+            video.stop,
+            video.isPlaying,
+            video.resumeTryNumberRef,
+            video.resetPlayerData,
+            shareVideoPlayerElements,
+        ],
     );
 
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;

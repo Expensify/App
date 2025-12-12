@@ -40,6 +40,9 @@ type ValidateCodeActionContentProps = {
 
     /** Method to trigger when pressing more options button of the header */
     onThreeDotsButtonPress?: () => void;
+
+    /** Whether the modal is used as a page modal. Used to determine input auto focus timing. */
+    isPageModal?: boolean;
 };
 
 type ValidateCodeActionModalProps = ValidateCodeActionContentProps & {
@@ -51,6 +54,9 @@ type ValidateCodeActionModalProps = ValidateCodeActionContentProps & {
 
     /** Whether disable the animations */
     disableAnimation?: boolean;
+
+    /** Callback method fired when the modal is hidden */
+    onModalHide?: () => void;
 };
 
 export type {ValidateCodeActionContentProps, ValidateCodeActionModalProps};

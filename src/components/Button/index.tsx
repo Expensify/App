@@ -44,6 +44,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Any additional styles to pass to the icon wrapper container. */
     iconWrapperStyles?: StyleProp<ViewStyle>;
 
+    /** Extra-small sized button */
+    extraSmall?: boolean;
+
     /** Small sized button */
     small?: boolean;
 
@@ -63,7 +66,7 @@ type ButtonProps = Partial<ChildrenProps> & {
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** A function that is called when the button is clicked on */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
     /** A function that is called when the button is long pressed */
     onLongPress?: (event?: GestureResponderEvent) => void;
@@ -173,6 +176,9 @@ type ButtonProps = Partial<ChildrenProps> & {
      * Whether the button should stay visually normal even when disabled.
      */
     shouldStayNormalOnDisable?: boolean;
+
+    /** Label for Sentry tracking. On web, this will be added as data-sentry-label attribute. */
+    sentryLabel?: string;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -233,9 +239,10 @@ function Button({
     iconWrapperStyles = [],
     text = '',
 
+    extraSmall = false,
     small = false,
     large = false,
-    medium = !small && !large,
+    medium = !extraSmall && !small && !large,
 
     isLoading = false,
     isDisabled = false,
@@ -278,6 +285,7 @@ function Button({
     secondLineText = '',
     shouldBlendOpacity = false,
     shouldStayNormalOnDisable = false,
+    sentryLabel,
     ref,
     ...rest
 }: ButtonProps) {
@@ -298,6 +306,7 @@ function Button({
                     isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
+                    extraSmall && styles.buttonExtraSmallText,
                     small && styles.buttonSmallText,
                     medium && styles.buttonMediumText,
                     large && styles.buttonLargeText,
@@ -348,10 +357,11 @@ function Button({
                 <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {!!icon && (
-                            <View style={[styles.mr2, !text && styles.mr0, iconStyles]}>
+                            <View style={[extraSmall ? styles.mr1 : styles.mr2, !text && styles.mr0, iconStyles]}>
                                 <Icon
                                     src={icon}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
+                                    extraSmall={extraSmall}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -367,6 +377,7 @@ function Button({
                                 <Icon
                                     src={iconRight}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
+                                    extraSmall={extraSmall}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -376,6 +387,7 @@ function Button({
                                 <Icon
                                     src={iconRight}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
+                                    extraSmall={extraSmall}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -394,7 +406,7 @@ function Button({
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.button,
-            StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
+            StyleUtils.getButtonStyleWithIcon(styles, extraSmall, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
             success ? styles.buttonSuccess : undefined,
             danger ? styles.buttonDanger : undefined,
             isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
@@ -418,6 +430,7 @@ function Button({
             shouldRemoveRightBorderRadius,
             shouldShowRightIcon,
             small,
+            extraSmall,
             styles,
             success,
             text,
@@ -518,6 +531,7 @@ function Button({
                 hoverDimmingValue={1}
                 onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}
                 onHoverOut={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(false) : undefined}
+                sentryLabel={sentryLabel}
             >
                 {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 {renderContent()}
@@ -525,6 +539,7 @@ function Button({
                     <ActivityIndicator
                         color={success || danger ? theme.textLight : theme.text}
                         style={[styles.pAbsolute, styles.l0, styles.r0]}
+                        size={extraSmall ? 12 : undefined}
                     />
                 )}
             </PressableWithFeedback>

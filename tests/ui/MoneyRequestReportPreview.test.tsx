@@ -12,8 +12,7 @@ import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/
 import ScreenWrapper from '@components/ScreenWrapper';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {translateLocal} from '@libs/Localize';
-import {getFormattedCreated, isCardTransaction} from '@libs/TransactionUtils';
+import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -38,10 +37,6 @@ jest.mock('@rnmapbox/maps', () => {
     };
 });
 
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
-
 jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () =>
     jest.fn((): [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] => {
         return [mockChatReport, [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID}], {violations: mockViolations}];
@@ -55,8 +50,13 @@ const getIOUActionForReportID = (reportID: string | undefined, transactionID: st
     return {...mockAction, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
 };
 
-const hasViolations = (reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean) =>
-    (shouldShowInReview === undefined || shouldShowInReview) && Object.values(transactionViolations ?? {}).length > 0;
+const hasViolations = (
+    reportID: string | undefined,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    _currentUserAccountID: number,
+    _currentUserEmailParam: string,
+    shouldShowInReview?: boolean,
+) => (shouldShowInReview === undefined || shouldShowInReview) && Object.values(transactionViolations ?? {}).length > 0;
 
 const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = null}: Partial<MoneyRequestReportPreviewProps>) => {
     return render(
@@ -90,8 +90,8 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
 const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
     const created = getFormattedCreated(transaction);
     const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-    const isTransactionMadeWithCard = isCardTransaction(transaction);
-    const cashOrCard = isTransactionMadeWithCard ? translateLocal('iou.card') : translateLocal('iou.cash');
+    const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
+    const cashOrCard = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
     const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
     const transactionDisplayAmount = convertToDisplayString(transaction.amount, transaction.currency);
     return {transactionHeaderText, transactionDisplayAmount};
@@ -174,7 +174,7 @@ describe('MoneyRequestReportPreview', () => {
             await Onyx.multiSet({...mockOnyxTransactions, ...mockOnyxViolations});
         });
         await waitForBatchedUpdatesWithAct();
-        expect(screen.getAllByText(translateLocal('violations.reviewRequired'))).toHaveLength(2);
+        expect(screen.getAllByText(TestHelper.translateLocal('violations.reviewRequired'))).toHaveLength(2);
     });
 
     it('renders a skeleton if the transaction is empty', async () => {
@@ -189,94 +189,5 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getAllByTestId('TransactionPreviewSkeletonView')).toHaveLength(2);
-    });
-
-    it('renders Review button when violations exist', async () => {
-        // Mock the canReview function to return true when violations exist
-        const canReviewSpy = jest.spyOn(require('@libs/ReportPreviewActionUtils'), 'canReview').mockReturnValue(true);
-        const getReportPreviewActionSpy = jest.spyOn(require('@libs/ReportPreviewActionUtils'), 'getReportPreviewAction').mockReturnValue(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
-
-        renderPage({});
-        await waitForBatchedUpdatesWithAct();
-        setCurrentWidth();
-
-        // Set up an IOU report with violations
-        const reportWithViolations = {
-            ...mockIOUReport,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-        };
-
-        await Onyx.multiSet({
-            ...mockOnyxTransactions,
-            ...mockOnyxViolations,
-            [`${ONYXKEYS.COLLECTION.REPORT}${mockIOUReport.reportID}`]: reportWithViolations,
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        // Verify the Review button is rendered
-        expect(screen.getByText(translateLocal('common.review'))).toBeOnTheScreen();
-
-        // Verify the button has the correct styling (danger icon)
-        const reviewButton = screen.getByText(translateLocal('common.review'));
-        expect(reviewButton).toBeOnTheScreen();
-
-        // Clean up mocks
-        canReviewSpy.mockRestore();
-        getReportPreviewActionSpy.mockRestore();
-    });
-
-    it('does not render Review button when no violations exist', async () => {
-        // Mock the functions to return false/VIEW when no violations
-        const canReviewSpy = jest.spyOn(require('@libs/ReportPreviewActionUtils'), 'canReview').mockReturnValue(false);
-        const getReportPreviewActionSpy = jest.spyOn(require('@libs/ReportPreviewActionUtils'), 'getReportPreviewAction').mockReturnValue(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
-
-        renderPage({});
-        await waitForBatchedUpdatesWithAct();
-        setCurrentWidth();
-
-        // Set up transactions without violations
-        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
-        await waitForBatchedUpdatesWithAct();
-
-        // Verify the Review button is NOT rendered
-        expect(screen.queryByText(translateLocal('common.review'))).not.toBeOnTheScreen();
-
-        // But View button should be rendered instead
-        expect(screen.getByText(translateLocal('common.view'))).toBeOnTheScreen();
-
-        // Clean up mocks
-        canReviewSpy.mockRestore();
-        getReportPreviewActionSpy.mockRestore();
-    });
-
-    it('Review button can be pressed when violations exist', async () => {
-        // Mock the canReview function to return true
-        const canReviewSpy = jest.spyOn(require('@libs/ReportPreviewActionUtils'), 'canReview').mockReturnValue(true);
-        const getReportPreviewActionSpy = jest.spyOn(require('@libs/ReportPreviewActionUtils'), 'getReportPreviewAction').mockReturnValue(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
-
-        renderPage({});
-        await waitForBatchedUpdatesWithAct();
-        setCurrentWidth();
-
-        await Onyx.multiSet({
-            ...mockOnyxTransactions,
-            ...mockOnyxViolations,
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        // Find and press the Review button
-        const reviewButton = screen.getByText(translateLocal('common.review'));
-        expect(reviewButton).toBeOnTheScreen();
-
-        fireEvent.press(reviewButton);
-
-        // Verify the button remains present after press (basic interaction test)
-        expect(reviewButton).toBeOnTheScreen();
-
-        // Clean up mocks
-        canReviewSpy.mockRestore();
-        getReportPreviewActionSpy.mockRestore();
     });
 });
