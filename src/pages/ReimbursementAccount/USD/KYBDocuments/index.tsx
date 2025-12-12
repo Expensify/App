@@ -15,12 +15,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-type DocumentsProps = {
+type KYBDocumentsProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
 };
 
-function Documents({onBackButtonPress}: DocumentsProps) {
+function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -38,36 +38,31 @@ function Documents({onBackButtonPress}: DocumentsProps) {
                     inputID: 'companyTaxID',
                     title: 'documentsStep.taxIDVerification',
                     description: 'documentsStep.taxIDVerificationDescription',
-                    required: true,
-                    // required: reimbursementAccount?.achData?.requiredDocuments?.includes('companyTaxID') ?? false,
+                    required: reimbursementAccount?.achData?.verifications?.externalApiResponse?.companyTaxID?.status !== 'pass',
                 },
                 {
                     inputID: 'nameChangeDocument',
                     title: 'documentsStep.nameChangeDocument',
                     description: 'documentsStep.nameChangeDocumentDescription',
-                    required: true,
-                    // required: reimbursementAccount?.achData?.requiredDocuments?.includes('nameChangeDocument') ?? false,
+                    required: reimbursementAccount?.achData?.verifications?.externalApiResponse?.lexisNexisInstantIDResult?.status !== 'pass',
                 },
                 {
                     inputID: 'companyAddressVerification',
                     title: 'documentsStep.companyAddressVerification',
                     description: 'documentsStep.companyAddressVerificationDescription',
-                    required: true,
-                    // required: reimbursementAccount?.achData?.requiredDocuments?.includes('companyAddressVerification') ?? false,
+                    required: reimbursementAccount?.achData?.verifications?.externalApiResponse?.lexisNexisInstantIDResult?.status !== 'pass',
                 },
                 {
                     inputID: 'userAddressVerification',
                     title: 'documentsStep.userAddressVerification',
                     description: 'documentsStep.userAddressVerificationDescription',
-                    required: true,
-                    // required: reimbursementAccount?.achData?.requiredDocuments?.includes('userAddressVerification') ?? false,
+                    required: reimbursementAccount?.achData?.verifications?.externalApiResponse?.requestorIdentityID?.status !== 'pass',
                 },
                 {
                     inputID: 'userDOBVerification',
                     title: 'documentsStep.userDOBVerification',
                     description: 'documentsStep.userDOBVerificationDescription',
-                    required: true,
-                    // required: reimbursementAccount?.achData?.requiredDocuments?.includes('userDOBVerification') ?? false,
+                    required: reimbursementAccount?.achData?.verifications?.externalApiResponse?.requestorIdentityID?.status !== 'pass',
                 },
             ] as const,
         [],
@@ -85,12 +80,12 @@ function Documents({onBackButtonPress}: DocumentsProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
-            DOCUMENTS_CONFIG.filter((document) => document.required).forEach((document) => {
+            for (const document of DOCUMENTS_CONFIG.filter((documentItem) => documentItem.required)) {
                 const files = values[document.inputID] as FileObject[] | undefined;
                 if (!files || files.length === 0) {
                     errors[document.inputID] = translate('common.error.fieldRequired');
                 }
-            });
+            }
 
             return errors;
         },
@@ -135,7 +130,7 @@ function Documents({onBackButtonPress}: DocumentsProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={Documents.displayName}
+            wrapperID={KYBDocuments.displayName}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('documentsStep.subheader')}
@@ -178,6 +173,6 @@ function Documents({onBackButtonPress}: DocumentsProps) {
     );
 }
 
-Documents.displayName = 'Documents';
+KYBDocuments.displayName = 'KYBDocuments';
 
-export default Documents;
+export default KYBDocuments;

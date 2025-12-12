@@ -196,6 +196,30 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     /** Date the corpay bank account was created */
     created?: string;
+
+    /** Statuses of additional checks hinting at missing documents user still needs to upload */
+    verifications?: {
+        /** points towards one of external providers */
+        externalApiResponse?: {
+            /** provider name */
+            companyTaxID?: {
+                /** status of check */
+                status: string;
+            };
+            /** provider name */
+            lexisNexisInstantIDResult?: {
+                /** status of check */
+                status: string;
+            };
+            /** provider name */
+            requestorIdentityID?: {
+                /** status of check */
+                status: string;
+                /** fields that failed */
+                errors: Record<string, string>;
+            };
+        };
+    };
 };
 
 /** The step in an reimbursement account's ach data */
