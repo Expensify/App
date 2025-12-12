@@ -10,6 +10,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FloatingActionButton from '@components/FloatingActionButton';
+import FloatingDistanceTestButton from '@components/FloatingDistanceTestButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -691,11 +692,17 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 cancelText={translate('common.cancel')}
             />
             {!shouldUseNarrowLayout && (
-                <FloatingReceiptButton
-                    accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
-                    role={CONST.ROLE.BUTTON}
-                    onPress={startQuickScan}
-                />
+                <>
+                    <FloatingDistanceTestButton
+                        accessibilityLabel="Test Distance Request"
+                        role={CONST.ROLE.BUTTON}
+                    />
+                    <FloatingReceiptButton
+                        accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
+                        role={CONST.ROLE.BUTTON}
+                        onPress={startQuickScan}
+                    />
+                </>
             )}
             <FloatingActionButton
                 accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
