@@ -135,6 +135,12 @@ const ONYXKEYS = {
     /** Whether the user is a member of a policy other than their personal */
     HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
 
+    /** Key under which selfDM id is stored. Returned by OpenApp */
+    SELF_DM_REPORT_ID: 'selfDMReportID',
+
+    /** Key under which selfDM created action id is stored. Returned by OpenApp */
+    SELF_DM_REPORT_CREATED_ACTION_ID: 'selfDMReportCreatedActionID',
+
     /** NVP keys */
 
     /** This NVP contains list of at most 5 recent attendees */
@@ -1327,6 +1333,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE]: DistanceExpenseType;
     [ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY]: string;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
+    [ONYXKEYS.SELF_DM_REPORT_ID]: string | undefined;
+    [ONYXKEYS.SELF_DM_REPORT_CREATED_ACTION_ID]: string | undefined;
     [ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN]: boolean;
 };
 

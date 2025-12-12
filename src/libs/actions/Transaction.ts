@@ -24,6 +24,7 @@ import {
     buildTransactionThread,
     findSelfDMReportID,
     getReportTransactions,
+    getSelfDMReportCreatedActionID,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
@@ -721,14 +722,15 @@ function changeTransactionsReport(
     const successData: OnyxUpdate[] = [];
 
     const existingSelfDMReportID = findSelfDMReportID();
-    let selfDMReport: Report | undefined;
+    let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingSelfDMReportID}`];
     let selfDMCreatedReportAction: ReportAction | undefined;
     const currentUserAccountID = getCurrentUserAccountID();
 
-    if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+    if (!selfDMReport && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime);
+        const selfDMCreatedReportActionID = getSelfDMReportCreatedActionID();
+        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime, selfDMCreatedReportActionID);
 
         // Add optimistic updates for self DM report
         optimisticData.push(
