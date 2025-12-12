@@ -213,10 +213,11 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
     const shouldShowDiscount = useMemo(
         () =>
-            shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, currentUserPersonalDetails.accountID) && !isReportArchived,
+            shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, currentUserPersonalDetails?.accountID) &&
+            !isReportArchived,
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [firstDayFreeTrial, lastDayFreeTrial, hasTeam2025Pricing, reportNameValuePairs, subscriptionPlan, userBillingFundID, currentUserPersonalDetails.accountID],
+        [firstDayFreeTrial, lastDayFreeTrial, hasTeam2025Pricing, reportNameValuePairs, subscriptionPlan, userBillingFundID, currentUserPersonalDetails?.accountID],
     );
 
     const shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
@@ -382,7 +383,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                         report,
                                         parentReport,
                                         isReportArchived,
-                                        currentUserPersonalDetails.accountID,
+                                        currentUserPersonalDetails?.accountID,
                                         hasOutstandingChildTask,
                                         parentReportAction ?? undefined,
                                         ancestors,

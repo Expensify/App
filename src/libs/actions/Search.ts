@@ -1062,6 +1062,7 @@ function handleBulkPayItemSelected(params: {
         latestBankItems,
         activeAdminPolicies,
         isUserValidated,
+        userAccountID,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         confirmPayment,
