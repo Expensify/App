@@ -2,19 +2,18 @@ import reportsSelector from '@selectors/Attributes';
 import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useFetchRoute from '@hooks/useFetchRoute';
@@ -128,6 +127,7 @@ function IOURequestStepConfirmation({
     const personalDetails = usePersonalDetails();
     const allPolicyCategories = usePolicyCategories();
 
+    const [isRemoveConfirmModalVisible, setRemoveConfirmModalVisible] = useState(false);
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
         canBeMissing: true,
@@ -230,7 +230,6 @@ function IOURequestStepConfirmation({
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
-    const {showConfirmModal} = useConfirmModal();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -1239,26 +1238,13 @@ function IOURequestStepConfirmation({
         if (currentTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
             const nextTransaction = transactions.at(currentTransactionIndex + 1);
             replaceDefaultDraftTransaction(nextTransaction);
+            setRemoveConfirmModalVisible(false);
             return;
         }
 
         removeDraftTransaction(currentTransactionID);
+        setRemoveConfirmModalVisible(false);
         showPreviousTransaction();
-    };
-
-    const confirmRemoveCurrentTransaction = () => {
-        showConfirmModal({
-            title: translate('iou.removeExpense'),
-            prompt: translate('iou.removeExpenseConfirmation'),
-            confirmText: translate('common.remove'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            removeCurrentTransaction();
-        });
     };
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
@@ -1335,7 +1321,7 @@ function IOURequestStepConfirmation({
                         iouCategory={transaction?.category}
                         onConfirm={onConfirm}
                         onSendMoney={sendMoney}
-                        showRemoveExpenseConfirmModal={confirmRemoveCurrentTransaction}
+                        showRemoveExpenseConfirmModal={() => setRemoveConfirmModalVisible(true)}
                         receiptPath={receiptPath}
                         receiptFilename={receiptFilename}
                         iouType={iouType}
@@ -1358,6 +1344,16 @@ function IOURequestStepConfirmation({
                         isReceiptEditable
                     />
                 </View>
+                <ConfirmModal
+                    title={translate('iou.removeExpense')}
+                    isVisible={isRemoveConfirmModalVisible}
+                    onConfirm={removeCurrentTransaction}
+                    onCancel={() => setRemoveConfirmModalVisible(false)}
+                    prompt={translate('iou.removeExpenseConfirmation')}
+                    confirmText={translate('common.remove')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
             </DragAndDropProvider>
         </ScreenWrapper>
     );
