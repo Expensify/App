@@ -3,18 +3,18 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import * as Expensicons from '@components/Icon/Expensicons';
+import type BaseModalProps from '@components/Modal/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
-import useConfirmModal from '@hooks/useConfirmModal';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,11 +70,11 @@ function IOURequestStepSubrate({
     const styles = useThemeStyles();
     const policy = usePolicy(report?.policyID);
     const customUnit = getPerDiemCustomUnit(policy);
+    const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
+    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
-    const {showConfirmModal} = useConfirmModal();
     const textInputRef = useRef<AnimatedTextInputRef>(null);
     const parsedIndex = parseInt(pageIndex, 10);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
@@ -155,6 +155,8 @@ function IOURequestStepSubrate({
 
     const deleteSubrateAndHideModal = () => {
         removeSubrate(transaction, pageIndex);
+        setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
+        setIsDeleteStopModalOpen(false);
         goBack();
     };
 
@@ -185,26 +187,28 @@ function IOURequestStepSubrate({
                     shouldSetModalVisibility={false}
                     threeDotsMenuItems={[
                         {
-                            icon: expensifyIcons.Trashcan,
+                            icon: Expensicons.Trashcan,
                             text: translate('iou.deleteSubrate'),
                             onSelected: () => {
-                                showConfirmModal({
-                                    title: translate('iou.deleteSubrate'),
-                                    prompt: translate('iou.deleteSubrateConfirmation'),
-                                    confirmText: translate('common.delete'),
-                                    cancelText: translate('common.cancel'),
-                                    shouldEnableNewFocusManagement: true,
-                                    danger: true,
-                                }).then((result) => {
-                                    if (result.action !== ModalActions.CONFIRM) {
-                                        return;
-                                    }
-                                    deleteSubrateAndHideModal();
-                                });
+                                setRestoreFocusType(undefined);
+                                setIsDeleteStopModalOpen(true);
                             },
                             shouldCallAfterModalHide: true,
                         },
                     ]}
+                />
+                <ConfirmModal
+                    title={translate('iou.deleteSubrate')}
+                    isVisible={isDeleteStopModalOpen}
+                    onConfirm={deleteSubrateAndHideModal}
+                    onCancel={() => setIsDeleteStopModalOpen(false)}
+                    shouldSetModalVisibility={false}
+                    prompt={translate('iou.deleteSubrateConfirmation')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    shouldEnableNewFocusManagement
+                    danger
+                    restoreFocusType={restoreFocusType}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}

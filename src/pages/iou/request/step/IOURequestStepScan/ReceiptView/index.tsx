@@ -5,11 +5,10 @@ import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/A
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useConfirmModal from '@hooks/useConfirmModal';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,10 +37,9 @@ function ReceiptView({route}: ReceiptViewProps) {
     const {setAttachmentError} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const [currentReceipt, setCurrentReceipt] = useState<ReceiptWithTransactionIDAndSource | null>();
     const [page, setPage] = useState<number>(-1);
-    const {showConfirmModal} = useConfirmModal();
+    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
 
     const [receipts = getEmptyArray<ReceiptWithTransactionIDAndSource>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftReceiptsViewSelector,
@@ -83,7 +81,12 @@ function ReceiptView({route}: ReceiptViewProps) {
         Navigation.goBack();
     }, [currentReceipt, receipts.length, secondTransaction, secondTransactionID]);
 
+    const handleCloseConfirmModal = () => {
+        setIsDeleteReceiptConfirmModalVisible(false);
+    };
+
     const deleteReceipt = useCallback(() => {
+        handleCloseConfirmModal();
         handleDeleteReceipt();
     }, [handleDeleteReceipt]);
 
@@ -100,24 +103,12 @@ function ReceiptView({route}: ReceiptViewProps) {
                 title={translate('common.receipt')}
                 shouldDisplayHelpButton={false}
                 onBackButtonPress={handleGoBack}
+                onCloseButtonPress={handleCloseConfirmModal}
             >
                 <Button
                     shouldShowRightIcon
-                    iconRight={expensifyIcons.Trashcan}
-                    onPress={() => {
-                        showConfirmModal({
-                            title: translate('receipt.deleteReceipt'),
-                            prompt: translate('receipt.deleteConfirmation'),
-                            confirmText: translate('common.delete'),
-                            cancelText: translate('common.cancel'),
-                            danger: true,
-                        }).then((result) => {
-                            if (result.action !== ModalActions.CONFIRM) {
-                                return;
-                            }
-                            deleteReceipt();
-                        });
-                    }}
+                    iconRight={Expensicons.Trashcan}
+                    onPress={() => setIsDeleteReceiptConfirmModalVisible(true)}
                     innerStyles={styles.bgTransparent}
                     large
                 />
@@ -134,6 +125,17 @@ function ReceiptView({route}: ReceiptViewProps) {
                 setShouldShowArrows={setShouldShowArrows}
                 onAttachmentError={setAttachmentError}
                 shouldShowArrows={shouldShowArrows}
+            />
+            <ConfirmModal
+                title={translate('receipt.deleteReceipt')}
+                isVisible={isDeleteReceiptConfirmModalVisible}
+                onConfirm={deleteReceipt}
+                onCancel={handleCloseConfirmModal}
+                prompt={translate('receipt.deleteConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                onBackdropPress={handleCloseConfirmModal}
+                danger
             />
         </ScreenWrapper>
     );
