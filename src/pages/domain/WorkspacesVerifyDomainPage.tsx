@@ -12,7 +12,7 @@ function WorkspacesVerifyDomainPage({route}: WorkspacesVerifyDomainPageProps) {
 
     return (
         <BaseVerifyDomainPage
-            accountID={domainAccountID}
+            domainAccountID={domainAccountID}
             forwardTo={ROUTES.WORKSPACES_DOMAIN_VERIFIED.getRoute(domainAccountID)}
         />
     );

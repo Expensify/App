@@ -12,7 +12,7 @@ function SamlDomainVerifiedPage({route}: SamlDomainVerifiedPageProps) {
 
     return (
         <BaseDomainVerifiedPage
-            accountID={domainAccountID}
+            domainAccountID={domainAccountID}
             redirectTo={ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID)}
         />
     );

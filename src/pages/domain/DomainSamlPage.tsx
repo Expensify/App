@@ -35,7 +35,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['LaptopOnDeskWithCoffeeAndKey', 'LockClosed', 'OpenSafe', 'ShieldYellow'] as const);
 
-    const {domainAccountID} = route.params;
+    const domainAccountID = route.params?.domainAccountID;
     const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
     const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: false});
     const [domainSettings, domainSettingsResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
