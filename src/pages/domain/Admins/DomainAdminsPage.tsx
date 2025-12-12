@@ -1,9 +1,10 @@
 import React, {useCallback} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import SelectionList from '@components/SelectionListWithSections';
@@ -21,12 +22,12 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
-import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import {selectAdminIDs} from '@src/libs/DomainUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.SAML>;
 
@@ -43,15 +44,13 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['Members'] as const);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {canBeMissing: true});
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {canBeMissing: true});
+    const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainID}`, {canBeMissing: false});
     const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {
         canBeMissing: true,
         selector: selectAdminIDs,
     });
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-
-    const currentUserAccountID = getCurrentUserAccountID();
-    const isAdmin = adminIDs?.includes(currentUserAccountID) ?? false;
 
     const data: AdminOption[] = [];
     for (const accountID of adminIDs ?? []) {
@@ -93,6 +92,10 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         );
     };
 
+    if (isLoadingOnyxValue(domainMetadata, isAdminMetadata)) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -102,7 +105,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={!domain || !isAdmin}
+                shouldShow={!isLoadingOnyxValue(domainMetadata) && (!domain || !isAdmin)}
                 shouldForceFullScreen
             >
                 <HeaderWithBackButton
@@ -112,7 +115,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollViewWithContext
+                <ScrollView
                     keyboardShouldPersistTaps="handled"
                     addBottomSafeAreaPadding
                     style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
@@ -139,7 +142,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                         addBottomSafeAreaPadding
                         customListHeader={getCustomListHeader()}
                     />
-                </ScrollViewWithContext>
+                </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
