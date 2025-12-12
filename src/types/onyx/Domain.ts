@@ -47,7 +47,7 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether setting SAML required setting has failed and why */
     samlRequiredError?: OnyxCommon.Errors;
 }> &
-    PrefixedRecord<typeof ONYXKEYS.COLLECTION.DOMAIN_ADMIN_PERMISSIONS, number>;
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX, number>;
 
 /** Model of SAML metadata */
 type SamlMetadata = {

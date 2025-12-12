@@ -733,7 +733,7 @@ const ONYXKEYS = {
         SAML_METADATA: 'saml_metadata_',
 
         /** Stores domain admin account ID */
-        DOMAIN_ADMIN_PERMISSIONS: 'expensify_adminPermissions_',
+        EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
     },
 
     /** List of Form ids */
@@ -1120,7 +1120,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS]: boolean;
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
-    [ONYXKEYS.COLLECTION.DOMAIN_ADMIN_PERMISSIONS]: number;
+    [ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX]: number;
 };
 
 type OnyxValuesMapping = {

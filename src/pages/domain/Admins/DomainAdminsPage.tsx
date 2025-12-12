@@ -1,3 +1,4 @@
+import {adminAccountIDsSelector} from '@selectors/Domain';
 import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -21,8 +22,8 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
+import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
-import {selectAdminIDs} from '@src/libs/DomainUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -44,16 +45,14 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
-    const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: false});
-    const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
-        selector: selectAdminIDs,
+        selector: adminAccountIDsSelector,
     });
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const data: AdminOption[] = [];
-    for (const accountID of adminIDs ?? []) {
+    for (const accountID of adminAccountIDs ?? []) {
         const details = personalDetails?.[accountID];
         data.push({
             keyForList: String(accountID),
@@ -92,9 +91,12 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         );
     };
 
-    if (isLoadingOnyxValue(domainMetadata, isAdminMetadata)) {
+    if (isLoadingOnyxValue(domainMetadata)) {
         return <FullScreenLoadingIndicator />;
     }
+
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     return (
         <ScreenWrapper
@@ -105,7 +107,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={!domain || !isAdmin}
+                shouldShow={!isAdmin}
                 shouldForceFullScreen
             >
                 <HeaderWithBackButton
