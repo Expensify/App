@@ -2,7 +2,6 @@ import React, {useCallback} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
@@ -10,7 +9,7 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import SelectionList from '@components/SelectionListWithSections';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -42,6 +41,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Members'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {canBeMissing: true});
@@ -63,7 +63,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             alternateText: formatPhoneNumber(details?.login ?? ''),
             icons: [
                 {
-                    source: details?.avatar ?? FallbackAvatar,
+                    source: details?.avatar ?? icons.FallbackAvatar,
                     name: formatPhoneNumber(details?.login ?? ''),
                     type: CONST.ICON_TYPE_AVATAR,
                     id: accountID,
