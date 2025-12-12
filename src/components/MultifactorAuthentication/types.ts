@@ -9,8 +9,12 @@ import type {
     MultifactorAuthenticationTriggerArgument,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
-import type {MultifactorAuthenticationScenario} from './config';
-import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenarioAdditionalParams, MultifactorAuthenticationScenarioParams} from './config/types';
+import type {
+    AllMultifactorAuthenticationNotificationType,
+    MultifactorAuthenticationScenario,
+    MultifactorAuthenticationScenarioAdditionalParams,
+    MultifactorAuthenticationScenarioParams,
+} from './config/types';
 
 /**
  * Function that handles multifactorial authentication authorization of transactions.

@@ -1,8 +1,5 @@
-import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
+import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
 
-type AuthorizeTransactionParams = {
-    transactionID: string;
-    signedChallenge: SignedChallenge;
-};
+type AuthorizeTransactionParams = MultifactorAuthenticationScenarioParameters['AUTHORIZE-TRANSACTION'];
 
 export default AuthorizeTransactionParams;

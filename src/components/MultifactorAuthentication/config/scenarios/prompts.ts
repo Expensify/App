@@ -1,5 +1,5 @@
 import LottieAnimations from '@components/LottieAnimations';
-import type {MultifactorAuthenticationPrompt} from './types';
+import type {MultifactorAuthenticationPrompt} from '@components/MultifactorAuthentication/config/types';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 export default {

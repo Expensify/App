@@ -1,5 +1,6 @@
 import type {EmptyObject} from 'type-fest';
 import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
+import type {MultifactorAuthenticationKeyInfo} from '@libs/MultifactorAuthentication/Biometrics/types';
 import type Response from '@src/types/onyx/Response';
 import type {API_ROUTES, READ_COMMANDS, WRITE_COMMANDS} from './config';
 
@@ -21,7 +22,7 @@ type WriteCommands = {
     RegisterBiometrics: {
         route: typeof API_ROUTES.Write.RegisterBiometrics;
         parameters: {
-            publicKey: string;
+            keyInfo: MultifactorAuthenticationKeyInfo<'biometric'>;
             validateCode?: number;
         };
         returns: APIResponse;

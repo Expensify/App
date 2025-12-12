@@ -2,11 +2,11 @@ import type {ViewStyle} from 'react-native';
 import type {EmptyObject, ValueOf} from 'type-fest';
 import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
-import type {AllMultifactorAuthenticationFactors} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {AllMultifactorAuthenticationFactors, MultifactorAuthenticationActionParams, MultifactorAuthenticationKeyInfo} from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Route} from '@src/ROUTES';
-import type {MULTIFACTOR_AUTHENTICATION_PROMPT_UI, MULTIFACTOR_AUTHENTICATION_UI, MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParameters} from './index';
+import type SCREENS from '@src/SCREENS';
+import type {MULTIFACTOR_AUTHENTICATION_PROMPT_UI, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG, MultifactorAuthenticationScenarioPayload} from './index';
 
 type MultifactorAuthenticationCancelConfirm = {
     description?: TranslationPaths;
@@ -38,10 +38,10 @@ type MultifactorAuthenticationModal = {
     cancelConfirmation?: MultifactorAuthenticationCancelConfirm;
 };
 
-type MultifactorAuthenticationUIRecordConst = typeof MULTIFACTOR_AUTHENTICATION_UI;
+type MultifactorAuthenticationConfigRecordConst = typeof MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG;
 
 type MultifactorAuthenticationScenarioNotificationConst = {
-    [K in keyof MultifactorAuthenticationUIRecordConst]: MultifactorAuthenticationUIRecordConst[K]['NOTIFICATIONS'];
+    [K in MultifactorAuthenticationScenario]: MultifactorAuthenticationConfigRecordConst[K]['NOTIFICATIONS'];
 };
 
 type MultifactorAuthenticationNotificationScenarioOptions = {
@@ -72,18 +72,22 @@ type MultifactorAuthenticationScenarioResponse = {
     reason: TranslationPaths;
 };
 
-type MultifactorAuthenticationScenarioPureMethod<T> = (params: Partial<AllMultifactorAuthenticationFactors> & T) => Promise<MultifactorAuthenticationScenarioResponse>;
+type MultifactorAuthenticationScreen = ValueOf<typeof SCREENS.MULTIFACTOR_AUTHENTICATION>;
 
-type MultifactorAuthenticationScenarioConfig<T> = {
+type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknown>> = (
+    params: MultifactorAuthenticationActionParams<T, 'signedChallenge'>,
+) => Promise<MultifactorAuthenticationScenarioResponse>;
+
+type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown>> = {
     action: MultifactorAuthenticationScenarioPureMethod<T>;
     allowedAuthentication: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>;
-    route: Route;
-};
+    screen: MultifactorAuthenticationScreen;
+} & MultifactorAuthenticationUI;
 
 type MultifactorAuthenticationScenarioConfigRecord = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfig<never>>;
 
-type MultifactorAuthenticationScenarioAdditionalParams<T extends MultifactorAuthenticationScenario> = T extends keyof MultifactorAuthenticationScenarioParameters
-    ? MultifactorAuthenticationScenarioParameters[T]
+type MultifactorAuthenticationScenarioAdditionalParams<T extends MultifactorAuthenticationScenario> = T extends keyof MultifactorAuthenticationScenarioPayload
+    ? MultifactorAuthenticationScenarioPayload[T]
     : EmptyObject;
 
 /**
@@ -102,6 +106,22 @@ type MultifactorAuthenticationScenarioResponseWithSuccess = {
 
 type MultifactorAuthenticationPromptType = keyof typeof MULTIFACTOR_AUTHENTICATION_PROMPT_UI;
 
+type RegisterBiometricsParams = MultifactorAuthenticationActionParams<
+    {
+        keyInfo: MultifactorAuthenticationKeyInfo<'biometric'>;
+    },
+    'validateCode'
+>;
+
+type MultifactorAuthenticationScenarioParameters = {
+    [key in keyof MultifactorAuthenticationScenarioPayload]: MultifactorAuthenticationActionParams<MultifactorAuthenticationScenarioPayload[key], 'signedChallenge'>;
+} & {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'REGISTER-BIOMETRICS': RegisterBiometricsParams;
+};
+
+type MultifactorAuthenticationScenario = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO>;
+
 export type {
     MultifactorAuthenticationPrompt,
     MultifactorAuthenticationNotification,
@@ -111,6 +131,8 @@ export type {
     MultifactorAuthenticationScenarioResponseWithSuccess,
     MultifactorAuthenticationScenarioResponse,
     MultifactorAuthenticationScenarioAdditionalParams,
+    MultifactorAuthenticationScenarioParameters,
+    MultifactorAuthenticationScenario,
     MultifactorAuthenticationNotificationMapEntry,
     MultifactorAuthenticationNotificationOptions,
     MultifactorAuthenticationScenarioParams,

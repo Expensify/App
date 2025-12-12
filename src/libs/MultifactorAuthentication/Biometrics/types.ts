@@ -122,6 +122,27 @@ type MultifactorAuthenticationResponseTranslationPath = typeof VALUES.RESPONSE_T
 
 type MultifactorAuthenticationKeyType = ValueOf<typeof VALUES.KEY_ALIASES>;
 
+type MultifactorAuthenticationActionParams<T extends Record<string, unknown>, R extends keyof AllMultifactorAuthenticationFactors> = T & Pick<AllMultifactorAuthenticationFactors, R>;
+
+type KeyInfoType = 'biometric' | 'public-key';
+
+type ResponseDetails<T extends KeyInfoType> = T extends 'biometric'
+    ? {
+          biometric: {
+              publicKey: Base64URLString;
+          };
+      }
+    : {
+          clientDataJSON: Base64URLString;
+          attestationObject: Base64URLString;
+      };
+
+type MultifactorAuthenticationKeyInfo<T extends KeyInfoType> = {
+    rawId: Base64URLString;
+    type: T;
+    response: ResponseDetails<T>;
+};
+
 export type {
     MultifactorAuthenticationFactor,
     MultifactorAuthenticationStep,
@@ -131,5 +152,7 @@ export type {
     MultifactorAuthenticationStatus,
     MultifactorAuthenticationPartialStatus,
     MultifactorAuthenticationTrigger,
+    MultifactorAuthenticationKeyInfo,
+    MultifactorAuthenticationActionParams,
     MultifactorAuthenticationTriggerArgument,
 };

@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {FALLBACK_ACCOUNT_ID, FALLBACK_EMAIL, RESPONSE, ROUTER, STORAGE} from './config';
 import type {ReadCommands, WriteCommands} from './index';
 import Logger from './Logger';
-import {base64URL, generateSixDigitNumber, isChallengeValid} from './utils';
+import {base64URL, base64URLToString, generateSixDigitNumber, isChallengeValid} from './utils';
 
 let sessionData: OnyxValues[typeof ONYXKEYS.SESSION] = {};
 
@@ -114,7 +114,13 @@ ROUTER.get['/request_biometric_challenge'] = async (): Promise<ReadCommands['Req
     };
 };
 
-ROUTER.post['/register_biometrics'] = ({publicKey, validateCode}: Partial<WriteCommands['RegisterBiometrics']['parameters']>): WriteCommands['RegisterBiometrics']['returns'] => {
+ROUTER.post['/register_biometrics'] = ({keyInfo, validateCode}: Partial<WriteCommands['RegisterBiometrics']['parameters']>): WriteCommands['RegisterBiometrics']['returns'] => {
+    let {
+        response: {
+            biometric: {publicKey},
+        },
+    } = keyInfo ?? {response: {biometric: {publicKey: undefined}}};
+
     const validateCodes = STORAGE.validateCodes[sessionData.email ?? FALLBACK_EMAIL] ?? [];
 
     Logger.m('Received request with publicKey', publicKey, validateCode ? `and validate code ${validateCode}` : 'and no validate code');
@@ -125,6 +131,8 @@ ROUTER.post['/register_biometrics'] = ({publicKey, validateCode}: Partial<WriteC
             message: Logger.w('No public key provided'),
         };
     }
+
+    publicKey = base64URLToString(publicKey);
 
     if (!validateCode) {
         return {

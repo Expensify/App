@@ -1,18 +1,18 @@
-import type {MultifactorAuthenticationScenario} from './index';
 import type {
     MultifactorAuthenticationNotificationMap,
     MultifactorAuthenticationNotificationMapEntry,
     MultifactorAuthenticationNotificationOptions,
     MultifactorAuthenticationNotificationRecord,
-    MultifactorAuthenticationUIRecord,
+    MultifactorAuthenticationScenario,
+    MultifactorAuthenticationScenarioConfigRecord,
 } from './types';
 
 function toLowerCase<T extends string>(str: T) {
     return str.toLowerCase() as Lowercase<T>;
 }
 
-const createNotificationRecord = (mfaUI: MultifactorAuthenticationUIRecord): MultifactorAuthenticationNotificationRecord => {
-    const entries = Object.entries(mfaUI);
+const createNotificationRecord = (mfaConfig: MultifactorAuthenticationScenarioConfigRecord): MultifactorAuthenticationNotificationRecord => {
+    const entries = Object.entries(mfaConfig);
     return entries.reduce((record, [key, {NOTIFICATIONS}]) => {
         // eslint-disable-next-line no-param-reassign
         record[key as MultifactorAuthenticationScenario] = NOTIFICATIONS;
@@ -20,8 +20,8 @@ const createNotificationRecord = (mfaUI: MultifactorAuthenticationUIRecord): Mul
     }, {} as MultifactorAuthenticationNotificationRecord);
 };
 
-const mapMultifactorAuthenticationNotification = (mfaUI: MultifactorAuthenticationUIRecord) =>
-    Object.entries(createNotificationRecord(mfaUI)).reduce(
+const mapMultifactorAuthenticationNotification = (mfaConfig: MultifactorAuthenticationScenarioConfigRecord) =>
+    Object.entries(createNotificationRecord(mfaConfig)).reduce(
         (_, [key, config]) =>
             Object.assign(
                 config,

@@ -149,6 +149,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
                 reason,
             } = await processRegistration({
                 publicKey,
+                accountID,
                 validateCode,
             });
 

@@ -1,6 +1,4 @@
-const SCENARIO = {
-    AUTHORIZE_TRANSACTION: 'AUTHORIZE-TRANSACTION',
-} as const;
+import SCENARIO from '@components/MultifactorAuthentication/config/scenarios/names';
 
 const MultifactorAuthenticationCallbacks: {
     onFulfill: Record<string, () => void>;
@@ -88,7 +86,7 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     /** Name of the service associated with the keys in SecureStore */
     KEYCHAIN_SERVICE: 'Expensify',
     /** Type sent to the API to indicate that ED25519 was used */
-    ED25519_TYPE: 'biometrics',
+    ED25519_TYPE: 'biometric',
     /** RPID (Relying Party ID) sent to the API */
     RPID: 'expensify.com',
     /** Names that the keys are stored under in the SecureStore.  */

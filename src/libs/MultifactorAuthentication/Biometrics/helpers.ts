@@ -1,11 +1,22 @@
 import type {ValueOf} from 'type-fest';
-import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config';
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
-import type {MultifactorAuthenticationScenarioParams, MultifactorAuthenticationScenarioResponseWithSuccess} from '@components/MultifactorAuthentication/config/types';
+import type {
+    MultifactorAuthenticationScenario,
+    MultifactorAuthenticationScenarioParameters,
+    MultifactorAuthenticationScenarioParams,
+    MultifactorAuthenticationScenarioResponseWithSuccess,
+} from '@components/MultifactorAuthentication/config/types';
 import {registerBiometrics} from '@libs/actions/MultifactorAuthentication';
 import type {TranslationPaths} from '@src/languages/types';
-import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
-import type {AllMultifactorAuthenticationFactors, MultifactorAuthenticationFactor, MultifactorAuthenticationPartialStatus, MultifactorAuthenticationResponseTranslationPath} from './types';
+import {base64URL} from './ED25519';
+import type {Base64URL, MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
+import type {
+    AllMultifactorAuthenticationFactors,
+    MultifactorAuthenticationFactor,
+    MultifactorAuthenticationKeyInfo,
+    MultifactorAuthenticationPartialStatus,
+    MultifactorAuthenticationResponseTranslationPath,
+} from './types';
 import VALUES, {MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS} from './VALUES';
 
 /** Helper method to create an object with an HTTP code and the reason translation path */
@@ -158,8 +169,22 @@ const registerMultifactorAuthenticationPostMethod = (
     };
 };
 
+function createKeyInfoObject({accountID, publicKey}: {accountID: number; publicKey: string}): MultifactorAuthenticationKeyInfo<'biometric'> {
+    const rawId: Base64URL<string> = base64URL(`${accountID}_${VALUES.KEY_ALIASES.PUBLIC_KEY}`);
+    const type = VALUES.ED25519_TYPE;
+    const response = {
+        biometric: {publicKey: base64URL(publicKey)},
+    };
+
+    return {
+        rawId,
+        type,
+        response,
+    };
+}
+
 async function processMultifactorAuthenticationRegistration(
-    params: Partial<AllMultifactorAuthenticationFactors> & {publicKey: string},
+    params: Partial<AllMultifactorAuthenticationFactors> & {accountID: number; publicKey: string},
 ): Promise<MultifactorAuthenticationPartialStatus<boolean>> {
     const factorsCheckResult = areMultifactorAuthenticationFactorsSufficient(params, VALUES.FACTOR_COMBINATIONS.REGISTRATION, true);
 
@@ -174,7 +199,13 @@ async function processMultifactorAuthenticationRegistration(
         );
     }
 
-    const {httpCode, reason} = await registerBiometrics(params);
+    const keyInfo = createKeyInfoObject(params);
+
+    const {httpCode, reason} = await registerBiometrics({
+        keyInfo,
+        validateCode: params.validateCode,
+    });
+
     const successful = String(httpCode).startsWith('2');
 
     return registerMultifactorAuthenticationPostMethod(
@@ -214,7 +245,8 @@ async function processMultifactorAuthenticationScenario<T extends MultifactorAut
         );
     }
 
-    const {httpCode, reason} = await currentScenario.action(params);
+    // We can safely make this assertion because the factors check method guarantees that the necessary conditions are met
+    const {httpCode, reason} = await currentScenario.action(params as MultifactorAuthenticationScenarioParameters[T]);
     const successful = String(httpCode).startsWith('2');
 
     return authorizeMultifactorAuthenticationPostMethod(

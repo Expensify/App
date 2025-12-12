@@ -1,22 +1,19 @@
-import type {MultifactorAuthenticationScenarioConfig, MultifactorAuthenticationUI} from '@components/MultifactorAuthentication/config/types';
+import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
 import {authorizeTransaction} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
-type Parameters = {
+type Payload = {
     transactionID: string;
 };
 
-const Config = {
+export default {
     allowedAuthentication: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS,
     action: authorizeTransaction,
-    route: ROUTES.MULTIFACTOR_AUTHENTICATION_APPROVE_TRANSACTION.route,
-} as const satisfies MultifactorAuthenticationScenarioConfig<Parameters>;
-
-const UI = {
+    screen: SCREENS.MULTIFACTOR_AUTHENTICATION.APPROVE_TRANSACTION,
     NOTIFICATIONS: {
         approved: {
             illustration: 'ApprovedTransactionHand',
@@ -63,7 +60,6 @@ const UI = {
             cancelButtonText: 'common.cancel',
         },
     },
-} as const satisfies MultifactorAuthenticationUI;
+} as const satisfies MultifactorAuthenticationScenarioConfig<Payload>;
 
-export type {Parameters};
-export {UI, Config};
+export type {Payload};

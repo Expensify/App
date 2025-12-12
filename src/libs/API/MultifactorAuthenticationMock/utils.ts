@@ -17,6 +17,11 @@ const base64URL = <T>(value: string): Base64URL<T> => {
     return Buffer.from(value).toString('base64').replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
 };
 
+const base64URLToString = <T>(value: Base64URL<T>): string => {
+    const base64String = base64URLToBase64(value);
+    return Buffer.from(base64String, 'base64').toString();
+};
+
 function base64URLToBase64(base64URLString: string) {
     let base64String = base64URLString.replaceAll('-', '+').replaceAll('_', '/');
     while (base64String.length % 4) {
@@ -85,4 +90,4 @@ const isChallengeValid = function (signedChallenge: SignedChallenge, publicKey: 
     }
 };
 
-export {isChallengeValid, generateSixDigitNumber, isReadCommandType, base64URL};
+export {isChallengeValid, generateSixDigitNumber, isReadCommandType, base64URL, base64URLToString};

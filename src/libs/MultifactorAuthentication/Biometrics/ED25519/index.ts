@@ -95,4 +95,4 @@ const signToken = (accountID: number, token: MultifactorAuthenticationChallengeO
     };
 };
 
-export {generateKeyPair, signToken, createBinaryData, hexToBytes, concatBytes, sha256, utf8ToBytes, verify, bytesToHex, randomBytes};
+export {generateKeyPair, signToken, createBinaryData, hexToBytes, concatBytes, sha256, utf8ToBytes, verify, bytesToHex, randomBytes, base64URL};

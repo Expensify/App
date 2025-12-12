@@ -7,8 +7,12 @@ import {requestBiometricChallenge} from '@userActions/MultifactorAuthentication'
 import CONST from '@src/CONST';
 import ROUTES, {MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {MultifactorAuthenticationScenario} from './config';
-import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenarioAdditionalParams, MultifactorAuthenticationScenarioParams} from './config/types';
+import type {
+    AllMultifactorAuthenticationNotificationType,
+    MultifactorAuthenticationScenario,
+    MultifactorAuthenticationScenarioAdditionalParams,
+    MultifactorAuthenticationScenarioParams,
+} from './config/types';
 import type {AuthTypeName, BiometricsStatus, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType} from './types';
 
 const failedStep = {
@@ -41,14 +45,6 @@ const createAuthorizeErrorStatus = (errorStatus: MultifactorAuthenticationPartia
         ...failedStep,
     },
 });
-
-function areMultifactorAuthorizationParamsValid<T extends MultifactorAuthenticationScenario>(params: Record<string, unknown>): params is MultifactorAuthenticationScenarioParams<T> {
-    return Object.keys(params).every((key) => {
-        return CONST.MULTIFACTOR_AUTHENTICATION.FACTOR_COMBINATIONS.BIOMETRICS_AUTHENTICATION.find(
-            (factor) => CONST.MULTIFACTOR_AUTHENTICATION.FACTORS_REQUIREMENTS[factor].parameter !== key,
-        );
-    });
-}
 
 /**
  * Checks if the device supports either multifactorial authentication (like fingerprint/face)
@@ -341,7 +337,6 @@ const MergedHooksStatus = {
 } as const;
 
 export {
-    areMultifactorAuthorizationParamsValid,
     getAuthTypeName,
     doesDeviceSupportBiometrics,
     isBiometryConfigured,

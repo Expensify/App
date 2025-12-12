@@ -1,5 +1,5 @@
 import {useCallback} from 'react';
-import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config';
+import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import {createAuthorizeErrorStatus} from '@components/MultifactorAuthentication/helpers';
 import type {MultifactorAuthorization} from '@components/MultifactorAuthentication/types';
 import useMultifactorAuthenticationStatus from '@components/MultifactorAuthentication/useMultifactorAuthenticationStatus';

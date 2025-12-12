@@ -12,13 +12,13 @@ import type {
 // TODO: MFA/Release Replace with actual logic, triggerOnyxConnect call is done here to trigger Onyx connect call for mocked API
 // import {requestValidateCodeAction} from '@libs/actions/User';
 import {MultifactorAuthenticationCallbacks} from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import {normalizedConfigs} from '@navigation/linkingConfig/config';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {MultifactorAuthenticationScenario} from './config';
 import {MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
-import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenarioParams} from './config/types';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from './config/types';
 import {
     convertResultIntoMultifactorAuthenticationStatus,
     EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS,
@@ -147,9 +147,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 callback();
             }
 
+            const {screen} = scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] : {};
+
             // Navigate based on step result
             const notificationPaths = getNotificationPaths(scenario);
-            const scenarioRoute: Route = scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario].route : ROUTES.MULTIFACTOR_AUTHENTICATION_NOT_FOUND;
+            const scenarioRoute: Route = screen ? (normalizedConfigs[screen].path as Route) : ROUTES.MULTIFACTOR_AUTHENTICATION_NOT_FOUND;
 
             if (wasRecentStepSuccessful === true && !Navigation.isActiveRoute(notificationPaths.success)) {
                 Navigation.navigate(notificationPaths.success);
