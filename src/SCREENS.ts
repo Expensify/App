@@ -271,7 +271,6 @@ const SCREENS = {
         EXPENSE_REPORT: 'ExpenseReport',
     },
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
-    EXPENSE_REPORT_RHP: 'Expense_Report_RHP',
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',

@@ -84,6 +84,7 @@ function SecondaryOverlay() {
 }
 
 const loadReportScreen = () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default;
+const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -344,10 +345,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             options={{...modalStackScreenOptions, animation: Animations.NONE}}
                         />
                         <Stack.Screen
-                            name={SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT}
-                            component={ModalStackNavigators.SearchMoneyRequestReportModalStackNavigator}
-                        />
-                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}
                             component={ModalStackNavigators.RestrictedActionModalStackNavigator}
                         />
@@ -373,7 +370,13 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.EXPENSE_REPORT}
-                            component={ModalStackNavigators.ExpenseReportModalStackNavigator}
+                            getComponent={loadSearchMoneyRequestReportPage}
+                            options={modalStackScreenOptions}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT}
+                            getComponent={loadSearchMoneyRequestReportPage}
+                            options={modalStackScreenOptions}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.DOMAIN}
