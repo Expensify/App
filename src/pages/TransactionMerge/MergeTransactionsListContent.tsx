@@ -82,17 +82,13 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
         [mergeTransaction?.eligibleTransactions, transactionID],
     );
 
-    const transactionDisplayName = useMemo(() => {
-        if (!targetTransaction) {
-            return '';
-        }
-
-        return getTransactionReportName({
-            reportAction: undefined,
-            transactions: [targetTransaction],
-            reports: targetTransactionReport ? [targetTransactionReport] : [],
-        });
-    }, [targetTransaction, targetTransactionReport]);
+    const transactionDisplayName = targetTransaction
+        ? getTransactionReportName({
+              reportAction: undefined,
+              transactions: [targetTransaction],
+              reports: targetTransactionReport ? [targetTransactionReport] : [],
+          })
+        : '';
 
     const headerContent = (
         <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow]}>
