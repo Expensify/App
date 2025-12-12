@@ -66,9 +66,9 @@ function CardListItemHeader<TItem extends ListItem>({
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
-    if (!isLargeScreenWidth) {
-        return (
-            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
+    return (
+        <View>
+            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
@@ -77,86 +77,80 @@ function CardListItemHeader<TItem extends ListItem>({
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
+                            style={isLargeScreenWidth && styles.mr1}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                        <ReportActionAvatars
-                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
-                            subscriptAvatarBorderColor={backgroundColor}
-                            noRightMarginOnSubscriptContainer
-                            accountIDs={[cardItem.accountID]}
-                        />
-                        <View style={[styles.gapHalf, styles.flexShrink1]}>
-                            <TextWithTooltip
-                                text={formattedDisplayName}
-                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                    {!isLargeScreenWidth && (
+                        <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
+                            <ReportActionAvatars
+                                subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                                subscriptAvatarBorderColor={backgroundColor}
+                                noRightMarginOnSubscriptContainer
+                                accountIDs={[cardItem.accountID]}
                             />
-                            <TextWithTooltip
-                                text={cardItem.formattedCardName ?? ''}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            />
+                            <View style={[styles.gapHalf, styles.flexShrink1]}>
+                                <TextWithTooltip
+                                    text={formattedDisplayName}
+                                    style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                />
+                                <TextWithTooltip
+                                    text={`${cardItem.cardName}${cardItem.lastFourPAN ? ` ${CONST.DOT_SEPARATOR} ` : ''}${cardItem.lastFourPAN}`}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                />
+                            </View>
                         </View>
-                    </View>
-                </View>
-                <View style={[styles.flexShrink0, styles.mr3, styles.gap1]}>
-                    <TotalCell
-                        total={cardItem.total}
-                        currency={cardItem.currency}
-                    />
-                    {!!onDownArrowClick && (
-                        <ExpandCollapseArrowButton
-                            isExpanded={isExpanded ?? false}
-                            onPress={onDownArrowClick}
-                        />
+                    )}
+                    {isLargeScreenWidth && (
+                        <>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}>
+                                <UserDetailsTooltip accountID={cardItem.accountID}>
+                                    <View>
+                                        <ReportActionAvatars
+                                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                                            subscriptAvatarBorderColor={backgroundColor}
+                                            noRightMarginOnSubscriptContainer
+                                            accountIDs={[cardItem.accountID]}
+                                        />
+                                    </View>
+                                </UserDetailsTooltip>
+                            </View>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)}>
+                                <View style={[styles.gapHalf, styles.flexShrink1]}>
+                                    <TextWithTooltip text={cardItem.formattedCardName ?? ''} />
+                                </View>
+                            </View>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FEED)}>
+                                <TextWithTooltip
+                                    text={cardItem.formattedFeedName ?? ''}
+                                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                                />
+                            </View>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
+                                <ExpensesCell count={cardItem.count} />
+                            </View>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)}>
+                                <TotalCell
+                                    total={cardItem.total}
+                                    currency={cardItem.currency}
+                                />
+                            </View>
+                        </>
                     )}
                 </View>
-            </View>
-        );
-    }
-
-    return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pl3]}>
-            {!!canSelectMultiple && (
-                <Checkbox
-                    onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
-                    isChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    disabled={!!isDisabled || cardItem.isDisabledCheckbox}
-                    accessibilityLabel={translate('common.select')}
-                    style={[styles.mr1]}
-                />
-            )}
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)]}>
-                <UserDetailsTooltip accountID={cardItem.accountID}>
-                    <View>
-                        <ReportActionAvatars
-                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
-                            subscriptAvatarBorderColor={backgroundColor}
-                            noRightMarginOnSubscriptContainer
-                            accountIDs={[cardItem.accountID]}
+                {!isLargeScreenWidth && (
+                    <View style={[[styles.flexShrink0, styles.mr3, styles.gap1]]}>
+                        <TotalCell
+                            total={cardItem.total}
+                            currency={cardItem.currency}
                         />
+                        {!!onDownArrowClick && (
+                            <ExpandCollapseArrowButton
+                                isExpanded={isExpanded}
+                                onPress={onDownArrowClick}
+                            />
+                        )}
                     </View>
-                </UserDetailsTooltip>
-            </View>
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}>
-                <View style={[styles.gapHalf, styles.flexShrink1]}>
-                    <TextWithTooltip text={cardItem.formattedCardName ?? ''} />
-                </View>
-            </View>
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FEED)]}>
-                <TextWithTooltip
-                    text={cardItem.formattedFeedName ?? ''}
-                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
-                />
-            </View>
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)]}>
-                <ExpensesCell count={cardItem.count} />
-            </View>
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
-                <TotalCell
-                    total={cardItem.total}
-                    currency={cardItem.currency}
-                />
+                )}
             </View>
         </View>
     );

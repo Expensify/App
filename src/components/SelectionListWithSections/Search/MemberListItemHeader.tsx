@@ -60,9 +60,9 @@ function MemberListItemHeader<TItem extends ListItem>({
         [memberItem, formatPhoneNumber],
     );
 
-    if (!isLargeScreenWidth) {
-        return (
-            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
+    return (
+        <View>
+            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
@@ -71,91 +71,85 @@ function MemberListItemHeader<TItem extends ListItem>({
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
+                            style={isLargeScreenWidth && styles.mr1}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                        <UserDetailsTooltip accountID={memberItem.accountID}>
-                            <View>
-                                <Avatar
-                                    source={memberItem.avatar}
-                                    type={CONST.ICON_TYPE_AVATAR}
-                                    name={formattedDisplayName}
-                                    avatarID={memberItem.accountID}
+                    {!isLargeScreenWidth && (
+                        <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
+                            <UserDetailsTooltip accountID={memberItem.accountID}>
+                                <View>
+                                    <Avatar
+                                        source={memberItem.avatar}
+                                        type={CONST.ICON_TYPE_AVATAR}
+                                        name={formattedDisplayName}
+                                        avatarID={memberItem.accountID}
+                                    />
+                                </View>
+                            </UserDetailsTooltip>
+                            <View style={[styles.gap1, styles.flexShrink1]}>
+                                <TextWithTooltip
+                                    text={formattedDisplayName}
+                                    style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                />
+                                <TextWithTooltip
+                                    text={formattedLogin || formattedDisplayName}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                                 />
                             </View>
-                        </UserDetailsTooltip>
-                        <View style={[styles.gap1, styles.flexShrink1]}>
-                            <TextWithTooltip
-                                text={formattedDisplayName}
-                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
-                            />
-                            <TextWithTooltip
-                                text={formattedLogin || formattedDisplayName}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            />
                         </View>
-                    </View>
-                </View>
-                <View style={[styles.flexShrink0, styles.mr3, styles.gap1]}>
-                    <TotalCell
-                        total={memberItem.total}
-                        currency={memberItem.currency}
-                    />
-                    {!!onDownArrowClick && (
-                        <ExpandCollapseArrowButton
-                            isExpanded={isExpanded ?? false}
-                            onPress={onDownArrowClick}
-                        />
+                    )}
+                    {isLargeScreenWidth && (
+                        <>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}>
+                                <UserDetailsTooltip accountID={memberItem.accountID}>
+                                    <View>
+                                        <Avatar
+                                            source={memberItem.avatar}
+                                            type={CONST.ICON_TYPE_AVATAR}
+                                            name={formattedDisplayName}
+                                            avatarID={memberItem.accountID}
+                                        />
+                                    </View>
+                                </UserDetailsTooltip>
+                            </View>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)}>
+                                <View style={[styles.gap1, styles.flexShrink1]}>
+                                    <TextWithTooltip
+                                        text={formattedDisplayName}
+                                        style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                    />
+                                    <TextWithTooltip
+                                        text={formattedLogin || formattedDisplayName}
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                    />
+                                </View>
+                            </View>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
+                                <ExpensesCell count={memberItem.count} />
+                            </View>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)}>
+                                <TotalCell
+                                    total={memberItem.total}
+                                    currency={memberItem.currency}
+                                />
+                            </View>
+                        </>
                     )}
                 </View>
-            </View>
-        );
-    }
-
-    return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pl3]}>
-            {!!canSelectMultiple && (
-                <Checkbox
-                    onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
-                    isChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    disabled={!!isDisabled || memberItem.isDisabledCheckbox}
-                    accessibilityLabel={translate('common.select')}
-                    style={[styles.mr1]}
-                />
-            )}
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)]}>
-                <UserDetailsTooltip accountID={memberItem.accountID}>
-                    <View>
-                        <Avatar
-                            source={memberItem.avatar}
-                            type={CONST.ICON_TYPE_AVATAR}
-                            name={formattedDisplayName}
-                            avatarID={memberItem.accountID}
+                {!isLargeScreenWidth && (
+                    <View style={[[styles.flexShrink0, styles.mr3, styles.gap1]]}>
+                        <TotalCell
+                            total={memberItem.total}
+                            currency={memberItem.currency}
                         />
+                        {!!onDownArrowClick && (
+                            <ExpandCollapseArrowButton
+                                isExpanded={isExpanded}
+                                onPress={onDownArrowClick}
+                            />
+                        )}
                     </View>
-                </UserDetailsTooltip>
-            </View>
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
-                <View style={[styles.gap1, styles.flexShrink1]}>
-                    <TextWithTooltip
-                        text={formattedDisplayName}
-                        style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
-                    />
-                    <TextWithTooltip
-                        text={formattedLogin || formattedDisplayName}
-                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                    />
-                </View>
-            </View>
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)]}>
-                <ExpensesCell count={memberItem.count} />
-            </View>
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
-                <TotalCell
-                    total={memberItem.total}
-                    currency={memberItem.currency}
-                />
+                )}
             </View>
         </View>
     );

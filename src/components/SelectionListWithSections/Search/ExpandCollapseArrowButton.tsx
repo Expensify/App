@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type ExpandCollapseArrowButtonProps = {
-    isExpanded: boolean;
+    isExpanded?: boolean;
 
     onPress: () => void;
 };
