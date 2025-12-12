@@ -6,6 +6,7 @@ import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list'
 import React, {useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
+import ScrollView from '@components/ScrollView';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
@@ -379,7 +380,7 @@ function SearchList({
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
 
-    return (
+    const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
@@ -445,6 +446,19 @@ function SearchList({
             </Modal>
         </View>
     );
+
+    if (shouldScrollHorizontally) {
+        return (
+            <ScrollView
+                horizontal
+                style={styles.flex1}
+            >
+                {content}
+            </ScrollView>
+        );
+    }
+
+    return content;
 }
 
 export default SearchList;
