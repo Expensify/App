@@ -179,6 +179,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         ],
     );
 
+    const glCodeContainerStyle = useMemo(() => [styles.flex1], [styles.flex1]);
+    const glCodeTextStyle = useMemo(() => [styles.alignSelfStart], [styles.alignSelfStart]);
+    const switchContainerStyle = useMemo(() => [StyleUtils.getMinimumWidth(variables.w72)], [StyleUtils]);
+
     const categoryList = useMemo<PolicyOption[]>(() => {
         const categories = Object.values(policyCategories ?? {});
         return categories.reduce<PolicyOption[]>((acc, value) => {
@@ -196,15 +200,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 errors: value.errors ?? undefined,
                 rightElement: isControlPolicyWithWideLayout ? (
                     <>
-                        <View style={[styles.flex1]}>
+                        <View style={glCodeContainerStyle}>
                             <Text
                                 numberOfLines={1}
-                                style={[styles.alignSelfStart]}
+                                style={glCodeTextStyle}
                             >
                                 {value['GL Code']}
                             </Text>
                         </View>
-                        <View style={[StyleUtils.getMinimumWidth(variables.w72)]}>
+                        <View style={switchContainerStyle}>
                             <Switch
                                 isOn={value.enabled}
                                 disabled={isDisabled}
@@ -239,7 +243,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return acc;
         }, []);
-    }, [policyCategories, isOffline, translate, updateWorkspaceCategoryEnabled, policy, isControlPolicyWithWideLayout, styles.flex1, styles.pr3, styles.alignSelfStart, StyleUtils]);
+    }, [policyCategories, isOffline, translate, updateWorkspaceCategoryEnabled, policy, isControlPolicyWithWideLayout, glCodeContainerStyle, glCodeTextStyle, switchContainerStyle]);
 
     const filterCategory = useCallback((categoryOption: PolicyOption, searchInput: string) => {
         const results = tokenizedSearch([categoryOption], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
@@ -280,24 +284,21 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
         // Show GL Code column only on wide screens for control policies
         if (isControlPolicyWithWideLayout) {
-            const header = (
-                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
-                    <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.name')}</Text>
-                    </View>
-                    <View style={[styles.flex1, styles.pr16]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.categories.glCode')}</Text>
-                    </View>
-                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr5]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.enabled')}</Text>
+            return (
+                <View style={[styles.ph9, styles.pv3, styles.pb5]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
+                        <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
+                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.name')}</Text>
+                        </View>
+                        <View style={[styles.flex1, styles.pr16]}>
+                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.categories.glCode')}</Text>
+                        </View>
+                        <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr5]}>
+                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.enabled')}</Text>
+                        </View>
                     </View>
                 </View>
             );
-
-            if (canSelectMultiple) {
-                return header;
-            }
-            return <View style={[styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
         }
 
         return (

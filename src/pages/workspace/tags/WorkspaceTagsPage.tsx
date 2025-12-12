@@ -218,6 +218,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         },
         [policyData],
     );
+    const glCodeContainerStyle = useMemo(() => [styles.flex1], [styles.flex1]);
+    const glCodeTextStyle = useMemo(() => [styles.alignSelfStart], [styles.alignSelfStart]);
+    const switchContainerStyle = useMemo(() => [StyleUtils.getMinimumWidth(variables.w72)], [StyleUtils]);
 
     const tagList = useMemo<TagListItem[]>(() => {
         if (isMultiLevelTags) {
@@ -271,15 +274,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             rightElement: isControlPolicyWithWideLayout ? (
                 <>
-                    <View style={[styles.flex1]}>
+                    <View style={glCodeContainerStyle}>
                         <Text
                             numberOfLines={1}
-                            style={[styles.alignSelfStart]}
+                            style={glCodeTextStyle}
                         >
                             {tag['GL Code']}
                         </Text>
                     </View>
-                    <View style={[StyleUtils.getMinimumWidth(variables.w72)]}>
+                    <View style={switchContainerStyle}>
                         <Switch
                             isOn={tag.enabled}
                             disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
@@ -321,9 +324,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         updateWorkspaceRequiresTag,
         updateWorkspaceTagEnabled,
         isControlPolicyWithWideLayout,
-        styles.flex1,
-        styles.alignSelfStart,
-        StyleUtils,
+        glCodeContainerStyle,
+        glCodeTextStyle,
+        switchContainerStyle,
     ]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
@@ -380,24 +383,21 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         // Show GL Code column only on wide screens for control policies
         if (isControlPolicyWithWideLayout && !isMultiLevelTags) {
-            const header = (
-                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
-                    <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.name')}</Text>
-                    </View>
-                    <View style={[styles.flex1, styles.pr16]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.tags.glCode')}</Text>
-                    </View>
-                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr5]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.enabled')}</Text>
+            return (
+                <View style={[styles.ph9, styles.pv3, styles.pb5]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
+                        <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
+                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.name')}</Text>
+                        </View>
+                        <View style={[styles.flex1, styles.pr16]}>
+                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.tags.glCode')}</Text>
+                        </View>
+                        <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr5]}>
+                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.enabled')}</Text>
+                        </View>
                     </View>
                 </View>
             );
-
-            if (canSelectMultiple) {
-                return header;
-            }
-            return <View style={[styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
         }
 
         return (
