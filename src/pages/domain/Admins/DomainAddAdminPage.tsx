@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {SectionListData} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -24,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type Sections = SectionListData<OptionData, Section<OptionData>>;
 
@@ -36,7 +38,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [actualSelectedUser, setActualSelectedUser] = useState<OptionData | null>(null);
     const domainID = route.params.accountID;
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {canBeMissing: true});
+    const [domain, domainMetaData] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
     const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {
         canBeMissing: true,
@@ -136,31 +138,37 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             enableEdgeToEdgeBottomSafeAreaPadding
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
-            <HeaderWithBackButton
-                title={translate('domain.admins.addAdmin')}
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainID));
-                }}
-            />
-            <SelectionList
-                canSelectMultiple
-                sections={sections}
-                ListItem={InviteMemberListItem}
-                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                textInputValue={searchTerm}
-                onChangeText={(value) => {
-                    setSearchTerm(value);
-                }}
-                onSelectRow={handleToggleSelection}
-                onConfirm={inviteUser}
-                showScrollIndicator
-                showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
-                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                footerContent={footerContent}
-                isLoadingNewOptions={!!isSearchingForReports}
-                addBottomSafeAreaPadding
-                onEndReached={onListEndReached}
-            />
+            <FullPageNotFoundView
+                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
+                shouldShow={!isLoadingOnyxValue(domainMetaData) && !domain}
+                shouldForceFullScreen
+            >
+                <HeaderWithBackButton
+                    title={translate('domain.admins.addAdmin')}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainID));
+                    }}
+                />
+                <SelectionList
+                    canSelectMultiple
+                    sections={sections}
+                    ListItem={InviteMemberListItem}
+                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                    textInputValue={searchTerm}
+                    onChangeText={(value) => {
+                        setSearchTerm(value);
+                    }}
+                    onSelectRow={handleToggleSelection}
+                    onConfirm={inviteUser}
+                    showScrollIndicator
+                    showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    footerContent={footerContent}
+                    isLoadingNewOptions={!!isSearchingForReports}
+                    addBottomSafeAreaPadding
+                    onEndReached={onListEndReached}
+                />
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
