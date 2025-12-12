@@ -1,7 +1,9 @@
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import {FallbackAvatar, Gear} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import SearchBar from '@components/SearchBar';
@@ -93,6 +95,25 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         );
     };
 
+    const getHeaderButtons = () => {
+        if (!isAdmin) {
+            return null;
+        }
+        return (
+            <View style={[styles.flexRow, styles.gap2]}>
+                <Button
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainID));
+                    }}
+                    text={translate('domain.admins.settings')}
+                    icon={Gear}
+                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                />
+            </View>
+        );
+    };
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -110,8 +131,11 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     onBackButtonPress={Navigation.popToSidebar}
                     icon={illustrations.Members}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                />
+                >
+                    {!shouldUseNarrowLayout && getHeaderButtons()}
+                </HeaderWithBackButton>
 
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <ScrollViewWithContext
                     keyboardShouldPersistTaps="handled"
                     addBottomSafeAreaPadding
