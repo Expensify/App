@@ -1,21 +1,20 @@
 import dedent from '@libs/StringUtils/dedent';
 import getBasePrompt from '@prompts/translation/base';
 import getContextPrompt from '@prompts/translation/context';
-import frPrompt from '@prompts/translation/fr';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
-import {TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import OpenAIUtils from '../OpenAIUtils';
 import Translator from './Translator';
-
-const LOCALE_SPECIFIC_PROMPTS: Partial<Record<TranslationTargetLocale, string>> = {
-    [TRANSLATION_TARGET_LOCALES.FR]: frPrompt,
-};
 
 /**
  * Gets a locale-specific prompt if one exists for the target language.
  */
-function getLocaleSpecificPrompt(targetLang: TranslationTargetLocale): string {
-    return LOCALE_SPECIFIC_PROMPTS[targetLang] ?? '';
+async function getLocaleSpecificPrompt(targetLang: TranslationTargetLocale): Promise<string> {
+    try {
+        const localePrompt = await import(`@prompts/translation/${targetLang}`);
+        return localePrompt.default || '';
+    } catch {
+        return '';
+    }
 }
 
 class ChatGPTTranslator extends Translator {
@@ -38,7 +37,7 @@ class ChatGPTTranslator extends Translator {
         let systemPrompt = getBasePrompt(targetLang);
 
         // Load locale-specific prompt if it exists
-        const localeSpecificPrompt = getLocaleSpecificPrompt(targetLang);
+        const localeSpecificPrompt = await getLocaleSpecificPrompt(targetLang);
         if (localeSpecificPrompt) {
             systemPrompt += dedent(`
 
