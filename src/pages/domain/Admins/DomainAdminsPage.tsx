@@ -105,7 +105,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={!isLoadingOnyxValue(domainMetadata) && (!domain || !isAdmin)}
+                shouldShow={!domain || !isAdmin}
                 shouldForceFullScreen
             >
                 <HeaderWithBackButton
