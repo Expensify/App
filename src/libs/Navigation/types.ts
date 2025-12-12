@@ -1324,6 +1324,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.DOMAIN.VERIFIED]: {
         accountID: number;
     };
+    [SCREENS.DOMAIN.ADMINS_SETTINGS]: {
+        accountID: number;
+    };
+    [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
+        accountID: number;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {
@@ -2410,6 +2416,9 @@ type DomainSplitNavigatorParamList = {
         accountID: number;
     };
     [SCREENS.DOMAIN.SAML]: {
+        accountID: number;
+    };
+    [SCREENS.DOMAIN.ADMINS]: {
         accountID: number;
     };
 };

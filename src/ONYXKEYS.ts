@@ -731,6 +731,15 @@ const ONYXKEYS = {
 
         /** SAML login metadata for a domain */
         SAML_METADATA: 'saml_metadata_',
+
+        /** */
+        DOMAIN_ADMIN_PERMISSIONS: 'expensify_adminPermissions_',
+
+        /** Pending actions for a domain */
+        DOMAIN_PENDING_ACTIONS: 'domainPendingActions_',
+
+        /** Errors related to a domain */
+        DOMAIN_ERRORS: 'domainErrors_',
     },
 
     /** List of Form ids */
@@ -1117,6 +1126,9 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS]: boolean;
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
+    [ONYXKEYS.COLLECTION.DOMAIN_ADMIN_PERMISSIONS]: number;
+    [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
+    [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
 };
 
 type OnyxValuesMapping = {

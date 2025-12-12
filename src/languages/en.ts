@@ -7845,6 +7845,16 @@ const translations = {
             subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
             enable: 'Enable',
         },
+        admins: {
+            title: 'Admins',
+            findAdmin: 'Find admin',
+            primaryContact: 'Primary contact',
+            addPrimaryContact: 'Add primary contact',
+            settings: 'Settings',
+            consolidatedDomainBilling: 'Consolidated domain billing',
+            consolidatedDomainBillingDescription:
+                "When enabled, the Primary Contact will be billed for all workspaces owned by expensify.com users and the billing receipt will be routed to the Primary Contact's account.",
+        },
     },
 };
 

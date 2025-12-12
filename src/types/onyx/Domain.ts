@@ -1,4 +1,10 @@
+import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from './OnyxCommon';
+
+/**
+ *
+ */
+type PrefixedRecord<Prefix extends string, ValueType> = Record<`${Prefix}${string}`, ValueType>;
 
 /** Model of domain data */
 type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -40,7 +46,8 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether setting SAML required setting has failed and why */
     samlRequiredError?: OnyxCommon.Errors;
-}>;
+}> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.DOMAIN_ADMIN_PERMISSIONS, number>;
 
 /** Model of SAML metadata */
 type SamlMetadata = {

@@ -918,6 +918,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/ChangeReceiptBillingAccountPage').default,
     [SCREENS.DOMAIN.VERIFY]: () => require<ReactComponentModule>('../../../../pages/domain/SamlVerifyDomainPage').default,
     [SCREENS.DOMAIN.VERIFIED]: () => require<ReactComponentModule>('../../../../pages/domain/SamlDomainVerifiedPage').default,
+    [SCREENS.DOMAIN.ADMINS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/domain/admins/DomainAdminsSettingsPage').default,
+    [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: () => require<ReactComponentModule>('@pages/domain/admins/DomainAddPrimaryContactPage').default,
 });
 
 const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
