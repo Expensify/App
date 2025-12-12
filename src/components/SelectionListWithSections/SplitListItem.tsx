@@ -43,9 +43,8 @@ function SplitListItem<TItem extends ListItem>({
         (amount: string) => {
             splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
         },
-        // We should not pass whole object splitItem as it will cause recreation of the callback on every prop change even those which are not related to this callback.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [splitItem.onSplitExpenseAmountChange, splitItem.transactionID],
+
+        [splitItem],
     );
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
