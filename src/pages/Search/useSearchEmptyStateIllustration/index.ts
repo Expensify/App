@@ -1,4 +1,3 @@
-import {useMemo} from 'react';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -12,32 +11,20 @@ const useSearchEmptyStateIllustration: UseSearchEmptyStateIllustration = () => {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
 
-    return useMemo(
-        () => ({
-            fireworks: {
-                headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
-                headerMedia: illustrations.Fireworks,
-                headerStyles: StyleUtils.getBackgroundColorStyle(theme.todoBG),
-                headerContentStyles: [styles.emptyStateFireworksStaticIllustration, StyleUtils.getBackgroundColorStyle(theme.todoBG)],
-            },
-            folder: {
-                headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
-                headerMedia: illustrations.FolderWithPapersAndWatch,
-                headerStyles: StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG),
-                headerContentStyles: [styles.emptyStateFolderWebStyles, styles.emptyStateFolderStaticIllustration, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-            },
-        }),
-        [
-            illustrations.Fireworks,
-            illustrations.FolderWithPapersAndWatch,
-            StyleUtils,
-            theme.todoBG,
-            theme.emptyFolderBG,
-            styles.emptyStateFireworksStaticIllustration,
-            styles.emptyStateFolderWebStyles,
-            styles.emptyStateFolderStaticIllustration,
-        ],
-    );
+    return {
+        fireworks: {
+            headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
+            headerMedia: illustrations.Fireworks,
+            headerStyles: StyleUtils.getBackgroundColorStyle(theme.todoBG),
+            headerContentStyles: [styles.emptyStateFireworksStaticIllustration, StyleUtils.getBackgroundColorStyle(theme.todoBG)],
+        },
+        folder: {
+            headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
+            headerMedia: illustrations.FolderWithPapersAndWatch,
+            headerStyles: StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG),
+            headerContentStyles: [styles.emptyStateFolderWebStyles, styles.emptyStateFolderStaticIllustration, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+        },
+    };
 };
 
 export default useSearchEmptyStateIllustration;

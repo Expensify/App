@@ -1,4 +1,3 @@
-import {useMemo} from 'react';
 import LottieAnimations from '@components/LottieAnimations';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -11,24 +10,21 @@ const useSearchEmptyStateIllustration: UseSearchEmptyStateIllustration = () => {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
 
-    return useMemo(
-        () => ({
-            fireworks: {
-                headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
-                headerMedia: LottieAnimations.Fireworks,
-                headerStyles: StyleUtils.getBackgroundColorStyle(theme.todoBG),
-                headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.todoBG)],
-                lottieWebViewStyles: styles.emptyStateFireworksWebStyles,
-            },
-            folder: {
-                headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
-                headerMedia: LottieAnimations.GenericEmptyState,
-                headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-                lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
-            },
-        }),
-        [StyleUtils, styles.emptyStateFireworksWebStyles, styles.emptyStateFolderWebStyles, theme.emptyFolderBG, theme.todoBG],
-    );
+    return {
+        fireworks: {
+            headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
+            headerMedia: LottieAnimations.Fireworks,
+            headerStyles: StyleUtils.getBackgroundColorStyle(theme.todoBG),
+            headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.todoBG)],
+            lottieWebViewStyles: styles.emptyStateFireworksWebStyles,
+        },
+        folder: {
+            headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
+            headerMedia: LottieAnimations.GenericEmptyState,
+            headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+            lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
+        },
+    };
 };
 
 export default useSearchEmptyStateIllustration;
