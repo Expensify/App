@@ -929,6 +929,10 @@ const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePay
     [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default,
 });
 
+const SearchRouterModalStackNavigator = createModalStackNavigator({
+    [SCREENS.ENABLE_PAYMENTS_ROOT]: () => require<ReactComponentModule>('../../../../components/Search/SearchRouter/SearchRouterPage').default,
+});
+
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
     [SCREENS.ENABLE_PAYMENTS_ROOT]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/EnablePaymentsPage').default,
 });
@@ -1145,6 +1149,7 @@ export {
     MergeTransactionStackNavigator,
     ReportCardActivateStackNavigator,
     WorkspacesDomainModalStackNavigator,
+    SearchRouterModalStackNavigator,
     SearchMoneyRequestReportModalStackNavigator,
     ExpenseReportModalStackNavigator,
     SearchReportActionsModalStackNavigator,
