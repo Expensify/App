@@ -1,5 +1,5 @@
 import {activeAdminPoliciesSelector} from '@selectors/Policy';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -30,6 +30,7 @@ function EnabledPage() {
     const styles = useThemeStyles();
 
     const [isVisible, setIsVisible] = useState(false);
+    const fetchedPolicyIdsRef = useRef<Set<string>>(new Set());
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const {login} = useCurrentUserPersonalDetails();
     const selector = useCallback(
@@ -51,9 +52,10 @@ function EnabledPage() {
             return;
         }
         adminPolicies.forEach((policy) => {
-            if(!policy.areConnectionsEnabled || !!policy.connections){
+            if (!policy.areConnectionsEnabled || !!policy.connections || fetchedPolicyIdsRef.current.has(policy.id)) {
                 return;
             }
+            fetchedPolicyIdsRef.current.add(policy.id);
             fetchPolicyData(policy.id);
         });
     }, [adminPolicies, fetchPolicyData]);
