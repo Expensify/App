@@ -40,7 +40,6 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const session = useSession();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const policyName = policy?.name ?? '';
     const policyID = policy?.id;
@@ -52,7 +51,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const hasAvatar = !!policy?.avatarURL;
     const logo = hasAvatar ? (policy?.avatarURL as ImageSourcePropType) : undefined;
 
-    const defaultWorkspaceAvatar = getDefaultWorkspaceAvatar(policyName) || expensifyIcons.FallbackAvatar;
+    const defaultWorkspaceAvatar = getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
     const defaultWorkspaceAvatarColors = policyID ? StyleUtils.getDefaultWorkspaceAvatarColor(policyID) : StyleUtils.getDefaultWorkspaceAvatarColor('');
 
     const svgLogo = !hasAvatar ? defaultWorkspaceAvatar : undefined;

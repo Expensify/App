@@ -5,13 +5,13 @@ import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, Vie
 import {StyleSheet, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -66,7 +66,7 @@ type ButtonProps = Partial<ChildrenProps> & {
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** A function that is called when the button is clicked on */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
     /** A function that is called when the button is long pressed */
     onLongPress?: (event?: GestureResponderEvent) => void;
@@ -176,6 +176,9 @@ type ButtonProps = Partial<ChildrenProps> & {
      * Whether the button should stay visually normal even when disabled.
      */
     shouldStayNormalOnDisable?: boolean;
+
+    /** Label for Sentry tracking. On web, this will be added as data-sentry-label attribute. */
+    sentryLabel?: string;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -227,7 +230,7 @@ KeyboardShortcutComponent.displayName = 'KeyboardShortcutComponent';
 function Button({
     allowBubble = false,
 
-    iconRight,
+    iconRight = Expensicons.ArrowRight,
     iconFill,
     iconHoverFill,
     icon = null,
@@ -282,6 +285,7 @@ function Button({
     secondLineText = '',
     shouldBlendOpacity = false,
     shouldStayNormalOnDisable = false,
+    sentryLabel,
     ref,
     ...rest
 }: ButtonProps) {
@@ -289,7 +293,6 @@ function Button({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const renderContent = () => {
         if ('children' in rest) {
@@ -372,7 +375,7 @@ function Button({
                         <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
                             {!isSplitButton ? (
                                 <Icon
-                                    src={iconRight ?? expensifyIcons.ArrowRight}
+                                    src={iconRight}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
                                     extraSmall={extraSmall}
                                     small={small}
@@ -382,7 +385,7 @@ function Button({
                                 />
                             ) : (
                                 <Icon
-                                    src={iconRight ?? expensifyIcons.ArrowRight}
+                                    src={iconRight}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
                                     extraSmall={extraSmall}
                                     small={small}
@@ -528,6 +531,7 @@ function Button({
                 hoverDimmingValue={1}
                 onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}
                 onHoverOut={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(false) : undefined}
+                sentryLabel={sentryLabel}
             >
                 {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 {renderContent()}

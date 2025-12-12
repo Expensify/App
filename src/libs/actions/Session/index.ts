@@ -1,5 +1,4 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {openAuthSessionAsync} from 'expo-web-browser';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
@@ -67,26 +66,23 @@ import type Locale from '@src/types/onyx/Locale';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
-import pkg from '../../../../package.json';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
 const INVALID_TOKEN = 'pizza';
 
-let session: Session = {};
+let deprecatedSession: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
 
 let isHybridAppSetupFinished = false;
 let hasSwitchedAccountInHybridMode = false;
 
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        session = value ?? {};
+        const session = value ?? {};
+        deprecatedSession = value ?? {};
 
-        if (!session.creationDate) {
-            session.creationDate = new Date().getTime();
-        }
         if (session.authToken && authPromiseResolver) {
             authPromiseResolver(true);
             authPromiseResolver = null;
@@ -130,7 +126,7 @@ Onyx.connect({
 });
 
 function isSupportAuthToken(): boolean {
-    return session.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
+    return deprecatedSession.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 }
 
 /**
@@ -165,7 +161,6 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
             key: ONYXKEYS.SESSION,
             value: {
                 signedInWithShortLivedAuthToken: true,
-                signedInWithSAML: isSAML,
                 isAuthenticatingWithShortLivedToken: true,
                 isSupportAuthTokenUsed,
             },
@@ -186,7 +181,6 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
             key: ONYXKEYS.SESSION,
             value: {
                 signedInWithShortLivedAuthToken: null,
-                signedInWithSAML: isSAML,
                 isSupportAuthTokenUsed: null,
                 isAuthenticatingWithShortLivedToken: false,
             },
@@ -241,26 +235,15 @@ function signOut(): Promise<void | Response> {
         skipReauthentication: true,
     };
 
-    if (session.signedInWithSAML) {
-        return callSAMLSignOut(params);
-    }
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, params, {});
-}
-
-function callSAMLSignOut(params: LogOutParams): Promise<void | Response> {
-    const queryString = `appversion=${pkg.version}&referer=ecash&authToken=${session.authToken}`;
-    return openAuthSessionAsync(`${CONST.EXPENSIFY_URL}/authentication/saml/logout?${queryString}`).then(() => {
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, params, {});
-    });
 }
 
 /**
  * Checks if the account is an anonymous account.
  */
 function isAnonymousUser(sessionParam?: OnyxEntry<Session>): boolean {
-    return (sessionParam?.authTokenType ?? session.authTokenType) === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+    return (sessionParam?.authTokenType ?? deprecatedSession.authTokenType) === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 }
 
 function hasStashedSession(): boolean {
@@ -271,7 +254,7 @@ function hasStashedSession(): boolean {
  * Checks if the user has authToken
  */
 function hasAuthToken(): boolean {
-    return !!session.authToken;
+    return !!deprecatedSession.authToken;
 }
 
 /**
@@ -338,7 +321,10 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     if (!isSupportal && shouldStashSession) {
         onyxSetParams = {
             [ONYXKEYS.STASHED_CREDENTIALS]: credentials,
-            [ONYXKEYS.STASHED_SESSION]: session,
+            [ONYXKEYS.STASHED_SESSION]: {
+                ...deprecatedSession,
+                creationDate: deprecatedSession.creationDate ?? new Date().getTime(),
+            },
         };
     }
 
@@ -361,7 +347,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 authToken: stashedSession.authToken ?? '',
                 // eslint-disable-next-line rulesdir/no-default-id-values
                 policyID: activePolicyID ?? '',
-                accountID: session.accountID ? String(session.accountID) : '',
+                accountID: deprecatedSession.accountID ? String(deprecatedSession.accountID) : '',
             });
             hasSwitchedAccountInHybridMode = true;
         }
@@ -545,8 +531,8 @@ function beginSignIn(email: string) {
  */
 function buildOnyxDataToCleanUpAnonymousUser() {
     const data: Record<string, null> = {};
-    if (session.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && session.accountID) {
-        data[session.accountID] = null;
+    if (deprecatedSession.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && deprecatedSession.accountID) {
+        data[deprecatedSession.accountID] = null;
     }
     return {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -634,7 +620,10 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             const stashedData = hybridApp?.delegateAccessData?.isDelegateAccess
                 ? {
                       [ONYXKEYS.STASHED_CREDENTIALS]: credentials,
-                      [ONYXKEYS.STASHED_SESSION]: session,
+                      [ONYXKEYS.STASHED_SESSION]: {
+                          ...deprecatedSession,
+                          creationDate: deprecatedSession.creationDate ?? new Date().getTime(),
+                      },
                   }
                 : {
                       [ONYXKEYS.STASHED_CREDENTIALS]: {},
@@ -1250,7 +1239,7 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
  */
 function waitForUserSignIn(): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
-        if (session.authToken) {
+        if (deprecatedSession.authToken) {
             resolve(true);
         } else {
             authPromiseResolver = resolve;

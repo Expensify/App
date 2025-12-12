@@ -938,12 +938,12 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
     }
     switch (key) {
         case 'reportID':
+        case 'reportName':
         case 'currency':
         case 'tag':
         case 'category':
         case 'merchant':
         case 'taxCode':
-        case 'filename':
         case 'modifiedCurrency':
         case 'modifiedMerchant':
         case 'transactionID':
@@ -955,6 +955,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'cardName':
         case 'cardNumber':
         case 'taxValue':
+        case 'groupCurrency':
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
@@ -976,6 +977,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'cardID':
         case 'originalAmount':
         case 'convertedAmount':
+        case 'groupAmount':
             return validateNumber(value);
         case 'iouRequestType':
             return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
@@ -1051,7 +1053,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    filename: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     iouRequestType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     modifiedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1064,6 +1065,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1095,6 +1097,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpensesTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    groupAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    groupCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
