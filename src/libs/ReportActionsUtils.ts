@@ -894,8 +894,10 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     if (isMovedTransactionAction(reportAction)) {
         const movedTransactionOriginalMessage = getOriginalMessage(reportAction);
         const toReportID = movedTransactionOriginalMessage?.toReportID;
+        const fromReportID = movedTransactionOriginalMessage?.fromReportID;
         const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-        return !!toReport;
+        const fromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+        return fromReport || !!toReport;
     }
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
@@ -1382,6 +1384,13 @@ function getOneTransactionThreadReportAction(
         return;
     }
 
+    // If there are multiple visible transactions, return undefined to indicate this is not a one-transaction report,
+    // even if we only found one IOU action. This handles edge cases like importing legacy transactions
+    // where the transactions exist but their corresponding IOU actions haven't been created yet.
+    if (reportTransactionIDs && reportTransactionIDs.length > 1) {
+        return;
+    }
+
     const originalMessage = getOriginalMessage(iouRequestAction);
 
     // If there's only one IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
@@ -1441,6 +1450,7 @@ function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>):
 }
 
 // We pass getReportName as a param to avoid cyclic dependency.
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
@@ -1478,6 +1488,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, g
     });
 
     const buildRoomElements = (): readonly MemberChangeMessageElement[] => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const roomName = getReportNameCallback(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage?.reportID}`]) || originalMessage?.roomName;
         if (roomName && originalMessage) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1850,6 +1861,7 @@ function getTravelUpdateMessage(action: ReportAction<'TRAVEL_TRIP_ROOM_UPDATE'>,
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
     const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction, getReportNameCallback);
     const html = messageElements
@@ -2312,30 +2324,56 @@ function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repor
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE);
 }
 
-function getPolicyChangeLogUpdateEmployee(reportAction: OnyxInputOrEntry<ReportAction>): string {
-    if (!isPolicyChangeLogChangeRoleMessage(reportAction)) {
+function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(field: string | undefined, oldValue: unknown, newValue: unknown, rawEmail: string): string {
+    if (!field) {
         return '';
     }
 
-    const originalMessage = getOriginalMessage(reportAction);
-    const email = formatPhoneNumber(originalMessage?.email ?? '');
-    const field = originalMessage?.field;
+    const email = formatPhoneNumber(rawEmail ?? '');
+    const stringOldValue = typeof oldValue === 'string' ? oldValue : '';
+    const stringNewValue = typeof newValue === 'string' ? newValue : '';
     const customFieldType = Object.values(CONST.CUSTOM_FIELD_KEYS).find((value) => value === field);
     if (customFieldType) {
         const translationKey = field === CONST.CUSTOM_FIELD_KEYS.customField1 ? 'report.actions.type.updatedCustomField1' : 'report.actions.type.updatedCustomField2';
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal(translationKey, {
             email,
-            newValue: typeof originalMessage?.newValue === 'string' ? originalMessage?.newValue : '',
-            previousValue: typeof originalMessage?.oldValue === 'string' ? originalMessage?.oldValue : '',
+            newValue: stringNewValue,
+            previousValue: stringOldValue,
         });
     }
+
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const newRole = translateLocal('workspace.common.roleName', {role: typeof originalMessage?.newValue === 'string' ? originalMessage?.newValue : ''}).toLowerCase();
+    const newRole = translateLocal('workspace.common.roleName', {role: stringNewValue}).toLowerCase();
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const oldRole = translateLocal('workspace.common.roleName', {role: typeof originalMessage?.oldValue === 'string' ? originalMessage?.oldValue : ''}).toLowerCase();
+    const oldRole = translateLocal('workspace.common.roleName', {role: stringOldValue}).toLowerCase();
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
+}
+
+function getPolicyChangeLogUpdateEmployee(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    if (!isPolicyChangeLogChangeRoleMessage(reportAction)) {
+        return '';
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    const email = originalMessage?.email ?? '';
+    const fieldChanges = originalMessage?.fields;
+
+    if (Array.isArray(fieldChanges) && fieldChanges.length > 0) {
+        const messages = fieldChanges
+            .map((fieldChange) => {
+                if (!fieldChange || typeof fieldChange !== 'object') {
+                    return '';
+                }
+                return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(fieldChange.field, fieldChange.oldValue, fieldChange.newValue, email);
+            })
+            .filter(Boolean);
+
+        return messages.join(', ');
+    }
+
+    return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(originalMessage?.field, originalMessage?.oldValue, originalMessage?.newValue, email);
 }
 
 function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useName = false): string {
@@ -2864,11 +2902,122 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
     return getReportActionText(action);
 }
 
+function getWorkspaceFeatureEnabledMessage(action: ReportAction): string {
+    const {enabled, featureName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED>) ?? {};
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.updatedFeatureEnabled', {
+        enabled: !!enabled,
+        featureName: featureName ?? '',
+    });
+}
+
 function getWorkspaceAttendeeTrackingUpdateMessage(action: ReportAction): string {
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED>) ?? {};
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('workspaceActions.updatedAttendeeTracking', {enabled: !!enabled});
+}
+
+type DefaultApproverOriginalMessage = {
+    approver: {email: string; name: string; accountID: number};
+    previousApprover?: {email: string; name: string; accountID: number};
+};
+
+type SubmitsToOriginalMessage = {
+    members: Array<{email: string; name: string; accountID: number}>;
+    approver?: {email: string; name: string; accountID: number};
+    previousApprover?: {email: string; name: string; accountID: number};
+    isDefaultApprover?: boolean;
+    wasDefaultApprover?: boolean;
+};
+
+type ForwardsToOriginalMessage = {
+    approvers: Array<{email: string; name: string; accountID: number}>;
+    forwardsTo?: {email: string; name: string; accountID: number};
+    previousForwardsTo?: {email: string; name: string; accountID: number};
+};
+
+function formatMemberListWithAnd(members: Array<{email: string; name: string}>): string {
+    const emails = members.map((m) => Str.removeSMSDomain(m.email));
+
+    if (emails.length === 1) {
+        return emails.at(0) ?? '';
+    }
+    if (emails.length === 2) {
+        return `${emails.at(0)} and ${emails.at(1)}`;
+    }
+
+    const allButLast = emails.slice(0, -1);
+    const last = emails.at(-1);
+    return `${allButLast.join(', ')}, and ${last}`;
+}
+
+function getDefaultApproverUpdateMessage(action: ReportAction): string {
+    const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER>) as
+        | DefaultApproverOriginalMessage
+        | undefined;
+
+    if (!originalMessage) {
+        return getReportActionText(action);
+    }
+
+    const newApprover = formatPhoneNumber(originalMessage.approver?.email ?? '');
+    const previousApprover = originalMessage.previousApprover ? formatPhoneNumber(originalMessage.previousApprover.email) : undefined;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.changedDefaultApprover', {newApprover, previousApprover});
+}
+
+function getSubmitsToUpdateMessage(action: ReportAction): string {
+    const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO>) as SubmitsToOriginalMessage | undefined;
+
+    if (!originalMessage) {
+        return getReportActionText(action);
+    }
+
+    const members = formatMemberListWithAnd(originalMessage.members ?? []);
+    const isDefaultApprover = originalMessage.isDefaultApprover ?? false;
+    const wasDefaultApprover = originalMessage.wasDefaultApprover ?? false;
+    const approverEmail = originalMessage.approver ? formatPhoneNumber(originalMessage.approver.email) : '';
+    const previousApproverEmail = originalMessage.previousApprover ? formatPhoneNumber(originalMessage.previousApprover.email) : undefined;
+
+    if (isDefaultApprover) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.changedSubmitsToDefault', {
+            members,
+            approver: approverEmail,
+            previousApprover: previousApproverEmail,
+            wasDefaultApprover,
+        });
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.changedSubmitsToApprover', {
+        members,
+        approver: approverEmail,
+        previousApprover: previousApproverEmail,
+        wasDefaultApprover,
+    });
+}
+
+function getForwardsToUpdateMessage(action: ReportAction): string {
+    const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO>) as ForwardsToOriginalMessage | undefined;
+
+    if (!originalMessage) {
+        return getReportActionText(action);
+    }
+
+    const approvers = formatMemberListWithAnd(originalMessage.approvers ?? []);
+    const forwardsToEmail = originalMessage.forwardsTo ? formatPhoneNumber(originalMessage.forwardsTo.email) : '';
+    const previousForwardsTo = originalMessage.previousForwardsTo ? formatPhoneNumber(originalMessage.previousForwardsTo.email) : undefined;
+
+    if (!forwardsToEmail) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.removedForwardsTo', {approver: approvers, previousForwardsTo});
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.changedForwardsTo', {approver: approvers, forwardsTo: forwardsToEmail, previousForwardsTo});
 }
 
 function getWorkspaceReimbursementUpdateMessage(action: ReportAction): string {
@@ -3352,6 +3501,12 @@ function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
     return getOriginalMessage(action)?.to;
 }
 
+function isSystemUserMentioned(action: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>): boolean {
+    const mentionedUsers = getOriginalMessage(action)?.inviteeAccountIDs;
+    const systemAccountIDs = new Set(Object.values(CONST.ACCOUNT_ID));
+    return mentionedUsers?.some((accountID) => systemAccountIDs.has(accountID)) ?? false;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3495,7 +3650,11 @@ export {
     getTravelUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    getWorkspaceFeatureEnabledMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
+    getDefaultApproverUpdateMessage,
+    getSubmitsToUpdateMessage,
+    getForwardsToUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceTaxUpdateMessage,
@@ -3536,6 +3695,7 @@ export {
     isPendingHide,
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,
+    isSystemUserMentioned,
 };
 
 export type {LastVisibleMessage};

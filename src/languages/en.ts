@@ -29,6 +29,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillableDefaultDescriptionParams,
@@ -326,12 +327,16 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: 'Count',
         cancel: 'Cancel',
+        // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
         dismiss: 'Dismiss',
+        // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Proceed',
         yes: 'Yes',
         no: 'No',
+        // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
         ok: 'OK',
         notNow: 'Not now',
         noThanks: 'No thanks',
@@ -352,6 +357,7 @@ const translations = {
         searchWithThreeDots: 'Search...',
         next: 'Next',
         previous: 'Previous',
+        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: 'Go back',
         create: 'Create',
         add: 'Add',
@@ -359,9 +365,11 @@ const translations = {
         save: 'Save',
         select: 'Select',
         deselect: 'Deselect',
+        // @context Menu or label title referring to the ability to select multiple items. Should be interpreted as a noun phrase, not a command.
         selectMultiple: 'Select multiple',
         saveChanges: 'Save changes',
         submit: 'Submit',
+        // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
         submitted: 'Submitted',
         rotate: 'Rotate',
         zoom: 'Zoom',
@@ -370,6 +378,7 @@ const translations = {
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         inbox: 'Inbox',
+        // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
         group: 'Group',
         profile: 'Profile',
@@ -379,6 +388,7 @@ const translations = {
         wallet: 'Wallet',
         preferences: 'Preferences',
         view: 'View',
+        viewReport: 'View report',
         review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'Not',
         signIn: 'Sign in',
@@ -403,6 +413,7 @@ const translations = {
         hidden: 'Hidden',
         visible: 'Visible',
         delete: 'Delete',
+        // @context UI label indicating that an item is archived. Maintain capitalization consistency across similar status labels.
         archived: 'archived',
         contacts: 'Contacts',
         recents: 'Recents',
@@ -410,6 +421,7 @@ const translations = {
         comment: 'Comment',
         download: 'Download',
         downloading: 'Downloading',
+        // @context Indicates that a file is currently being uploaded (sent to the server), not downloaded.
         uploading: 'Uploading',
         // @context as a verb, not a noun
         pin: 'Pin',
@@ -489,12 +501,15 @@ const translations = {
         comma: 'comma',
         semicolon: 'semicolon',
         please: 'Please',
+        // @context Call-to-action encouraging the user to reach out to support or the team. Should follow UI capitalization conventions.
         contactUs: 'contact us',
         pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
+        // @context Instruction prompting the user to correct multiple issues. Should use imperative form when translated.
         fixTheErrors: 'fix the errors',
         inTheFormBeforeContinuing: 'in the form before continuing',
         confirm: 'Confirm',
         reset: 'Reset',
+        // @context Status or button indicating that an action or process has been completed. Should reflect completion.
         done: 'Done',
         more: 'More',
         debitCard: 'Debit card',
@@ -506,10 +521,12 @@ const translations = {
         decline: 'Decline',
         reject: 'Reject',
         transferBalance: 'Transfer balance',
+        // @context Instruction telling the user to input data manually. Refers to entering text or values in a field.
         enterManually: 'Enter it manually',
         message: 'Message',
         leaveThread: 'Leave thread',
         you: 'You',
+        // @context Refers to the current user in the UI. Should follow capitalization rules for labels/pronouns in the target language.
         me: 'me',
         youAfterPreposition: 'you',
         your: 'your',
@@ -521,7 +538,9 @@ const translations = {
         areYouSure: 'Are you sure?',
         verify: 'Verify',
         yesContinue: 'Yes, continue',
+        // @context Provides an example format for a website URL.
         websiteExample: 'e.g. https://www.expensify.com',
+        // @context Provides an example format for a ZIP/postal code.
         zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
         title: 'Title',
@@ -531,6 +550,7 @@ const translations = {
         shareCode: 'Share code',
         share: 'Share',
         per: 'per',
+        // @context Unit label for “mile.” Should be treated as a measurement unit and may require capitalization depending on locale conventions.
         mi: 'mile',
         km: 'kilometer',
         copied: 'Copied!',
@@ -552,6 +572,7 @@ const translations = {
         replace: 'Replace',
         distance: 'Distance',
         mile: 'mile',
+        // @context Plural measurement unit for “mile.” Maintain consistent capitalization with the singular form.
         miles: 'miles',
         kilometer: 'kilometer',
         kilometers: 'kilometers',
@@ -559,6 +580,7 @@ const translations = {
         all: 'All',
         am: 'AM',
         pm: 'PM',
+        // @context Acronym meaning “To Be Determined.” Should be translated or localized according to the target language's convention.
         tbd: 'TBD',
         selectCurrency: 'Select a currency',
         selectSymbolOrCurrency: 'Select a symbol or currency',
@@ -601,6 +623,7 @@ const translations = {
         disable: 'Disable',
         export: 'Export',
         initialValue: 'Initial value',
+        // @context UI field indicating the current system date (e.g., “today’s date”). Not a label for selecting a date.
         currentDate: 'Current date',
         value: 'Value',
         downloadFailedTitle: 'Download failed',
@@ -613,11 +636,14 @@ const translations = {
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         chooseFiles: 'Choose files',
+        // @context Instruction for drag-and-drop upload area. Refers to dropping a file onto a designated zone, not “dropping” in a casual sense.
         dropTitle: 'Let it go',
+        // @context Instruction for dropping one or more files into an upload area.
         dropMessage: 'Drop your file here',
         ignore: 'Ignore',
         enabled: 'Enabled',
         disabled: 'Disabled',
+        // @context Action button for importing a file or data. Should use the verb form, not the noun form.
         import: 'Import',
         offlinePrompt: "You can't take this action right now.",
         // @context meaning "remaining to be paid, done, or dealt with", not "exceptionally good"
@@ -627,6 +653,7 @@ const translations = {
         unread: 'Unread',
         sent: 'Sent',
         links: 'Links',
+        // @context Used in date or calendar contexts to refer to a calendar day, not a duration (“daytime”).
         day: 'day',
         days: 'days',
         rename: 'Rename',
@@ -638,6 +665,7 @@ const translations = {
         chatNow: 'Chat now',
         workEmail: 'Work email',
         destination: 'Destination',
+        // @context Refers to a secondary or subordinate rate (e.g., mileage reimbursement). Should be localized consistently across accounting contexts.
         subrate: 'Subrate',
         perDiem: 'Per diem',
         validate: 'Validate',
@@ -695,6 +723,8 @@ const translations = {
         thisIsTakingLongerThanExpected: 'This is taking longer than expected...',
         domains: 'Domains',
         actionRequired: 'Action required',
+        duplicate: 'Duplicate',
+        duplicated: 'Duplicated',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -945,7 +975,7 @@ const translations = {
             `This chat room is for anything <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> related.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the + button to send an invoice.`,
-        beginningOfChatHistory: 'This chat is with ',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `This chat is with ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the + button.`,
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
@@ -1176,7 +1206,9 @@ const translations = {
         findExpense: 'Find expense',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense (${amount} for ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` from <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moved this expense from your <a href="${reportUrl}">personal space</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moved this expense to your <a href="${reportUrl}">personal space</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1550,6 +1582,7 @@ const translations = {
             always: 'Immediately',
             daily: 'Daily',
             mute: 'Mute',
+            // @context UI label indicating that something is concealed or not visible to the user.
             hidden: 'Hidden',
         },
     },
@@ -2384,9 +2417,10 @@ const translations = {
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'Generating PDF...',
-        waitForPDF: 'Please wait while we generate the PDF',
+        generatingPDF: 'Generate PDF',
+        waitForPDF: 'Please wait while we generate the PDF.',
         errorPDF: 'There was an error when trying to generate your PDF',
+        successPDF: "Your PDF has been generated! If it didn't automatically download, use the button below.",
     },
     reportDescriptionPage: {
         roomDescription: 'Room description',
@@ -2650,27 +2684,24 @@ const translations = {
 
                         ${
                             integrationName && CONST.connectionsVideoPaths[integrationName]
-                                ? dedent(
-                                      `[Take me to accounting](${workspaceAccountingLink}).
+                                ? `[Take me to accounting](${workspaceAccountingLink}).
 
-                                      ![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`,
-                                  )
+                        ![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
                                 : `[Take me to accounting](${workspaceAccountingLink}).`
-                        }
-                    `),
+                        }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Connect [your corporate card](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Connect [your corporate cards](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Connect your corporate card to automatically import and code expenses.
+                        Connect the cards you already have for automatic transaction import, receipt matching, and reconciliation.
 
                         1. Click *Workspaces*.
                         2. Select your workspace.
-                        3. Click *Corporate cards*.
-                        4. Follow the prompts to connect your card.
+                        3. Click *Company cards*.
+                        4. Follow the prompts to connect your cards.
 
-                        [Take me to connect my corporate cards](${corporateCardLink}).
+                        [Take me to company cards](${corporateCardLink}).
                     `),
             },
 
@@ -5309,9 +5340,18 @@ const translations = {
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
-            makeMember: 'Make member',
-            makeAdmin: 'Make admin',
-            makeAuditor: 'Make auditor',
+            makeMember: () => ({
+                one: 'Make member',
+                other: 'Make members',
+            }),
+            makeAdmin: () => ({
+                one: 'Make admin',
+                other: 'Make admins',
+            }),
+            makeAuditor: () => ({
+                one: 'Make auditor',
+                other: 'Make auditors',
+            }),
             selectAll: 'Select all',
             error: {
                 genericAdd: 'There was a problem adding this workspace member',
@@ -5365,7 +5405,6 @@ const translations = {
                 cardType: 'Card type',
                 limit: 'Limit',
                 limitType: 'Limit type',
-                name: 'Name',
                 disabledApprovalForSmartLimitError: 'Please enable approvals in <strong>Workflows > Add approvals</strong> before setting up smart limits',
             },
             deactivateCardModal: {
@@ -5932,6 +5971,8 @@ const translations = {
                     toUpgrade: 'To upgrade, click',
                     selectWorkspace: 'select a workspace, and change the plan type to',
                 },
+                upgradeWorkspaceWarning: `Can't upgrade workspace`,
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Your company has restricted workspace creation. Please reach out to an admin for help.',
             },
         },
         downgrade: {
@@ -6029,7 +6070,7 @@ const translations = {
                 adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
-                title: 'Expense reports',
+                title: 'Advanced',
                 subtitle: 'Automate expense report compliance, approvals, and payment.',
                 preventSelfApprovalsTitle: 'Prevent self-approvals',
                 preventSelfApprovalsSubtitle: 'Prevent workspace members from approving their own expense reports.',
@@ -6045,8 +6086,7 @@ const translations = {
                 autoPayApprovedReportsLockedSubtitle: 'Go to more features and enable workflows, then add payments to unlock this feature.',
                 autoPayReportsUnderTitle: 'Auto-pay reports under',
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Go to [more features](${moreFeaturesLink}) and enable workflows, then add ${featureName} to unlock this feature.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
             },
             categoryRules: {
@@ -6066,7 +6106,7 @@ const translations = {
                     expense: 'Individual expense',
                     expenseSubtitle: 'Flag expense amounts by category. This rule overrides the general workspace rule for max expense amount.',
                     daily: 'Category total',
-                    dailySubtitle: 'Flag total category spend per expense report.',
+                    dailySubtitle: 'Flag total daily category spend per expense report.',
                 },
                 requireReceiptsOver: 'Require receipts over',
                 requireReceiptsOverList: {
@@ -6330,8 +6370,92 @@ const translations = {
             `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'enabled' : 'disabled'} categories`;
+                case 'tags':
+                    return `${enabled ? 'enabled' : 'disabled'} tags`;
+                case 'workflows':
+                    return `${enabled ? 'enabled' : 'disabled'} workflows`;
+                case 'distance rates':
+                    return `${enabled ? 'enabled' : 'disabled'} distance rates`;
+                case 'accounting':
+                    return `${enabled ? 'enabled' : 'disabled'} accounting`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'enabled' : 'disabled'} Expensify Cards`;
+                case 'company cards':
+                    return `${enabled ? 'enabled' : 'disabled'} company cards`;
+                case 'invoicing':
+                    return `${enabled ? 'enabled' : 'disabled'} invoicing`;
+                case 'per diem':
+                    return `${enabled ? 'enabled' : 'disabled'} per diem`;
+                case 'receipt partners':
+                    return `${enabled ? 'enabled' : 'disabled'} receipt partners`;
+                case 'rules':
+                    return `${enabled ? 'enabled' : 'disabled'} rules`;
+                case 'tax tracking':
+                    return `${enabled ? 'enabled' : 'disabled'} tax tracking`;
+                default:
+                    return `${enabled ? 'enabled' : 'disabled'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements for this workspace`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `changed the default approver to ${newApprover} (previously ${previousApprover})` : `changed the default approver to ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `changed the approval workflow for ${members} to submit reports to ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previously default approver ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (previously default approver)';
+            } else if (previousApprover) {
+                text += ` (previously ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `changed the approval workflow for ${members} to submit reports to the default approver ${approver}`
+                : `changed the approval workflow for ${members} to submit reports to the default approver`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previously default approver ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (previously default approver)';
+            } else if (previousApprover) {
+                text += ` (previously ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `changed the approval workflow for ${approver} to forward approved reports to ${forwardsTo} (previously forwarded to ${previousForwardsTo})`
+                : `changed the approval workflow for ${approver} to forward approved reports to ${forwardsTo} (previously final approved reports)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `changed the approval workflow for ${approver} to stop forwarding approved reports (previously forwarded to ${previousForwardsTo})`
+                : `changed the approval workflow for ${approver} to stop forwarding approved reports`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6564,6 +6688,7 @@ const translations = {
         groupBy: 'Group by',
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',
+            accessPlaceHolder: 'Open for details',
         },
         noCategory: 'No category',
         noTag: 'No tag',
@@ -6698,12 +6823,14 @@ const translations = {
     },
     report: {
         newReport: {
+            createExpense: 'Create expense',
             createReport: 'Create report',
             chooseWorkspace: 'Choose a workspace for this report.',
             emptyReportConfirmationTitle: 'You already have an empty report',
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Are you sure you want to create another report in ${workspaceName}? You can access your empty reports in`,
             emptyReportConfirmationPromptLink: 'Reports',
+            emptyReportConfirmationDontShowAgain: "Don't show me this again",
             genericWorkspaceName: 'this workspace',
         },
         genericCreateReportFailureMessage: 'Unexpected error creating this chat. Please try again later.',
@@ -7117,6 +7244,7 @@ const translations = {
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
+        reportContainsExpensesWithViolations: 'Report contains expenses with violations.',
     },
     violationDismissal: {
         rter: {
@@ -7673,11 +7801,14 @@ const translations = {
             anyMemberWillBeRequired: 'Any member signed in with a different method will be required to re-authenticate using SAML.',
             enableError: "Couldn't update SAML enablement setting",
             requireError: "Couldn't update SAML requirement setting",
+            disableSamlRequired: 'Disable SAML required',
+            oktaWarningPrompt: 'Are you sure? This will also disable Okta SCIM.',
+            requireWithEmptyMetadataError: 'Please add Identity Provider metadata below to enable',
         },
         samlConfigurationDetails: {
             title: 'SAML configuration details',
             subtitle: 'Use these details to get SAML set up.',
-            identityProviderMetaData: 'Identity Provider MetaData',
+            identityProviderMetadata: 'Identity Provider Metadata',
             entityID: 'Entity ID',
             nameIDFormat: 'Name ID Format',
             loginUrl: 'Login URL',
@@ -7689,6 +7820,30 @@ const translations = {
             revealToken: 'Reveal token',
             fetchError: "Couldn't fetch SAML configuration details",
             setMetadataGenericError: "Couldn't set SAML MetaData",
+        },
+        accessRestricted: {
+            title: 'Access restricted',
+            subtitle: (domainName: string) => `Please verify yourself as an authorized company administrator for <strong>${domainName}</strong> if you need control over:`,
+            companyCardManagement: 'Company card management',
+            accountCreationAndDeletion: 'Account creation and deletion',
+            workspaceCreation: 'Workspace creation',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Add domain',
+            subtitle: 'Enter the name of the private domain you want to access (e.g. expensify.com).',
+            domainName: 'Domain name',
+            newDomain: 'New domain',
+        },
+        domainAdded: {
+            title: 'Domain added',
+            description: "Next, you'll need to verify ownership of the domain and adjust your security settings.",
+            configure: 'Configure',
+        },
+        enhancedSecurity: {
+            title: 'Enhanced security',
+            subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
+            enable: 'Enable',
         },
     },
 };
