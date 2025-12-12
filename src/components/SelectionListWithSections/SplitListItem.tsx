@@ -1,5 +1,5 @@
-import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {InteractionManager, View} from 'react-native';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -59,8 +59,6 @@ function SplitListItem<TItem extends ListItem>({
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
 
-    const [prefixCharacterMargin, setPrefixCharacterMargin] = useState<number>(CONST.CHARACTER_WIDTH);
-    const inputMarginLeft = prefixCharacterMargin + styles.pl1.paddingLeft;
     const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
     const focusHandler = useCallback(() => {
         if (!onInputFocus) {
@@ -74,13 +72,19 @@ function SplitListItem<TItem extends ListItem>({
     }, [onInputFocus, index]);
 
     // Auto-focus input when item is selected and screen transition ends
-    useLayoutEffect(() => {
-        if (!splitItem.isSelected || !splitItem.isEditable || !didScreenTransitionEnd || !inputRef.current) {
+    useEffect(() => {
+        if (!didScreenTransitionEnd || !splitItem.isSelected || !splitItem.isEditable || !inputRef.current) {
             return;
         }
 
-        inputRef.current.focus();
-    }, [splitItem.isSelected, splitItem.isEditable, didScreenTransitionEnd]);
+        // Use InteractionManager to ensure input focus happens after all animations/interactions complete.
+        // This prevents focus from interrupting modal close/open animations which would cause UI glitches
+        // and "jumping" behavior when quickly navigating between screens.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            inputRef.current?.focus();
+        });
+    }, [didScreenTransitionEnd, splitItem.isSelected, splitItem.isEditable]);
 
     const inputCallbackRef = (ref: BaseTextInputRef | null) => {
         inputRef.current = ref;
@@ -166,54 +170,33 @@ function SplitListItem<TItem extends ListItem>({
                 </View>
                 <View style={[styles.flexRow]}>
                     <View style={[styles.justifyContentCenter]}>
-                        {!splitItem.isEditable ? (
-                            <View style={styles.cannotBeEditedSplitInputContainer}>
-                                <Text
-                                    style={[styles.optionRowAmountInput, styles.pAbsolute]}
-                                    onLayout={(event) => {
-                                        if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
-                                            return;
-                                        }
-                                        setPrefixCharacterMargin(event?.nativeEvent?.layout.width);
-                                    }}
-                                >
-                                    {splitItem.currencySymbol}
-                                </Text>
-                                <Text
-                                    style={[styles.optionRowAmountInput, styles.pl3, styles.getSplitListItemAmountStyle(inputMarginLeft, contentWidth)]}
-                                    numberOfLines={1}
-                                >
-                                    {convertToDisplayStringWithoutCurrency(splitItem.amount, splitItem.currency)}
-                                </Text>
-                            </View>
-                        ) : (
-                            <MoneyRequestAmountInput
-                                ref={inputCallbackRef}
-                                autoGrow={false}
-                                amount={splitItem.amount}
-                                currency={splitItem.currency}
-                                prefixCharacter={splitItem.currencySymbol}
-                                disableKeyboard={false}
-                                isCurrencyPressable={false}
-                                hideFocusedState={false}
-                                hideCurrencySymbol
-                                submitBehavior="blurAndSubmit"
-                                formatAmountOnBlur
-                                onAmountChange={onSplitExpenseAmountChange}
-                                prefixContainerStyle={[styles.pv0, styles.h100]}
-                                prefixStyle={styles.lineHeightUndefined}
-                                inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
-                                containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
-                                touchableInputWrapperStyle={[styles.ml3]}
-                                maxLength={formattedOriginalAmount.length + 1}
-                                contentWidth={contentWidth}
-                                shouldApplyPaddingToContainer
-                                shouldUseDefaultLineHeightForPrefix={false}
-                                shouldWrapInputInContainer={false}
-                                onFocus={focusHandler}
-                                onBlur={onInputBlur}
-                            />
-                        )}
+                        <MoneyRequestAmountInput
+                            ref={inputCallbackRef}
+                            disabled={!splitItem.isEditable}
+                            autoGrow={false}
+                            amount={splitItem.amount}
+                            currency={splitItem.currency}
+                            prefixCharacter={splitItem.currencySymbol}
+                            disableKeyboard={false}
+                            isCurrencyPressable={false}
+                            hideFocusedState={false}
+                            hideCurrencySymbol
+                            submitBehavior="blurAndSubmit"
+                            formatAmountOnBlur
+                            onAmountChange={onSplitExpenseAmountChange}
+                            prefixContainerStyle={[styles.pv0, styles.h100]}
+                            prefixStyle={styles.lineHeightUndefined}
+                            inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
+                            containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
+                            touchableInputWrapperStyle={[styles.ml3]}
+                            maxLength={formattedOriginalAmount.length + 1}
+                            contentWidth={contentWidth}
+                            shouldApplyPaddingToContainer
+                            shouldUseDefaultLineHeightForPrefix={false}
+                            shouldWrapInputInContainer={false}
+                            onFocus={focusHandler}
+                            onBlur={onInputBlur}
+                        />
                     </View>
                     <View style={[styles.popoverMenuIcon]}>
                         {!splitItem.isEditable ? null : (

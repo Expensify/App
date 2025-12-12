@@ -237,6 +237,12 @@ type OriginalMessageSubmitted = {
     cc?: string;
 };
 
+/** Model of `created` report action */
+type OriginalMessageCreated = {
+    /** The account id of the user the report is submitted to */
+    submittedTo?: number;
+};
+
 /** Model of `closed` report action */
 type OriginalMessageClosed = {
     /** Name of the policy */
@@ -466,6 +472,16 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Custom field type  */
     field?: string;
+
+    /** Array of field changes for consolidated employee updates */
+    fields?: Array<{
+        /** The name of the field being updated */
+        field: string;
+        /** The previous value of the field */
+        oldValue: string;
+        /** The new value of the field */
+        newValue: string;
+    }>;
 
     /** Report field name */
     fieldName?: string;
@@ -782,8 +798,10 @@ type OriginalMessageUnreportedTransaction = {
 
 /** Model of MOVED_TRANSACTION report action */
 type OriginalMessageMovedTransaction = {
-    /** ID of the new report */
-    toReportID: string;
+    /** @Deprecated ID of the new report for backwards compatibility */
+    toReportID?: string;
+    /** ID of the original report */
+    fromReportID: string;
 };
 
 /** Model of `moved` report action */
@@ -1044,7 +1062,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE]: never;
     [CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST]: OriginalMessageChronosOOOList;
     [CONST.REPORT.ACTIONS.TYPE.CLOSED]: OriginalMessageClosed;
-    [CONST.REPORT.ACTIONS.TYPE.CREATED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.CREATED]: OriginalMessageCreated;
     [CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION]: OriginalMessageDismissedViolation;
     [CONST.REPORT.ACTIONS.TYPE.EXPENSIFY_CARD_SYSTEM_MESSAGE]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: never;

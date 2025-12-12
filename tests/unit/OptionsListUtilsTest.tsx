@@ -20,9 +20,11 @@ import {
     filterSelfDMChat,
     filterWorkspaceChats,
     formatMemberForList,
+    getCurrentUserSearchTerms,
     getLastActorDisplayName,
     getLastMessageTextForReport,
     getMemberInviteOptions,
+    getPersonalDetailSearchTerms,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
     getValidOptions,
@@ -65,10 +67,6 @@ jest.mock('@rnmapbox/maps', () => {
         setAccessToken: jest.fn(),
     };
 });
-
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -1204,6 +1202,24 @@ describe('OptionsListUtils', () => {
             // Then none of the results should include receipts
             expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
             expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
+        });
+
+        it('should exclude the person and the report from selected options', () => {
+            const selectedPerson = PERSONAL_DETAILS['3'];
+            const selectedReport = REPORTS['3'] as unknown as OptionData;
+
+            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, {
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                selectedOptions: [selectedPerson, selectedReport],
+            });
+
+            // The person must be excluded
+            expect(results.recentReports.every((option) => option.login !== selectedPerson.login)).toBe(true);
+            expect(results.personalDetails.every((option) => option.login !== selectedPerson.login)).toBe(true);
+
+            // The report must be excluded
+            expect(results.recentReports.every((option) => option.reportID !== selectedReport.reportID)).toBe(true);
+            expect(results.personalDetails.every((option) => option.reportID !== selectedPerson.reportID)).toBe(true);
         });
 
         it('should limit recent reports when maxRecentReportElements is specified', () => {
@@ -2662,6 +2678,7 @@ describe('OptionsListUtils', () => {
                 message: [{type: 'COMMENT', text: ''}],
                 originalMessage: {
                     toReportID: report2.reportID,
+                    fromReportID: report.reportID,
                 },
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`, report2);
@@ -2669,7 +2686,7 @@ describe('OptionsListUtils', () => {
                 [movedTransactionAction.reportActionID]: movedTransactionAction,
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
-            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(report2)));
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(movedTransactionAction)));
         });
         describe('SUBMITTED action', () => {
             it('should return automatic submitted message if submitted via harvesting', async () => {
@@ -2785,6 +2802,26 @@ describe('OptionsListUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
+        });
+    });
+
+    describe('getPersonalDetailSearchTerms', () => {
+        it('should include display name', () => {
+            const displayName = 'test';
+            const searchTerms = getPersonalDetailSearchTerms({displayName});
+            expect(searchTerms.includes(displayName)).toBe(true);
+            const searchTerms2 = getPersonalDetailSearchTerms({participantsList: [{displayName, accountID: 123}]});
+            expect(searchTerms2.includes(displayName)).toBe(true);
+        });
+    });
+
+    describe('getCurrentUserSearchTerms', () => {
+        it('should include display name', () => {
+            const displayName = 'test';
+            const searchTerms = getCurrentUserSearchTerms({displayName});
+            expect(searchTerms.includes(displayName)).toBe(true);
+            const searchTerms2 = getCurrentUserSearchTerms({text: displayName});
+            expect(searchTerms2.includes(displayName)).toBe(true);
         });
     });
 });
