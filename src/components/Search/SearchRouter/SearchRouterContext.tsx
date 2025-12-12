@@ -143,7 +143,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             registerSearchPageInput,
             unregisterSearchPageInput,
         };
-    }, [isNative, isSearchRouterDisplayed]);
+    }, [isSearchRouterDisplayed]);
 
     return <Context.Provider value={routerContext}>{children}</Context.Provider>;
 }
