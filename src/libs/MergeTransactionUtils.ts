@@ -23,9 +23,11 @@ import {
     getWaypoints,
     isDistanceRequest,
     isExpenseSplit,
+    isFetchingWaypointsFromServer,
     isManagedCardTransaction,
     isMerchantMissing,
     isPerDiemRequest,
+    isScanning,
     isTransactionPendingDelete,
 } from './TransactionUtils';
 
@@ -364,6 +366,14 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
 
     // Do not allow merging transactions that are pending delete
     if (isTransactionPendingDelete(transaction1) || isTransactionPendingDelete(transaction2)) {
+        return false;
+    }
+
+    if (isScanning(transaction1) || isScanning(transaction2)) {
+        return false;
+    }
+
+    if (isFetchingWaypointsFromServer(transaction1) || isFetchingWaypointsFromServer(transaction2)) {
         return false;
     }
 
