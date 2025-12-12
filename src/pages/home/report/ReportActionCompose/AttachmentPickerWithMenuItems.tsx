@@ -1,4 +1,4 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -13,7 +13,6 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -168,12 +167,6 @@ function AttachmentPickerWithMenuItems({
         () => hasEmptyReportsForPolicy(reportSummaries, report?.policyID, accountID) && hasDismissedEmptyReportsConfirmation !== true,
         [accountID, hasDismissedEmptyReportsConfirmation, report?.policyID, reportSummaries],
     );
-
-    const route = useRoute();
-    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useContext(WideRHPContext);
-
-    const isSuperWideRHPFocused = superWideRHPRouteKeys.includes(route?.key);
-    const isWideRHPFocused = wideRHPRouteKeys.includes(route?.key);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
