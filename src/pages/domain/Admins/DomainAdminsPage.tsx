@@ -138,7 +138,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     addBottomSafeAreaPadding
                     customListHeader={getCustomListHeader()}
                 />
-                `
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
