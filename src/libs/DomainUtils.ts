@@ -16,13 +16,15 @@ function selectAdminIDs(domain: OnyxTypes.Domain | undefined): number[] {
     }
 
     return (
-        Object.entries(domain)
-            .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_ADMIN_PERMISSIONS))
-            .map(([, value]) => {
-                const rawValue = typeof value === 'object' && value !== null && 'value' in value ? value.value : value;
-                return Number(rawValue);
-            })
-            .filter((id) => !Number.isNaN(id)) ?? getEmptyArray<number>()
+        Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
+            if (!key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_ADMIN_PERMISSIONS) && !value) {
+                return acc;
+            }
+
+            acc.push(Number(value));
+
+            return acc;
+        }, []) ?? getEmptyArray<number>()
     );
 }
 
