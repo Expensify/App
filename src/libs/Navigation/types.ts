@@ -12,6 +12,7 @@ import type {
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
 import type {SearchQueryString} from '@components/Search/types';
 import type {ReplacementReason} from '@libs/actions/Card';
 import type {IOURequestType} from '@libs/actions/IOU';
@@ -2176,6 +2177,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.EXPENSE_REPORT]: NavigatorScreenParams<ExpenseReportNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION]: NavigatorScreenParams<MultifactorAuthenticationParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2813,6 +2815,21 @@ type ExpenseReportNavigatorParamList = {
     };
 };
 
+type MultifactorAuthenticationParamList = {
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: undefined;
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: undefined;
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.NOTIFICATION]: {
+        notificationType: AllMultifactorAuthenticationNotificationType;
+    };
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.APPROVE_TRANSACTION]: {
+        transactionID: string;
+    };
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {
+        promptType: MultifactorAuthenticationPromptType;
+    };
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: undefined;
+};
+
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
@@ -2927,4 +2944,5 @@ export type {
     DomainSplitNavigatorParamList,
     DomainScreenName,
     SearchReportActionsParamList,
+    MultifactorAuthenticationParamList,
 };
