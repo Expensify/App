@@ -3165,6 +3165,14 @@ function peg$parse(input, options) {
     return s0;
   }
 
+  
+  const GROUP_BY_DEFAULT_SORT = {
+    from: "from",
+    card: "card",
+    "withdrawal-id": "withdrawn",
+  };
+
+  const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
 
   const defaultValues = {
     type: "expense",
@@ -3173,11 +3181,20 @@ function peg$parse(input, options) {
     sortOrder: "desc",
   };
   let rawFilterList = [];
+  let userProvidedSortBy = false;
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
     "type", "keyword", "groupCurrency", "groupBy"
   ]);
+
+  function isDefaultSortValue(sortBy) {
+    return DEFAULT_SORT_BY_VALUES.has(sortBy);
+  }
+
+  function getDefaultSortByForGroupBy(groupBy) {
+    return GROUP_BY_DEFAULT_SORT[groupBy];
+  }
 
   function applyDefaults(filters) {
     return {
@@ -3192,6 +3209,17 @@ function peg$parse(input, options) {
       defaultValues[field] = "";
       return;
     }
+
+    // Track if user explicitly provided a custom (non-default) sortBy
+    if (field === "sortBy" && !isDefaultSortValue(value)) {
+      userProvidedSortBy = true;
+    }
+
+    // Auto-update sortBy when groupBy changes, only if user hasn't set a custom sortBy
+    if (field === "groupBy" && !userProvidedSortBy && value) {
+      defaultValues.sortBy = getDefaultSortByForGroupBy(value);
+    }
+
     defaultValues[field] = value;
   }
 

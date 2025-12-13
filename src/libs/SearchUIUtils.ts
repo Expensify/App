@@ -67,6 +67,7 @@ import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
+import {getCardDescription, getCustomOrFormattedFeedName} from './CardUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
@@ -131,9 +132,15 @@ import ViolationsUtils from './Violations/ViolationsUtils';
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
 
+// List Item sorting
 type TransactionSorting = ColumnSortMapping<TransactionListItemType>;
 type TaskSorting = ColumnSortMapping<TaskListItemType>;
 type ExpenseReportSorting = ColumnSortMapping<ExpenseReportListItemType>;
+
+// Transaction Group sorting
+type TransactionMemberGroupSorting = ColumnSortMapping<TransactionMemberGroupListItemType>;
+type TransactionCardGroupSorting = ColumnSortMapping<TransactionCardGroupListItemType>;
+type TransactionWithdrawalIDGroupSorting = ColumnSortMapping<TransactionWithdrawalIDGroupListItemType>;
 
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -168,6 +175,30 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
+};
+
+const transactionMemberGroupColumnNamesToSortingProperty: TransactionMemberGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: 'count' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
+};
+
+const transactionCardGroupColumnNamesToSortingProperty: TransactionCardGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.CARD]: 'formattedCardName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.FEED]: 'formattedFeedName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: 'count' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
+};
+
+const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithdrawalIDGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT]: 'bankName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: 'formattedWithdrawalDate' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: 'count' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
 };
 
 const expenseStatusActionMapping = {
@@ -305,6 +336,7 @@ type GetSectionsParams = {
     archivedReportsIDList?: ArchivedReportsIDSet;
     queryJSON?: SearchQueryJSON;
     isActionLoadingSet?: ReadonlySet<string>;
+    cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
 };
 
 /**
@@ -1667,7 +1699,11 @@ function getReportSections(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMemberSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMemberGroupListItemType[], number] {
+function getMemberSections(
+    data: OnyxTypes.SearchResults['data'],
+    queryJSON: SearchQueryJSON | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): [TransactionMemberGroupListItemType[], number] {
     const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
 
     for (const key in data) {
@@ -1689,6 +1725,7 @@ function getMemberSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sea
                 transactionsQueryJSON,
                 ...personalDetails,
                 ...memberGroup,
+                formattedFrom: formatPhoneNumber(getDisplayNameOrDefault(personalDetails)),
             };
         }
     }
@@ -1703,7 +1740,11 @@ function getMemberSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sea
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getCardSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionCardGroupListItemType[], number] {
+function getCardSections(
+    data: OnyxTypes.SearchResults['data'],
+    queryJSON: SearchQueryJSON | undefined,
+    cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
+): [TransactionCardGroupListItemType[], number] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
 
     for (const key in data) {
@@ -1720,12 +1761,31 @@ function getCardSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 transactionsQueryJSON = buildSearchQueryJSON(newQuery);
             }
 
+            // Find the custom feed name from all card feeds
+            let customFeedName: string | undefined;
+            if (cardFeeds) {
+                for (const feedData of Object.values(cardFeeds)) {
+                    const nickname = feedData?.settings?.companyCardNicknames?.[cardGroup.bank as OnyxTypes.CompanyCardFeed];
+                    if (nickname) {
+                        customFeedName = nickname;
+                        break;
+                    }
+                }
+            }
+
             cardSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.CARD,
                 transactions: [],
                 transactionsQueryJSON,
                 ...personalDetails,
                 ...cardGroup,
+                formattedCardName: getCardDescription({
+                    cardID: cardGroup.cardID,
+                    bank: cardGroup.bank,
+                    cardName: cardGroup.cardName,
+                    lastFourPAN: cardGroup.lastFourPAN,
+                } as OnyxTypes.Card),
+                formattedFeedName: getCustomOrFormattedFeedName(cardGroup.bank as OnyxTypes.CompanyCardFeed, customFeedName) ?? '',
             };
         }
     }
@@ -1759,11 +1819,18 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
                 continue;
             }
 
+            const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
+                withdrawalIDGroup.debitPosted,
+                DateUtils.doesDateBelongToAPastYear(withdrawalIDGroup.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+            );
+
             withdrawalIDSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 transactions: [],
                 transactionsQueryJSON,
                 ...withdrawalIDGroup,
+                formattedWithdrawalDate,
+                formattedWithdrawalID: String(withdrawalIDGroup.entryID),
             };
         }
     }
@@ -1806,6 +1873,7 @@ function getSections({
     archivedReportsIDList,
     queryJSON,
     isActionLoadingSet,
+    cardFeeds,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -1823,9 +1891,9 @@ function getSections({
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.FROM:
-                return getMemberSections(data, queryJSON);
+                return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON);
+                return getCardSections(data, queryJSON, cardFeeds);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
         }
@@ -1861,11 +1929,11 @@ function getSortedSections(
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.FROM:
-                return getSortedMemberData(data as TransactionMemberGroupListItemType[], localeCompare);
+                return getSortedMemberData(data as TransactionMemberGroupListItemType[], localeCompare, sortBy, sortOrder);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getSortedCardData(data as TransactionCardGroupListItemType[], localeCompare);
+                return getSortedCardData(data as TransactionCardGroupListItemType[], localeCompare, sortBy, sortOrder);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-                return getSortedWithdrawalIDData(data as TransactionWithdrawalIDGroupListItemType[], localeCompare);
+                return getSortedWithdrawalIDData(data as TransactionWithdrawalIDGroupListItemType[], localeCompare, sortBy, sortOrder);
         }
     }
 
@@ -1980,26 +2048,70 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
 
 /**
  * @private
+ * Generic sorting function with column mapping and default fallback comparator
+ */
+function getSortedData<T extends TransactionGroupListItemType>(
+    data: T[],
+    localeCompare: LocaleContextProps['localeCompare'],
+    columnNamesToSortingProperty: ColumnSortMapping<T>,
+    defaultComparator: (a: T, b: T) => number,
+    sortBy?: SearchColumnType,
+    sortOrder?: SortOrder,
+) {
+    if (!sortBy || !sortOrder) {
+        return data.sort(defaultComparator);
+    }
+
+    const sortingProperty = columnNamesToSortingProperty[sortBy];
+
+    if (!sortingProperty) {
+        return data;
+    }
+
+    return data.sort((a, b) => {
+        const aValue = a[sortingProperty];
+        const bValue = b[sortingProperty];
+
+        return compareValues(aValue, bValue, sortOrder, sortingProperty as string, localeCompare);
+    });
+}
+
+/**
+ * @private
  * Sorts member sections based on a specified column and sort order.
  */
-function getSortedMemberData(data: TransactionMemberGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
-    return data.sort((a, b) => localeCompare(a.displayName ?? a.login ?? '', b.displayName ?? b.login ?? ''));
+function getSortedMemberData(data: TransactionMemberGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    return getSortedData(
+        data,
+        localeCompare,
+        transactionMemberGroupColumnNamesToSortingProperty,
+        (a, b) => localeCompare(a.displayName ?? a.login ?? '', b.displayName ?? b.login ?? ''),
+        sortBy,
+        sortOrder,
+    );
 }
 
 /**
  * @private
  * Sorts card sections based on a specified column and sort order.
  */
-function getSortedCardData(data: TransactionCardGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
-    return data.sort((a, b) => localeCompare(a.displayName ?? a.login ?? '', b.displayName ?? b.login ?? ''));
+function getSortedCardData(data: TransactionCardGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    return getSortedData(
+        data,
+        localeCompare,
+        transactionCardGroupColumnNamesToSortingProperty,
+        (a, b) => localeCompare(a.formattedFeedName ?? '', b.formattedFeedName ?? ''),
+        sortBy,
+        sortOrder,
+    );
 }
 
 /**
  * @private
  * Sorts withdrawal ID sections based on a specified column and sort order.
  */
-function getSortedWithdrawalIDData(data: TransactionWithdrawalIDGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
-    return data.sort((a, b) => localeCompare(b.debitPosted, a.debitPosted));
+function getSortedWithdrawalIDData(data: TransactionWithdrawalIDGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    return getSortedData(data, localeCompare, transactionWithdrawalIDGroupColumnNamesToSortingProperty, (a, b) => localeCompare(b.debitPosted, a.debitPosted), sortBy, sortOrder);
 }
 
 /**
@@ -2430,6 +2542,7 @@ function getColumnsToShow(
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
     isExpenseReportView = false,
     type?: SearchDataTypes,
+    groupBy?: SearchGroupBy,
 ): ColumnVisibility {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         return {
@@ -2467,6 +2580,37 @@ function getColumnsToShow(
         };
     }
 
+    if (!isExpenseReportView && groupBy) {
+        switch (groupBy) {
+            case CONST.SEARCH.GROUP_BY.FROM:
+                return {
+                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
+                    [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
+                    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
+                    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+                };
+            case CONST.SEARCH.GROUP_BY.CARD:
+                return {
+                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
+                    [CONST.SEARCH.TABLE_COLUMNS.CARD]: true,
+                    [CONST.SEARCH.TABLE_COLUMNS.FEED]: true,
+                    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
+                    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+                };
+            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+                return {
+                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
+                    [CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT]: true,
+                    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: true,
+                    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: true,
+                    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
+                    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+                };
+            default:
+                return {};
+        }
+    }
+
     const columns: ColumnVisibility = isExpenseReportView
         ? {
               [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,
@@ -2491,7 +2635,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
           };
 
