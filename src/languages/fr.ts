@@ -3163,6 +3163,7 @@ ${
         currencyHeader: 'Quelle est la devise de votre compte bancaire ?',
         confirmationStepHeader: 'Vérifiez vos informations.',
         confirmationStepSubHeader: 'Vérifiez les détails ci-dessous, puis cochez la case des conditions pour confirmer.',
+        toGetStarted: 'Ajoutez un compte bancaire personnel pour recevoir des remboursements, payer des factures ou activer le portefeuille Expensify.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Saisissez le mot de passe Expensify',
