@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import Text from '@components/Text';
@@ -42,11 +42,11 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
 
     const employeeList = policy?.employeeList;
     const isDefault = approvalWorkflow?.isDefault;
-    const membersEmail = useMemo(() => approvalWorkflow?.members.map((member) => member.email), [approvalWorkflow?.members]);
+    const membersEmail = approvalWorkflow?.members.map((member) => member.email);
 
     const currentApproverEmail = currentApprover?.email;
 
-    const allApprovers: SelectionListApprover[] = useMemo(() => {
+    const allApprovers: SelectionListApprover[] = (() => {
         if (isApprovalWorkflowLoading || !employeeList) {
             return [];
         }
@@ -89,73 +89,56 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [
-        isApprovalWorkflowLoading,
-        employeeList,
-        personalDetails,
-        policy?.owner,
-        policy?.preventSelfApproval,
-        currentApprover?.overLimitForwardsTo,
-        expensifyIcons.FallbackAvatar,
-        isDefault,
-        membersEmail,
-        currentApproverEmail,
-    ]);
+    })();
 
     const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex));
-    }, [policyID, approverIndex]);
+    };
 
-    const selectApprover = useCallback(
-        (approvers: SelectionListApprover[]) => {
-            const selectedApprover = approvers.at(0);
+    const selectApprover = (approvers: SelectionListApprover[]) => {
+        const selectedApprover = approvers.at(0);
 
-            if (!approvalWorkflow || !currentApprover) {
-                return;
-            }
+        if (!approvalWorkflow || !currentApprover) {
+            return;
+        }
 
-            // If empty array, the same approver was tapped again to unselect
-            if (approvers.length === 0) {
-                setApprovalWorkflowApprover({
-                    approver: {
-                        ...currentApprover,
-                        overLimitForwardsTo: '',
-                    },
-                    approverIndex,
-                    currentApprovalWorkflow: approvalWorkflow,
-                    policy,
-                    personalDetailsByEmail,
-                });
-                goBack();
-                return;
-            }
-
-            if (!selectedApprover?.login) {
-                return;
-            }
-
+        // If empty array, the same approver was tapped again to unselect
+        if (approvers.length === 0) {
             setApprovalWorkflowApprover({
                 approver: {
                     ...currentApprover,
-                    overLimitForwardsTo: selectedApprover.login,
+                    overLimitForwardsTo: '',
                 },
                 approverIndex,
                 currentApprovalWorkflow: approvalWorkflow,
                 policy,
                 personalDetailsByEmail,
             });
-
             goBack();
-        },
-        [approvalWorkflow, currentApprover, approverIndex, policy, personalDetailsByEmail, goBack],
-    );
+            return;
+        }
 
-    const subtitle = useMemo(
-        () => !shouldShowListEmptyContent && <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApprovalLimitPage.additionalApproverLabel')}</Text>,
-        [shouldShowListEmptyContent, translate, styles.textHeadlineH1, styles.mh5, styles.mv3],
-    );
+        if (!selectedApprover?.login) {
+            return;
+        }
+
+        setApprovalWorkflowApprover({
+            approver: {
+                ...currentApprover,
+                overLimitForwardsTo: selectedApprover.login,
+            },
+            approverIndex,
+            currentApprovalWorkflow: approvalWorkflow,
+            policy,
+            personalDetailsByEmail,
+        });
+
+        goBack();
+    };
+
+    const subtitle = !shouldShowListEmptyContent && <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApprovalLimitPage.additionalApproverLabel')}</Text>;
 
     return (
         <AccessOrNotFoundWrapper

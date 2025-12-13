@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -54,25 +54,15 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const selectedApproverEmail = currentApprover?.overLimitForwardsTo ?? '';
 
-    const defaultApprovalLimit = useMemo(() => {
-        if (currentApprover?.approvalLimit) {
-            return convertToFrontendAmountAsString(currentApprover.approvalLimit, currency);
-        }
-        return '';
-    }, [currentApprover?.approvalLimit, currency]);
+    const defaultApprovalLimit = currentApprover?.approvalLimit ? convertToFrontendAmountAsString(currentApprover.approvalLimit, currency) : '';
 
     const [editedApprovalLimit, setEditedApprovalLimit] = useState<string | null>(null);
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
     const approvalLimit = editedApprovalLimit ?? defaultApprovalLimit;
 
-    const selectedApproverDisplayName = useMemo(() => {
-        if (!selectedApproverEmail) {
-            return '';
-        }
-        const personalDetails = personalDetailsByEmail?.[selectedApproverEmail];
-        return Str.removeSMSDomain(personalDetails?.displayName ?? selectedApproverEmail);
-    }, [selectedApproverEmail, personalDetailsByEmail]);
+    const selectedApproverPersonalDetails = selectedApproverEmail ? personalDetailsByEmail?.[selectedApproverEmail] : undefined;
+    const selectedApproverDisplayName = selectedApproverEmail ? Str.removeSMSDomain(selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail) : '';
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
@@ -88,56 +78,48 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const onlyApproverEmpty = hasAmount && !hasApprover;
 
     const amountError = hasSubmitted && onlyAmountEmpty ? translate('workflowsApprovalLimitPage.enterAmountError') : undefined;
-    const approverErrorText = useMemo(() => {
-        if (hasSubmitted && onlyApproverEmpty) {
-            return translate('workflowsApprovalLimitPage.enterApproverError');
-        }
-        return undefined;
-    }, [hasSubmitted, onlyApproverEmpty, translate]);
+    const approverErrorText = hasSubmitted && onlyApproverEmpty ? translate('workflowsApprovalLimitPage.enterApproverError') : undefined;
 
     const firstApprover = approvalWorkflow?.approvers?.at(0)?.email ?? '';
 
-    const navigateAfterCompletion = useCallback(() => {
+    const navigateAfterCompletion = () => {
         if (isEditFlow) {
             // In edit mode, always go directly to the Edit page when saving
             Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover));
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
-    }, [isEditFlow, policyID, firstApprover]);
+    };
 
-    const updateCurrentApprover = useCallback(
-        (update: Partial<Approver>) => {
-            if (!approvalWorkflow || !currentApprover) {
-                return;
-            }
-            setApprovalWorkflowApprover({
-                approver: {
-                    ...currentApprover,
-                    ...update,
-                },
-                approverIndex,
-                currentApprovalWorkflow: approvalWorkflow,
-                policy,
-                personalDetailsByEmail,
-            });
-        },
-        [approvalWorkflow, currentApprover, approverIndex, policy, personalDetailsByEmail],
-    );
+    const updateCurrentApprover = (update: Partial<Approver>) => {
+        if (!approvalWorkflow || !currentApprover) {
+            return;
+        }
+        setApprovalWorkflowApprover({
+            approver: {
+                ...currentApprover,
+                ...update,
+            },
+            approverIndex,
+            currentApprovalWorkflow: approvalWorkflow,
+            policy,
+            personalDetailsByEmail,
+        });
+    };
 
-    const resetApprovalLimit = useCallback(() => {
+    const resetApprovalLimit = () => {
         updateCurrentApprover({
             approvalLimit: null,
             overLimitForwardsTo: '',
         });
-    }, [updateCurrentApprover]);
+    };
 
-    const handleSkip = useCallback(() => {
+    const handleSkip = () => {
         resetApprovalLimit();
         navigateAfterCompletion();
-    }, [resetApprovalLimit, navigateAfterCompletion]);
+    };
 
-    const handleSubmit = useCallback(() => {
+    const handleSubmit = () => {
         if (!approvalWorkflow) {
             return;
         }
@@ -165,45 +147,32 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             overLimitForwardsTo: selectedApproverEmail,
         });
         navigateAfterCompletion();
-    }, [
-        approvalWorkflow,
-        currentApprover,
-        isEditFlow,
-        approverIndex,
-        bothEmpty,
-        onlyAmountEmpty,
-        onlyApproverEmpty,
-        approvalLimit,
-        selectedApproverEmail,
-        resetApprovalLimit,
-        navigateAfterCompletion,
-        updateCurrentApprover,
-    ]);
+    };
 
-    const handleAmountChange = useCallback((value: string) => {
+    const handleAmountChange = (value: string) => {
         setEditedApprovalLimit(value);
         setHasSubmitted(false);
-    }, []);
+    };
 
-    const saveCurrentStateToOnyx = useCallback(() => {
+    const saveCurrentStateToOnyx = () => {
         const limitInCents = approvalLimit ? convertToBackendAmount(Number.parseFloat(approvalLimit)) : null;
         updateCurrentApprover({
             approvalLimit: limitInCents,
             overLimitForwardsTo: selectedApproverEmail,
         });
         setHasSubmitted(false);
-    }, [approvalLimit, selectedApproverEmail, updateCurrentApprover]);
+    };
 
-    const navigateToApproverSelector = useCallback(() => {
+    const navigateToApproverSelector = () => {
         saveCurrentStateToOnyx();
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID, approverIndex));
-    }, [saveCurrentStateToOnyx, policyID, approverIndex]);
+    };
 
-    const navigateToApproverChange = useCallback(() => {
+    const navigateToApproverChange = () => {
         saveCurrentStateToOnyx();
         // Use the dedicated route for changing approver - it will go BACK to this page after selection
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE.getRoute(policyID, approverIndex));
-    }, [saveCurrentStateToOnyx, policyID, approverIndex]);
+    };
 
     const buttonContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mh5, styles.mb5]});
 
