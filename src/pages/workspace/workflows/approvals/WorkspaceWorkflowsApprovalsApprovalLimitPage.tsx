@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -61,19 +61,10 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         return '';
     }, [currentApprover?.approvalLimit, currency]);
 
-    const [approvalLimit, setApprovalLimit] = useState(defaultApprovalLimit);
+    const [editedApprovalLimit, setEditedApprovalLimit] = useState<string | null>(null);
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
-    useEffect(() => {
-        if (!selectedApproverEmail) {
-            return;
-        }
-        setHasSubmitted(false);
-    }, [selectedApproverEmail]);
-
-    useEffect(() => {
-        setApprovalLimit(defaultApprovalLimit);
-    }, [defaultApprovalLimit]);
+    const approvalLimit = editedApprovalLimit ?? defaultApprovalLimit;
 
     const selectedApproverDisplayName = useMemo(() => {
         if (!selectedApproverEmail) {
@@ -190,7 +181,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     ]);
 
     const handleAmountChange = useCallback((value: string) => {
-        setApprovalLimit(value);
+        setEditedApprovalLimit(value);
         setHasSubmitted(false);
     }, []);
 
@@ -200,6 +191,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             approvalLimit: limitInCents,
             overLimitForwardsTo: selectedApproverEmail,
         });
+        setHasSubmitted(false);
     }, [approvalLimit, selectedApproverEmail, updateCurrentApprover]);
 
     const navigateToApproverSelector = useCallback(() => {

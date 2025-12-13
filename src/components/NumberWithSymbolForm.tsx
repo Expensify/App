@@ -153,15 +153,15 @@ function NumberWithSymbolForm({
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
-    const prevNumber = usePrevious(number);
     const [currentNumber, setCurrentNumber] = useState(typeof number === 'string' ? number : '');
 
-    if (number !== prevNumber) {
+    // sync currentNumber with number prop when it changes externally
+    useEffect(() => {
         const newNumber = typeof number === 'string' ? number : '';
         if (newNumber !== currentNumber) {
             setCurrentNumber(newNumber);
         }
-    }
+    }, [number]);
 
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
