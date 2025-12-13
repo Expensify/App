@@ -1,9 +1,8 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -17,7 +16,7 @@ import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
+import type {SplitListItemProps, SplitListItemType} from './types';
 
 function SplitListItem<TItem extends ListItem>({
     item,
@@ -28,7 +27,6 @@ function SplitListItem<TItem extends ListItem>({
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     onFocus,
-    index,
     onInputFocus,
     onInputBlur,
 }: SplitListItemProps<TItem>) {
@@ -38,6 +36,7 @@ function SplitListItem<TItem extends ListItem>({
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
 
     const splitItem = item as unknown as SplitListItemType;
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Folder', 'Tag'] as const);
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
 
@@ -61,15 +60,8 @@ function SplitListItem<TItem extends ListItem>({
 
     const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
     const focusHandler = useCallback(() => {
-        if (!onInputFocus) {
-            return;
-        }
-
-        if (!index && index !== 0) {
-            return;
-        }
-        onInputFocus(index);
-    }, [onInputFocus, index]);
+        onInputFocus?.(item);
+    }, [onInputFocus, item]);
 
     // Auto-focus input when item is selected and screen transition ends
     useEffect(() => {
@@ -202,7 +194,7 @@ function SplitListItem<TItem extends ListItem>({
                         {!splitItem.isEditable ? null : (
                             <View style={styles.pointerEventsAuto}>
                                 <Icon
-                                    src={Expensicons.ArrowRight}
+                                    src={expensifyIcons.ArrowRight}
                                     fill={theme.icon}
                                 />
                             </View>
