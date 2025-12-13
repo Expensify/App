@@ -600,6 +600,7 @@ MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector
 export default memo(
     MoneyRequestParticipantsSelector,
     (prevProps, nextProps) =>
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo
         deepEqual(prevProps.participants, nextProps.participants) &&
         prevProps.iouType === nextProps.iouType &&
         prevProps.isWorkspacesOnly === nextProps.isWorkspacesOnly &&
