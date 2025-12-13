@@ -217,6 +217,7 @@ function WorkspacesListPage() {
             reimbursementAccountError,
             bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
+            localeCompare,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
