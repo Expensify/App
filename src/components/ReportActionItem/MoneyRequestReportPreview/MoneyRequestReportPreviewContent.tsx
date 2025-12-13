@@ -144,7 +144,7 @@ function MoneyRequestReportPreviewContent({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow', 'Location'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow', 'Location', 'ReceiptPlus'] as const);
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({

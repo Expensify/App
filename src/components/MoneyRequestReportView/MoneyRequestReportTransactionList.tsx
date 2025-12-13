@@ -164,8 +164,9 @@ function MoneyRequestReportTransactionList({
     useCopySelectionHelper();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'ReceiptPlus'] as const);
     const {translate, localeCompare} = useLocalize();
+
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();

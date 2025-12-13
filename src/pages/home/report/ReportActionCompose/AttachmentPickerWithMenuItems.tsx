@@ -138,7 +138,21 @@ function AttachmentPickerWithMenuItems({
     raiseIsScrollLikelyLayoutTriggered,
     shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Collapse', 'Document', 'Expand', 'Location', 'Paperclip', 'Task'] as const);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'Collapse',
+        'Document',
+        'Expand',
+        'Location',
+        'Paperclip',
+        'Task',
+        'Coins',
+        'Receipt',
+        'Cash',
+        'InvoiceGeneric',
+        'Transfer',
+        'Receipt',
+        'MoneyCircle',
+    ] as const);
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -213,7 +227,7 @@ function AttachmentPickerWithMenuItems({
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: [
                 {
-                    icon: Expensicons.Transfer,
+                    icon: icons.Transfer,
                     text: translate('iou.splitExpense'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
@@ -221,7 +235,7 @@ function AttachmentPickerWithMenuItems({
             ],
             [CONST.IOU.TYPE.SUBMIT]: [
                 {
-                    icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                    icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
                     text: translate('iou.createExpense'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
@@ -235,7 +249,7 @@ function AttachmentPickerWithMenuItems({
             ],
             [CONST.IOU.TYPE.PAY]: [
                 {
-                    icon: getIconForAction(CONST.IOU.TYPE.SEND),
+                    icon: getIconForAction(CONST.IOU.TYPE.SEND, icons),
                     text: translate('iou.paySomeone', {name: getPayeeName(report)}),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => {
@@ -251,7 +265,7 @@ function AttachmentPickerWithMenuItems({
             ],
             [CONST.IOU.TYPE.TRACK]: [
                 {
-                    icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                    icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
                     text: translate('iou.createExpense'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
@@ -265,7 +279,7 @@ function AttachmentPickerWithMenuItems({
             ],
             [CONST.IOU.TYPE.INVOICE]: [
                 {
-                    icon: Expensicons.InvoiceGeneric,
+                    icon: icons.InvoiceGeneric,
                     text: translate('workspace.invoices.sendInvoice'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), false),
@@ -290,7 +304,7 @@ function AttachmentPickerWithMenuItems({
         shouldUseNarrowLayout,
         showDelegateNoAccessModal,
         translate,
-        icons.Location,
+        icons,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {

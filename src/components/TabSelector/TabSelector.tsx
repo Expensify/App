@@ -3,8 +3,6 @@ import {TabActions} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useIsResizing from '@hooks/useIsResizing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -44,7 +42,7 @@ type IconTitleAndTestID = {
 };
 
 function getIconTitleAndTestID(
-    icons: Record<'CalendarSolid' | 'UploadAlt' | 'User' | 'Car' | 'Hashtag' | 'Map' | 'Pencil', IconAsset>,
+    icons: Record<'CalendarSolid' | 'UploadAlt' | 'User' | 'Car' | 'Hashtag' | 'Map' | 'Pencil' | 'Receipt' | 'ReceiptScan', IconAsset>,
     route: string,
     translate: LocaleContextProps['translate'],
 ): IconTitleAndTestID {
@@ -58,7 +56,7 @@ function getIconTitleAndTestID(
         case CONST.TAB_REQUEST.MANUAL:
             return {icon: icons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
         case CONST.TAB_REQUEST.SCAN:
-            return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
+            return {icon: icons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
         case CONST.TAB.NEW_CHAT:
             return {icon: icons.User, title: translate('tabSelector.chat'), testID: 'chat'};
         case CONST.TAB.NEW_ROOM:
@@ -68,7 +66,7 @@ function getIconTitleAndTestID(
         case CONST.TAB.SHARE.SHARE:
             return {icon: icons.UploadAlt, title: translate('common.share'), testID: 'share'};
         case CONST.TAB.SHARE.SUBMIT:
-            return {icon: Expensicons.Receipt, title: translate('common.submit'), testID: 'submit'};
+            return {icon: icons.Receipt, title: translate('common.submit'), testID: 'submit'};
         case CONST.TAB_REQUEST.PER_DIEM:
             return {icon: icons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
         case CONST.TAB_REQUEST.DISTANCE_MAP:
@@ -91,7 +89,7 @@ function TabSelector({
     renderProductTrainingTooltip,
     equalWidth = false,
 }: TabSelectorProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'UploadAlt', 'User', 'Car', 'Hashtag', 'Map', 'Pencil'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'UploadAlt', 'User', 'Car', 'Hashtag', 'Map', 'Pencil', 'Receipt', 'ReceiptScan'] as const);
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();

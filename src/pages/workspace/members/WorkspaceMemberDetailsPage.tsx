@@ -75,7 +75,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info', 'Transfer'] as const);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -344,7 +344,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     <ButtonDisabledWhenOffline
                                         text={translate('workspace.people.transferOwner')}
                                         onPress={startChangeOwnershipFlow}
-                                        icon={Expensicons.Transfer}
+                                        icon={icons.Transfer}
                                         style={styles.mb5}
                                     />
                                 )
