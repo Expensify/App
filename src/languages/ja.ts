@@ -1922,6 +1922,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'トラブルシュートデータを記録',
             softKillTheApp: 'アプリをソフト終了する',
             kill: '強制終了',
+            sentryDebug: 'Sentryデバッグ',
+            sentryDebugDescription: 'Sentryリクエストをコンソールに記録',
+            sentryHighlightedSpanOps: 'ハイライト表示するspan名',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'ログを保存',
