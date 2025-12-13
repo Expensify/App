@@ -192,6 +192,7 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
     }
 
     if (movedFromReport) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const originReportName = getReportName(movedFromReport);
         return translate('iou.movedFromReport', {reportName: originReportName ?? ''});
     }
