@@ -160,7 +160,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
-    const firstRenderRef = useRef(true);
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
@@ -309,8 +308,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
-    const wasReportAccessibleRef = useRef(false);
-
     const viewportOffsetTop = useViewportOffsetTop();
 
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
@@ -366,14 +363,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         hideEmojiPicker(true);
     }, [prevIsFocused, isFocused]);
 
-    useEffect(() => {
-        if (!report?.reportID) {
-            wasReportAccessibleRef.current = false;
-            return;
-        }
-        wasReportAccessibleRef.current = true;
-    }, [report?.reportID]);
-
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(
         (prioritizeBackTo = false) => {
@@ -402,39 +391,53 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [backTo, isDisplayedInWidePaneModal, isWideRHPOpened, isInNarrowPaneModal],
     );
 
-    let headerView = (
-        <HeaderView
-            reportID={reportIDFromRoute}
-            onNavigationMenuButtonClicked={onBackButtonPress}
-            report={report}
-            parentReportAction={parentReportAction}
-            shouldUseNarrowLayout={shouldUseNarrowLayout}
-        />
-    );
+    const headerView = useMemo(() => {
+        if (isTransactionThreadView) {
+            return (
+                <MoneyRequestHeader
+                    report={report}
+                    policy={policy}
+                    parentReportAction={parentReportAction}
+                    onBackButtonPress={onBackButtonPress}
+                />
+            );
+        }
 
-    if (isTransactionThreadView) {
-        headerView = (
-            <MoneyRequestHeader
+        if (isMoneyRequestOrInvoiceReport) {
+            return (
+                <MoneyReportHeader
+                    report={report}
+                    policy={policy}
+                    transactionThreadReportID={transactionThreadReportID}
+                    isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
+                    reportActions={reportActions}
+                    onBackButtonPress={onBackButtonPress}
+                />
+            );
+        }
+
+        return (
+            <HeaderView
+                reportID={reportIDFromRoute}
+                onNavigationMenuButtonClicked={onBackButtonPress}
                 report={report}
-                policy={policy}
                 parentReportAction={parentReportAction}
-                onBackButtonPress={onBackButtonPress}
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
             />
         );
-    }
-
-    if (isMoneyRequestOrInvoiceReport) {
-        headerView = (
-            <MoneyReportHeader
-                report={report}
-                policy={policy}
-                transactionThreadReportID={transactionThreadReportID}
-                isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
-                reportActions={reportActions}
-                onBackButtonPress={onBackButtonPress}
-            />
-        );
-    }
+    }, [
+        isTransactionThreadView,
+        isMoneyRequestOrInvoiceReport,
+        report,
+        policy,
+        parentReportAction,
+        onBackButtonPress,
+        transactionThreadReportID,
+        reportMetadata.isLoadingInitialReportActions,
+        reportActions,
+        reportIDFromRoute,
+        shouldUseNarrowLayout,
+    ]);
 
     useEffect(() => {
         if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {
@@ -454,7 +457,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
 
     // eslint-disable-next-line react-compiler/react-compiler
-    const lastReportActionIDFromRoute = usePrevious(!firstRenderRef.current ? reportActionIDFromRoute : undefined);
+    const lastReportActionIDFromRoute = usePrevious(!firstRender ? reportActionIDFromRoute : undefined);
 
     const [isNavigatingToDeletedAction, setIsNavigatingToDeletedAction] = useState(false);
 
@@ -501,7 +504,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
 
             // eslint-disable-next-line react-compiler/react-compiler
-            if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            if (!prevReport?.reportID && !firstRender && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
                 // eslint-disable-next-line react-compiler/react-compiler
                 return true;
             }
@@ -687,8 +690,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     useEffect(() => {
         // We don't want this effect to run on the first render.
-        if (firstRenderRef.current) {
-            firstRenderRef.current = false;
+        if (firstRender) {
             setFirstRender(false);
             return;
         }
