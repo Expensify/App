@@ -75,6 +75,18 @@ type Comment = {
     /** Type of the transaction */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 
+    /** Contains information pertaining to time tracking */
+    units?: {
+        /** Count of the unit */
+        count?: number;
+
+        /** Rate of the unit in cents */
+        rate?: number;
+
+        /** Unit of the unit (e.g. 'h' for hours) */
+        unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
+    };
+
     /** In custom unit transactions this holds the information of the custom unit */
     customUnit?: TransactionCustomUnit;
 
