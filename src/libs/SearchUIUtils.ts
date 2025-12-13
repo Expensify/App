@@ -2667,8 +2667,9 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
 }
 
 function getTableMinWidth(columns: SearchColumnType[]) {
-    // Starts at 24px to account for the checkbox width that's not a defined column
+    // Starts at 24px to account for the checkbox width
     let minWidth = 24;
+
     for (const column of columns) {
         if (column === CONST.SEARCH.TABLE_COLUMNS.RECEIPT || column === CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) {
             minWidth += 36;
