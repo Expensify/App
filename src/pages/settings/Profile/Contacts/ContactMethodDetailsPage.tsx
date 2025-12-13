@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -10,12 +9,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Star, Trashcan} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -48,7 +49,6 @@ import KeyboardUtils from '@src/utils/keyboard';
 import getDecodedContactMethodFromUriParam from './utils';
 
 type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
-
 function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
@@ -59,37 +59,29 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-
     const {formatPhoneNumber, translate} = useLocalize();
     const themeStyles = useThemeStyles();
-
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const backTo = route.params.backTo;
-
     /**
      * Gets the current contact method from the route params
      */
     const contactMethod: string = useMemo(() => getDecodedContactMethodFromUriParam(route.params.contactMethod), [route.params.contactMethod]);
-
     const loginDataRef = useRef<Login | undefined>(undefined);
     const loginData = useMemo(() => {
         // eslint-disable-next-line react-compiler/react-compiler
         loginDataRef.current = loginList?.[contactMethod];
         return loginList?.[contactMethod];
     }, [loginList, contactMethod]);
-
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
-
     /**
      * Attempt to set this contact method as user's "Default contact method"
      */
     const setAsDefault = useCallback(() => {
         setContactMethodAsDefault(contactMethod, formatPhoneNumber, backTo);
     }, [contactMethod, backTo, formatPhoneNumber]);
-
     /**
      * Checks if the user is allowed to change their default contact method. This should only be allowed if:
      * 1. The viewed contact method is not already their default contact method
@@ -103,43 +95,17 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         if (isDefaultContactMethod || !loginData?.validatedDate) {
             return false;
         }
-
         const domainName = Str.extractEmailDomain(session?.email ?? '');
         const primaryDomainSecurityGroupID = myDomainSecurityGroups?.[domainName];
-
         // If there's no security group associated with the user for the primary domain,
         // default to allowing the user to change their default contact method.
         if (!primaryDomainSecurityGroupID) {
             return true;
         }
-
         // Allow user to change their default contact method if they don't have a security group OR if their security group
         // does NOT restrict primary login switching.
         return !securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`]?.enableRestrictedPrimaryLogin;
     }, [isDefaultContactMethod, loginData?.validatedDate, session?.email, myDomainSecurityGroups, securityGroups]);
-
-    /**
-     * Toggle delete confirm modal visibility
-     */
-    const toggleDeleteModal = useCallback((isOpen: boolean) => {
-        if (canUseTouchScreen() && isOpen) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                setIsDeleteModalOpen(isOpen);
-            });
-            Keyboard.dismiss();
-        } else {
-            setIsDeleteModalOpen(isOpen);
-        }
-    }, []);
-
-    /**
-     * Delete the contact method and hide the modal
-     */
-    const confirmDeleteAndHideModal = useCallback(() => {
-        toggleDeleteModal(false);
-        deleteContactMethod(contactMethod, loginList ?? {}, backTo);
-    }, [contactMethod, loginList, toggleDeleteModal, backTo]);
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
@@ -147,16 +113,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
-
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
-
     useEffect(() => {
         setIsValidateCodeFormVisible(!loginData?.validatedDate);
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
-
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!loginData?.partnerUserID || loginData?.validatedDate || prevPendingDeletedLogin) {
@@ -166,22 +129,60 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
     }, [contactMethod, loginData?.partnerUserID, loginData?.validatedDate]);
 
+    const {showConfirmModal} = useConfirmModal();
+    const showRemoveContactMethodModal = useCallback(() => {
+        return showConfirmModal({
+            title: translate('contacts.removeContactMethod'),
+            prompt: translate('contacts.removeAreYouSure'),
+            confirmText: translate('common.yesContinue'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+    }, [showConfirmModal, translate]);
+
+    /**
+     * Toggle delete confirm modal visibility
+     */
+    const turnOnDeleteModal = useCallback(() => {
+        const openDeleteModal = () => {
+            showRemoveContactMethodModal().then((result) => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => {
+                    validateCodeFormRef.current?.focusLastSelected?.();
+                });
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+
+                deleteContactMethod(contactMethod, loginList ?? {}, backTo);
+            });
+        };
+
+        if (canUseTouchScreen()) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(openDeleteModal);
+            Keyboard.dismiss();
+            return;
+        }
+
+        openDeleteModal();
+    }, [contactMethod, loginList, backTo, showRemoveContactMethodModal]);
+
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
         if (isValidateCodeFormVisible && !isDefaultContactMethod) {
             menuItems.push({
                 icon: Trashcan,
                 text: translate('common.remove'),
-                onSelected: () => close(() => toggleDeleteModal(true)),
+                onSelected: () => close(turnOnDeleteModal),
             });
         }
         return menuItems;
-    }, [isValidateCodeFormVisible, translate, toggleDeleteModal, isDefaultContactMethod]);
-
+    }, [isValidateCodeFormVisible, translate, turnOnDeleteModal, isDefaultContactMethod]);
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
     }
-
     if (!contactMethod || !loginData) {
         return (
             <ScreenWrapper testID={ContactMethodDetailsPage.displayName}>
@@ -194,32 +195,12 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             </ScreenWrapper>
         );
     }
-
     // Replacing spaces with "hard spaces" to prevent breaking the number
     const formattedContactMethod = Str.isSMSLogin(contactMethod) ? formatPhoneNumber(contactMethod) : contactMethod;
     const hasMagicCodeBeenSent = !!loginData.validateCodeSent;
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
     const shouldSkipInitialValidation = route.params?.shouldSkipInitialValidation === 'true';
-
-    const getDeleteConfirmationModal = () => (
-        <ConfirmModal
-            title={translate('contacts.removeContactMethod')}
-            onConfirm={confirmDeleteAndHideModal}
-            onCancel={() => toggleDeleteModal(false)}
-            onModalHide={() => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    validateCodeFormRef.current?.focusLastSelected?.();
-                });
-            }}
-            prompt={translate('contacts.removeAreYouSure')}
-            confirmText={translate('common.yesContinue')}
-            cancelText={translate('common.cancel')}
-            isVisible={isDeleteModalOpen && !isDefaultContactMethod}
-            danger
-        />
-    );
 
     const getMenuItems = () => (
         <>
@@ -260,14 +241,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                                 showDelegateNoAccessModal();
                                 return;
                             }
-                            toggleDeleteModal(true);
+                            turnOnDeleteModal();
                         }}
                     />
                 </OfflineWithFeedback>
             )}
         </>
     );
-
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -352,14 +332,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />
                 )}
-
                 {!isValidateCodeFormVisible && !!loginData.validatedDate && getMenuItems()}
-                {getDeleteConfirmationModal()}
             </ScrollView>
         </ScreenWrapper>
     );
 }
-
 ContactMethodDetailsPage.displayName = 'ContactMethodDetailsPage';
-
 export default ContactMethodDetailsPage;
