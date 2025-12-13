@@ -151,7 +151,8 @@ function EmptySearchViewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'Alert'] as const);
+
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts'] as const);
 
     const tripsFeatures: FeatureListItem[] = useMemo(
         () => [
@@ -160,11 +161,11 @@ function EmptySearchViewContent({
                 translationKey: 'travel.features.saveMoney',
             },
             {
-                icon: illustrations.Alert,
+                icon: illustrations.TravelAlerts,
                 translationKey: 'travel.features.alerts',
             },
         ],
-        [illustrations.PiggyBank, illustrations.Alert],
+        [illustrations.PiggyBank, illustrations.TravelAlerts],
     );
     const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
     const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
@@ -305,11 +306,14 @@ function EmptySearchViewContent({
                     ))}
                 </View>
                 <SearchScopeProvider isOnSearch={false}>
-                    <BookTravelButton text={translate('search.searchResults.emptyTripResults.buttonText')} />
+                    <BookTravelButton
+                        text={translate('search.searchResults.emptyTripResults.buttonText')}
+                        activePolicyID={activePolicy?.id}
+                    />
                 </SearchScopeProvider>
             </>
         );
-    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, tripsFeatures]);
+    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, activePolicy?.id, tripsFeatures]);
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(
