@@ -170,7 +170,7 @@ import {
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {isOnHold} from '@libs/TransactionUtils';
+import {isOnHold, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -6021,6 +6021,43 @@ function buildOptimisticChangePolicyData(
             private_isArchived: DateUtils.getDBTime(),
         },
     });
+
+    // 6. Handle transactions when moving to a workspace with a different currency
+    // Clear convertedAmount (which is calculated for the old workspace currency) and add pendingAction for proper UI feedback
+    // Only clear for transactions that don't match the destination currency - matching transactions can keep their values
+    const sourceCurrency = report.currency;
+    const destinationCurrency = policy.outputCurrency;
+    const transactions = getReportTransactions(reportID);
+
+    for (const transaction of transactions) {
+        if (!shouldClearConvertedAmount(transaction, sourceCurrency, destinationCurrency)) {
+            continue;
+        }
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                convertedAmount: null,
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                pendingAction: null,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                pendingAction: transaction.pendingAction ?? null,
+                convertedAmount: transaction.convertedAmount,
+            },
+        });
+    }
 
     return {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction};
 }

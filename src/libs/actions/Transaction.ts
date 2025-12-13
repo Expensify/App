@@ -28,7 +28,7 @@ import {
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {isManagedCardTransaction, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {isManagedCardTransaction, isOnHold, shouldClearConvertedAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -808,6 +808,9 @@ function changeTransactionsReport(
     const policyTagList = getPolicyTagsData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 
+    // Determine the destination currency for convertedAmount clearing logic
+    const destinationCurrency = newReport?.currency ?? policy?.outputCurrency;
+
     for (const transaction of transactions) {
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -822,6 +825,8 @@ function changeTransactionsReport(
 
         const oldReportID = isUnreportedExpense ? CONST.REPORT.UNREPORTED_REPORT_ID : transaction.reportID;
         const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
+        const sourceCurrency = oldReport?.currency;
+        const shouldClearAmount = shouldClearConvertedAmount(transaction, sourceCurrency, destinationCurrency);
 
         // 1. Optimistically change the reportID on the passed transactions
         optimisticData.push({
@@ -829,9 +834,11 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 comment: {
                     hold: null,
                 },
+                ...(shouldClearAmount && {convertedAmount: null}),
             },
         });
 
@@ -840,6 +847,7 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
+                pendingAction: null,
             },
         });
 
@@ -848,9 +856,11 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID: transaction.reportID,
+                pendingAction: transaction.pendingAction ?? null,
                 comment: {
                     hold: transaction.comment?.hold,
                 },
+                ...(shouldClearAmount && {convertedAmount: transaction.convertedAmount}),
             },
         });
 
