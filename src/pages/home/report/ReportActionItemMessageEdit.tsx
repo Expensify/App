@@ -36,7 +36,7 @@ import {deleteReportActionDraft, editReportComment, saveReportActionDraft} from 
 import {isMobileChrome} from '@libs/Browser/index.website';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
-import {extractEmojis, replaceAndExtractEmojis} from '@libs/EmojiUtils';
+import {extractEmojis, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
@@ -242,7 +242,11 @@ function ReportActionItemMessageEdit({
     const updateDraft = useCallback(
         (newDraftInput: string) => {
             raiseIsScrollLayoutTriggered();
-            const {text: newDraft, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
+            const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
+
+            // Safari ZWNJ normalization AFTER shortcodes replaced, so 234:smile: → 234😄 (with ZWNJ)
+            // This prevents Safari's automatic keycap sequence detection that causes character corruption
+            const newDraft = insertZWNJBetweenDigitAndEmoji(emojiConvertedText);
 
             emojisPresentBefore.current = emojis;
 

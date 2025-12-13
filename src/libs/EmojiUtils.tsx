@@ -662,6 +662,18 @@ function containsOnlyCustomEmoji(text?: string): boolean {
     return privateUseAreaRegex.test(text);
 }
 
+/**
+ * Insert ZWNJ (Zero-Width Non-Joiner) between digits and emoji to prevent Safari keycap bug.
+ * Safari automatically converts digit + emoji patterns into Unicode keycap sequences,
+ * causing character corruption. ZWNJ breaks this automatic sequence detection.
+ *
+ * @param input - The text to process
+ * @returns The text with ZWNJ inserted between digits and emojis
+ */
+function insertZWNJBetweenDigitAndEmoji(input: string): string {
+    return input.replaceAll(/(\d)([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu, '$1\u200C$2');
+}
+
 export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 
 export {
@@ -689,4 +701,5 @@ export {
     containsCustomEmoji,
     containsOnlyCustomEmoji,
     processFrequentlyUsedEmojis,
+    insertZWNJBetweenDigitAndEmoji,
 };
