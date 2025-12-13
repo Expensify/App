@@ -160,6 +160,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             approvalLimit: limitInCents,
             overLimitForwardsTo: selectedApproverEmail,
         });
+        setEditedApprovalLimit(null);
         setHasSubmitted(false);
     };
 
@@ -170,7 +171,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const navigateToApproverChange = () => {
         saveCurrentStateToOnyx();
-        // Use the dedicated route for changing approver - it will go BACK to this page after selection
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE.getRoute(policyID, approverIndex));
     };
 

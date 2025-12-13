@@ -235,11 +235,11 @@ function NumberWithSymbolForm({
             let hasSelectionBeenSet = false;
             const strippedNumber = stripCommaFromAmount(finalNumber);
             numberRef.current = strippedNumber;
-            setCurrentNumber((prevCurrentNumber) => {
-                const isForwardDelete = prevCurrentNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
+            setCurrentNumber((prevNumber) => {
+                const isForwardDelete = prevNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
                 if (!hasSelectionBeenSet) {
                     hasSelectionBeenSet = true;
-                    setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedNumber.length : prevCurrentNumber.length, strippedNumber.length));
+                    setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedNumber.length : prevNumber.length, strippedNumber.length));
                     willSelectionBeUpdatedManually.current = false;
                 }
                 return strippedNumber;
