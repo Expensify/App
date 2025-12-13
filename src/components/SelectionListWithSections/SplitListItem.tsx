@@ -1,8 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -32,18 +30,22 @@ function SplitListItem<TItem extends ListItem>({
     onInputFocus,
     onInputBlur,
 }: SplitListItemProps<TItem>) {
-    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Folder', 'Tag'] as const);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
 
     const splitItem = item as unknown as SplitListItemType;
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
 
-    const onSplitExpenseAmountChange = (amount: string) => {
-        splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
-    };
+    const onSplitExpenseAmountChange = useCallback(
+        (amount: string) => {
+            splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
+        },
+
+        [splitItem],
+    );
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
 
@@ -202,7 +204,7 @@ function SplitListItem<TItem extends ListItem>({
                         {!splitItem.isEditable ? null : (
                             <View style={styles.pointerEventsAuto}>
                                 <Icon
-                                    src={Expensicons.ArrowRight}
+                                    src={icons.ArrowRight}
                                     fill={theme.icon}
                                 />
                             </View>

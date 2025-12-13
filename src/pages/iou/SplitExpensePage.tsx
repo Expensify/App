@@ -58,7 +58,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
-
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -94,10 +93,19 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentPolicy);
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
-    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+
+    const transactionDetailsAmount = useMemo(() => {
+        if (typeof transactionDetails?.amount !== 'number') {
+            return 0;
+        }
+        if (splitExpenseTransactionID) {
+            return draftTransaction?.comment?.splitExpensesTotal ?? 0;
+        }
+        return transactionDetails.amount;
+    }, [transactionDetails.amount, splitExpenseTransactionID, draftTransaction?.comment?.splitExpensesTotal]);
+
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction?.comment?.splitExpenses]);
     const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
-
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     const isPerDiem = isPerDiemRequest(transaction);
@@ -276,11 +284,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 return `${text}${getTranslatedText(currentKey)}`;
             }, '');
 
+            const splitAmount = Number(item.amount);
             return {
                 ...item,
                 headerText,
                 originalAmount: transactionDetailsAmount,
-                amount: Number(item.amount),
+                amount: splitAmount,
                 merchant: item?.merchant ?? '',
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
@@ -289,7 +298,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
                 isEditable: (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
-            };
+            } as SplitListItemType;
         });
 
         const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];

@@ -84,11 +84,11 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
  * @param amount - The amount string to process
  * @param allowFlippingAmount - Whether flipping amount is allowed
  * @param toggleNegative - Function to toggle negative state
- * @returns The processed amount string without the '-' prefix
+ * @returns The processed amount string - strips '-' prefix only if toggleNegative callback is provided
  */
 function handleNegativeAmountFlipping(amount: string, allowFlippingAmount: boolean, toggleNegative?: () => void): string {
-    if (allowFlippingAmount && amount.startsWith('-')) {
-        toggleNegative?.();
+    if (allowFlippingAmount && amount.startsWith('-') && toggleNegative) {
+        toggleNegative();
         return amount.slice(1);
     }
     return amount;
