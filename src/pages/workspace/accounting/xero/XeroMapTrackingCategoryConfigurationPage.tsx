@@ -56,7 +56,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName: decodedCategoryName})}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.mapTrackingCategoryToDescription', decodedCategoryName)}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, decodedCategoryName],
@@ -106,7 +106,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             initiallyFocusedOptionKey={optionsList.find((option) => option.isSelected)?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID))}
-            headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', {categoryName})}
+            headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', categoryName)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             pendingAction={settingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`], config?.pendingFields)}
             errors={getLatestErrorField(config ?? {}, `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`)}

@@ -142,7 +142,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                     <InputWrapper
                         InputComponent={AddressSearch}
                         inputID={INPUT_IDS.ADDRESS_LINE_1}
-                        label={translate('common.addressLine', {lineNumber: 1})}
+                        label={translate('common.addressLine', 1)}
                         onValueChange={(data: unknown, key: unknown) => {
                             handleAddressChange(data, key);
                         }}
@@ -161,8 +161,8 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.ADDRESS_LINE_2}
-                    label={translate('common.addressLine', {lineNumber: 2})}
-                    aria-label={translate('common.addressLine', {lineNumber: 2})}
+                    label={translate('common.addressLine', 2)}
+                    aria-label={translate('common.addressLine', 2)}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={personalDetailsValues[INPUT_IDS.ADDRESS_LINE_2]}
                     spellCheck={false}
