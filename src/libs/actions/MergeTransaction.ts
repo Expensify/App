@@ -46,10 +46,17 @@ function setupMergeTransactionDataAndNavigate(transactions: Transaction[], local
         return;
     }
 
+    // Target & source transactionID might switch, we should keep the Onyx key consistent
+    // otherwise we might endup creating a new object entry in Onyx with a different transactionID
+    const onyxMergeTransactionID = transactions.at(0)?.transactionID;
+    if (!onyxMergeTransactionID) {
+        return;
+    }
+
     if (transactions.length === 1) {
         const transaction = transactions.at(0);
         if (transaction) {
-            setupMergeTransactionData(transaction.transactionID, {targetTransactionID: transaction.transactionID});
+            setupMergeTransactionData(onyxMergeTransactionID, {targetTransactionID: transaction.transactionID});
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute()));
             return;
         }
@@ -60,7 +67,7 @@ function setupMergeTransactionDataAndNavigate(transactions: Transaction[], local
         return;
     }
 
-    setupMergeTransactionData(targetTransaction.transactionID, {targetTransactionID: targetTransaction?.transactionID, sourceTransactionID: sourceTransaction?.transactionID});
+    setupMergeTransactionData(onyxMergeTransactionID, {targetTransactionID: targetTransaction?.transactionID, sourceTransactionID: sourceTransaction?.transactionID});
     if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
         // Navigate to the receipt review page if both transactions have a receipt
         Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute(), hash));
@@ -69,16 +76,14 @@ function setupMergeTransactionDataAndNavigate(transactions: Transaction[], local
         const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare);
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
-            setMergeTransactionKey(targetTransaction.transactionID, mergeableData);
+            setMergeTransactionKey(onyxMergeTransactionID, mergeableData);
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute()));
             return;
         }
 
         const receipt = targetTransaction.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction.receipt;
         if (receipt) {
-            setMergeTransactionKey(targetTransaction.transactionID, {
-                receipt,
-            });
+            setMergeTransactionKey(onyxMergeTransactionID, {receipt});
         }
         Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute(), hash));
     }

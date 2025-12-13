@@ -107,7 +107,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
             return;
         }
 
-        setupMergeTransactionDataAndNavigate([sourceTransaction, targetTransaction], localeCompare);
+        setupMergeTransactionDataAndNavigate([targetTransaction, sourceTransaction], localeCompare);
     }, [targetTransaction, sourceTransaction, localeCompare]);
 
     const confirmButtonOptions = {

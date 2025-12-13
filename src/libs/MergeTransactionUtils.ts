@@ -111,7 +111,10 @@ const getSourceTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<Me
         return undefined;
     }
 
-    return getTransactionFromMergeTransaction(mergeTransaction, mergeTransaction.sourceTransactionID);
+    console.log('trying to find tx', mergeTransaction?.eligibleTransactions);
+    const t = getTransactionFromMergeTransaction(mergeTransaction, mergeTransaction.sourceTransactionID);
+    console.log('t', t);
+    return t;
 };
 
 /**
@@ -196,6 +199,7 @@ function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
  * @param targetTransaction - The target transaction
  * @param sourceTransaction - The source transaction
  * @param localeCompare - The localize compare function
+ * @param localeCompare - The localize compare function
  * @returns mergeableData and conflictFields
  */
 function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, localeCompare: LocaleContextProps['localeCompare']) {
@@ -249,10 +253,11 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
 
         // We allow user to select unreported report
         if (field === 'reportID') {
+            const isArchivedSourceReport = sourceValue && sourceTransaction?.reportName === '';
             if (targetValue === sourceValue) {
                 const updatedValues = getMergeFieldUpdatedValues(targetTransaction, field, SafeString(targetValue));
                 Object.assign(mergeableData, updatedValues);
-            } else {
+            } else if (!isArchivedSourceReport) {
                 conflictFields.push(field);
             }
             continue;
@@ -438,7 +443,7 @@ function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<
  * @param translate - The translation function
  * @returns The formatted display string for the field value
  */
-function getDisplayValue(field: MergeFieldKey, transaction: Transaction, translate: LocaleContextProps['translate']): string {
+function getDisplayValue(field: MergeFieldKey, transaction: Transaction, translate: LocaleContextProps['translate'], isSourceTransaction = false): string {
     const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
 
     if (isEmptyMergeValue(fieldValue) || fieldValue === undefined) {
@@ -459,6 +464,12 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
     if (field === 'reportID') {
         if (fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID) {
             return translate('common.none');
+        }
+
+        if (transaction?.reportName === '') {
+            return translate('common.none');
+        } else {
+            console.log(transaction?.reportName);
         }
 
         return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue)));

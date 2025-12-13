@@ -791,13 +791,11 @@ function SearchPage({route}: SearchPageProps) {
 
         return options;
     }, [
-        currentUserPersonalDetails?.login,
         searchResults?.data,
         selectedTransactionsKeys,
         status,
         hash,
         selectedTransactions,
-        expensifyIcons,
         translate,
         localeCompare,
         areAllMatchingItemsSelected,
@@ -815,12 +813,9 @@ function SearchPage({route}: SearchPageProps) {
         clearSelectedTransactions,
         beginExportWithTemplate,
         isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-        dismissedRejectUseExplanation,
         bulkPayButtonOptions,
         onBulkPaySelected,
         areAllTransactionsFromSubmitter,
-        dismissedHoldUseExplanation,
         allReports,
         currentSearchResults?.data,
         theme.icon,
@@ -829,6 +824,7 @@ function SearchPage({route}: SearchPageProps) {
         styles.textWrap,
         expensifyIcons.ArrowCollapse,
         expensifyIcons.ArrowRight,
+        expensifyIcons.ArrowSplit,
         expensifyIcons.DocumentMerge,
         expensifyIcons.Exclamation,
         expensifyIcons.Export,
@@ -839,11 +835,9 @@ function SearchPage({route}: SearchPageProps) {
         expensifyIcons.ThumbsDown,
         expensifyIcons.ThumbsUp,
         expensifyIcons.Trashcan,
-        isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         dismissedHoldUseExplanation,
         dismissedRejectUseExplanation,
-        areAllTransactionsFromSubmitter,
     ]);
 
     const handleDeleteExpenses = () => {

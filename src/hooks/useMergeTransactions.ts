@@ -26,18 +26,18 @@ function useMergeTransactions({mergeTransaction, hash}: UseMergeTransactionsProp
         canBeMissing: true,
     });
 
-    let targetTransaction;
-    let sourceTransaction;
+    let targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction);
+    let sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction);
     let targetTransactionReport;
 
     // Always use transactions from the search snapshot if we're coming from the Reports page
     if (hash) {
-        targetTransaction = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`];
-        sourceTransaction = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`];
+        targetTransaction = targetTransaction ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`];
+        sourceTransaction = sourceTransaction ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`];
         targetTransactionReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`];
     } else {
-        targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction) ?? onyxTargetTransaction;
-        sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction) ?? onyxSourceTransaction;
+        targetTransaction = targetTransaction ?? onyxTargetTransaction;
+        sourceTransaction = sourceTransaction ?? onyxSourceTransaction;
     }
 
     const [onyxTargetTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {
