@@ -57,6 +57,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                             accessibilityLabel={translate('common.details')}
                             role={CONST.ROLE.BUTTON}
                             disabled={shouldDisableDetailPage}
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_CREATED}
                         >
                             <ReportActionAvatars
                                 reportID={reportID}

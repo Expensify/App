@@ -1510,6 +1510,7 @@ function PureReportActionItem({
                                             small
                                             style={[styles.mt2, styles.alignSelfStart]}
                                             onPress={() => updateHiddenState(!isHidden)}
+                                            sentryLabel={CONST.SENTRY_LABEL.REPORT.MODERATION_BUTTON}
                                         >
                                             <Text
                                                 style={[styles.buttonSmallText, styles.userSelectNone]}
@@ -1764,6 +1765,7 @@ function PureReportActionItem({
             withoutFocusOnSecondaryInteraction
             accessibilityLabel={translate('accessibilityHints.chatMessage')}
             accessible
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
         >
             <Hoverable
                 shouldHandleScroll

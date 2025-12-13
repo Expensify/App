@@ -54,6 +54,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                             ]}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.send')}
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.SEND_BUTTON}
                         >
                             {({pressed}) => (
                                 <Icon
