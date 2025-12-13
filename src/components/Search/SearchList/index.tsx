@@ -175,7 +175,6 @@ function SearchList({
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
 
     const {hash, groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
@@ -229,6 +228,8 @@ function SearchList({
     const {getScrollOffset} = useContext(ScrollOffsetContext);
 
     const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
+
+    const {windowWidth} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columns);
     const shouldScrollHorizontally = !!SearchTableHeader && minTableWidth > windowWidth;
 
