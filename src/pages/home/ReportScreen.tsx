@@ -957,7 +957,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                     >
                         <DragAndDropProvider isDisabled={isEditingDisabled}>
                             <OfflineWithFeedback
-                                pendingAction={reportPendingAction}
+                                pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
                                 errors={reportErrors}
                                 shouldShowErrorMessages={false}
                                 needsOffscreenAlphaCompositing
