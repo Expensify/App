@@ -63,6 +63,9 @@ function TextInputMeasurement({
                     style={[
                         inputStyle,
                         autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
+                        styles.pl2,
+                        styles.pr2,
+                        {borderWidth: 1},
                         styles.hiddenElementOutsideOfWindow,
                         styles.visibilityHidden,
                     ]}
