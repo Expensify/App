@@ -1872,8 +1872,10 @@ function findSelfDMReportID(): string | undefined {
         return;
     }
 
-    const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
-    return selfDMReport?.reportID;
+    // Filter out Self DM reports that have notFound errors (stale optimistic reports)
+    const validSelfDMReports = Object.values(allReports).filter((report) => isSelfDM(report) && !isThread(report) && !report?.errorFields?.notFound);
+
+    return validSelfDMReports.at(0)?.reportID;
 }
 
 /**
