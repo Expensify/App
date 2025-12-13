@@ -501,6 +501,7 @@ function MoneyRequestReportPreviewContent({
         return getReportPreviewAction(
             isIouReportArchived || isChatReportArchived,
             currentUserDetails.accountID,
+            currentUserDetails.email ?? '',
             iouReport,
             policy,
             transactions,
@@ -510,16 +511,17 @@ function MoneyRequestReportPreviewContent({
             isSubmittingAnimationRunning,
         );
     }, [
-        isPaidAnimationRunning,
-        isApprovedAnimationRunning,
-        isSubmittingAnimationRunning,
+        isIouReportArchived,
+        isChatReportArchived,
+        currentUserDetails.accountID,
+        currentUserDetails.email,
         iouReport,
         policy,
         transactions,
-        isIouReportArchived,
         invoiceReceiverPolicy,
-        isChatReportArchived,
-        currentUserDetails.accountID,
+        isPaidAnimationRunning,
+        isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
     ]);
 
     const addExpenseDropdownOptions = useMemo(

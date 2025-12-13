@@ -1890,7 +1890,7 @@ describe('getSecondaryExportReportActions', () => {
         const policy = {} as unknown as Policy;
 
         const result = [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV];
-        expect(getSecondaryExportReportActions(report, policy)).toEqual(result);
+        expect(getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, policy)).toEqual(result);
     });
 
     it('should include export templates when provided', () => {
@@ -1921,7 +1921,7 @@ describe('getSecondaryExportReportActions', () => {
         ];
 
         const result = [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, 'All Data - expense level', 'All Data - report level', 'Custom Template'];
-        expect(getSecondaryExportReportActions(report, policy, exportTemplates)).toEqual(result);
+        expect(getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, policy, exportTemplates)).toEqual(result);
     });
 
     it('does not include EXPORT option for invoice reports', async () => {
@@ -1937,7 +1937,7 @@ describe('getSecondaryExportReportActions', () => {
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryExportReportActions(report, policy);
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(false);
     });
 
@@ -1956,7 +1956,7 @@ describe('getSecondaryExportReportActions', () => {
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}},
         } as unknown as Policy;
 
-        const result = getSecondaryExportReportActions(report, policy);
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
     });
 
@@ -1983,7 +1983,7 @@ describe('getSecondaryExportReportActions', () => {
             },
         ];
 
-        const result = getSecondaryExportReportActions(report, policy, exportTemplates);
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, policy, exportTemplates);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV)).toBe(true);
         expect(result.includes('All Data - expense level')).toBe(true);
@@ -2002,7 +2002,7 @@ describe('getSecondaryExportReportActions', () => {
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {autosync: {enabled: true}}}},
         } as unknown as Policy;
 
-        const result = getSecondaryExportReportActions(report, policy);
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
     });
 
@@ -2017,7 +2017,7 @@ describe('getSecondaryExportReportActions', () => {
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryExportReportActions(report, policy);
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
@@ -2033,7 +2033,7 @@ describe('getSecondaryExportReportActions', () => {
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {export: {exporter: EMPLOYEE_EMAIL}, autoSync: {enabled: false}}}},
         } as unknown as Policy;
 
-        const result = getSecondaryExportReportActions(report, policy);
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
@@ -2051,7 +2051,7 @@ describe('getSecondaryExportReportActions', () => {
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}},
         } as unknown as Policy;
 
-        const result = getSecondaryExportReportActions(report, policy);
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
@@ -2068,7 +2068,7 @@ describe('getSecondaryExportReportActions', () => {
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {autosync: {enabled: true}}}},
         } as unknown as Policy;
 
-        const result = getSecondaryExportReportActions(report, policy);
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
@@ -2084,7 +2084,7 @@ describe('getSecondaryExportReportActions', () => {
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {export: {exporter: EMPLOYEE_EMAIL}, autoSync: {enabled: false}}}},
         } as unknown as Policy;
 
-        const result = getSecondaryExportReportActions(report, policy);
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
@@ -2101,7 +2101,7 @@ describe('getSecondaryExportReportActions', () => {
             role: CONST.POLICY.ROLE.ADMIN,
         } as unknown as Policy;
 
-        const result = getSecondaryExportReportActions(report, policy);
+        const result = getSecondaryExportReportActions(SESSION.accountID, SESSION.email, report, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 

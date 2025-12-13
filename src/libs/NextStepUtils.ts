@@ -212,7 +212,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    actorAccountID: isPayer({accountID: currentUserAccountIDParam, email: currentUserEmailParam}, report) ? currentUserAccountIDParam : -1,
+                    actorAccountID: isPayer(currentUserAccountIDParam, currentUserEmailParam, report) ? currentUserAccountIDParam : -1,
                 };
             }
             break;
@@ -230,16 +230,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
-            if (
-                isInvoiceReport(report) ||
-                !isPayer(
-                    {
-                        accountID: currentUserAccountIDParam,
-                        email: currentUserEmailParam,
-                    },
-                    report,
-                )
-            ) {
+            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report)) {
                 nextStep = nextStepNoActionRequired;
                 break;
             }
@@ -624,13 +615,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                     {
                         text: 'Waiting for ',
                     },
-                    isPayer(
-                        {
-                            accountID: currentUserAccountIDParam,
-                            email: currentUserEmailParam,
-                        },
-                        report,
-                    )
+                    isPayer(currentUserAccountIDParam, currentUserEmailParam, report)
                         ? {
                               text: `you`,
                               type: 'strong',
@@ -667,32 +652,14 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED: {
-            if (
-                isInvoiceReport(report) ||
-                !isPayer(
-                    {
-                        accountID: currentUserAccountIDParam,
-                        email: currentUserEmailParam,
-                    },
-                    report,
-                ) ||
-                reimbursableSpend === 0
-            ) {
+            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report) || reimbursableSpend === 0) {
                 optimisticNextStep = noActionRequired;
 
                 break;
             }
             // Self review
             let payerMessage: Message;
-            if (
-                isPayer(
-                    {
-                        accountID: currentUserAccountIDParam,
-                        email: currentUserEmailParam,
-                    },
-                    report,
-                )
-            ) {
+            if (isPayer(currentUserAccountIDParam, currentUserEmailParam, report)) {
                 payerMessage = {text: 'you', type: 'strong'};
             } else if (reimburserAccountID === -1) {
                 payerMessage = {text: 'an admin'};
