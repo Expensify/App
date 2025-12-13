@@ -432,6 +432,12 @@ type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: s
 
 type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
 
+type UpdatedPolicyCustomTaxNameParams = {oldName: string; newName: string};
+
+type UpdatedPolicyCurrencyDefaultTaxParams = {oldName: string; newName: string};
+
+type UpdatedPolicyForeignCurrencyDefaultTaxParams = {oldName: string; newName: string};
+
 type ChangeTypeParams = {oldType: string; newType: string};
 
 type AccountOwnerParams = {accountOwnerEmail: string};
@@ -1236,6 +1242,9 @@ export type {
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyCustomTaxNameParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdatePolicyCustomUnitParams,
     AddOrDeletePolicyCustomUnitRateParams,
