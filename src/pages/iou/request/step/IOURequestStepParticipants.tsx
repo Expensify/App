@@ -41,6 +41,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 import KeyboardUtils from '@src/utils/keyboard';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -121,8 +122,14 @@ function IOURequestStepParticipants({
         return translate('iou.chooseRecipient');
     }, [iouType, translate, isSplitRequest, action]);
 
-    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
+    const selfDMReportSelector = useCallback((reports: OnyxCollection<Report>) => {
+        const selfDMReportID = findSelfDMReportID();
+        if (selfDMReportID && reports) {
+            return reports[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+        }
+    }, []);
+
+    const [selfDMReport] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: selfDMReportSelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
@@ -196,7 +203,7 @@ function IOURequestStepParticipants({
     const trackExpense = useCallback(() => {
         // If coming from the combined submit/track flow and the user proceeds to just track the expense,
         // we will use the track IOU type in the confirmation flow.
-        if (!selfDMReportID) {
+        if (!selfDMReport) {
             return;
         }
 
@@ -210,9 +217,9 @@ function IOURequestStepParticipants({
                 currentUserPersonalDetails.accountID,
                 shouldSetParticipantAutoAssignment ? isActivePolicyRequest : false,
             );
-            setTransactionReport(transaction.transactionID, {reportID: selfDMReportID}, true);
+            setTransactionReport(transaction.transactionID, {reportID: selfDMReport.reportID}, true);
         }
-        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReportID);
+        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReport.reportID);
         waitForKeyboardDismiss(() => {
             // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
             if (backTo) {
@@ -226,7 +233,7 @@ function IOURequestStepParticipants({
                 });
             }
         });
-    }, [selfDMReportID, transactions, action, initialTransactionID, waitForKeyboardDismiss, iouType, selfDMReport, currentUserPersonalDetails.accountID, isActivePolicyRequest, backTo]);
+    }, [transactions, action, initialTransactionID, waitForKeyboardDismiss, iouType, currentUserPersonalDetails.accountID, selfDMReport, isActivePolicyRequest, backTo]);
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
