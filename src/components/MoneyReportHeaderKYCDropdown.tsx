@@ -67,7 +67,7 @@ function MoneyReportHeaderKYCDropdown({
                     }}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
-                    shouldPopoverUseScrollView={applicableSecondaryActions.length >= 5}
+                    shouldPopoverUseScrollView={applicableSecondaryActions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                     customText={translate('common.more')}
                     options={applicableSecondaryActions}
                     isSplitButton={false}
