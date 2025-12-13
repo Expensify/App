@@ -49,11 +49,13 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const employeeList = policy?.employeeList;
     const approversFromWorkflow = currentApprovalWorkflow?.approvers;
     const isDefault = currentApprovalWorkflow?.isDefault;
-    const membersEmail = useMemo(() => currentApprovalWorkflow?.members.map((member) => member.email), [currentApprovalWorkflow?.members]);
+
     const allApprovers: SelectionListApprover[] = useMemo(() => {
         if (isApprovalWorkflowLoading || !employeeList) {
             return [];
         }
+
+        const membersEmail = currentApprovalWorkflow?.members?.map((member) => member.email);
 
         return Object.values(employeeList)
             .map((employee): SelectionListApprover | null => {
@@ -110,7 +112,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         isDefault,
         policy?.preventSelfApproval,
         policy?.owner,
-        membersEmail,
+        currentApprovalWorkflow?.members,
         approversFromWorkflow,
         selectedApproverEmail,
         approverIndex,
