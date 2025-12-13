@@ -111,10 +111,7 @@ const getSourceTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<Me
         return undefined;
     }
 
-    console.log('trying to find tx', mergeTransaction?.eligibleTransactions);
-    const t = getTransactionFromMergeTransaction(mergeTransaction, mergeTransaction.sourceTransactionID);
-    console.log('t', t);
-    return t;
+    return getTransactionFromMergeTransaction(mergeTransaction, mergeTransaction.sourceTransactionID);
 };
 
 /**
@@ -443,7 +440,7 @@ function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<
  * @param translate - The translation function
  * @returns The formatted display string for the field value
  */
-function getDisplayValue(field: MergeFieldKey, transaction: Transaction, translate: LocaleContextProps['translate'], isSourceTransaction = false): string {
+function getDisplayValue(field: MergeFieldKey, transaction: Transaction, translate: LocaleContextProps['translate']): string {
     const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
 
     if (isEmptyMergeValue(fieldValue) || fieldValue === undefined) {
@@ -468,8 +465,6 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
 
         if (transaction?.reportName === '') {
             return translate('common.none');
-        } else {
-            console.log(transaction?.reportName);
         }
 
         return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue)));
