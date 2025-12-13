@@ -65,7 +65,7 @@ To override the central export account per card:
 
 # FAQ
 
-## Are commercial and direct feed cards limited by plan?
+## Are commercial and direct card feeds limited by plan?
 
 Yes, below is a breakdown:  
 - On the **Collect plan**, you can connect one [commercial](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds) or [direct feed](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Direct-feeds).
