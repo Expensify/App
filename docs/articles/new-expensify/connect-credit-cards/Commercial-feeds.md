@@ -75,16 +75,47 @@ To set up an Amex Corporate Feed, you’ll need to complete and email their requ
 
 # Assign Company Cards
 
-## Assign commercial cards to employees
+## Where to find the company card assignment table
 
-1. Go to **Company Cards** in your workspace.
-2. Click the **feed name** (top-left) to select a card feed if more than one is present.
-3. Click **Assign Card** next to any unassigned card.
-4. Select a **member** to assign the card to.
-5. Choose a **transaction start date**:
-   - **From the beginning** – All available transactions will import.
-   - **Custom date** – Select a specific start date.
-6. Click **Assign Card**.
+- **Web:** Go to the navigation tabs on the left and select **Settings > Workspaces > [Workspace Name] > Company Cards**  
+- **Mobile:** Tap the hamburger menu in the top-left corner > **Settings > Workspaces > [Workspace Name] > Company Cards**
+
+---
+
+## Key behaviors in the company card assignment table
+
+- All **assigned** and **unassigned** cards now appear in a single table view.
+- You can assign cards one by one or use filters and search to manage many at once.
+- Real-time feedback shows when a card assignment has succeeded or failed.
+
+---
+
+## How to assign a company card to an employee
+
+To assign cards individually:
+
+1. Go to the **Company Cards** tab for your workspace.
+2. Find the card in the table.
+3. Click **Assign** in the card’s row.
+4. Select an employee and confirm the assignment.
+
+You’ll see the card update immediately unless there's an error (shown directly in the row).
+
+---
+
+## How to bulk assign company cards
+
+To assign many cards faster:
+
+1. Use the filter at the top of the table to show **Unassigned** cards.
+2. Use the search bar to find cards by:
+   - Cardholder name
+   - Card number (last 4 digits)
+   - Employee email
+3. (Optional) Sort the table by card name, number, or status.
+4. Click **Assign** next to each card and assign as needed.
+
+**Note:** Each card must still be assigned individually, but filters and search help you move quickly.
 
 **Expenses will begin importing immediately.**
 
