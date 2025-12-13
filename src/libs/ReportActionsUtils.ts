@@ -1233,7 +1233,29 @@ function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticI
 }
 
 function isPayAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+    const isIOUType = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU);
+    const originalMsg = getOriginalMessage(reportAction);
+    const msgType = originalMsg && 'type' in originalMsg ? originalMsg.type : undefined;
+    const result = isIOUType && msgType === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+
+    // eslint-disable-next-line no-console
+    console.log(
+        '[isPayAction]',
+        JSON.stringify(
+            {
+                reportActionID: reportAction?.reportActionID ?? 'N/A',
+                actionName: reportAction?.actionName ?? 'N/A',
+                isIOUType,
+                msgType: msgType ?? 'N/A',
+                expectedType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                result,
+            },
+            null,
+            2,
+        ),
+    );
+
+    return result;
 }
 
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
