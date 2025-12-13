@@ -100,109 +100,48 @@ index 36757f7..7b098fd 100644
 +  }
  }
 diff --git a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModule.java b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModule.java
-index 626134a..c6b15a0 100644
---- a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModule.java
+new file mode 100644
+index 0000000..c6b15a0
+--- /dev/null
 +++ b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModule.java
-@@ -1,88 +1,51 @@
--/**
-- * Copyright (c) Facebook, Inc. and its affiliates.
-- *
-- * This source code is licensed under the MIT license found in the
-- * LICENSE file in the root directory of this source tree.
-- */
- package com.reactnativecommunity.netinfo;
- 
--import android.os.Build;
--import com.facebook.react.bridge.Promise;
- import com.facebook.react.bridge.ReactApplicationContext;
--import com.facebook.react.bridge.ReactContextBaseJavaModule;
+@@ -0,0 +1,51 @@
++package com.reactnativecommunity.netinfo;
++
++import com.facebook.react.bridge.ReactApplicationContext;
 +import com.facebook.react.bridge.Promise;
- import com.facebook.react.bridge.ReactMethod;
--import com.facebook.react.module.annotations.ReactModule;
--
--/** Module that monitors and provides information about the connectivity state of the device. */
--@ReactModule(name = NetInfoModule.NAME)
--public class NetInfoModule extends ReactContextBaseJavaModule implements AmazonFireDeviceConnectivityPoller.ConnectivityChangedCallback {
--    public static final String NAME = "RNCNetInfo";
++import com.facebook.react.bridge.ReactMethod;
 +import com.facebook.react.bridge.ReadableMap;
- 
--    private final ConnectivityReceiver mConnectivityReceiver;
--    private final AmazonFireDeviceConnectivityPoller mAmazonConnectivityChecker;
++
 +public class NetInfoModule extends NativeRNCNetInfoSpec {
- 
--    private int numberOfListeners = 0;
++
 +    private NetInfoModuleImpl implementation;
- 
--    public NetInfoModule(ReactApplicationContext reactContext) {
--        super(reactContext);
--        // Create the connectivity receiver based on the API level we are running on
--        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
--            mConnectivityReceiver = new NetworkCallbackConnectivityReceiver(reactContext);
--        } else {
--            mConnectivityReceiver = new BroadcastReceiverConnectivityReceiver(reactContext);
--        }
--
--        mAmazonConnectivityChecker = new AmazonFireDeviceConnectivityPoller(reactContext, this);
--    }
--
--    @Override
--    public void initialize() {
--        mConnectivityReceiver.register();
--        mAmazonConnectivityChecker.register();
--    }
--
--    // the upstream method was removed in react-native 0.74
--    // this stub remains for backwards compatibility so that react-native < 0.74
--    // (which will still call onCatalystInstanceDestroy) will continue to function
--    public void onCatalystInstanceDestroy() {
--        invalidate();
--    }
--
--    // This should have an `@Override` tag, but the method does not exist until
--    // react-native >= 0.74, which would cause linting errors across versions
--    // once minimum supported react-native here is 0.74+, add the tag
--    public void invalidate() {
--        mAmazonConnectivityChecker.unregister();
--        mConnectivityReceiver.unregister();
--        mConnectivityReceiver.hasListener = false;
++
 +    NetInfoModule(ReactApplicationContext context) {
 +        super(context);
 +        implementation = new NetInfoModuleImpl(context);
-     }
- 
-     @Override
-     public String getName() {
--        return NAME;
++    }
++
++    @Override
++    public String getName() {
 +        return NetInfoModuleImpl.NAME;
-     }
- 
-     @ReactMethod
-     public void getCurrentState(final String requestedInterface, final Promise promise) {
--        mConnectivityReceiver.getCurrentState(requestedInterface, promise);
++    }
++
++    @ReactMethod
++    public void getCurrentState(final String requestedInterface, final Promise promise) {
 +        implementation.getCurrentState(requestedInterface, promise);
-     }
- 
--    @Override
--    public void onAmazonFireDeviceConnectivityChanged(boolean isConnected) {
--        mConnectivityReceiver.setIsInternetReachableOverride(isConnected);
++    }
++
 +    @ReactMethod
 +    public void configure(ReadableMap config) {
 +        // iOS only
-     }
- 
-     @ReactMethod
-     public void addListener(String eventName) {
--        numberOfListeners++;
--        mConnectivityReceiver.hasListener = true;
++    }
++
++    @ReactMethod
++    public void addListener(String eventName) {
 +        implementation.addListener(eventName);
-     }
- 
-     @ReactMethod
--    public void removeListeners(Integer count) {
--        numberOfListeners -= count;
--        if (numberOfListeners == 0) {
--            mConnectivityReceiver.hasListener = false;
--        }
++    }
++
++    @ReactMethod
 +    public void removeListeners(double count) {
 +        implementation.removeListeners(count);
 +    }
@@ -215,91 +154,75 @@ index 626134a..c6b15a0 100644
 +    @Override
 +    public void initialize() {
 +        implementation.initialize();
-     }
- }
-\ No newline at end of file
-diff --git a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
-new file mode 100644
-index 0000000..a5d3a36
---- /dev/null
-+++ b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
-@@ -0,0 +1,76 @@
-+/**
-+ * Copyright (c) Facebook, Inc. and its affiliates.
-+ *
-+ * This source code is licensed under the MIT license found in the
-+ * LICENSE file in the root directory of this source tree.
-+ */
-+package com.reactnativecommunity.netinfo;
-+
-+import android.os.Build;
-+import com.facebook.react.bridge.Promise;
-+import com.facebook.react.bridge.ReactApplicationContext;
-+import com.facebook.react.bridge.ReactMethod;
-+import com.facebook.react.module.annotations.ReactModule;
-+
-+/** Module that monitors and provides information about the connectivity state of the device. */
-+public class NetInfoModuleImpl implements AmazonFireDeviceConnectivityPoller.ConnectivityChangedCallback {
-+    public static final String NAME = "RNCNetInfo";
-+
-+    private final ConnectivityReceiver mConnectivityReceiver;
-+    private final AmazonFireDeviceConnectivityPoller mAmazonConnectivityChecker;
-+
-+    private int numberOfListeners = 0;
-+
-+    public NetInfoModuleImpl(ReactApplicationContext reactContext) {
-+        // Create the connectivity receiver based on the API level we are running on
-+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-+            mConnectivityReceiver = new NetworkCallbackConnectivityReceiver(reactContext);
-+        } else {
-+            mConnectivityReceiver = new BroadcastReceiverConnectivityReceiver(reactContext);
-+        }
-+
-+        mAmazonConnectivityChecker = new AmazonFireDeviceConnectivityPoller(reactContext, this);
-+    }
-+
-+    public void initialize() {
-+        mConnectivityReceiver.register();
-+        mAmazonConnectivityChecker.register();
-+    }
-+
-+    // the upstream method was removed in react-native 0.74
-+    // this stub remains for backwards compatibility so that react-native < 0.74
-+    // (which will still call onCatalystInstanceDestroy) will continue to function
-+    public void onCatalystInstanceDestroy() {
-+        invalidate();
-+    }
-+
-+    // This should have an `@Override` tag, but the method does not exist until
-+    // react-native >= 0.74, which would cause linting errors across versions
-+    // once minimum supported react-native here is 0.74+, add the tag
-+    public void invalidate() {
-+        mAmazonConnectivityChecker.unregister();
-+        mConnectivityReceiver.unregister();
-+    }
-+
-+    @ReactMethod
-+    public void getCurrentState(final String requestedInterface, final Promise promise) {
-+        mConnectivityReceiver.getCurrentState(requestedInterface, promise);
-+    }
-+
-+    @Override
-+    public void onAmazonFireDeviceConnectivityChanged(boolean isConnected) {
-+        mConnectivityReceiver.setIsInternetReachableOverride(isConnected);
-+    }
-+
-+    public void addListener(String eventName) {
-+        numberOfListeners++;
-+        mConnectivityReceiver.hasListener = true;
-+    }
-+
-+    public void removeListeners(double count) {
-+        numberOfListeners -= count;
-+        if (numberOfListeners == 0) {
-+            mConnectivityReceiver.hasListener = false;
-+        }
 +    }
 +}
+\ No newline at end of file
+diff --git a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
+index 626134a..a5d3a36 100644
+--- a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
++++ b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
+@@ -9,13 +9,11 @@ package com.reactnativecommunity.netinfo;
+ import android.os.Build;
+ import com.facebook.react.bridge.Promise;
+ import com.facebook.react.bridge.ReactApplicationContext;
+-import com.facebook.react.bridge.ReactContextBaseJavaModule;
+ import com.facebook.react.bridge.ReactMethod;
+ import com.facebook.react.module.annotations.ReactModule;
+ 
+ /** Module that monitors and provides information about the connectivity state of the device. */
+-@ReactModule(name = NetInfoModule.NAME)
+-public class NetInfoModule extends ReactContextBaseJavaModule implements AmazonFireDeviceConnectivityPoller.ConnectivityChangedCallback {
++public class NetInfoModuleImpl implements AmazonFireDeviceConnectivityPoller.ConnectivityChangedCallback {
+     public static final String NAME = "RNCNetInfo";
+ 
+     private final ConnectivityReceiver mConnectivityReceiver;
+@@ -23,8 +21,7 @@ public class NetInfoModule extends ReactContextBaseJavaModule implements AmazonF
+ 
+     private int numberOfListeners = 0;
+ 
+-    public NetInfoModule(ReactApplicationContext reactContext) {
+-        super(reactContext);
++    public NetInfoModuleImpl(ReactApplicationContext reactContext) {
+         // Create the connectivity receiver based on the API level we are running on
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+             mConnectivityReceiver = new NetworkCallbackConnectivityReceiver(reactContext);
+@@ -35,7 +32,6 @@ public class NetInfoModule extends ReactContextBaseJavaModule implements AmazonF
+         mAmazonConnectivityChecker = new AmazonFireDeviceConnectivityPoller(reactContext, this);
+     }
+ 
+-    @Override
+     public void initialize() {
+         mConnectivityReceiver.register();
+         mAmazonConnectivityChecker.register();
+@@ -54,12 +50,6 @@ public class NetInfoModule extends ReactContextBaseJavaModule implements AmazonF
+     public void invalidate() {
+         mAmazonConnectivityChecker.unregister();
+         mConnectivityReceiver.unregister();
+-        mConnectivityReceiver.hasListener = false;
+-    }
+-
+-    @Override
+-    public String getName() {
+-        return NAME;
+     }
+ 
+     @ReactMethod
+@@ -72,14 +62,12 @@ public class NetInfoModule extends ReactContextBaseJavaModule implements AmazonF
+         mConnectivityReceiver.setIsInternetReachableOverride(isConnected);
+     }
+ 
+-    @ReactMethod
+     public void addListener(String eventName) {
+         numberOfListeners++;
+         mConnectivityReceiver.hasListener = true;
+     }
+ 
+-    @ReactMethod
+-    public void removeListeners(Integer count) {
++    public void removeListeners(double count) {
+         numberOfListeners -= count;
+         if (numberOfListeners == 0) {
+             mConnectivityReceiver.hasListener = false;
 diff --git a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoPackage.java b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoPackage.java
 index fcd4a5e..cc44776 100644
 --- a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoPackage.java
@@ -440,12 +363,9 @@ index 0000000..2c5256e
 +    }
 +}
 \ No newline at end of file
-diff --git a/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.m b/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm
-similarity index 93%
-rename from node_modules/@react-native-community/netinfo/ios/RNCNetInfo.m
-rename to node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm
+diff --git a/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm b/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm
 index ee759ba..3822258 100644
---- a/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.m
+--- a/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm
 +++ b/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm
 @@ -8,6 +8,10 @@
  #import "RNCNetInfo.h"
