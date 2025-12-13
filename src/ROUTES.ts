@@ -3421,38 +3421,42 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
     WORKSPACES_VERIFY_DOMAIN: {
-        route: 'workspaces/verify-domain/:accountID',
-        getRoute: (accountID: number) => `workspaces/verify-domain/${accountID}` as const,
+        route: 'workspaces/verify-domain/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/verify-domain/${domainAccountID}` as const,
     },
     WORKSPACES_DOMAIN_VERIFIED: {
-        route: 'workspaces/domain-verified/:accountID',
-        getRoute: (accountID: number) => `workspaces/domain-verified/${accountID}` as const,
+        route: 'workspaces/domain-verified/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-verified/${domainAccountID}` as const,
     },
     WORKSPACES_ADD_DOMAIN: 'workspaces/add-domain',
     WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: `workspaces/add-domain/${VERIFY_ACCOUNT}`,
     WORKSPACES_DOMAIN_ADDED: {
-        route: 'workspaces/domain-added/:accountID',
-        getRoute: (accountID: number) => `workspaces/domain-added/${accountID}` as const,
+        route: 'workspaces/domain-added/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-added/${domainAccountID}` as const,
     },
     WORKSPACES_DOMAIN_ACCESS_RESTRICTED: {
-        route: 'workspaces/domain-access-restricted/:accountID',
-        getRoute: (accountID: number) => `workspaces/domain-access-restricted/${accountID}` as const,
+        route: 'workspaces/domain-access-restricted/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-access-restricted/${domainAccountID}` as const,
     },
     DOMAIN_INITIAL: {
-        route: 'domain/:accountID',
-        getRoute: (accountID: number) => `domain/${accountID}` as const,
+        route: 'domain/:domainAccountID',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}` as const,
     },
     DOMAIN_SAML: {
-        route: 'domain/:accountID/saml',
-        getRoute: (accountID: number) => `domain/${accountID}/saml` as const,
+        route: 'domain/:domainAccountID/saml',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml` as const,
     },
     DOMAIN_VERIFY: {
-        route: 'domain/:accountID/verify',
-        getRoute: (accountID: number) => `domain/${accountID}/verify` as const,
+        route: 'domain/:domainAccountID/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verify` as const,
     },
     DOMAIN_VERIFIED: {
-        route: 'domain/:accountID/verified',
-        getRoute: (accountID: number) => `domain/${accountID}/verified` as const,
+        route: 'domain/:domainAccountID/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verified` as const,
+    },
+    DOMAIN_ADMINS: {
+        route: 'domain/:domainAccountID/admins',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins` as const,
     },
 } as const;
 

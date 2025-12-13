@@ -7957,6 +7957,7 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             subtitle: 'Exija que os membros do seu domínio façam login por meio de logon único (SSO), restrinja a criação de espaços de trabalho e muito mais.',
             enable: 'Ativar',
         },
+        admins: {title: 'Administradores', findAdmin: 'Encontrar administrador'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

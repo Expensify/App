@@ -7982,6 +7982,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             subtitle: 'Richiedi ai membri del tuo dominio di accedere tramite Single Sign-On, limita la creazione di spazi di lavoro e altro ancora.',
             enable: 'Abilita',
         },
+        admins: {title: 'Amministratori', findAdmin: 'Trova amministratore'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

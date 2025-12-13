@@ -8007,6 +8007,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             subtitle: "Exiger que les membres de votre domaine se connectent via l'authentification unique, restreindre la création d'espaces de travail, et plus encore.",
             enable: 'Activer',
         },
+        admins: {title: 'Admins', findAdmin: 'Trouver un admin'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
