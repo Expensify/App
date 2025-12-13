@@ -1175,6 +1175,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Montant',
+        percent: 'Pourcentage',
         taxAmount: 'Montant de la taxe',
         taxRate: 'Taux de taxe',
         approve: ({
@@ -1189,6 +1190,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Fractionner',
         splitExpense: 'Fractionner la dépense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
+        splitByPercentage: 'Répartir par pourcentage',
         addSplit: 'Ajouter une ventilation',
         makeSplitsEven: 'Rendre les répartitions égales',
         editSplits: 'Modifier les répartitions',

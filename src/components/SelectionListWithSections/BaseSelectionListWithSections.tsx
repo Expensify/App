@@ -190,15 +190,31 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const itemHeights = useRef<Record<string, number>>({});
     const pendingScrollIndexRef = useRef<number | null>(null);
 
-    const onItemLayout = (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
-        if (!itemKey) {
+    /**
+     * Gets a cache key for an item's height, including mode for split items
+     * This ensures amount and percentage modes have separate cached heights
+     */
+    const getHeightCacheKey = (item: TItem): string | null => {
+        if (!item?.keyForList) {
+            return null;
+        }
+        // For split items with mode, include mode in cache key
+        if ('mode' in item) {
+            return `${item.keyForList}_${(item as {mode: string}).mode}`;
+        }
+        return item.keyForList;
+    };
+
+    const onItemLayout = (event: LayoutChangeEvent, item: TItem) => {
+        const cacheKey = getHeightCacheKey(item);
+        if (!cacheKey) {
             return;
         }
 
         const {height} = event.nativeEvent.layout;
         itemHeights.current = {
             ...itemHeights.current,
-            [itemKey]: height,
+            [cacheKey]: height,
         };
     };
 
@@ -253,7 +269,21 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     disabledIndex += 1;
 
                     // Account for the height of the item in getItemLayout
-                    const fullItemHeight = item?.keyForList && itemHeights.current[item.keyForList] ? itemHeights.current[item.keyForList] : getItemHeight(item);
+                    // Use mode-aware cache key for split items to prevent stale heights when switching modes
+                    const cacheKey = getHeightCacheKey(item);
+                    let fullItemHeight: number;
+                    if (cacheKey && itemHeights.current[cacheKey]) {
+                        // Use cached height if available
+                        fullItemHeight = itemHeights.current[cacheKey];
+                    } else if ('mode' in item && item.mode === CONST.IOU.SPLIT_TYPE.PERCENTAGE) {
+                        // For percentage mode items without cached height, use the known height as
+                        // this prevents incorrect scroll calculations on first mount
+                        fullItemHeight = variables.splitExpensePercentageCardHeight;
+                    } else {
+                        // Default fallback
+                        fullItemHeight = getItemHeight(item);
+                    }
+
                     itemLayouts.push({length: fullItemHeight, offset});
                     offset += fullItemHeight;
 
@@ -353,6 +383,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeights.current[secondPreviousItem.keyForList] : 0;
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
+
+            // Check if the focused item input is percentage mode (taller card needs more offset)
+            // the offset is proportional to the item's position since each percentage card is taller than amount card
+            // the cumulative height difference grows with each item above the focused one.
+            const isPercentageMode = 'mode' in item && item.mode === CONST.IOU.SPLIT_TYPE.PERCENTAGE;
+            viewOffsetToKeepFocusedItemAtTopOfViewableArea += isPercentageMode ? (index + 1) * variables.splitExpensePercentageScrollOffset : 0;
 
             listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea});
             pendingScrollIndexRef.current = null;
@@ -655,7 +691,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
         return (
             <View
-                onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}
+                onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item)}
                 onMouseMove={() => setCurrentHoverIndex(normalizedIndex)}
                 onMouseEnter={() => setCurrentHoverIndex(normalizedIndex)}
                 onMouseLeave={(e) => {

@@ -2918,6 +2918,10 @@ const CONST = {
             APPROVE: 'approve',
             TRACK: 'track',
         },
+        SPLIT_TYPE: {
+            AMOUNT: 'amount',
+            PERCENTAGE: 'percentage',
+        },
         AMOUNT_MAX_LENGTH: 8,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
         RECEIPT_STATE: {
