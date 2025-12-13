@@ -7848,6 +7848,9 @@ const translations = {
         admins: {
             title: 'Admins',
             findAdmin: 'Find admin',
+            primaryContact: 'Primary contact',
+            addPrimaryContact: 'Add primary contact',
+            settings: 'Settings',
         },
     },
 };

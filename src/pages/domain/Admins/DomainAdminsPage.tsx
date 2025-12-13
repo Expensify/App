@@ -1,6 +1,8 @@
 import {adminAccountIDsSelector} from '@selectors/Domain';
 import React from 'react';
+import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -41,7 +43,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Members'] as const);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Gear'] as const);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -49,6 +51,9 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         selector: adminAccountIDsSelector,
     });
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     const data: AdminOption[] = [];
     for (const accountID of adminAccountIDs ?? []) {
@@ -90,6 +95,25 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         );
     };
 
+    const getHeaderButtons = () => {
+        if (!isAdmin) {
+            return null;
+        }
+        return (
+            <View style={[styles.flexRow, styles.gap2]}>
+                <Button
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
+                    }}
+                    text={translate('domain.admins.settings')}
+                    icon={icons.Gear}
+                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                />
+            </View>
+        );
+    };
+
     const listHeaderContent =
         data.length > CONST.SEARCH_ITEM_LIMIT ? (
             <SearchBar
@@ -103,9 +127,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     if (isLoadingOnyxValue(domainMetadata)) {
         return <FullScreenLoadingIndicator />;
     }
-
-    const currentUserAccountID = getCurrentUserAccountID();
-    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     return (
         <ScreenWrapper
@@ -124,7 +145,11 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     onBackButtonPress={Navigation.popToSidebar}
                     icon={illustrations.Members}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                />
+                >
+                    {!shouldUseNarrowLayout && getHeaderButtons()}
+                </HeaderWithBackButton>
+
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <SelectionList
                     sections={[{data: filteredData}]}
                     canSelectMultiple={false}
