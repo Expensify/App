@@ -1871,10 +1871,14 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
-        emptyWorkspaceListIllustrationStyle: {
+        emptyWorkspaceListLottieIllustrationStyle: {
             marginTop: 12,
             marginBottom: -20,
             height: '100%',
+        },
+        emptyWorkspaceListStaticIllustrationStyle: {
+            width: 203,
+            height: 166,
         },
 
         appContent: {
@@ -5163,11 +5167,21 @@ const staticStyles = (theme: ThemeColors) =>
             ...display.dFlex,
         },
 
+        emptyStateFolderStaticIllustration: {
+            width: 184,
+            height: 112,
+        },
+
         emptyStateFireworksWebStyles: {
             width: 250,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
             ...display.dFlex,
+        },
+
+        emptyStateFireworksStaticIllustration: {
+            width: 164,
+            height: 148,
         },
 
         tripEmptyStateLottieWebView: {
