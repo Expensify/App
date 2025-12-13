@@ -38,7 +38,7 @@ import {
     getIntegrationSyncFailedMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
-    getOneTransactionThreadReportID,
+    getOneTransactionThreadReportAction,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -83,6 +83,7 @@ import {
     isActionOfType,
     isCardIssuedAction,
     isInviteOrRemovedAction,
+    isMoneyRequestAction,
     isOldDotReportAction,
     isRenamedAction,
     isTagModificationAction,
@@ -587,9 +588,10 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         };
     }
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
-    if (transactionThreadReportID) {
-        const transactionID = getTransactionID(transactionThreadReportID);
+    const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
+
+    if (transactionThreadReportAction) {
+        const transactionID = isMoneyRequestAction(transactionThreadReportAction) ? getOriginalMessage(transactionThreadReportAction)?.IOUTransactionID : undefined;
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (hasReceiptError(transaction)) {
             return {
@@ -597,7 +599,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
             };
         }
     }
-    const transactionID = getTransactionID(report.reportID);
+    const transactionID = getTransactionID(report);
     const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
         return {
