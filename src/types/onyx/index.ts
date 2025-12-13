@@ -7,6 +7,7 @@ import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
+import type BankAccountShareDetails from './BankAccountShareDetails';
 import type Beta from './Beta';
 import type BetaConfiguration from './BetaConfiguration';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
@@ -111,6 +112,7 @@ import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
+import type ShareBankAccount from './ShareBankAccount';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
@@ -204,6 +206,7 @@ export type {
     PolicyTagLists,
     PrivatePersonalDetails,
     QuickAction,
+    ShareBankAccount,
     RecentWaypoint,
     RecentlyUsedCategories,
     RecentlyUsedTags,
@@ -274,6 +277,7 @@ export type {
     SaveSearch,
     RecentSearchItem,
     ImportedSpreadsheet,
+    BankAccountShareDetails,
     ImportedSpreadsheetMemberData,
     Onboarding,
     OnboardingPurpose,
