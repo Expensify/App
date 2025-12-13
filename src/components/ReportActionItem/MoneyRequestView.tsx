@@ -45,7 +45,6 @@ import {
     getPolicyByCustomUnitID,
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
-    isPendingDeletePolicy,
     isPolicyAccessible,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
@@ -309,15 +308,11 @@ function MoneyRequestView({
     const canEditAmount =
         isEditable && (canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived) || (isExpenseSplit && isSplitAvailable));
     const canEditMerchant = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, undefined, isChatReportArchived);
-    const isPolicyDeleted = isPendingDeletePolicy(policy);
 
-    const canEditDate = isEditable && !isPolicyDeleted && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived);
+    const canEditDate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived);
 
     const canEditDistance =
-        isEditable &&
-        !isPolicyDeleted &&
-        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived) &&
-        isPolicyAccessible(policy, currentUserEmailParam);
+        isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived) && isPolicyAccessible(policy, currentUserEmailParam);
 
     const canEditDistanceRate =
         isEditable &&
