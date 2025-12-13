@@ -1048,6 +1048,7 @@ function handleBulkPayItemSelected(params: {
     latestBankItems: BankAccountMenuItem[] | undefined;
     activeAdminPolicies: Policy[];
     isUserValidated: boolean | undefined;
+    userAccountID: number | undefined;
     isDelegateAccessRestricted: boolean;
     showDelegateNoAccessModal: () => void;
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void;
@@ -1061,6 +1062,7 @@ function handleBulkPayItemSelected(params: {
         latestBankItems,
         activeAdminPolicies,
         isUserValidated,
+        userAccountID,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         confirmPayment,
@@ -1082,7 +1084,7 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    if (policy && shouldRestrictUserBillableActions(policy?.id)) {
+    if (policy && shouldRestrictUserBillableActions(policy?.id, userAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }

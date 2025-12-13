@@ -86,6 +86,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                                 latestBankItems,
                                 activeAdminPolicies,
                                 isUserValidated,
+                                userAccountID: accountID,
                                 isDelegateAccessRestricted,
                                 showDelegateNoAccessModal,
                                 confirmPayment,

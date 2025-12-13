@@ -842,6 +842,7 @@ function SearchFiltersBar({
                                         latestBankItems,
                                         activeAdminPolicies,
                                         isUserValidated,
+                                        userAccountID: accountID,
                                         isDelegateAccessRestricted,
                                         showDelegateNoAccessModal,
                                         confirmPayment,
