@@ -47,7 +47,7 @@ function setupMergeTransactionDataAndNavigate(transactions: Transaction[], local
     }
 
     // Target & source transactionID might switch, we should keep the Onyx key consistent
-    // otherwise we might endup creating a new object entry in Onyx with a different transactionID
+    // otherwise we might end up creating a new object entry in Onyx with a different transactionID
     const onyxMergeTransactionID = transactions.at(0)?.transactionID;
     if (!onyxMergeTransactionID) {
         return;
