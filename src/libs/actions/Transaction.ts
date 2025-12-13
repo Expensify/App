@@ -944,16 +944,42 @@ function changeTransactionsReport(
         const targetReportID = isUnreported ? selfDMReportID : reportID;
         const {amount: transactionAmount = 0, currency: transactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
         const oldReportTotal = oldReport?.total ?? 0;
-        const updatedReportTotal = transactionAmount < 0 ? oldReportTotal - transactionAmount : oldReportTotal + transactionAmount;
 
-        if (oldReport && oldReport.currency === transactionCurrency) {
-            updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : updatedReportTotal;
-            updatedReportNonReimbursableTotals[oldReportID] =
-                (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
-                (transaction?.reimbursable ? 0 : transactionAmount);
-            updatedReportUnheldNonReimbursableTotals[oldReportID] =
-                (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
-                (transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
+        if (oldReport) {
+            const oldReportCurrency = oldReport.currency;
+            const remainingTransactions = getReportTransactions(oldReportID).filter(
+                (t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !transactionIDs.includes(t.transactionID),
+            );
+
+            const willBeEmpty = remainingTransactions.length === 0;
+
+            if (oldReportCurrency === transactionCurrency || willBeEmpty) {
+                const baseTotal = willBeEmpty ? 0 : (updatedReportTotals[oldReportID] ?? oldReportTotal);
+
+                const baseNonReimb = willBeEmpty ? 0 : (updatedReportNonReimbursableTotals[oldReportID] ?? oldReport?.nonReimbursableTotal ?? 0);
+
+                const baseUnheld = willBeEmpty ? 0 : (updatedReportUnheldNonReimbursableTotals[oldReportID] ?? oldReport?.unheldNonReimbursableTotal ?? 0);
+
+                let addToTotal = 0;
+                let addToNonReimb = 0;
+                let addToUnheld = 0;
+
+                if (!willBeEmpty) {
+                    addToTotal = transactionAmount;
+
+                    if (!transaction?.reimbursable) {
+                        addToNonReimb = transactionAmount;
+
+                        if (!isOnHold(transaction)) {
+                            addToUnheld = transactionAmount;
+                        }
+                    }
+                }
+
+                updatedReportTotals[oldReportID] = baseTotal + addToTotal;
+                updatedReportNonReimbursableTotals[oldReportID] = baseNonReimb + addToNonReimb;
+                updatedReportUnheldNonReimbursableTotals[oldReportID] = baseUnheld + addToUnheld;
+            }
         }
 
         if (targetReportID) {
