@@ -97,6 +97,7 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
+    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -562,6 +563,7 @@ const translations = {
         showMore: 'Show more',
         showLess: 'Show less',
         merchant: 'Merchant',
+        change: 'Change',
         category: 'Category',
         report: 'Report',
         billable: 'Billable',
@@ -2389,6 +2391,46 @@ const translations = {
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
         defaultPaymentMethod: 'Default',
         bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Bank Account • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Expense rules',
+        subtitle: 'These rules will apply to your expenses. If you submit to a workspace, then the workspace rules may override them.',
+        emptyRules: {
+            title: "You haven't created any rules",
+            subtitle: 'Add a rule to automate expense reporting.',
+        },
+        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
+            Object.entries(rule)
+                .map(([key, value]) => {
+                    if (!value) {
+                        return '';
+                    }
+                    switch (key) {
+                        case 'billable':
+                            return rule.billable === 'true' ? 'Billable' : 'Non-billable';
+                        case 'category':
+                            return `Update category to "${rule.category}"`;
+                        case 'comment':
+                            return `Change description to "${rule.comment}"`;
+                        case 'merchant':
+                            return `Rename merchant to "${rule.merchant}"`;
+                        case 'reimbursable':
+                            return rule.reimbursable === 'true' ? 'Reimbursable' : 'Non-reimbursable';
+                        case 'report':
+                            return `Add a report named "${rule.report}"`;
+                        case 'tag':
+                            return `Update tag to "${rule.tag}"`;
+                        case 'tax':
+                            if ('field_id_TAX' in rule.tax) {
+                                return `Update tax rate to ${rule.tax.field_id_TAX.value}`;
+                            }
+                            return '';
+                        default:
+                            return '';
+                    }
+                })
+                .filter(Boolean)
+                .join(', '),
     },
     preferencesPage: {
         appSection: {
