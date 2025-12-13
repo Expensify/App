@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
@@ -56,6 +57,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+
+    const {isRestrictedPolicyCreation} = usePreferredPolicy();
 
     const handleJoinWorkspace = useCallback(
         (policy: JoinablePolicy) => {
@@ -148,8 +151,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             shouldShowOfflineIndicator={isSmallScreenWidth}
         >
             <HeaderWithBackButton
-                shouldShowBackButton
-                progressBarPercentage={60}
+                shouldShowBackButton={!isRestrictedPolicyCreation}
+                progressBarPercentage={isRestrictedPolicyCreation ? 100 : 60}
                 onBackButtonPress={handleBackButtonPress}
             />
             <SelectionList
@@ -163,16 +166,34 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 customListHeader={
                     <View style={[wrapperPadding, onboardingIsMediumOrLargerScreenWidth && styles.mt5, styles.mb5]}>
                         <Text style={styles.textHeadlineH1}>{translate('onboarding.joinAWorkspace')}</Text>
-                        <Text style={[styles.textSupporting, styles.mt3]}>{translate('onboarding.listOfWorkspaces')}</Text>
+                        <Text style={[styles.textSupporting, styles.mt3]}>
+                            {translate(isRestrictedPolicyCreation ? 'onboarding.domainWorkspaceRestriction.subtitle' : 'onboarding.listOfWorkspaces')}
+                        </Text>
                     </View>
                 }
                 footerContent={
                     <Button
                         success={false}
                         large
-                        text={translate('common.skip')}
+                        text={translate(isRestrictedPolicyCreation ? 'onboarding.domainWorkspaceRestriction.skipForNow' : 'common.skip')}
                         testID="onboardingWorkSpaceSkipButton"
-                        onPress={skipJoiningWorkspaces}
+                        onPress={() => {
+                            if (isRestrictedPolicyCreation) {
+                                completeOnboarding({
+                                    engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                                    onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+                                    firstName: onboardingPersonalDetails?.firstName ?? '',
+                                    lastName: onboardingPersonalDetails?.lastName ?? '',
+                                });
+
+                                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                    Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
+                                });
+
+                                return;
+                            }
+                            skipJoiningWorkspaces();
+                        }}
                         style={[styles.mt5]}
                     />
                 }

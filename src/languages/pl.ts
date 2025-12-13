@@ -2892,6 +2892,11 @@ ${
             title: 'Zaproś członków',
             subtitle: 'Dodaj swój zespół lub zaproś swojego księgowego. Im więcej, tym weselej!',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'Tworzenie obszarów roboczych jest ograniczone do administratorów. Dołącz do jednego z obszarów roboczych poniżej lub skontaktuj się ze swoim administratorem, aby uzyskać więcej informacji.',
+            skipForNow: 'Pomiń na razie',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Nie pokazuj mi tego ponownie',
@@ -5393,6 +5398,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
             subtitle: 'Śledź paragony, rozliczaj wydatki, zarządzaj podróżami, wysyłaj faktury i nie tylko.',
+            restrictedPolicyTitle: 'Nie znaleziono żadnych przestrzeni roboczych',
+            restrictedPolicySubtitle:
+                'Tworzenie przestrzeni roboczych jest ograniczone wyłącznie do administratorów. Poproś administratora o zaproszenie cię do istniejącej przestrzeni roboczej.',
             createAWorkspaceCTA: 'Rozpocznij',
             features: {
                 trackAndCollect: 'Śledź i zbieraj paragony',

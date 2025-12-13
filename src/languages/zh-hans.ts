@@ -2857,6 +2857,10 @@ ${
             title: '邀请成员',
             subtitle: '添加您的团队或邀请您的会计。人多更热闹！',
         },
+        domainWorkspaceRestriction: {
+            subtitle: '工作区的创建仅限管理员。加入以下任一工作区，或联系您的管理员以获取更多信息。',
+            skipForNow: '暂时跳过',
+        },
     },
     featureTraining: {
         doNotShowAgain: '不要再显示此内容',
@@ -5305,6 +5309,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         emptyWorkspace: {
             title: '你还没有任何工作区',
             subtitle: '跟踪收据、报销费用、管理差旅、发送发票等。',
+            restrictedPolicyTitle: '未找到工作区',
+            restrictedPolicySubtitle: '仅管理员可以创建工作区。请联系管理员邀请您加入现有的工作区。',
             createAWorkspaceCTA: '开始使用',
             features: {
                 trackAndCollect: '跟踪并收集收据',

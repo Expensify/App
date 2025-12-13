@@ -2897,6 +2897,11 @@ ${
             title: 'Invita membri',
             subtitle: 'Aggiungi il tuo team o invita il tuo commercialista. Più siamo, meglio è!',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'La creazione di spazi di lavoro è consentita solo agli amministratori. Unisciti a uno degli spazi di lavoro qui sotto oppure contatta il tuo amministratore per maggiori informazioni.',
+            skipForNow: 'Salta per ora',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Non mostrarlo di nuovo',
@@ -5409,6 +5414,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
         emptyWorkspace: {
             title: 'Non hai workspace',
             subtitle: 'Tieni traccia delle ricevute, rimborsa le spese, gestisci i viaggi, invia fatture e altro ancora.',
+            restrictedPolicyTitle: 'Nessun workspace trovato',
+            restrictedPolicySubtitle: 'La creazione dei workspace è riservata solo agli amministratori. Chiedi a un amministratore di invitarti a un workspace esistente.',
             createAWorkspaceCTA: 'Inizia',
             features: {
                 trackAndCollect: 'Tieni traccia e raccogli le ricevute',
