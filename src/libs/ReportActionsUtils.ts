@@ -2866,11 +2866,25 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
         });
     }
 
-    if (updatedField && updatedField === CONST.POLICY.EXPENSE_REPORT_RULES.MAX_EXPENSE_AGE && typeof oldValue === 'string' && typeof newValue === 'string') {
+    if (
+        updatedField &&
+        updatedField === CONST.POLICY.EXPENSE_REPORT_RULES.MAX_EXPENSE_AGE &&
+        ((typeof oldValue === 'string' && typeof newValue === 'string') || (typeof oldValue === 'number' && typeof newValue === 'number'))
+    ) {
+        const formatMaxExpenseAge = (value: string | number): string => {
+            if (value === String(CONST.POLICY.DISABLED_MAX_EXPENSE_AGE)) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                return `${translateLocal('common.noLimit')}`;
+            }
+            if (value === 'false' || value === '0' || value === 0) {
+                return String(CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE);
+            }
+            return String(value);
+        };
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.updateMaxExpenseAge', {
-            oldValue,
-            newValue,
+            oldValue: formatMaxExpenseAge(oldValue),
+            newValue: formatMaxExpenseAge(newValue),
         });
     }
     if (
@@ -3036,10 +3050,20 @@ function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action: ReportAction
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT>) ?? {};
 
     if (typeof oldMaxExpenseAmountNoReceipt === 'number' && typeof newMaxExpenseAmountNoReceipt === 'number') {
+        const formatMaxExpenseAmountNoReceipt = (value: number): string => {
+            if (value === CONST.DISABLED_MAX_EXPENSE_VALUE || value === 0) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                return `"${translateLocal('common.noLimit')}"`;
+            }
+            return convertToDisplayString(value, currency);
+        };
+
+        const oldValue = formatMaxExpenseAmountNoReceipt(oldMaxExpenseAmountNoReceipt);
+        const newValue = formatMaxExpenseAmountNoReceipt(newMaxExpenseAmountNoReceipt);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.updateMaxExpenseAmountNoReceipt', {
-            oldValue: convertToDisplayString(oldMaxExpenseAmountNoReceipt, currency),
-            newValue: convertToDisplayString(newMaxExpenseAmountNoReceipt, currency),
+            oldValue,
+            newValue,
         });
     }
 
@@ -3051,10 +3075,45 @@ function getPolicyChangeLogMaxExpenseAmountMessage(action: ReportAction): string
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT>) ?? {};
 
     if (typeof oldMaxExpenseAmount === 'number' && typeof newMaxExpenseAmount === 'number') {
+        const formatMaxExpenseAmount = (value: number): string => {
+            if (value === CONST.DISABLED_MAX_EXPENSE_VALUE || value === 0) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                return `"${translateLocal('common.noLimit')}"`;
+            }
+            return convertToDisplayString(value, currency);
+        };
+        const oldValue = formatMaxExpenseAmount(oldMaxExpenseAmount);
+        const newValue = formatMaxExpenseAmount(newMaxExpenseAmount);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.updateMaxExpenseAmount', {
-            oldValue: convertToDisplayString(oldMaxExpenseAmount, currency),
-            newValue: convertToDisplayString(newMaxExpenseAmount, currency),
+            oldValue,
+            newValue,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getPolicyChangeLogMaxExpenseAgeMessage(action: ReportAction): string {
+    const {oldMaxExpenseAge, newMaxExpenseAge} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE>) ?? {};
+
+    if (typeof oldMaxExpenseAge === 'number' && typeof newMaxExpenseAge === 'number') {
+        const formatMaxExpenseAge = (value: number): string => {
+            if (value === CONST.POLICY.DISABLED_MAX_EXPENSE_AGE) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                return `"${translateLocal('common.noLimit')}"`;
+            }
+            if (value === 0) {
+                return String(CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE);
+            }
+            return String(value);
+        };
+        const oldValue = formatMaxExpenseAge(oldMaxExpenseAge);
+        const newValue = formatMaxExpenseAge(newMaxExpenseAge);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updateMaxExpenseAge', {
+            oldValue,
+            newValue,
         });
     }
 
@@ -3661,6 +3720,7 @@ export {
     getWorkspaceFrequencyUpdateMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
+    getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getWorkspaceDescriptionUpdatedMessage,
