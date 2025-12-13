@@ -39,6 +39,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const formRef = useRef<ScrollView>(null);
+    const isDeleting = useRef(false);
 
     const updateApprovalWorkflowCallback = useCallback(() => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {
@@ -64,6 +65,8 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
+        // Mark as deleting to prevent the useEffect from clearing the workflow and causing a blink
+        isDeleting.current = true;
         setIsDeleteModalVisible(false);
         Navigation.dismissModal();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -103,6 +106,10 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         if (!currentApprovalWorkflow) {
+            // Don't clear if we're in the middle of deleting - this prevents the UI from blinking
+            if (isDeleting.current) {
+                return;
+            }
             return clearApprovalWorkflow();
         }
 

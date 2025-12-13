@@ -3,6 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
@@ -25,7 +26,6 @@ import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
-import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
 import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
@@ -149,10 +149,19 @@ function NumberWithSymbolForm({
 }: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus'] as const);
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
     const [currentNumber, setCurrentNumber] = useState(typeof number === 'string' ? number : '');
+
+    // sync currentNumber with number prop when it changes externally
+    useEffect(() => {
+        const newNumber = typeof number === 'string' ? number : '';
+        if (newNumber !== currentNumber) {
+            setCurrentNumber(newNumber);
+        }
+    }, [number]);
 
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
@@ -472,7 +481,7 @@ function NumberWithSymbolForm({
                             <Button
                                 shouldShowRightIcon
                                 small
-                                iconRight={Expensicons.DownArrow}
+                                iconRight={icons.DownArrow}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
                                 isContentCentered
@@ -497,7 +506,7 @@ function NumberWithSymbolForm({
                     <Button
                         shouldShowRightIcon
                         small
-                        iconRight={Expensicons.DownArrow}
+                        iconRight={icons.DownArrow}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
                         isContentCentered
@@ -508,7 +517,7 @@ function NumberWithSymbolForm({
                     <Button
                         shouldShowRightIcon
                         small
-                        iconRight={Expensicons.PlusMinus}
+                        iconRight={icons.PlusMinus}
                         onPress={toggleNegative}
                         style={styles.minWidth18}
                         isContentCentered
