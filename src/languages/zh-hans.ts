@@ -4971,14 +4971,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             companyCards: {
                 title: '公司信用卡',
-                subtitle: '从现有公司卡导入支出。',
+                subtitle: '连接你已有的卡片。',
                 feed: {
-                    title: '导入公司卡片',
-                    features: {
-                        support: '支持所有主要的卡片提供商',
-                        assignCards: '将卡片分配给整个团队',
-                        automaticImport: '自动导入交易',
-                    },
+                    title: '自带卡片（BYOC）',
+                    features: {support: '连接来自 10,000 多家银行的卡片', assignCards: '关联你团队的现有卡片', automaticImport: '我们会自动导入交易记录'},
+                    subtitle: '关联你已有的卡片，以自动导入交易、匹配收据并进行对账。',
                 },
                 bankConnectionError: '银行连接问题',
                 connectWithPlaid: '通过 Plaid 连接',
