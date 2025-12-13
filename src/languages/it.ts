@@ -737,6 +737,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Azione richiesta',
         duplicate: 'Duplica',
         duplicated: 'Duplicato',
+        noLimit: 'Nessun limite',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -6449,8 +6450,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             `ha modificato l’importo massimo per cui è richiesta la ricevuta a ${newValue} (in precedenza ${oldValue})`,
         updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `ha modificato l’importo massimo della spesa per violazioni a ${newValue} (in precedenza ${oldValue})`,
-        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `aggiornato "Età massima spesa (giorni)" a "${newValue}" (in precedenza "${oldValue}")`,
+        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `aggiornato "Età massima spesa (giorni)" a "${newValue}" (in precedenza "${oldValue}")`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `imposta la data di invio del report mensile su "${newValue}"`;
