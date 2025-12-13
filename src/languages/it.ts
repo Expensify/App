@@ -596,6 +596,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Carta',
         whyDoWeAskForThis: 'Perché lo chiediamo?',
         required: 'Obbligatorio',
+        automatic: 'Automatico',
         showing: 'Mostrando',
         of: 'di',
         default: 'Predefinito',
@@ -860,7 +861,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Torna al dispositivo originale e richiedi un nuovo codice',
         successfulNewCodeRequest: 'Codice richiesto. Controlla il tuo dispositivo.',
         tfaRequiredTitle: dedent(`
-            Autenticazione a due fattori  
+            Autenticazione a due fattori
             richiesta
         `),
         tfaRequiredDescription: dedent(`
@@ -1238,6 +1239,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Ricevuta in attesa di abbinamento con la transazione della carta. Contrassegna come contanti per annullare.',
         markAsCash: 'Segna come contante',
         routePending: 'Instradamento in sospeso...',
+        automaticallyEnterExpenseDetails: 'Concierge inserirà automaticamente i dettagli della spesa per te, oppure puoi aggiungerli manualmente.',
         receiptScanning: () => ({
             one: 'Scansione della ricevuta in corso...',
             other: 'Scansione ricevute in corso...',

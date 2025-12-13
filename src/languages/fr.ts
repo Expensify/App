@@ -596,6 +596,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Carte',
         whyDoWeAskForThis: 'Pourquoi demandons-nous cela ?',
         required: 'Obligatoire',
+        automatic: 'Automatique',
         showing: 'Affichage',
         of: 'de',
         default: 'Par défaut',
@@ -862,7 +863,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Retournez sur l’appareil d’origine et demandez un nouveau code',
         successfulNewCodeRequest: 'Code demandé. Veuillez vérifier votre appareil.',
         tfaRequiredTitle: dedent(`
-            Authentification à deux facteurs  
+            Authentification à deux facteurs
             requise
         `),
         tfaRequiredDescription: dedent(`
@@ -1241,6 +1242,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Reçu en attente de rapprochement avec une transaction par carte. Marquez comme espèce pour annuler.',
         markAsCash: 'Marquer comme espèces',
         routePending: 'Routage en attente...',
+        automaticallyEnterExpenseDetails: 'Concierge saisira automatiquement les détails de la dépense pour vous, ou vous pouvez les ajouter manuellement.',
         receiptScanning: () => ({
             one: 'Analyse des reçus...',
             other: 'Numérisation des reçus…',
@@ -4667,7 +4669,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
 
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Quel est l’ID du script ?',
-                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous : 
+                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous :
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Cliquez sur un segment personnalisé.
