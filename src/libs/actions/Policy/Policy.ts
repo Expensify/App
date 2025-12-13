@@ -83,7 +83,9 @@ import GoogleTagManager from '@libs/GoogleTagManager';
 import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
+import {buildNextStepNew} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
+import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -96,6 +98,7 @@ import {
     navigateToReceiptPartnersPage,
 } from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {getSession} from '@libs/SessionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -108,6 +111,7 @@ import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     BankAccountList,
+    Beta,
     CardFeeds,
     DuplicateWorkspace,
     IntroSelected,
@@ -130,6 +134,7 @@ import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommo
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate, UberReceiptPartner} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {NotificationPreference} from '@src/types/onyx/Report';
+import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDeprecated';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
@@ -211,6 +216,12 @@ type SetWorkspaceReimbursementActionParams = {
     reimburserEmail: string;
     lastPaymentMethod?: LastPaymentMethodType | string;
     shouldUpdateLastPaymentMethod?: boolean;
+};
+
+type SetWorkspaceApprovalModeAdditionalData = {
+    reportNextSteps?: OnyxCollection<ReportNextStepDeprecated>;
+    transactionViolations?: OnyxCollection<TransactionViolations>;
+    betas?: Beta[];
 };
 
 const deprecatedAllPolicies: OnyxCollection<Policy> = {};
@@ -790,7 +801,7 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string | undefined, au
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
+function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>, additionalData: SetWorkspaceApprovalModeAdditionalData = {}) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
@@ -799,6 +810,59 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         approver,
         approvalMode,
     };
+    const updatedPolicy = {
+        ...(policy ?? {}),
+        ...value,
+    } as OnyxEntry<Policy>;
+
+    const session = getSession();
+    const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const currentUserEmail = session?.email ?? '';
+
+    const nextStepOptimisticData: OnyxUpdate[] = [];
+    const nextStepFailureData: OnyxUpdate[] = [];
+    const {reportNextSteps, transactionViolations, betas} = additionalData;
+    const resolvedTransactionViolations: OnyxCollection<TransactionViolations> = transactionViolations ?? {};
+    const resolvedReportNextSteps: NonNullable<OnyxCollection<ReportNextStepDeprecated>> = reportNextSteps ?? {};
+    const resolvedBetas: Beta[] = betas ?? [];
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, resolvedBetas);
+    const affectedReports = ReportUtils.getAllPolicyReports(policyID).filter(
+        (report) => !!report && ReportUtils.isExpenseReport(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
+    );
+
+    for (const report of affectedReports) {
+        const reportID = report?.reportID;
+
+        if (!reportID) {
+            continue;
+        }
+
+        const nextStepKey: `${typeof ONYXKEYS.COLLECTION.NEXT_STEP}${string}` = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
+        const currentNextStep: OnyxEntry<ReportNextStepDeprecated> | null = resolvedReportNextSteps[nextStepKey] ?? null;
+        const hasViolations = ReportUtils.hasViolations(reportID, resolvedTransactionViolations, currentUserAccountID, currentUserEmail, undefined, undefined, report, updatedPolicy);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const optimisticNextStep = buildNextStepNew({
+            report,
+            policy: updatedPolicy,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserEmail,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
+        });
+
+        nextStepOptimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: nextStepKey,
+            value: optimisticNextStep,
+        });
+
+        nextStepFailureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: nextStepKey,
+            value: currentNextStep ?? null,
+        });
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -810,6 +874,9 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             },
         },
     ];
+    if (nextStepOptimisticData.length > 0) {
+        optimisticData.push(...nextStepOptimisticData);
+    }
 
     const failureData: OnyxUpdate[] = [
         {
@@ -824,6 +891,9 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             },
         },
     ];
+    if (nextStepFailureData.length > 0) {
+        failureData.push(...nextStepFailureData);
+    }
 
     const successData: OnyxUpdate[] = [
         {

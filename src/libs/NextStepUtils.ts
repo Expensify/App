@@ -397,6 +397,16 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     const type: ReportNextStepDeprecated['type'] = 'neutral';
     let optimisticNextStep: ReportNextStepDeprecated | null;
 
+    const waitingForParticipant = shouldShowFixMessage
+        ? {
+              text: `${ownerDisplayName}`,
+              type: 'strong',
+          }
+        : {
+              text: `${policyOwnerDisplayName}`,
+              type: 'strong',
+          };
+
     const nextStepPayExpense = {
         type,
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -409,8 +419,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                       text: 'an admin',
                   }
                 : {
-                      text: shouldShowFixMessage ? ownerDisplayName : policyOwnerDisplayName,
-                      type: 'strong',
+                      ...waitingForParticipant,
                   },
             {
                 text: ' to ',
