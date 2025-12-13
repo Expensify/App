@@ -18,8 +18,6 @@ import {log, bold as logBold, error as logError, info as logInfo, note as logNot
 
 const TAB = '    ';
 
-const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
-
 const SUPPRESSED_COMPILER_ERRORS = [
     // This error is caused by an internal limitation of React Compiler
     // https://github.com/facebook/react/issues/29583
@@ -31,6 +29,8 @@ const MANUAL_MEMOIZATION_PATTERNS = {
     useMemo: /\b(?:React\.)?useMemo\s*\(/g,
     useCallback: /\b(?:React\.)?useCallback\s*\(/g,
 } as const satisfies Record<string, RegExp>;
+
+const MANUAL_MEMOIZATION_FILE_EXTENSIONS = ['.tsx', '.jsx'] as const satisfies string[];
 
 type ManualMemoizationKeyword = keyof typeof MANUAL_MEMOIZATION_PATTERNS;
 
@@ -45,7 +45,7 @@ const ESLINT_DISABLE_PATTERNS = {
     LINT_RULES: ['react-compiler/react-compiler', 'react-hooks'],
 } as const;
 
-const VERBOSE_OUTPUT_LINE_REGEXES = {
+const REACT_COMPILER_HEALTHCHECK_OUTPUT_REGEXES = {
     SUCCESS: /Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/,
     FAILURE_WITH_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/,
     FAILURE_WITHOUT_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\./,
@@ -54,12 +54,12 @@ const VERBOSE_OUTPUT_LINE_REGEXES = {
 
 type CompilerResults = {
     success: Set<string>;
-    failures: FailureMap;
-    suppressedFailures: FailureMap;
-    enforcedAddedComponentFailures?: EnforcedAddedComponentFailureMap;
+    failures: Map<string, CompilerFailure>;
+    failuresForAddedFiles?: Map<string, CompilerFailure>;
+    failuresForModifiedFiles?: Map<string, CompilerFailure>;
+    manualMemoFailures?: Map<string, ManualMemoizationError[]>;
+    suppressedFailures: Map<string, CompilerFailure>;
 };
-
-type FailureMap = Map<string, CompilerFailure>;
 
 type CompilerFailure = {
     file: string;
@@ -68,99 +68,75 @@ type CompilerFailure = {
     reason?: string;
 };
 
-type EnforcedAddedComponentFailureMap = Map<string, ManualMemoFailure>;
-
-type ManualMemoFailure = {
-    manualMemoizationMatches: ManualMemoizationMatch[];
-    compilerFailures: FailureMap | undefined;
-};
-
-type ManualMemoizationMatch = {
+type ManualMemoizationError = {
     keyword: ManualMemoizationKeyword;
     line: number;
     column: number;
 };
 
-type DiffFilteringCommits = {
-    fromRef: string;
-    toRef?: string;
-};
+type CheckMode = 'static' | 'incremental';
 
-type PrintResultsOptions = {
-    shouldPrintSuccesses: boolean;
-    shouldPrintSuppressedErrors: boolean;
-};
-
-type BaseCheckOptions = PrintResultsOptions & {
+type BaseCheckParameters = {
     remote?: string;
-    reportFileName?: string;
-    shouldGenerateReport?: boolean;
-    shouldFilterByDiff?: boolean;
-    shouldEnforceNewComponents?: boolean;
+    verbose?: boolean;
 };
 
-type CheckOptions = BaseCheckOptions & {
+type CheckParameters = BaseCheckParameters & {
+    mode?: CheckMode;
     files?: string[];
 };
 
-async function check({
-    files,
-    shouldGenerateReport = false,
-    reportFileName = DEFAULT_REPORT_FILENAME,
-    shouldFilterByDiff = false,
-    remote,
-    shouldPrintSuccesses = false,
-    shouldPrintSuppressedErrors = false,
-    shouldEnforceNewComponents = false,
-}: CheckOptions): Promise<boolean> {
-    if (files) {
-        logInfo(`Running React Compiler check for ${files.length} files or glob patterns...`);
-    } else {
-        logInfo('Running React Compiler check for all files...');
-    }
+type CheckOptions = {
+    mode: CheckMode;
+    verbose: boolean;
+};
 
-    const src = createFilesGlob(files);
-    let results = runCompilerHealthcheck(src);
-
-    if (shouldFilterByDiff || shouldEnforceNewComponents) {
-        const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-        const diffFilteringCommits: DiffFilteringCommits = {fromRef: mainBaseCommitHash};
-        const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef);
-
-        if (shouldFilterByDiff) {
-            results = await filterResultsByDiff(results, diffFilteringCommits, diffResult, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
-        }
-
-        if (shouldEnforceNewComponents) {
-            const {nonAutoMemoEnforcedFailures, addedComponentFailures} = enforceNewComponentGuard(results, diffResult);
-
-            results.enforcedAddedComponentFailures = addedComponentFailures;
-            results.failures = nonAutoMemoEnforcedFailures;
-        }
-    }
-
-    printResults(results, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
-
-    if (shouldGenerateReport) {
-        generateReport(results, reportFileName);
-    }
-
-    const isPassed = results.failures.size === 0 && (results.enforcedAddedComponentFailures?.size ?? 0) === 0;
-    return isPassed;
-}
-
-async function checkChangedFiles({remote, ...restOptions}: BaseCheckOptions): Promise<boolean> {
+async function checkChangedFiles({remote, ...restOptions}: BaseCheckParameters): Promise<boolean> {
     logInfo('Checking changed files for React Compiler compliance...');
 
     const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-    const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash);
+    const changedFiles = await Git.getChangedFileNames(mainBaseCommitHash, undefined, true);
 
     if (changedFiles.length === 0) {
         logSuccess('No React files changed, skipping check.');
         return true;
     }
 
-    return check({files: changedFiles, ...restOptions});
+    return check({mode: 'incremental', files: changedFiles, ...restOptions});
+}
+
+async function check({mode = 'static', files, remote, verbose = false}: CheckParameters): Promise<boolean> {
+    const options: CheckOptions = {mode, verbose};
+
+    if (files) {
+        logInfo(`Running React Compiler check for ${files.length} files or glob patterns...`);
+    } else {
+        logInfo('Running React Compiler check for all files...');
+    }
+
+    let results = runCompilerHealthcheck(createFilesGlob(files));
+
+    const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
+    const diffResult = Git.diff(mainBaseCommitHash, undefined, undefined, true);
+
+    // If we are in incremental mode, we only want to show errors for lines
+    // that were directly modified in the git diff, not for the whole file.
+    if (mode === 'incremental') {
+        results = await filterResultsByDiff(results, mainBaseCommitHash, diffResult, options);
+    }
+
+    // Enforce automatic memoization for added files that are successfully compiled with React Compiler
+    const {reactCompilerFailuresForModifiedFiles, reactCompilerFailuresForAddedFiles, manualMemoFailures} = splitErrorsBasedOnFileDiffType(results, diffResult);
+
+    results.manualMemoFailures = manualMemoFailures;
+    results.failuresForAddedFiles = reactCompilerFailuresForAddedFiles;
+    results.failuresForModifiedFiles = reactCompilerFailuresForModifiedFiles;
+
+    const isPassed = printResults(results, options);
+
+    generateReport(results);
+
+    return isPassed;
 }
 
 function runCompilerHealthcheck(src?: string): CompilerResults {
@@ -180,8 +156,8 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function addFailureIfDoesNotExist(failureMap: FailureMap, newFailure: CompilerFailure): boolean {
-    const key = getUniqueFileKey(newFailure);
+function addFailureIfDoesNotExist(failureMap: Map<string, CompilerFailure>, newFailure: CompilerFailure): boolean {
+    const key = getFailureKey(newFailure);
     const existingFailure = failureMap.get(key);
 
     if (existingFailure) {
@@ -218,7 +194,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
     // Parse verbose output
     for (const line of lines) {
         // Parse successful file paths
-        const successMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.SUCCESS);
+        const successMatch = line.match(REACT_COMPILER_HEALTHCHECK_OUTPUT_REGEXES.SUCCESS);
         if (successMatch) {
             const filePath = successMatch[2];
             results.success.add(filePath);
@@ -226,7 +202,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         }
 
         // Parse failed file paths with file, location, and reason all on one line
-        const failureWithReasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITH_REASON);
+        const failureWithReasonMatch = line.match(REACT_COMPILER_HEALTHCHECK_OUTPUT_REGEXES.FAILURE_WITH_REASON);
         if (failureWithReasonMatch) {
             const newFailure: CompilerFailure = {
                 file: failureWithReasonMatch[1],
@@ -248,7 +224,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         }
 
         // Parse failed compilation with file and location only (fallback)
-        const failureWithoutReasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.FAILURE_WITHOUT_REASON);
+        const failureWithoutReasonMatch = line.match(REACT_COMPILER_HEALTHCHECK_OUTPUT_REGEXES.FAILURE_WITHOUT_REASON);
         if (failureWithoutReasonMatch) {
             const newFailure: CompilerFailure = {
                 file: failureWithoutReasonMatch[1],
@@ -265,7 +241,7 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         }
 
         // Parse reason line (fallback for multi-line reasons)
-        const reasonMatch = line.match(VERBOSE_OUTPUT_LINE_REGEXES.REASON);
+        const reasonMatch = line.match(REACT_COMPILER_HEALTHCHECK_OUTPUT_REGEXES.REASON);
         if (reasonMatch && currentFailureWithoutReason) {
             const reason = reasonMatch[1];
 
@@ -287,7 +263,22 @@ function parseHealthcheckOutput(output: string): CompilerResults {
         }
     }
 
+    // Sort results by file name, line number, and column number
+    results.success = new Set(Array.from(results.success).sort((a, b) => a.localeCompare(b)));
+    results.failures = sortFailures(results.failures);
+    results.suppressedFailures = sortFailures(results.suppressedFailures);
+
     return results;
+}
+
+function sortFailures(failures: Map<string, CompilerFailure>) {
+    const arr = Array.from(failures.entries());
+    arr.sort(([, a], [, b]) => {
+        const keyA = getFailureKey(a);
+        const keyB = getFailureKey(b);
+        return keyA.localeCompare(keyB);
+    });
+    return new Map(arr);
 }
 
 /**
@@ -309,7 +300,7 @@ function shouldSuppressCompilerError(reason: string | undefined): boolean {
  * @param failure - The compiler failure to create a unique key for
  * @returns A unique key for the compiler failure
  */
-function getUniqueFileKey({file, line, column}: CompilerFailure): string {
+function getFailureKey({file, line, column}: CompilerFailure): string {
     const isLineSet = line !== undefined;
     const isLineAndColumnSet = isLineSet && column !== undefined;
 
@@ -333,6 +324,23 @@ function createFilesGlob(files?: string[]): string | undefined {
     return `**/+(${files.join('|')})`;
 }
 
+function getErrorsByFile(failures: Map<string, CompilerFailure>) {
+    const errorsByFile = new Map<string, Map<string, CompilerFailure>>();
+    for (const [key, failure] of failures.entries()) {
+        if (!errorsByFile.has(failure.file)) {
+            errorsByFile.set(failure.file, new Map());
+        }
+        errorsByFile.get(failure.file)?.set(key, failure);
+    }
+
+    const distinctErrorFileNames = new Set<string>(errorsByFile.keys());
+
+    return {
+        errorsByFile,
+        distinctErrorFileNames,
+    };
+}
+
 /**
  * Filters compiler results to only include failures for lines that were changed in the git diff.
  * This helps focus on new issues introduced by the current changes rather than pre-existing issues.
@@ -345,13 +353,8 @@ function createFilesGlob(files?: string[]): string | undefined {
  * @param diffFilteringCommits - The commit range to diff (from and to)
  * @returns Filtered compiler results containing only failures in changed lines or eslint-disabled areas
  */
-async function filterResultsByDiff(
-    results: CompilerResults,
-    diffFilteringCommits: DiffFilteringCommits,
-    diffResult: DiffResult,
-    {shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
-): Promise<CompilerResults> {
-    logInfo(`Filtering results by diff between ${diffFilteringCommits.fromRef} and ${diffFilteringCommits.toRef ?? 'the working tree'}...`);
+async function filterResultsByDiff(results: CompilerResults, mainBaseCommitHash: string, diffResult: DiffResult, {verbose}: CheckOptions): Promise<CompilerResults> {
+    logInfo(`Filtering results by diff between ${mainBaseCommitHash} and the working tree...`);
 
     // If there are no changes, return empty results
     if (!diffResult.hasChanges) {
@@ -468,26 +471,24 @@ async function filterResultsByDiff(
         filteredSuccesses.add(file);
     }
 
-    if (shouldPrintSuccesses) {
-        if (filteredSuccesses.size === 0) {
-            logInfo('No successes remain after filtering by diff.');
-        } else {
-            logInfo(`${filteredSuccesses.size} out of ${results.success.size} successes remain after filtering by diff.`);
-        }
+    if (filteredFailures.size === 0) {
+        logInfo('No failures remain after filtering by diff.');
+    } else {
+        logInfo(`${filteredFailures.size} out of ${results.failures.size} failures remain after filtering by diff.`);
     }
 
-    if (shouldPrintSuppressedErrors) {
+    if (verbose) {
         if (filteredSuppressedFailures.size === 0) {
             logInfo('No suppressed errors remain after filtering by diff.');
         } else {
             logInfo(`${filteredSuppressedFailures.size} out of ${results.suppressedFailures.size} successes remain after filtering by diff.`);
         }
-    }
 
-    if (filteredFailures.size === 0) {
-        logInfo('No failures remain after filtering by diff.');
-    } else {
-        logInfo(`${filteredFailures.size} out of ${results.failures.size} failures remain after filtering by diff.`);
+        if (filteredSuccesses.size === 0) {
+            logInfo('No successes remain after filtering by diff.');
+        } else {
+            logInfo(`${filteredSuccesses.size} out of ${results.success.size} successes remain after filtering by diff.`);
+        }
     }
 
     return {
@@ -498,86 +499,83 @@ async function filterResultsByDiff(
 }
 
 /**
- * Enforces the new component guard by checking for manual memoization keywords in added files and attaching React compiler failures.
- * @param failures - The compiler results to enforce the new component guard on
+ * Splits React Compiler errors based on whether the file has been added or modified
+ * Adds errors for enforced automatic memoization by checking for manual memoization keywords in already compiled files.
+ * @param results - The compiler results to enforce automatic memoization on
  * @param diffResult - The diff result to check for added files
- * @returns The enforced compiler results
+ * @returns The compiler results partitioned into manual memo errors and react compiler errors
  */
-function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffResult) {
-    const addedDiffFiles = new Set<string>();
+function splitErrorsBasedOnFileDiffType({success, failures: reactCompilerFailures}: CompilerResults, diffResult: DiffResult) {
+    const {distinctErrorFileNames: distinctFailureFileNames, errorsByFile} = getErrorsByFile(reactCompilerFailures);
+
+    // Add added files from the diff that are already compiled successfully,
+    // to a list of files that should have automatic memoization enforced
+    const enforcedAutoMemoFiles = new Set<string>();
+    const addedFiles = new Set<string>();
+
     for (const file of diffResult.files) {
+        const filePath = file.filePath;
+
+        distinctFailureFileNames.add(filePath);
+
         if (file.diffType === 'added') {
-            addedDiffFiles.add(file.filePath);
+            addedFiles.add(filePath);
+        }
+
+        const isReactComponentSourceFile = MANUAL_MEMOIZATION_FILE_EXTENSIONS.some((extension) => filePath.endsWith(extension));
+
+        // We enforce automatic memoization for all successfully compiled files.
+        const isSuccessfullyCompiled = success.has(filePath);
+        if (isReactComponentSourceFile && isSuccessfullyCompiled) {
+            enforcedAutoMemoFiles.add(filePath);
         }
     }
 
-    // Partition failures into non-auto memo enforced failures and added file failures
-    const nonAutoMemoEnforcedFailures: FailureMap = new Map();
-    const addedFileFailures = new Map<string, FailureMap>();
-    for (const [failureKey, failure] of failures) {
-        const addedFilePath = failure.file;
+    const reactCompilerFailuresForModifiedFiles = reactCompilerFailures;
+    const reactCompilerFailuresForAddedFiles = new Map<string, CompilerFailure>();
+    const manualMemoFailures = new Map<string, ManualMemoizationError[]>();
 
-        if (!addedDiffFiles.has(addedFilePath)) {
-            nonAutoMemoEnforcedFailures.set(failureKey, failure);
+    // Check all files whether we are enforcing automatic memoization, if so, log an error if manual memoization keywords are found and attach React compiler errors.
+    for (const file of distinctFailureFileNames) {
+        if (!enforcedAutoMemoFiles.has(file)) {
+            const errors = errorsByFile.get(file);
+
+            // Split up the React Compiler failures into modified and added files
+            if (addedFiles.has(file)) {
+                for (const [errorKey, error] of errors?.entries() ?? []) {
+                    reactCompilerFailuresForAddedFiles.set(errorKey, error);
+                    reactCompilerFailures.delete(errorKey);
+                }
+            }
+
             continue;
         }
 
-        const existingAddedFileFailuresMap = addedFileFailures.get(addedFilePath);
-        if (existingAddedFileFailuresMap) {
-            existingAddedFileFailuresMap.set(failureKey, failure);
-            continue;
-        }
-
-        addedFileFailures.set(addedFilePath, new Map<string, CompilerFailure>([[failureKey, failure]]));
-    }
-
-    // Used as fallback to add back the failures from added files that didn't have manual memoization
-    function addNonAutoMemoEnforcedFailures(addedFilePath: string): void {
-        const addedFileFailuresMap = addedFileFailures.get(addedFilePath);
-
-        if (!addedFileFailuresMap) {
-            return;
-        }
-
-        for (const [failureKey, failure] of addedFileFailuresMap) {
-            nonAutoMemoEnforcedFailures.set(failureKey, failure);
-        }
-    }
-
-    // Check all added files for manual memoization keywords and attach React compiler failures.
-    // If no manual memoization keywords are found add the failures back to the regular failures.
-    const addedComponentFailures: EnforcedAddedComponentFailureMap = new Map();
-    for (const addedFilePath of addedDiffFiles) {
         let source: string | null = null;
         try {
-            const absolutePath = path.join(process.cwd(), addedFilePath);
+            const absolutePath = path.join(process.cwd(), file);
             source = readFileSync(absolutePath, 'utf8');
         } catch (error) {
-            logWarn(`Unable to read ${addedFilePath} while enforcing new component rules.`, error);
+            logWarn(`Unable to read ${file} while enforcing new component rules.`, error);
         }
 
         if (!source || NO_MANUAL_MEMO_DIRECTIVE_PATTERN.test(source)) {
-            addNonAutoMemoEnforcedFailures(addedFilePath);
             continue;
         }
 
         const manualMemoizationMatches = findManualMemoizationMatches(source);
 
         if (manualMemoizationMatches.length === 0) {
-            addNonAutoMemoEnforcedFailures(addedFilePath);
             continue;
         }
 
-        const manualMemoFailure: ManualMemoFailure = {
-            manualMemoizationMatches,
-            compilerFailures: addedFileFailures.get(addedFilePath),
-        };
-        addedComponentFailures.set(addedFilePath, manualMemoFailure);
+        manualMemoFailures.set(file, manualMemoizationMatches);
     }
 
     return {
-        nonAutoMemoEnforcedFailures,
-        addedComponentFailures,
+        manualMemoFailures,
+        reactCompilerFailuresForModifiedFiles,
+        reactCompilerFailuresForAddedFiles,
     };
 }
 
@@ -586,8 +584,8 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
  * @param source - The source code to search for manual memoization matches
  * @returns An array of manual memoization matches
  */
-function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] {
-    const matches: ManualMemoizationMatch[] = [];
+function findManualMemoizationMatches(source: string): ManualMemoizationError[] {
+    const matches: ManualMemoizationError[] = [];
 
     for (const keyword of Object.keys(MANUAL_MEMOIZATION_PATTERNS) as ManualMemoizationKeyword[]) {
         const regex = MANUAL_MEMOIZATION_PATTERNS[keyword];
@@ -619,11 +617,8 @@ function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] 
  * @param results - The compiler results to print
  * @param options - The options for printing the results
  */
-function printResults(
-    {success, failures, suppressedFailures, enforcedAddedComponentFailures}: CompilerResults,
-    {shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
-): void {
-    if (shouldPrintSuccesses && success.size > 0) {
+function printResults({success, failuresForAddedFiles, failuresForModifiedFiles, suppressedFailures, manualMemoFailures}: CompilerResults, {verbose}: CheckOptions): boolean {
+    if (verbose && success.size > 0) {
         log();
         logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
         log();
@@ -635,7 +630,7 @@ function printResults(
         log();
     }
 
-    if (shouldPrintSuppressedErrors && suppressedFailures.size > 0) {
+    if (verbose && suppressedFailures.size > 0) {
         // Create a Map of suppressed error type -> Failure[] with distinct errors and a list of failures with that error
         const suppressedErrorMap = new Map<string, CompilerFailure[]>();
         for (const [, failure] of suppressedFailures) {
@@ -656,59 +651,86 @@ function printResults(
 
         for (const [error, suppressedErrorFiles] of suppressedErrorMap) {
             logBold(error);
-            const filesLine = suppressedErrorFiles.map((failure) => getUniqueFileKey(failure)).join(', ');
+            const filesLine = suppressedErrorFiles.map((failure) => getFailureKey(failure)).join(', ');
             logNote(`${TAB} - ${filesLine}`);
         }
 
         log();
     }
 
-    const hasEnforcedAddedComponentFailures = enforcedAddedComponentFailures && enforcedAddedComponentFailures.size > 0;
+    // In Phase 1, we only fail the check if there are any React Compiler errors in added files.
+    // TODO: Starting in Phase 2, always print errors instead.
+    const didRegularCheckPass = !failuresForAddedFiles || failuresForAddedFiles.size === 0;
 
-    const isPassed = failures.size === 0 && !hasEnforcedAddedComponentFailures;
-    if (isPassed) {
-        logSuccess('All files pass React Compiler compliance check!');
-        return;
+    const hasManualMemoErrors = manualMemoFailures && manualMemoFailures.size > 0;
+    const isPassed = didRegularCheckPass && !hasManualMemoErrors;
+
+    const shouldPrintModifiedFilesErrors = failuresForModifiedFiles && failuresForModifiedFiles.size > 0;
+    const shouldPrintAddedFilesErrors = failuresForAddedFiles && failuresForAddedFiles.size > 0;
+
+    const shouldPrintErrors = !!shouldPrintModifiedFilesErrors || !!shouldPrintAddedFilesErrors;
+
+    if (shouldPrintModifiedFilesErrors) {
+        const {distinctErrorFileNames} = getErrorsByFile(failuresForModifiedFiles);
+
+        if (distinctErrorFileNames.size > 0) {
+            log();
+            logWarn(`Failed to compile ${distinctErrorFileNames.size} modified files with React Compiler:`);
+            log();
+
+            printFailures(failuresForModifiedFiles);
+
+            log();
+            logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and can get ignored.');
+        }
     }
 
-    const distinctFileNames = new Set<string>();
-    for (const failure of failures.values()) {
-        distinctFileNames.add(failure.file);
+    if (shouldPrintAddedFilesErrors) {
+        const {distinctErrorFileNames} = getErrorsByFile(failuresForAddedFiles);
+
+        if (distinctErrorFileNames.size > 0) {
+            log();
+            logError(`Failed to compile ${distinctErrorFileNames.size} added files with React Compiler:`);
+            log();
+
+            printFailures(failuresForAddedFiles);
+        }
     }
 
-    if (distinctFileNames.size > 0) {
+    // Print an extra empty line if no enforced errors are printed.
+    if (shouldPrintErrors && !hasManualMemoErrors) {
         log();
-        logError(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
-        log();
-
-        printFailures(failures);
     }
 
-    if (hasEnforcedAddedComponentFailures) {
+    if (hasManualMemoErrors) {
         log();
-        logError(`The following newly added components should rely on React Compiler’s automatic memoization (manual memoization is not allowed):`);
-        log();
+        logError(`The following newly added components should be auto memoized by the React Compiler (manual memoization is not allowed):`);
 
-        for (const [filePath, {manualMemoizationMatches, compilerFailures}] of enforcedAddedComponentFailures) {
+        for (const [filePath, manualMemoizationMatches] of manualMemoFailures) {
+            log();
+
             for (const manualMemoizationMatch of manualMemoizationMatches) {
                 const location = manualMemoizationMatch.line && manualMemoizationMatch.column ? `:${manualMemoizationMatch.line}:${manualMemoizationMatch.column}` : '';
                 logBold(`${filePath}${location}`);
                 logNote(`${TAB}${MANUAL_MEMOIZATION_FAILURE_MESSAGE(manualMemoizationMatch.keyword)}`);
             }
-
-            if (compilerFailures) {
-                log();
-                logBold(`${TAB}Additional React Compiler errors:`);
-                printFailures(compilerFailures, 1);
-            }
         }
     }
 
+    if (isPassed) {
+        logSuccess('All files pass React Compiler compliance check!');
+        return true;
+    }
+
     log();
-    logError('The files above failed the React Compiler compliance check. Please fix the issues and run the check again...');
+    logError(
+        `The files above failed the React Compiler compliance check. Do not remove any manual memoization patterns, unless a file is already able to compile with React Compiler. You can use the "React Compiler Marker" VS Code extension to check whether a file is being compiled with React Compiler.`,
+    );
+
+    return false;
 }
 
-function printFailures(failuresToPrint: FailureMap, level = 0) {
+function printFailures(failuresToPrint: Map<string, CompilerFailure>, level = 0) {
     for (const failure of failuresToPrint.values()) {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
         logBold(`${TAB.repeat(level)}${failure.file}${location}`);
@@ -717,35 +739,38 @@ function printFailures(failuresToPrint: FailureMap, level = 0) {
 }
 
 /**
- * Generates a report of the React Compiler compliance check.
+ * Generates a report of the React Compiler compliance check and saves it to /tmp.
  * @param results - The compiler results to generate a report for
- * @param outputFileName - The file name to save the report to
  */
-function generateReport(results: CompilerResults, outputFileName = DEFAULT_REPORT_FILENAME): void {
-    log('\n');
-    logInfo('Creating React Compiler Compliance Check report:');
+function generateReport({success, failures, suppressedFailures, manualMemoFailures, failuresForAddedFiles, failuresForModifiedFiles}: CompilerResults): void {
+    // Generate a unique filename with timestamp
+    const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
+    const reportFileName = `react-compiler-compliance-check-report-${timestamp}.json`;
+    const reportFile = path.join('/tmp', reportFileName);
 
-    // Save detailed report
-    const reportFile = path.join(process.cwd(), outputFileName);
+    const resultsObject = {
+        success: Array.from(success),
+        failures: Object.fromEntries(failures.entries()),
+        failuresForAddedFiles: Object.fromEntries(failuresForAddedFiles?.entries() ?? []),
+        failuresForModifiedFiles: Object.fromEntries(failuresForModifiedFiles?.entries() ?? []),
+        manualMemoFailures: Object.fromEntries(manualMemoFailures?.entries() ?? []),
+        suppressedFailures: Object.fromEntries(suppressedFailures.entries()),
+    } satisfies Record<keyof CompilerResults, Record<string, unknown> | string[]>;
+
     fs.writeFileSync(
         reportFile,
         JSON.stringify(
             {
                 timestamp: new Date().toISOString(),
-                summary: {
-                    total: results.success.size + results.failures.size,
-                    success: results.success.size,
-                    failure: results.failures.size,
-                },
-                success: results.success,
-                failures: results.failures,
+                results: resultsObject,
             },
             null,
             2,
         ),
     );
 
-    logSuccess(`Detailed report saved to: ${reportFile}`);
+    log();
+    logInfo(`Report saved to: ${reportFile}`);
 }
 
 const Checker = {
@@ -785,35 +810,10 @@ async function main() {
                 required: false,
                 supersedes: ['check-changed'],
             },
-            reportFileName: {
-                description: 'File name to save the report to',
-                required: false,
-                default: DEFAULT_REPORT_FILENAME,
-            },
         },
         flags: {
-            filterByDiff: {
-                description: 'Filter the files to check by the diff between the current commit/PR and the main branch',
-                required: false,
-                default: false,
-            },
-            report: {
-                description: 'Generate a report of the results',
-                required: false,
-                default: false,
-            },
-            printSuccesses: {
-                description: 'Print the successes',
-                required: false,
-                default: false,
-            },
-            printSuppressedErrors: {
-                description: 'Print suppressed errors',
-                required: false,
-                default: false,
-            },
-            enforceNewComponents: {
-                description: 'Ensure new components compile with React Compiler and avoid manual memoization',
+            verbose: {
+                description: 'Print logs of successes and suppressed errors',
                 required: false,
                 default: false,
             },
@@ -821,22 +821,11 @@ async function main() {
     });
 
     const {command, file} = cli.positionalArgs;
-    const {remote, reportFileName} = cli.namedArgs;
-    const {
-        report: shouldGenerateReport,
-        filterByDiff: shouldFilterByDiff,
-        printSuccesses: shouldPrintSuccesses,
-        printSuppressedErrors: shouldPrintSuppressedErrors,
-        enforceNewComponents: shouldEnforceNewComponents,
-    } = cli.flags;
+    const {remote} = cli.namedArgs;
+    const {verbose} = cli.flags;
 
-    const commonOptions: BaseCheckOptions = {
-        shouldGenerateReport,
-        reportFileName,
-        shouldFilterByDiff,
-        shouldPrintSuccesses,
-        shouldPrintSuppressedErrors,
-        shouldEnforceNewComponents,
+    const commonOptions: BaseCheckParameters = {
+        verbose,
     };
 
     async function runCommand() {
