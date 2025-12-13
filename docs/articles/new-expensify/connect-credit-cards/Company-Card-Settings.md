@@ -1,7 +1,7 @@
 ---
 title: Company Card Settings
 description: Learn how to manage third-party company card feeds in Expensify, including commercial and direct feeds, accounting exports, and automated eReceipts.
-keywords:[New Expensify, company cards, card feed settings, third-party cards, commercial feeds, direct feeds, accounting exports, ereceipts, expense automation, card management]
+keywords: [New Expensify, company cards, card feed settings, third-party cards, commercial feeds, direct feeds, accounting exports, ereceipts, expense automation, card management]
 ---
 
 Workspace Admins can manage company card settings, export logic, and eReceipt functionality at the workspace level. This guide outlines how to configure your company card connection, route expenses to accounting systems, and automate receipt handling.
@@ -72,7 +72,7 @@ Yes, below is a breakdown:
 - The **Control plan** supports **unlimited** card connections.
 - The [Expensify Card](https://use.expensify.com/company-credit-card) is available on **both plans**.
 
-## When do transactions from direct or commercial feeds import?
+## When do direct or commercial feed transactions import?
 
 Transactions import **after a card is assigned**. Once a purchase **posts** (typically within 1–3 business days), it will appear in the cardholder’s account.
 
