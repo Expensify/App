@@ -96,7 +96,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
     if (isLHBVisible) {
         return (
-            <Tooltip text={accessibilityLabel}>
+            <Tooltip text={translate('common.create')}>
                 <PressableWithoutFeedback
                     ref={(el) => {
                         fabPressable.current = el ?? null;

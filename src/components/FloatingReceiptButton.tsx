@@ -2,6 +2,7 @@ import React, {useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text, View as ViewType} from 'react-native';
 import {View} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -27,6 +28,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role}: FloatingRece
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | ViewType | Text | null>(null);
+    const {translate} = useLocalize();
 
     const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         // Drop focus to avoid blue focus ring.
@@ -35,7 +37,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role}: FloatingRece
     };
 
     return (
-        <Tooltip text={accessibilityLabel}>
+        <Tooltip text={translate('tabSelector.scan')}>
             <PressableWithoutFeedback
                 ref={(el) => {
                     fabPressable.current = el ?? null;
