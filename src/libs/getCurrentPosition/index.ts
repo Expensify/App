@@ -4,17 +4,21 @@ import {GeolocationErrorCode} from './getCurrentPosition.types';
 import type {GetCurrentPosition} from './getCurrentPosition.types';
 
 const getCurrentPosition: GetCurrentPosition = async (success, error, options) => {
-    const foregroundPermissionResponse: PermissionResponse = await requestForegroundPermissionsAsync();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+    const foregroundPermissionResponse = (await requestForegroundPermissionsAsync()) as PermissionResponse;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (foregroundPermissionResponse.status !== PermissionStatus.GRANTED) {
         error({code: GeolocationErrorCode.PERMISSION_DENIED, message: 'User denied access to location.'});
         return;
     }
 
     try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
         const currentPosition = await getCurrentPositionAsync(options);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         success(currentPosition);
-    } catch (caughtError) {
+    } catch (caughtError: unknown) {
         let message = 'Geolocation call failed';
         let code = GeolocationErrorCode.POSITION_UNAVAILABLE;
 
