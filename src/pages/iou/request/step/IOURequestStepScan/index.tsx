@@ -392,6 +392,7 @@ function IOURequestStepScan({
                         ...(policyParams ?? {}),
                         shouldHandleNavigation: index === files.length - 1,
                         isASAPSubmitBetaEnabled,
+                        quickAction,
                     });
                 } else {
                     requestMoney({
@@ -434,6 +435,7 @@ function IOURequestStepScan({
             shouldGenerateTransactionThreadReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            quickAction,
         ],
     );
 
