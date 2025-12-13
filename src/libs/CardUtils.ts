@@ -814,6 +814,10 @@ function getCompanyCardFeed(feedWithDomainID: string): CompanyCardFeed {
     return feed as CompanyCardFeed;
 }
 
+function isCardWithBrokenConnection(card: Card): boolean {
+    return !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult);
+}
+
 export {
     getAssignedCardSortKey,
     isExpensifyCard,
@@ -862,6 +866,7 @@ export {
     isCardPendingIssue,
     isCardPendingActivate,
     hasPendingExpensifyCardAction,
+    isCardWithBrokenConnection,
     isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
     isCardPendingReplace,
