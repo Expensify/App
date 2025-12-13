@@ -419,12 +419,18 @@ function ReportActionCompose({
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
     const composerRefShared = useSharedValue<{
         clear: (() => void) | undefined;
-    }>({clear: undefined});
+        reset: (() => void) | undefined;
+    }>({clear: undefined, reset: undefined});
 
     const handleSendMessage = useCallback(() => {
         if (isSendDisabled || !debouncedValidate.flush()) {
             return;
         }
+
+        const {reset} = composerRefShared.get();
+
+        reset?.();
+        setIsComposerFullSize(reportID, false);
 
         scheduleOnUI(() => {
             'worklet';
@@ -438,7 +444,7 @@ function ReportActionCompose({
             // This will cause onCleared to be triggered where we actually send the message
             clearComposer?.();
         });
-    }, [isSendDisabled, debouncedValidate, composerRefShared]);
+    }, [isSendDisabled, debouncedValidate, composerRefShared, reportID]);
 
     // eslint-disable-next-line react-compiler/react-compiler
     onSubmitAction = handleSendMessage;
@@ -552,7 +558,8 @@ function ReportActionCompose({
                             ref={(ref) => {
                                 composerRef.current = ref ?? undefined;
                                 composerRefShared.set({
-                                    clear: ref?.clear,
+                                    clear: ref?.clear as (() => void) | undefined,
+                                    reset: ref?.reset as (() => void) | undefined,
                                 });
                             }}
                             suggestionsRef={suggestionsRef}
