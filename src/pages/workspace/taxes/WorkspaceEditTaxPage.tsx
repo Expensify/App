@@ -1,14 +1,15 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearTaxRateFieldError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
@@ -35,11 +36,11 @@ function WorkspaceEditTaxPage({
 }: WorkspaceEditTaxPageBaseProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const currentTaxID = getCurrentTaxID(policy, taxID);
     const currentTaxRate = currentTaxID && policy?.taxRates?.taxes?.[currentTaxID];
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const canEditTaxRate = policy && canEditTaxRateUtil(policy, currentTaxID ?? taxID);
-
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const shouldShowDeleteMenuItem = canEditTaxRate && !hasAccountingConnections(policy);
 
     const toggleTaxRate = () => {
@@ -56,13 +57,27 @@ function WorkspaceEditTaxPage({
         Navigation.setParams({taxID: currentTaxID});
     }, [taxID, currentTaxID]);
 
-    const deleteTaxRate = () => {
+    const deleteTaxRate = useCallback(() => {
         if (!policyID) {
             return;
         }
         deletePolicyTaxes(policy, [taxID], localeCompare);
-        setIsDeleteModalVisible(false);
         Navigation.goBack();
+    }, [policyID, policy, taxID, localeCompare]);
+
+    const showDeleteTaxRateModal = () => {
+        showConfirmModal({
+            title: translate('workspace.taxes.actions.delete'),
+            prompt: translate('workspace.taxes.deleteTaxConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            deleteTaxRate();
+        });
     };
 
     if (!currentTaxRate) {
@@ -159,22 +174,12 @@ function WorkspaceEditTaxPage({
                     </OfflineWithFeedback>
                     {!!shouldShowDeleteMenuItem && (
                         <MenuItem
-                            icon={Expensicons.Trashcan}
+                            icon={expensifyIcons.Trashcan}
                             title={translate('common.delete')}
-                            onPress={() => setIsDeleteModalVisible(true)}
+                            onPress={showDeleteTaxRateModal}
                         />
                     )}
                 </View>
-                <ConfirmModal
-                    title={translate('workspace.taxes.actions.delete')}
-                    isVisible={isDeleteModalVisible}
-                    onConfirm={deleteTaxRate}
-                    onCancel={() => setIsDeleteModalVisible(false)}
-                    prompt={translate('workspace.taxes.deleteTaxConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

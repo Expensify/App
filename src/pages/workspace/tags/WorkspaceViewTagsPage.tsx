@@ -1,13 +1,12 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
@@ -16,7 +15,9 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import ListItemRightCaretWithLabel from '@components/SelectionListWithSections/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
 import Switch from '@components/Switch';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -64,21 +65,18 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const dropdownButtonRef = useRef<View>(null);
-    const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
-
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan', 'Close', 'Checkmark'] as const);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const currentTagListName = useMemo(() => getTagListName(policyTags, orderWeight), [policyTags, orderWeight]);
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW;
-    const [isCannotMakeAllTagsOptionalModalVisible, setIsCannotMakeAllTagsOptionalModalVisible] = useState(false);
-    const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
-    const [isRequiresMultiLevelTagsModalVisible, setIsRequiresMultiLevelTagsModalVisible] = useState(false);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -119,6 +117,54 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         [policyData, orderWeight],
     );
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const showCannotDeleteOrDisableLastTagModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+            prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const showCannotMakeAllTagsOptionalModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
+            prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
+
+    const showRequiresMultiLevelTagsModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('workspace.tags.cannotMakeTagListRequired.title'),
+            prompt: translate('workspace.tags.cannotMakeTagListRequired.description'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
+
+    const showDeleteTagsModal = () => {
+        showConfirmModal({
+            title: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
+            prompt: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            deletePolicyTags(policyData, selectedTags);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                setSelectedTags([]);
+            });
+        });
+    };
+
     const tagList = useMemo<TagListItem[]>(
         () =>
             Object.values(currentPolicyTag?.tags ?? {}).map((tag) => ({
@@ -140,7 +186,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         accessibilityLabel={translate('workspace.tags.enableTag')}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])) {
-                                setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                                showCannotDeleteOrDisableLastTagModal();
                                 return;
                             }
                             updateWorkspaceTagEnabled(newValue, tag.name);
@@ -149,7 +195,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     />
                 ),
             })),
-        [currentPolicyTag, hasDependentTags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled],
+        [currentPolicyTag, hasDependentTags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, showCannotDeleteOrDisableLastTagModal],
     );
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
@@ -212,16 +258,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         );
     };
 
-    const deleteTags = () => {
-        deletePolicyTags(policyData, selectedTags);
-        setIsDeleteTagsConfirmModalVisible(false);
-
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedTags([]);
-        });
-    };
-
     const isLoading = !isOffline && policyTags === undefined;
 
     const listHeaderContent =
@@ -244,10 +280,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
         if (!isThereAnyAccountingConnection && !isMultiLevelTags && selectedTags.length > 0) {
             options.push({
-                icon: Expensicons.Trashcan,
+                icon: expensifyIcons.Trashcan,
                 text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setIsDeleteTagsConfirmModalVisible(true),
+                onSelected: () => showDeleteTagsModal(),
             });
         }
 
@@ -274,12 +310,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         if (enabledTagCount > 0) {
             const selectedTagsObject = selectedTags.map((key) => currentPolicyTag?.tags[key]);
             options.push({
-                icon: Expensicons.Close,
+                icon: expensifyIcons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, selectedTagsObject)) {
-                        setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                        showCannotDeleteOrDisableLastTagModal();
                         return;
                     }
                     setSelectedTags([]);
@@ -291,7 +327,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
         if (disabledTagCount > 0) {
             options.push({
-                icon: Expensicons.Checkmark,
+                icon: expensifyIcons.Checkmark,
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
@@ -355,16 +391,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <ConfirmModal
-                    isVisible={isDeleteTagsConfirmModalVisible}
-                    onConfirm={deleteTags}
-                    onCancel={() => setIsDeleteTagsConfirmModalVisible(false)}
-                    title={translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
-                    prompt={translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
                 {!hasDependentTags && (
                     <View style={[styles.pv4, styles.ph5]}>
                         <ToggleSettingOptionRow
@@ -373,11 +399,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             isActive={!!currentPolicyTag?.required}
                             onToggle={(on) => {
                                 if (!isMultiLevelTags) {
-                                    setIsRequiresMultiLevelTagsModalVisible(true);
+                                    showRequiresMultiLevelTagsModal();
                                     return;
                                 }
                                 if (isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])) {
-                                    setIsCannotMakeAllTagsOptionalModalVisible(true);
+                                    showCannotMakeAllTagsOptionalModal();
                                     return;
                                 }
                                 setPolicyTagsRequired(policyData, on, orderWeight);
@@ -434,33 +460,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         shouldShowRightCaret
                     />
                 )}
-                <ConfirmModal
-                    isVisible={isCannotDeleteOrDisableLastTagModalVisible}
-                    onConfirm={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
-                    onCancel={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
-                    title={translate('workspace.tags.cannotDeleteOrDisableAllTags.title')}
-                    prompt={translate('workspace.tags.cannotDeleteOrDisableAllTags.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
-                <ConfirmModal
-                    isVisible={isCannotMakeAllTagsOptionalModalVisible}
-                    onConfirm={() => setIsCannotMakeAllTagsOptionalModalVisible(false)}
-                    onCancel={() => setIsCannotMakeAllTagsOptionalModalVisible(false)}
-                    title={translate('workspace.tags.cannotMakeAllTagsOptional.title')}
-                    prompt={translate('workspace.tags.cannotMakeAllTagsOptional.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
-                <ConfirmModal
-                    isVisible={isRequiresMultiLevelTagsModalVisible}
-                    onConfirm={() => setIsRequiresMultiLevelTagsModalVisible(false)}
-                    onCancel={() => setIsRequiresMultiLevelTagsModalVisible(false)}
-                    title={translate('workspace.tags.cannotMakeTagListRequired.title')}
-                    prompt={translate('workspace.tags.cannotMakeTagListRequired.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
