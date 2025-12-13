@@ -22,6 +22,7 @@ import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReportActionTransactions from '@hooks/useReportActionTransactions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
@@ -251,6 +252,7 @@ function MoneyReportHeader({
     );
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const reportActionTransactions = useReportActionTransactions(moneyRequestReport?.reportID);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
 
@@ -1308,7 +1310,7 @@ function MoneyReportHeader({
                 Navigation.goBack(backToRoute);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
-                    deleteAppReport(moneyRequestReport?.reportID, email ?? '');
+                    deleteAppReport(moneyRequestReport?.reportID, email ?? '', reportActionTransactions);
                 });
             },
         },
