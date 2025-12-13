@@ -5016,6 +5016,15 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        desktopAppRetiredIllustration: {
+            width: variables.desktopAppRetiredIllustrationW,
+            height: variables.desktopAppRetiredIllustrationH,
+        },
+
+        desktopAppRetiredViewTextContainer: {
+            width: variables.desktopAppRetiredViewContainerWidth,
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',

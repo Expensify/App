@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import BootSplash from '@libs/BootSplash';
+import DesktopAppRetiredView from '@pages/ErrorPage/DesktopAppRetiredPage';
 import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
 import UpdateRequiredView from '@pages/ErrorPage/UpdateRequiredView';
 import CONST from '@src/CONST';
@@ -23,11 +24,18 @@ function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseEr
         BootSplash.hide().then(() => setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN));
         setErrorContent(errorObject.message);
     };
-    const updateRequired = errorContent === CONST.ERROR.UPDATE_REQUIRED;
+
+    let FallbackComponent = GenericErrorPage;
+
+    if (errorContent === CONST.ERROR.DESKTOP_APP_RETIRED) {
+        FallbackComponent = DesktopAppRetiredView;
+    } else if (errorContent === CONST.ERROR.UPDATE_REQUIRED) {
+        FallbackComponent = UpdateRequiredView;
+    }
 
     return (
         <ErrorBoundary
-            FallbackComponent={updateRequired ? UpdateRequiredView : GenericErrorPage}
+            FallbackComponent={FallbackComponent}
             onError={catchError}
         >
             {children}

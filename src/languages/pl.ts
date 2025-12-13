@@ -7952,6 +7952,11 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
         },
         admins: {title: 'Administratorzy', findAdmin: 'Znajdź administratora'},
     },
+    desktopAppRetiredPage: {
+        title: 'Aplikacja desktopowa została wycofana',
+        body: 'Nowa aplikacja desktopowa Expensify na Maca została wycofana. Od teraz korzystaj z aplikacji webowej, aby uzyskać dostęp do swojego konta.',
+        goToWeb: 'Przejdź do sieci',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
