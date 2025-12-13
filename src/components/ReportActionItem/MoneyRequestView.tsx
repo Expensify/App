@@ -45,6 +45,8 @@ import {
     getPolicyByCustomUnitID,
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
+    isPendingDeletePolicy,
+    isPolicyAccessible,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -307,9 +309,21 @@ function MoneyRequestView({
     const canEditAmount =
         isEditable && (canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived) || (isExpenseSplit && isSplitAvailable));
     const canEditMerchant = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, undefined, isChatReportArchived);
-    const canEditDate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived);
-    const canEditDistance = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived);
-    const canEditDistanceRate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived);
+    const isPolicyDeleted = isPendingDeletePolicy(policy);
+
+    const canEditDate = isEditable && !isPolicyDeleted && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived);
+
+    const canEditDistance =
+        isEditable &&
+        !isPolicyDeleted &&
+        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived) &&
+        isPolicyAccessible(policy, currentUserEmailParam);
+
+    const canEditDistanceRate =
+        isEditable &&
+        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived) &&
+        isPolicyAccessible(policy, currentUserEmailParam);
+
     const canEditReport =
         isEditable &&
         canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID) &&
