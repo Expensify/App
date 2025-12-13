@@ -850,7 +850,7 @@ function ComposerWithSuggestions({
                     onChangeText={onChangeText}
                     onKeyPress={handleKeyPress}
                     textAlignVertical="top"
-                    style={Platform.OS === 'android' ? StyleSheet.flatten([composerStyle, styles.androidComposerFix]) : composerStyle}
+                    style={Platform.OS === 'android' ? StyleSheet.flatten([...composerStyle, styles.androidComposerFix]) : composerStyle}
                     maxLines={maxComposerLines}
                     onFocus={handleFocus}
                     onBlur={onBlur}
