@@ -343,6 +343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dismiss: '閉じる',
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: '続行',
+        unshare: '共有解除',
         yes: 'はい',
         no: 'いいえ',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
@@ -2199,6 +2200,11 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: '銀行口座を確認',
         personalBankAccounts: '個人銀行口座',
         businessBankAccounts: 'ビジネス銀行口座',
+        unshareBankAccount: '銀行口座の共有を解除してください',
+        unshareBankAccountDescription: '以下の全員がこの銀行口座にアクセスできます。いつでもアクセスを削除できます。処理中のお支払いは引き続き完了します。',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} はこのビジネス銀行口座にアクセスできなくなります。処理中のお支払いは引き続き完了します。`,
+        reachOutForHelp: 'この口座は Expensify カードで使用されています。共有を解除する必要がある場合は、<concierge-link>コンシェルジュまでお問い合わせください</concierge-link>。',
+        unshareErrorModalTitle: '銀行口座の共有を解除できません',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
