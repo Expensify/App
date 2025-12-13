@@ -806,6 +806,11 @@ type SplitExpenseEditTitleParams = {
     merchant: string;
 };
 
+type TransactionDisplayNameParams = {
+    amount: string;
+    merchant: string;
+};
+
 type TotalAmountGreaterOrLessThanOriginalParams = {
     amount: string;
 };
@@ -981,6 +986,7 @@ export type {
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
+    TransactionDisplayNameParams,
     AuthenticationErrorParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportedTagsMessageParams,

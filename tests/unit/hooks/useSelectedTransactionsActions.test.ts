@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {SelectedTransactions} from '@components/Search/types';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
-import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -34,7 +34,7 @@ jest.mock('@libs/actions/IOU', () => ({
 }));
 
 jest.mock('@libs/actions/MergeTransaction', () => ({
-    setupMergeTransactionData: jest.fn(),
+    setupMergeTransactionDataAndNavigate: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Report', () => ({
@@ -44,11 +44,13 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 
 const mockTranslate = jest.fn((key: string) => key);
+const mockLocalCompare = jest.fn((a: string, b: string) => a && b);
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
         translate: mockTranslate,
+        localeCompare: mockLocalCompare,
     }),
 }));
 
@@ -643,7 +645,6 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionData).toHaveBeenCalledWith(transactionID, {targetTransactionID: transactionID});
-        expect(Navigation.navigate).toHaveBeenCalled();
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith([transaction], mockLocalCompare);
     });
 });

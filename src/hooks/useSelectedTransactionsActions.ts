@@ -2,7 +2,7 @@ import {useCallback, useMemo, useState} from 'react';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
-import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -128,7 +128,7 @@ function useSelectedTransactionsActions({
         return false;
     }, [selectedTransactionsList, selectedTransactionsMeta, selectedTransactionIDs.length]);
 
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
@@ -304,6 +304,15 @@ function useSelectedTransactionsActions({
             });
         }
 
+        const canMergeTransaction = selectedTransactionsList.length < 3 && report && isMergeAction(report, selectedTransactionsList, policy);
+        if (canMergeTransaction) {
+            options.push({
+                text: translate('common.merge'),
+                icon: expensifyIcons.ArrowCollapse,
+                value: MERGE,
+                onSelected: () => setupMergeTransactionDataAndNavigate(selectedTransactionsList, localeCompare),
+            });
+        }
         const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionIDs.at(0)}`];
         const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction?.comment?.originalTransactionID}`];
 
@@ -317,26 +326,6 @@ function useSelectedTransactionsActions({
                 value: SPLIT,
                 onSelected: () => {
                     initSplitExpense(allTransactions, allReports, firstTransaction);
-                },
-            });
-        }
-
-        // In phase 1, we only show merge action if report is eligible for merge and only one transaction is selected
-        const canMergeTransaction = selectedTransactionsList.length === 1 && report && isMergeAction(report, selectedTransactionsList, policy);
-        if (canMergeTransaction) {
-            options.push({
-                text: translate('common.merge'),
-                icon: expensifyIcons.ArrowCollapse,
-                value: MERGE,
-                onSelected: () => {
-                    const targetTransaction = selectedTransactionsList.at(0);
-
-                    if (!report || !targetTransaction) {
-                        return;
-                    }
-
-                    setupMergeTransactionData(targetTransaction.transactionID, {targetTransactionID: targetTransaction.transactionID});
-                    Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute()));
                 },
             });
         }
@@ -385,7 +374,15 @@ function useSelectedTransactionsActions({
         allReports,
         session?.accountID,
         showDeleteModal,
-        expensifyIcons,
+        expensifyIcons.Stopwatch,
+        expensifyIcons.Table,
+        expensifyIcons.Export,
+        expensifyIcons.ArrowRight,
+        expensifyIcons.ArrowSplit,
+        expensifyIcons.DocumentMerge,
+        expensifyIcons.ArrowCollapse,
+        expensifyIcons.Trashcan,
+        localeCompare,
     ]);
 
     return {
