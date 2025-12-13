@@ -1,6 +1,6 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -13,20 +13,19 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,6 +49,7 @@ import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {AnchorPosition} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -143,8 +143,9 @@ function AttachmentPickerWithMenuItems({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowHeight, windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {calculatePopoverPosition} = usePopoverPosition();
+    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
@@ -166,12 +167,6 @@ function AttachmentPickerWithMenuItems({
         () => hasEmptyReportsForPolicy(reportSummaries, report?.policyID, accountID) && hasDismissedEmptyReportsConfirmation !== true,
         [accountID, hasDismissedEmptyReportsConfirmation, report?.policyID, reportSummaries],
     );
-
-    const route = useRoute();
-    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useContext(WideRHPContext);
-
-    const isSuperWideRHPFocused = superWideRHPRouteKeys.includes(route?.key);
-    const isWideRHPFocused = wideRHPRouteKeys.includes(route?.key);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -349,6 +344,20 @@ function AttachmentPickerWithMenuItems({
         setMenuVisibility(false);
     }, [didScreenBecomeInactive, isMenuVisible, setMenuVisibility]);
 
+    // Calculate anchor position when menu becomes visible
+    useEffect(() => {
+        if (!actionButtonRef.current || !isMenuVisible) {
+            return;
+        }
+
+        calculatePopoverPosition(actionButtonRef as React.RefObject<View>, {
+            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+        }).then((position) => {
+            setPopoverAnchorPosition({...position, vertical: position.vertical - CONST.MODAL.POPOVER_MENU_PADDING});
+        });
+    }, [isMenuVisible, calculatePopoverPosition, actionButtonRef]);
+
     // 1. Limit the container width to a single column.
     const outerContainerStyles = [{flexBasis: styles.composerSizeButton.width + styles.composerSizeButton.marginHorizontal * 2}, styles.flexGrow0, styles.flexShrink0];
 
@@ -371,18 +380,6 @@ function AttachmentPickerWithMenuItems({
 
     // 4. And the Create button is at the bottom.
     const createButtonContainerStyles = [styles.flexGrow0, styles.flexShrink0];
-
-    const anchorPosition = useMemo(() => {
-        if (isSuperWideRHPFocused) {
-            return styles.createMenuPositionSuperWideRHPReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth);
-        }
-
-        if (isWideRHPFocused) {
-            return styles.createMenuPositionWideRHPReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth);
-        }
-
-        return styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth);
-    }, [isSuperWideRHPFocused, isWideRHPFocused, styles, shouldUseNarrowLayout, windowHeight, windowWidth]);
 
     return (
         <AttachmentPicker
@@ -523,7 +520,7 @@ function AttachmentPickerWithMenuItems({
                                     });
                                 }
                             }}
-                            anchorPosition={anchorPosition}
+                            anchorPosition={popoverAnchorPosition ?? {horizontal: 0, vertical: 0}}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,

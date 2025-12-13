@@ -16,6 +16,7 @@ import {
     WideRHPContext,
 } from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanel from '@hooks/useSidePanel';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
@@ -47,12 +48,13 @@ const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calcul
 
 function SecondaryOverlay() {
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useContext(WideRHPContext);
+    const {sidePanelOffset} = useSidePanel();
 
     if (shouldRenderSecondaryOverlayForWideRHP) {
         return (
             <Overlay
                 progress={secondOverlayWideRHPProgress}
-                positionRightValue={animatedWideRHPWidth}
+                positionRightValue={Animated.add(sidePanelOffset.current, animatedWideRHPWidth)}
                 onPress={() => Navigation.closeRHPFlow()}
             />
         );
@@ -62,7 +64,7 @@ function SecondaryOverlay() {
         return (
             <Overlay
                 progress={secondOverlayRHPOnWideRHPProgress}
-                positionRightValue={variables.sideBarWidth}
+                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
                 onPress={Navigation.dismissToPreviousRHP}
             />
         );
@@ -72,7 +74,7 @@ function SecondaryOverlay() {
         return (
             <Overlay
                 progress={secondOverlayRHPOnSuperWideRHPProgress}
-                positionRightValue={variables.sideBarWidth}
+                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
                 onPress={Navigation.dismissToSuperWideRHP}
             />
         );
@@ -91,6 +93,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
+    const {sidePanelOffset} = useSidePanel();
 
     const shouldDisplayOverlay = useMemo(() => isFocused && !shouldUseNarrowLayout, [isFocused, shouldUseNarrowLayout]);
 
@@ -402,7 +405,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {shouldRenderTertiaryOverlay && shouldDisplayOverlay && (
                     <Overlay
                         progress={thirdOverlayProgress}
-                        positionRightValue={variables.sideBarWidth}
+                        positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
                         onPress={Navigation.dismissToPreviousRHP}
                     />
                 )}

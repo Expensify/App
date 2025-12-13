@@ -6,15 +6,15 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type HelpOverlayProps = {
+type SidePanelOverlayProps = {
     /** Whether the Side Panel is displayed over RHP */
-    isRHPVisible: boolean;
+    shouldBeVisible: boolean;
 
     /** Callback fired when pressing the backdrop */
     onBackdropPress: () => void;
 };
 
-function HelpOverlay({isRHPVisible, onBackdropPress}: HelpOverlayProps) {
+function SidePanelOverlay({shouldBeVisible, onBackdropPress}: SidePanelOverlayProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -24,9 +24,9 @@ function HelpOverlay({isRHPVisible, onBackdropPress}: HelpOverlayProps) {
 
     return (
         <Animated.View
-            style={[styles.sidePanelOverlay, styles.sidePanelOverlayOpacity(isRHPVisible)]}
-            entering={isRHPVisible ? undefined : CustomFadeIn}
-            exiting={isRHPVisible ? undefined : CustomFadeOut}
+            style={[styles.sidePanelOverlay, styles.sidePanelOverlayOpacity(shouldBeVisible)]}
+            entering={shouldBeVisible ? CustomFadeIn : undefined}
+            exiting={shouldBeVisible ? CustomFadeOut : undefined}
         >
             <PressableWithoutFeedback
                 accessible
@@ -38,6 +38,6 @@ function HelpOverlay({isRHPVisible, onBackdropPress}: HelpOverlayProps) {
     );
 }
 
-HelpOverlay.displayName = 'HelpOverlay';
+SidePanelOverlay.displayName = 'SidePanelOverlay';
 
-export default HelpOverlay;
+export default SidePanelOverlay;
