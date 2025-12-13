@@ -3,11 +3,12 @@ import React, {createContext} from 'react';
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
-import SCREENS from '@src/SCREENS';
 import defaultWideRHPContextValue from './default';
 import type {WideRHPContextType} from './types';
 
-const secondOverlayProgress = new Animated.Value(0);
+const secondOverlayWideRHPProgress = new Animated.Value(0);
+const secondOverlayRHPOnWideRHPProgress = new Animated.Value(0);
+const secondOverlayRHPOnSuperWideRHPProgress = new Animated.Value(0);
 const thirdOverlayProgress = new Animated.Value(0);
 
 const animatedReceiptPaneRHPWidth = new Animated.Value(0);
@@ -22,10 +23,6 @@ const innerRHPProgress = new Animated.Value(0);
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
-const WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT]);
-
-const SUPER_WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT]);
-
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
     return <WideRHPContext.Provider value={defaultWideRHPContextValue}>{children}</WideRHPContext.Provider>;
 }
@@ -33,7 +30,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 WideRHPContextProvider.displayName = 'WideRHPContextProvider';
 
 export default WideRHPContextProvider;
-export type {WideRHPContextType};
 export {
     animatedReceiptPaneRHPWidth,
     animatedSuperWideRHPWidth,
@@ -42,9 +38,10 @@ export {
     innerRHPProgress,
     modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
-    secondOverlayProgress,
+    secondOverlayRHPOnSuperWideRHPProgress,
+    secondOverlayRHPOnWideRHPProgress,
+    secondOverlayWideRHPProgress,
     thirdOverlayProgress,
     WideRHPContext,
-    WIDE_RIGHT_MODALS,
-    SUPER_WIDE_RIGHT_MODALS,
 };
+export type {WideRHPContextType};
