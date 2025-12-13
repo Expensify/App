@@ -7,30 +7,56 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {
+    AccountOwnerParams,
+    ActionsAreCurrentlyRestricted,
     AddedOrDeletedPolicyReportFieldParams,
     AddedPolicyApprovalRuleParams,
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
+    AddressLineParams,
     AirlineParams,
+    AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
+    ApprovedAmountParams,
     AssignedCardParams,
+    AssigneeParams,
+    AuthenticationErrorParams,
+    AutoPayApprovedReportsLimitErrorParams,
+    BadgeFreeTrialParams,
+    BankAccountLastFourParams,
     BeginningOfArchivedRoomParams,
+    BeginningOfChatHistoryAdminRoomParams,
+    BeginningOfChatHistoryAnnounceRoomParams,
+    BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
     BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
+    BillableDefaultDescriptionParams,
+    BillingBannerCardAuthenticationRequiredParams,
+    BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
     BillingBannerDisputePendingParams,
+    BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
+    BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
+    CardEndingParams,
     CardInfoParams,
+    CardNextPaymentParams,
+    CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
+    ChangeOwnerHasFailedSettlementsParams,
     ChangeOwnerSubscriptionParams,
     ChangeReportPolicyParams,
     ChangeTypeParams,
     CharacterLengthLimitParams,
+    CharacterLimitParams,
     ChatWithAccountManagerParams,
     CompanyCardBankName,
     CompanyCardFeedNameParams,
@@ -413,7 +439,7 @@ const translations = {
         currentMonth: 'Current month',
         ssnLast4: 'Last 4 digits of SSN',
         ssnFull9: 'Full 9 digits of SSN',
-        addressLine: (lineNumber: number) => `Address line ${lineNumber}`,
+        addressLine: ({lineNumber}: AddressLineParams) => `Address line ${lineNumber}`,
         personalAddress: 'Personal address',
         companyAddress: 'Company address',
         noPO: 'No PO boxes or mail-drop addresses, please.',
@@ -701,6 +727,8 @@ const translations = {
         thisIsTakingLongerThanExpected: 'This is taking longer than expected...',
         domains: 'Domains',
         actionRequired: 'Action required',
+        duplicate: 'Duplicate',
+        duplicated: 'Duplicated',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -873,7 +901,7 @@ const translations = {
         },
     },
     thirdPartySignIn: {
-        alreadySignedIn: (email: string) => `You're already signed in as ${email}.`,
+        alreadySignedIn: ({email}: AlreadySignedInParams) => `You're already signed in as ${email}.`,
         goBackMessage: ({provider}: GoBackMessageParams) => `Don't want to sign in with ${provider}?`,
         continueWithMyCurrentSession: 'Continue with my current session',
         redirectToDesktopMessage: "We'll redirect you to the desktop app once you finish signing in.",
@@ -941,10 +969,12 @@ const translations = {
     reportActionsView: {
         beginningOfArchivedRoom: ({reportName, reportDetailsLink}: BeginningOfArchivedRoomParams) =>
             `You missed the party in <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>, there's nothing to see here.`,
-        beginningOfChatHistoryDomainRoom: (domainRoom: string) =>
+        beginningOfChatHistoryDomainRoom: ({domainRoom}: BeginningOfChatHistoryDomainRoomParams) =>
             `This chat is with all Expensify members on the <strong>${domainRoom}</strong> domain. Use it to chat with colleagues, share tips, and ask questions.`,
-        beginningOfChatHistoryAdminRoom: (workspaceName: string) => `This chat is with <strong>${workspaceName}</strong> admin. Use it to chat about workspace setup and more.`,
-        beginningOfChatHistoryAnnounceRoom: (workspaceName: string) => `This chat is with everyone in <strong>${workspaceName}</strong>. Use it for the most important announcements.`,
+        beginningOfChatHistoryAdminRoom: ({workspaceName}: BeginningOfChatHistoryAdminRoomParams) =>
+            `This chat is with <strong>${workspaceName}</strong> admin. Use it to chat about workspace setup and more.`,
+        beginningOfChatHistoryAnnounceRoom: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomParams) =>
+            `This chat is with everyone in <strong>${workspaceName}</strong>. Use it for the most important announcements.`,
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `This chat room is for anything <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> related.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
@@ -1283,8 +1313,8 @@ const translations = {
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `paid ${amount} with bank account ${last4Digits}` : `paid with bank account ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `paid ${amount ? `${amount} ` : ''}with bank account ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
-        invoicePersonalBank: (lastFour: string) => `Personal account • ${lastFour}`,
-        invoiceBusinessBank: (lastFour: string) => `Business Account • ${lastFour}`,
+        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Personal account • ${lastFour}`,
+        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Business Account • ${lastFour}`,
         nextStep: 'Next steps',
         finished: 'Finished',
         flip: 'Flip',
@@ -1307,7 +1337,7 @@ const translations = {
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `paid ${amount}. Add a bank account to receive your payment.`,
         automaticallyApproved: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
-        approvedAmount: (amount: number | string) => `approved ${amount}`,
+        approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         approvedMessage: `approved`,
         unapproved: `unapproved`,
         automaticallyForwarded: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
@@ -1509,7 +1539,7 @@ const translations = {
             subtitle: 'Choose an option to change the approver for this report.',
             description: ({workflowSettingLink}: WorkflowSettingsParam) =>
                 `You can also change the approver permanently for all reports in your <a href="${workflowSettingLink}">workflow settings</a>.`,
-            changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `changed the approver to <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: 'Add approver',
                 addApproverSubtitle: 'Add an additional approver to the existing workflow.',
@@ -2368,7 +2398,7 @@ const translations = {
         cardLastFour: 'Card ending in',
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
         defaultPaymentMethod: 'Default',
-        bankAccountLastFour: (lastFour: string) => `Bank Account • ${lastFour}`,
+        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Bank Account • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -2597,10 +2627,10 @@ const translations = {
                         *Set up categories* so your team can code expenses for easy reporting.
 
                         1. Click *Workspaces*.
-                        3. Select your workspace.
-                        4. Click *Categories*.
-                        5. Disable any categories you don't need.
-                        6. Add your own categories in the top right.
+                        2. Select your workspace.
+                        3. Click *Categories*.
+                        4. Disable any categories you don't need.
+                        5. Add your own categories in the top right.
 
                         [Take me to workspace category settings](${workspaceCategoriesLink}).
 
@@ -2692,10 +2722,10 @@ const translations = {
                         *Invite your team* to Expensify so they can start tracking expenses today.
 
                         1. Click *Workspaces*.
-                        3. Select your workspace.
-                        4. Click *Members* > *Invite member*.
-                        5. Enter emails or phone numbers.
-                        6. Add a custom invite message if you'd like!
+                        2. Select your workspace.
+                        3. Click *Members* > *Invite member*.
+                        4. Enter emails or phone numbers.
+                        5. Add a custom invite message if you'd like!
 
                         [Take me to workspace members](${workspaceMembersLink}).
 
@@ -2719,11 +2749,11 @@ const translations = {
                         Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.
 
                         1. Click *Workspaces*.
-                        3. Select your workspace.
-                        4. Click *More features*.
-                        5. Enable *Tags*.
-                        6. Navigate to *Tags* in the workspace editor.
-                        7. Click *+ Add tag* to make your own.
+                        2. Select your workspace.
+                        3. Click *More features*.
+                        4. Enable *Tags*.
+                        5. Navigate to *Tags* in the workspace editor.
+                        6. Click *+ Add tag* to make your own.
 
                         [Take me to more features](${workspaceMoreFeaturesLink}).
 
@@ -3321,7 +3351,7 @@ const translations = {
         whatsTheBusinessName: "What's the business name?",
         whatsTheBusinessAddress: "What's the business address?",
         whatsTheBusinessContactInformation: "What's the business contact information?",
-        whatsTheBusinessRegistrationNumber: (country: string) => {
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
             switch (country) {
                 case CONST.COUNTRY.GB:
                     return "What's the Company Registration Number (CRN)?";
@@ -3329,7 +3359,7 @@ const translations = {
                     return "What's the business registration number?";
             }
         },
-        whatsTheBusinessTaxIDEIN: (country: string) => {
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
                     return 'What’s the Employer Identification Number (EIN)?';
@@ -3349,7 +3379,7 @@ const translations = {
         whatsTheBusinessAnnualPayment: "What's the business's annual payment volume?",
         whatsYourExpectedAverageReimbursements: "What's your expected average reimbursement amount?",
         registrationNumber: 'Registration number',
-        taxIDEIN: (country: string) => {
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
                     return 'EIN';
@@ -3388,7 +3418,7 @@ const translations = {
         findBusinessType: 'Find business type',
         error: {
             registrationNumber: 'Please provide a valid registration number',
-            taxIDEIN: (country: string) => {
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
                 switch (country) {
                     case CONST.COUNTRY.US:
                         return 'Please provide a valid Employer Identification Number (EIN)';
@@ -3835,7 +3865,7 @@ const translations = {
             existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `Since you've connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} before, you can choose to reuse an existing connection or create a new one.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Last synced ${formattedDate}`,
-            authenticationError: (connectionName: string) => `Can’t connect to ${connectionName} due to an authentication error.`,
+            authenticationError: ({connectionName}: AuthenticationErrorParams) => `Can’t connect to ${connectionName} due to an authentication error.`,
             learnMore: 'Learn more',
             memberAlternateText: 'Members can submit and approve reports.',
             adminAlternateText: 'Admins have full edit access to all reports and workspace settings.',
@@ -4171,8 +4201,8 @@ const translations = {
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
             trackingCategories: 'Tracking categories',
             trackingCategoriesDescription: 'Choose how to handle Xero tracking categories in Expensify.',
-            mapTrackingCategoryTo: (categoryName: string) => `Map Xero ${categoryName} to`,
-            mapTrackingCategoryToDescription: (categoryName: string) => `Choose where to map ${categoryName} when exporting to Xero.`,
+            mapTrackingCategoryTo: ({categoryName}: CategoryNameParams) => `Map Xero ${categoryName} to`,
+            mapTrackingCategoryToDescription: ({categoryName}: CategoryNameParams) => `Choose where to map ${categoryName} when exporting to Xero.`,
             customers: 'Re-bill customers',
             customersDescription: 'Choose whether to re-bill customers in Expensify. Your Xero customer contacts can be tagged to expenses, and will export to Xero as a sales invoice.',
             taxesDescription: 'Choose how to handle Xero taxes in Expensify.',
@@ -4756,7 +4786,8 @@ const translations = {
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseCard: 'Choose a card',
-            chooseCardFor: (assignee: string) => `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
+            chooseCardFor: ({assignee}: AssigneeParams) =>
+                `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
             noActiveCards: 'No active cards on this feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Or something might be broken. Either way, if you have any questions, just <concierge-link>contact Concierge</concierge-link>.</centered-text></muted-text>',
@@ -4827,21 +4858,22 @@ const translations = {
             deactivate: 'Deactivate card',
             changeCardLimit: 'Change card limit',
             changeLimit: 'Change limit',
-            smartLimitWarning: (limit: number | string) => `If you change this card’s limit to ${limit}, new transactions will be declined until you approve more expenses on the card.`,
-            monthlyLimitWarning: (limit: number | string) => `If you change this card’s limit to ${limit}, new transactions will be declined until next month.`,
-            fixedLimitWarning: (limit: number | string) => `If you change this card’s limit to ${limit}, new transactions will be declined.`,
+            smartLimitWarning: ({limit}: CharacterLimitParams) =>
+                `If you change this card’s limit to ${limit}, new transactions will be declined until you approve more expenses on the card.`,
+            monthlyLimitWarning: ({limit}: CharacterLimitParams) => `If you change this card’s limit to ${limit}, new transactions will be declined until next month.`,
+            fixedLimitWarning: ({limit}: CharacterLimitParams) => `If you change this card’s limit to ${limit}, new transactions will be declined.`,
             changeCardLimitType: 'Change card limit type',
             changeLimitType: 'Change limit type',
-            changeCardSmartLimitTypeWarning: (limit: number | string) =>
+            changeCardSmartLimitTypeWarning: ({limit}: CharacterLimitParams) =>
                 `If you change this card's limit type to Smart Limit, new transactions will be declined because the ${limit} unapproved limit has already been reached.`,
-            changeCardMonthlyLimitTypeWarning: (limit: number | string) =>
+            changeCardMonthlyLimitTypeWarning: ({limit}: CharacterLimitParams) =>
                 `If you change this card's limit type to Monthly, new transactions will be declined because the ${limit} monthly limit has already been reached.`,
             addShippingDetails: 'Add shipping details',
-            issuedCard: (assignee: string) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
-            issuedCardNoShippingDetails: (assignee: string) => `issued ${assignee} an Expensify Card! The card will be shipped once shipping details are confirmed.`,
+            issuedCard: ({assignee}: AssigneeParams) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `issued ${assignee} an Expensify Card! The card will be shipped once shipping details are confirmed.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `issued ${assignee} a virtual Expensify Card! The ${link} can be used right away.`,
-            addedShippingDetails: (assignee: string) => `${assignee} added shipping details. Expensify Card will arrive in 2-3 business days.`,
-            replacedCard: (assignee: string) => `${assignee} replaced their Expensify Card. The new card will arrive in 2-3 business days.`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} added shipping details. Expensify Card will arrive in 2-3 business days.`,
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} replaced their Expensify Card. The new card will arrive in 2-3 business days.`,
             replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} replaced their virtual Expensify Card! The ${link} can be used right away.`,
             card: 'card',
             replacementCard: 'replacement card',
@@ -5791,7 +5823,7 @@ const translations = {
                 `It looks like you may be trying to take over billing for ${email}'s workspaces, but to do that, you need to be an admin on all their workspaces first.\n\nClick "Continue" if you only want to take over billing for the workspace ${workspaceName}.\n\nIf you want to take over billing for their entire subscription, please have them add you as an admin to all their workspaces first before taking over billing.`,
             hasFailedSettlementsTitle: 'Cannot transfer ownership',
             hasFailedSettlementsButtonText: 'Got it',
-            hasFailedSettlementsText: (email: string) =>
+            hasFailedSettlementsText: ({email}: ChangeOwnerHasFailedSettlementsParams) =>
                 `You can't take over billing because ${email} has an overdue expensify Expensify Card settlement. Please ask them to reach out to concierge@expensify.com to resolve the issue. Then, you can take over billing for this workspace.`,
             failedToClearBalanceTitle: 'Failed to clear balance',
             failedToClearBalanceButtonText: 'OK',
@@ -5988,7 +6020,7 @@ const translations = {
         },
         restrictedAction: {
             restricted: 'Restricted',
-            actionsAreCurrentlyRestricted: (workspaceName: string) => `Actions on the ${workspaceName} workspace are currently restricted`,
+            actionsAreCurrentlyRestricted: ({workspaceName}: ActionsAreCurrentlyRestricted) => `Actions on the ${workspaceName} workspace are currently restricted`,
             workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}: WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams) =>
                 `Workspace owner, ${workspaceOwnerName} will need to add or update the payment card on file to unlock new workspace activity.`,
             youWillNeedToAddOrUpdatePaymentCard: "You'll need to add or update the payment card on file to unlock new workspace activity.",
@@ -6028,7 +6060,7 @@ const translations = {
                 alwaysNonReimbursable: 'Always non-reimbursable',
                 alwaysNonReimbursableDescription: 'Expenses are never paid back to employees',
                 billableDefault: 'Billable default',
-                billableDefaultDescription: (tagsPageLink: string) =>
+                billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
                     `<muted-text>Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 billable: 'Billable',
                 billableDescription: 'Expenses are most often re-billed to clients',
@@ -6048,7 +6080,7 @@ const translations = {
                 adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
-                title: 'Expense reports',
+                title: 'Advanced',
                 subtitle: 'Automate expense report compliance, approvals, and payment.',
                 preventSelfApprovalsTitle: 'Prevent self-approvals',
                 preventSelfApprovalsSubtitle: 'Prevent workspace members from approving their own expense reports.',
@@ -6060,12 +6092,11 @@ const translations = {
                 randomReportAuditDescription: 'Require that some reports be manually approved, even if eligible for auto-approval.',
                 autoPayApprovedReportsTitle: 'Auto-pay approved reports',
                 autoPayApprovedReportsSubtitle: 'Configure which expense reports are eligible for auto-pay.',
-                autoPayApprovedReportsLimitError: (currency?: string) => `Please enter an amount less than ${currency ?? ''}20,000`,
+                autoPayApprovedReportsLimitError: ({currency}: AutoPayApprovedReportsLimitErrorParams = {}) => `Please enter an amount less than ${currency ?? ''}20,000`,
                 autoPayApprovedReportsLockedSubtitle: 'Go to more features and enable workflows, then add payments to unlock this feature.',
                 autoPayReportsUnderTitle: 'Auto-pay reports under',
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Go to [more features](${moreFeaturesLink}) and enable workflows, then add ${featureName} to unlock this feature.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
             },
             categoryRules: {
@@ -6073,13 +6104,13 @@ const translations = {
                 approver: 'Approver',
                 requireDescription: 'Require description',
                 descriptionHint: 'Description hint',
-                descriptionHintDescription: (categoryName: string) =>
+                descriptionHintDescription: ({categoryName}: CategoryNameParams) =>
                     `Remind employees to provide additional information for “${categoryName}” spend. This hint appears in the description field on expenses.`,
                 descriptionHintLabel: 'Hint',
                 descriptionHintSubtitle: 'Pro-tip: The shorter the better!',
                 maxAmount: 'Max amount',
                 flagAmountsOver: 'Flag amounts over',
-                flagAmountsOverDescription: (categoryName: string) => `Applies to the category “${categoryName}”.`,
+                flagAmountsOverDescription: ({categoryName}: CategoryNameParams) => `Applies to the category “${categoryName}”.`,
                 flagAmountsOverSubtitle: 'This overrides the max amount for all expenses.',
                 expenseLimitTypes: {
                     expense: 'Individual expense',
@@ -6380,6 +6411,60 @@ const translations = {
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `changed the default approver to ${newApprover} (previously ${previousApprover})` : `changed the default approver to ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `changed the approval workflow for ${members} to submit reports to ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previously default approver ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (previously default approver)';
+            } else if (previousApprover) {
+                text += ` (previously ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `changed the approval workflow for ${members} to submit reports to the default approver ${approver}`
+                : `changed the approval workflow for ${members} to submit reports to the default approver`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previously default approver ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (previously default approver)';
+            } else if (previousApprover) {
+                text += ` (previously ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `changed the approval workflow for ${approver} to forward approved reports to ${forwardsTo} (previously forwarded to ${previousForwardsTo})`
+                : `changed the approval workflow for ${approver} to forward approved reports to ${forwardsTo} (previously final approved reports)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `changed the approval workflow for ${approver} to stop forwarding approved reports (previously forwarded to ${previousForwardsTo})`
+                : `changed the approval workflow for ${approver} to stop forwarding approved reports`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
@@ -6755,6 +6840,7 @@ const translations = {
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Are you sure you want to create another report in ${workspaceName}? You can access your empty reports in`,
             emptyReportConfirmationPromptLink: 'Reports',
+            emptyReportConfirmationDontShowAgain: "Don't show me this again",
             genericWorkspaceName: 'this workspace',
         },
         genericCreateReportFailureMessage: 'Unexpected error creating this chat. Please try again later.',
@@ -7235,12 +7321,12 @@ const translations = {
         authenticatePaymentCard: 'Authenticate payment card',
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
         badge: {
-            freeTrial: (numOfDays: number) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left`,
+            freeTrial: ({numOfDays}: BadgeFreeTrialParams) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left`,
         },
         billingBanner: {
             policyOwnerAmountOwed: {
                 title: 'Your payment info is outdated',
-                subtitle: (date: string) => `Update your payment card by ${date} to continue using all of your favorite features.`,
+                subtitle: ({date}: BillingBannerSubtitleWithDateParams) => `Update your payment card by ${date} to continue using all of your favorite features.`,
             },
             policyOwnerAmountOwedOverdue: {
                 title: 'Your payment could not be processed',
@@ -7251,7 +7337,7 @@ const translations = {
             },
             policyOwnerUnderInvoicing: {
                 title: 'Your payment info is outdated',
-                subtitle: (date: string) => `Your payment is past due. Please pay your invoice by ${date} to avoid service interruption.`,
+                subtitle: ({date}: BillingBannerSubtitleWithDateParams) => `Your payment is past due. Please pay your invoice by ${date} to avoid service interruption.`,
             },
             policyOwnerUnderInvoicingOverdue: {
                 title: 'Your payment info is outdated',
@@ -7264,16 +7350,17 @@ const translations = {
             },
             cardAuthenticationRequired: {
                 title: 'Your payment card hasn’t been fully authenticated.',
-                subtitle: (cardEnding: string) => `Please complete the authentication process to activate your payment card ending in ${cardEnding}.`,
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
+                    `Please complete the authentication process to activate your payment card ending in ${cardEnding}.`,
             },
             insufficientFunds: {
                 title: 'Your card couldn’t be charged',
-                subtitle: (amountOwed: number) =>
+                subtitle: ({amountOwed}: BillingBannerInsufficientFundsParams) =>
                     `Your payment card was declined due to insufficient funds. Please retry or add a new payment card to clear your ${amountOwed} outstanding balance.`,
             },
             cardExpired: {
                 title: 'Your card couldn’t be charged',
-                subtitle: (amountOwed: number) => `Your payment card expired. Please add a new payment card to clear your ${amountOwed} outstanding balance.`,
+                subtitle: ({amountOwed}: BillingBannerCardExpiredParams) => `Your payment card expired. Please add a new payment card to clear your ${amountOwed} outstanding balance.`,
             },
             cardExpireSoon: {
                 title: 'Your card is expiring soon',
@@ -7313,8 +7400,8 @@ const translations = {
             title: 'Payment',
             subtitle: 'Add a card to pay for your Expensify subscription.',
             addCardButton: 'Add payment card',
-            cardNextPayment: (nextPaymentDate: string) => `Your next payment date is ${nextPaymentDate}.`,
-            cardEnding: (cardNumber: string) => `Card ending in ${cardNumber}`,
+            cardNextPayment: ({nextPaymentDate}: CardNextPaymentParams) => `Your next payment date is ${nextPaymentDate}.`,
+            cardEnding: ({cardNumber}: CardEndingParams) => `Card ending in ${cardNumber}`,
             cardInfo: ({name, expiration, currency}: CardInfoParams) => `Name: ${name}, Expiration: ${expiration}, Currency: ${currency}`,
             changeCard: 'Change payment card',
             changeCurrency: 'Change payment currency',
@@ -7514,7 +7601,7 @@ const translations = {
             As a copilot, you don't have access to
             this page. Sorry!
         `),
-        notAllowedMessage: (accountOwnerEmail: string) =>
+        notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
             `As a <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copilot</a> for ${accountOwnerEmail}, you don't have permission to take this action. Sorry!`,
         copilotAccess: 'Copilot access',
     },
@@ -7726,11 +7813,12 @@ const translations = {
             requireError: "Couldn't update SAML requirement setting",
             disableSamlRequired: 'Disable SAML required',
             oktaWarningPrompt: 'Are you sure? This will also disable Okta SCIM.',
+            requireWithEmptyMetadataError: 'Please add Identity Provider metadata below to enable',
         },
         samlConfigurationDetails: {
             title: 'SAML configuration details',
             subtitle: 'Use these details to get SAML set up.',
-            identityProviderMetaData: 'Identity Provider MetaData',
+            identityProviderMetadata: 'Identity Provider Metadata',
             entityID: 'Entity ID',
             nameIDFormat: 'Name ID Format',
             loginUrl: 'Login URL',
@@ -7766,6 +7854,10 @@ const translations = {
             title: 'Enhanced security',
             subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
             enable: 'Enable',
+        },
+        admins: {
+            title: 'Admins',
+            findAdmin: 'Find admin',
         },
     },
 };
