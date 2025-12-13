@@ -129,6 +129,7 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import DecisionModal from './DecisionModal';
 import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
+import ExpenseHeaderApprovalButton from './ExpenseHeaderApprovalButton';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
@@ -147,7 +148,6 @@ import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 import type {PopoverMenuItem} from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
-import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
@@ -322,7 +322,6 @@ function MoneyReportHeader({
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
-    const [requestType, setRequestType] = useState<ActionHandledType>();
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const connectedIntegration = getValidConnectedIntegration(policy);
@@ -491,7 +490,6 @@ function MoneyReportHeader({
                 return;
             }
             setPaymentType(type);
-            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
@@ -556,12 +554,9 @@ function MoneyReportHeader({
             showDWEModal();
             return;
         }
-        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-        } else if (isAnyTransactionOnHold) {
-            setIsHoldMenuVisible(true);
-        } else {
+        } else if (!isAnyTransactionOnHold) {
             startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, true);
         }
@@ -872,10 +867,26 @@ function MoneyReportHeader({
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
-            <Button
-                success
-                onPress={confirmApproval}
-                text={translate('iou.approve')}
+            <ExpenseHeaderApprovalButton
+                isAnyTransactionOnHold={isAnyTransactionOnHold}
+                isDelegateAccessRestricted={isDelegateAccessRestricted}
+                hasOnlyHeldExpenses={hasOnlyHeldExpenses}
+                hasValidNonHeldAmount={hasValidNonHeldAmount}
+                nonHeldAmount={nonHeldAmount}
+                fullAmount={fullAmount}
+                onApprove={(isFullApproval) => {
+                    startApprovedAnimation();
+                    approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, isFullApproval);
+                    if (currentSearchQueryJSON) {
+                        search({
+                            searchKey: currentSearchKey,
+                            shouldCalculateTotals: true,
+                            offset: 0,
+                            queryJSON: currentSearchQueryJSON,
+                            isLoading: !!currentSearchResults?.search?.isLoading,
+                        });
+                    }
+                }}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.PAY]: (
@@ -1626,23 +1637,16 @@ function MoneyReportHeader({
             )}
 
             <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
-            {isHoldMenuVisible && requestType !== undefined && (
+            {isHoldMenuVisible && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    requestType={requestType}
                     fullAmount={fullAmount}
                     onClose={() => setIsHoldMenuVisible(false)}
                     isVisible={isHoldMenuVisible}
                     paymentType={paymentType}
                     chatReport={chatReport}
                     moneyRequestReport={moneyRequestReport}
-                    startAnimation={() => {
-                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                            startApprovedAnimation();
-                        } else {
-                            startAnimation();
-                        }
-                    }}
+                    startAnimation={startAnimation}
                     transactionCount={transactionIDs?.length ?? 0}
                 />
             )}

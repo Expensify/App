@@ -1460,12 +1460,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Sommige van deze duplicaten zijn al goedgekeurd of betaald.',
         reviewDuplicates: 'Duplicaten beoordelen',
         keepAll: 'Alles behouden',
-        confirmApprove: 'Bevestig goedkeuringsbedrag',
-        confirmApprovalAmount: 'Keur alleen conforme onkosten goed, of keur het hele rapport goed.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Deze uitgave staat in de wacht. Wil je toch goedkeuren?',
-            other: 'Deze onkosten staan in de wacht. Wil je ze toch goedkeuren?',
-        }),
+        confirmApprovalWithHeldAmount: 'Het rapport bevat uitgaven in de wacht. Alleen conforme uitgaven goedkeuren, of het hele rapport goedkeuren?',
         confirmPay: 'Bevestig betalingsbedrag',
         confirmPayAmount: 'Betaal wat niet in de wacht staat, of betaal het volledige rapport.',
         confirmPayAllHoldAmount: () => ({
