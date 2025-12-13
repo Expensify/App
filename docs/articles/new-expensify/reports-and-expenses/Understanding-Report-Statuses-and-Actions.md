@@ -116,3 +116,5 @@ Yes—if the report is a **Draft** or is **Outstanding**. **Done** or **Paid** r
 ## Can I view report details?  
 Yes. Tap the report title or select **View Details** from the **More** menu.
 
+## An employee sent an IOU before our company had a company workspace. How do we report their expenses on the workspace instead?
+The employee can move their IOU to the company workspace by selecting **More** > **Change Workspace**. This will convert the IOU into a regular expense report on the selected workspace.
