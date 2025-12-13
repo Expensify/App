@@ -22,6 +22,11 @@ type CustomFlatListProps<T> = Omit<FlatListProps<T>, 'CellRendererComponent'> & 
      * Custom cell renderer component
      */
     CellRendererComponent?: React.ComponentType<CellRendererProps<T>> | null;
+
+    /**
+     * Whether to hide the content
+     */
+    shouldHideContent?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export
