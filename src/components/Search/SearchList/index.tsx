@@ -229,7 +229,8 @@ function SearchList({
     const {getScrollOffset} = useContext(ScrollOffsetContext);
 
     const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
-    const shouldScrollHorizontally = !!SearchTableHeader && getTableMinWidth(columns) > windowWidth;
+    const minTableWidth = getTableMinWidth(columns);
+    const shouldScrollHorizontally = !!SearchTableHeader && minTableWidth > windowWidth;
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
@@ -451,7 +452,9 @@ function SearchList({
         return (
             <ScrollView
                 horizontal
+                showsHorizontalScrollIndicator
                 style={styles.flex1}
+                contentContainerStyle={{width: minTableWidth}}
             >
                 {content}
             </ScrollView>
