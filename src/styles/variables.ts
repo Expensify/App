@@ -391,4 +391,6 @@ export default {
     splitExpenseAmountMobileWidth: 82,
     splitExpensePercentageWidth: 42,
     splitExpensePercentageMobileWidth: 62,
+    splitExpensePercentageScrollOffset: 12,
+    splitExpensePercentageCardHeight: 126,
 } as const;
