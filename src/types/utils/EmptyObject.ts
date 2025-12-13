@@ -12,5 +12,9 @@ function getEmptyObject<T>(): T {
     return CONST.EMPTY_OBJECT as T;
 }
 
-export {isEmptyObject, getEmptyObject};
+function isEmptyValueObject<T>(obj: T | EmptyValue) {
+    return Object.values(obj ?? {}).filter(Boolean).length === 0;
+}
+
+export {isEmptyObject, getEmptyObject, isEmptyValueObject};
 export type {EmptyObject};
