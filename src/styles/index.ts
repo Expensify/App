@@ -2076,6 +2076,13 @@ const staticStyles = (theme: ThemeColors) =>
             },
             0,
         ),
+        androidComposerFix: {
+            height: undefined,
+            lineHeight: undefined,
+            alignSelf: 'stretch',
+            flexGrow: 1,
+            flexShrink: 1,
+        },
 
         textInputFullCompose: {
             alignSelf: 'stretch',
