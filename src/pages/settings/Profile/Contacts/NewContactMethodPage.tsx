@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
@@ -18,7 +18,8 @@ import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {addPendingContactMethod, resetValidateActionCodeSent} from '@userActions/User';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {addNewContactMethod, clearUnvalidatedNewContactMethodAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,17 +35,15 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-
+    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION, {canBeMissing: true});
     const navigateBackTo = route?.params?.backTo;
 
-    const handleValidateMagicCode = useCallback(
+    const handleAddSecondaryLogin = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
             const phoneLogin = getPhoneLogin(values.phoneOrEmail, countryCode);
             const validateIfNumber = validateNumber(phoneLogin);
             const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
-            resetValidateActionCodeSent();
-            addPendingContactMethod(submitDetail);
-            Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.getRoute(submitDetail, navigateBackTo));
+            addNewContactMethod(submitDetail, pendingContactAction?.validateActionCode ?? '');
         },
         [navigateBackTo, countryCode],
     );
@@ -90,6 +89,29 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
     }, [navigateBackTo]);
 
+    const navigateToConfirmMagicCode = useCallback(() => {
+        clearUnvalidatedNewContactMethodAction();
+        Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.getRoute(navigateBackTo ?? ''));
+    }, [navigateBackTo]);
+
+    useEffect(() => {
+        if (!pendingContactAction) {
+            return;
+        }
+        if (pendingContactAction?.validateActionCode && pendingContactAction.isVerifiedValidateActionCode) {
+            return;
+        }
+        navigateToConfirmMagicCode();
+    }, [navigateToConfirmMagicCode]);
+
+    useEffect(() => {
+        if (!pendingContactAction?.actionVerified || !pendingContactAction?.contactMethod) {
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod), navigateBackTo, true));
+        clearUnvalidatedNewContactMethodAction();
+    }, [navigateToConfirmMagicCode, pendingContactAction?.actionVerified, pendingContactAction?.isVerifiedValidateActionCode, pendingContactAction?.validateActionCode]);
+
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => loginInputRef.current?.focus()}
@@ -106,10 +128,9 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
                     validate={validate}
-                    onSubmit={handleValidateMagicCode}
+                    onSubmit={handleAddSecondaryLogin}
                     submitButtonText={translate('common.add')}
                     style={[styles.flexGrow1, styles.mh5]}
-                    shouldHideFixErrorsAlert
                 >
                     <Text style={styles.mb5}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
                     <View style={styles.mb6}>
