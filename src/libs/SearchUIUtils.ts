@@ -2684,7 +2684,7 @@ function getTableMinWidth(columns: SearchColumnType[]) {
             minWidth += 200;
         }
     }
-    return minWidth;  
+    return minWidth;
 }
 
 export {
