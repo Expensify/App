@@ -18,7 +18,9 @@ import Parser from './Parser';
 import {getCleanedTagName, getPolicy, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
-import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
+import {buildReportNameFromParticipantNames, getPolicyExpenseChatName} from './ReportNameUtils';
+// eslint-disable-next-line import/no-cycle
+import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
@@ -190,6 +192,7 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
     }
 
     if (movedFromReport) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const originReportName = getReportName(movedFromReport);
         return translate('iou.movedFromReport', {reportName: originReportName ?? ''});
     }

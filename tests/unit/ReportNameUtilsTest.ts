@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {translate} from '@libs/Localize';
-import {computeReportName, getGroupChatName, getPolicyExpenseChatName, getReportName as getSimpleReportName} from '@libs/ReportNameUtils';
+import {computeReportNameWithoutFormula, getGroupChatName, getPolicyExpenseChatName, getReportName as getSimpleReportName} from '@libs/ReportNameUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,14 +67,22 @@ describe('ReportNameUtils', () => {
         reportActions: {} as Record<string, ReportActions>,
     };
 
-    describe('computeReportName - DMs and Group chats', () => {
+    describe('computeReportNameWithoutFormula - DMs and Group chats', () => {
         test('1:1 DM with displayName', () => {
             const report: Report = {
                 ...createRegularChat(1, [currentUserAccountID, 1]),
                 ownerAccountID: currentUserAccountID,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportNameWithoutFormula(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+            );
             expect(name).toBe('Ragnar Lothbrok');
         });
 
@@ -84,7 +92,15 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportNameWithoutFormula(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+            );
             expect(name).toBe('floki@vikings.net');
         });
 
@@ -94,7 +110,15 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportNameWithoutFormula(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+            );
             expect(name).toBe('(833) 240-3627');
         });
 
@@ -106,15 +130,31 @@ describe('ReportNameUtils', () => {
             };
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportNameWithoutFormula(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+            );
             expect(name).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
     });
 
-    describe('computeReportName - Admin room', () => {
+    describe('computeReportNameWithoutFormula - Admin room', () => {
         test('Active admin room', () => {
             const report = createAdminRoom(10);
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportNameWithoutFormula(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+            );
             expect(name).toBe('#admins');
         });
 
@@ -124,7 +164,7 @@ describe('ReportNameUtils', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {private_isArchived: 'true'},
             } as Record<string, ReportNameValuePairs>;
 
-            const nameEn = computeReportName(
+            const nameEn = computeReportNameWithoutFormula(
                 report,
                 emptyCollections.reports,
                 emptyCollections.policies,
@@ -136,7 +176,7 @@ describe('ReportNameUtils', () => {
             expect(nameEn).toBe('#admins (archived)');
 
             await IntlStore.load(CONST.LOCALES.ES);
-            const nameEs = computeReportName(
+            const nameEs = computeReportNameWithoutFormula(
                 report,
                 emptyCollections.reports,
                 emptyCollections.policies,
@@ -151,7 +191,7 @@ describe('ReportNameUtils', () => {
         });
     });
 
-    describe('computeReportName - Policy expense chat', () => {
+    describe('computeReportNameWithoutFormula - Policy expense chat', () => {
         test('Returns policy expense chat name when owner is set', async () => {
             const report: Report = {
                 ...createPolicyExpenseChat(20, true),
@@ -159,12 +199,20 @@ describe('ReportNameUtils', () => {
             };
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportNameWithoutFormula(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+            );
             expect(name).toBe("Ragnar Lothbrok's expenses");
         });
     });
 
-    describe('computeReportName - Self DM', () => {
+    describe('computeReportNameWithoutFormula - Self DM', () => {
         test('Returns self DM with postfix', async () => {
             const report: Report = {
                 ...createSelfDM(30, currentUserAccountID),
@@ -172,12 +220,20 @@ describe('ReportNameUtils', () => {
             };
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportNameWithoutFormula(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+            );
             expect(name).toBe('Lagertha Lothbrok (you)');
         });
     });
 
-    describe('computeReportName - Task report', () => {
+    describe('computeReportNameWithoutFormula - Task report', () => {
         test('Extracts plain text from HTML title', () => {
             const htmlTaskTitle = '<h1>heading with <a href="https://example.com">link</a></h1>';
             const report: Report = {
@@ -185,12 +241,20 @@ describe('ReportNameUtils', () => {
                 reportName: htmlTaskTitle,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportNameWithoutFormula(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+            );
             expect(name).toBe('heading with link');
         });
     });
 
-    describe('computeReportName - Thread report action names', () => {
+    describe('computeReportNameWithoutFormula - Thread report action names', () => {
         test('Submitted parent action', () => {
             const thread: Report = createWorkspaceThread(50);
             const parentAction: ReportAction = {
@@ -218,7 +282,15 @@ describe('ReportNameUtils', () => {
             };
 
             const expected = translate(CONST.LOCALES.EN, 'iou.submitted', {memo: 'via workflow'});
-            const name = computeReportName(thread, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection);
+            const name = computeReportNameWithoutFormula(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+            );
             expect(name).toBe(expected);
         });
 
@@ -246,7 +318,15 @@ describe('ReportNameUtils', () => {
             };
 
             const expected = translate(CONST.LOCALES.EN, 'iou.rejectedThisReport');
-            const name = computeReportName(thread, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection);
+            const name = computeReportNameWithoutFormula(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+            );
             expect(name).toBe(expected);
         });
     });
@@ -295,7 +375,7 @@ describe('ReportNameUtils', () => {
         });
     });
 
-    describe('computeReportName - reportNameValuePairs archiving', () => {
+    describe('computeReportNameWithoutFormula - reportNameValuePairs archiving', () => {
         test('Regular chat gets archived suffix from reportNameValuePairs', async () => {
             const report: Report = {
                 ...createRegularChat(70, [currentUserAccountID, 1]),
@@ -307,7 +387,7 @@ describe('ReportNameUtils', () => {
             } as Record<string, ReportNameValuePairs>;
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-            const name = computeReportName(
+            const name = computeReportNameWithoutFormula(
                 report,
                 emptyCollections.reports,
                 emptyCollections.policies,
