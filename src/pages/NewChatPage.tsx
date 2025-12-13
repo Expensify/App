@@ -2,11 +2,10 @@ import {useFocusEffect} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,6 +17,7 @@ import useContactImport from '@hooks/useContactImport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
+import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -67,16 +67,30 @@ function useOptions() {
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
-    const {options: listOptions, areOptionsInitialized} = useOptionsList({
-        shouldInitialize: didScreenTransitionEnd,
-    });
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+
+    const {
+        options: listOptions,
+        isLoading,
+        loadMore,
+        hasMore,
+        isLoadingMore,
+    } = useFilteredOptions({
+        maxRecentReports: 500,
+        enabled: didScreenTransitionEnd,
+        includeP2P: true,
+        batchSize: 100,
+        enablePagination: true,
+        searchTerm: debouncedSearchTerm,
+        betas,
+    });
+
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const defaultOptions = useMemo(() => {
-        const filteredOptions = memoizedGetValidOptions(
+        return memoizedGetValidOptions(
             {
-                reports: listOptions.reports ?? [],
-                personalDetails: (listOptions.personalDetails ?? []).concat(contacts),
+                reports: listOptions?.reports ?? [],
+                personalDetails: (listOptions?.personalDetails ?? []).concat(contacts),
             },
             draftComments,
             nvpDismissedProductTraining,
@@ -86,18 +100,19 @@ function useOptions() {
             },
             countryCode,
         );
-        return filteredOptions;
-    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas, nvpDismissedProductTraining, countryCode]);
+    }, [listOptions?.reports, listOptions?.personalDetails, contacts, draftComments, betas, nvpDismissedProductTraining, countryCode]);
 
-    const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
+    const unselectedOptions = useMemo(() => {
+        return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
+    }, [defaultOptions, selectedOptions]);
+
+    const areOptionsInitialized = !isLoading;
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, {
+        return filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
-
-        return filteredOptions;
     }, [debouncedSearchTerm, unselectedOptions, selectedOptions, countryCode]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
@@ -128,11 +143,12 @@ function useOptions() {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    useEffect(() => {
-        if (!newGroupDraft?.participants) {
-            return;
+    const draftSelectedOptions = useMemo(() => {
+        if (!newGroupDraft?.participants || !listOptions?.personalDetails) {
+            return null;
         }
-        const newSelectedOptions: OptionData[] = [];
+
+        const result: OptionData[] = [];
         for (const participant of newGroupDraft.participants) {
             if (participant.accountID === personalData.accountID) {
                 continue;
@@ -146,23 +162,56 @@ function useOptions() {
             if (!participantOption) {
                 continue;
             }
-            newSelectedOptions.push({
+            result.push({
                 ...participantOption,
                 isSelected: true,
             });
         }
-        setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID]);
+
+        return result;
+    }, [listOptions?.personalDetails, newGroupDraft?.participants, personalData.accountID]);
+
+    useEffect(() => {
+        if (!draftSelectedOptions) {
+            return;
+        }
+
+        setSelectedOptions((prevSelectedOptions) => {
+            if (
+                prevSelectedOptions.length === draftSelectedOptions.length &&
+                prevSelectedOptions.every((prevOption, index) => {
+                    const nextOption = draftSelectedOptions.at(index);
+                    if (!nextOption) {
+                        return false;
+                    }
+                    return prevOption.accountID === nextOption.accountID && prevOption.login === nextOption.login;
+                })
+            ) {
+                return prevSelectedOptions;
+            }
+
+            return draftSelectedOptions;
+        });
+    }, [draftSelectedOptions, setSelectedOptions]);
+
+    const handleEndReached = useCallback(() => {
+        if (!hasMore || isLoadingMore || !areOptionsInitialized) {
+            return;
+        }
+        loadMore();
+    }, [hasMore, isLoadingMore, areOptionsInitialized, loadMore]);
 
     return {
         ...options,
         searchTerm,
         debouncedSearchTerm,
         setSearchTerm,
-        areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd,
+        areOptionsInitialized,
         selectedOptions,
         setSelectedOptions,
         headerMessage,
+        handleEndReached,
+        isLoadingMore,
     };
 }
 
@@ -192,8 +241,20 @@ function NewChatPage({ref}: NewChatPageProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
-        useOptions();
+    const {
+        headerMessage,
+        searchTerm,
+        debouncedSearchTerm,
+        handleEndReached,
+        isLoadingMore,
+        setSearchTerm,
+        selectedOptions,
+        setSelectedOptions,
+        recentReports,
+        personalDetails,
+        userToInvite,
+        areOptionsInitialized,
+    } = useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: Section[] = [];
@@ -416,7 +477,9 @@ function NewChatPage({ref}: NewChatPageProps) {
                 footerContent={footerContent}
                 showLoadingPlaceholder={!areOptionsInitialized}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                isLoadingNewOptions={!!isSearchingForReports}
+                isLoadingNewOptions={!!isSearchingForReports || isLoadingMore}
+                onEndReached={handleEndReached}
+                onEndReachedThreshold={0.75}
                 initiallyFocusedOptionKey={firstKeyForList}
                 shouldTextInputInterceptSwipe
                 addBottomSafeAreaPadding
