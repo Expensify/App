@@ -2666,6 +2666,28 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
+function getTableMinWidth(columns: SearchColumnType[]) {
+    // Starts at 24px to account for the checkbox width
+    let minWidth = 24;
+
+    for (const column of columns) {
+        if (column === CONST.SEARCH.TABLE_COLUMNS.RECEIPT || column === CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) {
+            minWidth += 36;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.AVATAR) {
+            minWidth += 40;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.STATUS || column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
+            minWidth += 80;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
+            minWidth += 48;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {
+            minWidth += 20;
+        } else {
+            minWidth += 200;
+        }
+    }
+    return minWidth;
+}
+
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -2711,5 +2733,6 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getTransactionFromTransactionListItem,
+    getTableMinWidth,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
