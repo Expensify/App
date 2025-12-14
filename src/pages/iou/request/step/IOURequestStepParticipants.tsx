@@ -73,7 +73,11 @@ function IOURequestStepParticipants({
     },
     transaction: initialTransaction,
 }: IOURequestStepParticipantsProps) {
-    const participants = initialTransaction?.participants;
+    const participants = useMemo(
+        () =>
+            iouType === CONST.IOU.TYPE.SPLIT ? initialTransaction?.participants : initialTransaction?.participants?.filter((participant) => !participant.isSender && participant.selected),
+        [initialTransaction?.participants, iouType],
+    );
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
