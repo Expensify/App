@@ -1,6 +1,6 @@
 /* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
@@ -18,6 +18,7 @@ import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAct
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactions from '@hooks/useReportTransactions';
 import {deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
@@ -25,7 +26,7 @@ import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfte
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
-import {getOriginalReportID, getReportTransactions} from '@libs/ReportUtils';
+import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
@@ -52,7 +53,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
-    const reportActionIDRef = useRef<string | undefined>(undefined);
     const originalReportIDRef = useRef<string | undefined>(undefined);
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
@@ -152,11 +152,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     }, [measureContextMenuAnchorPosition]);
 
     /** Whether Context Menu is active for the Report Action. */
-    const isActiveReportAction: ReportActionContextMenu['isActiveReportAction'] = (actionID) =>
-        !!actionID && (reportActionIDRef.current === actionID || reportActionRef.current?.reportActionID === actionID);
+    const isActiveReportAction: ReportActionContextMenu['isActiveReportAction'] = (actionID) => !!actionID && reportActionRef.current?.reportActionID === actionID;
 
     const clearActiveReportAction = () => {
-        reportActionIDRef.current = undefined;
         reportActionRef.current = null;
     };
 
@@ -240,7 +238,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             setDisabledActions(disabledOptions);
             typeRef.current = type;
             reportIDRef.current = reportID;
-            reportActionIDRef.current = reportActionID;
+            reportActionRef.current = (reportAction as OnyxEntry<ReportAction>) ?? null;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             originalReportIDRef.current = originalReportID || undefined;
             selectionRef.current = selection;
@@ -278,7 +276,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     /** After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it */
     const runAndResetOnPopoverHide = () => {
         reportIDRef.current = undefined;
-        reportActionIDRef.current = undefined;
+        reportActionRef.current = null;
         originalReportIDRef.current = undefined;
         instanceIDRef.current = '';
         selectionRef.current = '';
@@ -336,6 +334,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
+    const reportAllTransactions = useReportTransactions(reportActionRef.current?.childReportID);
     useEffect(() => {
         if (!originalReport) {
             return;
@@ -365,12 +364,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            const transactions = getReportTransactions(reportAction.childReportID);
-            const reportActionTransactions: OnyxCollection<Transaction> = {};
-            for (const transaction of transactions) {
-                reportActionTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
-            }
-            deleteAppReport(reportAction.childReportID, email ?? '', reportActionTransactions);
+            deleteAppReport(reportAction.childReportID, email ?? '', reportAllTransactions);
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
@@ -392,6 +386,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         currentSearchHash,
         isOriginalReportArchived,
         email,
+        reportAllTransactions,
     ]);
 
     const hideDeleteModal = () => {
@@ -453,7 +448,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isVisible={isPopoverVisible}
                     type={typeRef.current}
                     reportID={reportIDRef.current}
-                    reportActionID={reportActionIDRef.current}
+                    reportActionID={reportActionRef.current?.reportActionID}
                     draftMessage={reportActionDraftMessageRef.current}
                     selection={selectionRef.current}
                     isArchivedRoom={isRoomArchived}
