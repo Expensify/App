@@ -283,6 +283,11 @@ function clearApprovalWorkflowApprovers() {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: []});
 }
 
+/** Set whether the user is in the initial creation flow */
+function setApprovalWorkflowIsInitialFlow(isInitialFlow: boolean) {
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {isInitialFlow});
+}
+
 function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>) {
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 }
@@ -334,4 +339,5 @@ export {
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
     validateApprovalWorkflow,
+    setApprovalWorkflowIsInitialFlow,
 };

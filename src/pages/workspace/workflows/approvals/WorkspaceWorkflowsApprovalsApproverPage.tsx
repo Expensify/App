@@ -42,7 +42,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const firstApprover = currentApprovalWorkflow?.approvers?.[0]?.email ?? '';
 
     const isChangeApproverRoute = route.name === SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE;
-    const isInitialCreationFlow = currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params?.backTo;
+    const isInitialCreationFlow = currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && currentApprovalWorkflow?.isInitialFlow;
     const currentApprover = currentApprovalWorkflow?.approvers[approverIndex];
     const selectedApproverEmail = currentApprover?.email;
 

@@ -23,6 +23,7 @@ const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     isDefault: false,
     action: CONST.APPROVAL_WORKFLOW.ACTION.CREATE,
     originalApprovers: [],
+    isInitialFlow: true,
 };
 
 type GetApproversParams = {

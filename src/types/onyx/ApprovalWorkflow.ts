@@ -129,6 +129,11 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      * List of original approvers in the workflow
      */
     originalApprovers: Approver[];
+
+    /**
+     * Whether the user is in the initial creation flow
+     */
+    isInitialFlow?: boolean;
 };
 
 export default ApprovalWorkflow;
