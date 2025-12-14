@@ -99,8 +99,8 @@ function NewChatConfirmPage() {
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login).filter((login): login is string => !!login);
-        navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
-    }, [newGroupDraft, avatarFile]);
+        navigateToAndOpenReport(logins, allPersonalDetails, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
+    }, [newGroupDraft, avatarFile, allPersonalDetails]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 

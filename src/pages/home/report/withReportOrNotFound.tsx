@@ -76,6 +76,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const isReportArchived = useReportIsArchived(report?.reportID);
             // The `isLoadingInitialReportActions` value will become `false` only after the first OpenReport API call is finished (either succeeded or failed)
             const shouldFetchReport = isReportIdInRoute && reportMetadata?.isLoadingInitialReportActions !== false;
+            const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
             // When accessing certain report-dependant pages (e.g. Task Title) by deeplink, the OpenReport API is not called,
             // So we need to call OpenReport API here to make sure the report data is loaded if it exists on the Server
@@ -85,9 +86,9 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     return;
                 }
 
-                openReport(props.route.params.reportID);
+                openReport(props.route.params.reportID, undefined, personalDetails);
                 // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-            }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
+            }, [shouldFetchReport, isReportLoaded, props.route.params.reportID, personalDetails]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);

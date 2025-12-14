@@ -864,8 +864,9 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
 
+        const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         for (let i = 0; i < 5; i++) {
-            Report.openReport(REPORT_ID, undefined, ['test@user.com'], {
+            Report.openReport(REPORT_ID, undefined, allPersonalDetails, ['test@user.com'], {
                 reportID: REPORT_ID,
             });
         }
@@ -919,8 +920,9 @@ describe('actions/Report', () => {
         const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}` as const);
         expect(transaction).toBeTruthy();
 
+        const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         // Call openReport with transaction object to trigger the legacy preview flow
-        Report.openReport(CHILD_REPORT_ID, undefined, [], undefined, undefined, false, [], undefined, false, transaction ?? undefined, undefined, SELF_DM_ID);
+        Report.openReport(CHILD_REPORT_ID, undefined, allPersonalDetails, [], undefined, undefined, false, [], undefined, false, transaction ?? undefined, undefined, SELF_DM_ID);
         await waitForBatchedUpdates();
 
         // Validate the correct Onyx key received the new action and existing one is preserved
@@ -958,13 +960,13 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
-
+        const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         for (let i = 0; i < 8; i++) {
             let reportID = REPORT_ID;
             if (i > 4) {
                 reportID = `${i}`;
             }
-            Report.openReport(reportID, undefined, ['test@user.com'], {
+            Report.openReport(reportID, undefined, allPersonalDetails, ['test@user.com'], {
                 reportID: REPORT_ID,
             });
         }
@@ -1587,10 +1589,11 @@ describe('actions/Report', () => {
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-
+        const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         Report.openReport(
             REPORT_ID,
             undefined,
+            allPersonalDetails,
             ['test@user.com'],
             {
                 parentReportID: REPORT_ID,

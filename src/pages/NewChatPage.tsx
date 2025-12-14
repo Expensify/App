@@ -185,6 +185,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const {singleExecution} = useSingleExecution();
 
@@ -308,10 +309,10 @@ function NewChatPage({ref}: NewChatPageProps) {
                 return;
             }
             KeyboardUtils.dismiss().then(() => {
-                singleExecution(() => navigateToAndOpenReport([login]))();
+                singleExecution(() => navigateToAndOpenReport([login], allPersonalDetails))();
             });
         },
-        [selectedOptions, toggleOption, singleExecution],
+        [selectedOptions, toggleOption, singleExecution, allPersonalDetails],
     );
 
     const itemRightSideComponent = useCallback(
