@@ -344,7 +344,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
             leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isChatThread, report, isPolicyEmployee, isPolicyAdmin, isRootGroupChat, quickAction?.chatReportID]);
+    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, isChatThread]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
