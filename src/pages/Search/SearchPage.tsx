@@ -61,7 +61,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
+    canDeleteMoneyRequestReport,
     generateReportID,
     getPolicyExpenseChat,
     getReportOrDraftReport,
@@ -697,7 +699,24 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowDeleteOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canDelete);
+        const shouldShowDeleteOption =
+            !isOffline &&
+            selectedTransactionsKeys.every((id) => {
+                const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+                if (!transaction) {
+                    return false;
+                }
+                const parentReportID = transaction.reportID;
+                const parentReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+                if (!parentReport) {
+                    return false;
+                }
+                const reportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
+                const parentReportAction = Object.values(reportActions ?? {}).find(
+                    (action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === transaction.transactionID,
+                );
+                return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
+            });
 
         if (shouldShowDeleteOption) {
             options.push({
@@ -744,34 +763,35 @@ function SearchPage({route}: SearchPageProps) {
         status,
         hash,
         selectedTransactions,
+        expensifyIcons,
         translate,
         areAllMatchingItemsSelected,
         isOffline,
         selectedReports,
-        selectedTransactionReportIDs,
+        queryJSON,
         lastPaymentMethods,
         selectedReportIDs,
         allTransactions,
-        queryJSON,
+        selectedTransactionReportIDs,
         selectedPolicyIDs,
         policies,
         integrationsExportTemplates,
         csvExportLayouts,
         clearSelectedTransactions,
         beginExportWithTemplate,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+        dismissedRejectUseExplanation,
         bulkPayButtonOptions,
         onBulkPaySelected,
+        areAllTransactionsFromSubmitter,
+        dismissedHoldUseExplanation,
         allReports,
+        currentSearchResults?.data,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
-        expensifyIcons,
-        isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-        dismissedHoldUseExplanation,
-        dismissedRejectUseExplanation,
-        areAllTransactionsFromSubmitter,
     ]);
 
     const handleDeleteExpenses = () => {
