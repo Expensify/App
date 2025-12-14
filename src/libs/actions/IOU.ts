@@ -6913,6 +6913,7 @@ function duplicateExpenseTransaction(
     optimisticChatReportID: string,
     optimisticIOUReportID: string,
     isASAPSubmitBetaEnabled: boolean,
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>,
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     targetReport?: OnyxTypes.Report,
@@ -6980,6 +6981,7 @@ function duplicateExpenseTransaction(
             },
             report: selfDMReport,
             isDraftPolicy: false,
+            quickAction,
         };
         return trackExpense(trackExpenseParams);
     }
