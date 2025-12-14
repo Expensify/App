@@ -49,6 +49,7 @@ import Checkbox from '@assets/images/checkbox.svg';
 import CheckmarkCircle from '@assets/images/checkmark-circle.svg';
 import Checkmark from '@assets/images/checkmark.svg';
 import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
+import Clock from '@assets/images/clock.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
@@ -262,6 +263,7 @@ const Expensicons = {
     Checkbox,
     Checkmark,
     Close,
+    Clock,
     ClosedSign,
     Collapse,
     CommentBubbles,
