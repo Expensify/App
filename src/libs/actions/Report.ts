@@ -5003,7 +5003,7 @@ function deleteAppReport(reportID: string | undefined, currentUserEmailParam: st
 
         // 1. Update the transaction and its violations
         if (transactionID) {
-            const transaction = reportAllTransactions.find((transaction: Transaction) => transaction.transactionID === transactionID);
+            const transaction = reportAllTransactions.find((t) => t.transactionID === transactionID);
             const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
             optimisticData.push(
