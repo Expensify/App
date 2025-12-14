@@ -241,7 +241,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
 
             {!isImageLoaded && !shouldShowOfflineIndicator && (
                 <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, styles.opacity1, styles.bgTransparent]}>
-                    <ActivityIndicator size="large" />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             )}
             {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}

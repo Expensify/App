@@ -161,7 +161,7 @@ function Image({
     if (source === undefined) {
         return (
             <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, loadingIndicatorStyles]}>
-                <ActivityIndicator size={loadingIconSize} />
+                <ActivityIndicator size={loadingIconSize ?? CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     }

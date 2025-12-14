@@ -4,6 +4,7 @@ import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import ActivityIndicator from './ActivityIndicator';
 import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
 import Image from './Image';
@@ -109,7 +110,7 @@ function ImageWithLoading({
             />
             {isLoading && !isImageCached && !isOffline && (
                 <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, styles.opacity1, styles.bgTransparent, loadingIndicatorStyles]}>
-                    <ActivityIndicator size={loadingIconSize} />
+                    <ActivityIndicator size={loadingIconSize ?? CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             )}
             {isLoading && shouldShowOfflineIndicator && !isImageCached && <AttachmentOfflineIndicator isPreview />}
