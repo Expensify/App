@@ -2191,7 +2191,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
                           }
                         : {}),
                 },
-                chatReportIDAdmins: makeMeAdmin ? adminsChatReportID : undefined,
+                chatReportIDAdmins: makeMeAdmin ? adminsChatReportID.toString() : undefined,
                 pendingFields: {
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -2624,7 +2624,7 @@ function createDraftWorkspace(
                         errors: {},
                     },
                 },
-                chatReportIDAdmins: makeMeAdmin ? adminsChatReportID : undefined,
+                chatReportIDAdmins: makeMeAdmin ? adminsChatReportID.toString() : undefined,
                 pendingFields: {
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
