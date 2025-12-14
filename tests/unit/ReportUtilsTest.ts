@@ -3355,6 +3355,13 @@ describe('ReportUtils', () => {
             expect(shouldDisableThread(reportAction, reportID, true)).toBeTruthy();
         });
 
+        it('should disable on a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+            } as ReportAction;
+            expect(shouldDisableThread(reportAction, reportID, true)).toBeTruthy();
+        });
+
         describe('deleted threads', () => {
             it('should be enabled if the report action is not-deleted and child visible action count is 1', () => {
                 // Given a normal report action with one child visible action count

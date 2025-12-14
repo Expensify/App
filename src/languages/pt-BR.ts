@@ -1562,6 +1562,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Escolha um workspace',
+        routedDueToDEW: ({to}) => `relatório encaminhado para ${to} devido ao fluxo de trabalho de aprovação personalizado`,
     },
     transactionMerge: {
         listPage: {

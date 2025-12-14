@@ -1563,6 +1563,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Wybierz przestrzeń roboczą',
+        routedDueToDEW: ({to}) => `raport przekazany do ${to} z powodu niestandardowego procesu zatwierdzania`,
     },
     transactionMerge: {
         listPage: {

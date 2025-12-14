@@ -1570,6 +1570,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Arbeitsbereich auswählen',
+        routedDueToDEW: ({to}) => `bericht aufgrund eines benutzerdefinierten Genehmigungsworkflows an ${to} weitergeleitet`,
     },
     transactionMerge: {
         listPage: {

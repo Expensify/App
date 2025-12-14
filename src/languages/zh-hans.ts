@@ -1541,6 +1541,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: '选择一个工作区',
+        routedDueToDEW: ({to}) => `报告因自定义审批工作流而转发至 ${to}`,
     },
     transactionMerge: {
         listPage: {

@@ -36,6 +36,7 @@ import {
     getActionableMentionWhisperMessage,
     getChangedApproverActionMessage,
     getCombinedReportActions,
+    getDynamicExternalWorkflowRoutedMessage,
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
@@ -54,6 +55,7 @@ import {
     getRoomAvatarUpdatedMessage,
     getRoomChangeLogMessage,
     getSortedReportActions,
+    getSortedReportActionsForDisplay,
     getTravelUpdateMessage,
     getUpdateRoomDescriptionMessage,
     isActionableAddPaymentCard,
@@ -266,10 +268,13 @@ Onyx.connect({
                 continue;
             }
 
-            const reportActionsArray = Object.values(reportActions[1] ?? {});
-            let sortedReportActions = getSortedReportActions(reportActionsArray, true);
-            allSortedReportActions[reportID] = sortedReportActions;
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+            const isReportArchived = !!reportNameValuePairs?.private_isArchived;
+            const isWriteActionAllowed = canUserPerformWriteAction(report, isReportArchived);
+            const reportActionsArray = Object.values(reportActions[1] ?? {});
+            let sortedReportActions = getSortedReportActionsForDisplay(reportActionsArray, isWriteActionAllowed);
+            allSortedReportActions[reportID] = sortedReportActions;
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
 
             // If the report is a one-transaction report and has , we need to return the combined reportActions so that the LHN can display modifications
@@ -287,16 +292,11 @@ Onyx.connect({
                 lastReportActions[reportID] = firstReportAction;
             }
 
-            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-            const isReportArchived = !!reportNameValuePairs?.private_isArchived;
-            const isWriteActionAllowed = canUserPerformWriteAction(report, isReportArchived);
-
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
             const reportActionsForDisplay = sortedReportActions.filter(
-                (reportAction, actionKey) =>
+                (reportAction) =>
                     (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
-                    shouldReportActionBeVisible(reportAction, actionKey, isWriteActionAllowed) &&
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
@@ -617,6 +617,7 @@ function getLastMessageTextForReport({
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
     const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
+    console.log('last action', lastReportAction);
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
@@ -789,6 +790,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(lastReportAction));
     } else if (isActionableMentionWhisper(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(lastReportAction));
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
+        lastMessageTextFromReport = getDynamicExternalWorkflowRoutedMessage(lastReportAction, translateLocal);
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
