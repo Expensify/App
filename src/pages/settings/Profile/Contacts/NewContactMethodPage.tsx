@@ -45,7 +45,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
             const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
             addNewContactMethod(submitDetail, pendingContactAction?.validateActionCode ?? '');
         },
-        [navigateBackTo, countryCode],
+        [navigateBackTo, countryCode, pendingContactAction?.validateActionCode],
     );
 
     const validate = useCallback(
@@ -102,7 +102,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
             return;
         }
         navigateToConfirmMagicCode();
-    }, [navigateToConfirmMagicCode]);
+    }, [navigateToConfirmMagicCode, pendingContactAction]);
 
     useEffect(() => {
         if (!pendingContactAction?.actionVerified || !pendingContactAction?.contactMethod) {
@@ -110,7 +110,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         }
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod), navigateBackTo, true));
         clearUnvalidatedNewContactMethodAction();
-    }, [navigateToConfirmMagicCode, pendingContactAction?.actionVerified, pendingContactAction?.isVerifiedValidateActionCode, pendingContactAction?.validateActionCode]);
+    }, [navigateToConfirmMagicCode, pendingContactAction, navigateBackTo]);
 
     return (
         <ScreenWrapper
@@ -131,6 +131,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                     onSubmit={handleAddSecondaryLogin}
                     submitButtonText={translate('common.add')}
                     style={[styles.flexGrow1, styles.mh5]}
+                    isLoading={pendingContactAction?.isLoading}
                 >
                     <Text style={styles.mb5}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
                     <View style={styles.mb6}>

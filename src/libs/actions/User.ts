@@ -373,18 +373,26 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             key: ONYXKEYS.ACCOUNT,
             value: {isLoading: true},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {
+                contactMethod,
+                isLoading: true,
+                errorFields: {
+                    actionVerified: null,
+                },
+            },
+        },
     ];
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
-                contactMethod: null,
                 validateCodeSent: null,
                 actionVerified: true,
-                errorFields: {
-                    actionVerified: null,
-                },
+                isLoading: false,
             },
         },
         {
@@ -403,6 +411,13 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {validateCodeSent: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            value: {
+                isLoading: false,
+            },
         },
     ];
 
