@@ -45,7 +45,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
             const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
             addNewContactMethod(submitDetail, pendingContactAction?.validateActionCode ?? '');
         },
-        [navigateBackTo, countryCode, pendingContactAction?.validateActionCode],
+        [countryCode, pendingContactAction?.validateActionCode],
     );
 
     const validate = useCallback(
@@ -110,7 +110,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         }
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod), navigateBackTo, true));
         clearUnvalidatedNewContactMethodAction();
-    }, [navigateToConfirmMagicCode, pendingContactAction, navigateBackTo]);
+    }, [navigateToConfirmMagicCode, pendingContactAction?.actionVerified, pendingContactAction?.contactMethod, navigateBackTo]);
 
     return (
         <ScreenWrapper
