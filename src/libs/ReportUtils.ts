@@ -6107,6 +6107,37 @@ function getReportName(
 function getSearchReportName(props: GetReportNameParams): string {
     const {report, policy} = props;
     if (isChatThread(report) && policy?.name) {
+        // Traverse up the parent chain to find the first expense report
+        // If found, return the expense report name instead of workspace name
+        let currentParent = getParentReport(report);
+        const visitedReportIDs = new Set<string>();
+        
+        while (currentParent) {
+            // Prevent infinite loops in case of circular references
+            if (visitedReportIDs.has(currentParent.reportID)) {
+                break;
+            }
+            visitedReportIDs.add(currentParent.reportID);
+            
+            if (isExpenseReport(currentParent)) {
+                return getReportName(
+                    currentParent,
+                    policy,
+                    props.parentReportActionParam,
+                    props.personalDetails,
+                    props.invoiceReceiverPolicy,
+                    undefined,
+                    props.transactions,
+                    props.isReportArchived,
+                    props.reports,
+                    props.policies,
+                );
+            }
+            
+            // Continue traversing up the parent chain
+            currentParent = getParentReport(currentParent);
+        }
+        
         return policy.name;
     }
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
