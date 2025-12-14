@@ -98,7 +98,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         if (!pendingContactAction) {
             return;
         }
-        if (pendingContactAction?.validateActionCode && pendingContactAction.isVerifiedValidateActionCode) {
+        if ((pendingContactAction?.validateActionCode && pendingContactAction.isVerifiedValidateActionCode) || pendingContactAction?.actionVerified) {
             return;
         }
         navigateToConfirmMagicCode();

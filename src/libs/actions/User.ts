@@ -378,7 +378,6 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
                 contactMethod,
-                isVerifiedValidateActionCode: false,
                 isLoading: true,
                 errorFields: {
                     actionVerified: null,
@@ -393,6 +392,8 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             value: {
                 actionVerified: true,
                 isLoading: false,
+                isVerifiedValidateActionCode: false,
+                validateActionCode: null,
             },
         },
         {
