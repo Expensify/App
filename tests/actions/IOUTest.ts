@@ -10825,6 +10825,7 @@ describe('actions/IOU', () => {
                 mockOptimisticChatReportID,
                 mockOptimisticIOUReportID,
                 mockIsASAPSubmitBetaEnabled,
+                undefined,
                 mockPolicy,
                 fakePolicyCategories,
                 policyExpenseChat,
