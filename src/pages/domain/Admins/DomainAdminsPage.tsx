@@ -108,7 +108,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     text={translate('domain.admins.settings')}
                     icon={icons.Gear}
                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
                 />
             </View>
         );

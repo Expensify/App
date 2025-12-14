@@ -47,11 +47,11 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
     for (const accountID of adminAccountIDs ?? []) {
         const details = personalDetails?.[accountID];
         if (details?.login === technicalContactEmail) {
-            technicalContactEmailKey = String(accountID ?? '');
+            technicalContactEmailKey = String(accountID);
         }
         data.push({
             isSelected: details?.login === technicalContactEmail,
-            keyForList: String(accountID ?? ''),
+            keyForList: String(accountID),
             accountID,
             login: details?.login ?? '',
             text: formatPhoneNumber(getDisplayNameOrDefault(details)),
@@ -80,14 +80,14 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                 onBackButtonPress={Navigation.goBack}
                 addBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
-                    title={translate('domain.admins.addPrimaryContact')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButton title={translate('domain.admins.addPrimaryContact')} />
                 <SelectionList
                     data={filteredData}
                     onSelectRow={(option) => {
-                        choosePrimaryContact(domainAccountID, option.login === technicalContactEmail ? null : (option.login ?? ''), technicalContactEmail);
+                        if (!option.login) {
+                            return;
+                        }
+                        choosePrimaryContact(domainAccountID, option.login === technicalContactEmail ? null : (option.login), technicalContactEmail);
                         Navigation.goBack();
                     }}
                     ListItem={InviteMemberListItem}
