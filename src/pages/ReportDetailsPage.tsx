@@ -325,10 +325,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const leaveChat = useCallback(() => {
         if (isChatThread && report.parentReportID) {
+            // For threads, navigate to parent report first to avoid white screen,
+            // then call leaveRoom with skipNavigation=true since we've already handled navigation
             Navigation.dismissModalWithReport({reportID: report.parentReportID});
             Navigation.isNavigationReady().then(() => {
                 const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-                leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+                leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom, true);
             });
             return;
         }
