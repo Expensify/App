@@ -14,20 +14,18 @@ import {WideRHPContext} from '..';
 function useShowWideRHPVersion(condition: boolean) {
     const route = useRoute();
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
-    const {showWideRHPVersion, removeWideRHPRouteKey, isReportIDMarkedAsExpense, setIsWideRHPClosing} = useContext(WideRHPContext);
+    const {showWideRHPVersion, removeWideRHPRouteKey, isReportIDMarkedAsExpense} = useContext(WideRHPContext);
 
     // beforeRemove event is not called when closing nested Wide RHP using the browser back button.
     // This hook removes the route key from the array in the following case.
     useEffect(() => () => removeWideRHPRouteKey(route), [removeWideRHPRouteKey, route]);
 
     const onWideRHPClose = useCallback(() => {
-        setIsWideRHPClosing(true);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             removeWideRHPRouteKey(route);
-            setIsWideRHPClosing(false);
         });
-    }, [removeWideRHPRouteKey, route, setIsWideRHPClosing]);
+    }, [removeWideRHPRouteKey, route]);
 
     /**
      * Effect that sets up cleanup when the screen is about to be removed.

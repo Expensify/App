@@ -25,7 +25,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     getSourceIDFromReportAction,
@@ -131,7 +131,23 @@ function BaseReportActionContextMenu({
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'Download',
+        'ThreeDots',
+        'ChatBubbleReply',
+        'ChatBubbleUnread',
+        'Mail',
+        'Pencil',
+        'Stopwatch',
+        'Bell',
+        'Copy',
+        'LinkCopy',
+        'Pin',
+        'Flag',
+        'Bug',
+        'Trashcan',
+        'Checkmark',
+    ] as const);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -190,7 +206,7 @@ function BaseReportActionContextMenu({
     const requestParentReportAction = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
             if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
-                return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isDeletedAction(action));
             }
             if (!paginatedReportActions || !transactionThreadReport?.parentReportActionID) {
                 return undefined;
