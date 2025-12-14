@@ -44,6 +44,7 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
             onClose={() => {
                 Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
             }}
+            isLoading={pendingContactAction?.isLoading}
         />
     );
 }

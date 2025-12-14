@@ -1576,6 +1576,7 @@ function verifyAddSecondaryLoginCode(validateCode: string) {
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
                 validateActionCode: validateCode,
+                isLoading: true,
                 errorFields: {
                     validateActionCode: null,
                 },
@@ -1588,11 +1589,8 @@ function verifyAddSecondaryLoginCode(validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
-                validateActionCode: validateCode,
                 isVerifiedValidateActionCode: true,
-                errorFields: {
-                    validateActionCode: null,
-                },
+                isLoading: false,
             },
         },
     ];
@@ -1603,6 +1601,7 @@ function verifyAddSecondaryLoginCode(validateCode: string) {
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
                 isVerifiedValidateActionCode: false,
+                isLoading: false,
             },
         },
     ];
