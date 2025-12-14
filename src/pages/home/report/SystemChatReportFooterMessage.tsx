@@ -30,7 +30,7 @@ function SystemChatReportFooterMessage() {
               getPolicy(activePolicyID)
             : Object.values(policies ?? {}).find((policy) => shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins);
 
-        return adminPolicy?.chatReportIDAdmins?.toString() ?? '-1';
+        return adminPolicy?.chatReportIDAdmins?.toString();
     }, [activePolicyID, policies, currentUserLogin]);
 
     const [adminChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${adminChatReportID}`, {canBeMissing: true});
