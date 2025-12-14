@@ -79,6 +79,8 @@ function CategorySettingsPage({
         taskReport: setupCategoryTaskReport,
         taskParentReport: setupCategoryTaskParentReport,
         isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+        hasOutstandingChildTask,
+        parentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const navigateBack = () => {
@@ -156,6 +158,8 @@ function CategorySettingsPage({
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
             currentUserPersonalDetails.accountID,
+            hasOutstandingChildTask,
+            parentReportAction,
         );
     };
 
@@ -173,6 +177,8 @@ function CategorySettingsPage({
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
             currentUserPersonalDetails.accountID,
+            hasOutstandingChildTask,
+            parentReportAction,
         );
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();

@@ -11,13 +11,13 @@ import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
-import {PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
+import type {SearchQueryJSON} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -40,6 +40,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils, reportSummariesOnyxSelector} from '@libs/ReportUtils';
+import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -55,6 +56,7 @@ type EmptySearchViewProps = {
     similarSearchHash: number;
     type: SearchDataTypes;
     hasResults: boolean;
+    queryJSON?: SearchQueryJSON;
 };
 
 type EmptySearchViewContentProps = EmptySearchViewProps & {
@@ -84,7 +86,7 @@ type EmptySearchViewItem = {
 
 type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
 
-function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewProps) {
+function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {typeMenuSections, CreateReportConfirmationModal: SearchMenuCreateReportConfirmationModal} = useSearchTypeMenuSections();
 
@@ -118,6 +120,7 @@ function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewP
                 introSelected={introSelected}
                 hasSeenTour={hasSeenTour}
                 searchMenuCreateReportConfirmationModal={SearchMenuCreateReportConfirmationModal}
+                queryJSON={queryJSON}
             />
         </SearchScopeProvider>
     );
@@ -127,8 +130,7 @@ const hasTransactionsSelector = (transactions: OnyxCollection<Transaction>) =>
     Object.values(transactions ?? {}).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
 
 const hasExpenseReportsSelector = (reports: OnyxCollection<Report>) =>
-    Object.values(reports ?? {}).filter((report) => report?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && report?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length >
-    0;
+    Object.values(reports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && report?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
 
 function EmptySearchViewContent({
     similarSearchHash,
@@ -143,17 +145,18 @@ function EmptySearchViewContent({
     introSelected,
     hasSeenTour,
     searchMenuCreateReportConfirmationModal,
+    queryJSON,
 }: EmptySearchViewContentProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Alert'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'Alert'] as const);
 
     const tripsFeatures: FeatureListItem[] = useMemo(
         () => [
             {
-                icon: PiggyBank,
+                icon: illustrations.PiggyBank,
                 translationKey: 'travel.features.saveMoney',
             },
             {
@@ -161,7 +164,7 @@ function EmptySearchViewContent({
                 translationKey: 'travel.features.alerts',
             },
         ],
-        [illustrations.Alert],
+        [illustrations.PiggyBank, illustrations.Alert],
     );
     const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
     const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
@@ -171,7 +174,8 @@ function EmptySearchViewContent({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
 
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
@@ -195,23 +199,36 @@ function EmptySearchViewContent({
 
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     const [reportSummaries = getEmptyArray<ReportSummary>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: true,
         selector: reportSummariesOnyxSelector,
     });
-    const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, defaultChatEnabledPolicyID, accountID), [accountID, defaultChatEnabledPolicyID, reportSummaries]);
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
+    const shouldShowEmptyReportConfirmation = useMemo(
+        () => hasEmptyReportsForPolicy(reportSummaries, defaultChatEnabledPolicyID, accountID) && hasDismissedEmptyReportsConfirmation !== true,
+        [accountID, defaultChatEnabledPolicyID, hasDismissedEmptyReportsConfirmation, reportSummaries],
+    );
 
-    const handleCreateWorkspaceReport = useCallback(() => {
-        if (!defaultChatEnabledPolicyID) {
-            return;
-        }
+    const handleCreateWorkspaceReport = useCallback(
+        (shouldDismissEmptyReportsConfirmation?: boolean) => {
+            if (!defaultChatEnabledPolicyID) {
+                return;
+            }
 
-        const {reportID: createdReportID} = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, defaultChatEnabledPolicyID);
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-        });
-    }, [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled]);
+            const {reportID: createdReportID} = createNewReport(
+                currentUserPersonalDetails,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                defaultChatEnabledPolicyID,
+                false,
+                shouldDismissEmptyReportsConfirmation,
+            );
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+            });
+        },
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled],
+    );
 
     const {openCreateReportConfirmation: openCreateReportFromSearch, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,
@@ -220,12 +237,12 @@ function EmptySearchViewContent({
     });
 
     const handleCreateReportClick = useCallback(() => {
-        if (hasEmptyReport) {
+        if (shouldShowEmptyReportConfirmation) {
             openCreateReportFromSearch();
         } else {
-            handleCreateWorkspaceReport();
+            handleCreateWorkspaceReport(false);
         }
-    }, [hasEmptyReport, handleCreateWorkspaceReport, openCreateReportFromSearch]);
+    }, [handleCreateWorkspaceReport, openCreateReportFromSearch, shouldShowEmptyReportConfirmation]);
 
     const typeMenuItems = useMemo(() => {
         return typeMenuSections.map((section) => section.menuItems).flat();
@@ -292,7 +309,7 @@ function EmptySearchViewContent({
                 </SearchScopeProvider>
             </>
         );
-    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate]);
+    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, tripsFeatures]);
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(
@@ -340,7 +357,7 @@ function EmptySearchViewContent({
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-                if (hasResults) {
+                if (hasResults && (!queryJSON || !isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
                     return {
                         ...defaultViewItemHeader,
                         title: translate('search.searchResults.emptyResults.title'),
@@ -394,7 +411,7 @@ function EmptySearchViewContent({
                 }
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                if (hasResults) {
+                if (hasResults && (!queryJSON || !isDefaultExpensesQuery(queryJSON) || hasTransactions)) {
                     return {
                         ...defaultViewItemHeader,
                         title: translate('search.searchResults.emptyResults.title'),
@@ -489,13 +506,14 @@ function EmptySearchViewContent({
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,
-        groupPoliciesWithChatEnabled,
+        groupPoliciesWithChatEnabled.length,
         tripViewChildren,
         hasTransactions,
         shouldRedirectToExpensifyClassic,
         hasExpenseReports,
         defaultChatEnabledPolicyID,
         handleCreateReportClick,
+        queryJSON,
     ]);
 
     return (
