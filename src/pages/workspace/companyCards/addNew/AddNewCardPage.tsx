@@ -147,14 +147,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             break;
     }
 
-    return (
-        <View
-            style={styles.flex1}
-            fsClass={CONST.FULLSTORY.CLASS.MASK}
-        >
-            {CurrentStep}
-        </View>
-    );
+    return <View style={styles.flex1}>{CurrentStep}</View>;
 }
 
 AddNewCardPage.displayName = 'AddNewCardPage';

@@ -499,7 +499,7 @@ index 42f6e03..ffba031 100644
 +      }
 +    }
 +  }
-+    return super.onTextContextMenuItem(id)
++    return super.onTextContextMenuItem(modifiedId)
 + }
  
    internal fun clearFocusAndMaybeRefocus() {
