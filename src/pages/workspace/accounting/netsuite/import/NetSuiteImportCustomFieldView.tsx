@@ -1,13 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/actions/connections/NetSuiteCommands';
@@ -48,6 +47,7 @@ function NetSuiteImportCustomFieldView({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
 
     const config = policy?.connections?.netsuite?.options?.config;
     const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
@@ -150,7 +150,7 @@ function NetSuiteImportCustomFieldView({
                         );
                     })}
                     <MenuItem
-                        icon={Expensicons.Trashcan}
+                        icon={icons.Trashcan}
                         title={translate('common.remove')}
                         disabled={!!config?.pendingFields?.[importCustomField]}
                         onPress={removeRecord}

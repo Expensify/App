@@ -3,8 +3,6 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
@@ -42,7 +40,7 @@ type WorkspaceReceiptPartnersPageProps = PlatformStackScreenProps<WorkspaceSplit
 
 function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps) {
     const policyID = route.params.policyID;
-    const icons = useMemoizedLazyExpensifyIcons(['Key', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Key', 'NewWindow', 'Trashcan', 'Mail'] as const);
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
@@ -137,7 +135,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
 
                     return [
                         {
-                            icon: Expensicons.Trashcan,
+                            icon: icons.Trashcan,
                             text: translate('workspace.accounting.disconnect'),
                             onSelected: async () => {
                                 setSelectedPartner(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
@@ -167,6 +165,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         },
         [
             icons.NewWindow,
+            icons.Trashcan,
             shouldShowEnterCredentialsError,
             translate,
             isOffline,
@@ -344,7 +343,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                         <MenuItem
                                             title={translate('workspace.receiptPartners.uber.manageInvites')}
                                             shouldShowRightIcon
-                                            icon={Expensicons.Mail}
+                                            icon={icons.Mail}
                                             style={[styles.sectionMenuItemTopDescription, styles.mbn3, !centralBillingAccountEmail && styles.mt6]}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER))}
                                         />

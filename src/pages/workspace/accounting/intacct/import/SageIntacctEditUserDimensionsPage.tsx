@@ -4,13 +4,12 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TextInput from '@components/TextInput';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,6 +46,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
     const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
     const editedUserDimension = userDimensions?.find((userDimension) => userDimension.dimension === editedUserDimensionName);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM>) => {
@@ -130,7 +130,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                     <View style={[styles.mhn5]}>
                         <MenuItem
                             title={translate('common.remove')}
-                            icon={Expensicons.Trashcan}
+                            icon={icons.Trashcan}
                             onPress={async () => {
                                 const result = await showConfirmModal({
                                     title: translate('workspace.intacct.removeDimension'),
