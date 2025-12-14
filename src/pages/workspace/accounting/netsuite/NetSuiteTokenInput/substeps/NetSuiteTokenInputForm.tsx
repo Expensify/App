@@ -10,7 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
-import {isSafari} from '@libs/Browser';
+import {isMobileSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
 import type {SubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
@@ -63,7 +63,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
                 submitButtonText={translate('common.confirm')}
                 shouldValidateOnBlur
                 shouldValidateOnChange
-                addBottomSafeAreaPadding={!isSafari()}
+                addBottomSafeAreaPadding={!isMobileSafari()}
             >
                 {formInputs.map((formInput, index) => (
                     <View

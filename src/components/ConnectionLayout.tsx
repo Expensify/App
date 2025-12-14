@@ -70,15 +70,6 @@ type ConnectionLayoutProps = {
 
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
-
-    /** Whether to avoid scroll on virtual viewport */
-    shouldAvoidScrollOnVirtualViewport?: boolean;
-
-    /** Whether KeyboardAvoidingView should be enabled */
-    shouldEnableKeyboardAvoidingView?: boolean;
-
-    /** Whether to enable max height */
-    shouldEnableMaxHeight?: boolean;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
@@ -113,9 +104,6 @@ function ConnectionLayout({
     shouldLoadForEmptyConnection = false,
     onBackButtonPress = () => Navigation.goBack(),
     shouldBeBlocked = false,
-    shouldAvoidScrollOnVirtualViewport = true,
-    shouldEnableKeyboardAvoidingView = true,
-    shouldEnableMaxHeight = true,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
@@ -147,7 +135,6 @@ function ConnectionLayout({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
-                shouldEnableMaxHeight={!!shouldUseScrollView}
                 testID={displayName}
             >
                 <HeaderWithBackButton
