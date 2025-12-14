@@ -152,7 +152,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                         trustAllCerts={false}
                         renderActivityIndicator={() => (
                             <View style={loadingIndicatorStyles}>
-                                <ActivityIndicator size="large" />
+                                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                             </View>
                         )}
                         source={{uri: sourceURL, cache: true, expiration: 864000}}

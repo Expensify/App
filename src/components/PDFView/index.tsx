@@ -115,7 +115,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
                                 ]
                             }
                         >
-                            <ActivityIndicator size="large" />
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                         </View>
                     }
                     shouldShowErrorComponent={false}

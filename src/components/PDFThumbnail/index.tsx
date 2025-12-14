@@ -7,6 +7,7 @@ import {Document, pdfjs, Thumbnail} from 'react-pdf';
 import ActivityIndicator from '@components/ActivityIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import CONST from '@src/CONST';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
@@ -21,7 +22,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
     const thumbnail = useMemo(
         () => (
             <Document
-                loading={<ActivityIndicator size="large" />}
+                loading={<ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />}
                 file={isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}
                 options={{
                     cMapUrl: 'cmaps/',
