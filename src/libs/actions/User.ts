@@ -390,8 +390,8 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
-                validateCodeSent: null,
                 actionVerified: true,
+                contactMethod: null,
                 isLoading: false,
             },
         },
@@ -417,6 +417,8 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
                 isLoading: false,
+                contactMethod: null,
+                actionVerified: false,
             },
         },
     ];
