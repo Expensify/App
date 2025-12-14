@@ -6111,15 +6111,16 @@ function getSearchReportName(props: GetReportNameParams): string {
         // If found, return the expense report name instead of workspace name
         let currentParent = getParentReport(report);
         const visitedReportIDs = new Set<string>();
-        
+
         while (currentParent) {
             // Prevent infinite loops in case of circular references
             if (visitedReportIDs.has(currentParent.reportID)) {
                 break;
             }
             visitedReportIDs.add(currentParent.reportID);
-            
+
             if (isExpenseReport(currentParent)) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return getReportName(
                     currentParent,
                     policy,
@@ -6133,11 +6134,11 @@ function getSearchReportName(props: GetReportNameParams): string {
                     props.policies,
                 );
             }
-            
+
             // Continue traversing up the parent chain
             currentParent = getParentReport(currentParent);
         }
-        
+
         return policy.name;
     }
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
