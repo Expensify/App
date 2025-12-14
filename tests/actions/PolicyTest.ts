@@ -931,7 +931,7 @@ describe('actions/Policy', () => {
     });
 
     describe('enablePolicyRules', () => {
-        it('should disable preventSelfApproval when the rule feature is turned off', async () => {
+        it('should not reset preventSelfApproval when the rule feature is turned off', async () => {
             (fetch as MockFetch)?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy: PolicyType = {
@@ -956,8 +956,8 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Check if the preventSelfApproval is reset to false
-            expect(policy?.preventSelfApproval).toBeFalsy();
+            // preventSelfApproval should not be reset since it's not part of Rules
+            expect(policy?.preventSelfApproval).toBeTruthy();
             expect(policy?.areRulesEnabled).toBeFalsy();
             expect(policy?.pendingFields?.areRulesEnabled).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
@@ -1069,6 +1069,7 @@ describe('actions/Policy', () => {
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: {},
+                bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
             });
 
@@ -1164,6 +1165,7 @@ describe('actions/Policy', () => {
                     ],
                 },
                 reimbursementAccountError: undefined,
+                bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
             });
 
@@ -1199,6 +1201,7 @@ describe('actions/Policy', () => {
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
+                bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
             });
             await waitForBatchedUpdates();
@@ -1233,6 +1236,7 @@ describe('actions/Policy', () => {
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
+                bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
             });
             await waitForBatchedUpdates();
@@ -1269,6 +1273,7 @@ describe('actions/Policy', () => {
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
+                bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
             });
             await waitForBatchedUpdates();
