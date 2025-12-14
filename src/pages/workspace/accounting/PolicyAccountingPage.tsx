@@ -93,7 +93,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'NewWindow', 'Key', 'Pencil', 'ExpensifyCard'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'Gear', 'NewWindow', 'ExpensifyCard', 'Key', 'Sync', 'Trashcan', 'QuestionMark', 'Pencil'] as const);
+    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Accounting'] as const);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
@@ -123,7 +124,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(shouldShowReinstallConnectorMenuItem
                 ? [
                       {
-                          icon: Expensicons.CircularArrowBackwards,
+                          icon: icons.CircularArrowBackwards,
                           text: translate('workspace.accounting.reinstall'),
                           onSelected: () => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBD}),
                           shouldCallAfterModalHide: true,
@@ -145,14 +146,14 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                   ]
                 : [
                       {
-                          icon: Expensicons.Sync,
+                          icon: icons.Sync,
                           text: translate('workspace.accounting.syncNow'),
                           onSelected: () => syncConnection(policy, connectedIntegration),
                           disabled: isOffline,
                       },
                   ]),
             {
-                icon: Expensicons.Trashcan,
+                icon: icons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
                 onSelected: async () => {
                     const result = await showConfirmModal({
@@ -172,6 +173,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         ],
         [
             icons.NewWindow,
+            icons.CircularArrowBackwards,
+            icons.Key,
+            icons.Sync,
+            icons.Trashcan,
             shouldShowEnterCredentials,
             shouldShowReinstallConnectorMenuItem,
             translate,
@@ -216,7 +221,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     ? {}
                     : {
                           description: translate('workspace.xero.organization'),
-                          iconRight: Expensicons.ArrowRight,
+                          iconRight: icons.ArrowRight,
                           title: getCurrentXeroOrganizationName(policy),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
@@ -238,7 +243,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     ? {}
                     : {
                           description: translate('workspace.netsuite.subsidiary'),
-                          iconRight: Expensicons.ArrowRight,
+                          iconRight: icons.ArrowRight,
                           title: policy?.connections?.netsuite?.options?.config?.subsidiary ?? '',
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
@@ -258,7 +263,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     ? {}
                     : {
                           description: translate('workspace.intacct.entity'),
-                          iconRight: Expensicons.ArrowRight,
+                          iconRight: icons.ArrowRight,
                           title: getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel')),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
@@ -288,13 +293,13 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             default:
                 return undefined;
         }
-    }, [connectedIntegration, currentXeroOrganization?.id, policy, policyID, styles.fontWeightNormal, styles.sectionMenuItemTopDescription, tenants.length, translate]);
+    }, [connectedIntegration, currentXeroOrganization?.id, policy, policyID, styles.fontWeightNormal, styles.sectionMenuItemTopDescription, tenants.length, translate, icons.ArrowRight]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress && policyID) {
             return accountingIntegrations
                 .map((integration) => {
-                    const integrationData = getAccountingIntegrationData(integration, policyID, translate);
+                    const integrationData = getAccountingIntegrationData(integration, policyID, translate, undefined, undefined, undefined, undefined, undefined, accountingIcons);
                     if (!integrationData) {
                         return undefined;
                     }
@@ -337,7 +342,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [];
         }
         const isConnectionVerified = !isConnectionUnverified(policy, connectedIntegration);
-        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX));
+        const integrationData = getAccountingIntegrationData(
+            connectedIntegration,
+            policyID,
+            translate,
+            policy,
+            undefined,
+            undefined,
+            undefined,
+            isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX),
+            accountingIcons,
+        );
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
         let connectionMessage;
@@ -352,7 +367,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const configurationOptions = [
             {
                 icon: icons.Pencil,
-                iconRight: Expensicons.ArrowRight,
+                iconRight: icons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.import'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -362,7 +377,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             },
             {
                 icon: Expensicons.Send,
-                iconRight: Expensicons.ArrowRight,
+                iconRight: icons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.export'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -377,7 +392,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ? [
                       {
                           icon: icons.ExpensifyCard,
-                          iconRight: Expensicons.ArrowRight,
+                          iconRight: icons.ArrowRight,
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.cardReconciliation'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -387,7 +402,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 : []),
             {
                 icon: icons.Gear,
-                iconRight: Expensicons.ArrowRight,
+                iconRight: icons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.advanced'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -425,8 +440,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(isEmptyObject(policy?.connections) || !isConnectionVerified ? [] : configurationOptions),
         ];
     }, [
-        icons.Gear,
-        icons.Pencil,
+        accountingIcons,
+        icons,
         policy,
         isSyncInProgress,
         policyID,
@@ -449,7 +464,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         datetimeToRelative,
-        icons.ExpensifyCard,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -461,7 +475,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         );
         return otherIntegrations
             .map((integration) => {
-                const integrationData = getAccountingIntegrationData(integration, policyID, translate);
+                const integrationData = getAccountingIntegrationData(integration, policyID, translate, undefined, undefined, undefined, undefined, undefined, accountingIcons);
                 if (!integrationData) {
                     return undefined;
                 }
@@ -511,6 +525,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
+        accountingIcons,
     ]);
 
     const [chatTextLink, chatReportID] = useMemo(() => {
@@ -612,7 +627,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             {!!account?.guideDetails?.email && !hasAccountingConnections(policy) && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                                     <Icon
-                                        src={Expensicons.QuestionMark}
+                                        src={icons.QuestionMark}
                                         width={20}
                                         height={20}
                                         fill={theme.icon}
