@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import type {LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
-import {Animated, View} from 'react-native';
+import {Animated, DeviceEventEmitter, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
@@ -108,6 +108,7 @@ function BaseModal({
     const hideModal = useCallback(
         (callHideCallback = true) => {
             shouldCallHideModalOnUnmount.current = false;
+            willAlertModalBecomeVisible(false);
             if (areAllModalsHidden()) {
                 if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
                     setModalVisibility(false);
@@ -122,6 +123,10 @@ function BaseModal({
         [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
     );
 
+    const handleDismissModal = useCallback(() => {
+        ComposerFocusManager.setReadyToFocus(uniqueModalId);
+    }, [uniqueModalId]);
+
     useEffect(() => {
         let removeOnCloseListener: () => void;
         if (isVisible) {
@@ -133,13 +138,18 @@ function BaseModal({
             }
         }
 
+        // When the modal becomes not visible, run dismiss logic to setReadyToFocus after it fully closes.
+        if (!isVisible && wasVisible) {
+            handleDismissModal();
+        }
+
         return () => {
             if (!removeOnCloseListener) {
                 return;
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type]);
+    }, [isVisible, wasVisible, onClose, type, handleDismissModal]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
@@ -155,6 +165,8 @@ function BaseModal({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
+
+    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
@@ -173,10 +185,6 @@ function BaseModal({
         } else {
             onClose?.();
         }
-    };
-
-    const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus(uniqueModalId);
     };
 
     // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
@@ -294,6 +302,8 @@ function BaseModal({
             ? 0
             : backdropOpacity;
 
+    const dragArea = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ? undefined : false;
+
     return (
         <ModalContext.Provider value={modalContextValue}>
             <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
@@ -306,7 +316,7 @@ function BaseModal({
                     style={[styles.pAbsolute, {zIndex: 1}]}
                 >
                     <ReanimatedModal
-                        dataSet={{dragArea: false}}
+                        dataSet={{dragArea}}
                         // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
                         onClick={(e) => e.stopPropagation()}
                         onBackdropPress={handleBackdropPress}
@@ -354,6 +364,7 @@ function BaseModal({
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
                         shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
+                        shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
                     >
                         <Animated.View
                             onLayout={onViewLayout}

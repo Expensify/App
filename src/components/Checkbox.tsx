@@ -58,8 +58,14 @@ type CheckboxProps = Partial<ChildrenProps> & {
     /** Additional styles to add to checkbox wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Used to locate this view in end-to-end tests. */
+    testID?: string;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
+
+    /** Label for Sentry tracking. On web, this will be added as data-sentry-label attribute. */
+    sentryLabel?: string;
 };
 
 function Checkbox({
@@ -79,7 +85,9 @@ function Checkbox({
     shouldStopMouseDownPropagation,
     shouldSelectOnPressEnter,
     wrapperStyle,
+    testID,
     ref,
+    sentryLabel,
 }: CheckboxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -111,6 +119,7 @@ function Checkbox({
 
     return (
         <PressableWithFeedback
+            testID={testID}
             disabled={disabled}
             onPress={firePressHandlerOnClick}
             onMouseDown={(e) => {
@@ -130,6 +139,7 @@ function Checkbox({
             accessibilityLabel={accessibilityLabel}
             pressDimmingValue={1}
             wrapperStyle={wrapperStyle}
+            sentryLabel={sentryLabel}
         >
             {children ?? (
                 <View

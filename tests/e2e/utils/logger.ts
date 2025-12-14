@@ -28,7 +28,7 @@ const writeToLogFile = (...args: string[]) => {
                 if (typeof arg === 'string') {
                     // Remove color codes from arg, because they are not supported in log files
                     // eslint-disable-next-line no-control-regex
-                    return arg.replace(/\x1b\[\d+m/g, '');
+                    return arg.replaceAll(/\x1b\[\d+m/g, '');
                 }
                 return arg;
             })

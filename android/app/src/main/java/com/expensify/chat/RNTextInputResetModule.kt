@@ -22,7 +22,7 @@ class RNTextInputResetModule(private val reactContext: ReactApplicationContext) 
                 Context.INPUT_METHOD_SERVICE
             ) as? InputMethodManager
 
-            val reactNativeView = currentActivity?.findViewById<View>(android.R.id.content)
+            val reactNativeView = reactApplicationContext.getCurrentActivity()?.findViewById<View>(android.R.id.content)
             val viewToReset = reactNativeView?.let { ReactFindViewUtil.findView(it, nativeId) }
             imm?.restartInput(viewToReset)
         }

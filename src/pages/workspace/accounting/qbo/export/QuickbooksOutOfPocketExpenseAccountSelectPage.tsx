@@ -53,6 +53,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
                 descriptionText = translate('workspace.qbo.accountsPayableDescription');
                 break;
             default:
+                titleText = 'workspace.qbo.account';
                 break;
         }
 

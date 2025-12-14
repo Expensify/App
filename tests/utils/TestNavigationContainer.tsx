@@ -114,10 +114,6 @@ function TestSearchFullscreenNavigator() {
                 name={SCREENS.SEARCH.ROOT}
                 getComponent={getEmptyComponent()}
             />
-            <SearchStack.Screen
-                name={SCREENS.SEARCH.MONEY_REQUEST_REPORT}
-                getComponent={getEmptyComponent()}
-            />
         </SearchStack.Navigator>
     );
 }
@@ -144,6 +140,10 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
                 <RootStack.Screen
                     name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                     component={TestSearchFullscreenNavigator}
+                />
+                <RootStack.Screen
+                    name={SCREENS.VALIDATE_LOGIN}
+                    component={getEmptyComponent()}
                 />
             </RootStack.Navigator>
         </NavigationContainer>

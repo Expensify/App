@@ -9,7 +9,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchDatePreset, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
@@ -246,6 +246,11 @@ const baseFilterConfig = {
         description: 'common.action' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION),
     },
+    reportField: {
+        getTitle: getFilterDisplayTitle,
+        description: 'workspace.common.reportField' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REPORT_FIELD),
+    },
 };
 
 function getFilterWorkspaceDisplayTitle(filters: SearchAdvancedFiltersForm, policies: WorkspaceListItem[]) {
@@ -366,6 +371,50 @@ function getFilterDisplayTitle(
 
     key = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys | SearchAmountFilterKeys>;
 
+    if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+        const values: string[] = [];
+
+        for (const [fieldKey, fieldValue] of Object.entries(filters)) {
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX) || !fieldValue || !fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+                continue;
+            }
+
+            const fieldName = fieldKey
+                .replace(CONST.SEARCH.REPORT_FIELD.ON_PREFIX, '')
+                .replace(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX, '')
+                .replace(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX, '')
+                .replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '')
+                .split('-')
+                .map((word, index) => (index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word))
+                .join(' ');
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX)) {
+                const dateString = isSearchDatePreset(fieldValue as string)
+                    ? translate(`search.filters.date.presets.${fieldValue as SearchDatePreset}`)
+                    : translate('search.filters.date.on', {date: fieldValue as string});
+
+                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+            }
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
+                const dateString = translate('search.filters.date.after', {date: fieldValue as string}).toLowerCase();
+                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+            }
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
+                const dateString = translate('search.filters.date.before', {date: fieldValue as string}).toLowerCase();
+                values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
+            }
+
+            if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
+                const valueString = translate('search.filters.reportField', {name: fieldName, value: fieldValue as string});
+                values.push(valueString);
+            }
+        }
+
+        return values.length ? values.join(', ') : undefined;
+    }
+
     if ((key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) && filters[key]) {
         const filterArray = filters[key] ?? [];
         return filterArray.sort(localeCompare).join(', ');
@@ -398,7 +447,10 @@ function getFilterDisplayTitle(
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
         const filterValue = filters[key];
-        return filterValue ? translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.DATA_TYPES>}`) : undefined;
+        if (filterValue === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+            return translate('common.expenseReport');
+        }
+        return filterValue ? translate(`common.${filterValue}`) : undefined;
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
@@ -430,8 +482,8 @@ function getFilterDisplayTitle(
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
 
-function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, groupBy: SearchGroupBy | undefined, translate: LocaleContextProps['translate']) {
-    const statusOptions = getStatusOptions(type, groupBy).concat({text: translate('common.all'), value: CONST.SEARCH.STATUS.EXPENSE.ALL});
+function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, translate: LocaleContextProps['translate']) {
+    const statusOptions = getStatusOptions(translate, type).concat({text: translate('common.all'), value: CONST.SEARCH.STATUS.EXPENSE.ALL});
     let filterValue = filters?.status;
 
     if (!filterValue?.length) {
@@ -460,12 +512,12 @@ function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
     }
 
     const result: string[] = [];
-    Object.entries(taxRates).forEach(([taxRateName, taxRateKeys]) => {
+    for (const [taxRateName, taxRateKeys] of Object.entries(taxRates)) {
         if (!taxRateKeys.some((taxRateKey) => selectedTaxRateKeys.includes(taxRateKey)) || result.includes(taxRateName)) {
-            return;
+            continue;
         }
         result.push(taxRateName);
-    });
+    }
 
     return result.join(', ');
 }
@@ -495,17 +547,16 @@ function AdvancedSearchFilters() {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-
-    const groupBy = searchAdvancedFilters.groupBy;
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList, true), [userCardList, workspaceCardFeeds]);
-    const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: emailSelector});
+
+    const taxRates = getAllTaxRates(policies);
 
     const {sections: workspaces} = useWorkspaceList({
         policies,
@@ -569,7 +620,7 @@ function AdvancedSearchFilters() {
                 const workspacesData = workspaces.flatMap((value) => value.data);
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, groupBy, translate);
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, translate);
             } else {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             }
@@ -591,7 +642,7 @@ function AdvancedSearchFilters() {
             items: filters.at(0) ?? [],
         },
         {
-            titleTranslationKey: 'common.expenses',
+            titleTranslationKey: queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? 'common.reports' : 'common.expenses',
             items: filters.at(1) ?? [],
         },
         {
@@ -600,7 +651,7 @@ function AdvancedSearchFilters() {
         },
     ];
 
-    sections.forEach((section) => {
+    for (const section of sections) {
         section.items.sort((a, b) => {
             if (a.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
                 return -1;
@@ -610,7 +661,7 @@ function AdvancedSearchFilters() {
             }
             return localeCompare(a.description, b.description);
         });
-    });
+    }
 
     return (
         <>

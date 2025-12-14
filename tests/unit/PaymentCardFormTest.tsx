@@ -5,16 +5,25 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import AddPaymentCard from '@pages/settings/Subscription/PaymentCard';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
+jest.mock('@components/RenderHTML', () => {
+    const ReactMock = require('react') as typeof React;
+    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+
+    return ({html}: {html: string}) => {
+        const plainText = html.replaceAll(/<[^>]*>/g, '');
+        return ReactMock.createElement(Text, null, plainText);
+    };
+});
 
 jest.mock('@libs/ReportUtils', () => ({
     getReportIDFromLink: jest.fn(() => ''),
@@ -37,9 +46,14 @@ afterAll(() => {
 describe('Subscription/AddPaymentCard', () => {
     const Stack = createStackNavigator();
 
-    const renderAddPaymentCardPage = (initialRouteName: typeof SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD) => {
-        return render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+    const hydrateAddPaymentCardForm = async () => {
+        await Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {});
+        await waitForBatchedUpdates();
+    };
+
+    const renderAddPaymentCardPage = async (initialRouteName: typeof SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD) => {
+        const rendered = render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, HTMLEngineProvider]}>
                 <PortalProvider>
                     <NavigationContainer>
                         <Stack.Navigator initialRouteName={initialRouteName}>
@@ -52,11 +66,14 @@ describe('Subscription/AddPaymentCard', () => {
                 </PortalProvider>
             </ComposeProviders>,
         );
+        await waitForBatchedUpdatesWithAct();
+        return rendered;
     };
 
     describe('AddPaymentCardPage Expiration Date Formatting', () => {
         const runFormatTest = async (input: string, formattedAs: string) => {
-            renderAddPaymentCardPage(SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD);
+            await hydrateAddPaymentCardForm();
+            await renderAddPaymentCardPage(SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD);
             const expirationDateField = await screen.findByTestId('addPaymentCardPage.expiration');
             fireEvent.changeText(expirationDateField, input);
             expect(expirationDateField.props.value).toBe(formattedAs);

@@ -34,9 +34,11 @@ function MultiSelectListItem<TItem extends ListItem>({
                 isChecked={isSelected}
                 accessibilityLabel={item.text ?? ''}
                 onPress={() => onSelectRow(item)}
+                isIndeterminate={item.isIndeterminate}
+                style={[isMultilineSupported ? styles.ml3 : null]}
             />
         );
-    }, [isSelected, item, onSelectRow]);
+    }, [isMultilineSupported, isSelected, item, onSelectRow, styles.ml3]);
 
     return (
         <RadioListItem

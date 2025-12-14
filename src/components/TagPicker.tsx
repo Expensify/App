@@ -99,15 +99,19 @@ function TagPicker({
             });
         }
 
-        const selectedNames = selectedOptions.map((s) => s.name);
+        const selectedNames = new Set(selectedOptions.map((s) => s.name));
 
-        return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
+        return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.has(policyTag.name))];
     }, [shouldShowDisabledAndSelectedOption, hasDependentTags, selectedOptions, policyTagList.tags, transactionTag, tagListIndex]);
 
-    const availableTagsCount = Array.isArray(enabledTags) ? enabledTags.length : Object.keys(enabledTags).length;
-    const isTagsCountBelowThreshold = availableTagsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
+    const availableTagsCount = useMemo(() => {
+        if (Array.isArray(enabledTags)) {
+            return enabledTags.filter((tag) => tag.enabled).length;
+        }
 
-    const shouldShowTextInput = !isTagsCountBelowThreshold;
+        return Object.values(enabledTags ?? {}).filter((tag) => tag.enabled).length;
+    }, [enabledTags]);
+    const shouldShowTextInput = availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const sections = useMemo(() => {
         const tagSections = getTagListSections({
@@ -116,6 +120,7 @@ function TagPicker({
             tags: enabledTags,
             recentlyUsedTags: policyRecentlyUsedTagsList,
             localeCompare,
+            translate,
         });
         return shouldOrderListByTagName
             ? tagSections.map((option) => ({
@@ -123,11 +128,11 @@ function TagPicker({
                   data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
               }))
             : tagSections;
-    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, shouldOrderListByTagName, localeCompare]);
+    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, localeCompare, translate, shouldOrderListByTagName]);
 
     const headerMessage = getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);
 
-    const selectedOptionKey = sections.at(0)?.data?.filter((policyTag) => policyTag.searchText === selectedTag)?.[0]?.keyForList;
+    const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
 
     return (
         <SelectionList
@@ -138,7 +143,6 @@ function TagPicker({
             textInputValue={searchValue}
             headerMessage={headerMessage}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-            isRowMultilineSupported
             initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}

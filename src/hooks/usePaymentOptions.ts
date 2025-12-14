@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type SettlementButtonProps from '@components/SettlementButton/types';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
@@ -14,13 +15,14 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
 } from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import {isCurrencySupportedForDirectReimbursement} from '@userActions/Policy/Policy';
+import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
@@ -59,6 +61,7 @@ function usePaymentOptions({
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
@@ -67,6 +70,8 @@ function usePaymentOptions({
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
@@ -113,13 +118,13 @@ function usePaymentOptions({
         const isExpenseReport = isExpenseReportUtil(iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
-                text: translate('iou.settleExpensify', {formattedAmount}),
+                text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
-                text: translate('iou.settleExpensify', {formattedAmount}),
-                icon: Expensicons.Wallet,
+                text: translate('iou.settleBusiness', {formattedAmount}),
+                icon: icons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
@@ -130,11 +135,11 @@ function usePaymentOptions({
         };
         const approveButtonOption = {
             text: translate('iou.approve', {formattedAmount}),
-            icon: Expensicons.ThumbsUp,
+            icon: icons.ThumbsUp,
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
-        const canUseWallet = !isExpenseReport && !isInvoiceReport && currency === CONST.CURRENCY.USD;
+        const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
 
         // Only show the Approve button if the user cannot pay the expense
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
@@ -157,8 +162,8 @@ function usePaymentOptions({
         }
 
         if (isInvoiceReport) {
-            const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
-            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
+            const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles, translate);
+            const isCurrencySupported = isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
             const getPaymentSubitems = (payAsBusiness: boolean) =>
                 formattedPaymentMethods.map((formattedPaymentMethod) => ({
                     text: formattedPaymentMethod?.title ?? '',
@@ -182,7 +187,7 @@ function usePaymentOptions({
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
-                    icon: Expensicons.User,
+                    icon: icons.User,
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: [
@@ -200,7 +205,7 @@ function usePaymentOptions({
 
             buttonOptions.push({
                 text: translate('iou.settleBusiness', {formattedAmount}),
-                icon: Expensicons.Building,
+                icon: icons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 backButtonText: translate('iou.business'),
                 subMenuItems: [
@@ -243,6 +248,7 @@ function usePaymentOptions({
         chatReport,
         onPress,
         onlyShowPayElsewhere,
+        icons,
     ]);
 
     return paymentButtonOptions;

@@ -21,6 +21,7 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
     const login = route.params.login;
     const newRole = route.params.newRole as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
     const updateDelegateErrors = account?.delegatedAccess?.errorFields?.updateDelegateRole?.[login];
@@ -31,7 +32,7 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
 
         // Dismiss modal on successful magic code verification
         Navigation.goBack(ROUTES.SETTINGS_SECURITY);
-    }, [login, currentDelegate, updateDelegateErrors, newRole]);
+    }, [login, currentDelegate?.role, currentDelegate?.pendingFields?.role, updateDelegateErrors, newRole]);
 
     const clearError = () => {
         if (isEmptyObject(updateDelegateErrors) && isEmptyObject(validateCodeAction?.errorFields)) {
@@ -49,7 +50,7 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
             handleSubmitForm={(validateCode) => updateDelegateRole({email: login, role: newRole, validateCode, delegatedAccess: account?.delegatedAccess})}
-            descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+            descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? session?.email ?? ''})}
         />
     );
 }

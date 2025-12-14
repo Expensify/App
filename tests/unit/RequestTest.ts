@@ -42,17 +42,15 @@ test('Request.addMiddleware() can register two middlewares. They can pass a resp
     });
 
     // And another middleware that will throw when it sees this jsonCode
-    const errorThrowingMiddleware: Middleware = (promise: Promise<void | OnyxTypes.Response>) =>
-        promise.then(
-            (response: void | OnyxTypes.Response) =>
-                new Promise((resolve, reject) => {
-                    if (typeof response === 'object' && response.jsonCode !== 404) {
-                        return;
-                    }
-
-                    reject(new Error('Oops'));
-                }),
-        );
+    const errorThrowingMiddleware: Middleware = (promise) =>
+        promise.then((response) => {
+            if (typeof response === 'object' && response.jsonCode !== 404) {
+                // Pass the response through to the next middleware
+                return response;
+            }
+            // Reject so the chain receives an error
+            throw new Error('Oops');
+        });
 
     Request.addMiddleware(testMiddleware);
     Request.addMiddleware(errorThrowingMiddleware);

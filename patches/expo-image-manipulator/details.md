@@ -8,6 +8,6 @@
     This patch adjusts ios canvas size.
     ```
   
-- Upstream PR/issue: 🛑, commented in the App PR https://github.com/Expensify/App/pull/51475#issuecomment-3346202045
-- E/App issue: https://github.com/Expensify/App/issues/48911
-- PR introducing patch: https://github.com/Expensify/App/pull/51475
+- Upstream PR/issue: 🛑, there's no upstream PR/issue found. There's a related comment from App PR https://github.com/Expensify/App/pull/45448#issuecomment-2263252274
+- E/App issue: https://github.com/Expensify/App/issues/44084
+- PR introducing patch: https://github.com/Expensify/App/pull/45448

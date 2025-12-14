@@ -50,7 +50,7 @@ function ReportFieldsSettingsPage({
     const listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.sort(localeCompare);
 
     const deleteReportFieldAndHideModal = () => {
-        deleteReportFields(policyID, [reportFieldKey]);
+        deleteReportFields({policy, reportFieldsToUpdate: [reportFieldKey]});
         setIsDeleteModalVisible(false);
         Navigation.goBack();
     };
@@ -113,8 +113,8 @@ function ReportFieldsSettingsPage({
                             titleStyle={styles.flex1}
                             title={getReportFieldInitialValue(reportField)}
                             description={translate('common.initialValue')}
-                            shouldShowRightIcon={!isDateFieldType && !hasAccountingConnections}
-                            interactive={!isDateFieldType && !hasAccountingConnections}
+                            shouldShowRightIcon={!isDateFieldType}
+                            interactive={!isDateFieldType}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
                         />
                     )}

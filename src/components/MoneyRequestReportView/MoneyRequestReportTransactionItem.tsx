@@ -9,18 +9,18 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Report, TransactionViolation} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
-type MoneyRequestReportTransactionItemProps = ForwardedFSClassProps & {
+type MoneyRequestReportTransactionItemProps = {
     /** The transaction that is being displayed */
     transaction: TransactionWithOptionalHighlight;
 
@@ -59,6 +59,9 @@ type MoneyRequestReportTransactionItemProps = ForwardedFSClassProps & {
 
     /** Callback function that scrolls to this transaction in case it is newly added */
     scrollToNewTransaction?: (offset: number) => void;
+
+    /** Callback function that navigates to the transaction thread */
+    onArrowRightPress?: (transactionID: string) => void;
 };
 
 const expenseHeaders = getExpenseHeaders();
@@ -77,12 +80,13 @@ function MoneyRequestReportTransactionItem({
     amountColumnSize,
     taxAmountColumnSize,
     scrollToNewTransaction,
-    forwardedFSClass,
+    onArrowRightPress,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const theme = useTheme();
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
@@ -133,7 +137,6 @@ function MoneyRequestReportTransactionItem({
                 disabled={isTransactionPendingDelete(transaction)}
                 ref={viewRef}
                 wrapperStyle={[animatedHighlightStyle, styles.userSelectNone]}
-                forwardedFSClass={forwardedFSClass}
             >
                 <TransactionItemRow
                     transactionItem={transaction}
@@ -151,6 +154,10 @@ function MoneyRequestReportTransactionItem({
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     isDisabled={isPendingDelete}
                     style={[styles.p3]}
+                    onButtonPress={() => {
+                        handleOnPress(transaction.transactionID);
+                    }}
+                    onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

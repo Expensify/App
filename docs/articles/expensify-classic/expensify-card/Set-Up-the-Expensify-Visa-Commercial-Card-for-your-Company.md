@@ -6,8 +6,6 @@ keywords: [Expensify Card, qualify, apply]
 
 If you're an admin looking to roll out the Expensify Visa® Commercial Card for your organization, you're in the right place. This guide will walk you through the steps to qualify, apply for, and issue the Expensify Card to your employees.
 
-**NOTE:** Expensify Cards on Expensify Classic are only available to our US customers. If you are in the UK or EU, you can access the Expensify Card through our New Expensify platform - [Sign in here](https://new.expensify.com/) and follow [these instructions](https://help.expensify.com/articles/new-expensify/expensify-card/Create-UK-and-EU-Expensify-Card) to get started. Once set up, you can switch back to Expensify Classic if needed.
-
 ---
 
 # How to Qualify for the Expensify Card Program

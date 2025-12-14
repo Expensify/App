@@ -34,11 +34,11 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const TRANSFER_TIER_NAMES: string[] = [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM];
+const TRANSFER_TIER_NAMES = new Set<string>([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM]);
 
 function TransferBalancePage() {
     const styles = useThemeStyles();
-    const {numberFormat, translate} = useLocalize();
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {paddingBottom} = useSafeAreaPaddings();
 
@@ -49,16 +49,17 @@ function TransferBalancePage() {
     const paymentCardList = fundList ?? {};
 
     const paymentTypes = [
-        {
-            key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
-            title: translate('transferAmountPage.instant'),
-            description: translate('transferAmountPage.instantSummary', {
-                rate: numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
-                minAmount: convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE),
-            }),
-            icon: Expensicons.Bolt,
-            type: CONST.PAYMENT_METHODS.DEBIT_CARD,
-        },
+        // Temporarily disable P2P debit card, see https://github.com/Expensify/App/pull/46323
+        // {
+        //     key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
+        //     title: translate('transferAmountPage.instant'),
+        //     description: translate('transferAmountPage.instantSummary', {
+        //         rate: numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
+        //         minAmount: convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE),
+        //     }),
+        //     icon: Expensicons.Bolt,
+        //     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
+        // },
         {
             key: CONST.WALLET.TRANSFER_METHOD_TYPE.ACH,
             title: translate('transferAmountPage.ach'),
@@ -72,7 +73,7 @@ function TransferBalancePage() {
      * Get the selected/default payment method account for wallet transfer
      */
     function getSelectedPaymentMethodAccount(): PaymentMethod | undefined {
-        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
+        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
 
         const defaultAccount = paymentMethods.find((method) => method.isDefault);
         const selectedAccount = paymentMethods.find(
@@ -85,7 +86,7 @@ function TransferBalancePage() {
         saveWalletTransferMethodType(filterPaymentMethodType);
 
         // If we only have a single option for the given paymentMethodType do not force the user to make a selection
-        const combinedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
+        const combinedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
 
         const filteredMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
@@ -143,7 +144,7 @@ function TransferBalancePage() {
     const isButtonDisabled = !isTransferable || !selectedAccount;
     const errorMessage = getLatestErrorMessage(walletTransfer);
 
-    const shouldShowTransferView = hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && TRANSFER_TIER_NAMES.includes(userWallet?.tierName ?? '');
+    const shouldShowTransferView = hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && TRANSFER_TIER_NAMES.has(userWallet?.tierName ?? '');
 
     return (
         <ScreenWrapper

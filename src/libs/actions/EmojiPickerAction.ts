@@ -1,9 +1,10 @@
-import React from 'react';
 import type {RefObject} from 'react';
+import React from 'react';
 import type {TextInput, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {CloseContextMenuCallback} from '@components/Reactions/QuickEmojiReactions/types';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import type CONST from '@src/CONST';
 
 type AnchorOrigin = {
@@ -14,21 +15,24 @@ type AnchorOrigin = {
 
 type EmojiPopoverAnchor = RefObject<View | HTMLDivElement | TextInput | null>;
 
-type OnWillShowPicker = (callback?: CloseContextMenuCallback) => void;
+type EmojiPickerOnWillShow = (callback?: CloseContextMenuCallback) => void;
 
-type OnModalHideValue = (isNavigating?: boolean) => void;
+type EmojiPickerOnModalHide = (isNavigating?: boolean) => void;
+
+type ShowEmojiPickerOptions = {
+    onModalHide: EmojiPickerOnModalHide;
+    onEmojiSelected: OnEmojiSelected;
+    emojiPopoverAnchor: EmojiPopoverAnchor;
+    anchorOrigin?: AnchorOrigin;
+    onWillShow?: EmojiPickerOnWillShow;
+    id?: string;
+    activeEmoji?: string;
+    withoutOverlay?: boolean;
+    composerToRefocusOnClose?: ComposerType;
+};
 
 type EmojiPickerRef = {
-    showEmojiPicker: (
-        onModalHideValue: OnModalHideValue,
-        onEmojiSelectedValue: OnEmojiSelected,
-        emojiPopoverAnchor: EmojiPopoverAnchor,
-        anchorOrigin?: AnchorOrigin,
-        onWillShow?: OnWillShowPicker,
-        id?: string,
-        activeEmoji?: string,
-        withoutOverlay?: boolean,
-    ) => void;
+    showEmojiPicker: (options: ShowEmojiPickerOptions) => void;
     isActive: (id: string) => boolean;
     clearActive: () => void;
     hideEmojiPicker: (isNavigating?: boolean) => void;
@@ -36,7 +40,7 @@ type EmojiPickerRef = {
     resetEmojiPopoverAnchor: () => void;
 };
 
-type OnEmojiSelected = (emojiCode: string, emojiObject: Emoji) => void;
+type OnEmojiSelected = (emojiCode: string, emojiObject: Emoji, preferredSkinTone: number) => void;
 
 const emojiPickerRef = React.createRef<EmojiPickerRef>();
 
@@ -50,21 +54,12 @@ const emojiPickerRef = React.createRef<EmojiPickerRef>();
  * @param onWillShow - Run a callback when Popover will show
  * @param id - Unique id for EmojiPicker
  */
-function showEmojiPicker(
-    onModalHide: OnModalHideValue,
-    onEmojiSelected: OnEmojiSelected,
-    emojiPopoverAnchor: EmojiPopoverAnchor,
-    anchorOrigin?: AnchorOrigin,
-    onWillShow: OnWillShowPicker = () => {},
-    id?: string,
-    activeEmoji?: string,
-    withoutOverlay?: boolean,
-) {
+function showEmojiPicker(options: ShowEmojiPickerOptions) {
     if (!emojiPickerRef.current) {
         return;
     }
 
-    emojiPickerRef.current.showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow, id, activeEmoji, withoutOverlay);
+    emojiPickerRef.current.showEmojiPicker(options);
 }
 
 /**
@@ -114,4 +109,4 @@ function resetEmojiPopoverAnchor() {
 }
 
 export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActive, clearActive, isEmojiPickerVisible, resetEmojiPopoverAnchor};
-export type {AnchorOrigin, OnModalHideValue, OnEmojiSelected, EmojiPopoverAnchor, OnWillShowPicker, EmojiPickerRef};
+export type {AnchorOrigin, EmojiPickerOnModalHide, OnEmojiSelected, EmojiPopoverAnchor, EmojiPickerOnWillShow, ShowEmojiPickerOptions, EmojiPickerRef};

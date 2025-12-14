@@ -1,6 +1,6 @@
 import type {StyleProp, TextStyle} from 'react-native';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 type DisplayNameWithTooltip = {
     /** The name to display in bold */
@@ -51,6 +51,9 @@ type DisplayNamesProps = ForwardedFSClassProps & {
 
     /** If we should add an ellipsis after the participants list */
     shouldAddEllipsis?: boolean;
+
+    /** Whether to parse HTML in the title */
+    shouldParseHtml?: boolean;
 
     /** Additional Text component to render after the displayNames */
     renderAdditionalText?: () => React.ReactNode;

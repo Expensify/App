@@ -18,7 +18,7 @@ function ForceFullScreenView({children, shouldForceFullScreen = false}: ForceFul
         addRouteKey(route.key);
 
         return () => removeRouteKey(route.key);
-    }, [addRouteKey, removeRouteKey, route, shouldForceFullScreen]);
+    }, [addRouteKey, removeRouteKey, route.key, shouldForceFullScreen]);
 
     if (shouldForceFullScreen) {
         return <View style={styles.forcedBlockingViewContainer}>{children}</View>;

@@ -18,9 +18,22 @@ NS_ASSUME_NONNULL_BEGIN
 /// Initialize attribute object with GIBAttributeFormatClearText format
 /// @param title Attribute name
 /// @param value Attribute value
+/// @param isSendOnce if false attribute will send once
+- (instancetype)initWithTitle:(GIBAttributeTitleKey)title andValue:(nonnull NSString *)value isSendOnce:(BOOL) isSendOnce;
+
+/// Initialize attribute object with GIBAttributeFormatClearText format. Attribute will send in every packet
+/// @param title Attribute name
+/// @param value Attribute value
 - (instancetype)initWithTitle:(GIBAttributeTitleKey)title andValue:(nonnull NSString *)value;
 
 /// Initialize attribute object with custom format
+/// @param title Attribute name
+/// @param value Attribute value
+/// @param format Attribute format
+/// @param isSendOnce if false attribute will send once
+- (instancetype)initWithTitle:(GIBAttributeTitleKey)title value:(nonnull NSString *)value andFormat:(GIBAttributeFormat)format isSendOnce:(BOOL) isSendOnce;
+
+/// Initialize attribute object with custom format.  Attribute will send in every packet
 /// @param title Attribute name
 /// @param value Attribute value
 /// @param format Attribute format
