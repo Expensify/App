@@ -10,6 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
+import {isSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
 import type {SubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
@@ -52,20 +53,18 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
     );
 
     return (
-        <FormProvider
-            formID={ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM}
-            style={styles.flexGrow1}
-            validate={validate}
-            onSubmit={connectPolicy}
-            submitButtonText={translate('common.confirm')}
-            submitButtonStyles={[styles.ph5]}
-            shouldValidateOnBlur
-            shouldValidateOnChange
-            shouldUseScrollView
-            addBottomSafeAreaPadding
-        >
-            <View style={styles.ph5}>
-                <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.title`)}</Text>
+        <>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6, styles.ph5]}>{translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.title`)}</Text>
+            <FormProvider
+                formID={ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM}
+                style={[styles.flexGrow1, styles.ph5]}
+                validate={validate}
+                onSubmit={connectPolicy}
+                submitButtonText={translate('common.confirm')}
+                shouldValidateOnBlur
+                shouldValidateOnChange
+                addBottomSafeAreaPadding={!isSafari()}
+            >
                 {formInputs.map((formInput, index) => (
                     <View
                         style={styles.mb4}
@@ -91,8 +90,8 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
                         )}
                     </View>
                 ))}
-            </View>
-        </FormProvider>
+            </FormProvider>
+        </>
     );
 }
 

@@ -147,9 +147,7 @@ function ConnectionLayout({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
-                shouldEnableMaxHeight={shouldEnableMaxHeight}
-                shouldAvoidScrollOnVirtualViewport={shouldAvoidScrollOnVirtualViewport}
-                shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+                shouldEnableMaxHeight={!!shouldUseScrollView}
                 testID={displayName}
             >
                 <HeaderWithBackButton
