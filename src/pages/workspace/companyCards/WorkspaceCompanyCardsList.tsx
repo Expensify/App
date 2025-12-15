@@ -47,21 +47,11 @@ type WorkspaceCompanyCardsListProps = {
     /** Whether to disable assign card button */
     isAssigningCardDisabled?: boolean;
 
-    shouldShowAssignCardButton?: boolean;
-
     /** Whether to show GB disclaimer */
     shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardsList({
-    selectedFeed,
-    cardsList,
-    policyID,
-    onAssignCard,
-    isAssigningCardDisabled,
-    shouldShowGBDisclaimer,
-    shouldShowAssignCardButton,
-}: WorkspaceCompanyCardsListProps) {
+function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const listRef = useRef<FlashListRef<string>>(null);
@@ -147,7 +137,6 @@ function WorkspaceCompanyCardsList({
                                 isAssigned={!!assignedCard}
                                 onAssignCard={onAssignCard}
                                 isAssigningCardDisabled={isAssigningCardDisabled}
-                                shouldShowAssignCardButton={shouldShowAssignCardButton}
                                 shouldUseNarrowTableRowLayout={shouldUseNarrowTableRowLayout}
                             />
                         )}
@@ -164,7 +153,6 @@ function WorkspaceCompanyCardsList({
             plaidIconUrl,
             policyID,
             selectedFeed,
-            shouldShowAssignCardButton,
             shouldUseNarrowTableRowLayout,
             styles.br3,
             styles.highlightBG,

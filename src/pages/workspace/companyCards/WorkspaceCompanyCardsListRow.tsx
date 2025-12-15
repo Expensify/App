@@ -44,9 +44,6 @@ type WorkspaceCompanyCardsListRowProps = {
     /** Whether to disable assign card button */
     isAssigningCardDisabled?: boolean;
 
-    /** Whether to show assign card button */
-    shouldShowAssignCardButton?: boolean;
-
     /** Whether to use narrow table row layout */
     shouldUseNarrowTableRowLayout?: boolean;
 
@@ -64,7 +61,6 @@ function WorkspaceCompanyCardsListRow({
     onAssignCard,
     plaidIconUrl,
     isAssigningCardDisabled,
-    shouldShowAssignCardButton,
     shouldUseNarrowTableRowLayout,
 }: WorkspaceCompanyCardsListRowProps) {
     const styles = useThemeStyles();
@@ -166,7 +162,7 @@ function WorkspaceCompanyCardsListRow({
                         />
                     </View>
                 )}
-                {!isAssigned && !!shouldShowAssignCardButton && (
+                {!isAssigned && (
                     <Button
                         text={shouldUseNarrowTableRowLayout ? translate('workspace.companyCards.assign') : translate('workspace.companyCards.assignCard')}
                         onPress={onAssignCard}

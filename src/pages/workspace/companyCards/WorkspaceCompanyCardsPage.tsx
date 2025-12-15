@@ -47,8 +47,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const hasNoAssignedCard = Object.keys(cardsList ?? {}).length === 0;
 
-    const {cardList, ...cards} = cardsList ?? {};
-
     const companyCards = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
     const isNoFeed = !selectedFeedData;
@@ -76,8 +74,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
         openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, feed);
     }, [feed, isLoading, policyID, isPending, domainOrWorkspaceAccountID]);
-
-    const shouldShowAssignCardButton = isPending || !isEmptyObject(cards);
 
     const {assignCard, isAssigningCardDisabled} = useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal});
 
@@ -123,7 +119,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                             policyID={policyID}
                             onAssignCard={assignCard}
                             isAssigningCardDisabled={isAssigningCardDisabled}
-                            shouldShowAssignCardButton={shouldShowAssignCardButton}
                         />
                     )}
                 </WorkspacePageWithSections>
