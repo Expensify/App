@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardDefaultName} from '@libs/actions/Card';
+import {lastFourNumbersFromCardName} from '@libs/CardUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -44,6 +45,9 @@ type WorkspaceCompanyCardsTableRowProps = {
     /** Whether to show assign card button */
     shouldShowAssignCardButton?: boolean;
 
+    /** Whether to use narrow table row layout */
+    shouldUseNarrowTableRowLayout?: boolean;
+
     /** On assign card */
     onAssignCard: () => void;
 };
@@ -51,7 +55,7 @@ type WorkspaceCompanyCardsTableRowProps = {
 function WorkspaceCompanyCardsTableRow({
     cardholder,
     customCardName,
-    cardName: cardNumber,
+    cardName,
     isHovered,
     isAssigned,
     onAssignCard,
@@ -59,12 +63,17 @@ function WorkspaceCompanyCardsTableRow({
     cardFeedIcon,
     isAssigningCardDisabled,
     shouldShowAssignCardButton,
+    shouldUseNarrowTableRowLayout,
 }: WorkspaceCompanyCardsTableRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const cardName = customCardName ?? getCardDefaultName(cardholder?.displayName);
+    const customCardNameWithFallback = customCardName ?? getCardDefaultName(cardholder?.displayName);
+
+    const lastFourCardNameNumbers = lastFourNumbersFromCardName(cardName);
+
+    const alternateLoginText = shouldUseNarrowTableRowLayout ? `${customCardNameWithFallback} - ${lastFourCardNameNumbers}` : (cardholder?.login ?? '');
 
     return (
         <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.br3, styles.p4]}>
@@ -82,13 +91,14 @@ function WorkspaceCompanyCardsTableRow({
                             type={CONST.ICON_TYPE_AVATAR}
                             size={CONST.AVATAR_SIZE.DEFAULT}
                         />
+
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                             <TextWithTooltip
                                 text={cardholder?.displayName ?? ''}
-                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.mb1, styles.justifyContentCenter]}
+                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.justifyContentCenter]}
                             />
                             <TextWithTooltip
-                                text={cardholder?.login ?? ''}
+                                text={alternateLoginText}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         </View>
@@ -116,24 +126,28 @@ function WorkspaceCompanyCardsTableRow({
                 )}
             </View>
 
-            <View style={[styles.flex1]}>
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textLabelSupporting, styles.lh16]}
-                >
-                    {cardNumber}
-                </Text>
-            </View>
+            {!shouldUseNarrowTableRowLayout && (
+                <View style={[styles.flex1]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                    >
+                        {cardName}
+                    </Text>
+                </View>
+            )}
 
-            <View style={[styles.flex1, styles.alignItemsEnd]}>
+            <View style={[!shouldUseNarrowTableRowLayout && styles.flex1, styles.alignItemsEnd]}>
                 {isAssigned && (
                     <View style={[styles.justifyContentCenter, styles.flexRow, styles.alignItemsCenter, styles.ml2, styles.gap3]}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.optionDisplayName, styles.pre]}
-                        >
-                            {cardName}
-                        </Text>
+                        {!shouldUseNarrowTableRowLayout && (
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.optionDisplayName, styles.pre]}
+                            >
+                                {customCardNameWithFallback}
+                            </Text>
+                        )}
                         <Icon
                             src={Expensicons.ArrowRight}
                             fill={theme.icon}
@@ -145,7 +159,7 @@ function WorkspaceCompanyCardsTableRow({
                 )}
                 {!isAssigned && !!shouldShowAssignCardButton && (
                     <Button
-                        text={translate('workspace.companyCards.assignCard')}
+                        text={shouldUseNarrowTableRowLayout ? translate('workspace.companyCards.assign') : translate('workspace.companyCards.assignCard')}
                         onPress={onAssignCard}
                         isDisabled={isAssigningCardDisabled}
                     />
