@@ -500,6 +500,7 @@ function MoneyRequestParticipantsSelector({
                 return;
             }
 
+            // eslint-disable-next-line rulesdir/no-default-id-values
             setSelectedOptions([{...option, isSelected: true, reportID: option.reportID ?? ''}]);
             addSingleParticipant(option);
         },
