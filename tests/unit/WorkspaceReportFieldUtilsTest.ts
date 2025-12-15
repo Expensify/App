@@ -43,20 +43,20 @@ describe('WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue', () => {
 
 describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
     const fieldList: Record<string, PolicyReportField> = {
-        field1: {name: 'ExistingField', type: 'text'} as PolicyReportField,
-        field2: {name: 'AnotherField', type: 'date'} as PolicyReportField,
+        field1: {name: 'Field1', type: 'text'} as PolicyReportField,
+        field2: {name: 'Field2', type: 'date'} as PolicyReportField,
     };
 
     it('should return false when field name does not exist', () => {
-        expect(isReportFieldNameExisting(fieldList, 'NonExistentField')).toBe(false);
+        expect(isReportFieldNameExisting(fieldList, 'Field3')).toBe(false);
     });
 
     it('should return true when field name exists with exact case match', () => {
-        expect(isReportFieldNameExisting(fieldList, 'ExistingField')).toBe(true);
+        expect(isReportFieldNameExisting(fieldList, 'Field1')).toBe(true);
     });
 
     it('should return true when field name exists with different case', () => {
-        expect(isReportFieldNameExisting(fieldList, 'EXISTINGFIELD')).toBe(true);
-        expect(isReportFieldNameExisting(fieldList, 'existingfield')).toBe(true);
+        expect(isReportFieldNameExisting(fieldList, 'FIELD1')).toBe(true);
+        expect(isReportFieldNameExisting(fieldList, 'field1')).toBe(true);
     });
 });
