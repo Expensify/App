@@ -1495,7 +1495,7 @@ describe('PolicyUtils', () => {
         it('should return empty array if no admins in policies', () => {
             const policies = {
                 '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
             };
             const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
             expect(result).toHaveLength(0);
@@ -1511,7 +1511,7 @@ describe('PolicyUtils', () => {
                         [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                     },
                 },
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
             };
             const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
             expect(result).toHaveLength(1);
@@ -1537,7 +1537,7 @@ describe('PolicyUtils', () => {
                         [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                     },
                 },
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
             };
             const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
             expect(result).toHaveLength(0);
@@ -1554,7 +1554,7 @@ describe('PolicyUtils', () => {
                     },
                 },
                 '2': {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL),
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
                     pendingAction: undefined,
                     employeeList: {
                         [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
