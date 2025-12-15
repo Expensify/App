@@ -2450,7 +2450,7 @@ function getActionOptions(translate: LocaleContextProps['translate']) {
 function getColumnsToShow(
     currentAccountID: number | undefined,
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
-    visibleColumns: SearchCustomColumnIds[],
+    visibleColumns: SearchCustomColumnIds[] = [],
     isExpenseReportView = false,
     type?: SearchDataTypes,
 ): ColumnVisibility {
