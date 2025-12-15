@@ -237,6 +237,17 @@ import {
     removeTransactionFromDuplicateTransactionViolation,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
+import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '@userActions/Policy/Member';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
+import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from '@userActions/Policy/Tag';
+import type {GuidedSetupData} from '@userActions/Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
+import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
+import {sanitizeRecentWaypoints} from '@userActions/Transaction';
+import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
+import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -257,17 +268,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {clearByKey as clearPdfByOnyxKey} from '../CachedPDFPaths';
-import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '../Policy/Member';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from '../Policy/Policy';
-import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from '../Policy/Tag';
-import type {GuidedSetupData} from '../Report';
-import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction, optimisticReportLastData} from '../Report';
-import {clearAllRelatedReportActionErrors} from '../ReportActions';
-import {sanitizeRecentWaypoints} from '../Transaction';
-import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from '../TransactionEdit';
-import {getOnboardingMessages} from '../Welcome/OnboardingFlow';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
