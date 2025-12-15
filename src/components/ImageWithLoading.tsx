@@ -109,8 +109,8 @@ function ImageWithLoading({
             />
             {isLoading && !isImageCached && !isOffline && (
                 <LoadingIndicator
-                    style={[styles.opacity1, styles.bgTransparent, loadingIndicatorStyles]}
                     size={loadingIconSize}
+                    style={[styles.opacity1, styles.bgTransparent, loadingIndicatorStyles]}
                 />
             )}
             {isLoading && shouldShowOfflineIndicator && !isImageCached && <AttachmentOfflineIndicator isPreview />}
