@@ -37,6 +37,9 @@ function SearchEditMultipleCategoryPage() {
     const currentCategory = draftTransaction?.category ?? '';
 
     const saveCategory = useCallback((item: ListItem) => {
+        if (!item.searchText) {
+            return;
+        }
         updateBulkEditDraftTransaction({
             category: item.searchText,
         });

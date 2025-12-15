@@ -212,7 +212,6 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,
-    calculateTaxAmount,
     getAmount,
     getCategoryTaxCodeAndAmount,
     getChildTransactions,
@@ -221,7 +220,6 @@ import {
     getDistanceInMeters,
     getMerchant,
     getOriginalTransactionWithSplitInfo,
-    getTaxValue,
     getUpdatedTransaction,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
@@ -15190,7 +15188,7 @@ function updateMultipleMoneyRequests(transactionIDs: string[], transactionChange
         const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
         const isFromExpenseReport = isExpenseReport(iouReport);
 
-        // Get the report action to check field editability
+        // Get the report action to check if field is editable
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
         const reportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
 

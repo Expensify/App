@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo} from 'react';
-import Onyx from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
