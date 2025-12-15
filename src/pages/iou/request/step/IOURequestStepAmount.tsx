@@ -36,6 +36,7 @@ import {
     trackExpense,
     updateMoneyRequestAmountAndCurrency,
 } from '@userActions/IOU';
+import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -48,7 +49,6 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import { sendMoneyElsewhere, sendMoneyWithWallet } from '@userActions/IOU/SendMoney';
 
 type AmountParams = {
     amount: string;
