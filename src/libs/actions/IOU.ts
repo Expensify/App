@@ -9119,7 +9119,7 @@ function cleanUpMoneyRequest(
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function deleteMoneyRequest(params: DeleteMoneyRequestFunctionParams): Route | undefined {
+function deleteMoneyRequest(params: DeleteMoneyRequestFunctionParams) {
     const {
         transactionID,
         reportAction,
