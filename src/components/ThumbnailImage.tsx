@@ -14,8 +14,6 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import type {ImageObjectPosition} from './Image/types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
@@ -104,7 +102,7 @@ function ThumbnailImage({
     shouldUseFullHeight,
     onLoad,
 }: ThumbnailImageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gallery'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'OfflineCloud'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -150,7 +148,7 @@ function ThumbnailImage({
             <View style={[style, styles.overflowHidden, fallbackColor]}>
                 <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
-                        src={isOffline ? Expensicons.OfflineCloud : (fallbackIcon ?? icons.Gallery)}
+                        src={isOffline ? icons.OfflineCloud : (fallbackIcon ?? icons.Gallery)}
                         height={fallbackIconSize}
                         width={fallbackIconSize}
                         fill={fallbackIconColor ?? theme.border}
