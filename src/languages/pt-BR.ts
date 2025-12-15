@@ -2651,10 +2651,10 @@ ${amount} para ${merchant} - ${date}`,
                         *Configure categorias* para que sua equipe possa classificar despesas para relatórios fáceis.
 
                         1. Clique em *Workspaces*.
-                        3. Selecione seu workspace.
-                        4. Clique em *Categories*.
-                        5. Desative quaisquer categorias de que você não precise.
-                        6. Adicione suas próprias categorias no canto superior direito.
+                        2. Selecione seu workspace.
+                        3. Clique em *Categories*.
+                        4. Desative quaisquer categorias de que você não precise.
+                        5. Adicione suas próprias categorias no canto superior direito.
 
                         [Leve-me para as configurações de categorias do workspace](${workspaceCategoriesLink}).
 
@@ -2743,10 +2743,10 @@ ${
                         *Convide sua equipe* para o Expensify para que eles possam começar a registrar despesas hoje.
 
                         1. Clique em *Workspaces*.
-                        3. Selecione seu workspace.
-                        4. Clique em *Members* > *Invite member*.
-                        5. Insira e-mails ou números de telefone.
-                        6. Adicione uma mensagem de convite personalizada, se quiser!
+                        2. Selecione seu workspace.
+                        3. Clique em *Members* > *Invite member*.
+                        4. Insira e-mails ou números de telefone.
+                        5. Adicione uma mensagem de convite personalizada, se quiser!
 
                         [Leve-me aos membros do workspace](${workspaceMembersLink}).
 
@@ -2767,11 +2767,11 @@ ${
                         Use tags para adicionar detalhes extras às despesas, como projetos, clientes, locais e departamentos. Se você precisar de vários níveis de tags, poderá fazer upgrade para o plano Control.
 
                         1. Clique em *Workspaces*.
-                        3. Selecione seu workspace.
-                        4. Clique em *More features*.
-                        5. Ative *Tags*.
-                        6. Vá para *Tags* no editor do workspace.
-                        7. Clique em *+ Add tag* para criar a sua própria.
+                        2. Selecione seu workspace.
+                        3. Clique em *More features*.
+                        4. Ative *Tags*.
+                        5. Vá para *Tags* no editor do workspace.
+                        6. Clique em *+ Add tag* para criar a sua própria.
 
                         [Leve-me para mais recursos](${workspaceMoreFeaturesLink}).
 

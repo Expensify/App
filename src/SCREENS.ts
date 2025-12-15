@@ -674,6 +674,7 @@ const SCREENS = {
         CATEGORIES_IMPORTED: 'Categories_Imported',
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
+        MEMBER_DETAILS_ROLE: 'Workspace_Member_Details_Role',
         MEMBER_CUSTOM_FIELD: 'Workspace_Member_Custom_Field',
         MEMBER_NEW_CARD: 'Workspace_Member_NewCard',
         OWNER_CHANGE_CHECK: 'Workspace_Owner_Change_Check',
