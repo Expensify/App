@@ -131,7 +131,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                 shouldShowCancelButton={false}
                 onCancel={onClose}
                 prompt={
-                    <View style={[styles.flexRow]}>
+                    <View style={styles.flexRow}>
                         <RenderHTML
                             html={translate('workspace.moreFeatures.companyCards.downgradeSubTitle')}
                             onLinkPress={onMoveToCompanyCardFeeds}
