@@ -58,6 +58,7 @@ import type {
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport, startMoneyRequest} from './actions/IOU';
 import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from './actions/isOpenConfirmNavigateExpensifyClassicModal';
@@ -2618,6 +2619,18 @@ function getColumnsToShow(
             }
         }
     };
+
+    // If the user has set custom columns for the search, we need to respect their preference, and only show
+    // them what they want to see
+    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
+        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+
+        for (const column of Object.keys(columns) as SearchCustomColumnIds[]) {
+            columns[column] = visibleColumns.includes(column) || requiredColumns.has(column);
+        }
+
+        return columns;
+    }
 
     if (Array.isArray(data)) {
         for (const item of data) {
