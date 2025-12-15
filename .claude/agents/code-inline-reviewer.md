@@ -145,15 +145,36 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 ### [PERF-4] Memoize objects and functions passed as props
 
-- **Search patterns**: `useMemo`, `useCallback`, `useOnyx`, `React.memo`, `memo(`
+- **Search patterns**: Look for objects/functions passed as props:
+  - Inline objects: `prop={{`, `={{`
+  - Inline arrow functions: `prop={() =>`, `onPress={() =>`, `onCallback={() =>`
+  - Hooks returning objects: `return {` inside custom hooks (files starting with `use`)
+  - Object variables passed as props: `prop={someObject}` where `someObject` is not memoized
 
-- **Condition**: Objects and functions passed as props to memoized children should be properly memoized to prevent unnecessary re-renders.
+- **Condition**: Flag ONLY when ALL of these are true:
 
-- **Reasoning**: React uses referential equality to determine if props changed. New object/function instances break memoization of child components. Memoizing props only matters when the child is memoized - otherwise the child re-renders anyway.
+  1. An object literal, arrow function, or non-memoized variable is passed as a prop to a child component
+  2. The child component IS memoized (either via `React.memo`/`memo()` OR React Compiler optimized)
+  3. The parent component is NOT optimized by React Compiler
 
-#### How to check (React Compiler context)
+  **DO NOT flag if:**
 
-Run `checkReactCompilerOptimization.sh <file-path>` to get optimization status for the parent and all imported child components:
+  - Child component is NOT memoized (it re-renders anyway, memoizing props won't help)
+  - Parent component IS optimized by React Compiler (compiler auto-memoizes)
+  - Props are primitives (strings, numbers, booleans)
+  - The object/function is already wrapped in `useMemo`/`useCallback`
+
+- **Reasoning**: React uses referential equality to determine if props changed. New object/function instances break memoization of child components. However, memoizing props only matters when the child is memoized AND the parent is not handled by React Compiler.
+
+#### MANDATORY: Check React Compiler optimization status
+
+Before flagging or skipping PERF-4, you MUST run:
+
+```bash
+checkReactCompilerOptimization.sh <file-path>
+```
+
+This returns optimization status for the parent and imported children:
 
 ```json
 {
@@ -162,72 +183,53 @@ Run `checkReactCompilerOptimization.sh <file-path>` to get optimization status f
     "path": "/path/to/ParentComponent.tsx"
   },
   "ChildButton": {
-    "optimized": true,
-    "path": "/path/to/ChildButton.tsx"
-  },
-  "ChildList": {
     "optimized": false,
-    "path": "/path/to/ChildList.tsx"
+    "path": "/path/to/ChildButton.tsx"
   }
 }
 ```
 
-**Decision flow:**
+Then check if non-optimized children use `memo()`:
+```bash
+grep -E "memo\(|React\.memo" <child-path>
+```
+
+#### Decision flow
 
 1. **Is child memoized?**
    - `"optimized": true` → Yes (React Compiler) → go to step 2
    - `"optimized": false` → Check manually: `grep -E "memo\(|React\.memo" <path>`
      - Found `memo(` → Yes (manual) → go to step 2
-     - Not found → **Skip PERF-4** (child re-renders anyway, memoizing props won't help)
+     - Not found → **Skip PERF-4** (child re-renders anyway)
 
-2. **Is parent optimized by React Compiler?** (only if child IS memoized)
+2. **Is parent optimized by React Compiler?**
    - `"optimized": true` → **Skip PERF-4** (compiler auto-memoizes)
-   - `"optimized": false` → **Flag PERF-4** (programmer must memoize manually)
+   - `"optimized": false` → **Flag PERF-4** (must memoize manually)
 
 #### Examples
 
-**1. Inline callbacks passed to memoized children**
-
-Good (parent compiled by React Compiler):
+**Flag this** (parent NOT compiled, child IS memoized):
 ```tsx
-// ✅ React Compiler auto-memoizes this - no useCallback needed
-function MyComponent({ id, onSelect }) {
-    return <MemoizedButton onPress={() => onSelect(id)} />;
-}
+// ❌ New object every render breaks MemoizedList's memoization
+const options = { showHeader: true, pageSize: 10 };
+return <MemoizedList options={options} />;
+
+// ❌ Inline callback breaks MemoizedButton's memoization
+return <MemoizedButton onPress={() => handlePress(id)} />;
 ```
 
-Bad (parent NOT compiled):
+**Do NOT flag** (parent IS compiled by React Compiler):
 ```tsx
-// ❌ If parent fails React Compiler healthcheck, this breaks memoization
-// Fix: Add useCallback OR fix compiler compliance issues
-function MyComponent({ id, onSelect }) {
-    return <MemoizedButton onPress={() => onSelect(id)} />;
-}
-```
-
-**2. Object props passed to memoized children**
-
-Good (parent NOT compiled):
-```tsx
-// ✅ Object reference stays stable between renders
-const options = useMemo(() => ({
-    showHeader: true,
-    pageSize: 10,
-}), []);
-
+// ✅ React Compiler auto-memoizes - no manual useMemo/useCallback needed
+const options = { showHeader: true, pageSize: 10 };
 return <MemoizedList options={options} />;
 ```
 
-Bad (parent NOT compiled):
+**Do NOT flag** (child is NOT memoized):
 ```tsx
-// ❌ New object created every render - breaks MemoizedList's memoization
-// Fix: Wrap in useMemo OR fix compiler compliance issues
-const options = {
-    showHeader: true,
-    pageSize: 10,
-};
-
-return <MemoizedList options={options} />;
+// ✅ RegularList is not memoized, so it re-renders anyway
+const options = { showHeader: true, pageSize: 10 };
+return <RegularList options={options} />;
 ```
 
 ---
