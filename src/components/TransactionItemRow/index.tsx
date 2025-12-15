@@ -149,7 +149,6 @@ function TransactionItemRow({
     shouldShowErrors = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
-    areAllOptionalColumnsHidden = false,
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
@@ -247,7 +246,7 @@ function TransactionItemRow({
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false, areAllOptionalColumnsHidden)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false)]}
                 >
                     <DateCell
                         date={createdAt}
@@ -399,7 +398,6 @@ function TransactionItemRow({
             transactionItem,
             report?.policyID,
             report?.total,
-            areAllOptionalColumnsHidden,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {

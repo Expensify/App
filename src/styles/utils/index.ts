@@ -1718,7 +1718,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false, isAmountColumnWide = false, isTaxAmountColumnWide = false, isDateColumnFullWidth = false): ViewStyle => {
+    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false, isAmountColumnWide = false, isTaxAmountColumnWide = false): ViewStyle => {
         let columnWidth;
         switch (columnName) {
             case CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS:
@@ -1732,10 +1732,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                if (isDateColumnFullWidth) {
-                    columnWidth = styles.flex1;
-                    break;
-                }
                 columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
