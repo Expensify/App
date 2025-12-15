@@ -3134,6 +3134,7 @@ ${
             ownershipPercentage: 'Veuillez saisir un nombre de pourcentage valide',
             deletePaymentBankAccount:
                 'Ce compte bancaire ne peut pas être supprimé car il est utilisé pour les paiements par Expensify Card. Si vous souhaitez tout de même supprimer ce compte, veuillez contacter Concierge.',
+            sameDepositAndWithdrawalAccount: 'Les comptes de dépôt et de retrait sont identiques.',
         },
     },
     addPersonalBankAccount: {
