@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport, markAsCash, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
@@ -14,7 +15,11 @@ import type {TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {RecentWaypoint, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {PersonalDetails, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
+import createRandomPolicyCategories from '../utils/collections/policyCategory';
+import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -306,6 +311,64 @@ describe('Transaction', () => {
             mockAPIWrite.mockRestore();
         });
 
+        it('updates the source submitted report next step without reopening when it becomes empty', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const buildOptimisticNextStepSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep');
+
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+            });
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const submittedReport: Report = {
+                ...createExpenseReport(6),
+                reportID: FAKE_OLD_REPORT_ID,
+                ownerAccountID: CURRENT_USER_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: CONST.CURRENCY.USD,
+                total: -100,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, submittedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report);
+            await waitForBatchedUpdates();
+
+            try {
+                const buildOptimisticNextStepCalls = buildOptimisticNextStepSpy.mock.calls as Array<[Parameters<typeof buildOptimisticNextStep>[0]]>;
+                const sourceNextStepCall = buildOptimisticNextStepCalls.find(([params]) => params.report?.reportID === FAKE_OLD_REPORT_ID);
+
+                expect(sourceNextStepCall).toBeDefined();
+                expect(sourceNextStepCall?.[0].predictedNextStatus).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+
+                const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+                const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string}>})?.optimisticData;
+                const sourceNextStepUpdate = optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_OLD_REPORT_ID}`);
+
+                expect(sourceNextStepUpdate).toBeDefined();
+            } finally {
+                buildOptimisticNextStepSpy.mockRestore();
+                mockAPIWrite.mockRestore();
+            }
+        });
+
         it('correctly handles ASAP submit beta enabled when moving transactions', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
@@ -385,6 +448,233 @@ describe('Transaction', () => {
             expect(parameters.transactionList).toBe(transaction.transactionID);
 
             mockAPIWrite.mockRestore();
+        });
+
+        it('should update the target report total when the currency is the same', async () => {
+            const transaction = {
+                ...generateTransaction({
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                }),
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+                reimbursable: false,
+            };
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: '0',
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+            const expenseReport = {
+                ...createRandomReport(1, undefined),
+                total: -200,
+                nonReimbursableTotal: 0,
+                currency: CONST.CURRENCY.USD,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', expenseReport);
+            await waitForBatchedUpdates();
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(report?.total).toBe(expenseReport.total + transaction.amount);
+            expect(report?.nonReimbursableTotal).toBe(expenseReport.nonReimbursableTotal + transaction.amount);
+        });
+
+        it('should not update the target report total when the currency is different', async () => {
+            const transaction = {
+                ...generateTransaction({
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                }),
+                currency: 'IDR',
+                reimbursable: false,
+            };
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: '0',
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+            const expenseReport = {
+                ...createRandomReport(1, undefined),
+                total: -200,
+                nonReimbursableTotal: 0,
+                currency: CONST.CURRENCY.USD,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', expenseReport);
+            await waitForBatchedUpdates();
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(report?.total).toBe(expenseReport.total);
+            expect(report?.nonReimbursableTotal).toBe(expenseReport.nonReimbursableTotal);
+        });
+
+        it('should update the old report total when the currency is the same', async () => {
+            const oldExpenseReport = {
+                ...createRandomReport(1, undefined),
+                total: -200,
+                nonReimbursableTotal: -200,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transaction = {
+                ...generateTransaction({
+                    reportID: oldExpenseReport.reportID,
+                }),
+                amount: -100,
+                reimbursable: false,
+            };
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`, oldExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const fakeReport = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', fakeReport);
+            await waitForBatchedUpdates();
+
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(report?.total).toBe(oldExpenseReport.total - transaction.amount);
+            expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal - transaction.amount);
+        });
+
+        it('should not update the old report total when the currency is different', async () => {
+            const oldExpenseReport = {
+                ...createRandomReport(1, undefined),
+                total: -200,
+                nonReimbursableTotal: -200,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transaction = {
+                ...generateTransaction({
+                    reportID: oldExpenseReport.reportID,
+                }),
+                reimbursable: false,
+                currency: 'IDR',
+            };
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`, oldExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const fakeReport = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', fakeReport);
+            await waitForBatchedUpdates();
+
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(report?.total).toBe(oldExpenseReport.total);
+            expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal);
+        });
+
+        it('should show "waiting for you to submit expense" next step message when moving expense to a new report ', async () => {
+            const policyID = '12346';
+            const oldExpenseReportID = '5';
+
+            const transaction = generateTransaction({reportID: oldExpenseReportID});
+
+            const newOpenReport = {...createExpenseReport(6334), policyID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, ownerAccountID: CURRENT_USER_ID};
+
+            const policy = {...createRandomPolicy(Number(policyID)), harvesting: {enabled: false}, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE};
+
+            const policyCategories = createRandomPolicyCategories(5);
+
+            const userPersonalDetails: Record<number, PersonalDetails> = {
+                [CURRENT_USER_ID]: {
+                    login: 'test@gmail.com',
+                    accountID: CURRENT_USER_ID,
+                    displayName: 'You',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, userPersonalDetails);
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@gmail.com', newOpenReport, policy, undefined, policyCategories);
+
+            await waitForBatchedUpdates();
+
+            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${newOpenReport.reportID}`);
+
+            const nextStepMessage = nextStep?.message?.map((part) => part.text).join('');
+
+            expect(nextStepMessage).toEqual('Waiting for You to submit %expenses.');
         });
     });
 

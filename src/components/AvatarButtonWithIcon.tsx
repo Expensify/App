@@ -2,9 +2,10 @@ import type {RefObject} from 'react';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -83,12 +84,13 @@ function AvatarButtonWithIcon({
     type = CONST.ICON_TYPE_AVATAR,
     avatarStyle,
     disabled = false,
-    editIcon = Expensicons.Pencil,
+    editIcon,
     anchorRef,
     name = '',
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
 
     return (
         <Tooltip
@@ -124,7 +126,7 @@ function AvatarButtonWithIcon({
                     <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                         <Icon
                             testID="avatar-button-edit-icon"
-                            src={editIcon}
+                            src={editIcon ?? expensifyIcons.Pencil}
                             width={variables.iconSizeSmall}
                             height={variables.iconSizeSmall}
                             fill={theme.icon}

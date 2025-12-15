@@ -104,18 +104,18 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
     const commentIndicesToDelete: number[] = [];
     const commentCouldBeThread: Record<string, number> = {};
     let addCommentFound = false;
-    persistedRequests.forEach((request, index) => {
+    for (const [index, request] of persistedRequests.entries()) {
         // If the request will open a Thread, we should not delete the comment and we should send all the requests
         if (request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.parentReportActionID === reportActionID && reportActionID in commentCouldBeThread) {
             const indexToRemove = commentCouldBeThread[reportActionID];
             commentIndicesToDelete.splice(indexToRemove, 1);
             // The new message performs some changes in Onyx, we want to keep those changes.
             addCommentFound = false;
-            return;
+            continue;
         }
 
         if (!commentsToBeDeleted.has(request.command) || request.data?.reportActionID !== reportActionID) {
-            return;
+            continue;
         }
 
         // If we find a new message, we probably want to remove it and not perform any request given that the server
@@ -125,7 +125,7 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
             commentCouldBeThread[reportActionID] = commentIndicesToDelete.length;
         }
         commentIndicesToDelete.push(index);
-    });
+    }
 
     if (commentIndicesToDelete.length === 0) {
         return {
@@ -160,12 +160,12 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
 
 function resolveEditCommentWithNewAddCommentRequest(persistedRequests: OnyxRequest[], parameters: UpdateCommentParams, reportActionID: string, addCommentIndex: number): ConflictActionData {
     const indicesToDelete: number[] = [];
-    persistedRequests.forEach((request, index) => {
+    for (const [index, request] of persistedRequests.entries()) {
         if (request.command !== WRITE_COMMANDS.UPDATE_COMMENT || request.data?.reportActionID !== reportActionID) {
-            return;
+            continue;
         }
         indicesToDelete.push(index);
-    });
+    }
 
     const currentAddComment = persistedRequests.at(addCommentIndex);
     let nextAction = null;

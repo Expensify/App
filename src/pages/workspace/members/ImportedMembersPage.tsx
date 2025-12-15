@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -33,6 +34,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const [shouldShowConfirmModal, setShouldShowConfirmModal] = useState(true);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const isFocused = useIsFocused();
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -79,15 +81,19 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         const columns = Object.values(spreadsheet?.columns ?? {});
 
-        const containsAdvanceApprovalColumns = columns.includes(CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO) || columns.includes(CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);
+        const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
+        const hasAuditorRole =
+            membersRolesColumn !== -1 &&
+            spreadsheet?.data
+                ?.at(membersRolesColumn)
+                ?.some((role, index) => (containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR);
 
-        if (containsAdvanceApprovalColumns && !isControlPolicy(policy)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
+        if (hasAuditorRole && !isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.auditor.alias, Navigation.getActiveRoute()));
             return;
         }
 
         const membersEmailsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EMAIL);
-        const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
         const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => email);
         const membersRoles = membersRolesColumn !== -1 ? spreadsheet?.data[membersRolesColumn].map((role) => role) : [];
         const membersSubmitsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO);
@@ -123,27 +129,29 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const allMembers = [...(members ?? [])];
 
         // Add submitsTo and forwardsTo members if they are not in the workspace
-        members?.forEach((member) => {
-            if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policy)) {
-                isRoleMissing = true;
-                allMembers.push({
-                    email: member.submitsTo,
-                    role: '',
-                    submitsTo: '',
-                    forwardsTo: '',
-                });
-            }
+        if (members) {
+            for (const member of members) {
+                if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policy)) {
+                    isRoleMissing = true;
+                    allMembers.push({
+                        email: member.submitsTo,
+                        role: '',
+                        submitsTo: '',
+                        forwardsTo: '',
+                    });
+                }
 
-            if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMemberWithoutPendingDelete(member.forwardsTo, policy)) {
-                isRoleMissing = true;
-                allMembers.push({
-                    email: member.forwardsTo,
-                    role: policy?.employeeList?.[member.forwardsTo]?.role ?? '',
-                    submitsTo: '',
-                    forwardsTo: '',
-                });
+                if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMemberWithoutPendingDelete(member.forwardsTo, policy)) {
+                    isRoleMissing = true;
+                    allMembers.push({
+                        email: member.forwardsTo,
+                        role: policy?.employeeList?.[member.forwardsTo]?.role ?? '',
+                        submitsTo: '',
+                        forwardsTo: '',
+                    });
+                }
             }
-        });
+        }
 
         if (isRoleMissing) {
             setImportedSpreadsheetMemberData(allMembers);
@@ -189,7 +197,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
             />
             <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal}
+                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal && isFocused}
                 closeImportPageAndModal={closeImportPageAndModal}
                 onModalHide={() => {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated

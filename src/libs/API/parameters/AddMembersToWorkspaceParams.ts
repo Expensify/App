@@ -1,7 +1,7 @@
 type AddMembersToWorkspaceParams = {
     employees: string;
     welcomeNote: string;
-    policyID: string | undefined;
+    policyID: string;
     reportCreationData?: string;
     announceChatReportID?: string;
     announceCreatedReportActionID?: string;

@@ -1,4 +1,4 @@
-import React, {forwardRef, useState} from 'react';
+import React, {useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,9 +22,12 @@ type TimeModalPickerProps = {
 
     /** Label for the picker */
     label: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: TimeModalPickerProps, ref: ForwardedRef<View>) {
+function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref}: TimeModalPickerProps) {
     const styles = useThemeStyles();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const currentTime = value ? DateUtils.extractTime12Hour(value) : undefined;
@@ -81,4 +84,4 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: Ti
 }
 
 TimeModalPicker.displayName = 'TimeModalPicker';
-export default forwardRef(TimeModalPicker);
+export default TimeModalPicker;

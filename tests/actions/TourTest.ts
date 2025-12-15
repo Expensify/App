@@ -54,13 +54,18 @@ describe('actions/Tour', () => {
 
         describe('NewDot users', () => {
             const onboardingChoices = Object.values(CONST.ONBOARDING_CHOICES);
-            const onboardingDemoChoices: OnboardingPurpose[] = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM, CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE];
+            const onboardingDemoChoices = new Set<OnboardingPurpose>([
+                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER,
+                CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            ]);
             const accountID = 2;
             const conciergeChatReport: Report = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
             const testDriveTaskReport: Report = {...LHNTestUtils.getFakeReport(), ownerAccountID: accountID};
 
+            let testDriveTaskAction: ReportAction;
             const setTestDriveTaskData = async () => {
-                const testDriveTaskAction: ReportAction = {
+                testDriveTaskAction = {
                     ...LHNTestUtils.getFakeReportAction(),
                     childType: CONST.REPORT.TYPE.TASK,
                     childReportName: Parser.replace(
@@ -83,7 +88,7 @@ describe('actions/Tour', () => {
                 });
             };
 
-            it.each(onboardingChoices.filter((choice) => onboardingDemoChoices.includes(choice)))('should show the Test Drive demo if user has "%s" onboarding choice', async (choice) => {
+            it.each(onboardingChoices.filter((choice) => onboardingDemoChoices.has(choice)))('should show the Test Drive demo if user has "%s" onboarding choice', async (choice) => {
                 await setTestDriveTaskData();
 
                 startTestDrive({choice}, false, false);
@@ -92,7 +97,7 @@ describe('actions/Tour', () => {
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
             });
 
-            it.each(onboardingChoices.filter((choice) => !onboardingDemoChoices.includes(choice)))('should show the Test Drive modal if user has "%s" onboarding choice', async (choice) => {
+            it.each(onboardingChoices.filter((choice) => !onboardingDemoChoices.has(choice)))('should show the Test Drive modal if user has "%s" onboarding choice', async (choice) => {
                 startTestDrive({choice}, false, false);
                 await waitForBatchedUpdates();
 

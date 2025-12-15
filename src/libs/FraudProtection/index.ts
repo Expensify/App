@@ -23,8 +23,9 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (account) => {
-        setAttribute('email', account?.primaryLogin ?? '');
-        setAttribute('mfa', account?.requiresTwoFactorAuth ? '2fa_enabled' : '2fa_disabled');
+        setAttribute('email', account?.primaryLogin ?? '', false, true);
+        setAttribute('mfa', account?.requiresTwoFactorAuth ? '2fa_enabled' : '2fa_disabled', false, true);
+        setAttribute('is_validated', account?.validated ? 'true' : 'false', false, true);
     },
 });
 

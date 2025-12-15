@@ -322,15 +322,17 @@ function getOnyxDataForOpenOrReconnect(
 
     if (shouldKeepPublicRooms) {
         const publicReports = Object.values(allReports ?? {}).filter((report) => isPublicRoom(report) && isValidReport(report));
-        publicReports?.forEach((report) => {
-            result.successData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
-                value: {
-                    ...report,
-                },
-            });
-        });
+        if (publicReports) {
+            for (const report of publicReports) {
+                result.successData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                    value: {
+                        ...report,
+                    },
+                });
+            }
+        }
     }
 
     // Find all reports that have a non-null draft comment and map them to their corresponding report objects from allReports
@@ -340,15 +342,17 @@ function getOnyxDataForOpenOrReconnect(
         .map(([key]) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ''))
         .map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
 
-    reportsWithDraftComments?.forEach((report) => {
-        result.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
-            value: {
-                ...report,
-            },
-        });
-    });
+    if (reportsWithDraftComments) {
+        for (const report of reportsWithDraftComments) {
+            result.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                value: {
+                    ...report,
+                },
+            });
+        }
+    }
 
     return result;
 }
@@ -457,6 +461,9 @@ type CreateWorkspaceWithPolicyDraftParams = {
     file?: File;
     routeToNavigateAfterCreate?: Route;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
+    activePolicyID: string | undefined;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
 };
 
 /**
@@ -475,6 +482,9 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         file,
         routeToNavigateAfterCreate,
         lastUsedPaymentMethod,
+        activePolicyID,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -486,31 +496,57 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 Navigation.goBack();
             }
             const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
-            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file, lastUsedPaymentMethod);
+            savePolicyDraftByNewWorkspace({
+                policyID: policyIDWithDefault,
+                policyName,
+                policyOwnerEmail,
+                makeMeAdmin,
+                currency,
+                file,
+                lastUsedPaymentMethod,
+                introSelectedParam: introSelected,
+                activePolicyIDParam: activePolicyID,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                allReportsParam: allReports,
+            });
             Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
         })
         .then(endSignOnTransition);
 }
 
+type SavePolicyDraftByNewWorkspaceParams = {
+    policyID?: string;
+    policyName?: string;
+    policyOwnerEmail?: string;
+    makeMeAdmin?: boolean;
+    currency?: string;
+    file?: File;
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
+    introSelectedParam: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicyIDParam: string | undefined;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    allReportsParam: OnyxCollection<OnyxTypes.Report>;
+};
+
 /**
  * Create a new workspace and delete the draft
- *
- * @param [policyID] the ID of the policy to use
- * @param [policyName] custom policy name we will use for created workspace
- * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
- * @param [currency] Optional, selected currency for the workspace
- * @param [file] Optional, avatar file for workspace
  */
-function savePolicyDraftByNewWorkspace(
-    policyID?: string,
-    policyName?: string,
+function savePolicyDraftByNewWorkspace({
+    policyID,
+    policyName,
     policyOwnerEmail = '',
     makeMeAdmin = false,
     currency = '',
-    file?: File,
-    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
-) {
+    file,
+    lastUsedPaymentMethod,
+    introSelectedParam,
+    activePolicyIDParam,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    allReportsParam,
+}: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
         makeMeAdmin,
@@ -520,6 +556,11 @@ function savePolicyDraftByNewWorkspace(
         currency,
         file,
         lastUsedPaymentMethod,
+        introSelectedParam,
+        activePolicyIDParam,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        allReportsParam,
     });
 }
 
@@ -538,7 +579,7 @@ function savePolicyDraftByNewWorkspace(
  * When the exitTo route is 'workspace/new', we create a new
  * workspace and navigate to it
  */
-function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSelected: OnyxEntry<OnyxTypes.IntroSelected>) {
+function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSelected: OnyxEntry<OnyxTypes.IntroSelected>, activePolicyID: string | undefined) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
         endSignOnTransition();
@@ -566,6 +607,9 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSe
             policyName,
             transitionFromOldDot: true,
             makeMeAdmin,
+            activePolicyID,
+            currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            currentUserEmailParam: currentSessionData.email ?? '',
         });
         return;
     }
@@ -689,9 +733,9 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
                     return;
                 }
 
-                sequentialQueue.forEach((request) => {
+                for (const request of sequentialQueue) {
                     save(request);
-                });
+                }
             });
         });
     clearSoundAssetsCache();

@@ -25,21 +25,10 @@ import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
 import type CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {
-    SearchCardGroup,
-    SearchDataTypes,
-    SearchMemberGroup,
-    SearchPersonalDetails,
-    SearchPolicy,
-    SearchReport,
-    SearchReportAction,
-    SearchTask,
-    SearchTransaction,
-    SearchWithdrawalIDGroup,
-} from '@src/types/onyx/SearchResults';
+import type {SearchCardGroup, SearchDataTypes, SearchMemberGroup, SearchTask, SearchTransaction, SearchTransactionAction, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -112,6 +101,15 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to show the right caret */
     shouldShowRightCaret?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
+
+    /** Whether to disable the hover style of the item */
+    shouldDisableHoverStyle?: boolean;
+
+    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
+    shouldStopMouseLeavePropagation?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -240,21 +238,25 @@ type ListItem<K extends string | number = string> = {
 };
 
 type TransactionListItemType = ListItem &
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchTransaction & {
         /** Report to which the transaction belongs */
         report: Report | undefined;
 
         /** Policy to which the transaction belongs */
-        policy: SearchPolicy | undefined;
+        policy: Policy | undefined;
 
         /** Report IOU action to which the transaction belongs */
         reportAction: ReportAction | undefined;
 
+        /** Transaction thread HOLD action if the transaction is on hold */
+        holdReportAction: ReportAction | undefined;
+
         /** The personal details of the user requesting money */
-        from: SearchPersonalDetails;
+        from: PersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchPersonalDetails;
+        to: PersonalDetails;
 
         /** final and formatted "from" value used for displaying and sorting */
         formattedFrom: string;
@@ -301,14 +303,17 @@ type TransactionListItemType = ListItem &
         /** The display name of the purchaser card, if any */
         cardName?: string;
 
-        /** Parent report action id */
-        moneyRequestReportActionID?: string;
+        /** The available actions that can be performed for the transaction */
+        allActions: SearchTransactionAction[];
+
+        /** The main action that can be performed for the transaction */
+        action: SearchTransactionAction;
     };
 
 type ReportActionListItemType = ListItem &
-    SearchReportAction & {
+    ReportAction & {
         /** The personal details of the user posting comment */
-        from: SearchPersonalDetails;
+        from: PersonalDetails;
 
         /** final and formatted "from" value used for displaying and sorting */
         formattedFrom: string;
@@ -318,15 +323,18 @@ type ReportActionListItemType = ListItem &
 
         /** Key used internally by React */
         keyForList: string;
+
+        /** The name of the report */
+        reportName: string;
     };
 
 type TaskListItemType = ListItem &
     SearchTask & {
         /** The personal details of the user who is assigned to the task */
-        assignee: SearchPersonalDetails;
+        assignee: PersonalDetails;
 
         /** The personal details of the user who created the task */
-        createdBy: SearchPersonalDetails;
+        createdBy: PersonalDetails;
 
         /** final and formatted "assignee" value used for displaying and sorting */
         formattedAssignee: string;
@@ -353,6 +361,8 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
+type ExpenseReportListItemType = TransactionReportGroupListItemType;
+
 type TransactionGroupListItemType = ListItem & {
     /** List of grouped transactions */
     transactions: TransactionListItemType[];
@@ -362,19 +372,43 @@ type TransactionGroupListItemType = ListItem & {
 
     /** The hash of the query to get the transactions data */
     transactionsQueryJSON?: SearchQueryJSON;
+
+    /** Whether the report has visible violations for user */
+    hasVisibleViolations?: boolean;
 };
 
-type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & Report & {
         /** The personal details of the user requesting money */
-        from: SearchPersonalDetails;
+        from: PersonalDetails;
 
         /** The personal details of the user paying the request */
-        to: SearchPersonalDetails;
+        to: PersonalDetails;
+
+        /** Final and formatted "status" value used for displaying and sorting */
+        formattedStatus?: string;
+
+        /** Final and formatted "from" value used for displaying and sorting */
+        formattedFrom?: string;
+
+        /** Final and formatted "to" value used for displaying and sorting */
+        formattedTo?: string;
+
+        /**
+         * Whether we should show the report year.
+         * This is true if at least one report in the dataset was created in past years
+         */
+        shouldShowYear: boolean;
+
+        /** The main action that can be performed for the report */
+        action: SearchTransactionAction | undefined;
+
+        /** The available actions that can be performed for the report */
+        allActions?: SearchTransactionAction[];
     };
 
-type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & SearchPersonalDetails & SearchMemberGroup;
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails & SearchMemberGroup;
 
-type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & SearchPersonalDetails & SearchCardGroup;
+type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails & SearchCardGroup;
 
 type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup;
 
@@ -530,6 +564,14 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
+type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Whether the item's action is loading */
+    isLoading?: boolean;
+
+    /** Callback to fire when DEW modal should be opened */
+    onDEWModalOpen?: () => void;
+};
+
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
     searchType?: SearchDataTypes;
@@ -557,6 +599,7 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     transactionsQueryJSON?: SearchQueryJSON;
     isInSingleTransactionReport: boolean;
     searchTransactions: (pageSize?: number) => void;
+    onLongPress: (transaction: TransactionListItemType) => void;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -949,6 +992,13 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
+
+    /** Whether hover style should be disabled */
+    shouldDisableHoverStyle?: boolean;
+    setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -993,7 +1043,7 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
-type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
 
 export type {
     BaseListItemProps,
@@ -1020,6 +1070,8 @@ export type {
     SectionWithIndexOffset,
     SelectionListHandle,
     TableListItemProps,
+    ExpenseReportListItemType,
+    ExpenseReportListItemProps,
     TaskListItemType,
     TaskListItemProps,
     TransactionListItemProps,

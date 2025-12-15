@@ -5,6 +5,7 @@ import {useSharedValue} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import type {Attachment} from '@components/Attachments/types';
 import Image from '@components/Image';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
@@ -20,7 +21,7 @@ import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
 const cachedImageDimensions = new Map<string, Dimensions | undefined>();
 
-type LightboxProps = {
+type LightboxProps = Pick<Attachment, 'attachmentID'> & {
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
 
@@ -43,7 +44,7 @@ type LightboxProps = {
 /**
  * On the native layer, we use a image library to handle zoom functionality
  */
-function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
+function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
 
@@ -86,14 +87,14 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
             };
         }
 
-        const foundPage = attachmentCarouselPagerContext.pagerItems.findIndex((item) => item.source === uri || item.previewSource === uri);
+        const foundPage = attachmentCarouselPagerContext.pagerItems.findIndex((item) => item.attachmentID === attachmentID);
         return {
             ...attachmentCarouselPagerContext,
             isUsedInCarousel: !!attachmentCarouselPagerContext.pagerRef,
             isSingleCarouselItem: attachmentCarouselPagerContext.pagerItems.length === 1,
             page: foundPage,
         };
-    }, [attachmentCarouselPagerContext, isPagerScrollingFallback, isScrollingEnabledFallback, uri]);
+    }, [attachmentID, attachmentCarouselPagerContext, isPagerScrollingFallback, isScrollingEnabledFallback]);
 
     /** Whether the Lightbox is used within an attachment carousel and there are more than one page in the carousel */
     const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
@@ -143,6 +144,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         return !indexOutOfRange;
     }, [activePage, hasSiblingCarouselItems, page]);
     const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [isFallbackVisible, setFallbackVisible] = useState(!isLightboxVisible);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
@@ -167,7 +169,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
 
     const isFallbackStillLoading = isFallbackVisible && !isFallbackImageLoaded;
     const isLightboxStillLoading = isLightboxVisible && !isLightboxImageLoaded;
-    const isLoading = isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading);
+    const isImageLoaded = !(isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading));
 
     // Resets the lightbox when it becomes inactive
     useEffect(() => {
@@ -207,6 +209,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
     );
 
     const isALocalFile = isLocalFile(uri);
+    const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
 
     return (
         <View
@@ -248,6 +251,9 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                         setContentSize(cachedImageDimensions.get(uri));
                                         setLightboxImageLoaded(false);
                                     }}
+                                    onLoadEnd={() => {
+                                        setIsLoading(false);
+                                    }}
                                 />
                             </MultiGestureCanvas>
                         </View>
@@ -270,13 +276,13 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                     )}
 
                     {/* Show activity indicator while the lightbox is still loading the image. */}
-                    {isLoading && (!isOffline || isALocalFile) && (
+                    {!isImageLoaded && !shouldShowOfflineIndicator && (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
                         />
                     )}
-                    {isLoading && !isALocalFile && <AttachmentOfflineIndicator />}
+                    {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}
                 </>
             )}
         </View>
