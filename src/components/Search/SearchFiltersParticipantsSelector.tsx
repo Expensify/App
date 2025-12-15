@@ -41,8 +41,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         includeCurrentUser: true,
     });
 
-    const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
-
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Sections = [];
         if (!areOptionsInitialized) {
@@ -59,7 +57,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
         // Format selected options to display
         const formattedResults = formatSectionsFromSearchTerm(
-            cleanSearchTerm,
+            searchTerm.trim().toLowerCase(),
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
@@ -118,7 +116,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, availableOptions, cleanSearchTerm, selectedOptions, personalDetails, reportAttributesDerived, translate]);
+    }, [areOptionsInitialized, availableOptions, searchTerm, selectedOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
