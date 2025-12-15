@@ -1174,6 +1174,9 @@ function peg$parse(input, options) {
             s1 = peg$parsepolicyID();
             if (s1 === peg$FAILED) {
               s1 = peg$parsegroupBy();
+              if (s1 === peg$FAILED) {
+                s1 = peg$parsecolumns();
+              }
             }
           }
         }

@@ -211,7 +211,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
+defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
