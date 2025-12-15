@@ -66,3 +66,11 @@ jobs:
           prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
           claude_args: |
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment"
+
+      - name: Upload Claude execution report
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
+        with:
+          name: claude-report-${{ github.event.pull_request.number }}
+          path: /home/runner/work/_temp/claude-execution-output.json
+          retention-days: 30
