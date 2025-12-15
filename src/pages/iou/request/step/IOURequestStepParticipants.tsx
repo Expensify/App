@@ -411,7 +411,7 @@ function IOURequestStepParticipants({
         policyForMovingExpenses,
         introSelected,
         backTo,
-        iouRequestType
+        iouRequestType,
     ]);
 
     const navigateBack = useCallback(() => {
