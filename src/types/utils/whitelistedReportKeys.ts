@@ -33,6 +33,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         type: unknown;
         created: unknown;
         submitted: unknown;
+        approved: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
         parentReportID: unknown;
