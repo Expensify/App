@@ -6830,7 +6830,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(canJoinChat(report, parentReportAction, undefined)).toBe(false);
+            expect(canJoinChat(report, parentReportAction, undefined, undefined)).toBe(false);
         });
 
         it('should return false if the report is not hidden for the current user', async () => {
@@ -6842,7 +6842,7 @@ describe('ReportUtils', () => {
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
-            expect(canJoinChat(report, undefined, undefined)).toBe(false);
+            expect(canJoinChat(report, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should return false if the report is one of these types: group chat, selfDM, invoice room, system chat, expense chat', () => {
@@ -6851,7 +6851,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
-            expect(canJoinChat(report, undefined, undefined)).toBe(false);
+            expect(canJoinChat(report, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should return false if the report is archived', () => {
@@ -6859,7 +6859,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1, undefined),
             };
 
-            expect(canJoinChat(report, undefined, undefined, true)).toBe(false);
+            expect(canJoinChat(report, undefined, undefined, undefined, true)).toBe(false);
         });
 
         it('should return true if the report is chat thread', async () => {
@@ -6878,7 +6878,7 @@ describe('ReportUtils', () => {
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
-            expect(canJoinChat(report, undefined, undefined)).toBe(true);
+            expect(canJoinChat(report, undefined, undefined, undefined)).toBe(true);
         });
 
         it('should respect workspace membership for restricted visibility rooms', async () => {
@@ -6926,9 +6926,9 @@ describe('ReportUtils', () => {
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
             };
 
-            expect(canJoinChat(restrictedReport, undefined, policyWithoutCurrentUser)).toBe(false);
-            expect(canJoinChat(restrictedReport, undefined, policyWithCurrentUser)).toBe(true);
-            expect(canJoinChat(publicReport, undefined, policyWithoutCurrentUser)).toBe(true);
+            expect(canJoinChat(restrictedReport, undefined, policyWithoutCurrentUser, undefined)).toBe(false);
+            expect(canJoinChat(restrictedReport, undefined, policyWithCurrentUser, undefined)).toBe(true);
+            expect(canJoinChat(publicReport, undefined, policyWithoutCurrentUser, undefined)).toBe(true);
         });
     });
 
