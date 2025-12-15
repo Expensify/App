@@ -781,6 +781,8 @@ function SearchFiltersBar({
         [],
     );
 
+    const shouldShowColumnsButton = isLargeScreenWidth && queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
     const filterButtonText = useMemo(
         () => translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : ''),
         [translate, hiddenSelectedFilters.length],
@@ -800,7 +802,7 @@ function SearchFiltersBar({
                     textStyles={[styles.textMicroBold]}
                     onPress={openAdvancedFilters}
                 />
-                {isLargeScreenWidth && (
+                {shouldShowColumnsButton && (
                     <Button
                         link
                         small
