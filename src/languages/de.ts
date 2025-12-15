@@ -121,6 +121,7 @@ import type {
     FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
+    HarvestCreatedExpenseReportParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -263,6 +264,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -1015,6 +1018,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Nur Administratoren können Nachrichten in diesem Raum senden.',
     reportAction: {
         asCopilot: 'als Copilot für',
+        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+            `hat diesen Bericht erstellt, um alle Ausgaben aus <a href="${reportUrl}">${reportName}</a> aufzunehmen, die mit der von dir gewählten Frequenz nicht eingereicht werden konnten`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Alle in dieser Unterhaltung benachrichtigen',
@@ -1927,6 +1932,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Fehlerdaten aufzeichnen',
             softKillTheApp: 'App sanft beenden',
             kill: 'Beenden',
+            sentryDebug: 'Sentry-Debug',
+            sentryDebugDescription: 'Sentry-Anfragen in der Konsole protokollieren',
+            sentryHighlightedSpanOps: 'Hervorgehobene Span-Namen',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Protokoll speichern',
@@ -6212,6 +6221,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 gambling: 'Glücksspiel',
                 tobacco: 'Tabak',
                 adultEntertainment: 'Unterhaltung für Erwachsene',
+                requireCompanyCard: 'Firmenkarten für alle Einkäufe erforderlich machen',
+                requireCompanyCardDescription: 'Kennzeichnen Sie alle Barausgaben, einschließlich Kilometer- und Tagegeldspesen.',
             },
             expenseReportRules: {
                 title: 'Fortgeschritten',
@@ -6449,6 +6460,12 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 return `hat den erstattungsfähigen Steueranteil am Distanzsatz „${customUnitRateName}“ auf „${newValue}“ geändert (zuvor „${oldValue}“)`;
             }
             return `hat einen steuererstattungsfähigen Anteil von „${newValue}“ zum Entfernungssatz „${customUnitRateName}“ hinzugefügt`;
+        },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `änderte den Index des ${customUnitName}-Tarifs "${customUnitRateName}" auf "${newValue}" ${oldValue ? `(zuvor "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'aktiviert' : 'deaktiviert'} ${customUnitName}-Tarif "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `hat den Preis „${rateName}“ für „${customUnitName}“ entfernt`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType}-Berichtsfield „${fieldName}“ hinzugefügt`,
@@ -7384,6 +7401,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         confirmDuplicatesInfo: `Die Duplikate, die du nicht behältst, werden für die einreichende Person zurückgehalten, damit sie sie löschen kann.`,
         hold: 'Diese Ausgabe wurde zurückgestellt',
         resolvedDuplicates: 'Duplikat behoben',
+        companyCardRequired: 'Firmenkartenkäufe erforderlich',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} ist erforderlich`,

@@ -121,6 +121,7 @@ import type {
     FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
+    HarvestCreatedExpenseReportParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -263,6 +264,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -1015,6 +1018,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Solo gli amministratori possono inviare messaggi in questa stanza.',
     reportAction: {
         asCopilot: 'come copilota per',
+        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+            `ha creato questo rapporto per raccogliere tutte le spese di <a href="${reportUrl}">${reportName}</a> che non sono state inviate con la frequenza scelta`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notifica tutti in questa conversazione',
@@ -1922,6 +1927,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Registrare dati di risoluzione problemi',
             softKillTheApp: "Termina l'app in modo non forzato",
             kill: 'Termina',
+            sentryDebug: 'Debug Sentry',
+            sentryDebugDescription: 'Registra le richieste Sentry nella console',
+            sentryHighlightedSpanOps: 'Nomi degli span evidenziati',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Salva registro',
@@ -2716,11 +2725,11 @@ ${amount} per ${merchant} - ${date}`,
                     dedent(`
                         Collega ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'il tuo' : 'a'} ${integrationName} per la codifica automatica delle spese e la sincronizzazione che rendono la chiusura di fine mese semplicissima.
 
-                        1. Fai clic su *Workspaces*.
-                        2. Seleziona il tuo workspace.
-                        3. Fai clic su *Accounting*.
+                        1. Fai clic su *Spazi di lavoro*.
+                        2. Seleziona il tuo spazio di lavoro.
+                        3. Fai clic su *Contabilità*.
                         4. Trova ${integrationName}.
-                        5. Fai clic su *Connect*.
+                        5. Fai clic su *Connetti*.
 
 ${
     integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -6190,6 +6199,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 gambling: "Gioco d'azzardo",
                 tobacco: 'Tabacco',
                 adultEntertainment: 'Intrattenimento per adulti',
+                requireCompanyCard: 'Richiedi carte aziendali per tutti gli acquisti',
+                requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, incluse le spese per chilometraggio e le diarie.',
             },
             expenseReportRules: {
                 title: 'Avanzato',
@@ -6427,6 +6438,12 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 return `ha modificato la parte recuperabile delle imposte sulla tariffa distanza "${customUnitRateName}" in "${newValue}" (in precedenza "${oldValue}")`;
             }
             return `ha aggiunto una parte rimborsabile di imposta di "${newValue}" alla tariffa per distanza "${customUnitRateName}"`;
+        },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `ha modificato l’indice della tariffa ${customUnitName} "${customUnitRateName}" a "${newValue}" ${oldValue ? `(precedentemente "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'abilitato' : 'disabilitato'} la tariffa ${customUnitName} "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `ha rimosso la tariffa "${rateName}" dell’unità personalizzata "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `aggiunto campo report ${fieldType} "${fieldName}"`,
@@ -7365,6 +7382,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         confirmDuplicatesInfo: `I duplicati che non mantieni saranno conservati per consentire al mittente di eliminarli.`,
         hold: 'Questa spesa è stata messa in sospeso',
         resolvedDuplicates: 'ha risolto il duplicato',
+        companyCardRequired: 'Acquisti con carta aziendale obbligatori',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} è obbligatorio`,
