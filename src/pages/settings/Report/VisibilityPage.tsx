@@ -28,7 +28,7 @@ function VisibilityPage({report}: VisibilityProps) {
     const {translate} = useLocalize();
 
     const {showConfirmModal} = useConfirmModal();
-    const showPublicVisibilityModal = useCallback(() => {
+    const showPublicVisibilityModal = () => {
         return showConfirmModal({
             title: translate('common.areYouSure'),
             prompt: translate('newRoomPage.publicDescription'),
@@ -37,7 +37,7 @@ function VisibilityPage({report}: VisibilityProps) {
             shouldShowCancelButton: true,
             danger: true,
         });
-    }, [showConfirmModal, translate]);
+    };
 
     const visibilityOptions = useMemo(
         () =>
