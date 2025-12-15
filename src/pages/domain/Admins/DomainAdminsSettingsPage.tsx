@@ -9,6 +9,7 @@ import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import {clearChoosePrimaryContactError} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,31 +34,33 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
     const currentlySelectedUser = domainSettings?.settings?.technicalContactEmail;
 
     return (
-        <ScreenWrapper
-            shouldEnableMaxHeight
-            shouldUseCachedViewportHeight
-            testID={DomainAdminsSettingsPage.displayName}
-            enableEdgeToEdgeBottomSafeAreaPadding
-        >
-            <HeaderWithBackButton
-                title={translate('domain.admins.settings')}
-                onBackButtonPress={() => {
-                    Navigation.dismissModal();
-                }}
-            />
-            <OfflineWithFeedback
-                pendingAction={domainPendingActions?.technicalContactEmail}
-                errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
-                onClose={() => clearChoosePrimaryContactError(domainAccountID)}
+        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+            <ScreenWrapper
+                shouldEnableMaxHeight
+                shouldUseCachedViewportHeight
+                testID={DomainAdminsSettingsPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <MenuItemWithTopDescription
-                    description={translate('domain.admins.primaryContact')}
-                    title={currentlySelectedUser}
-                    shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
+                <HeaderWithBackButton
+                    title={translate('domain.admins.settings')}
+                    onBackButtonPress={() => {
+                        Navigation.dismissModal();
+                    }}
                 />
-            </OfflineWithFeedback>
-        </ScreenWrapper>
+                <OfflineWithFeedback
+                    pendingAction={domainPendingActions?.technicalContactEmail}
+                    errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
+                    onClose={() => clearChoosePrimaryContactError(domainAccountID)}
+                >
+                    <MenuItemWithTopDescription
+                        description={translate('domain.admins.primaryContact')}
+                        title={currentlySelectedUser}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
+                    />
+                </OfflineWithFeedback>
+            </ScreenWrapper>
+        </DomainNotFoundPageWrapper>
     );
 }
 

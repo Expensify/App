@@ -15,6 +15,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import {choosePrimaryContact} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,40 +72,42 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
     const filteredData = sortAlphabetically(filteredApprovers, 'text', localeCompare);
 
     return (
-        <ScreenWrapper
-            testID={DomainAddPrimaryContactPage.displayName}
-            enableEdgeToEdgeBottomSafeAreaPadding
-        >
-            <FullPageNotFoundView
-                onBackButtonPress={Navigation.goBack}
-                addBottomSafeAreaPadding
+        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+            <ScreenWrapper
+                testID={DomainAddPrimaryContactPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton title={translate('domain.admins.addPrimaryContact')} />
-                <SelectionList
-                    data={filteredData}
-                    onSelectRow={(option) => {
-                        if (!option.login || !option.accountID) {
-                            return;
-                        }
-                        choosePrimaryContact(domainAccountID, option.accountID, option.login === technicalContactEmail ? null : option.login, technicalContactEmail);
-                        Navigation.goBack();
-                    }}
-                    ListItem={InviteMemberListItem}
-                    canSelectMultiple={false}
-                    initiallyFocusedItemKey={technicalContactEmailKey}
-                    shouldScrollToFocusedIndex
-                    shouldShowTextInput
-                    textInputOptions={{
-                        label: translate('selectionList.findMember'),
-                        value: searchTerm,
-                        onChangeText: setSearchTerm,
-                        headerMessage: searchTerm && !filteredData?.length ? translate('common.noResultsFound') : '',
-                    }}
+                <FullPageNotFoundView
+                    onBackButtonPress={Navigation.goBack}
                     addBottomSafeAreaPadding
-                    showScrollIndicator
-                />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+                >
+                    <HeaderWithBackButton title={translate('domain.admins.addPrimaryContact')} />
+                    <SelectionList
+                        data={filteredData}
+                        onSelectRow={(option) => {
+                            if (!option.login || !option.accountID) {
+                                return;
+                            }
+                            choosePrimaryContact(domainAccountID, option.accountID, option.login === technicalContactEmail ? null : option.login, technicalContactEmail);
+                            Navigation.goBack();
+                        }}
+                        ListItem={InviteMemberListItem}
+                        canSelectMultiple={false}
+                        initiallyFocusedItemKey={technicalContactEmailKey}
+                        shouldScrollToFocusedIndex
+                        shouldShowTextInput
+                        textInputOptions={{
+                            label: translate('selectionList.findMember'),
+                            value: searchTerm,
+                            onChangeText: setSearchTerm,
+                            headerMessage: searchTerm && !filteredData?.length ? translate('common.noResultsFound') : '',
+                        }}
+                        addBottomSafeAreaPadding
+                        showScrollIndicator
+                    />
+                </FullPageNotFoundView>
+            </ScreenWrapper>
+        </DomainNotFoundPageWrapper>
     );
 }
 

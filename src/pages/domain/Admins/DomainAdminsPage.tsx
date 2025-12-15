@@ -1,7 +1,6 @@
 import {adminAccountIDsSelector} from '@selectors/Domain';
 import React from 'react';
 import {View} from 'react-native';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -23,6 +22,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -129,16 +129,12 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     }
 
     return (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            shouldEnableMaxHeight
-            shouldShowOfflineIndicatorInWideScreen
-            testID={DomainAdminsPage.displayName}
-        >
-            <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={!isAdmin}
-                shouldForceFullScreen
+        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
+                shouldShowOfflineIndicatorInWideScreen
+                testID={DomainAdminsPage.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('domain.admins.title')}
@@ -163,8 +159,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     addBottomSafeAreaPadding
                     customListHeader={getCustomListHeader()}
                 />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </DomainNotFoundPageWrapper>
     );
 }
 
