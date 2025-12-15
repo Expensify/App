@@ -15,13 +15,13 @@ type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
     handleAssignCard: () => void;
 
     /** Whether to disable assign card button */
-    isDisabledAssignCardButton?: boolean;
+    isAssigningCardDisabled?: boolean;
 
     /** Whether to disable GB disclaimer */
     shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAssignCardButton, shouldShowGBDisclaimer}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
+function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['CompanyCardsEmptyState'] as const);
@@ -46,7 +46,7 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAs
                         buttonAction: handleAssignCard,
                         icon: Expensicons.Plus,
                         success: true,
-                        isDisabled: isDisabledAssignCardButton,
+                        isDisabled: isAssigningCardDisabled,
                     },
                 ]}
             />

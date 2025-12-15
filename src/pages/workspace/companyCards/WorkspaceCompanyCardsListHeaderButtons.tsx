@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
@@ -12,7 +11,6 @@ import Text from '@components/Text';
 import type {CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
-import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -52,15 +50,9 @@ type WorkspaceCompanyCardsListHeaderButtonsProps = {
 
     /** Currently selected feed */
     selectedFeed: CompanyCardFeedWithDomainID;
-
-    /** Whether to show assign card button */
-    shouldShowAssignCardButton?: boolean;
-
-    /** Handle assign card action */
-    handleAssignCard: () => void;
 };
 
-function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldShowAssignCardButton, handleAssignCard}: WorkspaceCompanyCardsListHeaderButtonsProps) {
+function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: WorkspaceCompanyCardsListHeaderButtonsProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -86,7 +78,6 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
     const hasFeedError = !!cardFeeds?.[selectedFeed]?.errors;
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
-    const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
 
     const openBankConnection = () => {
@@ -145,16 +136,6 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                     shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed)}
                 />
                 <View style={[styles.flexRow, styles.gap2]}>
-                    {!!shouldShowAssignCardButton && (
-                        <Button
-                            success
-                            isDisabled={!currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard}
-                            onPress={handleAssignCard}
-                            icon={Expensicons.Plus}
-                            text={translate('workspace.companyCards.assignCard')}
-                            style={shouldChangeLayout && styles.flex1}
-                        />
-                    )}
                     <ButtonWithDropdownMenu
                         success={false}
                         onPress={() => {}}
@@ -162,7 +143,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                         customText={translate('common.more')}
                         options={secondaryActions}
                         isSplitButton={false}
-                        wrapperStyle={shouldShowAssignCardButton ? styles.flexGrow0 : styles.flex1}
+                        wrapperStyle={styles.flexGrow0}
                     />
                 </View>
             </View>

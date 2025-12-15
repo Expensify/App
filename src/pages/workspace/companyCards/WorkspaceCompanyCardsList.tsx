@@ -130,7 +130,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
             <WorkspaceCompanyCardsFeedAddedEmptyPage
                 shouldShowGBDisclaimer={shouldShowGBDisclaimer}
                 handleAssignCard={handleAssignCard}
-                isDisabledAssignCardButton={isDisabledAssignCardButton}
+                isAssigningCardDisabled={isDisabledAssignCardButton}
             />
         );
     }

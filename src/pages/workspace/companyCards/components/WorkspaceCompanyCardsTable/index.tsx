@@ -12,10 +12,19 @@ import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterCardsByPersonalDetails, getCardFeedIcon, getCardsByCardholderName, getCompanyCardFeedWithDomainID, sortCardsByCardholderName} from '@libs/CardUtils';
+import {
+    filterCardsByPersonalDetails,
+    getCardFeedIcon,
+    getCardsByCardholderName,
+    getCompanyCardFeedWithDomainID,
+    getCompanyFeeds,
+    getPlaidInstitutionIconUrl,
+    sortCardsByCardholderName,
+} from '@libs/CardUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
@@ -26,8 +35,8 @@ import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, WorkspaceCardsL
 import WorkspaceCompanyCardsTableRow from './WorkspaceCompanyCardTableRow';
 
 type WorkspaceCompanyCardsTableProps = {
-    /** Feed */
-    feed: CompanyCardFeedWithDomainID;
+    /** Selected feed */
+    selectedFeed: CompanyCardFeedWithDomainID;
 
     /** List of company cards */
     cardsList: OnyxEntry<WorkspaceCardsList>;
@@ -36,21 +45,32 @@ type WorkspaceCompanyCardsTableProps = {
     policyID: string;
 
     /** Handle assign card action */
-    handleAssignCard: () => void;
+    onAssignCard: () => void;
 
     /** Whether to disable assign card button */
-    isDisabledAssignCardButton?: boolean;
+    isAssigningCardDisabled?: boolean;
+
+    shouldShowAssignCardButton?: boolean;
 
     /** Whether to show GB disclaimer */
     shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard, isDisabledAssignCardButton, shouldShowGBDisclaimer}: WorkspaceCompanyCardsTableProps) {
+function WorkspaceCompanyCardsTable({
+    selectedFeed,
+    cardsList,
+    policyID,
+    onAssignCard,
+    isAssigningCardDisabled,
+    shouldShowGBDisclaimer,
+    shouldShowAssignCardButton,
+}: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const listRef = useRef<FlashListRef<string>>(null);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
@@ -58,7 +78,11 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
 
     const {cardList, ...assignedCards} = cardsList ?? {};
     const [cardFeeds] = useCardFeeds(policyID);
-    const accountList = cardFeeds?.[feed]?.accountList;
+
+    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const cards = companyFeeds?.[selectedFeed]?.accountList;
+
+    const plaidUrl = getPlaidInstitutionIconUrl(selectedFeed);
 
     // Get all cards sorted by cardholder name
     const allCards = useMemo(() => {
@@ -79,7 +103,7 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
 
             const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID];
 
-            const cardFeedIcon = getCardFeedIcon(feed as CompanyCardFeed, illustrations, companyCardFeedIcons);
+            const cardFeedIcon = getCardFeedIcon(selectedFeed as CompanyCardFeed, illustrations, companyCardFeedIcons);
 
             const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -111,7 +135,7 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
                                 );
                             }
 
-                            handleAssignCard();
+                            onAssignCard();
                         }}
                     >
                         {({hovered}) => (
@@ -119,10 +143,13 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
                                 cardholder={personalDetails?.[assignedCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]}
                                 cardName={cardName}
                                 cardFeedIcon={cardFeedIcon}
+                                plaidUrl={plaidUrl}
                                 customCardName={customCardName}
                                 isHovered={hovered}
                                 isAssigned={!!assignedCard}
-                                onAssignCard={handleAssignCard}
+                                onAssignCard={onAssignCard}
+                                isAssigningCardDisabled={isAssigningCardDisabled}
+                                shouldShowAssignCardButton={shouldShowAssignCardButton}
                             />
                         )}
                     </PressableWithFeedback>
@@ -133,11 +160,13 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
             assignedCards,
             companyCardFeedIcons,
             customCardNames,
-            feed,
-            handleAssignCard,
             illustrations,
+            isAssigningCardDisabled,
+            onAssignCard,
             personalDetails,
+            plaidUrl,
             policyID,
+            selectedFeed,
             styles.br3,
             styles.highlightBG,
             styles.hoveredComponentBG,
@@ -152,7 +181,7 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
     const ListHeaderComponent = useMemo(
         () => (
             <>
-                {(accountList?.length ?? 0) > CONST.SEARCH_ITEM_LIMIT && (
+                {(cards?.length ?? 0) > CONST.SEARCH_ITEM_LIMIT && (
                     <SearchBar
                         label={translate('workspace.companyCards.findCard')}
                         inputValue={inputValue}
@@ -191,16 +220,16 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
                 )}
             </>
         ),
-        [accountList?.length, inputValue, isSearchEmpty, setInputValue, styles, translate],
+        [cards?.length, inputValue, isSearchEmpty, setInputValue, styles, translate],
     );
 
     // Show empty state when there are no cards
-    if (!accountList?.length) {
+    if (!cards?.length) {
         return (
             <WorkspaceCompanyCardsFeedAddedEmptyPage
                 shouldShowGBDisclaimer={shouldShowGBDisclaimer}
-                handleAssignCard={handleAssignCard}
-                isDisabledAssignCardButton={isDisabledAssignCardButton}
+                handleAssignCard={onAssignCard}
+                isAssigningCardDisabled={isAssigningCardDisabled}
             />
         );
     }
@@ -209,10 +238,10 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
         <View style={styles.flex1}>
             <FlashList
                 ref={listRef}
-                data={accountList}
+                data={cards}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
-                ListHeaderComponent={ListHeaderComponent}
+                ListHeaderComponent={isMediumScreenWidth || shouldUseNarrowLayout ? undefined : ListHeaderComponent}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={styles.flexGrow1}

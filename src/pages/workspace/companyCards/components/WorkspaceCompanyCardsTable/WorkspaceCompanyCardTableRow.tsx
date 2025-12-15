@@ -38,11 +38,28 @@ type WorkspaceCompanyCardsTableRowProps = {
     /** Whether the card is assigned */
     isAssigned: boolean;
 
+    /** Whether to disable assign card button */
+    isAssigningCardDisabled?: boolean;
+
+    /** Whether to show assign card button */
+    shouldShowAssignCardButton?: boolean;
+
     /** On assign card */
     onAssignCard: () => void;
 };
 
-function WorkspaceCompanyCardsTableRow({cardholder, customCardName, cardName: cardNumber, isHovered, isAssigned, onAssignCard, plaidUrl, cardFeedIcon}: WorkspaceCompanyCardsTableRowProps) {
+function WorkspaceCompanyCardsTableRow({
+    cardholder,
+    customCardName,
+    cardName: cardNumber,
+    isHovered,
+    isAssigned,
+    onAssignCard,
+    plaidUrl,
+    cardFeedIcon,
+    isAssigningCardDisabled,
+    shouldShowAssignCardButton,
+}: WorkspaceCompanyCardsTableRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -109,7 +126,7 @@ function WorkspaceCompanyCardsTableRow({cardholder, customCardName, cardName: ca
             </View>
 
             <View style={[styles.flex1, styles.alignItemsEnd]}>
-                {isAssigned ? (
+                {isAssigned && (
                     <View style={[styles.justifyContentCenter, styles.flexRow, styles.alignItemsCenter, styles.ml2, styles.gap3]}>
                         <Text
                             numberOfLines={1}
@@ -125,10 +142,12 @@ function WorkspaceCompanyCardsTableRow({cardholder, customCardName, cardName: ca
                             isButtonIcon
                         />
                     </View>
-                ) : (
+                )}
+                {!isAssigned && !!shouldShowAssignCardButton && (
                     <Button
                         text={translate('workspace.companyCards.assignCard')}
                         onPress={onAssignCard}
+                        isDisabled={isAssigningCardDisabled}
                     />
                 )}
             </View>
