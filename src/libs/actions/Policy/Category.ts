@@ -27,7 +27,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {getPolicy, goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -1451,11 +1451,10 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER, parameters, onyxData);
 }
 
-function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, taxID: string) {
-    if (!policy?.id) {
-        return;
-    }
-    const policyID = policy.id;
+function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: string) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(policyID);
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
     const existingCategoryExpenseRule = updatedExpenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
@@ -1471,7 +1470,7 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
             applyWhen: [
                 {
                     condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
-                    field: CONST.POLICY.FIELDS.CATEGORY,
+                    field: 'category',
                     value: categoryName,
                 },
             ],
