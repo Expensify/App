@@ -3,9 +3,11 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, View} from 'react-native';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
@@ -66,8 +68,8 @@ function KYCWall({
     const {formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserDetails.email ?? '';
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.parentReportID}`, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const parentReportActions = useParentReportAction(iouReport);
+    const personalDetails = usePersonalDetails();
     const employeeEmail = personalDetails?.[iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login ?? '';
     const reportPreviewAction = iouReport?.parentReportActionID ? parentReportActions?.[iouReport?.parentReportActionID] : undefined;
     const anchorRef = useRef<HTMLDivElement | View>(null);

@@ -3487,7 +3487,7 @@ function createWorkspaceFromIOUPayment(
     iouReport: OnyxEntry<Report>,
     reportPreviewAction: ReportAction | undefined,
     currentUserEmail: string,
-    employeeEmail: string,
+    iouReportOwnerEmail: string,
 ): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
@@ -3519,7 +3519,7 @@ function createWorkspaceFromIOUPayment(
     }
 
     // Create the expense chat for the employee whose IOU is being paid
-    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: employeeAccountID}, true);
+    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[iouReportOwnerEmail]: employeeAccountID}, true);
     const newWorkspace = {
         id: policyID,
 
@@ -3557,10 +3557,10 @@ function createWorkspaceFromIOUPayment(
                 role: CONST.POLICY.ROLE.ADMIN,
                 errors: {},
             },
-            ...(employeeEmail
+            ...(iouReportOwnerEmail
                 ? {
-                      [employeeEmail]: {
-                          email: employeeEmail,
+                      [iouReportOwnerEmail]: {
+                          email: iouReportOwnerEmail,
                           submitsTo: currentUserEmail,
                           role: CONST.POLICY.ROLE.USER,
                           errors: {},
@@ -3744,9 +3744,9 @@ function createWorkspaceFromIOUPayment(
     // optimistically create the expense chat for them.
     const memberData = {
         accountID: Number(employeeAccountID),
-        email: employeeEmail,
-        workspaceChatReportID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportID,
-        workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportActionID,
+        email: iouReportOwnerEmail,
+        workspaceChatReportID: employeeWorkspaceChat.reportCreationData[iouReportOwnerEmail].reportID,
+        workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[iouReportOwnerEmail].reportActionID,
     };
 
     const oldChatReportID = iouReport?.chatReportID;
