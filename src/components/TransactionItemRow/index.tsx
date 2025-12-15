@@ -262,7 +262,7 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false, areAllOptionalColumnsHidden)]}
                 >
                     <DateCell
-                        created={report?.submitted ?? ''}
+                        date={report?.submitted ?? ''}
                         showTooltip={shouldShowTooltip}
                         isLargeScreenWidth={!shouldUseNarrowLayout}
                     />
