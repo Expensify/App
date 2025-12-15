@@ -66,6 +66,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const backTo = route.params.backTo;
+
     /**
      * Gets the current contact method from the route params
      */
