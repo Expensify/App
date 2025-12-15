@@ -6701,17 +6701,50 @@ const CONST = {
         },
         get CUSTOM_COLUMNS() {
             return {
-                DATE: this.TABLE_COLUMNS.DATE,
-                STATUS: this.TABLE_COLUMNS.STATUS,
-                TITLE: this.TABLE_COLUMNS.TITLE,
-                FROM: this.TABLE_COLUMNS.FROM,
-                TO: this.TABLE_COLUMNS.TO,
-                ACTION: this.TABLE_COLUMNS.ACTION,
+                [this.DATA_TYPES.EXPENSE]: {
+                    RECEIPT: this.TABLE_COLUMNS.RECEIPT,
+                    DATE: this.TABLE_COLUMNS.DATE,
+                    MERCHANT: this.TABLE_COLUMNS.MERCHANT,
+                    DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
+                    FROM: this.TABLE_COLUMNS.FROM,
+                    TO: this.TABLE_COLUMNS.TO,
+                    CATEGORY: this.TABLE_COLUMNS.CATEGORY,
+                    TAG: this.TABLE_COLUMNS.TAG,
+                    TOTAL_AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
+                    ACTION: this.TABLE_COLUMNS.ACTION,
+                },
+                [this.DATA_TYPES.EXPENSE_REPORT]: {
+                    DATE: this.TABLE_COLUMNS.DATE,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
+                    TITLE: this.TABLE_COLUMNS.TITLE,
+                    FROM: this.TABLE_COLUMNS.FROM,
+                    TO: this.TABLE_COLUMNS.TO,
+                    ACTION: this.TABLE_COLUMNS.ACTION,
+                },
             };
         },
         get DEFAULT_COLUMNS() {
             return {
-                EXPENSE_REPORT: [this.TABLE_COLUMNS.DATE, this.TABLE_COLUMNS.STATUS, this.TABLE_COLUMNS.TITLE, this.TABLE_COLUMNS.FROM, this.TABLE_COLUMNS.TO, this.TABLE_COLUMNS.ACTION],
+                [this.DATA_TYPES.EXPENSE]: [
+                    this.TABLE_COLUMNS.RECEIPT,
+                    this.TABLE_COLUMNS.DATE,
+                    this.TABLE_COLUMNS.MERCHANT,
+                    this.TABLE_COLUMNS.DESCRIPTION,
+                    this.TABLE_COLUMNS.FROM,
+                    this.TABLE_COLUMNS.TO,
+                    this.TABLE_COLUMNS.CATEGORY,
+                    this.TABLE_COLUMNS.TAG,
+                    this.TABLE_COLUMNS.TOTAL_AMOUNT,
+                    this.TABLE_COLUMNS.ACTION,
+                ],
+                [this.DATA_TYPES.EXPENSE_REPORT]: [
+                    this.TABLE_COLUMNS.DATE,
+                    this.TABLE_COLUMNS.STATUS,
+                    this.TABLE_COLUMNS.TITLE,
+                    this.TABLE_COLUMNS.FROM,
+                    this.TABLE_COLUMNS.TO,
+                    this.TABLE_COLUMNS.ACTION,
+                ],
             };
         },
         BOOLEAN: {
