@@ -57,6 +57,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {PolicyCategory} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type PolicyOption = ListItem & {
@@ -183,6 +184,25 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const glCodeTextStyle = useMemo(() => [styles.alignSelfStart], [styles.alignSelfStart]);
     const switchContainerStyle = useMemo(() => [StyleUtils.getMinimumWidth(variables.w72)], [StyleUtils]);
 
+    const switchComponent = useMemo(
+        () => (value: PolicyCategory) => (
+            <Switch
+                isOn={value.enabled}
+                disabled={value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                accessibilityLabel={translate('workspace.categories.enableCategory')}
+                onToggle={(newValue: boolean) => {
+                    if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
+                        setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                        return;
+                    }
+                    updateWorkspaceCategoryEnabled(newValue, value.name);
+                }}
+                showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
+            />
+        ),
+        [policy, policyCategories, translate, updateWorkspaceCategoryEnabled, setIsCannotDeleteOrDisableLastCategoryModalVisible],
+    );
+
     const categoryList = useMemo<PolicyOption[]>(() => {
         const categories = Object.values(policyCategories ?? {});
         return categories.reduce<PolicyOption[]>((acc, value) => {
@@ -208,42 +228,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                                 {value['GL Code']}
                             </Text>
                         </View>
-                        <View style={switchContainerStyle}>
-                            <Switch
-                                isOn={value.enabled}
-                                disabled={isDisabled}
-                                accessibilityLabel={translate('workspace.categories.enableCategory')}
-                                onToggle={(newValue: boolean) => {
-                                    if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
-                                        setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
-                                        return;
-                                    }
-                                    updateWorkspaceCategoryEnabled(newValue, value.name);
-                                }}
-                                showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
-                            />
-                        </View>
+                        <View style={switchContainerStyle}>{switchComponent(value)}</View>
                     </>
                 ) : (
-                    <Switch
-                        isOn={value.enabled}
-                        disabled={isDisabled}
-                        accessibilityLabel={translate('workspace.categories.enableCategory')}
-                        onToggle={(newValue: boolean) => {
-                            if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
-                                setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
-                                return;
-                            }
-                            updateWorkspaceCategoryEnabled(newValue, value.name);
-                        }}
-                        showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
-                    />
+                    <>{switchComponent(value)}</>
                 ),
             });
 
             return acc;
         }, []);
-    }, [policyCategories, isOffline, translate, updateWorkspaceCategoryEnabled, policy, isControlPolicyWithWideLayout, glCodeContainerStyle, glCodeTextStyle, switchContainerStyle]);
+    }, [policyCategories, isOffline, isControlPolicyWithWideLayout, glCodeContainerStyle, glCodeTextStyle, switchContainerStyle, switchComponent]);
 
     const filterCategory = useCallback((categoryOption: PolicyOption, searchInput: string) => {
         const results = tokenizedSearch([categoryOption], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
