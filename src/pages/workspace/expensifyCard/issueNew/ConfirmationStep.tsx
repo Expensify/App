@@ -1,15 +1,18 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setIssueNewCardStepAndData} from '@libs/actions/Card';
+import AccountUtils from '@libs/AccountUtils';
+import {clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
@@ -36,9 +39,13 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const defaultFundID = useDefaultFundID(policyID);
+    const {isBetaEnabled} = usePermissions();
     const data = issueNewCard?.data;
+    const isSuccessful = issueNewCard?.isSuccessful;
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
     const isAddApprovalEnabled = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !hasApprovalError;
     const shouldDisableSubmitButton = !isAddApprovalEnabled && data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART;
@@ -49,6 +56,29 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         submitButton.current?.focus();
         resetValidateActionCodeSent();
     }, []);
+
+    useEffect(() => {
+        if (!isSuccessful) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        clearIssueNewCardFlow(policyID);
+    }, [isSuccessful, policyID]);
+
+    const handleIssueCard = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
+
+        const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
+        if (isVirtualCard && AccountUtils.hasValidateCodeExtendedAccess(account)) {
+            // Issue directly without magic code when user has extended access
+            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', data);
+        } else {
+            // Navigate to magic code page
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+        }
+    }, [policyID, data, account, defaultFundID, isBetaEnabled]);
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
@@ -120,12 +150,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                         isDisabled={isOffline || shouldDisableSubmitButton}
                         isMessageHtml={shouldDisableSubmitButton}
                         isLoading={issueNewCard?.isLoading}
-                        onSubmit={() => {
-                            if (!policyID) {
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
-                        }}
+                        onSubmit={handleIssueCard}
                         buttonText={translate('workspace.card.issueCard')}
                     />
                 </View>
