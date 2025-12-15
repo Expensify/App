@@ -101,10 +101,6 @@ const SCREENS = {
         EDIT_MULTIPLE_DATE_RHP: 'Search_Edit_Multiple_Date_RHP',
         EDIT_MULTIPLE_CATEGORY_RHP: 'Search_Edit_Multiple_Category_RHP',
         EDIT_MULTIPLE_TAG_RHP: 'Search_Edit_Multiple_Tag_RHP',
-        CHANGE_APPROVER: {
-            ROOT: 'Search_Change_Approver_Root',
-            ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
-        },
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
@@ -668,7 +664,6 @@ const SCREENS = {
         WORKFLOWS_APPROVALS_APPROVER: 'Workspace_Workflows_Approvals_Approver',
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
         WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
-        WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: 'Workspace_Workflows_Connect_Existing_Bank_Account',
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
@@ -687,6 +682,7 @@ const SCREENS = {
         CATEGORIES_IMPORTED: 'Categories_Imported',
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
+        MEMBER_DETAILS_ROLE: 'Workspace_Member_Details_Role',
         MEMBER_CUSTOM_FIELD: 'Workspace_Member_Custom_Field',
         MEMBER_NEW_CARD: 'Workspace_Member_NewCard',
         OWNER_CHANGE_CHECK: 'Workspace_Owner_Change_Check',
@@ -792,6 +788,7 @@ const SCREENS = {
     ADD_PERSONAL_BANK_ACCOUNT_ROOT: 'AddPersonalBankAccount_Root',
     REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root',
     REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT: 'Reimbursement_Account_Verify_Account',
+    CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT: 'Connect_Existing_Business_Bank_Account_Root',
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
@@ -860,6 +857,7 @@ const SCREENS = {
         VERIFIED: 'Domain_Verified',
         INITIAL: 'Domain_Initial',
         SAML: 'Domain_SAML',
+        ADMINS: 'Domain_Admins',
     },
 } as const;
 

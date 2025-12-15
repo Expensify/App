@@ -14,13 +14,14 @@ import {
     canEditFieldOfMoneyRequest,
     canEditMultipleTransactions,
     canHoldUnholdReportAction,
+    canRejectReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getReportOrDraftReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
-import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -69,7 +70,18 @@ function useSelectedTransactionsActions({
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit', 'Pencil'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Stopwatch',
+        'Trashcan',
+        'ArrowRight',
+        'Table',
+        'DocumentMerge',
+        'Export',
+        'ArrowCollapse',
+        'ArrowSplit',
+        'ThumbsDown',
+        'Pencil',
+    ] as const);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
@@ -227,6 +239,20 @@ function useSelectedTransactionsActions({
                         unholdRequest(transactionID, action?.childReportID);
                     }
                     clearSelectedTransactions(true);
+                },
+            });
+        }
+
+        const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(id));
+        const canRejectTransactions =
+            selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report, policy) && hasNoRejectedTransaction;
+        if (canRejectTransactions) {
+            options.push({
+                text: translate('search.bulkActions.reject'),
+                icon: expensifyIcons.ThumbsDown,
+                value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
+                onSelected: () => {
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: report.reportID}));
                 },
             });
         }
