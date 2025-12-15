@@ -32,6 +32,12 @@ const RESPONSE_TRANSLATION_PATH = {
         200: 'userAuthorized',
         400: 'badRequest',
     },
+    BIOMETRICS_TEST: {
+        401: 'userNotRegistered',
+        409: 'unableToAuthorize',
+        200: 'userAuthorized',
+        400: 'badRequest',
+    },
 } as const;
 /* eslint-enable @typescript-eslint/naming-convention */
 

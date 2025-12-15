@@ -44,9 +44,7 @@ function MultifactorAuthenticationBiometricsTestPage() {
                         success
                         style={styles.flex1}
                         onPress={() => {
-                            process(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {
-                                transactionID: CONST.FAKE_REPORT_ID,
-                            });
+                            process(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
                         }}
                         text={translate('multifactorAuthentication.biometrics.test')}
                     />

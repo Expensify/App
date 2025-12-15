@@ -14,15 +14,12 @@ import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-const successNotification = 'authorize-transaction-approved' as const;
-const failureNotification = 'authorize-transaction-denied' as const;
-
 type MultifactorAuthenticationApproveTransactionPageProps = PlatformStackScreenProps<MultifactorAuthenticationParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.APPROVE_TRANSACTION>;
 
 function MultifactorAuthenticationScenarioApproveTransactionPage({route}: MultifactorAuthenticationApproveTransactionPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {process, trigger} = useMultifactorAuthenticationContext();
+    const {process, trigger, info} = useMultifactorAuthenticationContext();
 
     const transactionID = route.params.transactionID;
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
@@ -38,8 +35,6 @@ function MultifactorAuthenticationScenarioApproveTransactionPage({route}: Multif
     const approveTransaction = () => {
         process(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {
             transactionID,
-            successNotification,
-            failureNotification,
         });
     };
 
@@ -47,8 +42,7 @@ function MultifactorAuthenticationScenarioApproveTransactionPage({route}: Multif
         if (isConfirmModalVisible) {
             hideConfirmModal();
         }
-        // TODO: MFA/Dev We do not know what scenario is in the context here, passing the screen as the second argument works but it is ugly
-        trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE, failureNotification);
+        trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE);
     };
 
     return (
@@ -66,6 +60,7 @@ function MultifactorAuthenticationScenarioApproveTransactionPage({route}: Multif
                         onDeny={showConfirmModal}
                     />
                     <MultifactorAuthenticationTriggerCancelConfirmModal
+                        scenario={info.scenario}
                         isVisible={isConfirmModalVisible}
                         onConfirm={denyTransaction}
                         onCancel={hideConfirmModal}

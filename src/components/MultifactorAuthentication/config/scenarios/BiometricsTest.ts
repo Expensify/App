@@ -2,34 +2,26 @@ import type {MultifactorAuthenticationScenarioConfig} from '@components/Multifac
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
-import {authorizeTransaction} from '@userActions/MultifactorAuthentication';
+import {biometricsTest} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
-type Payload = {
-    transactionID: string;
-};
-
 export default {
     allowedAuthentication: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS,
-    action: authorizeTransaction,
-    screen: SCREENS.MULTIFACTOR_AUTHENTICATION.APPROVE_TRANSACTION,
+    action: biometricsTest,
+    screen: SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST,
     NOTIFICATIONS: {
         success: {
-            illustration: 'ApprovedTransactionHand',
-            iconWidth: variables.transactionHandWidth,
-            iconHeight: variables.transactionHandHeight,
-            padding: spacing.p0,
-            headerTitle: 'multifactorAuthentication.uiText.transactionApproved.headerTitle',
-            title: 'multifactorAuthentication.uiText.transactionApproved.title',
+            illustration: 'OpenPadlock',
+            iconWidth: variables.openPadlockWidth,
+            iconHeight: variables.openPadlockHeight,
+            padding: spacing.p2,
         },
         failure: {
-            illustration: 'DeniedTransactionHand',
-            iconWidth: variables.transactionHandWidth,
-            iconHeight: variables.transactionHandHeight,
+            illustration: 'HumptyDumpty',
+            iconWidth: variables.humptyDumptyWidth,
+            iconHeight: variables.humptyDumptyHeight,
             padding: spacing.p0,
-            headerTitle: 'multifactorAuthentication.uiText.transactionDenied.headerTitle',
-            title: 'multifactorAuthentication.uiText.transactionDenied.title',
         },
         outOfTime: {
             illustration: 'RunOutOfTime',
@@ -48,6 +40,4 @@ export default {
             cancelButtonText: 'common.cancel',
         },
     },
-} as const satisfies MultifactorAuthenticationScenarioConfig<Payload>;
-
-export type {Payload};
+} as const satisfies MultifactorAuthenticationScenarioConfig;

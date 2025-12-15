@@ -450,3 +450,4 @@ export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredPara
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
 export type {default as RegisterBiometricsParams} from './RegisterBiometricsParams';
 export type {default as AuthorizeTransactionParams} from './AuthorizeTransactionParams';
+export type {default as BiometricsTestParams} from './BiometricsTestParams';

@@ -212,6 +212,38 @@ ROUTER.post['/authorize_transaction'] = ({
     };
 };
 
+ROUTER.post['/biometrics_test'] = ({signedChallenge}: Partial<WriteCommands['BiometricsTest']['parameters']>): WriteCommands['BiometricsTest']['returns'] => {
+    const userPublicKeys = STORAGE.publicKeys[sessionData.email ?? FALLBACK_EMAIL];
+
+    if (!userPublicKeys?.length) {
+        return {
+            ...RESPONSE.UNAUTHORIZED,
+            message: Logger.w('User is not registered'),
+        };
+    }
+
+    if (signedChallenge) {
+        Logger.m('Performing biometrics test transaction with signed challenge', signedChallenge);
+
+        const authorized = userPublicKeys.some((publicKey) => isChallengeValid(signedChallenge, publicKey));
+
+        return authorized
+            ? {
+                  ...RESPONSE.REQUEST_SUCCESSFUL,
+                  message: Logger.m('User passed the test successfully using challenge'),
+              }
+            : {
+                  ...RESPONSE.CONFLICT,
+                  message: Logger.w('Unable to test user using challenge'),
+              };
+    }
+
+    return {
+        ...RESPONSE.BAD_REQUEST,
+        message: Logger.w('Bad request'),
+    };
+};
+
 const callMockedAPI = (
     path: string,
     options: {

@@ -840,6 +840,10 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: 'Webアプリに進む',
     },
     multifactorAuthentication: {
+        generic: {
+            cancelAuthenticationTitle: '認証をキャンセルしてもよろしいですか？',
+            cancelAuthenticationDescription: 'この画面を閉じると、認証はキャンセルされます。',
+        },
         approveTransaction: {
             headerButtonTitle: 'トランザクションを承認',
             pageTitle: 'このトランザクションを承認してください',

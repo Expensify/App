@@ -97,6 +97,7 @@ type UseMultifactorAuthentication = {
         MultifactorAuthenticationStatusMessage & {
             success: undefined | boolean;
             headerTitle: string;
+            scenario: MultifactorAuthenticationScenario | undefined;
         };
     process: <T extends MultifactorAuthenticationScenario>(
         scenario: T,

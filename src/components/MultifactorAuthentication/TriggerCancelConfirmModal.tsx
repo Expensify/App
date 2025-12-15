@@ -1,7 +1,7 @@
 import React from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
 import type {MultifactorAuthenticationScenario} from './config/types';
 
@@ -12,16 +12,17 @@ type MultifactorAuthenticationTriggerCancelConfirmModalProps = {
     scenario?: MultifactorAuthenticationScenario;
 };
 
-// TODO: MFA/Dev Remove this 'default' scenario
-function MultifactorAuthenticationTriggerCancelConfirmModal({
-    isVisible,
-    onConfirm,
-    onCancel,
-    scenario = CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION,
-}: MultifactorAuthenticationTriggerCancelConfirmModalProps) {
+const defaultTranslations = {
+    title: 'multifactorAuthentication.generic.cancelAuthenticationTitle',
+    description: 'multifactorAuthentication.generic.cancelAuthenticationDescription',
+    cancelButtonText: 'common.confirm',
+    confirmButtonText: 'common.cancel',
+} as const satisfies Record<string, TranslationPaths>;
+
+function MultifactorAuthenticationTriggerCancelConfirmModal({isVisible, onConfirm, onCancel, scenario}: MultifactorAuthenticationTriggerCancelConfirmModalProps) {
     const {translate} = useLocalize();
 
-    const {title, description, cancelButtonText, confirmButtonText} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario].MODALS.cancelConfirmation;
+    const {title, description, cancelButtonText, confirmButtonText} = scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario].MODALS.cancelConfirmation : defaultTranslations;
 
     return (
         <ConfirmModal

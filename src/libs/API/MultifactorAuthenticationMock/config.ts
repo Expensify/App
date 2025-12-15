@@ -6,6 +6,7 @@ const WRITE_COMMANDS = {
     AUTHORIZE_TRANSACTION: 'AuthorizeTransaction',
     RESEND_VALIDATE_CODE: 'ResendValidateCode',
     REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS: 'RevokeMultifactorAuthenticationKeys',
+    BIOMETRICS_TEST: 'BiometricsTest',
 } as const;
 
 const READ_COMMANDS = {
@@ -18,6 +19,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     RESEND_VALIDATE_CODE: WRITE_COMMANDS.RESEND_VALIDATE_CODE,
     REQUEST_BIOMETRIC_CHALLENGE: READ_COMMANDS.REQUEST_BIOMETRIC_CHALLENGE,
     REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS: WRITE_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS,
+    BIOMETRICS_TEST: WRITE_COMMANDS.BIOMETRICS_TEST,
 };
 
 const API_ROUTES: {
@@ -28,6 +30,7 @@ const API_ROUTES: {
         RequestBiometricChallenge: 'GET:/request_biometric_challenge',
     },
     Write: {
+        BiometricsTest: 'POST:/biometrics_test',
         ResendValidateCode: 'POST:/resend_validate_code',
         RegisterBiometrics: 'POST:/register_biometrics',
         AuthorizeTransaction: 'POST:/authorize_transaction',

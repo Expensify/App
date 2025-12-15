@@ -18,7 +18,7 @@ type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<Multifa
 
 function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
-    const {update, trigger} = useMultifactorAuthenticationContext();
+    const {update, trigger, info} = useMultifactorAuthenticationContext();
 
     const contentData = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType];
 
@@ -70,6 +70,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                     onConfirm={onConfirm}
                 />
                 <MultifactorAuthenticationTriggerCancelConfirmModal
+                    scenario={info.scenario}
                     isVisible={isConfirmModalVisible}
                     onConfirm={denyTransaction}
                     onCancel={hideConfirmModal}

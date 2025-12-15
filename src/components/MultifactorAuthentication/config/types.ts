@@ -78,7 +78,7 @@ type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknow
     params: MultifactorAuthenticationActionParams<T, 'signedChallenge'>,
 ) => Promise<MultifactorAuthenticationScenarioResponse>;
 
-type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown>> = {
+type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> = EmptyObject> = {
     action: MultifactorAuthenticationScenarioPureMethod<T>;
     allowedAuthentication: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>;
     screen: MultifactorAuthenticationScreen;
@@ -94,6 +94,9 @@ type MultifactorAuthenticationScenarioAdditionalParams<T extends MultifactorAuth
  * Parameters required for a multifactorial authentication scenario, optionally including stored factor verification
  */
 type MultifactorAuthenticationScenarioParams<T extends MultifactorAuthenticationScenario> = Partial<AllMultifactorAuthenticationFactors> &
+    MultifactorAuthenticationScenarioAdditionalParams<T>;
+
+type MultifactorAuthenticationProcessScenarioParameters<T extends MultifactorAuthenticationScenario> = AllMultifactorAuthenticationFactors &
     MultifactorAuthenticationScenarioAdditionalParams<T>;
 
 /**
@@ -114,7 +117,10 @@ type RegisterBiometricsParams = MultifactorAuthenticationActionParams<
 >;
 
 type MultifactorAuthenticationScenarioParameters = {
-    [key in keyof MultifactorAuthenticationScenarioPayload]: MultifactorAuthenticationActionParams<MultifactorAuthenticationScenarioPayload[key], 'signedChallenge'>;
+    [key in MultifactorAuthenticationScenario]: MultifactorAuthenticationActionParams<
+        key extends keyof MultifactorAuthenticationScenarioPayload ? MultifactorAuthenticationScenarioPayload[key] : EmptyObject,
+        'signedChallenge'
+    >;
 } & {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     'REGISTER-BIOMETRICS': RegisterBiometricsParams;
@@ -141,5 +147,6 @@ export type {
     MultifactorAuthenticationScenarioConfig,
     MultifactorAuthenticationUI,
     MultifactorAuthenticationScenarioConfigRecord,
+    MultifactorAuthenticationProcessScenarioParameters,
     MultifactorAuthenticationUIRecord,
 };

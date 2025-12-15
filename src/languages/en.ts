@@ -824,6 +824,10 @@ const translations = {
         continueInWeb: 'continue to the web app',
     },
     multifactorAuthentication: {
+        generic: {
+            cancelAuthenticationTitle: 'Are you sure you want to cancel the authentication?',
+            cancelAuthenticationDescription: 'The authentication will be canceled if you close this screen.',
+        },
         approveTransaction: {
             headerButtonTitle: 'Approve transaction',
             pageTitle: 'Please approve this transaction',

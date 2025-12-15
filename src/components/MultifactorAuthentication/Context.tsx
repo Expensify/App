@@ -44,6 +44,7 @@ const MultifactorAuthenticationContext = createContext<UseMultifactorAuthenticat
         title: EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS.title,
         headerTitle: EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS.title,
         success: undefined,
+        scenario: undefined,
     },
     process: () => Promise.resolve(EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS),
     update: () => Promise.resolve(EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS),
@@ -354,40 +355,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         );
     };
 
-    const {isLocalPublicKeyInAuth, isBiometryRegisteredLocally, isAnyDeviceRegistered, deviceSupportBiometrics} = NativeBiometrics.setup;
-    const {scenario} = mergedStatus.value;
-    const {wasRecentStepSuccessful} = mergedStatus.step;
-
-    const scenarioPrefix = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
-    const successPath = getNotificationPath(overriddenScreens.current.success, scenarioPrefix, 'success');
-    const failurePath = getNotificationPath(overriddenScreens.current.failure, scenarioPrefix, 'failure');
-    const pathToUse = wasRecentStepSuccessful ? successPath : failurePath;
-
-    const notificationConfig = pathToUse ? MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP[pathToUse] : undefined;
-    const defaultTitle = mergedStatus.title;
-
-    let headerTitle = defaultTitle;
-    let title = defaultTitle;
-    if (notificationConfig) {
-        if (notificationConfig.headerTitle) {
-            headerTitle = translate(notificationConfig.headerTitle);
-        }
-        if (notificationConfig.title) {
-            title = translate(notificationConfig.title);
-        }
-    }
-
-    const info = {
-        title,
-        headerTitle,
-        message: mergedStatus.message,
-        success: success.current,
-        deviceSupportBiometrics,
-        isLocalPublicKeyInAuth,
-        isBiometryRegisteredLocally,
-        isAnyDeviceRegistered,
-    };
-
     const trigger = async <T extends MultifactorAuthenticationTrigger>(triggerType: T, argument?: MultifactorTriggerArgument<T>) => {
         switch (triggerType) {
             case CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.REVOKE:
@@ -407,6 +374,42 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             default:
                 return mergedStatus;
         }
+    };
+
+    const {isLocalPublicKeyInAuth, isBiometryRegisteredLocally, isAnyDeviceRegistered, deviceSupportBiometrics} = NativeBiometrics.setup;
+    const {scenario} = mergedStatus.value;
+
+    const {wasRecentStepSuccessful} = mergedStatus.step;
+    const scenarioPrefix = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
+    const successPath = getNotificationPath(overriddenScreens.current.success, scenarioPrefix, 'success');
+    const failurePath = getNotificationPath(overriddenScreens.current.failure, scenarioPrefix, 'failure');
+
+    const pathToUse = wasRecentStepSuccessful ? successPath : failurePath;
+    const notificationConfig = pathToUse ? MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP[pathToUse] : undefined;
+
+    const defaultTitle = mergedStatus.title;
+    let headerTitle = defaultTitle;
+    let title = defaultTitle;
+
+    if (notificationConfig) {
+        if (notificationConfig.headerTitle) {
+            headerTitle = translate(notificationConfig.headerTitle);
+        }
+        if (notificationConfig.title) {
+            title = translate(notificationConfig.title);
+        }
+    }
+
+    const info = {
+        title,
+        headerTitle,
+        message: mergedStatus.message,
+        success: success.current,
+        deviceSupportBiometrics,
+        isLocalPublicKeyInAuth,
+        isBiometryRegisteredLocally,
+        isAnyDeviceRegistered,
+        scenario,
     };
 
     // The React compiler prohibits the use of useCallback and useMemo in new components

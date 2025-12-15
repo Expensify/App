@@ -72,4 +72,16 @@ async function authorizeTransaction({transactionID, signedChallenge}: Multifacto
     return parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.AUTHORIZE_TRANSACTION);
 }
 
-export {registerBiometrics, requestBiometricChallenge, authorizeTransaction, revokePublicKeys};
+async function biometricsTest({signedChallenge}: MultifactorAuthenticationScenarioParameters['BIOMETRICS-TEST']) {
+    if (!signedChallenge) {
+        return parseHttpCode(400, CONST.MULTIFACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.BIOMETRICS_TEST);
+    }
+
+    const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.BIOMETRICS_TEST, {signedChallenge}, {});
+
+    const {jsonCode} = response ?? {};
+
+    return parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.BIOMETRICS_TEST);
+}
+
+export {registerBiometrics, requestBiometricChallenge, authorizeTransaction, revokePublicKeys, biometricsTest};

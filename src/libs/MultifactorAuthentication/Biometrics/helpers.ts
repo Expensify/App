@@ -1,8 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import type {
+    MultifactorAuthenticationProcessScenarioParameters,
     MultifactorAuthenticationScenario,
-    MultifactorAuthenticationScenarioParameters,
+    MultifactorAuthenticationScenarioConfig,
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationScenarioResponseWithSuccess,
 } from '@components/MultifactorAuthentication/config/types';
@@ -226,13 +227,13 @@ async function processMultifactorAuthenticationRegistration(
  */
 async function processMultifactorAuthenticationScenario<T extends MultifactorAuthenticationScenario>(
     scenario: T,
-    params: MultifactorAuthenticationScenarioParams<T>,
+    params: MultifactorAuthenticationProcessScenarioParameters<T>,
     factorsCombination: ValueOf<typeof VALUES.FACTOR_COMBINATIONS>,
     isStoredFactorVerified?: boolean,
 ): Promise<MultifactorAuthenticationPartialStatus<number | undefined>> {
     const factorsCheckResult = areMultifactorAuthenticationFactorsSufficient(params, factorsCombination, isStoredFactorVerified);
 
-    const currentScenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
+    const currentScenario: MultifactorAuthenticationScenarioConfig = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
 
     if (factorsCheckResult.value !== true) {
         return authorizeMultifactorAuthenticationPostMethod(
@@ -246,7 +247,7 @@ async function processMultifactorAuthenticationScenario<T extends MultifactorAut
     }
 
     // We can safely make this assertion because the factors check method guarantees that the necessary conditions are met
-    const {httpCode, reason} = await currentScenario.action(params as MultifactorAuthenticationScenarioParameters[T]);
+    const {httpCode, reason} = await currentScenario.action(params);
     const successful = String(httpCode).startsWith('2');
 
     return authorizeMultifactorAuthenticationPostMethod(

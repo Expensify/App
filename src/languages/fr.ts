@@ -842,6 +842,10 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: 'continuer vers l’application web',
     },
     multifactorAuthentication: {
+        generic: {
+            cancelAuthenticationTitle: 'Êtes-vous sûr de vouloir annuler l’authentification ?',
+            cancelAuthenticationDescription: 'Si vous fermez cet écran, l’authentification sera annulée.',
+        },
         approveTransaction: {
             headerButtonTitle: 'Approuver la transaction',
             pageTitle: 'Veuillez approuver cette transaction',

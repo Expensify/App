@@ -1266,6 +1266,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
 
     REGISTER_BIOMETRICS: 'RegisterBiometrics',
+    BIOMETRICS_TEST: 'BiometricsTest',
     REQUEST_BIOMETRIC_CHALLENGE: 'RequestBiometricChallenge',
     AUTHORIZE_TRANSACTION: 'AuthorizeTransaction',
     REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS: 'RevokeMultifactorAuthenticationKeys',
@@ -1299,6 +1300,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_BIOMETRICS]: Parameters.RegisterBiometricsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHORIZE_TRANSACTION]: Parameters.AuthorizeTransactionParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.BIOMETRICS_TEST]: Parameters.BiometricsTestParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_BIOMETRIC_CHALLENGE]: EmptyObject;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS]: EmptyObject;
 };

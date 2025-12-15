@@ -834,6 +834,10 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: '继续前往网页版应用',
     },
     multifactorAuthentication: {
+        generic: {
+            cancelAuthenticationTitle: '你确定要取消身份验证吗？',
+            cancelAuthenticationDescription: '如果你关闭此界面，身份验证将被取消。',
+        },
         approveTransaction: {
             headerButtonTitle: '批准交易',
             pageTitle: '请批准此交易',

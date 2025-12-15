@@ -47,6 +47,13 @@ type WriteCommands = {
         };
         returns: APIResponse;
     };
+    BiometricsTest: {
+        route: typeof API_ROUTES.Write.BiometricsTest;
+        parameters: {
+            signedChallenge: SignedChallenge;
+        };
+        returns: APIResponse;
+    };
 };
 
 type ReadCommands = {

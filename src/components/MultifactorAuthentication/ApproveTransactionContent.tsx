@@ -46,7 +46,7 @@ function MultifactorAuthenticationApproveTransactionContent({transactionID}: Mul
     // This avoids subscribing to ALL reports which is expensive and triggers re-renders on every report change
     const needsChatReport = !!chatReportID && chatReportID !== iouReportID;
 
-    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${needsChatReport && chatReportID ? chatReportID : CONST.DEFAULT_NUMBER_ID}` as const;
+    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${needsChatReport && chatReportID ? chatReportID : undefined}` as const;
 
     const [chatReportFromOnyx] = useOnyx(chatReportKey, {canBeMissing: true});
 

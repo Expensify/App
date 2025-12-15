@@ -102,7 +102,9 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
      * For not configured devices or re-registration, requires a validation code.
      */
     public async send(): Promise<MultifactorAuthenticationPartialStatus<boolean, true>> {
-        if (!this.auth.value || !isChallengeSigned(this.auth.value)) {
+        const {value} = this.auth;
+
+        if (!value || !isChallengeSigned(value)) {
             return this.createErrorReturnValue('multifactorAuthentication.reason.error.signatureMissing');
         }
 
@@ -110,7 +112,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
             this.scenario,
             {
                 ...this.params,
-                signedChallenge: this.auth.value,
+                signedChallenge: value,
             },
             VALUES.FACTOR_COMBINATIONS.BIOMETRICS_AUTHENTICATION,
         );
