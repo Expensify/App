@@ -2479,7 +2479,7 @@ function getColumnsToShow(
         return {
             [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
             [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: true,
             [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
             [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,

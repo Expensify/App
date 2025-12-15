@@ -158,6 +158,13 @@ function ExpenseReportListItemRow({
                         isLargeScreenWidth
                     />
                 </View>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, false, false, false, false, item.shouldShowYearSubmitted)]}>
+                    <DateCell
+                        date={item.submitted ?? ''}
+                        showTooltip
+                        isLargeScreenWidth
+                    />
+                </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
                     <StatusCell
                         stateNum={item.stateNum}
