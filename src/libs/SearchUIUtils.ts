@@ -2049,25 +2049,25 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
-function getCustomColumns(type: SearchDataTypes) {
+function getCustomColumns(type: SearchDataTypes): SearchCustomColumnIds[] {
     // eslint-disable-next-line default-case
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE;
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE);
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-            return CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT;
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT);
         case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return CONST.SEARCH.CUSTOM_COLUMNS.INVOICE;
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.INVOICE);
         case CONST.SEARCH.DATA_TYPES.TASK:
-            return CONST.SEARCH.CUSTOM_COLUMNS.TASK;
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.TASK);
         case CONST.SEARCH.DATA_TYPES.TRIP:
-            return CONST.SEARCH.CUSTOM_COLUMNS.TRIP;
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.TRIP);
         case CONST.SEARCH.DATA_TYPES.CHAT:
-            return CONST.SEARCH.CUSTOM_COLUMNS.CHAT;
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.CHAT);
     }
 }
 
-function getCustomColumnDefault(type: SearchDataTypes) {
+function getCustomColumnDefault(type: SearchDataTypes): SearchCustomColumnIds[] {
     // eslint-disable-next-line default-case
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -2108,6 +2108,10 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'iou.amount';
         case CONST.SEARCH.TABLE_COLUMNS.ACTION:
             return 'common.action';
+        case CONST.SEARCH.TABLE_COLUMNS.TITLE:
+            return 'common.title';
+        case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+            return 'common.status';
     }
 }
 

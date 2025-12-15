@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAllFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getCustomColumns, getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,8 +30,8 @@ function SearchColumnsPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-    const allCustomColumns = Object.values(CONST.SEARCH.CUSTOM_COLUMNS[queryType]);
-    const defaultCustomColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS[queryType]);
+    const allCustomColumns = getCustomColumns(queryType);
+    const defaultCustomColumns = getCustomColumnDefault(queryType);
 
     const [selectedColumnIds, setSelectedColumnIds] = useState<SearchCustomColumnIds[]>(() => {
         const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => Object.values(CONST.SEARCH.CUSTOM_COLUMNS).includes(columnId)) ?? [];
