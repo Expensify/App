@@ -1,13 +1,13 @@
 import type {SyntheticEvent} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
+import {View} from 'react-native';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import Lightbox from '@components/Lightbox';
+import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -239,11 +239,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 />
             </PressableWithoutFeedback>
 
-            {!isImageLoaded && !shouldShowOfflineIndicator && (
-                <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, styles.opacity1, styles.bgTransparent]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-                </View>
-            )}
+            {!isImageLoaded && !shouldShowOfflineIndicator && <LoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
             {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}
         </View>
     );
