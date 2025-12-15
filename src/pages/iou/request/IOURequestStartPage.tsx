@@ -205,6 +205,15 @@ function IOURequestStartPage({
         [resetIOUTypeIfChanged],
     );
 
+    useEffect(() => {
+        if (isLoadingSelectedTab) {
+            return;
+        }
+        setSelectedTab(lastSelectedTab);
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoadingSelectedTab]);
+
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
     useFocusEffect(
         useCallback(() => {
