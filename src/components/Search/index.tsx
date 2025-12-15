@@ -106,7 +106,6 @@ function mapTransactionItemToSelectedEntry(
         item.keyForList,
         {
             isSelected: true,
-            canDelete: item.canDelete,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
@@ -199,7 +198,6 @@ function prepareTransactionsList(
         ...selectedTransactions,
         [item.keyForList]: {
             isSelected: true,
-            canDelete: item.canDelete,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
@@ -545,7 +543,6 @@ function Search({
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
-                        canDelete: transactionItem.canDelete,
                         canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
@@ -597,7 +594,6 @@ function Search({
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
-                    canDelete: transactionItem.canDelete,
                     canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
