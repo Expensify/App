@@ -502,11 +502,11 @@ function WorkspacesListPage() {
         [shouldUseNarrowLayout],
     );
 
-    const navigateToDomain = useCallback(({accountID, isAdmin}: {accountID: number; isAdmin: boolean}) => {
+    const navigateToDomain = useCallback(({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
         if (!isAdmin) {
-            return Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.getRoute(accountID));
+            return Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.getRoute(domainAccountID));
         }
-        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID));
+        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID));
     }, []);
 
     /**
@@ -593,7 +593,7 @@ function WorkspacesListPage() {
                 listItemType: 'domain',
                 accountID: domain.accountID,
                 title: Str.extractEmailDomain(domain.email),
-                action: () => navigateToDomain({accountID: domain.accountID, isAdmin}),
+                action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin}),
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,

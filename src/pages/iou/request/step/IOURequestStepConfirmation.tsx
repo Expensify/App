@@ -82,6 +82,7 @@ import {
     sendMoneyWithWallet,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
+    setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
     setMoneyRequestReimbursable,
     splitBill,
@@ -279,6 +280,13 @@ function IOURequestStepConfirmation({
         }
         return translate('iou.confirmDetails');
     }, [iouType, translate, isSharingTrackExpense, isCategorizingTrackExpense]);
+
+    useEffect(() => {
+        if (!transaction?.transactionID || !transactionReport || iouType !== CONST.IOU.TYPE.PAY) {
+            return;
+        }
+        setMoneyRequestParticipantsFromReport(transaction.transactionID, transactionReport, currentUserPersonalDetails.accountID);
+    }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
 
     const participants = useMemo(
         () =>
