@@ -1653,6 +1653,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Registrar datos de resolución de problemas',
             softKillTheApp: 'Desactivar la aplicación',
             kill: 'Matar',
+            sentryDebug: 'Depuración de Sentry',
+            sentryDebugDescription: 'Registrar las solicitudes de Sentry en la consola',
+            sentryHighlightedSpanOps: 'Nombres de spans resaltados',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -6076,6 +6080,12 @@ ${amount} para ${merchant} - ${date}`,
                 return `cambió la parte recuperable de impuestos en la tasa por distancia "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`;
             }
             return `añadió una parte recuperable de impuestos de "${newValue}" a la tasa por distancia "${customUnitRateName}`;
+        },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}) => {
+            return `cambió el índice de la tarifa de ${customUnitName} "${customUnitRateName}" a "${newValue}" ${oldValue ? `(previamente "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}) => {
+            return `${newValue ? 'habilitó' : 'deshabilitó'} la tarifa de ${customUnitName} "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}) => `añadió el campo de informe ${fieldType} "${fieldName}"`,

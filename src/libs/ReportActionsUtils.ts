@@ -2749,6 +2749,26 @@ function getWorkspaceCustomUnitRateUpdatedMessage(action: ReportAction): string 
         });
     }
 
+    if (customUnitName && customUnitRateName && updatedField === 'index' && typeof newValue === 'number') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updatedCustomUnitRateIndex', {
+            customUnitName,
+            customUnitRateName,
+            oldValue: oldValue ? Number(oldValue) : undefined,
+            newValue,
+        });
+    }
+
+    if (customUnitName && customUnitRateName && updatedField === 'enabled' && typeof oldValue === 'boolean' && typeof newValue === 'boolean') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updatedCustomUnitRateEnabled', {
+            customUnitName,
+            customUnitRateName,
+            oldValue,
+            newValue,
+        });
+    }
+
     return getReportActionText(action);
 }
 

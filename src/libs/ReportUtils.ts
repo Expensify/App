@@ -77,7 +77,7 @@ import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {
@@ -205,6 +205,9 @@ import {
     getTravelUpdateMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
+    getWorkspaceCustomUnitRateAddedMessage,
+    getWorkspaceCustomUnitRateDeletedMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
@@ -5947,6 +5950,16 @@ function getReportName(
         return getTravelUpdateMessage(parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
+        return getWorkspaceCustomUnitRateAddedMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
+        return getWorkspaceCustomUnitRateUpdatedMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
+        return getWorkspaceCustomUnitRateDeletedMessage(parentReportAction);
+    }
+
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
@@ -6333,12 +6346,11 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
     const rootState = navigationRef.current?.getRootState();
     const lastFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
     if (lastFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-        // When deleting from search, go back to Super Wide RHP to maintain search context
-        Navigation.dismissToSuperWideRHP();
+        Navigation.dismissModal();
         return;
     }
     if (isFromRHP) {
-        Navigation.dismissToSuperWideRHP();
+        Navigation.dismissModal();
     }
     Navigation.isNavigationReady().then(() => {
         Navigation.goBack(backRoute);
@@ -9328,7 +9340,7 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     let reportAction: OnyxEntry<ReportAction>;
 
     for (const action of reportActionsArray) {
-        if (action && !isEmptyObject(action.errors)) {
+        if (action && !isEmptyValueObject(action.errors)) {
             Object.assign(reportActionErrors, action.errors);
 
             if (!reportAction) {
@@ -11070,11 +11082,11 @@ function hasActionWithErrorsForTransaction(reportID: string | undefined, transac
         .some((action) => {
             if (isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID) {
                 if (getOriginalMessage(action)?.IOUTransactionID === transaction?.transactionID) {
-                    return !isEmptyObject(action.errors);
+                    return !isEmptyValueObject(action.errors);
                 }
                 return false;
             }
-            return !isEmptyObject(action.errors);
+            return !isEmptyValueObject(action.errors);
         });
 }
 

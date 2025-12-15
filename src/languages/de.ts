@@ -263,6 +263,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -2064,6 +2066,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Fehlerdaten aufzeichnen',
             softKillTheApp: 'App sanft beenden',
             kill: 'Beenden',
+            sentryDebug: 'Sentry-Debug',
+            sentryDebugDescription: 'Sentry-Anfragen in der Konsole protokollieren',
+            sentryHighlightedSpanOps: 'Hervorgehobene Span-Namen',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Protokoll speichern',
@@ -6586,6 +6592,12 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 return `hat den erstattungsfähigen Steueranteil am Distanzsatz „${customUnitRateName}“ auf „${newValue}“ geändert (zuvor „${oldValue}“)`;
             }
             return `hat einen steuererstattungsfähigen Anteil von „${newValue}“ zum Entfernungssatz „${customUnitRateName}“ hinzugefügt`;
+        },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `änderte den Index des ${customUnitName}-Tarifs "${customUnitRateName}" auf "${newValue}" ${oldValue ? `(zuvor "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'aktiviert' : 'deaktiviert'} ${customUnitName}-Tarif "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `hat den Preis „${rateName}“ für „${customUnitName}“ entfernt`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType}-Berichtsfield „${fieldName}“ hinzugefügt`,

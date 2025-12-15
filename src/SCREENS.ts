@@ -249,7 +249,10 @@ const SCREENS = {
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
         SEARCH_REPORT_ACTIONS: 'SearchReportActions',
+        // These two routes will be added in a separate PR adding Super Wide RHP routes
+        EXPENSE_REPORT: 'ExpenseReport',
         SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
+
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',
@@ -271,7 +274,6 @@ const SCREENS = {
         MULTIFACTOR_AUTHENTICATION: 'MultifactorAuthentication',
     },
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
-    EXPENSE_REPORT_RHP: 'Expense_Report_RHP',
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',

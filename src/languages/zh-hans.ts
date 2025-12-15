@@ -263,6 +263,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -2029,6 +2031,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: '记录故障排查数据',
             softKillTheApp: '软关闭应用',
             kill: '终止',
+            sentryDebug: 'Sentry调试',
+            sentryDebugDescription: '将Sentry请求记录到控制台',
+            sentryHighlightedSpanOps: '突出显示的Span名称',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: '保存日志',
@@ -6425,6 +6431,12 @@ ${reportName}
                 return `已将里程费率“${customUnitRateName}”中的可抵扣税部分更改为“${newValue}”（之前为“${oldValue}”）`;
             }
             return `在距离费率“${customUnitRateName}”中添加了可退税部分“${newValue}”`;
+        },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `将 ${customUnitName} 费率 "${customUnitRateName}" 的索引更改为 "${newValue}" ${oldValue ? `(之前为 "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? '已启用' : '已禁用'} ${customUnitName} 费率 "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `已移除“${customUnitName}”费率“${rateName}”`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `已添加 ${fieldType} 报告字段 “${fieldName}”`,
