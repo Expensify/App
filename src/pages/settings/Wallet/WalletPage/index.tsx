@@ -243,7 +243,7 @@ function WalletPage() {
         if (network.isOffline) {
             return;
         }
-        getPaymentMethods(true);
+        getPaymentMethods();
     }, [network.isOffline]);
 
     // Don't show "Make default payment method" button if it's the only payment method or if it's already the default

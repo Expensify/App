@@ -124,7 +124,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const fetchData = useCallback(() => {
         openPolicyWorkflowsPage(route.params.policyID);
-        getPaymentMethods(true);
+        getPaymentMethods();
     }, [route.params.policyID]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
@@ -194,6 +194,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const addressName = isBankAccountFullySetup ? (policy?.achAccount?.addressName ?? '') : (bankAccountConnectedToWorkspace?.accountData?.addressName ?? '');
         const accountData = isBankAccountFullySetup ? policy?.achAccount : bankAccountConnectedToWorkspace?.accountData;
         const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
+        const bankAccountID = isBankAccountFullySetup ? policy?.achAccount?.bankAccountID : bankAccountConnectedToWorkspace?.methodID;
         const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
         const isAccountInSetupState = isBankAccountPartiallySetup(state);
         const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
@@ -357,7 +358,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
                                         iconStyles={bankIcon.iconStyles}
                                         disabled={isOffline || !isPolicyAdmin}
-                                        badgeText={getBadgeText(accountData.state)}
+                                        badgeText={getBadgeText(accountData?.state)}
                                         badgeIcon={(isAccountInSetupState ?? (isBusinessBankAccountLocked && isPolicyAdmin)) ? expensifyIcons.DotIndicator : undefined}
                                         badgeSuccess={isAccountInSetupState ? true : undefined}
                                         badgeError={isBusinessBankAccountLocked && isPolicyAdmin ? true : undefined}
@@ -428,10 +429,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         policy,
         bankAccountList,
         styles,
-        theme,
         translate,
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
+        isDEWEnabled,
+        shouldUseNarrowLayout,
+        expensifyIcons.Info,
+        expensifyIcons.Plus,
+        expensifyIcons.DotIndicator,
+        theme.textSupporting,
+        accountManagerReportID,
         filteredApprovalWorkflows,
         addApprovalAction,
         isOffline,
@@ -440,13 +447,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         route.params.policyID,
         updateApprovalMode,
         isAccountLocked,
+        isUserReimburser,
+        showLockedAccountModal,
         hasValidExistingAccounts,
         shouldShowContinueModal,
-        showLockedAccountModal,
-        isDEWEnabled,
-        shouldUseNarrowLayout,
-        accountManagerReportID,
-        expensifyIcons,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

@@ -371,7 +371,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (initiatingBankAccountUnlock?.isSuccess) {
             clearInitiatingBankAccountUnlock();
         }
-    }, [initiatingBankAccountUnlock, report]);
+    }, [initiatingBankAccountUnlock?.bankAccountIDToUnlock, initiatingBankAccountUnlock?.isSuccess, report]);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
