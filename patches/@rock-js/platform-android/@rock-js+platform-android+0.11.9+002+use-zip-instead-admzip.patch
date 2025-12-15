@@ -1,26 +1,30 @@
 diff --git a/node_modules/@rock-js/platform-android/dist/src/lib/commands/signAndroid/signAndroid.js b/node_modules/@rock-js/platform-android/dist/src/lib/commands/signAndroid/signAndroid.js
-index bf00b00..50a5307 100644
+index bf00b00..42c038d 100644
 --- a/node_modules/@rock-js/platform-android/dist/src/lib/commands/signAndroid/signAndroid.js
 +++ b/node_modules/@rock-js/platform-android/dist/src/lib/commands/signAndroid/signAndroid.js
-@@ -30,13 +30,13 @@ export async function signAndroid(options) {
+@@ -30,13 +30,16 @@ export async function signAndroid(options) {
      const tempArchivePath = path.join(tempPath, `output-app.${extension}`);
      loader.start(`Initializing output ${extension.toUpperCase()}...`);
      try {
 -        const zip = new AdmZip(options.binaryPath);
-+        fs.mkdirSync(tempPath, { recursive: true });
-+        fs.copyFileSync(options.binaryPath, tempArchivePath);
-         // Remove old signature files
+-        // Remove old signature files
 -        zip.deleteFile('META-INF/*');
 -        zip.writeZip(tempArchivePath);
-+        await spawn('zip', ['-d', tempArchivePath, 'META-INF/*']);
++        fs.mkdirSync(tempPath, { recursive: true });
++        fs.copyFileSync(options.binaryPath, tempArchivePath);
++        // Remove old signature files (but keep service loaders and other non-signature files)
++        await spawn('zip', ['-d', tempArchivePath, 'META-INF/*.RSA', 'META-INF/*.DSA', 'META-INF/*.SF', 'META-INF/MANIFEST.MF']);
      }
      catch (error) {
 -        throw new RockError(`Failed to initialize output file: ${options.outputPath}`, { cause: error.stderr });
-+        throw new RockError(`Failed to initialize output file: ${options.outputPath}`, { cause: error });
++        // zip returns exit code 12 if files don't exist, which is fine for re-signing
++        if (error.exitCode !== 12) {
++            throw new RockError(`Failed to initialize output file: ${options.outputPath}`, { cause: error });
++        }
      }
      loader.stop(`Initialized output ${extension.toUpperCase()}`);
      // 3. Replace JS bundle if provided
-@@ -78,16 +78,31 @@ function validateOptions(options) {
+@@ -78,16 +81,31 @@ function validateOptions(options) {
      }
  }
  async function replaceJsBundle({ archivePath, jsBundlePath, }) {
