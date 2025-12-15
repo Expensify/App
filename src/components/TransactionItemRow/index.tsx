@@ -256,6 +256,18 @@ function TransactionItemRow({
                     />
                 </View>
             ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.SUBMITTED]: (
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.SUBMITTED}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false, areAllOptionalColumnsHidden)]}
+                >
+                    <DateCell
+                        created={report?.submitted ?? ''}
+                        showTooltip={shouldShowTooltip}
+                        isLargeScreenWidth={!shouldUseNarrowLayout}
+                    />
+                </View>
+            ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]: (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY}
@@ -384,6 +396,7 @@ function TransactionItemRow({
         [
             StyleUtils,
             createdAt,
+            report?.submitted,
             isActionLoading,
             isReportItemChild,
             isDateColumnWide,

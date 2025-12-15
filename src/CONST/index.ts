@@ -1380,6 +1380,7 @@ const CONST = {
                 COMMENTS: 'comments',
                 RECEIPT: 'receipt',
                 DATE: 'date',
+                SUBMITTED: 'submitted',
                 MERCHANT: 'merchant',
                 DESCRIPTION: 'description',
                 FROM: 'from',
