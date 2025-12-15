@@ -120,6 +120,7 @@ import type {
     PolicyCategory,
     Report,
     ReportActions,
+    ReportAction,
     Request,
     TaxRatesWithDefault,
     Transaction,

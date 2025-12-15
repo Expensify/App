@@ -68,10 +68,9 @@ function KYCWall({
     const {formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserDetails.email ?? '';
-    const parentReportActions = useParentReportAction(iouReport);
+    const reportPreviewAction = useParentReportAction(iouReport);
     const personalDetails = usePersonalDetails();
     const employeeEmail = personalDetails?.[iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login ?? '';
-    const reportPreviewAction = iouReport?.parentReportActionID ? parentReportActions?.[iouReport?.parentReportActionID] : undefined;
     const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
@@ -209,6 +208,9 @@ function KYCWall({
             introSelected,
             formatPhoneNumber,
             lastPaymentMethod,
+            reportPreviewAction,
+            currentUserEmail,
+            employeeEmail,
         ],
     );
 
