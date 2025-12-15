@@ -851,6 +851,7 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
 type ShouldShowYearResult = {
     shouldShowYearCreated: boolean;
     shouldShowYearSubmitted: boolean;
+    shouldShowYearApproved: boolean;
 };
 
 /**
@@ -866,6 +867,7 @@ function shouldShowYear(
     const result: ShouldShowYearResult = {
         shouldShowYearCreated: false,
         shouldShowYearSubmitted: false,
+        shouldShowYearApproved: false,
     };
 
     const currentYear = new Date().getFullYear();
@@ -885,6 +887,9 @@ function shouldShowYear(
                 if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
                     result.shouldShowYearSubmitted = true;
                 }
+                if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
+                    result.shouldShowYearApproved = true;
+                }
             }
             if (isTransactionListItemType(item)) {
                 const transactionCreated = getTransactionCreatedDate(item);
@@ -893,6 +898,9 @@ function shouldShowYear(
                 }
                 if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
                     result.shouldShowYearSubmitted = true;
+                }
+                if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
+                    result.shouldShowYearApproved = true;
                 }
             }
 
@@ -914,6 +922,9 @@ function shouldShowYear(
             if (report?.submitted && DateUtils.doesDateBelongToAPastYear(report.submitted)) {
                 result.shouldShowYearSubmitted = true;
             }
+            if (report?.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
+                result.shouldShowYearApproved = true;
+            }
         } else if (!checkOnlyReports && isReportActionEntry(key)) {
             const item = data[key];
             for (const action of Object.values(item)) {
@@ -930,6 +941,9 @@ function shouldShowYear(
             }
             if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
                 result.shouldShowYearSubmitted = true;
+            }
+            if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
+                result.shouldShowYearApproved = true;
             }
         }
 
