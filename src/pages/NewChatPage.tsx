@@ -141,7 +141,6 @@ function useOptions() {
             if (!participantOption) {
                 participantOption = getUserToInviteOption({
                     searchValue: participant?.login,
-                    policyTags: undefined,
                 });
             }
             if (!participantOption) {

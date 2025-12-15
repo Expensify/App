@@ -1234,14 +1234,14 @@ function createOptionList(
     }
 
     const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => {
-        const reportID = reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.policyID;
-        const policyTagList = reportID ? policyTags?.[reportID] : CONST.POLICY.DEFAULT_TAG_LIST;
+        const report = reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+        const policyTagList = report.policyID ? policyTags?.[report.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
         return {
             item: personalDetail,
             ...createOption(
                 [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
                 personalDetails,
-                reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+                report,
                 policyTagList,
                 {
                     showPersonalDetails: true,
@@ -1553,7 +1553,6 @@ function canCreateOptimisticPersonalDetailOption({
  */
 function getUserToInviteOption({
     searchValue,
-    policyTags,
     loginsToExclude = {},
     selectedOptions = [],
     showChatPreviewLine = false,
@@ -1585,7 +1584,7 @@ function getUserToInviteOption({
         },
     };
 
-    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, policyTags, {
+    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, undefined, {
         showChatPreviewLine,
     });
     userToInvite.isOptimisticAccount = true;
@@ -2207,7 +2206,6 @@ function getValidOptions(
         userToInvite = filterUserToInvite(
             {currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions},
             searchString ?? '',
-            policyTags,
             countryCode,
             {
                 excludeLogins: loginsToExclude,
@@ -2645,7 +2643,6 @@ function filterCurrentUserOption(currentUserOption: SearchOptionData | null | un
 function filterUserToInvite(
     options: Omit<Options, 'userToInvite'>,
     searchValue: string,
-    policyTags: OnyxEntry<PolicyTagLists>,
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
     config?: FilterUserToInviteConfig,
 ): SearchOptionData | null {
@@ -2671,7 +2668,6 @@ function filterUserToInvite(
     };
     return getUserToInviteOption({
         searchValue,
-        policyTags,
         loginsToExclude,
         countryCode,
         ...config,
@@ -2726,7 +2722,6 @@ function filterOptions(options: Options, searchInputValue: string, countryCode: 
             currentUserOption,
         },
         searchValue,
-        policyTags,
         countryCode,
         config,
     );
