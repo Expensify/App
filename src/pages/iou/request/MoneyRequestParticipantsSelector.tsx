@@ -100,7 +100,7 @@ function MoneyRequestParticipantsSelector({
     isCorporateCardTransaction = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['UserPlus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactImport();

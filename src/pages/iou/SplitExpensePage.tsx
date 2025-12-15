@@ -114,7 +114,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const {isBetaEnabled} = usePermissions();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'ArrowsLeftRight'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'ArrowsLeftRight']);
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});

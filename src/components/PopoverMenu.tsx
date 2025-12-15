@@ -296,7 +296,7 @@ function BasePopoverMenu({
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const prevMenuItems = usePrevious(menuItems);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {

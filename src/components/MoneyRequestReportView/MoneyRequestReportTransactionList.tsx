@@ -164,7 +164,7 @@ function MoneyRequestReportTransactionList({
     useCopySelectionHelper();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
@@ -186,7 +186,7 @@ function MoneyRequestReportTransactionList({
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
-    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
 
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(expensifyIcons, report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),

@@ -57,7 +57,7 @@ function ExpenseReportListItemRow({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const {total, currency} = useMemo(() => {
         let reportTotal = item.total ?? 0;
