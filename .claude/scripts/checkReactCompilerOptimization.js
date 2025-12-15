@@ -121,16 +121,26 @@ const inputFileContent = fs.readFileSync(inputFile, 'utf8');
 
 // Try to find the exported component/hook name
 let inputComponentName = null;
-const functionMatch = inputFileContent.match(/(?:export\s+default\s+)?function\s+(\w+)/);
-const constMatch = inputFileContent.match(/(?:export\s+default\s+)?const\s+(\w+)\s*[=:]/);
-const exportDefaultMatch = inputFileContent.match(/export\s+default\s+(\w+)\s*;/);
 
-if (functionMatch) {
-    inputComponentName = functionMatch[1];
-} else if (constMatch) {
-    inputComponentName = constMatch[1];
+// Priority order:
+// 1. displayName (most reliable for components)
+const displayNameMatch = inputFileContent.match(/(\w+)\.displayName\s*=\s*['"](\w+)['"]/);
+// 2. export default function Name(
+const exportDefaultFunctionMatch = inputFileContent.match(/export\s+default\s+function\s+(\w+)\s*\(/);
+// 3. export default Name (for memo-wrapped or direct exports)
+const exportDefaultMatch = inputFileContent.match(/export\s+default\s+(?:React\.)?(?:memo|forwardRef)?\s*\(?\s*(\w+)/);
+// 4. function Name( that's later exported (fallback)
+const functionMatch = inputFileContent.match(/function\s+(\w+)\s*\([^)]*\)\s*\{/);
+
+if (displayNameMatch) {
+    // Use the component name from displayName (first capture group is the variable, second is the string value)
+    inputComponentName = displayNameMatch[2] || displayNameMatch[1];
+} else if (exportDefaultFunctionMatch) {
+    inputComponentName = exportDefaultFunctionMatch[1];
 } else if (exportDefaultMatch) {
     inputComponentName = exportDefaultMatch[1];
+} else if (functionMatch) {
+    inputComponentName = functionMatch[1];
 }
 
 const result = {};
