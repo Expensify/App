@@ -516,9 +516,7 @@ function SettlementButton({
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && (isExpenseReport || isInvoiceReport))) {
             if (isInvoiceReport) {
                 const isBusinessBankAccount = bankAccountToDisplay?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
-                return translate(isBusinessBankAccount ? 'iou.invoiceBusinessBank' : 'iou.invoicePersonalBank', {
-                    lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4) ?? '',
-                });
+                return translate(isBusinessBankAccount ? 'iou.invoiceBusinessBank' : 'iou.invoicePersonalBank', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4) ?? '');
             }
             if (!personalBankAccountList.length) {
                 return;
@@ -529,18 +527,18 @@ function SettlementButton({
 
         if ((lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA || hasIntentToPay) && !!policy?.achAccount) {
             if (policy?.achAccount?.accountNumber) {
-                return translate('paymentMethodList.bankAccountLastFour', {lastFour: policy?.achAccount?.accountNumber?.slice(-4)});
+                return translate('paymentMethodList.bankAccountLastFour', policy?.achAccount?.accountNumber?.slice(-4));
             }
 
             if (!bankAccountToDisplay?.accountData?.accountNumber) {
                 return;
             }
 
-            return translate('paymentMethodList.bankAccountLastFour', {lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4)});
+            return translate('paymentMethodList.bankAccountLastFour', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4));
         }
 
         if (bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.methodID === policy?.achAccount?.bankAccountID && isExpenseReportUtil(iouReport)) {
-            return translate('paymentMethodList.bankAccountLastFour', {lastFour: bankAccount?.accountData?.accountNumber?.slice(-4) ?? ''});
+            return translate('paymentMethodList.bankAccountLastFour', bankAccount?.accountData?.accountNumber?.slice(-4) ?? '');
         }
 
         return undefined;
@@ -631,7 +629,7 @@ function SettlementButton({
                     }}
                     style={style}
                     shouldUseShortForm={shouldUseShortForm}
-                    shouldPopoverUseScrollView={paymentButtonOptions.length > 5}
+                    shouldPopoverUseScrollView={paymentButtonOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                     containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
                     wrapperStyle={[wrapperStyle, shouldLimitWidth ? styles.settlementButtonShortFormWidth : {}]}
                     disabledStyle={disabledStyle}

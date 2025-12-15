@@ -106,7 +106,6 @@ function mapTransactionItemToSelectedEntry(
         item.keyForList,
         {
             isSelected: true,
-            canDelete: item.canDelete,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
@@ -199,7 +198,6 @@ function prepareTransactionsList(
         ...selectedTransactions,
         [item.keyForList]: {
             isSelected: true,
-            canDelete: item.canDelete,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
@@ -285,9 +283,7 @@ function Search({
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
-
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useContext(WideRHPContext);
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
@@ -545,7 +541,6 @@ function Search({
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
-                        canDelete: transactionItem.canDelete,
                         canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
@@ -597,7 +592,6 @@ function Search({
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
-                    canDelete: transactionItem.canDelete,
                     canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
@@ -805,13 +799,6 @@ function Search({
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
                     }
                 }
-
-                if (item.transactions.length > 1) {
-                    markReportIDAsMultiTransactionExpense(reportID);
-                } else {
-                    unmarkReportIDAsMultiTransactionExpense(reportID);
-                }
-
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
@@ -830,16 +817,7 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [
-            isMobileSelectionModeEnabled,
-            markReportIDAsExpense,
-            toggleTransaction,
-            queryJSON,
-            handleSearch,
-            searchKey,
-            markReportIDAsMultiTransactionExpense,
-            unmarkReportIDAsMultiTransactionExpense,
-        ],
+        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
 
     const currentColumns = useMemo(() => {

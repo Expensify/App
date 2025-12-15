@@ -30,6 +30,7 @@ function TextInputClearButton({style, onPressButton, sentryLabel}: TextInputClea
                     e.preventDefault();
                 }}
                 onPress={onPressButton}
+                shouldUseAutoHitSlop
                 sentryLabel={sentryLabel}
             >
                 <Icon
