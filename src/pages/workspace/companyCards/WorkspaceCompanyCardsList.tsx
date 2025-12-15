@@ -8,17 +8,14 @@ import {PressableWithFeedback} from '@components/Pressable';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
-import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     filterCardsByPersonalDetails,
-    getCardFeedIcon,
     getCardsByCardholderName,
     getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
@@ -68,8 +65,6 @@ function WorkspaceCompanyCardsList({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const listRef = useRef<FlashListRef<string>>(null);
-    const illustrations = useThemeIllustrations();
-    const companyCardFeedIcons = useCompanyCardFeedIcons();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -104,8 +99,6 @@ function WorkspaceCompanyCardsList({
             const assignedCard = Object.values(assignedCards ?? {}).find((card) => card.cardName === cardName);
 
             const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID];
-
-            const cardFeedIcon = getCardFeedIcon(selectedFeed as CompanyCardFeed, illustrations, companyCardFeedIcons);
 
             const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -144,7 +137,7 @@ function WorkspaceCompanyCardsList({
                             <WorkspaceCompanyCardsListRow
                                 cardholder={personalDetails?.[assignedCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]}
                                 cardName={cardName}
-                                cardFeedIcon={cardFeedIcon}
+                                selectedFeed={selectedFeed}
                                 plaidUrl={plaidUrl}
                                 customCardName={customCardName}
                                 isHovered={hovered}
@@ -161,9 +154,7 @@ function WorkspaceCompanyCardsList({
         },
         [
             assignedCards,
-            companyCardFeedIcons,
             customCardNames,
-            illustrations,
             isAssigningCardDisabled,
             onAssignCard,
             personalDetails,

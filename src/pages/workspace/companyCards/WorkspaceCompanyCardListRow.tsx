@@ -7,28 +7,30 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardDefaultName} from '@libs/actions/Card';
-import {lastFourNumbersFromCardName} from '@libs/CardUtils';
+import {getCardFeedIcon, lastFourNumbersFromCardName} from '@libs/CardUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {PersonalDetails} from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID, PersonalDetails} from '@src/types/onyx';
 
 type WorkspaceCompanyCardsListRowProps = {
+    /** Selected feed */
+    selectedFeed: CompanyCardFeedWithDomainID;
+
     /** Card number */
     cardName: string;
 
     /** Card name */
     customCardName?: string;
 
+    /** Plaid URL */
     plaidUrl?: string;
-
-    /** Card feed icon */
-    cardFeedIcon: IconAsset;
 
     /** Cardholder personal details */
     cardholder?: PersonalDetails | null;
@@ -53,6 +55,7 @@ type WorkspaceCompanyCardsListRowProps = {
 };
 
 function WorkspaceCompanyCardsListRow({
+    selectedFeed,
     cardholder,
     customCardName,
     cardName,
@@ -60,7 +63,6 @@ function WorkspaceCompanyCardsListRow({
     isAssigned,
     onAssignCard,
     plaidUrl,
-    cardFeedIcon,
     isAssigningCardDisabled,
     shouldShowAssignCardButton,
     shouldUseNarrowTableRowLayout,
@@ -68,8 +70,15 @@ function WorkspaceCompanyCardsListRow({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const customCardNameWithFallback = customCardName ?? getCardDefaultName(cardholder?.displayName);
+
+    let cardFeedIcon = null;
+    if (!plaidUrl) {
+        cardFeedIcon = getCardFeedIcon(selectedFeed as CompanyCardFeed, illustrations, companyCardFeedIcons);
+    }
 
     const lastFourCardNameNumbers = lastFourNumbersFromCardName(cardName);
 
@@ -105,9 +114,9 @@ function WorkspaceCompanyCardsListRow({
                     </>
                 ) : (
                     <>
-                        {plaidUrl ? (
-                            <PlaidCardFeedIcon plaidUrl={plaidUrl} />
-                        ) : (
+                        {!!plaidUrl && <PlaidCardFeedIcon plaidUrl={plaidUrl} />}
+
+                        {!plaidUrl && !!cardFeedIcon && (
                             <Icon
                                 src={cardFeedIcon}
                                 height={variables.cardIconHeight}
