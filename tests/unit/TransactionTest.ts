@@ -540,6 +540,55 @@ describe('Transaction', () => {
             expect(report?.nonReimbursableTotal).toBe(expenseReport.nonReimbursableTotal);
         });
 
+        it('should update the target report total using convertedAmount when currencies are different', async () => {
+            const transaction = {
+                ...generateTransaction({
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                }),
+                currency: 'USD',
+                amount: -1000,
+                convertedAmount: -3673, // converted to AED
+                reimbursable: true,
+            };
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: '0',
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+            const expenseReport = {
+                ...createRandomReport(1, undefined),
+                total: 0,
+                nonReimbursableTotal: 0,
+                currency: 'AED',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', expenseReport);
+            await waitForBatchedUpdates();
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            // When currencies are different but convertedAmount is available, use it for the total
+            expect(report?.total).toBe(transaction.convertedAmount);
+        });
+
         it('should update the old report total when the currency is the same', async () => {
             const oldExpenseReport = {
                 ...createRandomReport(1, undefined),

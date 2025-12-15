@@ -980,6 +980,18 @@ function changeTransactionsReport(
 
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
                 updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
+            } else if (transaction.convertedAmount) {
+                // When transaction currency differs from report currency, use convertedAmount for the total
+                // convertedAmount is stored as negative for expense reports, so we use it directly
+                const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
+                updatedReportTotals[targetReportID] = currentTotal + transaction.convertedAmount;
+
+                const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[targetReportID] ?? targetReport?.nonReimbursableTotal ?? 0;
+                updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal + (transactionReimbursable ? 0 : transaction.convertedAmount);
+
+                const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
+                updatedReportUnheldNonReimbursableTotals[targetReportID] =
+                    currentUnheldNonReimbursableTotal + (transactionReimbursable && !isOnHold(transaction) ? 0 : transaction.convertedAmount);
             }
         }
 
