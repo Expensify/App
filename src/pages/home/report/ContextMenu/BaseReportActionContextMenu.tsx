@@ -246,10 +246,8 @@ function BaseReportActionContextMenu({
         !isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, transactionThreadReportID ? isChildReportArchived : isParentReportArchived);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
-    const isHarvestReport = useMemo(
-        () => isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID),
-        [reportNameValuePairs?.origin, reportNameValuePairs?.originalID],
-    );
+    const isHarvestReport = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
+
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
             !disabledActions.includes(contextAction) &&
