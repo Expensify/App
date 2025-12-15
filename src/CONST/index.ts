@@ -6705,6 +6705,19 @@ const CONST = {
             TOTAL: 'total',
             ACTION: 'action',
         },
+        get DEFAULT_COLUMNS() {
+            return {
+                EXPENSE: [
+                    this.CUSTOM_COLUMNS.DATE,
+                    this.CUSTOM_COLUMNS.STATUS,
+                    this.CUSTOM_COLUMNS.TITLE,
+                    this.CUSTOM_COLUMNS.FROM,
+                    this.CUSTOM_COLUMNS.TO,
+                    this.CUSTOM_COLUMNS.TOTAL,
+                    this.CUSTOM_COLUMNS.ACTION,
+                ],
+            };
+        },
         BOOLEAN: {
             YES: 'yes',
             NO: 'no',

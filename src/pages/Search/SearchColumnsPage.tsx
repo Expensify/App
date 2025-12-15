@@ -8,6 +8,7 @@ import type {SearchCustomColumnIds} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionList from '@components/SelectionListWithSections';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,7 +34,7 @@ function SearchColumnsPage() {
 
         // We dont allow the user to unselect all columns, so we can assume that no columns = all columns/none configured yet
         if (!columnIds.length) {
-            return allColumns;
+            return Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE);
         }
 
         return columnIds;
@@ -51,6 +52,8 @@ function SearchColumnsPage() {
         },
     ];
 
+    const shouldShowResetColumns = false;
+
     const onSelectItem = (item: ListItem) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
 
@@ -60,6 +63,8 @@ function SearchColumnsPage() {
             setSelectedColumnIds([...selectedColumnIds, updatedColumnId]);
         }
     };
+
+    const resetColumns = () => {};
 
     const applyChanges = () => {
         if (!selectedColumnIds.length) {
@@ -80,7 +85,9 @@ function SearchColumnsPage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.columms')} />
+            <HeaderWithBackButton title={translate('search.columms')}>
+                {shouldShowResetColumns && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
+            </HeaderWithBackButton>
             <View style={[styles.flex1]}>
                 <SelectionList
                     sections={sections}

@@ -10,6 +10,7 @@ import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSe
 import type {
     SearchAction,
     SearchColumnType,
+    SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchGroupBy,
@@ -2448,6 +2449,7 @@ function getActionOptions(translate: LocaleContextProps['translate']) {
 function getColumnsToShow(
     currentAccountID: number | undefined,
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
+    visibleColumns: SearchCustomColumnIds[],
     isExpenseReportView = false,
     type?: SearchDataTypes,
 ): ColumnVisibility {
@@ -2516,6 +2518,7 @@ function getColumnsToShow(
           };
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
+
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
         const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
@@ -2572,6 +2575,13 @@ function getColumnsToShow(
             }
             updateColumns(data[key]);
         }
+    }
+
+    if (!visibleColumns.length) {
+        return columns;
+    }
+
+    for (const columnId of Object.values(CONST.REPORT.TRANSACTION_LIST.COLUMNS)) {
     }
 
     return columns;
