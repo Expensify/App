@@ -41,6 +41,7 @@ function SearchColumnsPage() {
             <HeaderWithBackButton title={translate('search.columms')} />
             <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
+                    disableScrollToTopOnSelect
                     items={columnItems}
                     initiallySelectedItems={initiallySelectedColumns}
                     onSaveSelection={() => {}}

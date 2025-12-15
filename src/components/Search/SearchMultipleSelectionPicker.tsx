@@ -19,10 +19,18 @@ type SearchMultipleSelectionPickerProps = {
     initiallySelectedItems: SearchMultipleSelectionPickerItem[] | undefined;
     pickerTitle?: string;
     onSaveSelection: (values: string[]) => void;
+    disableScrollToTopOnSelect?: boolean;
     shouldShowTextInput?: boolean;
 };
 
-function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
+function SearchMultipleSelectionPicker({
+    items,
+    initiallySelectedItems,
+    pickerTitle,
+    onSaveSelection,
+    disableScrollToTopOnSelect,
+    shouldShowTextInput = true,
+}: SearchMultipleSelectionPickerProps) {
     const {translate, localeCompare} = useLocalize();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -33,6 +41,24 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     }, [initiallySelectedItems]);
 
     const {sections, noResultsFound} = useMemo(() => {
+        if (disableScrollToTopOnSelect) {
+            return {
+                sections: [
+                    {
+                        title: undefined,
+                        data: items
+                            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
+                            .map((item) => ({
+                                text: item.name,
+                                keyForList: item.name,
+                                isSelected: selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()),
+                                value: item.value,
+                            })),
+                    },
+                ],
+            };
+        }
+
         const selectedItemsSection = selectedItems
             .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
@@ -42,6 +68,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                 isSelected: true,
                 value: item.value,
             }));
+
         const remainingItemsSection = items
             .filter(
                 (item) =>
@@ -72,7 +99,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                   ],
             noResultsFound: isEmpty,
         };
-    }, [selectedItems, items, pickerTitle, debouncedSearchTerm, localeCompare]);
+    }, [disableScrollToTopOnSelect, selectedItems, items, pickerTitle, debouncedSearchTerm, localeCompare]);
 
     const onSelectItem = useCallback(
         (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {
