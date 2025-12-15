@@ -39,7 +39,7 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     const [selectedItem, setSelectedItem] = useState(() => {
-        return booleanValues.find((value) => searchAdvancedFiltersForm?.[booleanKey] === value) ?? null;
+        return booleanValues.find((value) => searchAdvancedFiltersForm?.[booleanKey].includes(value)) ?? null;
     });
 
     const items = useMemo(() => {
@@ -61,7 +61,8 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
     }, []);
 
     const applyChanges = useCallback(() => {
-        updateAdvancedFilters({[booleanKey]: selectedItem});
+        const selectedItems = selectedItem ? [selectedItem] : [];
+        updateAdvancedFilters({[booleanKey]: selectedItems} as Partial<Record<SearchBooleanFilterKeys, string[]>>);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [booleanKey, selectedItem]);
 
