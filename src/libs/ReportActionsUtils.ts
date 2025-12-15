@@ -877,7 +877,7 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, policy?: OnyxEntry<Policy>): boolean {
     if (!reportAction) {
         return false;
     }
@@ -933,6 +933,10 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     if (!isVisiblePreviewOrMoneyRequest(reportAction)) {
+        return false;
+    }
+
+    if (isConciergeCategoryOptions(reportAction) && policy && !policy.areCategoriesEnabled) {
         return false;
     }
 
@@ -2742,6 +2746,26 @@ function getWorkspaceCustomUnitRateUpdatedMessage(action: ReportAction): string 
             customUnitRateName,
             newValue: parseFloat(parseFloat(newValue ?? 0).toFixed(2)),
             oldValue: typeof oldValue === 'number' ? parseFloat(parseFloat(oldValue ?? 0).toFixed(2)) : undefined,
+        });
+    }
+
+    if (customUnitName && customUnitRateName && updatedField === 'index' && typeof newValue === 'number') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updatedCustomUnitRateIndex', {
+            customUnitName,
+            customUnitRateName,
+            oldValue: oldValue ? Number(oldValue) : undefined,
+            newValue,
+        });
+    }
+
+    if (customUnitName && customUnitRateName && updatedField === 'enabled' && typeof oldValue === 'boolean' && typeof newValue === 'boolean') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updatedCustomUnitRateEnabled', {
+            customUnitName,
+            customUnitRateName,
+            oldValue,
+            newValue,
         });
     }
 

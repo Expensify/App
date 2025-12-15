@@ -1158,7 +1158,6 @@ const translations: TranslationDeepObject<typeof en> = {
         changeApprover: {
             title: 'Cambiar aprobador',
             subtitle: 'Elige una opción para cambiar el aprobador de este informe.',
-            bulkSubtitle: 'Elige una opción para cambiar el aprobador de estos informes.',
             description: ({workflowSettingLink}) =>
                 `También puedes cambiar el aprobador de forma permanente para todos los informes en tu <a href="${workflowSettingLink}">configuración de flujo de trabajo</a>.`,
             changedApproverMessage: ({managerID}) => `cambió el aprobador a <mention-user accountID="${managerID}"/>`,
@@ -1170,7 +1169,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Elige un aprobador adicional para este informe antes de que lo enviemos por el resto del flujo de aprobación.',
-                bulkSubtitle: 'Elige un aprobador adicional para estos informes antes de que los enviemos por el resto del flujo de aprobación.',
             },
         },
         chooseWorkspace: 'Elige un espacio de trabajo',
@@ -1518,6 +1516,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Registrar datos de resolución de problemas',
             softKillTheApp: 'Desactivar la aplicación',
             kill: 'Matar',
+            sentryDebug: 'Depuración de Sentry',
+            sentryDebugDescription: 'Registrar las solicitudes de Sentry en la consola',
+            sentryHighlightedSpanOps: 'Nombres de spans resaltados',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -1904,7 +1906,6 @@ ${amount} para ${merchant} - ${date}`,
             title: 'No hay miembros para mostrar',
             expensesFromSubtitle: 'Todos los miembros del espacio de trabajo ya pertenecen a un flujo de aprobación existente.',
             approverSubtitle: 'Todos los aprobadores pertenecen a un flujo de trabajo existente.',
-            bulkApproverSubtitle: 'Ningún aprobador coincide con los criterios de los informes seleccionados.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -5943,6 +5944,12 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `añadió una parte recuperable de impuestos de "${newValue}" a la tasa por distancia "${customUnitRateName}`;
         },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}) => {
+            return `cambió el índice de la tarifa de ${customUnitName} "${customUnitRateName}" a "${newValue}" ${oldValue ? `(previamente "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}) => {
+            return `${newValue ? 'habilitó' : 'deshabilitó'} la tarifa de ${customUnitName} "${customUnitRateName}"`;
+        },
         deleteCustomUnitRate: ({customUnitName, rateName}) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}) => `estableció el valor predeterminado del campo de informe "${fieldName}" en "${defaultValue}"`,
@@ -7902,11 +7909,12 @@ ${amount} para ${merchant} - ${date}`,
             requireError: 'No se pudo actualizar la configuración de requerimiento de SAML',
             disableSamlRequired: 'Deshabilitar requisito de SAML',
             oktaWarningPrompt: '¿Estás seguro? Esto también deshabilitará Okta SCIM.',
+            requireWithEmptyMetadataError: 'Por favor, añade los metadatos del Proveedor de Identidad a continuación para habilitar',
         },
         samlConfigurationDetails: {
             title: 'Detalles de configuración de SAML',
             subtitle: 'Utiliza estos detalles para configurar SAML.',
-            identityProviderMetaData: 'Metadatos del proveedor de identidad',
+            identityProviderMetadata: 'Metadatos del proveedor de identidad',
             entityID: 'ID de entidad',
             nameIDFormat: 'Formato de ID de nombre',
             loginUrl: 'URL de inicio de sesión',
@@ -7942,6 +7950,10 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Seguridad mejorada',
             subtitle: 'Solicita que los miembros de tu dominio inicien sesión mediante inicio de sesión único, restringe la creación de espacios de trabajo y más.',
             enable: 'Habilitar',
+        },
+        admins: {
+            title: 'Administradores',
+            findAdmin: 'Encontrar administrador',
         },
     },
 };

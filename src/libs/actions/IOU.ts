@@ -1084,9 +1084,9 @@ function initMoneyRequest({
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
             const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
-            comment.customUnit = {customUnitRateID};
+            comment.customUnit = {customUnitRateID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         } else if (hasOnlyPersonalPolicies) {
-            comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID};
+            comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         }
         if (comment.customUnit) {
             comment.customUnit.quantity = null;
@@ -1838,7 +1838,9 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
                 value: {
                     ...iou.report,
-                    ...(!isScanRequest || isTestReceipt ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} : undefined),
+                    ...(!isScanRequest || isTestReceipt
+                        ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}
+                        : undefined),
                     hasOutstandingChildRequest: false,
                     lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
                 },
@@ -6151,6 +6153,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     transactionParams.comment = parsedComment;
     const {
         amount,
+        distance,
         currency,
         merchant,
         comment = '',
@@ -6276,6 +6279,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 },
                 transactionParams: {
                     amount,
+                    distance,
                     currency,
                     comment,
                     merchant,
@@ -12239,7 +12243,14 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Repor
     let participants: Participant[] = [];
 
     if (isPolicyExpenseChatReportUtil(chatReport) || shouldAddAsReport) {
-        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: isPolicyExpenseChatReportUtil(chatReport), selected: true}];
+        participants = [
+            {
+                accountID: shouldAddAsReport && report?.ownerAccountID ? report.ownerAccountID : CONST.DEFAULT_NUMBER_ID,
+                reportID: chatReport?.reportID,
+                isPolicyExpenseChat: isPolicyExpenseChatReportUtil(chatReport),
+                selected: true,
+            },
+        ];
     } else if (isInvoiceRoom(chatReport)) {
         participants = [
             {reportID: chatReport?.reportID, selected: true},

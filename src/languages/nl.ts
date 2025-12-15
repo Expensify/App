@@ -263,6 +263,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -1561,9 +1563,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Kies een extra fiatteur voor dit rapport voordat we het door de rest van de goedkeuringsworkflow sturen.',
-                bulkSubtitle: 'Kies een extra fiatteur voor deze rapporten voordat we ze door de rest van de goedkeuringsworkflow sturen.',
             },
-            bulkSubtitle: 'Kies een optie om de fiatteur voor deze rapporten te wijzigen.',
         },
         chooseWorkspace: 'Kies een workspace',
     },
@@ -1922,6 +1922,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Gegevens voor probleemoplossing vastleggen',
             softKillTheApp: 'De app zacht afsluiten',
             kill: 'Beëindigen',
+            sentryDebug: 'Sentry-debug',
+            sentryDebugDescription: 'Sentry-verzoeken naar console loggen',
+            sentryHighlightedSpanOps: 'Geresalteerde spannamen',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Log opslaan',
@@ -2327,7 +2331,6 @@ ${amount} voor ${merchant} - ${date}`,
             title: 'Geen leden om weer te geven',
             expensesFromSubtitle: 'Alle werkruimteleden behoren al tot een bestaande goedkeuringsworkflow.',
             approverSubtitle: 'Alle fiatteurs behoren tot een bestaande workflow.',
-            bulkApproverSubtitle: 'Geen goedkeurders komen overeen met de criteria voor de geselecteerde rapporten.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -2657,10 +2660,10 @@ ${amount} voor ${merchant} - ${date}`,
                         *Stel categorieën in* zodat je team onkosten kan coderen voor eenvoudige rapportage.
 
                         1. Klik op *Workspaces*.
-                        3. Selecteer je workspace.
-                        4. Klik op *Categories*.
-                        5. Schakel alle categorieën uit die je niet nodig hebt.
-                        6. Voeg je eigen categorieën toe rechtsboven.
+                        2. Selecteer je workspace.
+                        3. Klik op *Categories*.
+                        4. Schakel alle categorieën uit die je niet nodig hebt.
+                        5. Voeg je eigen categorieën toe rechtsboven.
 
                         [Breng me naar de instellingen voor workspacecategorieën](${workspaceCategoriesLink}).
 
@@ -2749,10 +2752,10 @@ ${
                         *Nodig je team uit* voor Expensify zodat ze vandaag nog kunnen beginnen met het bijhouden van uitgaven.
 
                         1. Klik op *Workspaces*.
-                        3. Selecteer je workspace.
-                        4. Klik op *Members* > *Invite member*.
-                        5. Voer e-mails of telefoonnummers in.
-                        6. Voeg een aangepast uitnodigingsbericht toe als je dat wilt!
+                        2. Selecteer je workspace.
+                        3. Klik op *Members* > *Invite member*.
+                        4. Voer e-mails of telefoonnummers in.
+                        5. Voeg een aangepast uitnodigingsbericht toe als je dat wilt!
 
                         [Breng me naar de workspaceleden](${workspaceMembersLink}).
 
@@ -2773,11 +2776,11 @@ ${
                         Gebruik labels om extra onkostendetails toe te voegen, zoals projecten, klanten, locaties en afdelingen. Als je meerdere niveaus van labels nodig hebt, kun je upgraden naar het Control-abonnement.
 
                         1. Klik op *Workspaces*.
-                        3. Selecteer je workspace.
-                        4. Klik op *More features*.
-                        5. Schakel *Tags* in.
-                        6. Ga naar *Tags* in de workspace-editor.
-                        7. Klik op *+ Add tag* om je eigen label te maken.
+                        2. Selecteer je workspace.
+                        3. Klik op *More features*.
+                        4. Schakel *Tags* in.
+                        5. Ga naar *Tags* in de workspace-editor.
+                        6. Klik op *+ Add tag* om je eigen label te maken.
 
                         [Breng me naar more features](${workspaceMoreFeaturesLink}).
 
@@ -6417,6 +6420,12 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             }
             return `heeft een terugvorderbaar belastingdeel van "${newValue}" toegevoegd aan het kilometertarief "${customUnitRateName}"`;
         },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `heeft de index van het ${customUnitName}-tarief "${customUnitRateName}" gewijzigd naar "${newValue}" ${oldValue ? `(voorheen "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'ingeschakeld' : 'uitgeschakeld'} ${customUnitName}-tarief "${customUnitRateName}"`;
+        },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `heeft het tarief "${rateName}" met de eenheid "${customUnitName}" verwijderd`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `rapportveld ${fieldType} "${fieldName}" toegevoegd`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
@@ -7923,11 +7932,12 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             requireError: 'Kon de SAML-vereiste-instelling niet bijwerken',
             disableSamlRequired: '‘SAML vereist’ uitschakelen',
             oktaWarningPrompt: 'Weet je het zeker? Dit schakelt ook Okta SCIM uit.',
+            requireWithEmptyMetadataError: 'Voeg hieronder de Identity Provider-metadata toe om in te schakelen',
         },
         samlConfigurationDetails: {
             title: 'SAML-configuratiegegevens',
             subtitle: 'Gebruik deze gegevens om SAML in te stellen.',
-            identityProviderMetaData: 'Identity Provider-meta-gegevens',
+            identityProviderMetadata: 'Identity Provider-meta-gegevens',
             entityID: 'Entiteit-ID',
             nameIDFormat: 'Naam-ID-indeling',
             loginUrl: 'Login-URL',
@@ -7964,6 +7974,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             subtitle: 'Verplicht leden van je domein om in te loggen via single sign-on, beperk het aanmaken van werkruimten en meer.',
             enable: 'Inschakelen',
         },
+        admins: {title: 'Beheerders', findAdmin: 'Beheerder zoeken'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

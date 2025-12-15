@@ -251,6 +251,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -1527,7 +1529,6 @@ const translations = {
         changeApprover: {
             title: 'Change approver',
             subtitle: 'Choose an option to change the approver for this report.',
-            bulkSubtitle: 'Choose an option to change the approver for these reports.',
             description: ({workflowSettingLink}: WorkflowSettingsParam) =>
                 `You can also change the approver permanently for all reports in your <a href="${workflowSettingLink}">workflow settings</a>.`,
             changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `changed the approver to <mention-user accountID="${managerID}"/>`,
@@ -1539,7 +1540,6 @@ const translations = {
             },
             addApprover: {
                 subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow.',
-                bulkSubtitle: 'Choose an additional approver for these reports before we route through the rest of the approval workflow.',
             },
         },
         chooseWorkspace: 'Choose a workspace',
@@ -1900,6 +1900,10 @@ const translations = {
             recordTroubleshootData: 'Record Troubleshoot Data',
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
+            sentryDebug: 'Sentry debug',
+            sentryDebugDescription: 'Log Sentry requests to console',
+            sentryHighlightedSpanOps: 'Highlighted span names',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -2290,7 +2294,6 @@ const translations = {
             title: 'No members to display',
             expensesFromSubtitle: 'All workspace members already belong to an existing approval workflow.',
             approverSubtitle: 'All approvers belong to an existing workflow.',
-            bulkApproverSubtitle: 'No approvers match the criteria for selected reports.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -2620,10 +2623,10 @@ const translations = {
                         *Set up categories* so your team can code expenses for easy reporting.
 
                         1. Click *Workspaces*.
-                        3. Select your workspace.
-                        4. Click *Categories*.
-                        5. Disable any categories you don't need.
-                        6. Add your own categories in the top right.
+                        2. Select your workspace.
+                        3. Click *Categories*.
+                        4. Disable any categories you don't need.
+                        5. Add your own categories in the top right.
 
                         [Take me to workspace category settings](${workspaceCategoriesLink}).
 
@@ -2715,10 +2718,10 @@ const translations = {
                         *Invite your team* to Expensify so they can start tracking expenses today.
 
                         1. Click *Workspaces*.
-                        3. Select your workspace.
-                        4. Click *Members* > *Invite member*.
-                        5. Enter emails or phone numbers.
-                        6. Add a custom invite message if you'd like!
+                        2. Select your workspace.
+                        3. Click *Members* > *Invite member*.
+                        4. Enter emails or phone numbers.
+                        5. Add a custom invite message if you'd like!
 
                         [Take me to workspace members](${workspaceMembersLink}).
 
@@ -2742,11 +2745,11 @@ const translations = {
                         Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.
 
                         1. Click *Workspaces*.
-                        3. Select your workspace.
-                        4. Click *More features*.
-                        5. Enable *Tags*.
-                        6. Navigate to *Tags* in the workspace editor.
-                        7. Click *+ Add tag* to make your own.
+                        2. Select your workspace.
+                        3. Click *More features*.
+                        4. Enable *Tags*.
+                        5. Navigate to *Tags* in the workspace editor.
+                        6. Click *+ Add tag* to make your own.
 
                         [Take me to more features](${workspaceMoreFeaturesLink}).
 
@@ -6341,6 +6344,12 @@ const translations = {
             }
             return `added a tax reclaimable portion of "${newValue}" to the distance rate "${customUnitRateName}`;
         },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `changed the index of the ${customUnitName} rate "${customUnitRateName}" to "${newValue}" ${oldValue ? `(previously "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'enabled' : 'disabled'} ${customUnitName} rate "${customUnitRateName}"`;
+        },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removed the "${customUnitName}" rate "${rateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
@@ -7837,11 +7846,12 @@ const translations = {
             requireError: "Couldn't update SAML requirement setting",
             disableSamlRequired: 'Disable SAML required',
             oktaWarningPrompt: 'Are you sure? This will also disable Okta SCIM.',
+            requireWithEmptyMetadataError: 'Please add Identity Provider metadata below to enable',
         },
         samlConfigurationDetails: {
             title: 'SAML configuration details',
             subtitle: 'Use these details to get SAML set up.',
-            identityProviderMetaData: 'Identity Provider MetaData',
+            identityProviderMetadata: 'Identity Provider Metadata',
             entityID: 'Entity ID',
             nameIDFormat: 'Name ID Format',
             loginUrl: 'Login URL',
@@ -7877,6 +7887,10 @@ const translations = {
             title: 'Enhanced security',
             subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
             enable: 'Enable',
+        },
+        admins: {
+            title: 'Admins',
+            findAdmin: 'Find admin',
         },
     },
 };

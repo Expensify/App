@@ -263,6 +263,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -1568,9 +1570,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Choisissez un approbateur supplémentaire pour ce rapport avant que nous ne le transmettions au reste du processus de validation.',
-                bulkSubtitle: 'Choisissez un approbateur supplémentaire pour ces rapports avant que nous ne les transmettions pour le reste du flux de validation.',
             },
-            bulkSubtitle: 'Choisissez une option pour changer l’approbateur de ces rapports.',
         },
         chooseWorkspace: 'Choisir un espace de travail',
     },
@@ -1929,6 +1929,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Enregistrer les données de dépannage',
             softKillTheApp: 'Fermer l’application en douceur',
             kill: 'Tuer',
+            sentryDebug: 'Débogage Sentry',
+            sentryDebugDescription: 'Enregistrer les requêtes Sentry dans la console',
+            sentryHighlightedSpanOps: 'Noms de spans mis en valeur',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Enregistrer le journal',
@@ -2339,7 +2343,6 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Aucun membre à afficher',
             expensesFromSubtitle: 'Tous les membres de l’espace de travail appartiennent déjà à un flux d’approbation existant.',
             approverSubtitle: 'Tous les approbateurs appartiennent à un workflow existant.',
-            bulkApproverSubtitle: 'Aucun approbateur ne correspond aux critères pour les rapports sélectionnés.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -2672,10 +2675,10 @@ ${amount} pour ${merchant} - ${date}`,
                         *Configurez des catégories* afin que votre équipe puisse coder les dépenses pour faciliter les rapports.
 
                         1. Cliquez sur *Espaces de travail*.
-                        3. Sélectionnez votre espace de travail.
-                        4. Cliquez sur *Catégories*.
-                        5. Désactivez toutes les catégories dont vous n’avez pas besoin.
-                        6. Ajoutez vos propres catégories en haut à droite.
+                        2. Sélectionnez votre espace de travail.
+                        3. Cliquez sur *Catégories*.
+                        4. Désactivez toutes les catégories dont vous n’avez pas besoin.
+                        5. Ajoutez vos propres catégories en haut à droite.
 
                         [Accéder aux paramètres des catégories de l’espace de travail](${workspaceCategoriesLink}).
 
@@ -2764,10 +2767,10 @@ ${
                         *Invitez votre équipe* sur Expensify afin qu’elle puisse commencer à suivre les dépenses dès aujourd’hui.
 
                         1. Cliquez sur *Workspaces*.
-                        3. Sélectionnez votre espace de travail.
-                        4. Cliquez sur *Members* > *Invite member*.
-                        5. Saisissez des adresses e-mail ou des numéros de téléphone.
-                        6. Ajoutez un message d’invitation personnalisé si vous le souhaitez !
+                        2. Sélectionnez votre espace de travail.
+                        3. Cliquez sur *Members* > *Invite member*.
+                        4. Saisissez des adresses e-mail ou des numéros de téléphone.
+                        5. Ajoutez un message d’invitation personnalisé si vous le souhaitez !
 
                         [Accéder aux membres de l’espace de travail](${workspaceMembersLink}).
 
@@ -2788,11 +2791,11 @@ ${
                         Utilisez des tags pour ajouter des détails supplémentaires à vos dépenses, comme les projets, les clients, les emplacements et les services. Si vous avez besoin de plusieurs niveaux de tags, vous pouvez passer au plan Control.
 
                         1. Cliquez sur *Workspaces*.
-                        3. Sélectionnez votre espace de travail.
-                        4. Cliquez sur *More features*.
-                        5. Activez *Tags*.
-                        6. Accédez à *Tags* dans l’éditeur de l’espace de travail.
-                        7. Cliquez sur *+ Add tag* pour créer le vôtre.
+                        2. Sélectionnez votre espace de travail.
+                        3. Cliquez sur *More features*.
+                        4. Activez *Tags*.
+                        5. Accédez à *Tags* dans l’éditeur de l’espace de travail.
+                        6. Cliquez sur *+ Add tag* pour créer le vôtre.
 
                         [Me montrer les fonctionnalités supplémentaires](${workspaceMoreFeaturesLink}).
 
@@ -6460,6 +6463,12 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             }
             return `a ajouté une partie de taxe récupérable de « ${newValue} » au tarif de distance « ${customUnitRateName}`;
         },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `a modifié l’index du tarif ${customUnitName} "${customUnitRateName}" à "${newValue}" ${oldValue ? `(auparavant "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'activé' : 'désactivé'} le tarif ${customUnitName} "${customUnitRateName}"`;
+        },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `a supprimé le taux « ${customUnitName} » « ${rateName} »`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `a ajouté le champ de rapport ${fieldType} « ${fieldName} »`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
@@ -7969,11 +7978,12 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             requireError: 'Impossible de mettre à jour le paramètre d’exigence SAML',
             disableSamlRequired: 'Désactiver l’exigence SAML',
             oktaWarningPrompt: 'Êtes-vous sûr ? Cela désactivera également Okta SCIM.',
+            requireWithEmptyMetadataError: 'Veuillez ajouter les métadonnées du fournisseur d’identité ci-dessous pour activer',
         },
         samlConfigurationDetails: {
             title: 'Détails de configuration SAML',
             subtitle: 'Utilisez ces informations pour configurer SAML.',
-            identityProviderMetaData: 'Métadonnées du fournisseur d’identité',
+            identityProviderMetadata: 'Métadonnées du fournisseur d’identité',
             entityID: 'ID d’entité',
             nameIDFormat: 'Format d’identifiant de nom',
             loginUrl: 'URL de connexion',
@@ -8007,6 +8017,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             subtitle: "Exiger que les membres de votre domaine se connectent via l'authentification unique, restreindre la création d'espaces de travail, et plus encore.",
             enable: 'Activer',
         },
+        admins: {title: 'Admins', findAdmin: 'Trouver un admin'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -263,6 +263,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -1564,9 +1566,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'このレポートを残りの承認ワークフローに回付する前に、追加の承認者を選択してください。',
-                bulkSubtitle: '残りの承認ワークフローに回す前に、これらのレポートの追加承認者を選択してください。',
             },
-            bulkSubtitle: 'これらのレポートの承認者を変更する方法を選択してください。',
         },
         chooseWorkspace: 'ワークスペースを選択',
     },
@@ -1924,6 +1924,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'トラブルシュートデータを記録',
             softKillTheApp: 'アプリをソフト終了する',
             kill: '強制終了',
+            sentryDebug: 'Sentryデバッグ',
+            sentryDebugDescription: 'Sentryリクエストをコンソールに記録',
+            sentryHighlightedSpanOps: 'ハイライト表示するspan名',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'ログを保存',
@@ -2323,7 +2327,6 @@ ${merchant} への ${amount}（${date}）`,
             title: '表示するメンバーがいません',
             expensesFromSubtitle: 'すべてのワークスペースメンバーは、すでに既存の承認ワークフローに属しています。',
             approverSubtitle: 'すべての承認者は既存のワークフローに属しています。',
-            bulkApproverSubtitle: '選択されたレポートの条件に一致する承認者がいません。',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -2655,10 +2658,10 @@ ${merchant} への ${amount}（${date}）`,
                         チームが経費を簡単にレポートできるように、*カテゴリーを設定*しましょう。
 
                         1. *ワークスペース* をクリックします。
-                        3. 自分のワークスペースを選択します。
-                        4. *カテゴリー* をクリックします。
-                        5. 不要なカテゴリーを無効にします。
-                        6. 画面右上から独自のカテゴリーを追加します。
+                        2. 自分のワークスペースを選択します。
+                        3. *カテゴリー* をクリックします。
+                        4. 不要なカテゴリーを無効にします。
+                        5. 画面右上から独自のカテゴリーを追加します。
 
                         [ワークスペースのカテゴリー設定を開く](${workspaceCategoriesLink})。
 
@@ -2747,10 +2750,10 @@ ${
                         *チームを招待*して、今すぐExpensifyで経費管理を始めましょう。
 
                         1. *ワークスペース* をクリックします。
-                        3. ワークスペースを選択します。
-                        4. *メンバー* > *メンバーを招待* をクリックします。
-                        5. メールアドレスまたは電話番号を入力します。
-                        6. 必要に応じて、招待メッセージをカスタマイズして追加します。
+                        2. ワークスペースを選択します。
+                        3. *メンバー* > *メンバーを招待* をクリックします。
+                        4. メールアドレスまたは電話番号を入力します。
+                        5. 必要に応じて、招待メッセージをカスタマイズして追加します。
 
                         [ワークスペースのメンバー画面へ移動](${workspaceMembersLink})。
 
@@ -2771,11 +2774,11 @@ ${
                         プロジェクト、クライアント、所在地、部署などの追加情報を、タグを使って経費に付加できます。複数レベルのタグが必要な場合は、Controlプランにアップグレードできます。
 
                         1. *Workspaces* をクリックします。
-                        3. ワークスペースを選択します。
-                        4. *More features* をクリックします。
-                        5. *Tags* を有効にします。
-                        6. ワークスペースエディタで *Tags* に移動します。
-                        7. *+ Add tag* をクリックして独自のタグを作成します。
+                        2. ワークスペースを選択します。
+                        3. *More features* をクリックします。
+                        4. *Tags* を有効にします。
+                        5. ワークスペースエディタで *Tags* に移動します。
+                        6. *+ Add tag* をクリックして独自のタグを作成します。
 
                         [More features に移動](${workspaceMoreFeaturesLink})。
 
@@ -6391,6 +6394,12 @@ ${reportName}
             }
             return `距離レート「${customUnitRateName}」に税還付可能分「${newValue}」を追加しました`;
         },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `${customUnitName} のレート "${customUnitRateName}" のインデックスを "${newValue}" に変更しました ${oldValue ? `(以前は "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? '有効化' : '無効化'} ${customUnitName} のレート "${customUnitRateName}"`;
+        },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `「${customUnitName}」のレート「${rateName}」を削除しました`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType} レポートフィールド「${fieldName}」を追加しました`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
@@ -7887,11 +7896,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             requireError: 'SAML 必須設定を更新できませんでした',
             disableSamlRequired: 'SAML 必須を無効にする',
             oktaWarningPrompt: 'よろしいですか？これにより Okta SCIM も無効になります。',
+            requireWithEmptyMetadataError: 'Id プロバイダーのメタデータを以下に追加して有効化してください',
         },
         samlConfigurationDetails: {
             title: 'SAML 設定の詳細',
             subtitle: 'これらの詳細を使用して、SAML を設定してください。',
-            identityProviderMetaData: 'ID プロバイダー メタデータ',
+            identityProviderMetadata: 'ID プロバイダー メタデータ',
             entityID: 'エンティティ ID',
             nameIDFormat: '名前 ID 形式',
             loginUrl: 'ログインURL',
@@ -7924,6 +7934,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須化し、ワークスペースの作成を制限するなど、さらに多くのことができます。',
             enable: '有効にする',
         },
+        admins: {title: '管理者', findAdmin: '管理者を検索'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

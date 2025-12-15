@@ -263,6 +263,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -1563,9 +1565,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Scegli un approvatore aggiuntivo per questo resoconto prima che lo instradiamo attraverso il resto del flusso di approvazione.',
-                bulkSubtitle: 'Scegli un approvatore aggiuntivo per questi report prima che li instradiamo attraverso il resto del flusso di approvazione.',
             },
-            bulkSubtitle: "Scegli un'opzione per cambiare l'approvatore di questi report.",
         },
         chooseWorkspace: 'Scegli uno spazio di lavoro',
     },
@@ -1924,6 +1924,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Registrare dati di risoluzione problemi',
             softKillTheApp: "Termina l'app in modo non forzato",
             kill: 'Termina',
+            sentryDebug: 'Debug Sentry',
+            sentryDebugDescription: 'Registra le richieste Sentry nella console',
+            sentryHighlightedSpanOps: 'Nomi degli span evidenziati',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Salva registro',
@@ -2330,7 +2334,6 @@ ${amount} per ${merchant} - ${date}`,
             title: 'Nessun membro da visualizzare',
             expensesFromSubtitle: 'Tutti i membri dello spazio di lavoro appartengono già a un flusso di approvazione esistente.',
             approverSubtitle: 'Tutti gli approvatori appartengono a un workflow esistente.',
-            bulkApproverSubtitle: 'Nessun approvatore corrisponde ai criteri per i report selezionati.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -2661,10 +2664,10 @@ ${amount} per ${merchant} - ${date}`,
                         *Imposta le categorie* in modo che il tuo team possa codificare le spese per una rendicontazione semplice.
 
                         1. Fai clic su *Workspaces*.
-                        3. Seleziona il tuo workspace.
-                        4. Fai clic su *Categories*.
-                        5. Disabilita le categorie di cui non hai bisogno.
-                        6. Aggiungi le tue categorie in alto a destra.
+                        2. Seleziona il tuo workspace.
+                        3. Fai clic su *Categories*.
+                        4. Disabilita le categorie di cui non hai bisogno.
+                        5. Aggiungi le tue categorie in alto a destra.
 
                         [Portami alle impostazioni delle categorie del workspace](${workspaceCategoriesLink}).
 
@@ -2753,10 +2756,10 @@ ${
                         *Invita il tuo team* su Expensify così potranno iniziare a tenere traccia delle spese oggi stesso.
 
                         1. Fai clic su *Workspaces*.
-                        3. Seleziona il tuo workspace.
-                        4. Fai clic su *Members* > *Invite member*.
-                        5. Inserisci email o numeri di telefono.
-                        6. Aggiungi un messaggio di invito personalizzato, se vuoi!
+                        2. Seleziona il tuo workspace.
+                        3. Fai clic su *Members* > *Invite member*.
+                        4. Inserisci email o numeri di telefono.
+                        5. Aggiungi un messaggio di invito personalizzato, se vuoi!
 
                         [Portami ai membri del workspace](${workspaceMembersLink}).
 
@@ -2777,11 +2780,11 @@ ${
                         Usa i tag per aggiungere ulteriori dettagli alle spese, come progetti, clienti, sedi e reparti. Se hai bisogno di più livelli di tag, puoi effettuare l’upgrade al piano Control.
 
                         1. Clicca su *Workspaces*.
-                        3. Seleziona il tuo workspace.
-                        4. Clicca su *More features*.
-                        5. Abilita *Tags*.
-                        6. Vai a *Tags* nell’editor del workspace.
-                        7. Clicca su *+ Add tag* per crearne uno tuo.
+                        2. Seleziona il tuo workspace.
+                        3. Clicca su *More features*.
+                        4. Abilita *Tags*.
+                        5. Vai a *Tags* nell’editor del workspace.
+                        6. Clicca su *+ Add tag* per crearne uno tuo.
 
                         [Portami a more features](${workspaceMoreFeaturesLink}).
 
@@ -6431,6 +6434,12 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             }
             return `ha aggiunto una parte rimborsabile di imposta di "${newValue}" alla tariffa per distanza "${customUnitRateName}"`;
         },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `ha modificato l’indice della tariffa ${customUnitName} "${customUnitRateName}" a "${newValue}" ${oldValue ? `(precedentemente "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'abilitato' : 'disabilitato'} la tariffa ${customUnitName} "${customUnitRateName}"`;
+        },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `ha rimosso la tariffa "${rateName}" dell’unità personalizzata "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `aggiunto campo report ${fieldType} "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
@@ -7941,11 +7950,12 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             requireError: "Impossibile aggiornare l'impostazione dei requisiti SAML",
             disableSamlRequired: 'Disabilita SAML obbligatorio',
             oktaWarningPrompt: 'Sei sicuro? Questo disabiliterà anche Okta SCIM.',
+            requireWithEmptyMetadataError: 'Aggiungi di seguito i metadati del provider di identità per abilitare',
         },
         samlConfigurationDetails: {
             title: 'Dettagli di configurazione SAML',
             subtitle: 'Usa questi dettagli per configurare SAML.',
-            identityProviderMetaData: 'Metadati del provider di identità',
+            identityProviderMetadata: 'Metadati del provider di identità',
             entityID: 'ID entità',
             nameIDFormat: 'Formato ID nome',
             loginUrl: 'URL di accesso',
@@ -7982,6 +7992,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             subtitle: 'Richiedi ai membri del tuo dominio di accedere tramite Single Sign-On, limita la creazione di spazi di lavoro e altro ancora.',
             enable: 'Abilita',
         },
+        admins: {title: 'Amministratori', findAdmin: 'Trova amministratore'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
