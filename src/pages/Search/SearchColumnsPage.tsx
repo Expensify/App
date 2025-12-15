@@ -34,7 +34,7 @@ function SearchColumnsPage() {
     const [selectedColumnIds, setSelectedColumnIds] = useState<SearchCustomColumnIds[]>(() => {
         const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => Object.values(CONST.SEARCH.CUSTOM_COLUMNS).includes(columnId)) ?? [];
 
-        // We dont allow the user to unselect all columns, so we can assume that no columns = all columns/none configured yet
+        // We dont allow the user to unselect all columns, so we can assume that no columns = default columns
         if (!columnIds.length) {
             return defaultColumns;
         }
