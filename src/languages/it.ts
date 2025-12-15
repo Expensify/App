@@ -41,6 +41,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillableDefaultDescriptionParams,
@@ -732,7 +733,10 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copia negli appunti',
         thisIsTakingLongerThanExpected: 'Sta richiedendo più tempo del previsto...',
         domains: 'Domini',
+        viewReport: 'Visualizza rendiconto',
         actionRequired: 'Azione richiesta',
+        duplicate: 'Duplica',
+        duplicated: 'Duplicato',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -987,7 +991,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Questa chat è dedicata a tutto ciò che riguarda <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Usa il pulsante + per inviare una fattura.`,
-        beginningOfChatHistory: 'Questa chat è con',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `Questa chat è con ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `Qui è dove <strong>${submitterDisplayName}</strong> invierà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante +.`,
         beginningOfChatHistorySelfDM: 'Questo è il tuo spazio personale. Usalo per note, attività, bozze e promemoria.',
@@ -2654,10 +2658,10 @@ ${amount} per ${merchant} - ${date}`,
                         *Imposta le categorie* in modo che il tuo team possa codificare le spese per una rendicontazione semplice.
 
                         1. Fai clic su *Workspaces*.
-                        3. Seleziona il tuo workspace.
-                        4. Fai clic su *Categories*.
-                        5. Disabilita le categorie di cui non hai bisogno.
-                        6. Aggiungi le tue categorie in alto a destra.
+                        2. Seleziona il tuo workspace.
+                        3. Fai clic su *Categories*.
+                        4. Disabilita le categorie di cui non hai bisogno.
+                        5. Aggiungi le tue categorie in alto a destra.
 
                         [Portami alle impostazioni delle categorie del workspace](${workspaceCategoriesLink}).
 
@@ -2746,10 +2750,10 @@ ${
                         *Invita il tuo team* su Expensify così potranno iniziare a tenere traccia delle spese oggi stesso.
 
                         1. Fai clic su *Workspaces*.
-                        3. Seleziona il tuo workspace.
-                        4. Fai clic su *Members* > *Invite member*.
-                        5. Inserisci email o numeri di telefono.
-                        6. Aggiungi un messaggio di invito personalizzato, se vuoi!
+                        2. Seleziona il tuo workspace.
+                        3. Fai clic su *Members* > *Invite member*.
+                        4. Inserisci email o numeri di telefono.
+                        5. Aggiungi un messaggio di invito personalizzato, se vuoi!
 
                         [Portami ai membri del workspace](${workspaceMembersLink}).
 
@@ -2770,11 +2774,11 @@ ${
                         Usa i tag per aggiungere ulteriori dettagli alle spese, come progetti, clienti, sedi e reparti. Se hai bisogno di più livelli di tag, puoi effettuare l’upgrade al piano Control.
 
                         1. Clicca su *Workspaces*.
-                        3. Seleziona il tuo workspace.
-                        4. Clicca su *More features*.
-                        5. Abilita *Tags*.
-                        6. Vai a *Tags* nell’editor del workspace.
-                        7. Clicca su *+ Add tag* per crearne uno tuo.
+                        2. Seleziona il tuo workspace.
+                        3. Clicca su *More features*.
+                        4. Abilita *Tags*.
+                        5. Vai a *Tags* nell’editor del workspace.
+                        6. Clicca su *+ Add tag* per crearne uno tuo.
 
                         [Portami a more features](${workspaceMoreFeaturesLink}).
 
@@ -6088,6 +6092,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     toUpgrade: 'Per eseguire l’upgrade, fai clic',
                     selectWorkspace: 'seleziona uno spazio di lavoro e modifica il tipo di piano in',
                 },
+                upgradeWorkspaceWarning: 'Impossibile aggiornare lo spazio di lavoro',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'La tua azienda ha limitato la creazione di spazi di lavoro. Contatta un amministratore per assistenza.',
             },
         },
         downgrade: {
@@ -6186,7 +6192,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 adultEntertainment: 'Intrattenimento per adulti',
             },
             expenseReportRules: {
-                title: 'Note spese',
+                title: 'Avanzato',
                 subtitle: 'Automatizza la conformità delle note spese, le approvazioni e i pagamenti.',
                 preventSelfApprovalsTitle: 'Impedisci autoapprovazioni',
                 preventSelfApprovalsSubtitle: 'Impedisci ai membri dello spazio di lavoro di approvare i propri report spese.',
@@ -6202,8 +6208,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 autoPayApprovedReportsLockedSubtitle: 'Vai su Altre funzionalità e abilita i workflow, quindi aggiungi i pagamenti per sbloccare questa funzionalità.',
                 autoPayReportsUnderTitle: 'Pagamento automatico dei report inferiori a',
                 autoPayReportsUnderDescription: 'Le note spese completamente conformi inferiori a questo importo verranno rimborsate automaticamente.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Vai a [altre funzionalità](${moreFeaturesLink}) e abilita i flussi di lavoro, quindi aggiungi ${featureName} per sbloccare questa funzionalità.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Aggiungi ${featureName} per sbloccare questa funzionalità.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Vai a [altre funzionalità](${moreFeaturesLink}) e abilita ${featureName} per sbloccare questa funzione.`,
             },
@@ -6519,8 +6524,62 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     return `${enabled ? 'abilitato' : 'disabilitato'} ${featureName}`;
             }
         },
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `ha cambiato l'approvatore predefinito in ${newApprover} (in precedenza ${previousApprover})` : `ha modificato l'approvatore predefinito in ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `ha modificato il flusso di approvazione per ${members} in modo che inviino i report a ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(in precedenza approvatore predefinito ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(in precedenza approvatore predefinito)';
+            } else if (previousApprover) {
+                text += `(precedentemente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `ha modificato il flusso di approvazione per ${members} per inviare i report all'approvatore predefinito ${approver}`
+                : `ha modificato il flusso di approvazione per ${members} per inviare i report all'approvatore predefinito`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(in precedenza approvatore predefinito ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(in precedenza approvatore predefinito)';
+            } else if (previousApprover) {
+                text += `(precedentemente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `ha modificato il flusso di approvazione per ${approver} per inoltrare i report approvati a ${forwardsTo} (in precedenza inoltrati a ${previousForwardsTo})`
+                : `ha modificato il flusso di approvazione per ${approver} in modo da inoltrare i report approvati a ${forwardsTo} (in precedenza solo i report approvati finali)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `ha modificato il flusso di approvazione per ${approver} per interrompere l'inoltro dei report approvati (in precedenza inoltrati a ${previousForwardsTo})`
+                : `ha modificato il flusso di approvazione per ${approver} per interrompere l'inoltro dei report approvati`,
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `Monitoraggio partecipanti ${enabled ? 'abilitato' : 'disabilitato'}`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'abilitato' : 'disabilitato'} rimborsi per questo spazio di lavoro`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'abilitato' : 'disabilitato'} rimborsi`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `ha aggiunto l’imposta "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `ha rimosso l'imposta "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6753,6 +6812,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         groupBy: 'Raggruppa per',
         moneyRequestReport: {
             emptyStateTitle: 'Questo report non ha spese.',
+            accessPlaceHolder: 'Apri per i dettagli',
         },
         noCategory: 'Nessuna categoria',
         noTag: 'Nessun tag',
@@ -6896,6 +6956,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 `Sei sicuro di voler creare un altro report in ${workspaceName}? Puoi accedere ai tuoi report vuoti in`,
             emptyReportConfirmationPromptLink: 'Report',
             genericWorkspaceName: 'questo spazio di lavoro',
+            emptyReportConfirmationDontShowAgain: 'Non mostrarmelo di nuovo',
         },
         genericCreateReportFailureMessage: 'Errore imprevisto durante la creazione di questa chat. Riprova più tardi.',
         genericAddCommentFailureMessage: 'Errore imprevisto durante la pubblicazione del commento. Riprova più tardi.',
@@ -7877,11 +7938,12 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             requireError: "Impossibile aggiornare l'impostazione dei requisiti SAML",
             disableSamlRequired: 'Disabilita SAML obbligatorio',
             oktaWarningPrompt: 'Sei sicuro? Questo disabiliterà anche Okta SCIM.',
+            requireWithEmptyMetadataError: 'Aggiungi di seguito i metadati del provider di identità per abilitare',
         },
         samlConfigurationDetails: {
             title: 'Dettagli di configurazione SAML',
             subtitle: 'Usa questi dettagli per configurare SAML.',
-            identityProviderMetaData: 'Metadati del provider di identità',
+            identityProviderMetadata: 'Metadati del provider di identità',
             entityID: 'ID entità',
             nameIDFormat: 'Formato ID nome',
             loginUrl: 'URL di accesso',
@@ -7894,6 +7956,31 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             fetchError: 'Impossibile recuperare i dettagli della configurazione SAML',
             setMetadataGenericError: 'Impossibile impostare i metadati SAML',
         },
+        accessRestricted: {
+            title: 'Accesso limitato',
+            subtitle: (domainName: string) => `Verificati come amministratore aziendale autorizzato per <strong>${domainName}</strong> se hai bisogno di gestire:`,
+            companyCardManagement: 'Gestione delle carte aziendali',
+            accountCreationAndDeletion: "Creazione e cancellazione dell'account",
+            workspaceCreation: 'Creazione dello spazio di lavoro',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Aggiungi dominio',
+            subtitle: 'Inserisci il nome del dominio privato a cui desideri accedere (ad esempio expensify.com).',
+            domainName: 'Nome di dominio',
+            newDomain: 'Nuovo dominio',
+        },
+        domainAdded: {
+            title: 'Dominio aggiunto',
+            description: 'Successivamente, dovrai verificare la proprietà del dominio e regolare le tue impostazioni di sicurezza.',
+            configure: 'Configura',
+        },
+        enhancedSecurity: {
+            title: 'Sicurezza avanzata',
+            subtitle: 'Richiedi ai membri del tuo dominio di accedere tramite Single Sign-On, limita la creazione di spazi di lavoro e altro ancora.',
+            enable: 'Abilita',
+        },
+        admins: {title: 'Amministratori', findAdmin: 'Trova amministratore'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
