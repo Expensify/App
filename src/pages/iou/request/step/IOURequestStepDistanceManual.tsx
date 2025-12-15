@@ -88,6 +88,7 @@ function IOURequestStepDistanceManual({
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
@@ -249,6 +250,7 @@ function IOURequestStepDistanceManual({
                         backToReport,
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
+                        quickAction,
                     });
                     return;
                 }
@@ -315,6 +317,7 @@ function IOURequestStepDistanceManual({
             personalPolicy?.autoReporting,
             transactionViolations,
             currentUserPersonalDetails.accountID,
+            quickAction,
         ],
     );
 
