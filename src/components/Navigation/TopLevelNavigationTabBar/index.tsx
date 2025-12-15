@@ -1,7 +1,6 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import FloatingCameraButton from '@components/FloatingCameraButton';
 import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -61,6 +60,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
 
     return (
         <View
+            testID={TopLevelNavigationTabBar.displayName}
             style={[
                 styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom),
                 // There is a missing border right on the wide layout
@@ -75,7 +75,6 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
                 selectedTab={selectedTab}
                 isTopLevelBar
             />
-            <FloatingCameraButton />
         </View>
     );
 }

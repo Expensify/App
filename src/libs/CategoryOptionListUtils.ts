@@ -1,15 +1,13 @@
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
 import lodashSet from 'lodash/set';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import {getDecodedCategoryName} from './CategoryUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import tokenizedSearch from './tokenizedSearch';
 
@@ -37,10 +35,10 @@ type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}
  */
 function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false, selectedOptions: Category[] = []): OptionTree[] {
     const optionCollection = new Map<string, OptionTree>();
-    Object.values(options).forEach((option) => {
+    for (const option of Object.values(options)) {
         if (isOneLine) {
             if (optionCollection.has(option.name)) {
-                return;
+                continue;
             }
 
             const decodedCategoryName = getDecodedCategoryName(option.name);
@@ -54,10 +52,17 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 pendingAction: option.pendingAction,
             });
 
-            return;
+            continue;
         }
 
-        option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
+        const array = option.name.split(CONST.PARENT_CHILD_SEPARATOR);
+
+        for (let index = 0; index < array.length; index++) {
+            const optionName = array.at(index);
+            if (!optionName) {
+                continue;
+            }
+
             const indents = times(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
             const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
@@ -65,7 +70,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
             const isParentOptionDisabled = !selectedParentOption || !selectedParentOption.enabled || selectedParentOption.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             if (optionCollection.has(searchText)) {
-                return;
+                continue;
             }
 
             const decodedCategoryName = getDecodedCategoryName(optionName);
@@ -78,8 +83,8 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
                 pendingAction: option.pendingAction,
             });
-        });
-    });
+        }
+    }
 
     return Array.from(optionCollection.values());
 }
@@ -94,6 +99,7 @@ function getCategoryListSections({
     selectedOptions = [],
     recentlyUsedCategories = [],
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+    translate,
 }: {
     categories: PolicyCategories;
     localeCompare: LocaleContextProps['localeCompare'];
@@ -101,22 +107,23 @@ function getCategoryListSections({
     searchValue?: string;
     recentlyUsedCategories?: string[];
     maxRecentReportsToShow?: number;
+    translate: LocalizedTranslate;
 }): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories, localeCompare);
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
-    const enabledCategoriesNames = enabledCategories.map((category) => category.name);
+    const enabledCategoriesNames = new Set(enabledCategories.map((category) => category.name));
     const selectedOptionsWithDisabledState: Category[] = [];
     const categorySections: CategoryTreeSection[] = [];
     const numberOfEnabledCategories = enabledCategories.length;
 
-    selectedOptions.forEach((option) => {
-        if (enabledCategoriesNames.includes(option.name)) {
+    for (const option of selectedOptions) {
+        if (enabledCategoriesNames.has(option.name)) {
             const categoryObj = enabledCategories.find((category) => category.name === option.name);
             selectedOptionsWithDisabledState.push({...(categoryObj ?? option), isSelected: true, enabled: true});
-            return;
+            continue;
         }
         selectedOptionsWithDisabledState.push({...option, isSelected: true, enabled: false});
-    });
+    }
 
     if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
         const data = getCategoryOptionTree(selectedOptionsWithDisabledState, true);
@@ -162,8 +169,8 @@ function getCategoryListSections({
         });
     }
 
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
+    const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.name));
+    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.has(category.name));
 
     if (numberOfEnabledCategories < CONST.STANDARD_LIST_ITEM_LIMIT) {
         const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
@@ -181,7 +188,7 @@ function getCategoryListSections({
     const filteredRecentlyUsedCategories = recentlyUsedCategories
         .filter(
             (categoryName) =>
-                !selectedOptionNames.includes(categoryName) && categories[categoryName]?.enabled && categories[categoryName]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                !selectedOptionNames.has(categoryName) && categories[categoryName]?.enabled && categories[categoryName]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         )
         .map((categoryName) => ({
             name: categoryName,
@@ -194,8 +201,7 @@ function getCategoryListSections({
         const data = getCategoryOptionTree(cutRecentlyUsedCategories, true);
         categorySections.push({
             // "Recent" section
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            title: translateLocal('common.recent'),
+            title: translate('common.recent'),
             shouldShow: true,
             data,
             indexOffset: data.length,
@@ -205,8 +211,7 @@ function getCategoryListSections({
     const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
     categorySections.push({
         // "All" section when items amount more than the threshold
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        title: translateLocal('common.all'),
+        title: translate('common.all'),
         shouldShow: true,
         data,
         indexOffset: data.length,
@@ -241,7 +246,7 @@ function sortCategories(categories: Record<string, Category>, localeCompare: Loc
      *   }
      * }
      */
-    sortedCategories.forEach((category) => {
+    for (const category of sortedCategories) {
         const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
         const existedValue = lodashGet(hierarchy, path, {}) as Hierarchy;
         lodashSet(hierarchy, path, {
@@ -249,7 +254,7 @@ function sortCategories(categories: Record<string, Category>, localeCompare: Loc
             name: category.name,
             pendingAction: category.pendingAction,
         });
-    });
+    }
 
     /**
      * A recursive function to convert hierarchy into an array of category objects.

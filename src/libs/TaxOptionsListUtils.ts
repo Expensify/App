@@ -74,20 +74,20 @@ function getTaxRatesSection({
     const taxes = transformedTaxRates(policy, transaction);
 
     const sortedTaxRates = sortTaxRates(taxes, localeCompare);
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.modifiedName);
+    const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.modifiedName));
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
-    const enabledTaxRatesNames = enabledTaxRates.map((tax) => tax.modifiedName);
-    const enabledTaxRatesWithoutSelectedOptions = enabledTaxRates.filter((tax) => tax.modifiedName && !selectedOptionNames.includes(tax.modifiedName));
+    const enabledTaxRatesNames = new Set(enabledTaxRates.map((tax) => tax.modifiedName));
+    const enabledTaxRatesWithoutSelectedOptions = enabledTaxRates.filter((tax) => tax.modifiedName && !selectedOptionNames.has(tax.modifiedName));
     const selectedTaxRateWithDisabledState: Tax[] = [];
     const numberOfTaxRates = enabledTaxRates.length;
 
-    selectedOptions.forEach((tax) => {
-        if (enabledTaxRatesNames.includes(tax.modifiedName)) {
+    for (const tax of selectedOptions) {
+        if (enabledTaxRatesNames.has(tax.modifiedName)) {
             selectedTaxRateWithDisabledState.push({...tax, isDisabled: false, isSelected: true});
-            return;
+            continue;
         }
         selectedTaxRateWithDisabledState.push({...tax, isDisabled: true, isSelected: true});
-    });
+    }
 
     // If all tax are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTaxRates === 0 && selectedOptions.length > 0) {

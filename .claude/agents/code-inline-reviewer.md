@@ -2,7 +2,7 @@
 
 name: code-inline-reviewer
 description: Reviews code and creates inline comments for specific rule violations.
-tools: Glob, Grep, Read, TodoWrite, Bash, BashOutput, KillBash, mcp__github_inline_comment__create_inline_comment
+tools: Glob, Grep, Read, TodoWrite, Bash, BashOutput, KillBash
 model: inherit
 ---
 
@@ -198,44 +198,12 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 )
 ```
 
----
-
-### [PERF-6] Use specific properties as hook dependencies
-
-- **Search patterns**: `useEffect`, `useMemo`, `useCallback` dependency arrays
-
-- **Condition**: In `useEffect`, `useMemo`, and `useCallback`, specify individual object properties as dependencies instead of passing entire objects.
-- **Reasoning**: Passing entire objects as dependencies causes hooks to re-execute whenever any property changes, even unrelated ones. Specifying individual properties creates more granular dependency tracking, reducing unnecessary hook executions and improving performance predictability.
-
-Good:
-
-```tsx
-const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
-    return {
-        amountColumnSize: transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        taxAmountColumnSize: transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-    };
-}, [transactionItem.isAmountColumnWide, transactionItem.isTaxAmountColumnWide, transactionItem.shouldShowYear]);
-```
-
-Bad:
-
-```tsx
-const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
-    return {
-        amountColumnSize: transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        taxAmountColumnSize: transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-    };
-}, [transactionItem]);
-```
-
 ## Instructions
 
 1. **First, get the list of changed files and their diffs:**
    - Use `gh pr diff` to see what actually changed in the PR
    - Focus ONLY on the changed lines, not the entire file
+   - **CRITICAL**: Only create inline comments on lines that are part of the diff. Do NOT add comments to lines outside the diff, even if they contain violations. Comments on unchanged lines will fail to be created.
 2. **For analyzing changed files:**
    - **For large files (>5000 lines):** Use the Grep tool to search for specific violation patterns instead of reading the entire file. Focus grep searches on the changed portions shown in the diff.
    - **For smaller files:** You may read the full file using the Read tool
@@ -247,48 +215,37 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
    - `line`: Line number where the issue occurs
    - `body`: Concise and actionable description of the violation and fix, following the below Comment Format
 6. **Each comment must reference exactly one Rule ID.**
-7. **Output must consist exclusively of calls to mcp__github_inline_comment__create_inline_comment in the required format.** No other text, Markdown, or prose is allowed.
-8. **If no violations are found, create a comment** (with no quotes, markdown, or additional text):
-   LGTM 👍 Thank you for your hard work!
-9. **Output LGTM if and only if**:
+7. **Output must consist exclusively of calls to createInlineComment.sh in the required format.** No other text, Markdown, or prose is allowed.
+8. **If no violations are found, add a reaction to the PR**:
+   Add a 👍 (+1) reaction to the PR using the `addPrReaction` script (available in PATH from `.claude/scripts/`). The script takes ONLY the PR number as argument - it always adds a "+1" reaction, so do NOT pass any reaction type or emoji.
+9. **Add reaction if and only if**:
    - You examined EVERY changed line in EVERY changed file (via diff + targeted grep/read)
    - You checked EVERY changed file against ALL rules
    - You found ZERO violations matching the exact rule criteria
    - You verified no false negatives by checking each rule systematically
-    If you found even ONE violation or have ANY uncertainty do NOT create LGTM comment - create inline comments instead.
+    If you found even ONE violation or have ANY uncertainty do NOT add the reaction - create inline comments instead.
 10. **DO NOT invent new rules, stylistic preferences, or commentary outside the listed rules.**
 11. **DO NOT describe what you are doing, create comments with a summary, explanations, extra content, comments on rules that are NOT violated or ANYTHING ELSE.**
-    Only inline comments regarding rules violations or general comment with LGTM message are allowed.
+    Only inline comments regarding rules violations are allowed. If no violations are found, add a reaction instead of creating any comment.
     EXCEPTION: If you believe something MIGHT be a Rule violation but are uncertain, err on the side of creating an inline comment with your concern rather than skipping it.
 
 ## Tool Usage Example
 
-For each violation, call the mcp__github_inline_comment__create_inline_comment tool like this.
-CRITICAL: **DO NOT** use the Bash tool for inline comments:
-
-```
-mcp__github_inline_comment__create_inline_comment:
-  path: 'src/components/ReportActionsList.tsx'
-  line: 128
-  body: '<Body of the comment according to the Comment Format>'
-```
-
-If ZERO violations are found, use the Bash tool to create a top-level PR comment.:
+For each violation, call the createInlineComment.sh script like this:
 
 ```bash
-gh pr comment --body 'LGTM :feelsgood:. Thank you for your hard work!'
+createInlineComment.sh 'src/components/ReportActionsList.tsx' '<Body of the comment according to the Comment Format>' 128
 ```
 
-**IMPORTANT**: When using the Bash tool, always use **single quotes** (not double quotes) around content arguments.
+**IMPORTANT**: Always use single quotes around the body argument to properly handle special characters and quotes.
 
-Example:
+If ZERO violations are found, use the Bash tool to add a reaction to the PR body:
+
 ```bash
-# Good
-gh pr comment --body 'Use `useMemo` to optimize performance'
-
-# Bad
-gh pr comment --body "Use `useMemo` to optimize performance"
+addPrReaction.sh <PR_NUMBER>
 ```
+
+**IMPORTANT**: Always use the `addPrReaction.sh` script (available in PATH from `.claude/scripts/`) instead of calling `gh api` directly. 
 
 ## Comment Format
 
@@ -300,4 +257,4 @@ gh pr comment --body "Use `useMemo` to optimize performance"
 <Suggested, specific fix preferably with a code snippet>
 ```
 
-**CRITICAL**: You must actually call the mcp__github_inline_comment__create_inline_comment tool for each violation. Don't just describe what you found - create the actual inline comments!
+**CRITICAL**: You must actually call the createInlineComment.sh script for each violation. Don't just describe what you found - create the actual inline comments!

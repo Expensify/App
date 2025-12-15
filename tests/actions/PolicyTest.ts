@@ -2,10 +2,9 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
+import {WRITE_COMMANDS} from '@libs/API/types';
 // eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-// eslint-disable-next-line no-restricted-syntax
-import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -132,7 +131,7 @@ describe('actions/Policy', () => {
                 .filter((report) => report?.policyID === policyID)
                 .filter((report) => report?.type !== 'task');
             expect(workspaceReports.length).toBe(2);
-            workspaceReports.forEach((report) => {
+            for (const report of workspaceReports) {
                 expect(report?.pendingFields?.addWorkspaceRoom).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 switch (report?.chatType) {
                     case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS: {
@@ -148,7 +147,7 @@ describe('actions/Policy', () => {
                     default:
                         break;
                 }
-            });
+            }
 
             let reportActions: OnyxCollection<ReportActions> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
@@ -166,11 +165,11 @@ describe('actions/Policy', () => {
             let expenseReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
             let workspaceReportActions: ReportAction[] = adminReportActions.concat(expenseReportActions);
             expect(expenseReportActions.length).toBe(1);
-            [...expenseReportActions].forEach((reportAction) => {
+            for (const reportAction of [...expenseReportActions]) {
                 expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
                 expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
-            });
+            }
 
             // Following tasks are filtered in prepareOnboardingOnyxData: 'viewTour', 'addAccountingIntegration' and 'setupCategoriesAndTags' (-3)
             const {onboardingMessages} = getOnboardingMessages();
@@ -184,21 +183,21 @@ describe('actions/Policy', () => {
             let reportActionsOfTypeCreatedCount = 0;
             let signOffMessagesCount = 0;
             let manageTeamTasksCount = 0;
-            adminReportActions.forEach((reportAction) => {
+            for (const reportAction of adminReportActions) {
                 if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
                     reportActionsOfTypeCreatedCount++;
                     expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                     expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
-                    return;
+                    continue;
                 }
                 if (reportAction.childType === CONST.REPORT.TYPE.TASK) {
                     manageTeamTasksCount++;
                     expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                     // we dont check actorAccountID as it will be a random account id for the guide
-                    return;
+                    continue;
                 }
                 signOffMessagesCount++;
-            });
+            }
             expect(reportActionsOfTypeCreatedCount).toBe(expectedReportActionsOfTypeCreatedCount);
             expect(signOffMessagesCount).toBe(expectedSignOffMessagesCount);
             expect(manageTeamTasksCount).toBe(expectedManageTeamDefaultTasksCount);
@@ -233,10 +232,10 @@ describe('actions/Policy', () => {
             });
 
             // Check if the report pending action and fields were cleared
-            Object.values(allReports ?? {}).forEach((report) => {
+            for (const report of Object.values(allReports ?? {})) {
                 expect(report?.pendingAction).toBeFalsy();
                 expect(report?.pendingFields?.addWorkspaceRoom).toBeFalsy();
-            });
+            }
 
             reportActions = await new Promise((resolve) => {
                 const connection = Onyx.connect({
@@ -253,9 +252,9 @@ describe('actions/Policy', () => {
             adminReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
             expenseReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
             workspaceReportActions = adminReportActions.concat(expenseReportActions);
-            workspaceReportActions.forEach((reportAction) => {
+            for (const reportAction of workspaceReportActions) {
                 expect(reportAction.pendingAction).toBeFalsy();
-            });
+            }
         });
 
         it('duplicate workspace', async () => {
@@ -342,7 +341,7 @@ describe('actions/Policy', () => {
                 .filter((report) => report?.policyID === policyID)
                 .filter((report) => report?.type !== 'task');
             expect(workspaceReports.length).toBe(2);
-            workspaceReports.forEach((report) => {
+            for (const report of workspaceReports) {
                 expect(report?.pendingFields?.addWorkspaceRoom).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 switch (report?.chatType) {
                     case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS: {
@@ -358,7 +357,7 @@ describe('actions/Policy', () => {
                     default:
                         break;
                 }
-            });
+            }
 
             let reportActions: OnyxCollection<ReportActions> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
@@ -376,28 +375,28 @@ describe('actions/Policy', () => {
             let expenseReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
             let workspaceReportActions: ReportAction[] = adminReportActions.concat(expenseReportActions);
             expect(expenseReportActions.length).toBe(1);
-            [...expenseReportActions].forEach((reportAction) => {
+            for (const reportAction of [...expenseReportActions]) {
                 expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
                 expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
-            });
+            }
 
             // After filtering, two actions are added to the list =- signoff message (+1) and default create action (+1)
             const expectedReportActionsOfTypeCreatedCount = 1;
             expect(adminReportActions.length).toBe(1);
 
             let reportActionsOfTypeCreatedCount = 0;
-            adminReportActions.forEach((reportAction) => {
+            for (const reportAction of adminReportActions) {
                 if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
                     reportActionsOfTypeCreatedCount++;
                     expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                     expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
-                    return;
+                    continue;
                 }
                 if (reportAction.childType === CONST.REPORT.TYPE.TASK) {
                     expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 }
-            });
+            }
             expect(reportActionsOfTypeCreatedCount).toBe(expectedReportActionsOfTypeCreatedCount);
 
             // Check for success data
@@ -430,10 +429,10 @@ describe('actions/Policy', () => {
             });
 
             // Check if the report pending action and fields were cleared
-            Object.values(allReports ?? {}).forEach((report) => {
+            for (const report of Object.values(allReports ?? {})) {
                 expect(report?.pendingAction).toBeFalsy();
                 expect(report?.pendingFields?.addWorkspaceRoom).toBeFalsy();
-            });
+            }
 
             reportActions = await new Promise((resolve) => {
                 const connection = Onyx.connect({
@@ -450,9 +449,9 @@ describe('actions/Policy', () => {
             adminReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
             expenseReportActions = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
             workspaceReportActions = adminReportActions.concat(expenseReportActions);
-            workspaceReportActions.forEach((reportAction) => {
+            for (const reportAction of workspaceReportActions) {
                 expect(reportAction.pendingAction).toBeFalsy();
-            });
+            }
         });
 
         it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {
@@ -693,6 +692,42 @@ describe('actions/Policy', () => {
                 },
             });
         });
+
+        it('should pass areDistanceRatesEnabled as true when creating workspace with distance rates feature enabled', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            // When creating a workspace with distance rates feature enabled
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: false,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                currency: 'USD',
+                featuresMap: [
+                    {
+                        id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+                        enabled: true,
+                    },
+                ],
+            });
+            await waitForBatchedUpdates();
+
+            // Then API.write should be called with CREATE_WORKSPACE command and areDistanceRatesEnabled set to true
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.CREATE_WORKSPACE,
+                expect.objectContaining({
+                    areDistanceRatesEnabled: true,
+                }),
+                expect.anything(),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
     });
 
     describe('createDraftInitialWorkspace', () => {
@@ -894,7 +929,7 @@ describe('actions/Policy', () => {
     });
 
     describe('enablePolicyRules', () => {
-        it('should disable preventSelfApproval when the rule feature is turned off', async () => {
+        it('should not reset preventSelfApproval when the rule feature is turned off', async () => {
             (fetch as MockFetch)?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy: PolicyType = {
@@ -919,8 +954,8 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Check if the preventSelfApproval is reset to false
-            expect(policy?.preventSelfApproval).toBeFalsy();
+            // preventSelfApproval should not be reset since it's not part of Rules
+            expect(policy?.preventSelfApproval).toBeTruthy();
             expect(policy?.areRulesEnabled).toBeFalsy();
             expect(policy?.pendingFields?.areRulesEnabled).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
@@ -1023,7 +1058,19 @@ describe('actions/Policy', () => {
 
             // When deleting a workspace fails
             mockFetch?.fail?.();
-            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined, undefined, [fakeReport], undefined, {});
+            Policy.deleteWorkspace({
+                policyID: fakePolicy.id,
+                activePolicyID: undefined,
+                policyName: fakePolicy.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                reportsToArchive: [fakeReport],
+                transactionViolations: undefined,
+                reimbursementAccountError: {},
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+            });
 
             await waitForBatchedUpdates();
 
@@ -1102,21 +1149,25 @@ describe('actions/Policy', () => {
                 {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
             ]);
 
-            Policy.deleteWorkspace(
+            Policy.deleteWorkspace({
                 policyID,
-                'test',
-                undefined,
-                undefined,
-                [expenseChatReport],
-                {
+                activePolicyID: undefined,
+                policyName: 'test',
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                reportsToArchive: [expenseChatReport],
+                transactionViolations: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactionViolations_3: [
                         {name: 'cashExpenseWithNoReceipt', type: CONST.VIOLATION_TYPES.VIOLATION},
                         {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
                     ],
                 },
-                undefined,
-            );
+                reimbursementAccountError: undefined,
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+            });
 
             await waitForBatchedUpdates();
 
@@ -1130,18 +1181,43 @@ describe('actions/Policy', () => {
             expect(violations?.every((violation) => violation.type !== CONST.VIOLATION_TYPES.VIOLATION)).toBe(true);
         });
 
-        it('should update active policy ID to personal policy when deleting the active policy', async () => {
-            const personalPolicy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
-            const teamPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+        it('should update active policy ID to most recently created group policy when deleting the active policy', async () => {
+            const personalPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL);
+            personalPolicy.created = '2020-01-01 10:00:00';
+            personalPolicy.pendingAction = null;
+
+            const randomGroupPolicy = createRandomPolicy(2, CONST.POLICY.TYPE.TEAM);
+            randomGroupPolicy.created = '2021-01-01 10:00:00';
+            personalPolicy.pendingAction = null;
+
+            const randomGroupPolicy2 = createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE);
+            randomGroupPolicy2.created = '2022-01-01 10:00:00';
+            randomGroupPolicy2.pendingAction = null;
+
+            const mostRecentlyCreatedGroupPolicy = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            mostRecentlyCreatedGroupPolicy.created = '3000-01-01 10:00:00';
+            mostRecentlyCreatedGroupPolicy.pendingAction = null;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`, teamPolicy);
-            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, teamPolicy.id);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${randomGroupPolicy.id}`, randomGroupPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${randomGroupPolicy2.id}`, randomGroupPolicy2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mostRecentlyCreatedGroupPolicy.id}`, mostRecentlyCreatedGroupPolicy);
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, randomGroupPolicy.id);
             await waitForBatchedUpdates();
 
-            jest.spyOn(PolicyUtils, 'getPersonalPolicy').mockReturnValue(personalPolicy);
-
-            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.name, undefined, undefined, [], undefined, undefined);
+            Policy.deleteWorkspace({
+                policyID: randomGroupPolicy.id,
+                activePolicyID: randomGroupPolicy.id,
+                policyName: randomGroupPolicy.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+            });
             await waitForBatchedUpdates();
 
             const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {
@@ -1154,7 +1230,7 @@ describe('actions/Policy', () => {
                 });
             });
 
-            expect(activePolicyID).toBe(personalPolicy.id);
+            expect(activePolicyID).toBe(mostRecentlyCreatedGroupPolicy.id);
         });
 
         it('should reset lastAccessedWorkspacePolicyID when deleting the last accessed workspace', async () => {
@@ -1165,7 +1241,19 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined);
+            Policy.deleteWorkspace({
+                policyID: policyToDelete.id,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID,
+                policyCardFeeds: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+            });
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {
@@ -1191,7 +1279,19 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined, [], undefined, undefined);
+            Policy.deleteWorkspace({
+                policyID: policyToDelete.id,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID,
+                policyCardFeeds: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                bankAccountList: {},
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+            });
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {

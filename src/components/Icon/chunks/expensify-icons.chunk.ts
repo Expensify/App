@@ -1,3 +1,4 @@
+import type {SvgProps} from 'react-native-svg';
 import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
@@ -48,6 +49,7 @@ import Checkbox from '@assets/images/checkbox.svg';
 import CheckmarkCircle from '@assets/images/checkmark-circle.svg';
 import Checkmark from '@assets/images/checkmark.svg';
 import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
+import Clock from '@assets/images/clock.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
@@ -261,6 +263,7 @@ const Expensicons = {
     Checkbox,
     Checkmark,
     Close,
+    Clock,
     ClosedSign,
     Collapse,
     CommentBubbles,
@@ -462,61 +465,8 @@ const ExpensifyIcons = Expensicons;
  * @param iconName - The name of the icon to retrieve
  * @returns The icon component or undefined if not found
  */
-function getExpensifyIcon(iconName: string): unknown {
-    // Direct return for known icons to preserve React component type
-    switch (iconName) {
-        case 'Building':
-            return Building;
-        case 'CalendarSolid':
-            return CalendarSolid;
-        case 'Car':
-            return Car;
-        case 'Coins':
-            return Coins;
-        case 'CreditCard':
-            return CreditCard;
-        case 'Document':
-            return Document;
-        case 'ExpensifyAppIcon':
-            return ExpensifyAppIcon;
-        case 'ExpensifyCard':
-            return ExpensifyCard;
-        case 'Feed':
-            return Feed;
-        case 'Folder':
-            return Folder;
-        case 'Gear':
-            return Gear;
-        case 'InvoiceGeneric':
-            return InvoiceGeneric;
-        case 'Receipt':
-            return Receipt;
-        case 'Sync':
-            return Sync;
-        case 'Tag':
-            return Tag;
-        case 'Users':
-            return Users;
-        case 'Workflows':
-            return Workflows;
-        case 'FallbackWorkspaceAvatar':
-            return FallbackWorkspaceAvatar;
-        case 'ImageCropSquareMask':
-            return ImageCropSquareMask;
-        case 'QrCode':
-            return QrCode;
-        case 'Transfer':
-            return Transfer;
-        case 'Trashcan':
-            return Trashcan;
-        case 'UserPlus':
-            return UserPlus;
-        case 'ThreeDots':
-            return ThreeDots;
-        default:
-            // Fallback to object lookup for any other cases
-            return (ExpensifyIcons as Record<string, unknown>)[iconName];
-    }
+function getExpensifyIcon(iconName: ExpensifyIconName): React.FC<SvgProps> {
+    return ExpensifyIcons[iconName];
 }
 
 /**

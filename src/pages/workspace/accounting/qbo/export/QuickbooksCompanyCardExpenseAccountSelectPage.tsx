@@ -95,7 +95,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}
-            headerTitleAlreadyTranslated={getQBONonReimbursableExportAccountType(qboConfig?.nonReimbursableExpensesExportDestination)}
+            headerTitleAlreadyTranslated={getQBONonReimbursableExportAccountType(translate, qboConfig?.nonReimbursableExpensesExportDestination)}
             headerContent={
                 qboConfig?.nonReimbursableExpensesExportDestination ? (
                     <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbo.accounts.${qboConfig?.nonReimbursableExpensesExportDestination}AccountDescription`)}</Text>

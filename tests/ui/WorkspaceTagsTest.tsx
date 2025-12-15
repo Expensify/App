@@ -22,6 +22,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 TestHelper.setupGlobalFetchMock();
 
 jest.unmock('react-native-reanimated');
+jest.unmock('react-native-worklets');
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
