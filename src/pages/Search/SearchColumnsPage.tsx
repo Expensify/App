@@ -23,14 +23,15 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import arraysEqual from '@src/utils/arraysEqual';
 
-const allCustomColumns = Object.values(CONST.SEARCH.CUSTOM_COLUMNS);
-const defaultCustomColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
-
 function SearchColumnsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+
+    const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const allCustomColumns = Object.values(CONST.SEARCH.CUSTOM_COLUMNS[queryType]);
+    const defaultCustomColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS[queryType]);
 
     const [selectedColumnIds, setSelectedColumnIds] = useState<SearchCustomColumnIds[]>(() => {
         const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => Object.values(CONST.SEARCH.CUSTOM_COLUMNS).includes(columnId)) ?? [];

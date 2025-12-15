@@ -6721,6 +6721,10 @@ const CONST = {
                     TO: this.TABLE_COLUMNS.TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
+                [this.DATA_TYPES.INVOICE]: {},
+                [this.DATA_TYPES.TASK]: {},
+                [this.DATA_TYPES.TRIP]: {},
+                [this.DATA_TYPES.CHAT]: {},
             };
         },
         get DEFAULT_COLUMNS() {
@@ -6745,6 +6749,10 @@ const CONST = {
                     this.TABLE_COLUMNS.TO,
                     this.TABLE_COLUMNS.ACTION,
                 ],
+                [this.DATA_TYPES.INVOICE]: [],
+                [this.DATA_TYPES.TASK]: [],
+                [this.DATA_TYPES.TRIP]: [],
+                [this.DATA_TYPES.CHAT]: [],
             };
         },
         BOOLEAN: {
