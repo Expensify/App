@@ -1,6 +1,5 @@
 import {adminAccountIDsSelector} from '@selectors/Domain';
 import React from 'react';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -19,6 +18,7 @@ import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import {choosePrimaryContact} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type AdminOption = Omit<ListItem, 'accountID' | 'login'> & {
@@ -77,35 +77,33 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                 testID={DomainAddPrimaryContactPage.displayName}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <FullPageNotFoundView
-                    onBackButtonPress={Navigation.goBack}
+                <HeaderWithBackButton
+                    title={translate('domain.admins.addPrimaryContact')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
+                />
+                <SelectionList
+                    data={filteredData}
+                    onSelectRow={(option) => {
+                        if (!option.login || !option.accountID) {
+                            return;
+                        }
+                        choosePrimaryContact(domainAccountID, option.accountID, option.login === technicalContactEmail ? null : option.login, technicalContactEmail);
+                        Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
+                    }}
+                    ListItem={InviteMemberListItem}
+                    canSelectMultiple={false}
+                    initiallyFocusedItemKey={technicalContactEmailKey}
+                    shouldScrollToFocusedIndex
+                    shouldShowTextInput
+                    textInputOptions={{
+                        label: translate('selectionList.findMember'),
+                        value: searchTerm,
+                        onChangeText: setSearchTerm,
+                        headerMessage: searchTerm && !filteredData?.length ? translate('common.noResultsFound') : '',
+                    }}
                     addBottomSafeAreaPadding
-                >
-                    <HeaderWithBackButton title={translate('domain.admins.addPrimaryContact')} />
-                    <SelectionList
-                        data={filteredData}
-                        onSelectRow={(option) => {
-                            if (!option.login || !option.accountID) {
-                                return;
-                            }
-                            choosePrimaryContact(domainAccountID, option.accountID, option.login === technicalContactEmail ? null : option.login, technicalContactEmail);
-                            Navigation.goBack();
-                        }}
-                        ListItem={InviteMemberListItem}
-                        canSelectMultiple={false}
-                        initiallyFocusedItemKey={technicalContactEmailKey}
-                        shouldScrollToFocusedIndex
-                        shouldShowTextInput
-                        textInputOptions={{
-                            label: translate('selectionList.findMember'),
-                            value: searchTerm,
-                            onChangeText: setSearchTerm,
-                            headerMessage: searchTerm && !filteredData?.length ? translate('common.noResultsFound') : '',
-                        }}
-                        addBottomSafeAreaPadding
-                        showScrollIndicator
-                    />
-                </FullPageNotFoundView>
+                    showScrollIndicator
+                />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
     );
