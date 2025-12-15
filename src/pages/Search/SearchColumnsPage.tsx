@@ -29,10 +29,14 @@ function SearchColumnsPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
-    console.log(searchAdvancedFiltersForm);
-
     const [selectedColumnIds, setSelectedColumnIds] = useState<ColumnId[]>(() => {
         const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => Object.values(CONST.SEARCH.COLUMNS).includes(columnId as ColumnId)) ?? [];
+
+        // We dont allow the user to unselect all columns, so we can assume that no columns = all columns/none configured yet
+        if (!columnIds) {
+            return allColumns;
+        }
+
         return columnIds as ColumnId[];
     });
 
