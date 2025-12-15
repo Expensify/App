@@ -2725,6 +2725,8 @@ function getTableMinWidth(columns: SearchColumnType[]) {
             minWidth += 80;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
             minWidth += 48;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED) {
+            minWidth += 72;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {
             minWidth += 20;
         } else {
