@@ -4,7 +4,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
@@ -13,6 +12,7 @@ import ActionCell from '@components/SelectionListWithSections/Search/ActionCell'
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -112,6 +112,7 @@ type TransactionItemRowProps = {
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: () => void;
     isHover?: boolean;
+    shouldShowArrowRightOnNarrowLayout?: boolean;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -154,6 +155,7 @@ function TransactionItemRow({
     shouldShowBottomBorder,
     onArrowRightPress,
     isHover = false,
+    shouldShowArrowRightOnNarrowLayout,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -162,6 +164,7 @@ function TransactionItemRow({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
+    const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -469,6 +472,16 @@ function TransactionItemRow({
                                 </View>
                             )}
                         </View>
+                        {!!shouldShowArrowRightOnNarrowLayout && (
+                            <View style={[styles.justifyContentEnd, styles.alignItemsEnd, styles.mbHalf, styles.ml1]}>
+                                <Icon
+                                    src={expensicons.ArrowRight}
+                                    fill={theme.icon}
+                                    additionalStyles={styles.opacitySemiTransparent}
+                                    small
+                                />
+                            </View>
+                        )}
                         {shouldShowRadioButton && (
                             <View style={[styles.ml3, styles.justifyContentCenter]}>
                                 <RadioButton
