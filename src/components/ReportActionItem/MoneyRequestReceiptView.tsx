@@ -159,7 +159,8 @@ function MoneyRequestReceiptView({
 
     const transactionToCheck = updatedTransaction ?? transaction;
     const doesTransactionHaveReceipt = !!transactionToCheck?.receipt && !isEmptyObject(transactionToCheck?.receipt);
-    const shouldShowReceiptEmptyState = !isInvoice && !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
+    // @TODO: Verify if we don't need to check isInvoice here
+    const shouldShowReceiptEmptyState = !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
 
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];

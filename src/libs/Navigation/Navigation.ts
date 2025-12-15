@@ -37,7 +37,17 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationRef, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
+import type {
+    ExpenseReportNavigatorParamList,
+    NavigationPartialRoute,
+    NavigationRef,
+    NavigationRoute,
+    NavigationStateRoute,
+    ReportsSplitNavigatorParamList,
+    RootNavigatorParamList,
+    SearchMoneyRequestReportParamList,
+    State,
+} from './types';
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES = new Set<Route>([
@@ -227,15 +237,20 @@ function navigate(route: Route, options?: LinkToOptions) {
     }
 
     // Start a Sentry span for report navigation
-    if (route.startsWith('r/') || route.startsWith('search/r/')) {
+    if (route.startsWith('r/') || route.startsWith('search/r/') || route.startsWith('e/')) {
         const routePath = Str.cutAfter(route, '?');
-        const reportIDMatch = routePath.match(/^(?:search\/)?r\/(\d+)(?:\/\d+)?$/);
+        const reportIDMatch = route.match(/^(?:search\/)?(?:r|e)\/(\w+)/);
         const reportID = reportIDMatch?.at(1);
         if (reportID) {
             const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
             let span = getSpan(spanId);
             if (!span) {
-                const spanName = route.startsWith('r/') ? '/r/*' : '/search/r/*';
+                let spanName = '/r/*';
+                if (route.startsWith('search/r/')) {
+                    spanName = '/search/r/*';
+                } else if (route.startsWith('e/')) {
+                    spanName = '/e/*';
+                }
                 span = startSpan(spanId, {
                     name: spanName,
                     op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -248,11 +263,9 @@ function navigate(route: Route, options?: LinkToOptions) {
             });
         }
     }
-
     linkTo(navigationRef.current, route, options);
     closeSidePanelOnNarrowScreen();
 }
-
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
  * these parameters shouldn't be included in the comparison.
@@ -597,6 +610,37 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 }
 
 /**
+ * Get the report ID from the topmost Super Wide RHP modal in the navigation stack.
+ */
+function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.getRootState()): string | undefined {
+    if (!state) {
+        return;
+    }
+
+    const topmostRightModalNavigator = state.routes?.at(-1);
+
+    if (!topmostRightModalNavigator || topmostRightModalNavigator.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return;
+    }
+
+    const topmostSuperWideRHPModalStack = topmostRightModalNavigator.state?.routes.findLast((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name));
+
+    if (!topmostSuperWideRHPModalStack) {
+        return;
+    }
+
+    const topmostSuperWideRHP = topmostSuperWideRHPModalStack.state?.routes.findLast(
+        (route) => route.name === SCREENS.EXPENSE_REPORT_RHP || route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT,
+    );
+    const topmostReportParams = topmostSuperWideRHP?.params as
+        | SearchMoneyRequestReportParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT]
+        | ExpenseReportNavigatorParamList[typeof SCREENS.EXPENSE_REPORT_RHP]
+        | undefined;
+
+    return topmostReportParams?.reportID;
+}
+
+/**
  * Closes the modal navigator (RHP, onboarding).
  *
  * @param options - Configuration object
@@ -627,8 +671,16 @@ const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; cal
  */
 const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT], ref = navigationRef) => {
     isNavigationReady().then(() => {
+        const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
+        let areReportsIDsDefined = !!topmostSuperWideRHPReportID && !!reportID;
+
+        if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
+            dismissToPreviousRHP();
+            return;
+        }
+
         const topmostReportID = getTopmostReportId();
-        const areReportsIDsDefined = !!topmostReportID && !!reportID;
+        areReportsIDsDefined = !!topmostReportID && !!reportID;
         const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             dismissModal();
@@ -752,7 +804,7 @@ function dismissToModalStack(modalStackNames: Set<string>) {
         return;
     }
 
-    const lastFoundModalStackIndex = rhpState.routes.findLastIndex((route) => modalStackNames.has(route.name));
+    const lastFoundModalStackIndex = rhpState.routes.slice(0, -1).findLastIndex((route) => modalStackNames.has(route.name));
     const routesToPop = rhpState.routes.length - lastFoundModalStackIndex - 1;
 
     if (routesToPop <= 0 || lastFoundModalStackIndex === -1) {
