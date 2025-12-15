@@ -6,13 +6,15 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU';
+import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getTaxName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -86,6 +88,9 @@ function SearchEditMultiplePage() {
         if (draftTransaction.tag) {
             changes.tag = draftTransaction.tag;
         }
+        if (draftTransaction.taxCode) {
+            changes.taxCode = draftTransaction.taxCode;
+        }
         if (draftTransaction.billable !== undefined) {
             changes.billable = draftTransaction.billable;
         }
@@ -104,6 +109,14 @@ function SearchEditMultiplePage() {
     };
 
     const displayCurrency = draftTransaction?.currency ?? currency;
+
+    const updateBillable = (billable: boolean) => {
+        updateBulkEditDraftTransaction({billable});
+    };
+
+    const updateReimbursable = (reimbursable: boolean) => {
+        updateBulkEditDraftTransaction({reimbursable});
+    };
 
     const fields = useMemo(() => {
         const allFields = [
@@ -137,6 +150,11 @@ function SearchEditMultiplePage() {
                 title: draftTransaction?.tag ?? '',
                 route: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP,
             },
+            {
+                description: translate('iou.taxRate'),
+                title: draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : '',
+                route: ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP,
+            },
         ];
 
         return allFields;
@@ -147,6 +165,8 @@ function SearchEditMultiplePage() {
         draftTransaction?.created,
         draftTransaction?.category,
         draftTransaction?.tag,
+        draftTransaction?.taxCode,
+        policy,
         translate,
         displayCurrency,
     ]);
@@ -169,6 +189,22 @@ function SearchEditMultiplePage() {
                             shouldShowRightIcon
                         />
                     ))}
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
+                        <Text>{translate('common.billable')}</Text>
+                        <Switch
+                            isOn={!!draftTransaction?.billable}
+                            onToggle={updateBillable}
+                            accessibilityLabel={translate('common.billable')}
+                        />
+                    </View>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
+                        <Text>{translate('iou.reimbursable')}</Text>
+                        <Switch
+                            isOn={!!draftTransaction?.reimbursable}
+                            onToggle={updateReimbursable}
+                            accessibilityLabel={translate('iou.reimbursable')}
+                        />
+                    </View>
                 </ScrollView>
                 <Button
                     success

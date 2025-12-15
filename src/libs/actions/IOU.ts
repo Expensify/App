@@ -210,6 +210,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,
+    calculateTaxAmount,
     getAmount,
     getCategoryTaxCodeAndAmount,
     getChildTransactions,
@@ -218,6 +219,7 @@ import {
     getDistanceInMeters,
     getMerchant,
     getOriginalTransactionWithSplitInfo,
+    getTaxValue,
     getUpdatedTransaction,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
@@ -15207,6 +15209,15 @@ function updateMultipleMoneyRequests(transactionIDs: string[], transactionChange
         }
         if (transactionChanges.comment) {
             updates.comment = transactionChanges.comment;
+        }
+        if (transactionChanges.taxCode) {
+            updates.taxCode = transactionChanges.taxCode;
+        }
+        if (transactionChanges.billable) {
+            updates.state = transactionChanges.billable ? 3 : 4;
+        }
+        if (transactionChanges.reimbursable) {
+            updates.state = transactionChanges.reimbursable ? 4 : 3;
         }
 
         // Skip if no updates
