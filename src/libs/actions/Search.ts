@@ -10,7 +10,7 @@ import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports,
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
-import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, OpenSearchPageParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -344,8 +344,8 @@ function deleteSavedSearch(hash: number) {
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
-function openSearchPage() {
-    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
+function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParams) {
+    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts});
 }
 
 function search({
@@ -724,8 +724,9 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     }
 }
 
-function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: string, policy: OnyxEntry<Policy>, transactionIDs: string[]) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+function rejectMoneyRequestInBulk(reportID: string, comment: string, policy: OnyxEntry<Policy>, transactionIDs: string[], hash?: number) {
+    const loadingData = hash !== undefined ? getOnyxLoadingData(hash) : {optimisticData: [] as OnyxUpdate[], finallyData: [] as OnyxUpdate[]};
+    const {optimisticData, finallyData} = loadingData;
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const transactionIDToRejectReportAction: Record<
@@ -755,7 +756,18 @@ function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: strin
     );
 }
 
-function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string, allPolicies: OnyxCollection<Policy>, allReports: OnyxCollection<Report>) {
+/** Minimal transaction info needed for reject - only reportID is used */
+type TransactionReportInfo = {
+    reportID: string;
+};
+
+function rejectMoneyRequestsOnSearch(
+    hash: number,
+    selectedTransactions: Record<string, TransactionReportInfo>,
+    comment: string,
+    allPolicies: OnyxCollection<Policy>,
+    allReports: OnyxCollection<Report>,
+) {
     const transactionIDs = Object.keys(selectedTransactions);
 
     const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {
@@ -771,14 +783,17 @@ function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Selecte
     }, {});
 
     for (const [reportID, selectedTransactionIDs] of Object.entries(transactionsByReport)) {
-        const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
-        const areAllExpensesSelected = allTransactionIDs.every((transactionID) => selectedTransactionIDs.includes(transactionID));
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        const totalReportTransactions = report?.transactionCount ?? 0;
+
+        // Subtract pending deletes to get accurate count when transactions are deleted offline
+        const pendingDeleteCount = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+        const effectiveTransactionCount = totalReportTransactions - pendingDeleteCount;
+        const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(hash, reportID, comment, policy, allTransactionIDs);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, hash);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
