@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
-import {clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
@@ -55,15 +55,27 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     useEffect(() => {
         submitButton.current?.focus();
         resetValidateActionCodeSent();
-    }, []);
+        clearIssueNewCardError(policyID);
+    }, [policyID]);
 
     useEffect(() => {
-        if (!isSuccessful) {
+        if (!policyID) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID), {forceReplace: true});
-        clearIssueNewCardFlow(policyID);
-    }, [isSuccessful, policyID]);
+
+        if (isSuccessful) {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID), {forceReplace: true});
+            clearIssueNewCardFlow(policyID);
+            return;
+        }
+
+        // Handle extended access failure and fall back to magic code page
+        const hasError = !!getLatestErrorMessage(issueNewCard);
+        if (hasError) {
+            clearIssueNewCardError(policyID);
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+        }
+    }, [issueNewCard, isSuccessful, policyID]);
 
     const handleIssueCard = useCallback(() => {
         if (!policyID) {
@@ -73,7 +85,6 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         if (AccountUtils.hasValidateCodeExtendedAccess(account)) {
             // Attempt to issue directly without magic code when user has extended access
             // If this fails, the effect above will redirect to the magic code page
-            attemptedExtendedAccessRef.current = true;
             issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', data);
         } else {
             // Navigate to magic code page
