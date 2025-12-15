@@ -13,7 +13,7 @@ function getEmptyObject<T>(): T {
 }
 
 function isEmptyValueObject<T>(obj: T | EmptyValue) {
-    return Object.values(obj ?? {}).filter(Boolean).length === 0;
+    return Object.values(obj ?? {}).filter((value) => value !== undefined && value !== null).length === 0;
 }
 
 export {isEmptyObject, getEmptyObject, isEmptyValueObject};
