@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import {format} from 'date-fns';
-import {fastMerge, Str} from 'expensify-common';
+import {fastMerge} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
@@ -36,7 +36,6 @@ import type {
     RetractReportParams,
     RevertSplitTransactionParams,
     SendInvoiceParams,
-    SendMoneyParams,
     SetNameValuePairParams,
     ShareTrackedExpenseParams,
     SplitBillParams,
@@ -115,7 +114,7 @@ import {
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
-import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
+import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticActionableTrackExpenseWhisper,
     buildOptimisticAddCommentReportAction,
@@ -10100,7 +10099,6 @@ function getPayMoneyRequestParams({
         failureData,
     };
 }
-
 
 function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>, iouTransactions?: OnyxTypes.Transaction[]) {
     // Only expense reports can be approved
