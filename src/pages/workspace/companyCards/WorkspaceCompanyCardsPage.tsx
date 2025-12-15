@@ -41,9 +41,9 @@ import type SCREENS from '@src/SCREENS';
 import type {CurrencyList} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import WorkspaceCompanyCardsTable from './components/WorkspaceCompanyCardsTable';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
-import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
 import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
@@ -206,7 +206,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     )}
                     {isPending && <WorkspaceCompanyCardsFeedPendingPage />}
                     {isFeedAdded && !isPending && (
-                        <WorkspaceCompanyCardsList
+                        <WorkspaceCompanyCardsTable
+                            feed={selectedFeed}
                             cardsList={cardsList}
                             shouldShowGBDisclaimer={shouldShowGBDisclaimer}
                             policyID={policyID}
