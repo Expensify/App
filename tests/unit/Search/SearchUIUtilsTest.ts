@@ -2565,8 +2565,37 @@ describe('SearchUIUtils', () => {
         });
     });
 
-    // JACK_TODO: tests here
     describe('Test getColumnsToShow', () => {
+        test('Should show all columns when no custom columns are saved & viewing expense reports', () => {
+            expect(SearchUIUtils.getColumnsToShow(1, [], [])).toEqual({
+                [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+            });
+        });
+
+        test('Should show specific columns when custom columns are saved & viewing expense reports', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.STATUS, CONST.SEARCH.TABLE_COLUMNS.TITLE];
+
+            expect(SearchUIUtils.getColumnsToShow(1, [], visibleColumns)).toEqual({
+                // Avatar should always be visible
+                [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
+                // Total should always be visible
+                [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
+            });
+        });
+
         test('Should only show columns when at least one transaction has a value for them', () => {
             // Use the existing transaction as a base and modify only the fields we need to test
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];

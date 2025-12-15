@@ -58,7 +58,6 @@ import type {
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport, startMoneyRequest} from './actions/IOU';
 import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from './actions/isOpenConfirmNavigateExpensifyClassicModal';
@@ -2453,27 +2452,25 @@ function getColumnsToShow(
             CONST.SEARCH.TABLE_COLUMNS.ACTION,
         ];
 
-        const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
+        // If there are no visible columns, everything should be visible
+        if (!visibleColumns.length) {
+            return Object.fromEntries(reportColumns.map((column) => [column, true]));
+        }
 
         // If the user has set custom columns, toggle the visible columns on, with all other
         // columns hidden by default
-        if (!arraysEqual(defaultColumns, visibleColumns) && visibleColumns.length > 0) {
-            const columns: ColumnVisibility = {};
-            const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+        const columns: ColumnVisibility = {};
+        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
 
-            for (const columnId of reportColumns) {
-                columns[columnId] = requiredColumns.has(columnId);
-            }
-
-            for (const column of visibleColumns) {
-                columns[column as keyof ColumnVisibility] = true;
-            }
-
-            return columns;
+        for (const columnId of reportColumns) {
+            columns[columnId] = requiredColumns.has(columnId);
         }
 
-        // All columns should be visible otherwise
-        return Object.fromEntries(reportColumns.map((column) => [column, true]));
+        for (const column of visibleColumns) {
+            columns[column as keyof ColumnVisibility] = true;
+        }
+
+        return columns;
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
