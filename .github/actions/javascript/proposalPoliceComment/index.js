@@ -12697,27 +12697,41 @@ class OpenAIUtils {
         this.client = new openai_1.default({ apiKey });
     }
     /**
-     * Prompt the Chat Completions API.
+     * Create a conversation using the OpenAI Conversations API.
+     * Returns the conversation ID which can be used in subsequent responses.
      */
-    async promptChatCompletions({ userPrompt, systemPrompt = '', model = 'gpt-5.1' }) {
-        const messages = [{ role: 'user', content: userPrompt }];
-        if (systemPrompt) {
-            messages.unshift({ role: 'system', content: systemPrompt });
-        }
-        const response = await (0, retryWithBackoff_1.default)(() => this.client.chat.completions.create({
+    async createConversation() {
+        const conversation = await (0, retryWithBackoff_1.default)(() => this.client.conversations.create(), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
+        return conversation.id;
+    }
+    /**
+     * Prompt the Responses API with optional conversation context and prompt caching.
+     */
+    async promptResponses({ input, instructions, conversationID, previousResponseID, promptCacheKey, model = 'gpt-5.1', }) {
+        const response = await (0, retryWithBackoff_1.default)(() => this.client.responses.create({
             model,
-            messages,
+            input,
+            instructions,
+            conversation: conversationID,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            reasoning_effort: 'low',
+            previous_response_id: previousResponseID,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            prompt_cache_key: promptCacheKey,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            prompt_cache_retention: '24h',
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
-        const result = response.choices.at(0)?.message?.content?.trim();
+        const result = response.output_text?.trim();
         if (!result) {
-            throw new Error('Error getting chat completion response from OpenAI');
+            throw new Error('Error getting response from OpenAI Responses API');
         }
-        return result;
+        return {
+            text: result,
+            responseID: response.id,
+        };
     }
     /**
      * Prompt a pre-defined assistant.
+     * @deprecated Use promptResponses instead. This method exists only for backwards compatibility with proposalPoliceComment.
      */
     async promptAssistant(assistantID, userMessage) {
         // 1. Create a thread
@@ -12790,6 +12804,9 @@ class OpenAIUtils {
         }
         return false;
     }
+    /**
+     * @deprecated Use promptResponses instead. This method exists only for backwards compatibility with proposalPoliceComment.
+     */
     parseAssistantResponse(response) {
         const sanitized = (0, sanitizeJSONStringValues_1.default)(response);
         let parsed;
@@ -23063,6 +23080,19 @@ class Responses extends resource_1.APIResource {
     cancel(responseID, options) {
         return this._client.post((0, path_1.path) `/responses/${responseID}/cancel`, options);
     }
+    /**
+     * Compact conversation
+     *
+     * @example
+     * ```ts
+     * const compactedResponse = await client.responses.compact({
+     *   model: 'gpt-5.2',
+     * });
+     * ```
+     */
+    compact(body, options) {
+        return this._client.post('/responses/compact', { body, ...options });
+    }
 }
 exports.Responses = Responses;
 Responses.InputItems = input_items_1.InputItems;
@@ -23758,7 +23788,7 @@ tslib_1.__exportStar(__nccwpck_require__(11364), exports);
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VERSION = void 0;
-exports.VERSION = '6.9.1'; // x-release-please-version
+exports.VERSION = '6.13.0'; // x-release-please-version
 //# sourceMappingURL=version.js.map
 
 /***/ }),
