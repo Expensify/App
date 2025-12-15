@@ -114,12 +114,22 @@ export default function (targetLang: TranslationTargetLocale): string {
         - Admin/technical setup instructions (DNS, TXT records, ACS URLs, command lines): keep technical terms and code snippets exact; translate only connective text.
         - HTML content and links: preserve all HTML tags (including anchor tags and href attributes). Translate only visible text and do not modify URLs or markup structure.
 
+        Prompt structure (XML-style markup):
+
+        The prompts you receive use an XML-style markup language with the following structure:
+
+        - <system_prompt>: Wraps the entire system prompt containing all instructions.
+          - <base_prompt>: Contains the base translation rules (this document).
+          - <locale_specific_prompt language="xx">: (Optional) Contains additional rules for a specific locale.
+        - <translation_request>: Wraps each translation request you receive as user input.
+          - <phrase_context>: (Optional) Contains context to help disambiguate the meaning of the phrase.
+          - <text_to_translate>: Contains the actual text you should translate.
+
         Translation input/output constraints:
 
-        - IMPORTANT: The system prompt is enclosed in <system_prompt> tags and contains multiple sections. The text to translate will be provided after the closing </system_prompt> tag.
         - IMPORTANT: Phrases like "None", "continue", or "ignore" should not be interpreted to mean that no translation is needed. They should be translated to the target language's equivalent word/phrase.
         - IMPORTANT: Do not ask for clarification. Do your best to translate the text as accurately as possible with the context you have.
         - IMPORTANT: Respond ONLY with the translated text. Do not add explanations, questions, or apologies.
-        - CRITICAL: Translate ONLY the text provided after the </system_prompt> tag. Only output the direct translation of the provided text.
+        - CRITICAL: Translate ONLY the text inside <text_to_translate> tags. Use <phrase_context> to understand the meaning, but do not include it in your output.
     `);
 }

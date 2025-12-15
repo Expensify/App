@@ -1,9 +1,19 @@
 import OpenAI from 'openai';
-import type {ChatCompletionMessageParam, ChatModel} from 'openai/resources';
 import type {MessageContent, TextContentBlock} from 'openai/resources/beta/threads';
+import type {ResponseCreateParamsNonStreaming} from 'openai/resources/responses/responses';
 import type {AssistantResponse} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
 import sanitizeJSONStringValues from '@github/libs/sanitizeJSONStringValues';
 import retryWithBackoff from '@scripts/utils/retryWithBackoff';
+
+type ResponsesModel = ResponseCreateParamsNonStreaming['model'];
+
+/**
+ * Result from creating a response via the Responses API.
+ */
+type ResponseResult = {
+    text: string;
+    responseID: string;
+};
 
 class OpenAIUtils {
     /**
@@ -46,34 +56,62 @@ class OpenAIUtils {
     }
 
     /**
-     * Prompt the Chat Completions API.
+     * Create a conversation using the OpenAI Conversations API.
+     * Returns the conversation ID which can be used in subsequent responses.
      */
-    public async promptChatCompletions({userPrompt, systemPrompt = '', model = 'gpt-5.1'}: {userPrompt: string; systemPrompt?: string; model?: ChatModel}): Promise<string> {
-        const messages: ChatCompletionMessageParam[] = [{role: 'user', content: userPrompt}];
-        if (systemPrompt) {
-            messages.unshift({role: 'system', content: systemPrompt});
-        }
+    public async createConversation(): Promise<string> {
+        const conversation = await retryWithBackoff(() => this.client.conversations.create(), {isRetryable: (err) => OpenAIUtils.isRetryableError(err)});
+        return conversation.id;
+    }
 
+    /**
+     * Prompt the Responses API with optional conversation context and prompt caching.
+     */
+    public async promptResponses({
+        input,
+        instructions,
+        conversationID,
+        previousResponseID,
+        promptCacheKey,
+        model = 'gpt-5.1',
+    }: {
+        input: string;
+        instructions?: string;
+        conversationID?: string;
+        previousResponseID?: string;
+        promptCacheKey?: string;
+        model?: ResponsesModel;
+    }): Promise<ResponseResult> {
         const response = await retryWithBackoff(
             () =>
-                this.client.chat.completions.create({
+                this.client.responses.create({
                     model,
-                    messages,
+                    input,
+                    instructions,
+                    conversation: conversationID,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    reasoning_effort: 'low',
+                    previous_response_id: previousResponseID,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    prompt_cache_key: promptCacheKey,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    prompt_cache_retention: '24h',
                 }),
             {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
         );
 
-        const result = response.choices.at(0)?.message?.content?.trim();
+        const result = response.output_text?.trim();
         if (!result) {
-            throw new Error('Error getting chat completion response from OpenAI');
+            throw new Error('Error getting response from OpenAI Responses API');
         }
-        return result;
+        return {
+            text: result,
+            responseID: response.id,
+        };
     }
 
     /**
      * Prompt a pre-defined assistant.
+     * @deprecated Use promptResponses instead. This method exists only for backwards compatibility with proposalPoliceComment.
      */
     public async promptAssistant(assistantID: string, userMessage: string): Promise<string> {
         // 1. Create a thread
@@ -133,6 +171,28 @@ class OpenAIUtils {
         return block.type === 'text';
     }
 
+    /**
+     * @deprecated Use promptResponses instead. This method exists only for backwards compatibility with proposalPoliceComment.
+     */
+    public parseAssistantResponse<T extends AssistantResponse>(response: string): T | null {
+        const sanitized = sanitizeJSONStringValues(response);
+        let parsed: T;
+
+        try {
+            parsed = JSON.parse(sanitized) as T;
+        } catch (e) {
+            console.error('Failed to parse AI response as JSON:', response);
+            return null;
+        }
+
+        if (typeof parsed !== 'object' || typeof parsed.action !== 'string' || typeof parsed.message !== 'string') {
+            console.error('AI response missing required fields:', parsed);
+            return null;
+        }
+
+        return parsed;
+    }
+
     private static isRetryableError(error: unknown): boolean {
         // Handle known/predictable API errors
         if (error instanceof OpenAI.APIError) {
@@ -159,25 +219,6 @@ class OpenAIUtils {
         }
 
         return false;
-    }
-
-    public parseAssistantResponse<T extends AssistantResponse>(response: string): T | null {
-        const sanitized = sanitizeJSONStringValues(response);
-        let parsed: T;
-
-        try {
-            parsed = JSON.parse(sanitized) as T;
-        } catch (e) {
-            console.error('Failed to parse AI response as JSON:', response);
-            return null;
-        }
-
-        if (typeof parsed !== 'object' || typeof parsed.action !== 'string' || typeof parsed.message !== 'string') {
-            console.error('AI response missing required fields:', parsed);
-            return null;
-        }
-
-        return parsed;
     }
 }
 
