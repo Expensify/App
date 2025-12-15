@@ -2049,7 +2049,43 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
-function getSearchColumnTranslationKey(columnId: ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.expense & typeof CONST.SEARCH.CUSTOM_COLUMNS.expenseReport>): TranslationPaths {
+function getCustomColumns(type: SearchDataTypes) {
+    // eslint-disable-next-line default-case
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            return CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE;
+        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            return CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT;
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return CONST.SEARCH.CUSTOM_COLUMNS.INVOICE;
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return CONST.SEARCH.CUSTOM_COLUMNS.TASK;
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return CONST.SEARCH.CUSTOM_COLUMNS.TRIP;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return CONST.SEARCH.CUSTOM_COLUMNS.CHAT;
+    }
+}
+
+function getCustomColumnDefault(type: SearchDataTypes) {
+    // eslint-disable-next-line default-case
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            return CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE;
+        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            return CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT;
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return CONST.SEARCH.DEFAULT_COLUMNS.INVOICE;
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return CONST.SEARCH.DEFAULT_COLUMNS.TASK;
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return CONST.SEARCH.DEFAULT_COLUMNS.TRIP;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return CONST.SEARCH.DEFAULT_COLUMNS.CHAT;
+    }
+}
+
+function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): TranslationPaths {
     // eslint-disable-next-line default-case
     switch (columnId) {
         case CONST.SEARCH.TABLE_COLUMNS.DATE:
@@ -2773,5 +2809,7 @@ export {
     getTransactionFromTransactionListItem,
     getSearchColumnTranslationKey,
     getTableMinWidth,
+    getCustomColumns,
+    getCustomColumnDefault,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

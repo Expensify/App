@@ -6701,7 +6701,7 @@ const CONST = {
         },
         get CUSTOM_COLUMNS() {
             return {
-                [this.DATA_TYPES.EXPENSE]: {
+                EXPENSE: {
                     RECEIPT: this.TABLE_COLUMNS.RECEIPT,
                     DATE: this.TABLE_COLUMNS.DATE,
                     MERCHANT: this.TABLE_COLUMNS.MERCHANT,
@@ -6713,7 +6713,7 @@ const CONST = {
                     TOTAL_AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
-                [this.DATA_TYPES.EXPENSE_REPORT]: {
+                EXPENSE_REPORT: {
                     DATE: this.TABLE_COLUMNS.DATE,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
@@ -6721,15 +6721,15 @@ const CONST = {
                     TO: this.TABLE_COLUMNS.TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
-                [this.DATA_TYPES.INVOICE]: {},
-                [this.DATA_TYPES.TASK]: {},
-                [this.DATA_TYPES.TRIP]: {},
-                [this.DATA_TYPES.CHAT]: {},
+                INVOICE: {},
+                TASK: {},
+                TRIP: {},
+                CHAT: {},
             };
         },
         get DEFAULT_COLUMNS() {
             return {
-                [this.DATA_TYPES.EXPENSE]: [
+                EXPENSE: [
                     this.TABLE_COLUMNS.RECEIPT,
                     this.TABLE_COLUMNS.DATE,
                     this.TABLE_COLUMNS.MERCHANT,
@@ -6741,18 +6741,11 @@ const CONST = {
                     this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     this.TABLE_COLUMNS.ACTION,
                 ],
-                [this.DATA_TYPES.EXPENSE_REPORT]: [
-                    this.TABLE_COLUMNS.DATE,
-                    this.TABLE_COLUMNS.STATUS,
-                    this.TABLE_COLUMNS.TITLE,
-                    this.TABLE_COLUMNS.FROM,
-                    this.TABLE_COLUMNS.TO,
-                    this.TABLE_COLUMNS.ACTION,
-                ],
-                [this.DATA_TYPES.INVOICE]: [],
-                [this.DATA_TYPES.TASK]: [],
-                [this.DATA_TYPES.TRIP]: [],
-                [this.DATA_TYPES.CHAT]: [],
+                EXPENSE_REPORT: [this.TABLE_COLUMNS.DATE, this.TABLE_COLUMNS.STATUS, this.TABLE_COLUMNS.TITLE, this.TABLE_COLUMNS.FROM, this.TABLE_COLUMNS.TO, this.TABLE_COLUMNS.ACTION],
+                INVOICE: [],
+                TASK: [],
+                TRIP: [],
+                CHAT: [],
             };
         },
         BOOLEAN: {
