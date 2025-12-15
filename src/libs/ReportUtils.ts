@@ -6333,12 +6333,11 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
     const rootState = navigationRef.current?.getRootState();
     const lastFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
     if (lastFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-        // When deleting from search, go back to Super Wide RHP to maintain search context
-        Navigation.dismissToSuperWideRHP();
+        Navigation.dismissModal();
         return;
     }
     if (isFromRHP) {
-        Navigation.dismissToSuperWideRHP();
+        Navigation.dismissModal();
     }
     Navigation.isNavigationReady().then(() => {
         Navigation.goBack(backRoute);
