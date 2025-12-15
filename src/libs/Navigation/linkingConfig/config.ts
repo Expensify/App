@@ -845,6 +845,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
+                            path: ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.route,
+                        },
                         [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
                             path: ROUTES.WORKSPACE_CUSTOM_FIELDS.route,
                         },
@@ -1928,6 +1931,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.DOMAIN.SAML]: {
                     path: ROUTES.DOMAIN_SAML.route,
+                },
+                [SCREENS.DOMAIN.ADMINS]: {
+                    path: ROUTES.DOMAIN_ADMINS.route,
                 },
             },
         },
