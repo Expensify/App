@@ -35,6 +35,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.date',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
+        translationKey: 'common.submitted',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
         canBeMissing: true,
@@ -139,6 +143,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
         translationKey: 'common.date',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
+        translationKey: 'common.submitted',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,

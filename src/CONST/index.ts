@@ -6744,6 +6744,7 @@ const CONST = {
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
+            SUBMITTED: 'submitted',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
