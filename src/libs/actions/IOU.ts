@@ -9426,8 +9426,8 @@ function deleteMoneyRequest({
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`]: {
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                         pendingFields: {
+                            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                             preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         },
                     },
