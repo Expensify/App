@@ -55,19 +55,12 @@ import type {
     BusinessBankAccountParams,
     BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
-    CanceledRequestParams,
     CardEndingParams,
-    CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
     ChangedApproverMessageParams,
     ChangeFieldParams,
-    ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
-    ChangeOwnerSubscriptionParams,
-    ChangeReportPolicyParams,
-    ChangeTypeParams,
-    CharacterLengthLimitParams,
     CharacterLimitParams,
     ChatWithAccountManagerParams,
     CompanyCardBankName,
@@ -488,7 +481,7 @@ const translations: TranslationDeepObject<typeof en> = {
 (p. ex. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Ce champ est requis',
             requestModified: 'Cette demande est en cours de modification par un autre membre',
-            characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Limite de caractères dépassée (${length}/${limit})`,
+            characterLimitExceedCounter: (length: number, limit: number) => `Limite de caractères dépassée (${length}/${limit})`,
             dateInvalid: 'Veuillez sélectionner une date valide',
             invalidDateShouldBeFuture: 'Veuillez choisir aujourd’hui ou une date ultérieure',
             invalidTimeShouldBeFuture: 'Veuillez choisir une heure au moins une minute plus tard',
@@ -1361,7 +1354,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'a rejeté ce rapport',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: 'a annulé le paiement',
-        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
+        canceledRequest: (amount: string, submitterDisplayName: string) =>
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n’a pas activé son Expensify Wallet dans les 30 jours`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} a ajouté un compte bancaire. Le paiement de ${amount} a été effectué.`,
@@ -5939,14 +5932,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
 Souhaitez-vous transférer ce montant (${amount}) afin de prendre en charge la facturation de cet espace de travail ? Votre carte de paiement sera débitée immédiatement.`,
             subscriptionTitle: 'Prendre en charge l’abonnement annuel',
             subscriptionButtonText: 'Transférer l’abonnement',
-            subscriptionText: ({usersCount, finalCount}: ChangeOwnerSubscriptionParams) =>
+            subscriptionText: (usersCount: number, finalCount: number) =>
                 `Prendre le contrôle de cet espace de travail fusionnera son abonnement annuel avec votre abonnement actuel. Cela augmentera la taille de votre abonnement de ${usersCount} membres, ce qui portera la nouvelle taille de votre abonnement à ${finalCount}. Souhaitez-vous continuer ?`,
             duplicateSubscriptionTitle: 'Alerte d’abonnement en double',
             duplicateSubscriptionButtonText: 'Continuer',
-            duplicateSubscriptionText: ({
-                email,
-                workspaceName,
-            }: ChangeOwnerDuplicateSubscriptionParams) => `Il semble que vous essayiez de reprendre la facturation des espaces de travail de ${email}, mais pour cela, vous devez d’abord être administrateur sur tous ses espaces de travail.
+            duplicateSubscriptionText: (
+                email: string,
+                workspaceName: string,
+            ) => `Il semble que vous essayiez de reprendre la facturation des espaces de travail de ${email}, mais pour cela, vous devez d’abord être administrateur sur tous ses espaces de travail.
 
 Cliquez sur « Continuer » si vous souhaitez uniquement reprendre la facturation de l’espace de travail ${workspaceName}.
 
@@ -6996,13 +6989,13 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `a modifié ${fieldName} en « ${newValue} » (précédemment « ${oldValue} »)`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `définir ${fieldName} sur « ${newValue} »`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `a modifié l’espace de travail${fromPolicyName ? `(auparavant ${fromPolicyName})` : ''}`;
                     }
                     return `a modifié l’espace de travail en ${toPolicyName}${fromPolicyName ? `(auparavant ${fromPolicyName})` : ''}`;
                 },
-                changeType: ({oldType, newType}: ChangeTypeParams) => `type modifié de ${oldType} à ${newType}`,
+                changeType: (oldType: string, newType: string) => `type modifié de ${oldType} à ${newType}`,
                 exportedToCSV: `exporté en CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => {
@@ -7549,7 +7542,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             addCardButton: 'Ajouter une carte de paiement',
             cardNextPayment: ({nextPaymentDate}: CardNextPaymentParams) => `Votre prochaine date de paiement est le ${nextPaymentDate}.`,
             cardEnding: ({cardNumber}: CardEndingParams) => `Carte se terminant par ${cardNumber}`,
-            cardInfo: ({name, expiration, currency}: CardInfoParams) => `Nom : ${name}, Expiration : ${expiration}, Devise : ${currency}`,
+            cardInfo: (name: string, expiration: string, currency: string) => `Nom : ${name}, Expiration : ${expiration}, Devise : ${currency}`,
             changeCard: 'Modifier la carte de paiement',
             changeCurrency: 'Changer la devise de paiement',
             cardNotFound: 'Aucune carte de paiement ajoutée',

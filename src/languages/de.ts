@@ -55,19 +55,12 @@ import type {
     BusinessBankAccountParams,
     BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
-    CanceledRequestParams,
     CardEndingParams,
-    CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
     ChangedApproverMessageParams,
     ChangeFieldParams,
-    ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
-    ChangeOwnerSubscriptionParams,
-    ChangeReportPolicyParams,
-    ChangeTypeParams,
-    CharacterLengthLimitParams,
     CharacterLimitParams,
     ChatWithAccountManagerParams,
     CompanyCardBankName,
@@ -487,7 +480,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phoneNumber: `Bitte gib eine vollständige Telefonnummer ein (z. B. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Dieses Feld ist erforderlich',
             requestModified: 'Diese Anfrage wird von einem anderen Mitglied bearbeitet',
-            characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Zeichenlimit überschritten (${length}/${limit})`,
+            characterLimitExceedCounter: (length: number, limit: number) => `Zeichenlimit überschritten (${length}/${limit})`,
             dateInvalid: 'Bitte wählen Sie ein gültiges Datum aus',
             invalidDateShouldBeFuture: 'Bitte wähle heute oder ein zukünftiges Datum aus',
             invalidTimeShouldBeFuture: 'Bitte wähle eine Uhrzeit, die mindestens eine Minute in der Zukunft liegt',
@@ -1361,7 +1354,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'hat diesen Bericht abgelehnt',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein Bankkonto hinzufügt.`,
         adminCanceledRequest: 'hat die Zahlung storniert',
-        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
+        canceledRequest: (amount: string, submitterDisplayName: string) =>
             `hat die Zahlung über ${amount} storniert, weil ${submitterDisplayName} seine Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} hat ein Bankkonto hinzugefügt. Die Zahlung über ${amount} wurde durchgeführt.`,
@@ -5931,14 +5924,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
 Möchten Sie diesen Betrag (${amount}) überweisen, um die Abrechnung für diesen Workspace zu übernehmen? Ihre Zahlungskarte wird sofort belastet.`,
             subscriptionTitle: 'Jahresabonnement übernehmen',
             subscriptionButtonText: 'Abonnement übertragen',
-            subscriptionText: ({usersCount, finalCount}: ChangeOwnerSubscriptionParams) =>
+            subscriptionText: (usersCount: number, finalCount: number) =>
                 `Die Übernahme dieses Workspaces führt dazu, dass sein Jahresabonnement mit Ihrem aktuellen Abonnement zusammengeführt wird. Dadurch erhöht sich die Größe Ihres Abonnements um ${usersCount} Mitglieder, sodass Ihr neues Abonnement eine Größe von ${finalCount} hat. Möchten Sie fortfahren?`,
             duplicateSubscriptionTitle: 'Warnung: Doppelte Abonnements',
             duplicateSubscriptionButtonText: 'Weiter',
-            duplicateSubscriptionText: ({
-                email,
-                workspaceName,
-            }: ChangeOwnerDuplicateSubscriptionParams) => `Es sieht so aus, als ob du versuchst, die Abrechnung für die Workspaces von ${email} zu übernehmen. Dafür musst du jedoch zuerst Administrator in all ihren Workspaces sein.
+            duplicateSubscriptionText: (
+                email: string,
+                workspaceName: string,
+            ) => `Es sieht so aus, als ob du versuchst, die Abrechnung für die Workspaces von ${email} zu übernehmen. Dafür musst du jedoch zuerst Administrator in all ihren Workspaces sein.
 
 Klicke auf „Weiter“, wenn du nur die Abrechnung für den Workspace ${workspaceName} übernehmen möchtest.
 
@@ -6988,13 +6981,13 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `${fieldName} geändert in „${newValue}“ (zuvor „${oldValue}“)`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `setze ${fieldName} auf „${newValue}“`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `den Workspace geändert${fromPolicyName ? `(zuvor ${fromPolicyName})` : ''}`;
                     }
                     return `Arbeitsbereich in ${toPolicyName}${fromPolicyName ? `(zuvor ${fromPolicyName})` : ''} geändert`;
                 },
-                changeType: ({oldType, newType}: ChangeTypeParams) => `Typ von ${oldType} in ${newType} geändert`,
+                changeType: (oldType: string, newType: string) => `Typ von ${oldType} in ${newType} geändert`,
                 exportedToCSV: `in CSV exportiert`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => {
@@ -7542,7 +7535,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             addCardButton: 'Zahlungskarte hinzufügen',
             cardNextPayment: ({nextPaymentDate}: CardNextPaymentParams) => `Ihr nächstes Zahlungsdatum ist der ${nextPaymentDate}.`,
             cardEnding: ({cardNumber}: CardEndingParams) => `Karte mit Endziffern ${cardNumber}`,
-            cardInfo: ({name, expiration, currency}: CardInfoParams) => `Name: ${name}, Ablaufdatum: ${expiration}, Währung: ${currency}`,
+            cardInfo: (name: string, expiration: string, currency: string) => `Name: ${name}, Ablaufdatum: ${expiration}, Währung: ${currency}`,
             changeCard: 'Zahlungskarte ändern',
             changeCurrency: 'Zahlungswährung ändern',
             cardNotFound: 'Keine Zahlungskarte hinzugefügt',
