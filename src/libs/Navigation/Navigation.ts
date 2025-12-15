@@ -4,7 +4,7 @@ import {CommonActions, getPathFromState, StackActions} from '@react-navigation/n
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
-import {DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
@@ -14,6 +14,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -134,8 +135,9 @@ const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
  * Close the side panel on narrow layout when navigating to a different screen.
  */
 function closeSidePanelOnNarrowScreen() {
-    const isNarrowLayout = getIsNarrowLayout();
-    if (!sidePanelNVP?.openNarrowScreen || !isNarrowLayout) {
+    const isExtraLargeScreenWidth = Dimensions.get('window').width > variables.sidePanelResponsiveWidthBreakpoint;
+
+    if (!sidePanelNVP?.openNarrowScreen || isExtraLargeScreenWidth) {
         return;
     }
     SidePanelActions.closeSidePanel(true);
