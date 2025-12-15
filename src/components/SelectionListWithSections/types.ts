@@ -284,6 +284,11 @@ type TransactionListItemType = ListItem &
          */
         shouldShowYear: boolean;
 
+        /** Whether we should show the year for the submitted date.
+         * This is true if at least one transaction in the dataset was submitted in past years
+         */
+        shouldShowYearSubmitted: boolean;
+
         isAmountColumnWide: boolean;
 
         isTaxAmountColumnWide: boolean;
@@ -401,6 +406,12 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
          * This is true if at least one report in the dataset was created in past years
          */
         shouldShowYear: boolean;
+
+        /**
+         * Whether we should show the year for the submitted date.
+         * This is true if at least one report in the dataset was submitted in past years
+         */
+        shouldShowYearSubmitted: boolean;
 
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;

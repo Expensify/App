@@ -848,59 +848,98 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
     };
 }
 
+type ShouldShowYearResult = {
+    shouldShowYearCreated: boolean;
+    shouldShowYearSubmitted: boolean;
+};
+
 /**
  * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
  * @param data - The search results data (array or object)
  * @param checkOnlyReports - When true and data is an object, only check report dates (skip transactions and report actions)
+ * @returns An object indicating which date fields should display the full year
  */
-function shouldShowYear(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data'], checkOnlyReports = false) {
+function shouldShowYear(
+    data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data'],
+    checkOnlyReports = false,
+): ShouldShowYearResult {
+    const result: ShouldShowYearResult = {
+        shouldShowYearCreated: false,
+        shouldShowYearSubmitted: false,
+    };
+
     const currentYear = new Date().getFullYear();
 
     if (Array.isArray(data)) {
-        return data.some((item: TransactionListItemType | TransactionGroupListItemType | TaskListItemType) => {
+        for (const item of data) {
             if (isTaskListItemType(item)) {
                 const taskYear = new Date(item.created).getFullYear();
-                return taskYear !== currentYear;
+                if (taskYear !== currentYear) {
+                    result.shouldShowYearCreated = true;
+                }
+            }
+            if (isTransactionReportGroupListItemType(item)) {
+                if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+                    result.shouldShowYearCreated = true;
+                }
+                if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
+                    result.shouldShowYearSubmitted = true;
+                }
+            } 
+            if (isTransactionListItemType(item)) {
+                const transactionCreated = getTransactionCreatedDate(item);
+                if (transactionCreated && DateUtils.doesDateBelongToAPastYear(transactionCreated)) {
+                    result.shouldShowYearCreated = true;
+                }
+                if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
+                    result.shouldShowYearSubmitted = true;
+                }
             }
 
-            if (isTransactionGroupListItemType(item)) {
-                // If the item is a TransactionGroupListItemType, iterate over its transactions and check them
-                return item.transactions.some((transaction) => {
-                    const transactionYear = new Date(getTransactionCreatedDate(transaction)).getFullYear();
-                    return transactionYear !== currentYear;
-                });
+            // Early exit if all flags are true
+            if (result.shouldShowYearCreated && result.shouldShowYearSubmitted) {
+                return result;
             }
-
-            const createdYear = new Date(item?.modifiedCreated ? item.modifiedCreated : item?.created || '').getFullYear();
-            return createdYear !== currentYear;
-        });
+        }
+        return result;
     }
 
-    for (const key in data) {
+    for (const key of Object.keys(data)) {
         if (!checkOnlyReports && isTransactionEntry(key)) {
             const item = data[key];
-            if (shouldShowTransactionYear(item)) {
-                return true;
+            if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+                result.shouldShowYearCreated = true;
+            }
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+            if (report?.submitted && DateUtils.doesDateBelongToAPastYear(report.submitted)) {
+                result.shouldShowYearSubmitted = true;
             }
         } else if (!checkOnlyReports && isReportActionEntry(key)) {
             const item = data[key];
             for (const action of Object.values(item)) {
                 const date = action.created;
-
                 if (DateUtils.doesDateBelongToAPastYear(date)) {
-                    return true;
+                    result.shouldShowYearCreated = true;
                 }
             }
         } else if (isReportEntry(key)) {
             const item = data[key];
-            const date = item.created;
 
-            if (date && DateUtils.doesDateBelongToAPastYear(date)) {
-                return true;
+            if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+                result.shouldShowYearCreated = true;
+            }
+            if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
+                result.shouldShowYearSubmitted = true;
             }
         }
+
+        // Early exit if all flags are true
+        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted) {
+            return result;
+        }
     }
-    return false;
+
+    return result;
 }
 
 /**
@@ -1052,7 +1091,7 @@ function getTransactionsSections(
     isActionLoadingSet: ReadonlySet<string> | undefined,
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const doesDataContainAPastYearTransaction = shouldShowYear(data);
+    const {shouldShowYearCreated, shouldShowYearSubmitted} = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
     // Pre-filter transaction keys to avoid repeated checks
@@ -1128,7 +1167,8 @@ function getTransactionsSections(
                 date,
                 submitted,
                 shouldShowMerchant,
-                shouldShowYear: doesDataContainAPastYearTransaction,
+                shouldShowYear: shouldShowYearCreated,
+                shouldShowYearSubmitted,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 violations: transactionViolations,
@@ -1340,7 +1380,7 @@ function getTaskSections(
             const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
             const parentReport = getReportOrDraftReport(taskItem.parentReportID);
 
-            const doesDataContainAPastYearTransaction = shouldShowYear(data);
+            const {shouldShowYearCreated} = shouldShowYear(data);
             const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName));
             const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description));
 
@@ -1353,7 +1393,7 @@ function getTaskSections(
                 createdBy,
                 formattedCreatedBy,
                 keyForList: taskItem.reportID,
-                shouldShowYear: doesDataContainAPastYearTransaction,
+                shouldShowYear: shouldShowYearCreated,
             };
 
             if (parentReport && personalDetails) {
