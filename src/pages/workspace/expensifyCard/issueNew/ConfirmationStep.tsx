@@ -70,9 +70,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
             return;
         }
 
-        const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
-        if (isVirtualCard && AccountUtils.hasValidateCodeExtendedAccess(account)) {
-            // Issue directly without magic code when user has extended access
+        if (AccountUtils.hasValidateCodeExtendedAccess(account)) {
+            // Attempt to issue directly without magic code when user has extended access
+            // If this fails, the effect above will redirect to the magic code page
+            attemptedExtendedAccessRef.current = true;
             issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', data);
         } else {
             // Navigate to magic code page
