@@ -5,23 +5,23 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ActivityIndicator from './ActivityIndicator';
 
-type LoadingIndicatorSize = RNActivityIndicatorProps['size'];
+type LoadingIndicatorIconSize = RNActivityIndicatorProps['size'];
 
 type LoadingIndicatorProps = {
     /** Styles of the outer view */
     style?: StyleProp<ViewStyle>;
 
     /** Size of the icon */
-    size?: LoadingIndicatorSize;
+    iconSize?: LoadingIndicatorIconSize;
 };
 
-function LoadingIndicator({style, size}: LoadingIndicatorProps) {
+function LoadingIndicator({style, iconSize}: LoadingIndicatorProps) {
     const styles = useThemeStyles();
 
     return (
         <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, style]}>
             <View style={styles.w100}>
-                <ActivityIndicator size={size ?? CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                <ActivityIndicator size={iconSize ?? CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         </View>
     );
@@ -31,4 +31,4 @@ LoadingIndicator.displayName = 'LoadingIndicator';
 
 export default LoadingIndicator;
 
-export type {LoadingIndicatorSize};
+export type {LoadingIndicatorIconSize};

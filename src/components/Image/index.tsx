@@ -158,8 +158,8 @@ function Image({
     if (source === undefined) {
         return (
             <LoadingIndicator
+                iconSize={loadingIconSize}
                 style={loadingIndicatorStyles}
-                size={loadingIconSize}
             />
         );
     }

@@ -109,7 +109,7 @@ function ImageWithLoading({
             />
             {isLoading && !isImageCached && !isOffline && (
                 <LoadingIndicator
-                    size={loadingIconSize}
+                    iconSize={loadingIconSize}
                     style={[styles.opacity1, styles.bgTransparent, loadingIndicatorStyles]}
                 />
             )}
