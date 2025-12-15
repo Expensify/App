@@ -6710,7 +6710,6 @@ const CONST = {
                     TO: this.TABLE_COLUMNS.TO,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                     TAG: this.TABLE_COLUMNS.TAG,
-                    TOTAL_AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 EXPENSE_REPORT: {
@@ -6738,7 +6737,6 @@ const CONST = {
                     this.TABLE_COLUMNS.TO,
                     this.TABLE_COLUMNS.CATEGORY,
                     this.TABLE_COLUMNS.TAG,
-                    this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     this.TABLE_COLUMNS.ACTION,
                 ],
                 EXPENSE_REPORT: [this.TABLE_COLUMNS.DATE, this.TABLE_COLUMNS.STATUS, this.TABLE_COLUMNS.TITLE, this.TABLE_COLUMNS.FROM, this.TABLE_COLUMNS.TO, this.TABLE_COLUMNS.ACTION],
