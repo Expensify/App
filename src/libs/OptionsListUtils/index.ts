@@ -54,7 +54,6 @@ import {
     getRetractedMessage,
     getRoomAvatarUpdatedMessage,
     getRoomChangeLogMessage,
-    getSortedReportActions,
     getSortedReportActionsForDisplay,
     getTravelUpdateMessage,
     getUpdateRoomDescriptionMessage,
@@ -790,6 +789,7 @@ function getLastMessageTextForReport({
     } else if (isActionableMentionWhisper(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(lastReportAction));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = getDynamicExternalWorkflowRoutedMessage(lastReportAction, translateLocal);
     }
 

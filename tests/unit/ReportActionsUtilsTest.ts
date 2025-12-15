@@ -1711,7 +1711,7 @@ describe('ReportActionsUtils', () => {
             ];
 
             // When extending the array with DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
-            const expected: Partial<ReportAction>[] = [
+            const expected: Array<Partial<ReportAction>> = [
                 {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '1'},
                 {
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -1732,9 +1732,9 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.withDEWRoutedActionsArray(reportActions);
 
             // Then DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action should be added for each SUBMITTED and FORWARDED actions to the array
-            expected.forEach((e, i) => {
-                expect(actual[i]).toEqual(expect.objectContaining(e));
-            });
+            for (let i = 0; i < expected.length; i++) {
+                expect(actual.at(i)).toEqual(expect.objectContaining(expected.at(i)));
+            }
         });
 
         it(`should not add a DEW routed action if we don't have DEW SUBMITTED or FORWARDED action`, () => {
@@ -1763,41 +1763,45 @@ describe('ReportActionsUtils', () => {
     describe('withDEWRoutedActionsObject', () => {
         it('should add a DEW routed action for each DEW SUBMITTED and FORWARDED action', () => {
             // Given a report actions collection with DEW SUBMITTED and FORWARDED actions
+            const firstAction = {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '1'};
+            const secondAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '',
+                reportActionID: '2',
+                originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example@gmail.com'},
+            };
+            const thirdAction = {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'};
+            const fourthAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                created: '',
+                reportActionID: '4',
+                originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example2@gmail.com'},
+            };
             const reportActions: ReportActions = {
-                1: {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '1'},
-                2: {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    created: '',
-                    reportActionID: '2',
-                    originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example@gmail.com'},
-                },
-                3: {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'},
-                4: {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-                    created: '',
-                    reportActionID: '4',
-                    originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example2@gmail.com'},
-                },
+                [firstAction.reportActionID]: firstAction,
+                [secondAction.reportActionID]: secondAction,
+                [thirdAction.reportActionID]: thirdAction,
+                [fourthAction.reportActionID]: fourthAction,
             };
 
             // When extending the collection with DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
+            const secondDEWAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+                reportActionID: '2DEW',
+                originalMessage: {to: 'example@gmail.com'},
+            } as ReportAction;
+            const fourthDEWAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+                reportActionID: '4DEW',
+                originalMessage: {to: 'example2@gmail.com'},
+            } as ReportAction;
             const expected: ReportActions = {
-                1: {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '1'},
-                2: {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    created: '',
-                    reportActionID: '2',
-                    originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example@gmail.com'},
-                },
-                '2DEW': {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '2DEW', originalMessage: {to: 'example@gmail.com'}} as ReportAction,
-                3: {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'},
-                4: {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-                    created: '',
-                    reportActionID: '4',
-                    originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example2@gmail.com'},
-                },
-                '4DEW': {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '4DEW', originalMessage: {to: 'example2@gmail.com'}} as ReportAction,
+                [firstAction.reportActionID]: firstAction,
+                [secondAction.reportActionID]: secondAction,
+                [secondDEWAction.reportActionID]: secondDEWAction,
+                [thirdAction.reportActionID]: thirdAction,
+                [fourthAction.reportActionID]: fourthAction,
+                [fourthDEWAction.reportActionID]: fourthDEWAction,
             };
             const actual = ReportActionsUtils.withDEWRoutedActionsObject(reportActions);
 
@@ -1807,19 +1811,23 @@ describe('ReportActionsUtils', () => {
 
         it(`should not add a DEW routed action if we don't have DEW SUBMITTED or FORWARDED action`, () => {
             // Given a report actions collection with no DEW SUBMITTED or FORWARDED actions
+            const firstAction = {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '1'};
+            const secondAction = {actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '', reportActionID: '2'};
+            const thirdAction = {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'};
+            const fourthAction = {actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '', reportActionID: '4'};
             const reportActions: ReportActions = {
-                1: {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '1'},
-                2: {actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '', reportActionID: '2'},
-                3: {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'},
-                4: {actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '', reportActionID: '4'},
+                [firstAction.reportActionID]: firstAction,
+                [secondAction.reportActionID]: secondAction,
+                [thirdAction.reportActionID]: thirdAction,
+                [fourthAction.reportActionID]: fourthAction,
             };
 
             // When extending the collection with DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
             const expected: ReportActions = {
-                1: {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '1'},
-                2: {actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '', reportActionID: '2'},
-                3: {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'},
-                4: {actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '', reportActionID: '4'},
+                [firstAction.reportActionID]: firstAction,
+                [secondAction.reportActionID]: secondAction,
+                [thirdAction.reportActionID]: thirdAction,
+                [fourthAction.reportActionID]: fourthAction,
             };
             const actual = ReportActionsUtils.withDEWRoutedActionsObject(reportActions);
 

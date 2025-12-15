@@ -7543,11 +7543,18 @@ function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: s
  * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
  *
  */
-function buildOptimisticSubmittedReportAction(amount: number, currency: string, expenseReportID: string, adminAccountID: number | undefined): OptimisticSubmittedReportAction {
+function buildOptimisticSubmittedReportAction(
+    amount: number,
+    currency: string,
+    expenseReportID: string,
+    adminAccountID: number | undefined,
+    workflow: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>,
+): OptimisticSubmittedReportAction {
     const originalMessage = {
         amount,
         currency,
         expenseReportID,
+        workflow,
     };
 
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);

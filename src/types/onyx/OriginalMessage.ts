@@ -831,6 +831,7 @@ type OriginalMessageDismissedViolation = {
     violationName: string;
 };
 
+/** Model of DYNAMIC_EXTERNAL_WORKFLOW_ROUTED report action */
 type OriginalMessageDynamicExternalWorkflowRouted = {
     /** The approver of the report is submitted to */
     to: string;

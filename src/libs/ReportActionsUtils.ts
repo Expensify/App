@@ -2006,6 +2006,7 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
     }
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const message = getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
@@ -3358,7 +3359,7 @@ function getDynamicExternalWorkflowRoutedMessage(
     action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED>>,
     translate: LocaleContextProps['translate'],
 ) {
-    return translate('iou.routedDueToDEW', {to: getOriginalMessage(action)!.to});
+    return translate('iou.routedDueToDEW', {to: getOriginalMessage(action)?.to ?? ''});
 }
 
 function isCardIssuedAction(
