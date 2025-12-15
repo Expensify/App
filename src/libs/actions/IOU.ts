@@ -1091,9 +1091,9 @@ function initMoneyRequest({
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
             const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
-            comment.customUnit = {customUnitRateID};
+            comment.customUnit = {customUnitRateID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         } else if (hasOnlyPersonalPolicies) {
-            comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID};
+            comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         }
         if (comment.customUnit) {
             comment.customUnit.quantity = null;
@@ -6160,6 +6160,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     transactionParams.comment = parsedComment;
     const {
         amount,
+        distance,
         currency,
         merchant,
         comment = '',
@@ -6285,6 +6286,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 },
                 transactionParams: {
                     amount,
+                    distance,
                     currency,
                     comment,
                     merchant,
