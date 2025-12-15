@@ -92,6 +92,8 @@ function WorkspaceCompanyCardsList({
 
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
 
+    // When we reach the medium screen width or the narrow layout is active,
+    // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
     const shouldUseNarrowTableRowLayout = isMediumScreenWidth || shouldUseNarrowLayout;
 
     const renderItem = useCallback(
