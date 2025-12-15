@@ -16,7 +16,7 @@ import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMovedTransaction} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare, QBOExport, QBOSquare, SageIntacctExport, XeroExport, XeroSquare} from '@components/Icon/Expensicons';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
@@ -77,7 +77,7 @@ import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {
@@ -120,9 +120,9 @@ import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
+import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
-import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
@@ -205,6 +205,9 @@ import {
     getTravelUpdateMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
+    getWorkspaceCustomUnitRateAddedMessage,
+    getWorkspaceCustomUnitRateDeletedMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
@@ -2316,6 +2319,24 @@ function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValu
 }
 
 /**
+ * Whether the report was created during harvesting
+ */
+function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): boolean {
+    return !!originalID && origin === 'harvest';
+}
+
+/**
+ * Returns the original reportID for a harvest-created report
+ */
+function getHarvestOriginalReportID(origin?: string, originalID?: string): string | undefined {
+    if (!originalID || !isHarvestCreatedExpenseReport(origin, originalID)) {
+        return undefined;
+    }
+
+    return originalID;
+}
+
+/**
  * Whether the report with the provided reportID is an archived non-expense report
  */
 function isArchivedNonExpenseReportWithID(report?: OnyxInputOrEntry<Report>, isReportArchived = false) {
@@ -4412,12 +4433,19 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
 
     const fields = mergedFieldIds.map((id) => {
         const field = report?.fieldList?.[getReportFieldKey(id)];
+        const policyReportField = policyReportFields.find(({fieldID}) => fieldID === id);
 
         if (field) {
-            return field;
+            return {
+                ...field,
+                ...(policyReportField
+                    ? {
+                          disabledOptions: policyReportField.disabledOptions,
+                          values: policyReportField.values,
+                      }
+                    : {}),
+            };
         }
-
-        const policyReportField = policyReportFields.find(({fieldID}) => fieldID === id);
 
         if (policyReportField) {
             return policyReportField;
@@ -5940,6 +5968,16 @@ function getReportName(
         return getTravelUpdateMessage(parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
+        return getWorkspaceCustomUnitRateAddedMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
+        return getWorkspaceCustomUnitRateUpdatedMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
+        return getWorkspaceCustomUnitRateDeletedMessage(parentReportAction);
+    }
+
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
@@ -6326,12 +6364,11 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
     const rootState = navigationRef.current?.getRootState();
     const lastFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
     if (lastFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-        // When deleting from search, go back to Super Wide RHP to maintain search context
-        Navigation.dismissToSuperWideRHP();
+        Navigation.dismissModal();
         return;
     }
     if (isFromRHP) {
-        Navigation.dismissToSuperWideRHP();
+        Navigation.dismissModal();
     }
     Navigation.isNavigationReady().then(() => {
         Navigation.goBack(backRoute);
@@ -7031,10 +7068,11 @@ function getUnreportedTransactionMessage(action: ReportAction) {
     const {fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
 
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(fromReport) ?? fromReport?.reportName ?? '';
 
-    let reportUrl = `${environmentURL}/r/${fromReport?.reportID}`;
+    let reportUrl = getReportURLForCurrentContext(fromReportID);
 
     if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
@@ -9320,7 +9358,7 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     let reportAction: OnyxEntry<ReportAction>;
 
     for (const action of reportActionsArray) {
-        if (action && !isEmptyObject(action.errors)) {
+        if (action && !isEmptyValueObject(action.errors)) {
             Object.assign(reportActionErrors, action.errors);
 
             if (!reportAction) {
@@ -10491,9 +10529,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     }
     if (isApproved) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.approvedAmount', {
-            amount: formattedAmount,
-        });
+        return translateLocal('iou.approvedAmount', formattedAmount);
     }
     if (isSplitBillReportAction(reportAction)) {
         translationKey = 'iou.didSplitAmount';
@@ -11062,11 +11098,11 @@ function hasActionWithErrorsForTransaction(reportID: string | undefined, transac
         .some((action) => {
             if (isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID) {
                 if (getOriginalMessage(action)?.IOUTransactionID === transaction?.transactionID) {
-                    return !isEmptyObject(action.errors);
+                    return !isEmptyValueObject(action.errors);
                 }
                 return false;
             }
-            return !isEmptyObject(action.errors);
+            return !isEmptyValueObject(action.errors);
         });
 }
 
@@ -11171,6 +11207,14 @@ function getReportActionActorAccountID(
             }
 
             return actorAccountID;
+        }
+
+        case CONST.REPORT.ACTIONS.TYPE.CREATED: {
+            const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
+            if (isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
+                return CONST.ACCOUNT_ID.CONCIERGE;
+            }
+            return reportAction?.actorAccountID;
         }
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
@@ -12256,38 +12300,38 @@ function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): str
     return sourceID;
 }
 
-function getIntegrationIcon(connectionName?: ConnectionName) {
+function getIntegrationIcon(connectionName?: ConnectionName, expensifyIcons?: Record<'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare', IconAsset> | undefined) {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-        return XeroSquare;
+        return expensifyIcons?.XeroSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
-        return QBOSquare;
+        return expensifyIcons?.QBOSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        return NetSuiteSquare;
+        return expensifyIcons?.NetSuiteSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
-        return IntacctSquare;
+        return expensifyIcons?.IntacctSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
-        return QBDSquare;
+        return expensifyIcons?.QBDSquare;
     }
 
     return undefined;
 }
 
-function getIntegrationExportIcon(connectionName?: ConnectionName) {
+function getIntegrationExportIcon(connectionName?: ConnectionName): 'XeroExport' | 'QBOExport' | 'NetSuiteExport' | 'SageIntacctExport' | undefined {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-        return XeroExport;
+        return 'XeroExport';
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO || connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
-        return QBOExport;
+        return 'QBOExport';
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        return NetSuiteExport;
+        return 'NetSuiteExport';
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
-        return SageIntacctExport;
+        return 'SageIntacctExport';
     }
 
     return undefined;
@@ -12877,54 +12921,6 @@ function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPoli
     return (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || hasAccessPolicyExpenseChat) && isPolicyEmployee;
 }
 
-function getReportURLForCurrentContext(reportID: string | undefined): string {
-    if (!reportID) {
-        return `${environmentURL}/r/`;
-    }
-    const isInSearchContext = isSearchTopmostFullScreenRoute();
-    if (!isInSearchContext) {
-        return `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`;
-    }
-
-    // Navigation can return routes with a leading slash or missing when still mounting.
-    // Normalize everything to match the path shape used by ROUTES helpers.
-    const normalizeRoute = (route?: string) => {
-        if (!route) {
-            return undefined;
-        }
-        return route.startsWith('/') ? route.substring(1) : route;
-    };
-
-    const activeRoute = normalizeRoute(Navigation.getActiveRoute());
-
-    let backToRoute: string | undefined;
-
-    if (activeRoute) {
-        const [, queryString = ''] = activeRoute.split('?');
-        if (queryString) {
-            const params = new URLSearchParams(queryString);
-            const encodedBackTo = params.get('backTo');
-            if (encodedBackTo) {
-                // Prefer the backTo param when present; it points to the exact search state we left.
-                backToRoute = normalizeRoute(decodeURIComponent(encodedBackTo));
-            }
-        }
-
-        if (!backToRoute && activeRoute.startsWith(ROUTES.SEARCH_ROOT.route)) {
-            // Otherwise keep the current search route (preserves tab + filters) as the return target.
-            backToRoute = activeRoute;
-        }
-    }
-
-    if (!backToRoute?.startsWith(ROUTES.SEARCH_ROOT.route)) {
-        // Fall back to the generic search home when we can't recover a valid route.
-        backToRoute = ROUTES.SEARCH_ROOT.route;
-    }
-
-    const relativePath = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: backToRoute});
-    return `${environmentURL}/${relativePath}`;
-}
-
 /**
  * Checks if all selected items have the necessary Onyx data hydrated for bulk rejection.
  */
@@ -12970,6 +12966,12 @@ function checkBulkRejectHydration(
         missingReportIDs: [...new Set(missingReportIDs)],
         missingPolicyIDs: [...new Set(missingPolicyIDs)],
     };
+}
+
+function shouldHideSingleReportField(reportField: PolicyReportField) {
+    const hasEnableOption = reportField.type !== CONST.REPORT_FIELD_TYPES.LIST || reportField.disabledOptions.some((option) => !option);
+
+    return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
 }
 
 export {
@@ -13152,6 +13154,7 @@ export {
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getInvoicesChatName,
+    getHarvestOriginalReportID,
     getPayeeName,
     getReportSummariesForEmptyCheck,
     reportSummariesOnyxSelector,
@@ -13213,6 +13216,7 @@ export {
     isExpensifyOnlyParticipantInReport,
     isGroupChat,
     isGroupChatAdmin,
+    isHarvestCreatedExpenseReport,
     isGroupPolicy,
     isReportInGroupPolicy,
     isHoldCreator,
@@ -13386,7 +13390,6 @@ export {
     isWorkspaceThread,
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
-    getReportURLForCurrentContext,
     getReportStatusColorStyle,
     getMovedActionMessage,
     excludeParticipantsForDisplay,
@@ -13400,7 +13403,9 @@ export {
     shouldBlockSubmitDueToStrictPolicyRules,
     isWorkspaceChat,
     isOneTransactionReport,
+    shouldHideSingleReportField,
 };
+
 export type {
     Ancestor,
     DisplayNameWithTooltips,

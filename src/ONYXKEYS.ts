@@ -456,6 +456,12 @@ const ONYXKEYS = {
     /** Indicates whether the debug mode is currently enabled */
     IS_DEBUG_MODE_ENABLED: 'isDebugModeEnabled',
 
+    /** Indicates whether Sentry debug mode is enabled - logs Sentry requests to console */
+    IS_SENTRY_DEBUG_ENABLED: 'isSentryDebugEnabled',
+
+    /** List of span operations to highlight in Sentry debug logs */
+    SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS: 'sentryDebugHighlightedSpanOps',
+
     /** Stores new group chat draft */
     NEW_GROUP_CHAT_DRAFT: 'newGroupChatDraft',
 
@@ -732,8 +738,8 @@ const ONYXKEYS = {
         /** SAML login metadata for a domain */
         SAML_METADATA: 'saml_metadata_',
 
-        /** */
-        DOMAIN_ADMIN_PERMISSIONS: 'expensify_adminPermissions_',
+        /** Stores domain admin account ID */
+        EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
 
         /** Pending actions for a domain */
         DOMAIN_PENDING_ACTIONS: 'domainPendingActions_',
@@ -1126,7 +1132,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS]: boolean;
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
-    [ONYXKEYS.COLLECTION.DOMAIN_ADMIN_PERMISSIONS]: number;
+    [ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX]: number;
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
 };
@@ -1273,6 +1279,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
     [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: boolean;
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
+    [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
+    [ONYXKEYS.SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS]: string[];
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;

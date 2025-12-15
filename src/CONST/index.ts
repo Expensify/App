@@ -238,6 +238,7 @@ const CONST = {
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
     TOOLTIP_ANIMATION_DURATION: 500,
+    DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
@@ -1852,7 +1853,7 @@ const CONST = {
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
         RECHECK_INTERVAL_MS: 60 * 1000,
-        MAX_REQUEST_RETRIES: 1,
+        MAX_REQUEST_RETRIES: 10,
         MAX_OPEN_APP_REQUEST_RETRIES: 2,
         NETWORK_STATUS: {
             ONLINE: 'online',
@@ -3113,6 +3114,7 @@ const CONST = {
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
             IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
+            REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -5726,6 +5728,7 @@ const CONST = {
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
+        COMPANY_CARD_REQUIRED: 'companyCardRequired',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
@@ -6642,7 +6645,6 @@ const CONST = {
             VIEW: 'view',
             SUBMIT: 'submit',
             APPROVE: 'approve',
-            CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
             DONE: 'done',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
@@ -6658,7 +6660,6 @@ const CONST = {
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
             APPROVE: 'approve',
-            CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
             SUBMIT: 'submit',
             HOLD: 'hold',

@@ -13,6 +13,8 @@ import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+import {clearChoosePrimaryContactError} from '@userActions/Domain';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {clearChoosePrimaryContactError, clearToggleConsolidatedDomainBillingErrors, toggleConsolidatedDomainBilling} from '@userActions/Domain';
 import {getCurrentUserAccountID} from '@userActions/Report';
@@ -24,7 +26,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 type DomainAdminsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS_SETTINGS>;
 
 function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
-    const {accountID: domainAccountID} = route.params;
+    const {domainAccountID} = route.params;
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -49,15 +51,12 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
     const isAdmin = adminIDs?.includes(currentUserAccountID) ?? false;
 
     return (
-        <ScreenWrapper
-            shouldEnableMaxHeight
-            shouldUseCachedViewportHeight
-            testID={DomainAdminsSettingsPage.displayName}
-            enableEdgeToEdgeBottomSafeAreaPadding
-        >
-            <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={!isLoadingOnyxValue(domainMetadata) && (!domain || !isAdmin)}
+        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+            <ScreenWrapper
+                shouldEnableMaxHeight
+                shouldUseCachedViewportHeight
+                testID={DomainAdminsSettingsPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('domain.admins.settings')}
@@ -68,7 +67,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 <OfflineWithFeedback
                     pendingAction={domainPendingActions?.technicalContactEmail}
                     errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
-                    onClose={() => clearChoosePrimaryContactError(route.params.accountID)}
+                    onClose={() => clearChoosePrimaryContactError(domainAccountID)}
                 >
                     <MenuItemWithTopDescription
                         description={translate('domain.admins.primaryContact')}
@@ -91,8 +90,8 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                     errors={getLatestError(domainErrors?.useTechnicalContactBillingCardErrors)}
                     onCloseError={() => clearToggleConsolidatedDomainBillingErrors(route.params.accountID)}
                 />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </DomainNotFoundPageWrapper>
     );
 }
 
