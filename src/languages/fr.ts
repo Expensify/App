@@ -1930,6 +1930,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Enregistrer les données de dépannage',
             softKillTheApp: 'Fermer l’application en douceur',
             kill: 'Tuer',
+            sentryDebug: 'Débogage Sentry',
+            sentryDebugDescription: 'Enregistrer les requêtes Sentry dans la console',
+            sentryHighlightedSpanOps: 'Noms de spans mis en valeur',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Enregistrer le journal',
@@ -2672,10 +2676,10 @@ ${amount} pour ${merchant} - ${date}`,
                         *Configurez des catégories* afin que votre équipe puisse coder les dépenses pour faciliter les rapports.
 
                         1. Cliquez sur *Espaces de travail*.
-                        3. Sélectionnez votre espace de travail.
-                        4. Cliquez sur *Catégories*.
-                        5. Désactivez toutes les catégories dont vous n’avez pas besoin.
-                        6. Ajoutez vos propres catégories en haut à droite.
+                        2. Sélectionnez votre espace de travail.
+                        3. Cliquez sur *Catégories*.
+                        4. Désactivez toutes les catégories dont vous n’avez pas besoin.
+                        5. Ajoutez vos propres catégories en haut à droite.
 
                         [Accéder aux paramètres des catégories de l’espace de travail](${workspaceCategoriesLink}).
 
@@ -2764,10 +2768,10 @@ ${
                         *Invitez votre équipe* sur Expensify afin qu’elle puisse commencer à suivre les dépenses dès aujourd’hui.
 
                         1. Cliquez sur *Workspaces*.
-                        3. Sélectionnez votre espace de travail.
-                        4. Cliquez sur *Members* > *Invite member*.
-                        5. Saisissez des adresses e-mail ou des numéros de téléphone.
-                        6. Ajoutez un message d’invitation personnalisé si vous le souhaitez !
+                        2. Sélectionnez votre espace de travail.
+                        3. Cliquez sur *Members* > *Invite member*.
+                        4. Saisissez des adresses e-mail ou des numéros de téléphone.
+                        5. Ajoutez un message d’invitation personnalisé si vous le souhaitez !
 
                         [Accéder aux membres de l’espace de travail](${workspaceMembersLink}).
 
@@ -2788,11 +2792,11 @@ ${
                         Utilisez des tags pour ajouter des détails supplémentaires à vos dépenses, comme les projets, les clients, les emplacements et les services. Si vous avez besoin de plusieurs niveaux de tags, vous pouvez passer au plan Control.
 
                         1. Cliquez sur *Workspaces*.
-                        3. Sélectionnez votre espace de travail.
-                        4. Cliquez sur *More features*.
-                        5. Activez *Tags*.
-                        6. Accédez à *Tags* dans l’éditeur de l’espace de travail.
-                        7. Cliquez sur *+ Add tag* pour créer le vôtre.
+                        2. Sélectionnez votre espace de travail.
+                        3. Cliquez sur *More features*.
+                        4. Activez *Tags*.
+                        5. Accédez à *Tags* dans l’éditeur de l’espace de travail.
+                        6. Cliquez sur *+ Add tag* pour créer le vôtre.
 
                         [Me montrer les fonctionnalités supplémentaires](${workspaceMoreFeaturesLink}).
 
@@ -8008,6 +8012,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             subtitle: "Exiger que les membres de votre domaine se connectent via l'authentification unique, restreindre la création d'espaces de travail, et plus encore.",
             enable: 'Activer',
         },
+        admins: {title: 'Admins', findAdmin: 'Trouver un admin'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

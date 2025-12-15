@@ -88,7 +88,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings'] as const);
 
     const paramsPolicyID = params && 'policyID' in params ? params.policyID : undefined;
-    const paramsDomainAccountID = params && 'accountID' in params ? params.accountID : undefined;
+    const paramsDomainAccountID = params && 'domainAccountID' in params ? params.domainAccountID : undefined;
 
     const lastViewedPolicySelector = useCallback(
         (policies: OnyxCollection<Policy>) => {
