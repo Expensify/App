@@ -3109,6 +3109,7 @@ ${
             fullName: '有効な氏名を入力してください',
             ownershipPercentage: '有効なパーセント数値を入力してください',
             deletePaymentBankAccount: 'この銀行口座は、Expensify Card の支払いに使用されているため削除できません。この口座をそれでも削除したい場合は、Concierge までご連絡ください。',
+            sameDepositAndWithdrawalAccount: '入金口座と出金口座が同じです。',
         },
     },
     addPersonalBankAccount: {

@@ -2731,6 +2731,7 @@ ${amount} para ${merchant} - ${date}`,
             ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido',
             deletePaymentBankAccount:
                 'Esta cuenta bancaria no se puede eliminar porque se utiliza para pagos con la tarjeta Expensify. Si aún deseas eliminar esta cuenta, por favor contacta con Concierge.',
+            sameDepositAndWithdrawalAccount: 'Las cuentas de depósito y retiro son las mismas.',
         },
     },
     addPersonalBankAccount: {
