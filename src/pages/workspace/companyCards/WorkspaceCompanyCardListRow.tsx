@@ -30,7 +30,7 @@ type WorkspaceCompanyCardsListRowProps = {
     customCardName?: string;
 
     /** Plaid URL */
-    plaidUrl?: string;
+    plaidIconUrl?: string;
 
     /** Cardholder personal details */
     cardholder?: PersonalDetails | null;
@@ -62,7 +62,7 @@ function WorkspaceCompanyCardsListRow({
     isHovered,
     isAssigned,
     onAssignCard,
-    plaidUrl,
+    plaidIconUrl,
     isAssigningCardDisabled,
     shouldShowAssignCardButton,
     shouldUseNarrowTableRowLayout,
@@ -76,7 +76,7 @@ function WorkspaceCompanyCardsListRow({
     const customCardNameWithFallback = customCardName ?? getCardDefaultName(cardholder?.displayName);
 
     let cardFeedIcon = null;
-    if (!plaidUrl) {
+    if (!plaidIconUrl) {
         cardFeedIcon = getCardFeedIcon(selectedFeed as CompanyCardFeed, illustrations, companyCardFeedIcons);
     }
 
@@ -114,9 +114,9 @@ function WorkspaceCompanyCardsListRow({
                     </>
                 ) : (
                     <>
-                        {!!plaidUrl && <PlaidCardFeedIcon plaidUrl={plaidUrl} />}
+                        {!!plaidIconUrl && <PlaidCardFeedIcon plaidUrl={plaidIconUrl} />}
 
-                        {!plaidUrl && !!cardFeedIcon && (
+                        {!plaidIconUrl && !!cardFeedIcon && (
                             <Icon
                                 src={cardFeedIcon}
                                 height={variables.cardIconHeight}

@@ -77,7 +77,7 @@ function WorkspaceCompanyCardsList({
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const cards = companyFeeds?.[selectedFeed]?.accountList;
 
-    const plaidUrl = getPlaidInstitutionIconUrl(selectedFeed);
+    const plaidIconUrl = getPlaidInstitutionIconUrl(selectedFeed);
 
     // Get all cards sorted by cardholder name
     const allCards = useMemo(() => {
@@ -138,7 +138,7 @@ function WorkspaceCompanyCardsList({
                                 cardholder={personalDetails?.[assignedCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]}
                                 cardName={cardName}
                                 selectedFeed={selectedFeed}
-                                plaidUrl={plaidUrl}
+                                plaidIconUrl={plaidIconUrl}
                                 customCardName={customCardName}
                                 isHovered={hovered}
                                 isAssigned={!!assignedCard}
@@ -158,7 +158,7 @@ function WorkspaceCompanyCardsList({
             isAssigningCardDisabled,
             onAssignCard,
             personalDetails,
-            plaidUrl,
+            plaidIconUrl,
             policyID,
             selectedFeed,
             shouldShowAssignCardButton,
