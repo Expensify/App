@@ -10182,7 +10182,7 @@ describe('actions/IOU', () => {
             // Mock API.write for this test
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            const openReport = {
+            const openingReport = {
                 ...createRandomReport(3, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
@@ -10207,7 +10207,7 @@ describe('actions/IOU', () => {
             // Given: An expense report (not IOU)
             const expenseReport = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE, total: amount * 2};
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openingReport.reportID}`, openingReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`, secondTransaction);
             await waitForBatchedUpdates();
 
