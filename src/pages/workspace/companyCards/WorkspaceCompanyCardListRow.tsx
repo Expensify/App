@@ -50,7 +50,7 @@ type WorkspaceCompanyCardsListRowProps = {
     /** Whether to use narrow table row layout */
     shouldUseNarrowTableRowLayout?: boolean;
 
-    /** On assign card */
+    /** On assign card callback */
     onAssignCard: () => void;
 };
 

@@ -41,7 +41,7 @@ type WorkspaceCompanyCardsListProps = {
     /** Current policy id */
     policyID: string;
 
-    /** Handle assign card action */
+    /** On assign card callback */
     onAssignCard: () => void;
 
     /** Whether to disable assign card button */
