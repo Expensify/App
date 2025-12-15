@@ -127,8 +127,6 @@ const ROUTES = {
     SEARCH_EDIT_MULTIPLE_TAG_RHP: 'search/edit-multiple/tag',
     SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP: 'search/edit-multiple/attendees',
     SEARCH_EDIT_MULTIPLE_REPORT_RHP: 'search/edit-multiple/report',
-    CHANGE_APPROVER_SEARCH_RHP: 'search/change-approver',
-    CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP: 'search/change-approver/add',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
