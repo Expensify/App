@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -24,20 +24,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 type AvailableCompanyCardTypes = {
     translate: LocaleContextProps['translate'];
     typeSelected?: CardFeedProvider;
     styles: StyleProp<ViewStyle>;
     canUsePlaidCompanyCards?: boolean;
+    companyCardBankIcons: ReturnType<typeof useCompanyCardBankIcons>;
 };
 
-type GetAvailableCompanyCardTypesParams = AvailableCompanyCardTypes & {
-    illustrations: Record<'MasterCardCompanyCardDetail' | 'VisaCompanyCardDetail' | 'AmexCardCompanyCardDetail', IconAsset>;
-};
-
-function getAvailableCompanyCardTypes({translate, typeSelected, styles, canUsePlaidCompanyCards, illustrations}: GetAvailableCompanyCardTypesParams) {
+function getAvailableCompanyCardTypes({translate, typeSelected, styles, canUsePlaidCompanyCards, companyCardBankIcons}: AvailableCompanyCardTypes) {
     const defaultCards = [
         {
             value: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
@@ -46,7 +42,7 @@ function getAvailableCompanyCardTypes({translate, typeSelected, styles, canUsePl
             isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
             leftElement: (
                 <Icon
-                    src={illustrations.MasterCardCompanyCardDetail}
+                    src={companyCardBankIcons.MasterCardCompanyCardDetail}
                     height={variables.iconSizeExtraLarge}
                     width={variables.iconSizeExtraLarge}
                     additionalStyles={styles}
@@ -60,7 +56,7 @@ function getAvailableCompanyCardTypes({translate, typeSelected, styles, canUsePl
             isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
             leftElement: (
                 <Icon
-                    src={illustrations.VisaCompanyCardDetail}
+                    src={companyCardBankIcons.VisaCompanyCardDetail}
                     height={variables.iconSizeExtraLarge}
                     width={variables.iconSizeExtraLarge}
                     additionalStyles={styles}
@@ -81,7 +77,7 @@ function getAvailableCompanyCardTypes({translate, typeSelected, styles, canUsePl
             isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
             leftElement: (
                 <Icon
-                    src={illustrations.AmexCardCompanyCardDetail}
+                    src={companyCardBankIcons.AmexCardCompanyCardDetail}
                     height={variables.iconSizeExtraLarge}
                     width={variables.iconSizeExtraLarge}
                     additionalStyles={styles}
@@ -97,7 +93,7 @@ type CardTypeStepProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamLi
 function CardTypeStep({route}: CardTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['MasterCardCompanyCardDetail', 'VisaCompanyCardDetail', 'AmexCardCompanyCardDetail'] as const);
+    const companyCardBankIcons = useCompanyCardBankIcons();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [typeSelected, setTypeSelected] = useState<CardFeedProvider>();
     const [isError, setIsError] = useState(false);
@@ -105,7 +101,13 @@ function CardTypeStep({route}: CardTypeStepProps) {
     const policyID = route.params?.policyID;
 
     useAddNewCardNavigation(policyID);
-    const data = getAvailableCompanyCardTypes({translate, typeSelected, styles: styles.mr3, canUsePlaidCompanyCards: isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS), illustrations});
+    const data = getAvailableCompanyCardTypes({
+        translate,
+        typeSelected,
+        styles: styles.mr3,
+        canUsePlaidCompanyCards: isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS),
+        companyCardBankIcons,
+    });
     const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
     const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const isNewCardTypeSelected = typeSelected !== feedType;

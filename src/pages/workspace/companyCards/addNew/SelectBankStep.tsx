@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
+import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -32,6 +33,7 @@ function SelectBankStep({route}: SelectBankStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
+    const companyCardBankIcons = useCompanyCardBankIcons();
     const {isBetaEnabled} = usePermissions();
     const policyID = route.params?.policyID;
 
@@ -81,7 +83,7 @@ function SelectBankStep({route}: SelectBankStepProps) {
         isSelected: bankSelected === bank,
         leftElement: (
             <Icon
-                src={getBankCardDetailsImage(bank, illustrations)}
+                src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
                 height={variables.iconSizeExtraLarge}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={styles.mr3}
