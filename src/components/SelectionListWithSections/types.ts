@@ -606,6 +606,7 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     transactionsQueryJSON?: SearchQueryJSON;
     isInSingleTransactionReport: boolean;
     searchTransactions: (pageSize?: number) => void;
+    onLongPress: (transaction: TransactionListItemType) => void;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
