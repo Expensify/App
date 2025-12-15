@@ -104,6 +104,13 @@ function setSamlIdentity(accountID: number, domainName: string, metaIdentity: st
                 metaIdentity,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+            value: {
+                samlRequiredError: null,
+            },
+        },
     ];
     const failureData: OnyxUpdate[] = [
         {
@@ -159,7 +166,7 @@ function getSamlSettings(accountID: number, domainName: string) {
 /**
  * Sets whether logging in via SAML is enabled for the domain
  */
-function setSamlEnabled(enabled: boolean, accountID: number, domainName: string) {
+function setSamlEnabled({enabled, accountID, domainName}: {enabled: boolean; accountID: number; domainName: string}) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -220,7 +227,12 @@ function resetSamlEnabledError(accountID: number) {
 /**
  * Sets whether logging in via SAML is required for the domain
  */
-function setSamlRequired(required: boolean, accountID: number, domainName: string) {
+function setSamlRequired({required, accountID, domainName, metaIdentity}: {required: boolean; accountID: number; domainName: string; metaIdentity: string | undefined}) {
+    if (required && !metaIdentity) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {samlRequiredError: getMicroSecondOnyxErrorWithTranslationKey('domain.samlLogin.requireWithEmptyMetadataError')});
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
