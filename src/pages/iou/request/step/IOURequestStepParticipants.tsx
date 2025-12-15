@@ -359,7 +359,7 @@ function IOURequestStepParticipants({
 
         const firstParticipant = selectedParticipants.current?.at(0);
         const isMerchantRequired =
-            !!firstParticipant?.isPolicyExpenseChat && isMerchantMissing(initialTransaction) && !isMovingTransactionFromTrackExpense && iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+            !!firstParticipant?.isPolicyExpenseChat && isMerchantMissing(initialTransaction) && iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
