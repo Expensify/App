@@ -263,6 +263,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -1917,6 +1919,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Registrar Dados de Solução de Problemas',
             softKillTheApp: 'Encerrar o aplicativo sem forçar',
             kill: 'Encerrar',
+            sentryDebug: 'Depuração do Sentry',
+            sentryDebugDescription: 'Registrar solicitações do Sentry no console',
+            sentryHighlightedSpanOps: 'Nomes de spans destacados',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Salvar log',
@@ -6408,6 +6414,12 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 return `alterou a parcela de imposto recuperável na taxa de distância "${customUnitRateName}" para "${newValue}" (anteriormente "${oldValue}")`;
             }
             return `adicionou uma parte de imposto recuperável de "${newValue}" à taxa de distância "${customUnitRateName}"`;
+        },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `alterou o índice da tarifa ${customUnitName} "${customUnitRateName}" para "${newValue}" ${oldValue ? `(anteriormente "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'habilitado' : 'desabilitado'} tarifa ${customUnitName} "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removeu a taxa "${customUnitName}" "${rateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType} de relatório "${fieldName}" adicionado`,

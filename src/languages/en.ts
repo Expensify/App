@@ -251,6 +251,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -1898,6 +1900,10 @@ const translations = {
             recordTroubleshootData: 'Record Troubleshoot Data',
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
+            sentryDebug: 'Sentry debug',
+            sentryDebugDescription: 'Log Sentry requests to console',
+            sentryHighlightedSpanOps: 'Highlighted span names',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -6306,6 +6312,12 @@ const translations = {
                 return `changed the tax reclaimable portion on the distance rate "${customUnitRateName}" to "${newValue}" (previously "${oldValue}")`;
             }
             return `added a tax reclaimable portion of "${newValue}" to the distance rate "${customUnitRateName}`;
+        },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `changed the index of the ${customUnitName} rate "${customUnitRateName}" to "${newValue}" ${oldValue ? `(previously "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'enabled' : 'disabled'} ${customUnitName} rate "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removed the "${customUnitName}" rate "${rateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,

@@ -263,6 +263,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -1922,6 +1924,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'トラブルシュートデータを記録',
             softKillTheApp: 'アプリをソフト終了する',
             kill: '強制終了',
+            sentryDebug: 'Sentryデバッグ',
+            sentryDebugDescription: 'Sentryリクエストをコンソールに記録',
+            sentryHighlightedSpanOps: 'ハイライト表示するspan名',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'ログを保存',
@@ -6387,6 +6393,12 @@ ${reportName}
                 return `距離単価「${customUnitRateName}」の税還付対象部分を「${oldValue}」から「${newValue}」に変更しました`;
             }
             return `距離レート「${customUnitRateName}」に税還付可能分「${newValue}」を追加しました`;
+        },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `${customUnitName} のレート "${customUnitRateName}" のインデックスを "${newValue}" に変更しました ${oldValue ? `(以前は "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? '有効化' : '無効化'} ${customUnitName} のレート "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `「${customUnitName}」のレート「${rateName}」を削除しました`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType} レポートフィールド「${fieldName}」を追加しました`,

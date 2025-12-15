@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -21,7 +22,6 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -167,8 +167,7 @@ function MoneyRequestReportTransactionList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location'] as const);
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
-    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {markReportIDAsExpense} = useContext(WideRHPContext);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
@@ -185,8 +184,6 @@ function MoneyRequestReportTransactionList({
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
-
-    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare'] as const);
 
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(expensifyIcons, report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
@@ -647,7 +644,7 @@ function MoneyRequestReportTransactionList({
             >
                 <MenuItem
                     title={translate('common.select')}
-                    icon={icons.CheckSquare}
+                    icon={Expensicons.CheckSquare}
                     onPress={() => {
                         if (!isMobileSelectionModeEnabled) {
                             turnOnMobileSelectionMode();

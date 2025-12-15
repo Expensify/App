@@ -404,6 +404,10 @@ type UpdatedPolicyCustomUnitTaxRateExternalIDParams = {customUnitRateName: strin
 
 type UpdatedPolicyCustomUnitTaxClaimablePercentageParams = {customUnitRateName: string; newValue: number; oldValue?: number};
 
+type UpdatedPolicyCustomUnitRateIndexParams = {customUnitName: string; customUnitRateName: string; oldValue?: number; newValue: number};
+
+type UpdatedPolicyCustomUnitRateEnabledParams = {customUnitName: string; customUnitRateName: string; oldValue: boolean; newValue: boolean};
+
 type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
 
 type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
@@ -1291,4 +1295,6 @@ export type {
     ReportFieldParams,
     FocusModeUpdateParams,
     TagSelectionParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
 };
