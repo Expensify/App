@@ -202,6 +202,7 @@ key "key"
       / purchaseCurrency
       / purchaseAmount
       / reportFieldDynamic
+      / columns
     )
 
 filterKey

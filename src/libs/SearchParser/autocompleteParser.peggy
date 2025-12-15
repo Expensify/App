@@ -118,6 +118,7 @@ autocompleteKey "key"
       / withdrawalID
       / title
       / reportFieldDynamic
+      / columns
     )
 
 filterKey
