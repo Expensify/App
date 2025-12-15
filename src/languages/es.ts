@@ -968,7 +968,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'rechazó este informe',
         waitingOnBankAccount: ({submitterDisplayName}) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: 'canceló el pago',
-        canceledRequest: ({amount, submitterDisplayName}) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
+        canceledRequest: (amount, submitterDisplayName) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhere: ({payer} = {}) => `${payer ? `${payer} ` : ''}marcó como pagado`,
         paidWithExpensify: ({payer} = {}) => `${payer ? `${payer} ` : ''}pagó con la billetera`,
@@ -5439,11 +5439,11 @@ ${amount} para ${merchant} - ${date}`,
                 `La cuenta propietaria de este espacio de trabajo (${email}) tiene un saldo pendiente de un mes anterior.\n\n¿Desea transferir este monto (${amount}) para hacerse cargo de la facturación de este espacio de trabajo? tu tarjeta de pago se cargará inmediatamente.`,
             subscriptionTitle: 'Asumir la suscripción anual',
             subscriptionButtonText: 'Transferir suscripción',
-            subscriptionText: ({usersCount, finalCount}) =>
+            subscriptionText: (usersCount, finalCount) =>
                 `Al hacerse cargo de este espacio de trabajo se fusionará tu suscripción anual asociada con tu suscripción actual. Esto aumentará el tamaño de tu suscripción en ${usersCount} miembros, lo que hará que tu nuevo tamaño de suscripción sea ${finalCount}. ¿Te gustaria continuar?`,
             duplicateSubscriptionTitle: 'Alerta de suscripción duplicada',
             duplicateSubscriptionButtonText: 'Continuar',
-            duplicateSubscriptionText: ({email, workspaceName}) =>
+            duplicateSubscriptionText: (email, workspaceName) =>
                 `Parece que estás intentando hacerte cargo de la facturación de los espacios de trabajo de ${email}, pero para hacerlo, primero debes ser administrador de todos sus espacios de trabajo.\n\nHaz clic en "Continuar" si solo quieres tomar sobrefacturación para el espacio de trabajo ${workspaceName}.\n\nSi desea hacerse cargo de la facturación de toda tu suscripción, pídales que lo agreguen como administrador a todos sus espacios de trabajo antes de hacerse cargo de la facturación.`,
             hasFailedSettlementsTitle: 'No se puede transferir la propiedad',
             hasFailedSettlementsButtonText: 'Entiendo',
@@ -6469,13 +6469,13 @@ ${amount} para ${merchant} - ${date}`,
             type: {
                 changeField: ({oldValue, newValue, fieldName}) => `cambió ${fieldName} a "${newValue}" (previamente "${oldValue}")`,
                 changeFieldEmpty: ({newValue, fieldName}) => `estableció ${fieldName} a ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}) => {
+                changeReportPolicy: (toPolicyName, fromPolicyName) => {
                     if (!toPolicyName) {
                         return `cambió el espacio de trabajo${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;
                     }
                     return `cambió el espacio de trabajo a ${toPolicyName}${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;
                 },
-                changeType: ({oldType, newType}) => `cambió type de ${oldType} a ${newType}`,
+                changeType: (oldType, newType) => `cambió type de ${oldType} a ${newType}`,
                 exportedToCSV: `exportado a CSV`,
                 exportedToIntegration: {
                     automatic: ({label}) => {
@@ -7483,7 +7483,7 @@ ${amount} para ${merchant} - ${date}`,
             addCardButton: 'Añade tarjeta de pago',
             cardNextPayment: ({nextPaymentDate}) => `Tu próxima fecha de pago es ${nextPaymentDate}.`,
             cardEnding: ({cardNumber}) => `Tarjeta terminada en ${cardNumber}`,
-            cardInfo: ({name, expiration, currency}) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
+            cardInfo: (name, expiration, currency) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
             changeCard: 'Cambiar tarjeta de pago',
             changeCurrency: 'Cambiar moneda de pago',
             cardNotFound: 'No se ha añadido ninguna tarjeta de pago',

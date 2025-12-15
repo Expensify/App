@@ -50,11 +50,7 @@ function LegalNamePage() {
                 if (!values.legalFirstName) {
                     errors.legalFirstName = translate('common.error.fieldRequired');
                 } else if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                    addErrorMessage(
-                        errors,
-                        'legalFirstName',
-                        translate('common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}),
-                    );
+                    addErrorMessage(errors, 'legalFirstName', translate('common.error.characterLimitExceedCounter', values.legalFirstName.length, CONST.LEGAL_NAME.MAX_LENGTH));
                 }
                 if (doesContainReservedWord(values.legalFirstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
                     addErrorMessage(errors, 'legalFirstName', translate('personalDetails.error.containsReservedWord'));
@@ -65,11 +61,7 @@ function LegalNamePage() {
                 if (!values.legalLastName) {
                     errors.legalLastName = translate('common.error.fieldRequired');
                 } else if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                    addErrorMessage(
-                        errors,
-                        'legalLastName',
-                        translate('common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}),
-                    );
+                    addErrorMessage(errors, 'legalLastName', translate('common.error.characterLimitExceedCounter', values.legalLastName.length, CONST.LEGAL_NAME.MAX_LENGTH));
                 }
                 if (doesContainReservedWord(values.legalLastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
                     addErrorMessage(errors, 'legalLastName', translate('personalDetails.error.containsReservedWord'));

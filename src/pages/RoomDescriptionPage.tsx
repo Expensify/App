@@ -70,10 +70,7 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
             const errors: Errors = {};
             const descriptionLength = values[INPUT_IDS.REPORT_DESCRIPTION].trim().length;
             if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-                errors.reportDescription = translate('common.error.characterLimitExceedCounter', {
-                    length: descriptionLength,
-                    limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH,
-                });
+                errors.reportDescription = translate('common.error.characterLimitExceedCounter', descriptionLength, CONST.REPORT_DESCRIPTION.MAX_LENGTH);
             }
 
             return errors;

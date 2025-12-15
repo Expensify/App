@@ -41,7 +41,7 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
             const nameLength = [...name.trim()].length;
             if (nameLength > CONST.REPORT_NAME_LIMIT) {
-                errors.newChatName = translate('common.error.characterLimitExceedCounter', {length: nameLength, limit: CONST.REPORT_NAME_LIMIT});
+                errors.newChatName = translate('common.error.characterLimitExceedCounter', nameLength, CONST.REPORT_NAME_LIMIT);
             }
 
             if (StringUtils.isEmptyString(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {

@@ -100,11 +100,7 @@ function IOURequestStepDescription({
             const errors = {};
 
             if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
-                addErrorMessage(
-                    errors,
-                    'moneyRequestComment',
-                    translate('common.error.characterLimitExceedCounter', {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT}),
-                );
+                addErrorMessage(errors, 'moneyRequestComment', translate('common.error.characterLimitExceedCounter', values.moneyRequestComment.length, CONST.DESCRIPTION_LIMIT));
             }
 
             if (isDescriptionRequired && !values.moneyRequestComment) {

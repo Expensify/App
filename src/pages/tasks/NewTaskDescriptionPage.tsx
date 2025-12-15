@@ -45,7 +45,7 @@ function NewTaskDescriptionPage({route}: NewTaskDescriptionPageProps) {
         const errors = {};
         const taskDescriptionLength = getCommentLength(values.taskDescription);
         if (taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
-            addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
+            addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', taskDescriptionLength, CONST.DESCRIPTION_LIMIT));
         }
 
         return errors;
