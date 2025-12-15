@@ -870,13 +870,9 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
         const {unit, rate} = mileageRate;
         const distanceInMeters = getDistanceInMeters(transaction, unit);
-        if (
-            (policy?.customUnits && !isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) ||
-            // If modifiedMerchant is empty but modifiedCurrency exists, recalculate the merchant
-            (!transaction?.modifiedMerchant && transaction?.modifiedCurrency)
-        ) {
+        if (policy?.customUnits && !isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, getCurrency(transaction), translateLocal, (digit) =>
+            return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
                 toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             );
         }
