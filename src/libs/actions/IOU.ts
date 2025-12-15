@@ -13664,6 +13664,7 @@ function prepareRejectMoneyRequestData(
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
             });
+            createdIOUReportActionID = iouAction.reportActionID;
 
             optimisticData.push(
                 {
