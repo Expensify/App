@@ -1921,6 +1921,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Rejestruj dane diagnostyczne',
             softKillTheApp: 'Delikatnie zakończ działanie aplikacji',
             kill: 'Zakończ',
+            sentryDebug: 'Debugowanie Sentry',
+            sentryDebugDescription: 'Rejestruj żądania Sentry w konsoli',
+            sentryHighlightedSpanOps: 'Nazwy wyróżnionych spanów',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Zapisz log',
@@ -2654,10 +2658,10 @@ ${amount} dla ${merchant} - ${date}`,
                         *Skonfiguruj kategorie*, aby Twój zespół mógł księgować wydatki dla łatwiejszego raportowania.
 
                         1. Kliknij *Workspaces*.
-                        3. Wybierz swój workspace.
-                        4. Kliknij *Categories*.
-                        5. Wyłącz wszystkie kategorie, których nie potrzebujesz.
-                        6. Dodaj własne kategorie w prawym górnym rogu.
+                        2. Wybierz swój workspace.
+                        3. Kliknij *Categories*.
+                        4. Wyłącz wszystkie kategorie, których nie potrzebujesz.
+                        5. Dodaj własne kategorie w prawym górnym rogu.
 
                         [Przejdź do ustawień kategorii workspace](${workspaceCategoriesLink}).
 
@@ -2746,10 +2750,10 @@ ${
                         *Zaproś swój zespół* do Expensify, aby mógł zacząć śledzić wydatki już dziś.
 
                         1. Kliknij *Workspaces*.
-                        3. Wybierz swoją przestrzeń roboczą.
-                        4. Kliknij *Members* > *Invite member*.
-                        5. Wprowadź adresy e-mail lub numery telefonów.
-                        6. Dodaj własną wiadomość z zaproszeniem, jeśli chcesz!
+                        2. Wybierz swoją przestrzeń roboczą.
+                        3. Kliknij *Members* > *Invite member*.
+                        4. Wprowadź adresy e-mail lub numery telefonów.
+                        5. Dodaj własną wiadomość z zaproszeniem, jeśli chcesz!
 
                         [Przejdź do członków przestrzeni roboczej](${workspaceMembersLink}).
 
@@ -2770,11 +2774,11 @@ ${
                         Używaj tagów, aby dodać dodatkowe szczegóły wydatku, takie jak projekty, klienci, lokalizacje i działy. Jeśli potrzebujesz wielu poziomów tagów, możesz przejść na plan Control.
 
                         1. Kliknij *Workspaces*.
-                        3. Wybierz swoją przestrzeń roboczą.
-                        4. Kliknij *More features*.
-                        5. Włącz *Tags*.
-                        6. Przejdź do *Tags* w edytorze przestrzeni roboczej.
-                        7. Kliknij *+ Add tag*, aby utworzyć własny tag.
+                        2. Wybierz swoją przestrzeń roboczą.
+                        3. Kliknij *More features*.
+                        4. Włącz *Tags*.
+                        5. Przejdź do *Tags* w edytorze przestrzeni roboczej.
+                        6. Kliknij *+ Add tag*, aby utworzyć własny tag.
 
                         [Przejdź do more features](${workspaceMoreFeaturesLink}).
 
@@ -7957,6 +7961,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             subtitle: 'Wymagaj, aby członkowie Twojej domeny logowali się przez Single Sign-On (SSO), ograniczaj tworzenie obszarów roboczych i nie tylko.',
             enable: 'Włącz',
         },
+        admins: {title: 'Administratorzy', findAdmin: 'Znajdź administratora'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

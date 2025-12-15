@@ -1899,6 +1899,10 @@ const translations = {
             recordTroubleshootData: 'Record Troubleshoot Data',
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
+            sentryDebug: 'Sentry debug',
+            sentryDebugDescription: 'Log Sentry requests to console',
+            sentryHighlightedSpanOps: 'Highlighted span names',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -2618,10 +2622,10 @@ const translations = {
                         *Set up categories* so your team can code expenses for easy reporting.
 
                         1. Click *Workspaces*.
-                        3. Select your workspace.
-                        4. Click *Categories*.
-                        5. Disable any categories you don't need.
-                        6. Add your own categories in the top right.
+                        2. Select your workspace.
+                        3. Click *Categories*.
+                        4. Disable any categories you don't need.
+                        5. Add your own categories in the top right.
 
                         [Take me to workspace category settings](${workspaceCategoriesLink}).
 
@@ -2713,10 +2717,10 @@ const translations = {
                         *Invite your team* to Expensify so they can start tracking expenses today.
 
                         1. Click *Workspaces*.
-                        3. Select your workspace.
-                        4. Click *Members* > *Invite member*.
-                        5. Enter emails or phone numbers.
-                        6. Add a custom invite message if you'd like!
+                        2. Select your workspace.
+                        3. Click *Members* > *Invite member*.
+                        4. Enter emails or phone numbers.
+                        5. Add a custom invite message if you'd like!
 
                         [Take me to workspace members](${workspaceMembersLink}).
 
@@ -2740,11 +2744,11 @@ const translations = {
                         Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.
 
                         1. Click *Workspaces*.
-                        3. Select your workspace.
-                        4. Click *More features*.
-                        5. Enable *Tags*.
-                        6. Navigate to *Tags* in the workspace editor.
-                        7. Click *+ Add tag* to make your own.
+                        2. Select your workspace.
+                        3. Click *More features*.
+                        4. Enable *Tags*.
+                        5. Navigate to *Tags* in the workspace editor.
+                        6. Click *+ Add tag* to make your own.
 
                         [Take me to more features](${workspaceMoreFeaturesLink}).
 
@@ -7849,6 +7853,10 @@ const translations = {
             title: 'Enhanced security',
             subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
             enable: 'Enable',
+        },
+        admins: {
+            title: 'Admins',
+            findAdmin: 'Find admin',
         },
     },
 };

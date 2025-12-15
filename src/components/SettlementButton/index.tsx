@@ -649,7 +649,7 @@ function SettlementButton({
                         }}
                         style={style}
                         shouldUseShortForm={shouldUseShortForm}
-                        shouldPopoverUseScrollView={paymentButtonOptions.length > 5}
+                        shouldPopoverUseScrollView={paymentButtonOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                         containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
                         wrapperStyle={[wrapperStyle, shouldLimitWidth ? styles.settlementButtonShortFormWidth : {}]}
                         disabledStyle={disabledStyle}

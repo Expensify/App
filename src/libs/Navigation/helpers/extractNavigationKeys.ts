@@ -1,4 +1,4 @@
-import type {NavigationRoute} from '@libs/Navigation/types';
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 /**
  * Utility function that extracts all unique navigation keys from a React Navigation state.
@@ -7,13 +7,13 @@ import type {NavigationRoute} from '@libs/Navigation/types';
  * @param state - The React Navigation state (can be partial or complete)
  * @returns Set of unique route keys found in the navigation state
  */
-function extractNavigationKeys(routes: NavigationRoute[] | undefined): Set<string> {
-    if (!routes) {
+function extractNavigationKeys(state: NavigationState | PartialState<NavigationState> | undefined): Set<string> {
+    if (!state || !state.routes) {
         return new Set();
     }
 
     const keys = new Set<string>();
-    const routesToProcess = [...routes];
+    const routesToProcess = [...state.routes];
 
     while (routesToProcess.length > 0) {
         const route = routesToProcess.pop();
