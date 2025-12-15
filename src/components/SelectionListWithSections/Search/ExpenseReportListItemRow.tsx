@@ -226,6 +226,7 @@ function ExpenseReportListItemRow({
                         subscriptAvatarBorderColor={finalAvatarBorderColor}
                     />
                 </View>
+
                 {columns.map((column) => columnComponents[column as keyof typeof columnComponents]).filter(Boolean)}
             </View>
             <View style={styles.ml2}>

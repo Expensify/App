@@ -337,7 +337,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
-    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${query.columns?.join(',')}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${Array.isArray(query.columns) ? query.columns.join(',') : query.columns}`;
 
     const filterSet = new Set<string>(orderedQuery);
 
@@ -973,7 +973,8 @@ function buildFilterFormValuesFromQuery(
     }
 
     if (queryJSON.columns) {
-        filtersForm[FILTER_KEYS.COLUMNS] = queryJSON.columns;
+        const columns = [queryJSON.columns].flat();
+        filtersForm[FILTER_KEYS.COLUMNS] = columns;
     }
 
     return filtersForm;
