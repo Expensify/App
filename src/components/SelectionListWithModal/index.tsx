@@ -4,8 +4,8 @@ import React, {useMemo, useState} from 'react';
 import {CheckSquare} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem, SelectionListHandle, SelectionListProps} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import type {ListItem, SelectionListHandle, SelectionListProps} from '@components/SelectionList/types';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -25,7 +25,7 @@ function SelectionListWithModal<TItem extends ListItem>({
     onTurnOnSelectionMode,
     onLongPressRow,
     isScreenFocused = false,
-    sections,
+    data,
     isSelected,
     selectedItems: selectedItemsProp,
     ref,
@@ -42,18 +42,17 @@ function SelectionListWithModal<TItem extends ListItem>({
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
-    const sectionData = sections[0]?.data;
     const selectedItems = useMemo(
         () =>
             selectedItemsProp ??
-            sectionData?.filter((item) => {
+            data.filter((item) => {
                 if (isSelected) {
                     return isSelected(item);
                 }
                 return !!item.isSelected;
             }) ??
             [],
-        [isSelected, sectionData, selectedItemsProp],
+        [isSelected, data, selectedItemsProp],
     );
 
     useHandleSelectionMode(selectedItems);
@@ -89,10 +88,10 @@ function SelectionListWithModal<TItem extends ListItem>({
         <>
             <SelectionList
                 ref={ref}
-                sections={sections}
+                data={data}
                 selectedItems={selectedItemsProp}
                 onLongPressRow={handleLongPressRow}
-                isScreenFocused={isScreenFocused}
+                // isScreenFocused={isScreenFocused}
                 isSmallScreenWidth={isSmallScreenWidth}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}

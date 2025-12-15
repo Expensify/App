@@ -2,7 +2,6 @@ import {useIsFocused} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {TextInput} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -14,10 +13,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -74,7 +74,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const selectionListRef = useRef<SelectionListHandle>(null);
-    const textInputRef = useRef<TextInput>(null);
+    const textInputRef = useRef<BaseTextInputRef>(null);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
@@ -394,7 +394,17 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const memberNotFoundMessage = isGroupChat
         ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}`
         : translate('roomMembersPage.memberNotFound');
-    const headerMessage = searchValue.trim() && !participants.length ? memberNotFoundMessage : '';
+
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('selectionList.findMember'),
+            textInputValue: searchValue,
+            onChangeText: setSearchValue,
+            headerMessage: searchValue.trim() && !participants.length ? memberNotFoundMessage : '',
+            ref: textInputRef,
+        }),
+        [memberNotFoundMessage, participants.length, searchValue, translate],
+    );
 
     return (
         <ScreenWrapper
@@ -445,25 +455,21 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                 />
                 <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>
                     <SelectionListWithModal
+                        data={participants}
                         ref={selectionListRef}
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={isCurrentUserAdmin && isGroupChat}
-                        onTurnOnSelectionMode={(item) => item && toggleUser(item)}
-                        sections={[{data: participants}]}
-                        shouldShowTextInput={shouldShowTextInput}
-                        textInputLabel={translate('selectionList.findMember')}
-                        textInputValue={searchValue}
-                        onChangeText={setSearchValue}
-                        headerMessage={headerMessage}
                         ListItem={TableListItem}
                         onSelectRow={openMemberDetails}
+                        textInputOptions={textInputOptions}
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress={isCurrentUserAdmin && isGroupChat}
                         shouldSingleExecuteRowSelect={!(isGroupChat && isCurrentUserAdmin)}
-                        onCheckboxPress={(item) => toggleUser(item)}
+                        onTurnOnSelectionMode={(item) => item && toggleUser(item)}
+                        style={{listHeaderWrapperStyle: [styles.ph9, styles.mt3]}}
                         onSelectAll={() => toggleAllUsers(participants)}
-                        showScrollIndicator
-                        textInputRef={textInputRef}
+                        onCheckboxPress={(item) => toggleUser(item)}
+                        shouldShowTextInput={shouldShowTextInput}
                         customListHeader={customListHeader}
-                        listHeaderWrapperStyle={[styles.ph9, styles.mt3]}
+                        showScrollIndicator
                     />
                 </View>
             </FullPageNotFoundView>

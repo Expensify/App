@@ -41,6 +41,7 @@ function BaseSelectionList<TItem extends ListItem>({
     initiallyFocusedItemKey,
     onSelectRow,
     onSelectAll,
+    onLongPressRow,
     onCheckboxPress,
     onScrollBeginDrag,
     onDismissError,
@@ -56,7 +57,7 @@ function BaseSelectionList<TItem extends ListItem>({
     listFooterContent,
     rightHandSideComponent,
     alternateNumberOfSupportedLines,
-    selectedItems = CONST.EMPTY_ARRAY,
+    selectedItems = CONST.EMPTY_ARRAY as unknown as string[],
     style,
     isSelected,
     isDisabled = false,
@@ -333,6 +334,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     isDisabled={isItemDisabled}
                     canSelectMultiple={canSelectMultiple}
                     onDismissError={onDismissError}
+                    onLongPressRow={onLongPressRow}
                     shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
@@ -491,6 +493,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         customListHeader={customListHeader}
                         canSelectMultiple={canSelectMultiple}
                         onSelectAll={handleSelectAll}
+                        headerStyle={style?.listHeaderWrapperStyle}
                         shouldShowSelectAllButton={!!onSelectAll}
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     />

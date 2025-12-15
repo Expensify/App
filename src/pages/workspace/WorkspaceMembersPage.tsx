@@ -14,10 +14,10 @@ import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
@@ -738,6 +738,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         </>
     );
 
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage: shouldUseNarrowLayout ? headerMessage : undefined,
+
+            ref: textInputRef,
+        }),
+        [],
+    );
+
     return (
         <WorkspacePageWithSections
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
@@ -801,17 +810,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
                     <SelectionListWithModal
+                        data={filteredData}
                         ref={selectionListRef}
-                        canSelectMultiple={canSelectMultiple}
-                        sections={[{data: filteredData, isDisabled: false}]}
-                        selectedItems={selectedEmployees}
                         ListItem={TableListItem}
+                        canSelectMultiple={canSelectMultiple}
+                        selectedItems={selectedEmployees}
                         shouldUseDefaultRightHandSideCheckmark={false}
                         turnOnSelectionModeOnLongPress={isPolicyAdmin}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
                         shouldUseUserSkeletonView
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                        headerMessage={shouldUseNarrowLayout ? headerMessage : undefined}
                         onSelectRow={openMemberDetails}
                         shouldSingleExecuteRowSelect={!isPolicyAdmin}
                         onCheckboxPress={(item) => toggleUser(item.login)}
@@ -819,7 +827,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onDismissError={dismissError}
                         showLoadingPlaceholder={isLoading}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        textInputRef={textInputRef}
                         listHeaderContent={headerContent}
                         shouldShowListEmptyContent={false}
                         customListHeader={getCustomListHeader()}

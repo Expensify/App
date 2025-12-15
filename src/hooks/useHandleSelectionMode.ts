@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import useMobileSelectionMode from './useMobileSelectionMode';
 import useResponsiveLayout from './useResponsiveLayout';
