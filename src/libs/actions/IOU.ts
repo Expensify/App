@@ -99,6 +99,7 @@ import {
 import {
     getAllReportActions,
     getIOUActionForReportID,
+    getIOUActionForTransactionID,
     getLastVisibleAction,
     getLastVisibleMessage,
     getOriginalMessage,
@@ -146,6 +147,7 @@ import {
     buildOptimisticUnHoldReportAction,
     buildTransactionThread,
     canBeAutoReimbursed,
+    canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     doesReportReceiverMatchParticipant,
     findSelfDMReportID,
@@ -15188,35 +15190,44 @@ function updateMultipleMoneyRequests(transactionIDs: string[], transactionChange
         const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
         const isFromExpenseReport = isExpenseReport(iouReport);
 
+        // Get the report action to check field editability
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
+        const reportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
+
+        // Helper function to check if a field can be edited for this transaction
+        const canEditField = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
+            return canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, iouReport, policy);
+        };
+
         const updates: Record<string, string | number> = {};
-        if (transactionChanges.merchant) {
+        if (transactionChanges.merchant && canEditField(CONST.EDIT_REQUEST_FIELD.MERCHANT)) {
             updates.merchant = transactionChanges.merchant;
         }
-        if (transactionChanges.created) {
+        if (transactionChanges.created && canEditField(CONST.EDIT_REQUEST_FIELD.DATE)) {
             updates.created = transactionChanges.created;
         }
-        if (transactionChanges.amount !== undefined) {
+        if (transactionChanges.amount && canEditField(CONST.EDIT_REQUEST_FIELD.AMOUNT)) {
             updates.amount = isFromExpenseReport ? -Math.abs(transactionChanges.amount) : transactionChanges.amount;
         }
-        if (transactionChanges.currency) {
+        if (transactionChanges.currency && canEditField(CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
             updates.currency = transactionChanges.currency;
         }
-        if (transactionChanges.category) {
+        if (transactionChanges.category && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
             updates.category = transactionChanges.category;
         }
-        if (transactionChanges.tag) {
+        if (transactionChanges.tag && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
             updates.tag = transactionChanges.tag;
         }
-        if (transactionChanges.comment) {
+        if (transactionChanges.comment && canEditField(CONST.EDIT_REQUEST_FIELD.DESCRIPTION)) {
             updates.comment = transactionChanges.comment;
         }
-        if (transactionChanges.taxCode) {
+        if (transactionChanges.taxCode && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
             updates.taxCode = transactionChanges.taxCode;
         }
-        if (transactionChanges.billable) {
+        if (transactionChanges.billable && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
             updates.state = transactionChanges.billable ? 3 : 4;
         }
-        if (transactionChanges.reimbursable) {
+        if (transactionChanges.reimbursable && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
             updates.state = transactionChanges.reimbursable ? 4 : 3;
         }
 
