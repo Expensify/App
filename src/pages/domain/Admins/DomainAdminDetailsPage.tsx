@@ -6,11 +6,13 @@ import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,6 +34,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Info'] as const);
 
     const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
@@ -86,15 +89,22 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                                     {displayName}
                                 </Text>
                             )}
-                            <View style={styles.w100}>
-                                <MenuItemWithTopDescription
-                                    title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                                    copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                                    description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                    interactive={false}
-                                    copyable
-                                />
-                            </View>
+                        </View>
+                        <View style={styles.w100}>
+                            <MenuItemWithTopDescription
+                                title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
+                                copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
+                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                interactive={false}
+                                copyable
+                            />
+                            <MenuItem
+                                style={styles.mb5}
+                                title={translate('common.profile')}
+                                icon={icons.Info}
+                                onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
+                                shouldShowRightIcon
+                            />
                         </View>
                     </View>
                 </ScrollView>
