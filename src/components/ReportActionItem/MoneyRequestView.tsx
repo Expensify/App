@@ -291,7 +291,8 @@ function MoneyRequestView({
     const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
-    const shouldShowPaid = isSettled && transactionReimbursable;
+    const pendingAction = transaction?.pendingAction;
+    const shouldShowPaid = isSettled && transactionReimbursable && !pendingAction;
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -459,7 +460,6 @@ function MoneyRequestView({
     }
 
     const hasErrors = hasMissingSmartscanFields(transaction);
-    const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 

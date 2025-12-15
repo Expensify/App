@@ -2654,10 +2654,10 @@ ${amount} voor ${merchant} - ${date}`,
                         *Stel categorieën in* zodat je team onkosten kan coderen voor eenvoudige rapportage.
 
                         1. Klik op *Workspaces*.
-                        3. Selecteer je workspace.
-                        4. Klik op *Categories*.
-                        5. Schakel alle categorieën uit die je niet nodig hebt.
-                        6. Voeg je eigen categorieën toe rechtsboven.
+                        2. Selecteer je workspace.
+                        3. Klik op *Categories*.
+                        4. Schakel alle categorieën uit die je niet nodig hebt.
+                        5. Voeg je eigen categorieën toe rechtsboven.
 
                         [Breng me naar de instellingen voor workspacecategorieën](${workspaceCategoriesLink}).
 
@@ -2746,10 +2746,10 @@ ${
                         *Nodig je team uit* voor Expensify zodat ze vandaag nog kunnen beginnen met het bijhouden van uitgaven.
 
                         1. Klik op *Workspaces*.
-                        3. Selecteer je workspace.
-                        4. Klik op *Members* > *Invite member*.
-                        5. Voer e-mails of telefoonnummers in.
-                        6. Voeg een aangepast uitnodigingsbericht toe als je dat wilt!
+                        2. Selecteer je workspace.
+                        3. Klik op *Members* > *Invite member*.
+                        4. Voer e-mails of telefoonnummers in.
+                        5. Voeg een aangepast uitnodigingsbericht toe als je dat wilt!
 
                         [Breng me naar de workspaceleden](${workspaceMembersLink}).
 
@@ -2770,11 +2770,11 @@ ${
                         Gebruik labels om extra onkostendetails toe te voegen, zoals projecten, klanten, locaties en afdelingen. Als je meerdere niveaus van labels nodig hebt, kun je upgraden naar het Control-abonnement.
 
                         1. Klik op *Workspaces*.
-                        3. Selecteer je workspace.
-                        4. Klik op *More features*.
-                        5. Schakel *Tags* in.
-                        6. Ga naar *Tags* in de workspace-editor.
-                        7. Klik op *+ Add tag* om je eigen label te maken.
+                        2. Selecteer je workspace.
+                        3. Klik op *More features*.
+                        4. Schakel *Tags* in.
+                        5. Ga naar *Tags* in de workspace-editor.
+                        6. Klik op *+ Add tag* om je eigen label te maken.
 
                         [Breng me naar more features](${workspaceMoreFeaturesLink}).
 
@@ -7965,6 +7965,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             subtitle: 'Verplicht leden van je domein om in te loggen via single sign-on, beperk het aanmaken van werkruimten en meer.',
             enable: 'Inschakelen',
         },
+        admins: {title: 'Beheerders', findAdmin: 'Beheerder zoeken'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
