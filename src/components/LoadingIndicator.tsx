@@ -32,4 +32,3 @@ LoadingIndicator.displayName = 'LoadingIndicator';
 export default LoadingIndicator;
 
 export type {LoadingIndicatorSize};
-

@@ -1,7 +1,6 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {isExpiredSession} from '@libs/actions/Session';
 import activateReauthenticator from '@libs/actions/Session/AttachmentImageReauthenticator';
 import CONST from '@src/CONST';
@@ -21,7 +20,6 @@ function Image({
     imageWidthToCalculateHeight,
     ...forwardedProps
 }: ImageProps) {
-    const styles = useThemeStyles();
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
     const session = useSession();
