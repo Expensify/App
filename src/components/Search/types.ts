@@ -224,7 +224,7 @@ type SearchQueryAST = {
     status: SearchStatus;
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
-    columns: SearchCustomColumnIds[];
+    columns?: SearchCustomColumnIds[];
     groupBy?: SearchGroupBy;
     filters: ASTNode;
     policyID?: string[];

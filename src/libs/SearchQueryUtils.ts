@@ -31,6 +31,7 @@ import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS}
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import arraysEqual from '@src/utils/arraysEqual';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
@@ -1316,7 +1317,10 @@ function buildCannedSearchQuery({
  * For example: "type:trip" is a canned query.
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status;
+    const selectedColumns = queryJSON.columns ?? [];
+    const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
+    const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
+    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !hasCustomColumns;
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
