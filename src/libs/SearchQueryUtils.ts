@@ -1197,7 +1197,7 @@ function buildUserReadableQueryString(
     currentUserAccountID: number,
     autoCompleteWithSpace = false,
 ) {
-    const {type, status, groupBy, policyID, rawFilterList, flatFilters: filters} = queryJSON;
+    const {type, status, groupBy, policyID, rawFilterList, flatFilters: filters = []} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];

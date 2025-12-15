@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {Fragment, useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
@@ -227,7 +227,10 @@ function ExpenseReportListItemRow({
                     />
                 </View>
 
-                {columns.map((column) => columnComponents[column as keyof typeof columnComponents]).filter(Boolean)}
+                {columns.map((column) => {
+                    const CellComponent = columnComponents[column as keyof typeof columnComponents];
+                    return <Fragment key={column}>{CellComponent}</Fragment>;
+                })}
             </View>
             <View style={styles.ml2}>
                 <Icon
