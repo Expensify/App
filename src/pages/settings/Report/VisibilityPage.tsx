@@ -28,21 +28,6 @@ function VisibilityPage({report}: VisibilityProps) {
     const {translate} = useLocalize();
 
     const {showConfirmModal} = useConfirmModal();
-    const showPublicVisibilityModal = () => {
-        return showConfirmModal({
-            title: translate('common.areYouSure'),
-            prompt: translate('newRoomPage.publicDescription'),
-            confirmText: translate('common.yes'),
-            cancelText: translate('common.no'),
-            shouldShowCancelButton: true,
-            danger: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            changeVisibility(CONST.REPORT.VISIBILITY.PUBLIC);
-        });
-    };
 
     const visibilityOptions = useMemo(
         () =>
@@ -72,6 +57,22 @@ function VisibilityPage({report}: VisibilityProps) {
         },
         [report, showConfirmModal, goBack],
     );
+
+    const showPublicVisibilityModal = () => {
+        return showConfirmModal({
+            title: translate('common.areYouSure'),
+            prompt: translate('newRoomPage.publicDescription'),
+            confirmText: translate('common.yes'),
+            cancelText: translate('common.no'),
+            shouldShowCancelButton: true,
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            changeVisibility(CONST.REPORT.VISIBILITY.PUBLIC);
+        });
+    };
 
     return (
         <ScreenWrapper
