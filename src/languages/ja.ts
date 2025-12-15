@@ -1316,6 +1316,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `送信済み${memo ? `、メモ「${memo}」と述べています` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出を遅らせる</a>を通じて送信されました`,
         queuedToSubmitViaDEW: 'カスタム承認ワークフローを介して送信待ちキューに入れられました',
+        trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} 用` : ''} を追跡中`,
         splitAmount: ({amount}: SplitAmountParams) => `${amount} を分割`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `分割 ${formattedAmount}${comment ? `${comment} 用` : ''}`,
         yourSplit: ({amount}: UserSplitParams) => `あなたの分担額 ${amount}`,
@@ -1396,7 +1397,7 @@ const translations: TranslationDeepObject<typeof en> = {
             atLeastTwoDifferentWaypoints: '少なくとも 2 つの異なる住所を入力してください',
             splitExpenseMultipleParticipantsErrorMessage: '経費はワークスペースと他のメンバーで分割できません。選択内容を更新してください。',
             invalidMerchant: '有効な加盟店名を入力してください',
-
+            atLeastOneAttendee: '少なくとも 1 人の参加者を選択する必要があります',
             invalidQuantity: '有効な数量を入力してください',
             quantityGreaterThanZero: '数量は0より大きくなければなりません',
             invalidSubrateLength: '少なくとも 1 つのサブレートが必要です',
