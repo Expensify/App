@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import ErrorMessageRow from '@components/ErrorMessageRow';
@@ -24,7 +24,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import {clearShareBankAccount, clearShareBankAccountErrors, openBankAccountSharePage, setShareBankAccountAdmins, shareBankAccount} from '@userActions/BankAccounts';
+import {clearShareBankAccountErrors, openBankAccountSharePage, setShareBankAccountAdmins, shareBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -54,32 +54,20 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const admins = getEligibleBankAccountShareRecipients(allPolicies, currentUserLogin, bankAccountID);
     const shouldShowTextInput = admins && admins?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
+    const debouncedSearchValue = debouncedSearchTerm.trim().toLowerCase();
 
-    const toggleOption = useCallback(
-        (option: MemberForList) => {
-            const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
+    const toggleOption = (option: MemberForList) => {
+        const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
-            let newSelectedOptions: MemberForList[];
-            if (isOptionInList) {
-                newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
-            } else {
-                newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
-            }
-            setIsAlertVisible(false);
-            setSelectedOptions(newSelectedOptions);
-        },
-        [selectedOptions],
-    );
-
-    useEffect(() => {
-        return () => {
-            if (isLoading) {
-                return;
-            }
-            clearShareBankAccount();
-        };
-    }, [isLoading]);
-
+        let newSelectedOptions: MemberForList[];
+        if (isOptionInList) {
+            newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
+        } else {
+            newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
+        }
+        setIsAlertVisible(false);
+        setSelectedOptions(newSelectedOptions);
+    };
     useEffect(() => {
         if (isOffline) {
             return;
@@ -94,7 +82,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         setSelectedOptions(sharedBankAccountData.admins);
     }, [sharedBankAccountData?.admins]);
 
-    const handleConfirm = useCallback(() => {
+    const handleConfirm = () => {
         if (!bankAccountID) {
             return;
         }
@@ -107,14 +95,16 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         const emails = selectedOptions.map((member) => member.login).filter(Boolean);
         setShareBankAccountAdmins(selectedOptions);
         shareBankAccount(Number(bankAccountID), emails);
-    }, [bankAccountID, selectedOptions]);
-
-    const adminsList = useMemo(() => {
+    };
+    const getAdminList = () => {
         if (admins.length === 0) {
             return [];
         }
 
-        let adminsToDisplay = admins.map((admin) => ({...admin, isSelected: selectedOptions.some((selectedOption) => selectedOption.login === admin.login)}));
+        let adminsToDisplay = admins.map((admin) => ({
+            ...admin,
+            isSelected: selectedOptions.some((selectedOption) => selectedOption.login === admin.login),
+        }));
 
         // Apply search filter if there's a search term
         if (debouncedSearchTerm) {
@@ -123,20 +113,11 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         }
 
         return adminsToDisplay;
-    }, [admins, countryCode, debouncedSearchTerm, selectedOptions]);
+    };
 
-    const sections = useMemo(
-        () => [
-            {
-                title: undefined,
-                data: adminsList,
-                shouldShow: true,
-            },
-        ],
-        [adminsList],
-    );
+    const adminsList = getAdminList();
 
-    const toggleSelectAll = useCallback(() => {
+    const toggleSelectAll = () => {
         const hasSelectedOptions = selectedOptions.length > 0;
         setIsAlertVisible(false);
 
@@ -149,64 +130,19 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
             }));
             setSelectedOptions(everyLogin);
         }
-    }, [adminsList, selectedOptions.length]);
+    };
 
-    const headerMessage = useMemo(() => {
-        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const sections = [
+        {
+            title: undefined,
+            data: adminsList,
+            shouldShow: true,
+        },
+    ];
 
-        return getHeaderMessage(sections?.at(0)?.data.length !== 0, false, searchValue, countryCode, false);
-    }, [debouncedSearchTerm, sections, countryCode]);
-
-    const footerContent = useMemo(
-        () => (
-            <FormAlertWithSubmitButton
-                isLoading={isLoading}
-                message={translate('walletPage.shareBankAccountNoAdminsSelected')}
-                isAlertVisible={isAlertVisible}
-                shouldRenderFooterAboveSubmit
-                isDisabled={!admins?.length}
-                buttonText={translate('common.share')}
-                onSubmit={handleConfirm}
-                footerContent={
-                    <ErrorMessageRow
-                        errors={sharedBankAccountData?.errors}
-                        errorRowStyles={[styles.mv3]}
-                        onClose={clearShareBankAccountErrors}
-                        canDismissError
-                    />
-                }
-                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-            />
-        ),
-        [
-            isLoading,
-            isAlertVisible,
-            admins?.length,
-            translate,
-            handleConfirm,
-            sharedBankAccountData?.errors,
-            styles.mv3,
-            styles.flexReset,
-            styles.flexGrow0,
-            styles.flexShrink0,
-            styles.flexBasisAuto,
-        ],
-    );
+    const headerMessage = getHeaderMessage(sections?.at(0)?.data.length !== 0, false, debouncedSearchValue, countryCode, false);
 
     const onButtonPress = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('walletPage.shareBankAccountEmptyTitle')}
-                subtitle={translate('walletPage.shareBankAccountEmptyDescription')}
-            />
-        ),
-        [illustrations.Telescope, translate],
-    );
 
     return (
         <ScreenWrapper testID={ShareBankAccount.displayName}>
@@ -242,12 +178,39 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                     shouldUpdateFocusedIndex
                     shouldShowHeaderMessageAfterHeader
                     headerMessage={headerMessage}
-                    listEmptyContent={listEmptyContent}
+                    listEmptyContent={
+                        <BlockingView
+                            icon={illustrations.Telescope}
+                            iconWidth={variables.emptyListIconWidth}
+                            iconHeight={variables.emptyListIconHeight}
+                            title={translate('walletPage.shareBankAccountEmptyTitle')}
+                            subtitle={translate('walletPage.shareBankAccountEmptyDescription')}
+                        />
+                    }
                     ListItem={UserListItem}
                     shouldUseDefaultRightHandSideCheckmark
                     onSelectRow={toggleOption}
                     onConfirm={handleConfirm}
-                    footerContent={footerContent}
+                    footerContent={
+                        <FormAlertWithSubmitButton
+                            isLoading={isLoading}
+                            message={translate('walletPage.shareBankAccountNoAdminsSelected')}
+                            isAlertVisible={isAlertVisible}
+                            shouldRenderFooterAboveSubmit
+                            isDisabled={!admins?.length}
+                            buttonText={translate('common.share')}
+                            onSubmit={handleConfirm}
+                            footerContent={
+                                <ErrorMessageRow
+                                    errors={sharedBankAccountData?.errors}
+                                    errorRowStyles={[styles.mv3]}
+                                    onClose={clearShareBankAccountErrors}
+                                    canDismissError
+                                />
+                            }
+                            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                        />
+                    }
                     isConfirmButtonDisabled={selectedOptions.length === 0}
                 />
             )}

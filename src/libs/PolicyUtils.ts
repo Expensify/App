@@ -214,7 +214,7 @@ function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRate
 /** Return admins from active policies */
 function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): MemberForList[] {
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
-    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin);
 
     if (!activePolicies) {
         return [];
