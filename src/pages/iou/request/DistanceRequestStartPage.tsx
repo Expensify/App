@@ -17,6 +17,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import Performance from '@libs/Performance';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -58,6 +59,7 @@ function DistanceRequestStartPage({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
 
+    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const tabTitles = {
@@ -95,6 +97,27 @@ function DistanceRequestStartPage({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
 
+    // This useEffect is used to initialize the money request, so that currency will be reset to default currency on page reload.
+    useEffect(() => {
+        if (transaction?.amount !== 0) {
+            return;
+        }
+        initMoneyRequest({
+            reportID,
+            policy,
+            isFromGlobalCreate,
+            currentIouRequestType: transaction?.iouRequestType,
+            newIouRequestType: transaction?.iouRequestType,
+            report,
+            parentReport,
+            currentDate,
+            lastSelectedDistanceRates,
+            currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
+        });
+        // eslint-disable-next-line
+    }, []);
+
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
             Keyboard.dismiss();
@@ -113,6 +136,7 @@ function DistanceRequestStartPage({
                 currentDate,
                 lastSelectedDistanceRates,
                 currentUserPersonalDetails,
+                hasOnlyPersonalPolicies,
             });
         },
         [
@@ -127,6 +151,7 @@ function DistanceRequestStartPage({
             currentUserPersonalDetails,
             isTrackDistanceExpense,
             policyForMovingExpenses,
+            hasOnlyPersonalPolicies,
         ],
     );
 

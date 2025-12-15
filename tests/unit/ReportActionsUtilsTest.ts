@@ -10,6 +10,7 @@ import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {getCardIssuedMessage, getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction} from '../../src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -1411,6 +1412,14 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
+
+        it("should return false for concierge categorize suggestion whisper message when the policy's category feature is disabled", () => {
+            const reportAction: ReportAction = {...createRandomReportAction(123), actionName: CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS};
+            const categoryFeatureDisabledPolicy = {...createRandomPolicy(1234), areCategoriesEnabled: false};
+
+            const result = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, categoryFeatureDisabledPolicy);
+            expect(result).toBe(false);
+        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {
@@ -1434,6 +1443,52 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(action);
             const expected = translateLocal('report.actions.type.updatedCustomField1', {email: formatPhoneNumber(email), newValue, previousValue});
             expect(actual).toBe(expected);
+        });
+
+        it('should concatenate multiple field changes when fields array is present', () => {
+            const email = 'employee@example.com';
+            const newRole = CONST.POLICY.ROLE.ADMIN;
+            const previousRole = CONST.POLICY.ROLE.USER;
+            const customFieldNewValue = '12';
+            const customFieldOldValue = '10';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    fields: [
+                        {
+                            field: CONST.CUSTOM_FIELD_KEYS.customField1,
+                            newValue: customFieldNewValue,
+                            oldValue: customFieldOldValue,
+                        },
+                        {
+                            field: 'role',
+                            newValue: newRole,
+                            oldValue: previousRole,
+                        },
+                    ],
+                },
+            };
+
+            const formattedEmail = formatPhoneNumber(email);
+            const expectedCustomFieldMessage = translateLocal('report.actions.type.updatedCustomField1', {
+                email: formattedEmail,
+                newValue: customFieldNewValue,
+                previousValue: customFieldOldValue,
+            });
+            const expectedRoleMessage = translateLocal('report.actions.type.updateRole', {
+                email: formattedEmail,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                newRole: translateLocal('workspace.common.roleName', {role: newRole}).toLowerCase(),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                currentRole: translateLocal('workspace.common.roleName', {role: previousRole}).toLowerCase(),
+            });
+
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(action);
+            expect(actual).toBe(`${expectedCustomFieldMessage}, ${expectedRoleMessage}`);
         });
     });
 
