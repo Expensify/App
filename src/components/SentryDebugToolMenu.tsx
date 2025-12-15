@@ -47,6 +47,7 @@ function HighlightedSpanOpsInput() {
         <View style={styles.mt4}>
             <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('initialSettingsPage.troubleshoot.sentryHighlightedSpanOps')}</Text>
             <TextInput
+                autoCapitalize="none"
                 accessibilityLabel={translate('initialSettingsPage.troubleshoot.sentryHighlightedSpanOps')}
                 value={inputValue}
                 onChangeText={handleChange}
