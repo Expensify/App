@@ -4901,7 +4901,7 @@ function clearDeleteTransactionNavigateBackUrl() {
 }
 
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
-function deleteAppReport(reportID: string | undefined, currentUserEmailParam: string, reportAllTransactions: Transaction[] = []) {
+function deleteAppReport(reportID: string | undefined, currentUserEmailParam: string, reportAllTransactions: Transaction[]) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
         return;

@@ -1,6 +1,6 @@
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxEntry} from 'react-native-onyx';
-import {filterOutDeprecatedReportActions, getSortedReportActions, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {filterOutDeprecatedReportActions, getSortedReportActions} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 
@@ -32,11 +32,4 @@ function getLastClosedReportAction(reportActions: OnyxEntry<ReportActions>): Ony
     return lodashFindLast(sortedReportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
 }
 
-/**
- * Selector to get money request actions from report actions
- */
-function getMoneyRequestActionsSelector(actions: OnyxEntry<ReportActions>): ReportAction[] {
-    return Object.values(actions ?? {}).filter(isMoneyRequestAction);
-}
-
-export {getParentReportActionSelector, getLastClosedReportAction, getMoneyRequestActionsSelector};
+export {getParentReportActionSelector, getLastClosedReportAction};
