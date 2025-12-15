@@ -251,11 +251,11 @@ function MoneyRequestReportPreviewContent({
                 if (isInvoiceReportUtils(iouReport)) {
                     payInvoice(type, chatReport, iouReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod, activePolicy);
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy);
+                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy, policy);
                 }
             }
         },
-        [isDelegateAccessRestricted, iouReport, chatReport, showDelegateNoAccessModal, startAnimation, introSelected, existingB2BInvoiceReport, activePolicy],
+        [isDelegateAccessRestricted, iouReport, chatReport, showDelegateNoAccessModal, startAnimation, introSelected, existingB2BInvoiceReport, activePolicy, policy],
     );
 
     const confirmApproval = () => {
