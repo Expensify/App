@@ -269,6 +269,6 @@ function WorkspaceCompanyCardsList({
     );
 }
 
-WorkspaceCompanyCardsList.displayName = 'WorkspaceCompanyCardsTable';
+WorkspaceCompanyCardsList.displayName = 'WorkspaceCompanyCardsList';
 
 export default WorkspaceCompanyCardsList;
