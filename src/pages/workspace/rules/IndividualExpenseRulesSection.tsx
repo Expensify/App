@@ -5,13 +5,14 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyCategoryAttendeesRequired} from '@libs/actions/Policy/Category';
-import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setPolicyRequireCompanyCardsEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -72,6 +73,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const [cardFeeds] = useCardFeeds(policyID);
     const {environmentURL} = useEnvironment();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
 
@@ -194,6 +196,8 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     });
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
+    const requireCompanyCardsEnabled = policy?.requireCompanyCardsEnabled ?? false;
+    const disableRequireCompanyCardToggle = Object.keys(cardFeeds ?? {}).length === 0;
 
     // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
     // Control policies if the policy does not contain the attribute
@@ -229,6 +233,19 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                         />
                     </OfflineWithFeedback>
                 ))}
+                <ToggleSettingOptionRow
+                    title={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    subtitle={translate('workspace.rules.individualExpenseRules.requireCompanyCardDescription')}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    disabled={disableRequireCompanyCardToggle}
+                    showLockIcon={disableRequireCompanyCardToggle}
+                    wrapperStyle={[styles.mt3]}
+                    titleStyle={styles.pv2}
+                    subtitleStyle={styles.pt1}
+                    isActive={requireCompanyCardsEnabled}
+                    pendingAction={policy?.pendingFields?.requireCompanyCardsEnabled}
+                    onToggle={() => (policy ? setPolicyRequireCompanyCardsEnabled(policy, !requireCompanyCardsEnabled) : undefined)}
+                />
 
                 <ToggleSettingOptionRow
                     title={translate('workspace.rules.individualExpenseRules.eReceipts')}
