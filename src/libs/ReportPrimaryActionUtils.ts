@@ -41,6 +41,7 @@ import {
     allHavePendingRTERViolation,
     getTransactionViolations,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    hasSmartScanFailedViolation,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
@@ -77,7 +78,16 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
 }
 
-function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, reportActions?: ReportAction[]) {
+function isSubmitAction(
+    report: Report,
+    reportTransactions: Transaction[],
+    policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
+    violations?: OnyxCollection<TransactionViolation[]>,
+    currentUserEmail?: string,
+    currentUserAccountID?: number,
+    reportActions?: ReportAction[],
+) {
     if (isArchivedReport(reportNameValuePairs)) {
         return false;
     }
@@ -100,6 +110,12 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 
     if (isAnyReceiptBeingScanned) {
         return false;
+    }
+
+    if (violations && currentUserEmail && currentUserAccountID !== undefined) {
+        if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+            return false;
+        }
     }
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
@@ -417,7 +433,8 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     if (isPrimaryMarkAsResolvedAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions)) {
+
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, violations, currentUserEmail, currentUserAccountID, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
