@@ -393,6 +393,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
         isSelected: participant.selected,
         selected: participant.selected, // Keep for backwards compatibility
         searchText: participant.searchText ?? undefined,
+        isSelfDM: !!detail?.accountID && detail?.accountID === currentUserAccountID,
     };
 }
 
