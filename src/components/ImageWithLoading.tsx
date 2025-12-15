@@ -1,14 +1,13 @@
 import delay from 'lodash/delay';
 import React, {useEffect, useRef, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
-import ActivityIndicator from './ActivityIndicator';
 import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
 import Image from './Image';
 import type {ImageObjectPosition, ImageOnLoadEvent, ImageProps} from './Image/types';
+import LoadingIndicator from './LoadingIndicator';
 
 type ImageWithSizeLoadingProps = {
     /** Any additional styles to apply */
@@ -109,9 +108,10 @@ function ImageWithLoading({
                 loadingIndicatorStyles={loadingIndicatorStyles}
             />
             {isLoading && !isImageCached && !isOffline && (
-                <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, styles.opacity1, styles.bgTransparent, loadingIndicatorStyles]}>
-                    <ActivityIndicator size={loadingIconSize ?? CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-                </View>
+                <LoadingIndicator
+                    style={[styles.opacity1, styles.bgTransparent, loadingIndicatorStyles]}
+                    size={loadingIconSize}
+                />
             )}
             {isLoading && shouldShowOfflineIndicator && !isImageCached && <AttachmentOfflineIndicator isPreview />}
         </View>

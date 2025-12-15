@@ -1,6 +1,5 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isExpiredSession} from '@libs/actions/Session';
@@ -160,9 +159,10 @@ function Image({
     }
     if (source === undefined) {
         return (
-            <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, loadingIndicatorStyles]}>
-                <ActivityIndicator size={loadingIconSize ?? CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-            </View>
+            <LoadingIndicator
+                style={loadingIndicatorStyles}
+                size={loadingIconSize}
+            />
         );
     }
 
