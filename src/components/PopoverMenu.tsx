@@ -321,6 +321,7 @@ function BasePopoverMenu({
                 );
             } else {
                 selectedItem.onSelected?.();
+                setFocusedIndex(-1);
             }
         } else {
             onItemSelected?.(selectedItem, index, event);
