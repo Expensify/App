@@ -210,8 +210,9 @@ function IOURequestStartPage({
             return;
         }
         setSelectedTab(lastSelectedTab);
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // We only want to update the selected tab when the loading state changes, so we don't want to run this effect when the lastSelectedTab changes
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingSelectedTab]);
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
