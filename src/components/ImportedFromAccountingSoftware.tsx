@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,7 +41,8 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const icon = getIntegrationIcon(connectedIntegration);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare'] as const);
+    const icon = getIntegrationIcon(connectedIntegration, expensifyIcons);
 
     if (!customTagName && shouldShow) {
         return null;
