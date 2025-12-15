@@ -13,3 +13,17 @@
 - E/App issue: https://github.com/Expensify/App/issues/74400
 - PR introducing patch: https://github.com/Expensify/App/pull/73525
 
+### [@rock-js+platform-android+0.11.9+002+use-zip-instead-admzip.patch](@rock-js+platform-android+0.11.9+002+use-zip-instead-admzip.patch)
+
+- Reason:
+
+    ```
+    Fixes bundle corruption in cache and re-sign flow by replacing AdmZip with native zip commands.
+    The AdmZip library was applying default compression when adding files, which corrupted artifacts (native libraries).
+    This caused INSTALL_FAILED_CONTAINER_ERROR with size/crc32 mismatch errors on second builds using cache.
+    The fix uses native zip commands with -0 flag (store-only compression) to prevent bundle corruption.
+    ```
+
+- Upstream PR/issue: https://github.com/callstackincubator/rock/pull/647
+- E/App issue: https://github.com/Expensify/App/issues/62296
+- PR introducing patch: https://github.com/Expensify/App/pull/76061
