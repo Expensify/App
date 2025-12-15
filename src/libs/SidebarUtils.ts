@@ -1046,8 +1046,8 @@ function getWelcomeMessage(
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             welcomeMessage.messageHtml = translateLocal(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
-                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
                 getPolicyName({report}),
+                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         }
