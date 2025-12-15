@@ -51,6 +51,19 @@ const triggerReconnectionCallbacks = throttle(
 );
 
 /**
+ * Refresh NetInfo state.
+ * Throttle reachability checks to avoid spamming PING requests
+ */
+const recheckNetworkConnection = throttle(
+    () => {
+        Log.info('[NetworkConnection] refresh NetInfo');
+        NetInfo.refresh();
+    },
+    CONST.NETWORK.MAX_PENDING_TIME_MS,
+    {leading: true, trailing: false},
+);
+
+/**
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
  * then all of the reconnection callbacks are triggered
  */
@@ -310,19 +323,6 @@ function clearReconnectionCallbacks() {
         delete reconnectionCallbacks[key];
     }
 }
-
-/**
- * Refresh NetInfo state.
- * Throttle reachability checks to avoid spamming PING requests
- */
-const recheckNetworkConnection = throttle(
-    () => {
-        Log.info('[NetworkConnection] refresh NetInfo');
-        NetInfo.refresh();
-    },
-    CONST.NETWORK.MAX_PENDING_TIME_MS,
-    { leading: true, trailing: false },
-);
 
 export default {
     clearReconnectionCallbacks,
