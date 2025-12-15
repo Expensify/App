@@ -97,7 +97,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction?.comment?.splitExpenses]);
     const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
 
-    const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
+    const currencySymbol = currencyList?.[transactionDetails?.currency ?? '']?.symbol ?? transactionDetails?.currency ?? CONST.CURRENCY.USD;
 
     const isPerDiem = isPerDiemRequest(transaction);
     const isCard = isManagedCardTransaction(transaction);
@@ -345,7 +345,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
         const warningMessage = shouldShowWarningMessage
-            ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency)})
+            ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails?.currency)})
             : '';
         return (
             <View ref={footerRef}>
@@ -368,7 +368,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             </View>
         );
-    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, footerRef]);
+    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails?.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, footerRef]);
 
     const initiallyFocusedOptionKey = useMemo(
         () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
