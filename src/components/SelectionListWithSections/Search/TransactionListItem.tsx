@@ -106,7 +106,13 @@ function TransactionListItem<TItem extends ListItem>({
             submittedColumnSize: transactionItem.shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             approvedColumnSize: transactionItem.shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
-    }, [transactionItem.isAmountColumnWide, transactionItem.isTaxAmountColumnWide, transactionItem.shouldShowYear, transactionItem.shouldShowYearSubmitted, transactionItem.shouldShowYearApproved]);
+    }, [
+        transactionItem.isAmountColumnWide,
+        transactionItem.isTaxAmountColumnWide,
+        transactionItem.shouldShowYear,
+        transactionItem.shouldShowYearSubmitted,
+        transactionItem.shouldShowYearApproved,
+    ]);
 
     const transactionViolations = useMemo(() => {
         return (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(

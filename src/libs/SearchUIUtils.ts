@@ -1560,7 +1560,11 @@ function getReportSections(
 ): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
-    const {shouldShowYearCreated: shouldShowYearCreatedTransaction, shouldShowYearSubmitted: shouldShowYearSubmittedTransaction, shouldShowYearApproved: shouldShowYearApprovedTransaction} = shouldShowYear(data);
+    const {
+        shouldShowYearCreated: shouldShowYearCreatedTransaction,
+        shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
+        shouldShowYearApproved: shouldShowYearApprovedTransaction,
+    } = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
     const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
 
@@ -1583,7 +1587,11 @@ function getReportSections(
     );
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
-    const {shouldShowYearCreated: shouldShowYearCreatedReport, shouldShowYearSubmitted: shouldShowYearSubmittedReport, shouldShowYearApproved: shouldShowYearApprovedReport} = shouldShowYear(data, true);
+    const {
+        shouldShowYearCreated: shouldShowYearCreatedReport,
+        shouldShowYearSubmitted: shouldShowYearSubmittedReport,
+        shouldShowYearApproved: shouldShowYearApprovedReport,
+    } = shouldShowYear(data, true);
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
