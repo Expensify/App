@@ -13081,9 +13081,6 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         });
     }
 
-    // Apply the report totals update immediately to ensure UI reflects the change before navigation
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`, {total: newTotal, unheldTotal: newUnheldTotal, unheldNonReimbursableTotal: newUnheldNonReimbursableTotal});
-
     API.write(WRITE_COMMANDS.MERGE_DUPLICATES, {...allParams, reportActionID: optimisticReportAction.reportActionID}, {optimisticData, failureData, successData});
 }
 
