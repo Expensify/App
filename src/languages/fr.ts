@@ -121,6 +121,7 @@ import type {
     FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
+    HarvestCreatedExpenseReportParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -263,6 +264,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -1017,6 +1020,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Seuls les administrateurs peuvent envoyer des messages dans cette salle.',
     reportAction: {
         asCopilot: 'en tant que copilote pour',
+        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+            `a créé ce rapport pour regrouper toutes les dépenses de <a href="${reportUrl}">${reportName}</a> qui n'ont pas pu être soumises selon la fréquence que vous avez choisie`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notifier tout le monde dans cette conversation',
@@ -1927,6 +1932,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Enregistrer les données de dépannage',
             softKillTheApp: 'Fermer l’application en douceur',
             kill: 'Tuer',
+            sentryDebug: 'Débogage Sentry',
+            sentryDebugDescription: 'Enregistrer les requêtes Sentry dans la console',
+            sentryHighlightedSpanOps: 'Noms de spans mis en valeur',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Enregistrer le journal',
@@ -6218,7 +6227,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 hotelIncidentals: 'Frais annexes d’hôtel',
                 gambling: 'Jeux d’argent',
                 tobacco: 'Tabac',
-                adultEntertainment: 'Divertissements pour adultes',
+                adultEntertainment: 'Divertissement pour adultes',
+                requireCompanyCard: 'Exiger des cartes d’entreprise pour tous les achats',
+                requireCompanyCardDescription: 'Marquez toutes les dépenses payées en espèces, y compris les frais kilométriques et les indemnités journalières.',
             },
             expenseReportRules: {
                 title: 'Avancé',
@@ -6456,6 +6467,12 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 return `a modifié la partie récupérable de la taxe sur le taux de distance « ${customUnitRateName} » en « ${newValue} » (auparavant « ${oldValue} »)`;
             }
             return `a ajouté une partie de taxe récupérable de « ${newValue} » au tarif de distance « ${customUnitRateName}`;
+        },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `a modifié l’index du tarif ${customUnitName} "${customUnitRateName}" à "${newValue}" ${oldValue ? `(auparavant "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'activé' : 'désactivé'} le tarif ${customUnitName} "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `a supprimé le taux « ${customUnitName} » « ${rateName} »`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `a ajouté le champ de rapport ${fieldType} « ${fieldName} »`,
@@ -7392,6 +7409,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         confirmDuplicatesInfo: `Les doublons que vous ne conservez pas seront mis de côté pour que l’expéditeur les supprime.`,
         hold: 'Cette dépense a été mise en attente',
         resolvedDuplicates: 'a résolu le doublon',
+        companyCardRequired: 'Achats avec carte d’entreprise requis',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} est requis`,

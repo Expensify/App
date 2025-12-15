@@ -33,6 +33,7 @@ import {
     getDeletedApprovalRuleMessage,
     getExportIntegrationMessageHTML,
     getForwardsToUpdateMessage,
+    getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
@@ -82,6 +83,7 @@ import {
     isActionableTrackExpense,
     isActionOfType,
     isCardIssuedAction,
+    isCreatedAction,
     isCreatedTaskReportAction,
     isDeletedAction as isDeletedActionReportActionsUtils,
     isMarkAsClosedAction,
@@ -102,6 +104,7 @@ import {
     isUnapprovedAction,
     isWhisperAction as isWhisperActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteReportAction,
     canEditReportAction,
@@ -120,7 +123,7 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
-    getReportName,
+    getReportName as getReportNameDeprecated,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
@@ -194,6 +197,7 @@ type ShouldShow = (args: {
     transactions?: OnyxCollection<Transaction>;
     moneyRequestReport?: OnyxEntry<ReportType>;
     moneyRequestPolicy?: OnyxEntry<Policy>;
+    isHarvestReport?: boolean;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -216,6 +220,7 @@ type ContextMenuActionPayload = {
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
+    isHarvestReport?: boolean;
     isTryNewDotNVPDismissed?: boolean;
     childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
@@ -224,6 +229,7 @@ type ContextMenuActionPayload = {
     policy?: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
+    harvestReport?: OnyxEntry<ReportType>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -471,7 +477,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
         icon: 'Bell',
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
@@ -479,6 +485,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
+            const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
             const shouldDisableJoinThread = shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
             return (
                 !subscribed &&
@@ -486,6 +493,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 !isTaskAction &&
                 !isExpenseReportAction &&
                 !isThreadReportParentAction &&
+                !isHarvestCreatedExpenseReportAction &&
                 !shouldDisableJoinThread &&
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
@@ -510,7 +518,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.leaveThread',
         icon: Expensicons.Exit,
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
@@ -518,12 +526,14 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
+            const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
             return (
                 subscribed &&
                 !isWhisperAction &&
                 !isTaskAction &&
                 !isExpenseReportAction &&
                 !isThreadReportParentAction &&
+                !isHarvestCreatedExpenseReportAction &&
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
@@ -604,6 +614,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 reportID,
                 card,
                 originalReport,
+                isHarvestReport,
                 isTryNewDotNVPDismissed,
                 movedFromReport,
                 movedToReport,
@@ -612,6 +623,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 policy,
                 policyTags,
                 translate,
+                harvestReport,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -654,7 +666,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    const logMessage = getMemberChangeMessageFragment(reportAction, getReportName).html ?? '';
+                    const logMessage = getMemberChangeMessageFragment(reportAction, getReportNameDeprecated).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
                     Clipboard.setString(Str.htmlDecode(getWorkspaceNameUpdatedMessage(reportAction)));
@@ -841,6 +853,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionableJoinRequest(reportAction)) {
                     const displayMessage = getJoinRequestMessage(reportAction);
                     Clipboard.setString(displayMessage);
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestReport) {
+                    const harvestReportName = getReportName(harvestReport);
+                    const displayMessage = getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate);
+                    setClipboardMessage(displayMessage);
                 } else if (content) {
                     setClipboardMessage(
                         content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {

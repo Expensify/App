@@ -16,6 +16,7 @@ import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
+import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/ReportActionsUtils';
@@ -56,6 +57,7 @@ import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
+    getHarvestOriginalReportID,
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
@@ -72,7 +74,6 @@ import {
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportStatusTranslation,
-    getReportURLForCurrentContext,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
     hasEmptyReportsForPolicy,
@@ -83,6 +84,7 @@ import {
     isChatUsedForOnboarding,
     isClosedExpenseReportWithNoExpenses,
     isDeprecatedGroupDM,
+    isHarvestCreatedExpenseReport,
     isMoneyRequestReportEligibleForMerge,
     isPayer,
     isReportOutstanding,
@@ -810,6 +812,20 @@ describe('ReportUtils', () => {
                 return IntlStore.load(CONST.LOCALES.ES).then(() =>
                     expect(computeReportName(archivedPolicyRoom, undefined, undefined, undefined, allReportNameValuePairs)).toBe('#VikingsChat (archivado)'),
                 );
+            });
+        });
+
+        describe('Harvest-created reports', () => {
+            test('detects harvest-created report from name value pairs', () => {
+                expect(isHarvestCreatedExpenseReport('harvest', '12345')).toBe(true);
+                expect(getHarvestOriginalReportID('harvest', '12345')).toBe('12345');
+            });
+
+            test('returns false when origin or originalID missing', () => {
+                expect(isHarvestCreatedExpenseReport(undefined, undefined)).toBe(false);
+                expect(isHarvestCreatedExpenseReport('harvest', undefined)).toBe(false);
+                expect(isHarvestCreatedExpenseReport(undefined, '123')).toBe(false);
+                expect(getHarvestOriginalReportID('harvest', undefined)).toBe(undefined);
             });
         });
 
@@ -8813,6 +8829,49 @@ describe('ReportUtils', () => {
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(123);
+        });
+
+        it('returns CONCIERGE for CREATED action when report is harvest-created', async () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                actorAccountID: 9999,
+            };
+
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: 'harvest-report-1',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {
+                origin: 'harvest',
+                originalID: 'orig-123',
+            });
+            await waitForBatchedUpdates();
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
+        it('returns reportAction.actorAccountID for CREATED action when not harvest-created', async () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                actorAccountID: 9999,
+            };
+
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: 'normal-report-2',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {});
+            await waitForBatchedUpdates();
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toBe(9999);
         });
     });
 
