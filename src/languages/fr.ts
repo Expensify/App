@@ -6767,6 +6767,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             },
         },
         columms: 'Columns',
+        resetColumns: 'Reset columns',
         noColumnsError: 'Please select at least one column before saving',
         statements: 'Relevés',
         unapprovedCash: 'Espèces non approuvées',

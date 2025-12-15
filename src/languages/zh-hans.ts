@@ -6590,6 +6590,7 @@ ${reportName}
             },
         },
         columms: 'Columns',
+        resetColumns: 'Reset columns',
         noColumnsError: 'Please select at least one column before saving',
         statements: '对账单',
         unapprovedCash: '未批准的现金',

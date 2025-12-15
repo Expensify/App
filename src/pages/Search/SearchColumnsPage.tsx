@@ -22,6 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 const allColumns = Object.values(CONST.SEARCH.CUSTOM_COLUMNS);
+const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE);
 
 function SearchColumnsPage() {
     const styles = useThemeStyles();
@@ -34,7 +35,7 @@ function SearchColumnsPage() {
 
         // We dont allow the user to unselect all columns, so we can assume that no columns = all columns/none configured yet
         if (!columnIds.length) {
-            return Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE);
+            return defaultColumns;
         }
 
         return columnIds;
@@ -52,7 +53,8 @@ function SearchColumnsPage() {
         },
     ];
 
-    const shouldShowResetColumns = false;
+    // JACK TODO
+    const shouldShowResetColumns = true;
 
     const onSelectItem = (item: ListItem) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
@@ -64,7 +66,9 @@ function SearchColumnsPage() {
         }
     };
 
-    const resetColumns = () => {};
+    const resetColumns = () => {
+        setSelectedColumnIds(defaultColumns);
+    };
 
     const applyChanges = () => {
         if (!selectedColumnIds.length) {

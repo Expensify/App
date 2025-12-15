@@ -6725,6 +6725,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             },
         },
         columms: 'Columns',
+        resetColumns: 'Reset columns',
         noColumnsError: 'Please select at least one column before saving',
         statements: 'Afschriften',
         unapprovedCash: 'Niet-goedgekeurde contanten',
