@@ -1,6 +1,6 @@
-type SetPolicyCompanyCardsEnabled = {
+type SetPolicyRequireCompanyCardsEnabled = {
     policyID: string;
     enabled: boolean;
 };
 
-export default SetPolicyCompanyCardsEnabled;
+export default SetPolicyRequireCompanyCardsEnabled;
