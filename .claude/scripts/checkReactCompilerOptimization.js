@@ -116,7 +116,34 @@ for (const imp of imports) {
 
 const {optimized} = runHealthcheck([...filesToCheck]);
 
+// Extract component/hook name from the input file
+const inputFileContent = fs.readFileSync(inputFile, 'utf8');
+
+// Try to find the exported component/hook name
+let inputComponentName = null;
+const functionMatch = inputFileContent.match(/(?:export\s+default\s+)?function\s+(\w+)/);
+const constMatch = inputFileContent.match(/(?:export\s+default\s+)?const\s+(\w+)\s*[=:]/);
+const exportDefaultMatch = inputFileContent.match(/export\s+default\s+(\w+)\s*;/);
+
+if (functionMatch) {
+    inputComponentName = functionMatch[1];
+} else if (constMatch) {
+    inputComponentName = constMatch[1];
+} else if (exportDefaultMatch) {
+    inputComponentName = exportDefaultMatch[1];
+}
+
 const result = {};
+
+// Add the input file (parent) to result first
+if (inputComponentName) {
+    result[`${inputComponentName} (this file)`] = {
+        optimized: optimized.has(inputComponentName),
+        path: path.resolve(inputFile),
+    };
+}
+
+// Add imported components (children)
 for (const imp of imports) {
     const resolvedPath = importToResolved.get(imp.name);
     if (resolvedPath) {
