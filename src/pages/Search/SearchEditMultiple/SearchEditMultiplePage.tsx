@@ -24,8 +24,8 @@ function SearchEditMultiplePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {selectedTransactions, selectedTransactionIDs} = useSearchContext();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: true});
 
     // Determine policyID based on context:

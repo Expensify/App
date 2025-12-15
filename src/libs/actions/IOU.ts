@@ -15247,8 +15247,9 @@ function updateMultipleMoneyRequests(transactionIDs: string[], transactionChange
         // Pending fields for the transaction
         const pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
         const clearedPendingFields = getClearedPendingFields(transactionChanges);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
+
         const errorFields = Object.fromEntries(
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]),
         );
 

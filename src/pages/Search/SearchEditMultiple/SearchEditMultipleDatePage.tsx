@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isValidDate} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SearchEditMultipleDateForm';
@@ -27,12 +27,12 @@ function SearchEditMultipleDatePage() {
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM> = {};
             const dateValue = value.date;
-            if (dateValue && !ValidationUtils.isValidDate(dateValue)) {
+            if (dateValue && !isValidDate(dateValue)) {
                 errors.date = translate('common.error.dateInvalid');
             }
             return errors;
         },
-        [translate],
+        [translate, isValidDate],
     );
 
     const saveDate = useCallback((value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM>) => {

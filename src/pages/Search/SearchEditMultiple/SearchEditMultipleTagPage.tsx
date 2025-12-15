@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function SearchEditMultipleTagPage() {
     const {translate} = useLocalize();
     const {selectedTransactions} = useSearchContext();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: true});
 
     // Determine policyID based on context
@@ -34,7 +34,7 @@ function SearchEditMultipleTagPage() {
         return activePolicyID;
     }, [selectedTransactions, activePolicyID]);
 
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID ?? '-1'}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
 
     const currentTag = draftTransaction?.tag ?? '';
 
