@@ -2272,6 +2272,37 @@ describe('actions/IOU', () => {
                 isFirstQuickAction: false,
             });
         });
+
+        it('merges policyRecentlyUsedCurrencies into recently used currencies', async () => {
+            const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.EUR];
+            await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
+
+            createDistanceRequest({
+                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
+                iouType: CONST.IOU.TYPE.SPLIT,
+                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionParams: {
+                    amount: 1,
+                    attendees: [],
+                    currency: CONST.CURRENCY.GBP,
+                    created: '',
+                    merchant: '',
+                    comment: '',
+                    validWaypoints: {},
+                },
+                isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: initialCurrencies,
+            });
+
+            await waitForBatchedUpdates();
+
+            const recentlyUsedCurrencies = await getOnyxValue(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+            expect(recentlyUsedCurrencies).toEqual([CONST.CURRENCY.GBP, ...initialCurrencies]);
+        });
     });
     describe('split expense', () => {
         it('creates and updates new chats and IOUs as needed', () => {
@@ -2853,6 +2884,32 @@ describe('actions/IOU', () => {
                 action: CONST.QUICK_ACTIONS.SPLIT_MANUAL,
                 isFirstQuickAction: false,
             });
+        });
+
+        it('merges policyRecentlyUsedCurrencies when splitting a bill', async () => {
+            const initialCurrencies = [CONST.CURRENCY.USD];
+            await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
+
+            splitBill({
+                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                comment: '',
+                amount: 100,
+                currency: CONST.CURRENCY.EUR,
+                merchant: 'test',
+                created: '',
+                existingSplitChatReportID: '',
+                isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: initialCurrencies,
+            });
+
+            await waitForBatchedUpdates();
+
+            const recentlyUsedCurrencies = await getOnyxValue(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+            expect(recentlyUsedCurrencies).toEqual([CONST.CURRENCY.EUR, ...initialCurrencies]);
         });
 
         it('should update split chat report lastVisibleActionCreated to the latest IOU action when split bill in a DM', async () => {
