@@ -49,6 +49,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 import getDecodedContactMethodFromUriParam from './utils';
 
 type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
+
 function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
@@ -59,29 +60,35 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+
     const {formatPhoneNumber, translate} = useLocalize();
     const themeStyles = useThemeStyles();
+
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const backTo = route.params.backTo;
     /**
      * Gets the current contact method from the route params
      */
     const contactMethod: string = useMemo(() => getDecodedContactMethodFromUriParam(route.params.contactMethod), [route.params.contactMethod]);
+
     const loginDataRef = useRef<Login | undefined>(undefined);
     const loginData = useMemo(() => {
         // eslint-disable-next-line react-compiler/react-compiler
         loginDataRef.current = loginList?.[contactMethod];
         return loginList?.[contactMethod];
     }, [loginList, contactMethod]);
+
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
+
     /**
      * Attempt to set this contact method as user's "Default contact method"
      */
     const setAsDefault = useCallback(() => {
         setContactMethodAsDefault(contactMethod, formatPhoneNumber, backTo);
     }, [contactMethod, backTo, formatPhoneNumber]);
+
     /**
      * Checks if the user is allowed to change their default contact method. This should only be allowed if:
      * 1. The viewed contact method is not already their default contact method
@@ -95,13 +102,16 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         if (isDefaultContactMethod || !loginData?.validatedDate) {
             return false;
         }
+
         const domainName = Str.extractEmailDomain(session?.email ?? '');
         const primaryDomainSecurityGroupID = myDomainSecurityGroups?.[domainName];
+
         // If there's no security group associated with the user for the primary domain,
         // default to allowing the user to change their default contact method.
         if (!primaryDomainSecurityGroupID) {
             return true;
         }
+
         // Allow user to change their default contact method if they don't have a security group OR if their security group
         // does NOT restrict primary login switching.
         return !securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`]?.enableRestrictedPrimaryLogin;
@@ -113,13 +123,16 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
+
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
+
     useEffect(() => {
         setIsValidateCodeFormVisible(!loginData?.validatedDate);
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
+
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!loginData?.partnerUserID || loginData?.validatedDate || prevPendingDeletedLogin) {
@@ -180,9 +193,11 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         }
         return menuItems;
     }, [isValidateCodeFormVisible, translate, turnOnDeleteModal, isDefaultContactMethod]);
+
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
     }
+
     if (!contactMethod || !loginData) {
         return (
             <ScreenWrapper testID={ContactMethodDetailsPage.displayName}>
@@ -195,6 +210,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             </ScreenWrapper>
         );
     }
+
     // Replacing spaces with "hard spaces" to prevent breaking the number
     const formattedContactMethod = Str.isSMSLogin(contactMethod) ? formatPhoneNumber(contactMethod) : contactMethod;
     const hasMagicCodeBeenSent = !!loginData.validateCodeSent;
@@ -248,6 +264,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             )}
         </>
     );
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -332,10 +349,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />
                 )}
+
                 {!isValidateCodeFormVisible && !!loginData.validatedDate && getMenuItems()}
             </ScrollView>
         </ScreenWrapper>
     );
 }
+
 ContactMethodDetailsPage.displayName = 'ContactMethodDetailsPage';
+
 export default ContactMethodDetailsPage;
