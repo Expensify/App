@@ -166,7 +166,7 @@ type ListItem<K extends string | number = string> = {
     icons?: Icon[];
 
     /** Errors that this user may contain */
-    errors?: Errors;
+    errors?: Errors | ReceiptErrors;
 
     /** The type of action that's pending  */
     pendingAction?: PendingAction;

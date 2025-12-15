@@ -107,14 +107,14 @@ function handleActionButtonPress(
                 onDEWModalOpen?.();
                 return;
             }
-            approveMoneyRequestOnSearch(hash, [item.reportID], currentSearchKey);
+            approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (hasDynamicExternalWorkflow(snapshotPolicy)) {
                 onDEWModalOpen?.();
                 return;
             }
-            submitMoneyRequestOnSearch(hash, [item], [snapshotPolicy], currentSearchKey);
+            submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], currentSearchKey);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -129,7 +129,7 @@ function handleActionButtonPress(
                 return;
             }
 
-            exportToIntegrationOnSearch(hash, item.reportID, connectedIntegration, currentSearchKey);
+            exportToIntegrationOnSearch(hash, item?.reportID, connectedIntegration, currentSearchKey);
             return;
         }
         default:
@@ -193,6 +193,10 @@ function getPayActionCallback(
     currentSearchKey?: SearchKey,
 ) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod, getReportType(item.reportID));
+
+    if (!item.reportID) {
+        return;
+    }
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
@@ -553,7 +557,10 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, successData});
 }
 
-function exportToIntegrationOnSearch(hash: number, reportID: string, connectionName: ConnectionName, currentSearchKey?: SearchKey) {
+function exportToIntegrationOnSearch(hash: number, reportID: string | undefined, connectionName: ConnectionName, currentSearchKey?: SearchKey) {
+    if (!reportID) {
+        return;
+    }
     const optimisticAction = buildOptimisticExportIntegrationAction(connectionName);
     const successAction: OptimisticExportIntegrationAction = {...optimisticAction, pendingAction: null};
     const optimisticReportActionID = optimisticAction.reportActionID;
@@ -980,7 +987,9 @@ function shouldShowBulkOptionForRemainingTransactions(selectedTransactions: Sele
     if (!selectedTransactions || isEmpty(selectedTransactions)) {
         return true;
     }
-    const neededFilterTransactions = transactionKeys?.filter((transactionIDKey) => !selectedReportIDs?.includes(selectedTransactions[transactionIDKey].reportID));
+    const neededFilterTransactions = transactionKeys?.filter(
+        (transactionIDKey) => selectedTransactions[transactionIDKey]?.reportID && !selectedReportIDs?.includes(selectedTransactions[transactionIDKey]?.reportID),
+    );
     if (!neededFilterTransactions?.length) {
         return true;
     }

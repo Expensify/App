@@ -123,7 +123,7 @@ function mapTransactionItemToSelectedEntry(
             ),
             action: item.action,
             groupCurrency: item.groupCurrency,
-            reportID: item.reportID,
+            reportID: item?.reportID,
             policyID: item.report?.policyID,
             amount: item.modifiedAmount ?? item.amount,
             groupAmount: item.groupAmount,
@@ -216,6 +216,7 @@ function prepareTransactionsList(
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             amount: Math.abs(item.modifiedAmount || item.amount),
             groupAmount: item.groupAmount,
             groupCurrency: item.groupCurrency,
