@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 const allColumns = Object.values(CONST.SEARCH.CUSTOM_COLUMNS);
-const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE);
+const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
 
 function SearchColumnsPage() {
     const styles = useThemeStyles();

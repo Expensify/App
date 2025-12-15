@@ -6707,7 +6707,7 @@ const CONST = {
         },
         get DEFAULT_COLUMNS() {
             return {
-                EXPENSE: [
+                EXPENSE_REPORT: [
                     this.CUSTOM_COLUMNS.DATE,
                     this.CUSTOM_COLUMNS.STATUS,
                     this.CUSTOM_COLUMNS.TITLE,

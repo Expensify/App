@@ -2565,10 +2565,10 @@ function getColumnsToShow(
         }
     };
 
-    const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE);
+    const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
 
     // If the user has set custom columns, we only need to control the visibility of those
-    if (!arraysEqual(defaultColumns, visibleColumns)) {
+    if (!arraysEqual(defaultColumns, visibleColumns) && visibleColumns.length > 0) {
         for (const column of Object.keys(columns)) {
             columns[column as keyof ColumnVisibility] = false;
         }
