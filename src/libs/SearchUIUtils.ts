@@ -1101,7 +1101,7 @@ function getTransactionsSections(
             const from = reportAction?.actorAccountID ? (personalDetailsMap.get(reportAction.actorAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
                 from,
                 to,
@@ -1126,6 +1126,7 @@ function getTransactionsSections(
                 formattedTotal,
                 formattedMerchant,
                 date,
+                submitted,
                 shouldShowMerchant,
                 shouldShowYear: doesDataContainAPastYearTransaction,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
@@ -1914,7 +1915,7 @@ function getSortedTransactionData(data: TransactionListItemType[], localeCompare
     return data.sort((a, b) => {
         const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty as keyof TransactionListItemType];
         const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty as keyof TransactionListItemType];
-
+        console.log('sortingProperty', {sortingProperty, aValue, bValue, a, b});
         return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
     });
 }
