@@ -6,8 +6,8 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SelectionList from '@components/SelectionListWithSections';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -135,7 +135,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const sections = [
         {
             title: undefined,
-            data: adminsList,
+            data: adminsList ?? [],
             shouldShow: true,
         },
     ];
@@ -165,54 +165,53 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                     />
                 </ScrollView>
             ) : (
-                <SelectionList
-                    canSelectMultiple
-                    textInputLabel={textInputLabel}
-                    textInputValue={searchTerm}
-                    onChangeText={setSearchTerm}
-                    sections={sections}
-                    onSelectAll={toggleSelectAll}
-                    selectAllStyle={styles.mutedNormalTextLabel}
-                    headerContent={<Text style={[styles.ph5, styles.pb3]}>{translate('walletPage.shareBankAccountTitle')}</Text>}
-                    shouldShowTextInputAfterHeader
-                    shouldUpdateFocusedIndex
-                    shouldShowHeaderMessageAfterHeader
-                    headerMessage={headerMessage}
-                    listEmptyContent={
-                        <BlockingView
-                            icon={illustrations.Telescope}
-                            iconWidth={variables.emptyListIconWidth}
-                            iconHeight={variables.emptyListIconHeight}
-                            title={translate('walletPage.shareBankAccountEmptyTitle')}
-                            subtitle={translate('walletPage.shareBankAccountEmptyDescription')}
-                        />
-                    }
-                    ListItem={UserListItem}
-                    shouldUseDefaultRightHandSideCheckmark
-                    onSelectRow={toggleOption}
-                    onConfirm={handleConfirm}
-                    footerContent={
-                        <FormAlertWithSubmitButton
-                            isLoading={isLoading}
-                            message={translate('walletPage.shareBankAccountNoAdminsSelected')}
-                            isAlertVisible={isAlertVisible}
-                            shouldRenderFooterAboveSubmit
-                            isDisabled={!admins?.length}
-                            buttonText={translate('common.share')}
-                            onSubmit={handleConfirm}
-                            footerContent={
-                                <ErrorMessageRow
-                                    errors={sharedBankAccountData?.errors}
-                                    errorRowStyles={[styles.mv3]}
-                                    onClose={clearShareBankAccountErrors}
-                                    canDismissError
-                                />
-                            }
-                            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                        />
-                    }
-                    isConfirmButtonDisabled={selectedOptions.length === 0}
-                />
+                <>
+                    <Text style={[styles.ph5, styles.pb3]}>{translate('walletPage.shareBankAccountTitle')}</Text>
+                    <SelectionList
+                        canSelectMultiple
+                        textInputOptions={{
+                            headerMessage,
+                            value: searchTerm,
+                            label: textInputLabel,
+                            onChangeText: setSearchTerm,
+                        }}
+                        data={adminsList}
+                        onSelectAll={toggleSelectAll}
+                        shouldUpdateFocusedIndex
+                        listEmptyContent={
+                            <BlockingView
+                                icon={illustrations.Telescope}
+                                iconWidth={variables.emptyListIconWidth}
+                                iconHeight={variables.emptyListIconHeight}
+                                title={translate('walletPage.shareBankAccountEmptyTitle')}
+                                subtitle={translate('walletPage.shareBankAccountEmptyDescription')}
+                            />
+                        }
+                        ListItem={UserListItem}
+                        shouldUseDefaultRightHandSideCheckmark
+                        onSelectRow={toggleOption}
+                        footerContent={
+                            <FormAlertWithSubmitButton
+                                isLoading={isLoading}
+                                message={translate('walletPage.shareBankAccountNoAdminsSelected')}
+                                isAlertVisible={isAlertVisible}
+                                shouldRenderFooterAboveSubmit
+                                isDisabled={!admins?.length || selectedOptions.length === 0}
+                                buttonText={translate('common.share')}
+                                onSubmit={handleConfirm}
+                                footerContent={
+                                    <ErrorMessageRow
+                                        errors={sharedBankAccountData?.errors}
+                                        errorRowStyles={[styles.mv3]}
+                                        onClose={clearShareBankAccountErrors}
+                                        canDismissError
+                                    />
+                                }
+                                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                            />
+                        }
+                    />
+                </>
             )}
         </ScreenWrapper>
     );
