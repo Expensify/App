@@ -307,6 +307,7 @@ function SearchFiltersBar({
             // If the type has changed, reset the status so we dont have an invalid status selected
             if (updatedFilterFormValues.type !== filterFormValues.type) {
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                updatedFilterFormValues.columns = [];
             }
 
             const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
