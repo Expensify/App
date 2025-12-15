@@ -3071,6 +3071,7 @@ ${
             fullName: '请输入有效的全名',
             ownershipPercentage: '请输入有效的百分比数字',
             deletePaymentBankAccount: '此银行账户无法删除，因为它被用于 Expensify Card 付款。如果你仍然想删除此账户，请联系 Concierge。',
+            sameDepositAndWithdrawalAccount: '存款和取款账户相同。',
         },
     },
     addPersonalBankAccount: {
