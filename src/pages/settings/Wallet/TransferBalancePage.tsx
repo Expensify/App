@@ -34,8 +34,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-// eslint-disable-next-line unicorn/prefer-set-has
-const TRANSFER_TIER_NAMES: string[] = [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM];
+const TRANSFER_TIER_NAMES = new Set<string>([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM]);
 
 function TransferBalancePage() {
     const styles = useThemeStyles();
@@ -145,7 +144,7 @@ function TransferBalancePage() {
     const isButtonDisabled = !isTransferable || !selectedAccount;
     const errorMessage = getLatestErrorMessage(walletTransfer);
 
-    const shouldShowTransferView = hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && TRANSFER_TIER_NAMES.includes(userWallet?.tierName ?? '');
+    const shouldShowTransferView = hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && TRANSFER_TIER_NAMES.has(userWallet?.tierName ?? '');
 
     return (
         <ScreenWrapper

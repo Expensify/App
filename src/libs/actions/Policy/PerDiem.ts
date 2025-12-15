@@ -181,9 +181,9 @@ function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void) {
     const fileName = 'PerDiem.csv';
 
     const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(finalParameters)) {
         formData.append(key, String(value));
-    });
+    }
 
     fileDownload(getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }

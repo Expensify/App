@@ -153,6 +153,24 @@ describe('IOUUtils', () => {
             expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD', true)).toBe(34);
             expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD')).toBe(33);
         });
+
+        describe('calculateAmount - floorToLast rounding', () => {
+            beforeAll(() => initCurrencyList());
+
+            test('Positive total: remainder added entirely to default user', () => {
+                // $10.00 among 3 -> base 3.33, remainder 0.01 -> default gets 3.34
+                const numberOfSplits = 2; // total participants = 3
+                expect(IOUUtils.calculateAmount(numberOfSplits, 1000, 'USD', true, true)).toBe(334);
+                expect(IOUUtils.calculateAmount(numberOfSplits, 1000, 'USD', false, true)).toBe(333);
+            });
+
+            test('Negative total: use ceil to move toward zero and remainder applied to default user', () => {
+                // -$10.00 among 3 -> base -3.33 (ceil to -3333 subunits), remainder -0.01 -> default -3.34
+                const numberOfSplits = 2;
+                expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', true, true)).toBe(-334);
+                expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', false, true)).toBe(-333);
+            });
+        });
     });
 
     describe('insertTagIntoTransactionTagsString', () => {
@@ -184,9 +202,9 @@ describe('IOUUtils', () => {
 
 describe('isValidMoneyRequestType', () => {
     test('Return true for valid iou type', () => {
-        Object.values(CONST.IOU.TYPE).forEach((iouType) => {
+        for (const iouType of Object.values(CONST.IOU.TYPE)) {
             expect(IOUUtils.isValidMoneyRequestType(iouType)).toBe(true);
-        });
+        }
     });
 
     test('Return false for invalid iou type', () => {
@@ -230,7 +248,7 @@ describe('hasRTERWithoutViolation', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(hasAnyTransactionWithoutRTERViolation([transactionWithoutViolation, transactionWithViolation], violations)).toBe(true);
+        expect(hasAnyTransactionWithoutRTERViolation([transactionWithoutViolation, transactionWithViolation], violations, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined)).toBe(true);
     });
 
     test('Return false if there is no rter without violation in all transactionViolations with given transactionIDs.', async () => {
@@ -259,7 +277,7 @@ describe('hasRTERWithoutViolation', () => {
         };
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
-        expect(hasAnyTransactionWithoutRTERViolation([transactionWithViolation], violations)).toBe(false);
+        expect(hasAnyTransactionWithoutRTERViolation([transactionWithViolation], violations, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined)).toBe(false);
     });
 });
 
@@ -319,7 +337,7 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
+        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '')).toBe(true);
     });
 
     test('Return true if report can be submitted after being reopened', async () => {
@@ -383,7 +401,7 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
+        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '')).toBe(true);
     });
 
     test('Return false if report can not be submitted', async () => {
@@ -402,7 +420,7 @@ describe('canSubmitReport', () => {
             policyID: fakePolicy.id,
         };
 
-        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, false)).toBe(false);
+        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, false, '')).toBe(false);
     });
 
     it('returns false if the report is archived', async () => {
@@ -427,7 +445,7 @@ describe('canSubmitReport', () => {
 
         // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current)).toBe(false);
+        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current, '')).toBe(false);
     });
 });
 

@@ -13,12 +13,8 @@ function useHandleSelectionMode<TItem extends ListItem>(selectedItems: string[] 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     // Check if selection should be on when the modal is opened
     const wasSelectionOnRef = useRef(false);
-    // Keep track of the number of selected items to determine if we should turn off selection mode
-    const selectionRef = useRef(0);
 
     useEffect(() => {
-        selectionRef.current = selectedItems.length;
-
         if (!isSmallScreenWidth) {
             if (selectedItems.length === 0 && isMobileSelectionModeEnabled) {
                 turnOffMobileSelectionMode();
@@ -38,15 +34,7 @@ function useHandleSelectionMode<TItem extends ListItem>(selectedItems: string[] 
         }
     }, [isMobileSelectionModeEnabled, isSmallScreenWidth, isFocused, selectedItems.length]);
 
-    useEffect(
-        () => () => {
-            if (selectionRef.current !== 0) {
-                return;
-            }
-            turnOffMobileSelectionMode();
-        },
-        [],
-    );
+    useEffect(() => () => turnOffMobileSelectionMode(), []);
 }
 
 export default useHandleSelectionMode;

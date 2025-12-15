@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+import {isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -24,12 +24,14 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
 
     return useMemo(
         () =>
-            transactionViolations.filter(
-                (violation: TransactionViolation) =>
-                    !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '') &&
-                    shouldShowViolation(iouReport, policy, violation.name, currentUserDetails.email ?? '', shouldShowRterForSettledReport),
+            mergeProhibitedViolations(
+                transactionViolations.filter(
+                    (violation: TransactionViolation) =>
+                        !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, iouReport, policy) &&
+                        shouldShowViolation(iouReport, policy, violation.name, currentUserDetails.email ?? '', shouldShowRterForSettledReport),
+                ),
             ),
-        [transaction, transactionViolations, iouReport, policy, shouldShowRterForSettledReport, currentUserDetails.email],
+        [transaction, transactionViolations, iouReport, policy, shouldShowRterForSettledReport, currentUserDetails.email, currentUserDetails.accountID],
     );
 }
 

@@ -1,7 +1,8 @@
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ColorValue} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -16,8 +17,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
+import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
+import type {Policy, Report} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -108,6 +109,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
 
     const {total, currency} = useMemo(() => {
         let reportTotal = reportItem.total ?? 0;
@@ -180,7 +182,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         action={reportItem.action}
                         goToItem={handleOnButtonPress}
                         isSelected={reportItem.isSelected}
-                        isLoading={reportItem.isActionLoading}
+                        isLoading={isActionLoading}
                         policyID={reportItem.policyID}
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}
@@ -217,12 +219,12 @@ function ReportListItemHeader<TItem extends ListItem>({
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const snapshotReport = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
     }, [snapshot, reportItem.reportID]);
     const snapshotPolicy = useMemo(() => {
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, reportItem.policyID]);
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const avatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
         theme.highlightBG;
@@ -232,12 +234,13 @@ function ReportListItemHeader<TItem extends ListItem>({
             currentSearchHash,
             reportItem,
             () => onSelectRow(reportItem as unknown as TItem),
-            shouldUseNarrowLayout && !!canSelectMultiple,
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
         );
     };
     return !isLargeScreenWidth ? (
@@ -247,6 +250,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 handleActionButtonPress={handleOnButtonPress}
                 shouldShowUserInfo={showUserInfo}
                 containerStyles={[styles.pr3, styles.mb2]}
+                isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
             />
             <HeaderFirstRow
                 report={reportItem}

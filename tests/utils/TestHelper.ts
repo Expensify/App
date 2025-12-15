@@ -316,7 +316,9 @@ function getGlobalFetchMock(): typeof fetch {
     mockFetch.pause = () => (isPaused = true);
     mockFetch.resume = () => {
         isPaused = false;
-        queue.forEach(({resolve, input}) => resolve(getResponse(input)));
+        for (const {resolve, input} of queue) {
+            resolve(getResponse(input));
+        }
         return waitForBatchedUpdates();
     };
     mockFetch.fail = () => (shouldFail = true);

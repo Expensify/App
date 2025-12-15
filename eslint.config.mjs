@@ -272,6 +272,17 @@ const config = defineConfig([
             'rulesdir/prefer-underscore-method': 'off',
             'rulesdir/prefer-import-module-contents': 'off',
             'rulesdir/no-beta-handler': 'error',
+            'rulesdir/prefer-narrow-hook-dependencies': [
+                'error',
+                {
+                    stableObjectPatterns: [
+                        // cSpell:ignore tyles
+                        '[Ss]tyles?$', // Excludes 'style', 'styles', 'themeStyles', etc.
+                        '^theme', // Excludes 'theme', 'themeStyles', 'themeIllustrations', etc.
+                        '[Ii]cons?$', // Excludes 'icon', 'icons', 'expensifyIcons', etc.
+                    ],
+                },
+            ],
 
             // React and React Native specific rules
             'react-native-a11y/has-accessibility-hint': ['off'],
@@ -554,6 +565,14 @@ const config = defineConfig([
                         'The `backTo` route param is deprecated. Do not add new `backTo` properties to screen param lists. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead.',
                 },
             ],
+        },
+    },
+
+    {
+        files: ['src/**/*'],
+        ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
+        rules: {
+            'max-lines': ['error', 4000],
         },
     },
 

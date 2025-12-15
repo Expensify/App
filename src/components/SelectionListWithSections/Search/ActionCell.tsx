@@ -1,12 +1,13 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -28,7 +29,6 @@ import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
-    review: 'common.review',
     submit: 'common.submit',
     approve: 'iou.approve',
     pay: 'iou.pay',
@@ -50,6 +50,7 @@ type ActionCellProps = {
     hash?: number;
     amount?: number;
     extraSmall?: boolean;
+    shouldDisablePointerEvents?: boolean;
 };
 
 function ActionCell({
@@ -65,17 +66,20 @@ function ActionCell({
     hash,
     amount,
     extraSmall = false,
+    shouldDisablePointerEvents,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Checkbox'] as const);
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`, {canBeMissing: true});
-    const canBePaid = canIOUBePaid(iouReport, chatReport, policy, transactions, false, undefined, undefined, true);
-    const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(iouReport, chatReport, policy, transactions, true, undefined, undefined, true);
+    const canBePaid = canIOUBePaid(iouReport, chatReport, policy, transactions, false);
+    const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(iouReport, chatReport, policy, transactions, true);
     const text = isChildListItem ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
 
@@ -86,18 +90,28 @@ function ActionCell({
             if (!type || !reportID || !hash || !amount) {
                 return;
             }
+
+            if (isDelegateAccessRestricted) {
+                showDelegateNoAccessModal();
+                return;
+            }
+
             const invoiceParams = getPayMoneyOnSearchInvoiceParams(policyID, payAsBusiness, methodID, paymentMethod);
             payMoneyRequestOnSearch(hash, [{amount, paymentType: type, reportID, ...(isInvoiceReport(iouReport) ? invoiceParams : {})}]);
         },
-        [reportID, hash, amount, policyID, iouReport],
+        [reportID, hash, amount, policyID, iouReport, isDelegateAccessRestricted, showDelegateNoAccessModal],
     );
 
     if (!isChildListItem && ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE)) {
         return (
-            <View style={[StyleUtils.getHeight(variables.h20), styles.justifyContentCenter]}>
+            <View
+                style={[StyleUtils.getHeight(variables.h20), styles.justifyContentCenter, shouldDisablePointerEvents && styles.pointerEventsNone]}
+                accessible={!shouldDisablePointerEvents}
+                accessibilityState={{disabled: shouldDisablePointerEvents}}
+            >
                 <Badge
                     text={text}
-                    icon={action === CONST.SEARCH.ACTION_TYPES.DONE ? Expensicons.Checkbox : Expensicons.Checkmark}
+                    icon={action === CONST.SEARCH.ACTION_TYPES.DONE ? expensifyIcons.Checkbox : expensifyIcons.Checkmark}
                     badgeStyles={[
                         styles.ml0,
                         styles.ph2,
@@ -116,7 +130,7 @@ function ActionCell({
         );
     }
 
-    if (action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.REVIEW || shouldUseViewAction || isChildListItem) {
+    if (action === CONST.SEARCH.ACTION_TYPES.VIEW || shouldUseViewAction || isChildListItem) {
         const buttonInnerStyles = isSelected ? styles.buttonDefaultSelected : {};
 
         return isLargeScreenWidth ? (
@@ -126,13 +140,12 @@ function ActionCell({
                 onPress={goToItem}
                 small={!extraSmall}
                 extraSmall={extraSmall}
-                style={[styles.w100]}
+                style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
+                isDisabled={shouldDisablePointerEvents}
+                shouldStayNormalOnDisable={shouldDisablePointerEvents}
                 innerStyles={buttonInnerStyles}
                 link={isChildListItem}
                 shouldUseDefaultHover={!isChildListItem}
-                icon={!isChildListItem && action === CONST.SEARCH.ACTION_TYPES.REVIEW ? Expensicons.DotIndicator : undefined}
-                iconFill={theme.danger}
-                iconHoverFill={theme.dangerHover}
                 isNested
             />
         ) : null;
@@ -152,10 +165,11 @@ function ActionCell({
                     chatReportID={iouReport?.chatReportID}
                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                     onPress={(type, payAsBusiness, methodID, paymentMethod) => confirmPayment(type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, payAsBusiness, methodID, paymentMethod)}
-                    style={[styles.w100]}
+                    style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
                     wrapperStyle={[styles.w100]}
                     shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
-                    isDisabled={isOffline}
+                    isDisabled={isOffline || shouldDisablePointerEvents}
+                    shouldStayNormalOnDisable={shouldDisablePointerEvents}
                     isLoading={isLoading}
                     onlyShowPayElsewhere={shouldOnlyShowElsewhere}
                 />
@@ -169,10 +183,11 @@ function ActionCell({
             onPress={goToItem}
             small={!extraSmall}
             extraSmall={extraSmall}
-            style={[styles.w100]}
+            style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
             isLoading={isLoading}
             success
-            isDisabled={isOffline}
+            isDisabled={isOffline || shouldDisablePointerEvents}
+            shouldStayNormalOnDisable={shouldDisablePointerEvents}
             isNested
         />
     );

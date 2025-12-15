@@ -5,6 +5,10 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
+type TagSelectionParams = {
+    policyTagListName?: string;
+};
+
 type AddressLineParams = {
     lineNumber: number;
 };
@@ -83,6 +87,10 @@ type BeginningOfChatHistoryPolicyExpenseChatParams = {
 type BeginningOfChatHistoryInvoiceRoomParams = {
     invoicePayer: string;
     invoiceReceiver: string;
+};
+
+type BeginningOfChatHistoryParams = {
+    users: string;
 };
 
 type LearnMoreRouteParams = {
@@ -326,15 +334,15 @@ type ViolationsCustomRulesParams = {message: string};
 type ViolationsRterParams = {
     brokenBankConnection: boolean;
     isAdmin: boolean;
-    email?: string;
     isTransactionOlderThan7Days: boolean;
     member?: string;
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
+    companyCardPageURL?: string;
 };
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
 
-type ViolationsProhibitedExpenseParams = {prohibitedExpenseType: string};
+type ViolationsProhibitedExpenseParams = {prohibitedExpenseTypes: string | string[]};
 
 type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
 
@@ -374,6 +382,8 @@ type UpdatedPolicyCategoryExpenseLimitTypeParams = {categoryName: string; oldVal
 
 type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldValue?: string; newValue: string};
 
+type UpdatedPolicyTaxParams = {taxName: string; oldValue?: string | boolean | number; newValue?: string | boolean | number; updatedField?: string};
+
 type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
 
 type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
@@ -393,6 +403,10 @@ type UpdatedPolicyCustomUnitRateParams = {customUnitName: string; customUnitRate
 type UpdatedPolicyCustomUnitTaxRateExternalIDParams = {customUnitRateName: string; newValue: string; newTaxPercentage: string; oldValue?: string; oldTaxPercentage?: string};
 
 type UpdatedPolicyCustomUnitTaxClaimablePercentageParams = {customUnitRateName: string; newValue: number; oldValue?: number};
+
+type UpdatedPolicyCustomUnitRateIndexParams = {customUnitName: string; customUnitRateName: string; oldValue?: number; newValue: number};
+
+type UpdatedPolicyCustomUnitRateEnabledParams = {customUnitName: string; customUnitRateName: string; oldValue: boolean; newValue: boolean};
 
 type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
 
@@ -419,6 +433,8 @@ type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string}
 type UpdatedPolicyAuditRateParams = {oldAuditRate: number; newAuditRate: number};
 
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
+
+type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
 
 type ChangeTypeParams = {oldType: string; newType: string};
 
@@ -628,7 +644,7 @@ type AssignedCardParams = {
 
 type FeatureNameParams = {
     featureName: string;
-    moreFeaturesLink: string;
+    moreFeaturesLink?: string;
 };
 
 type AutoPayApprovedReportsLimitErrorParams = {
@@ -946,6 +962,13 @@ type MergeAccountIntoParams = {
     login: string;
 };
 
+type NextStepParams = {
+    actor: string;
+    actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
+    eta?: string;
+    etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
+};
+
 type ToggleImportTitleParams = {
     mappingTitle: string;
 };
@@ -1036,6 +1059,7 @@ export type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryUserRoomParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -1199,6 +1223,7 @@ export type {
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyReportFieldDefaultValueParams,
@@ -1214,6 +1239,7 @@ export type {
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdatePolicyCustomUnitParams,
     AddOrDeletePolicyCustomUnitRateParams,
@@ -1265,6 +1291,10 @@ export type {
     ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
+    NextStepParams,
     ReportFieldParams,
     FocusModeUpdateParams,
+    TagSelectionParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
 };

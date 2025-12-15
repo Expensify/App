@@ -12029,7 +12029,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replaceAll('`', '');
             return {
                 title: issue.title,
                 url: issue.url,
@@ -12138,8 +12138,7 @@ class GithubUtils {
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
                 const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                 console.log('Found the following NO QA PRs:', noQAPRs);
-                // eslint-disable-next-line unicorn/prefer-set-has
-                const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
+                const verifiedOrNoQAPRs = new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs]);
                 const sortedPRList = [...new Set((0, arrayDifference_1.default)(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
                 const sortedPRListMobileExpensify = [...new Set(PRListMobileExpensify)].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
@@ -12154,43 +12153,43 @@ class GithubUtils {
                 // PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '**This release contains changes from the following pull requests:**\r\n';
-                    sortedPRList.forEach((URL) => {
-                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                    for (const URL of sortedPRList) {
+                        issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Mobile-Expensify PR list
                 if (sortedPRListMobileExpensify.length > 0) {
                     issueBody += '**Mobile-Expensify PRs:**\r\n';
-                    sortedPRListMobileExpensify.forEach((URL) => {
-                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                    for (const URL of sortedPRListMobileExpensify) {
+                        issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Internal QA PR list
                 if (!(0, isEmptyObject_1.isEmptyObject)(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
-                    Object.keys(internalQAPRMap).forEach((URL) => {
+                    for (const URL of Object.keys(internalQAPRMap)) {
                         const merger = internalQAPRMap[URL];
                         const mergerMention = `@${merger}`;
                         issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
                         issueBody += ` - ${mergerMention}`;
                         issueBody += '\r\n';
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Deploy blockers
                 if (deployBlockers.length > 0) {
                     issueBody += '**Deploy Blockers:**\r\n';
-                    sortedDeployBlockers.forEach((URL) => {
+                    for (const URL of sortedDeployBlockers) {
                         issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
                         issueBody += URL;
                         issueBody += '\r\n';
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 issueBody += '**Deployer verifications:**';
@@ -12625,6 +12624,7 @@ class Git {
         const files = [];
         let currentFile = null;
         let currentHunk = null;
+        let oldFilePath = null; // Track old file path to determine fileDiffType
         for (const line of lines) {
             // File header: diff --git a/file b/file
             if (line.startsWith('diff --git')) {
@@ -12637,13 +12637,41 @@ class Git {
                 }
                 currentFile = null;
                 currentHunk = null;
+                oldFilePath = null; // Reset for next file
                 continue;
             }
-            // File path: +++ b/file
-            if (line.startsWith('+++ b/')) {
-                const diffFilePath = line.slice(6); // Remove '+++ b/'
+            // Old file path: --- a/file or --- /dev/null (for new files)
+            // This comes before +++ in git diff output
+            if (line.startsWith('--- ')) {
+                oldFilePath = line.slice(4); // Store the old file path (remove '--- ')
+                continue;
+            }
+            // New file path: +++ b/file or +++ /dev/null (for removed files)
+            if (line.startsWith('+++ ')) {
+                const newFilePath = line.slice(4); // Remove '+++ '
+                // Determine fileDiffType based on old and new file paths
+                // Note: oldFilePath should always be set by the time we see +++, but handle null for type safety
+                let fileDiffType = 'modified';
+                let diffFilePath;
+                const oldPath = oldFilePath ?? '';
+                if (oldPath === '/dev/null') {
+                    // New file: use the new file path
+                    fileDiffType = 'added';
+                    diffFilePath = newFilePath.startsWith('b/') ? newFilePath.slice(2) : newFilePath;
+                }
+                else if (newFilePath === '/dev/null') {
+                    // Removed file: use the old file path
+                    fileDiffType = 'removed';
+                    diffFilePath = oldPath.startsWith('a/') ? oldPath.slice(2) : oldPath;
+                }
+                else {
+                    // Modified file: use the new file path
+                    fileDiffType = 'modified';
+                    diffFilePath = newFilePath.startsWith('b/') ? newFilePath.slice(2) : newFilePath;
+                }
                 currentFile = {
                     filePath: diffFilePath,
+                    diffType: fileDiffType,
                     hunks: [],
                     addedLines: new Set(),
                     removedLines: new Set(),
@@ -12696,6 +12724,10 @@ class Git {
                 }
                 else if (firstChar === ' ') {
                     // Context line - skip it (we only care about added/removed lines)
+                    continue;
+                }
+                else if (firstChar === '\\') {
+                    // "No newline at end of file" marker - skip it (metadata, not content)
                     continue;
                 }
                 else {

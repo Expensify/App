@@ -72,7 +72,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         return [categoryOptions, header, showInput];
     }, [policyCategories, policyCategoriesDraft, policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, localeCompare, translate]);
 
-    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).filter((category) => category.searchText === selectedCategory).at(0)?.keyForList, [sections, selectedCategory]);
+    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).find((category) => category.searchText === selectedCategory)?.keyForList, [sections, selectedCategory]);
 
     return (
         <SelectionList
@@ -85,7 +85,6 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            isRowMultilineSupported
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             contentContainerStyle={contentContainerStyle}
         />

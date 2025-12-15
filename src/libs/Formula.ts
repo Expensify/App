@@ -2,13 +2,15 @@ import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMon
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getCurrencySymbol} from './CurrencyUtils';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
+import getBase62ReportID from './getBase62ReportID';
+import Log from './Log';
 import {getAllReportActions} from './ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
-import {getCreated, isPartialTransaction} from './TransactionUtils';
+import {getHumanReadableStatus, getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
+import {getCreated, isPartialTransaction, isTransactionPendingDelete} from './TransactionUtils';
 
 type FormulaPart = {
     /** The original definition from the formula */
@@ -28,6 +30,9 @@ type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
     transaction?: Transaction;
+    submitterPersonalDetails?: PersonalDetails;
+    managerPersonalDetails?: PersonalDetails;
+    allTransactions?: Record<string, Transaction>;
 };
 
 type FieldList = Record<string, {name: string; defaultValue: string}>;
@@ -108,7 +113,7 @@ function parse(formula?: string): FormulaPart[] {
     // Process the formula by splitting on formula parts to preserve free text
     let lastIndex = 0;
 
-    formulaParts.forEach((part) => {
+    for (const part of formulaParts) {
         const partIndex = formula.indexOf(part, lastIndex);
 
         // Add any free text before this formula part
@@ -127,7 +132,7 @@ function parse(formula?: string): FormulaPart[] {
         // Add the formula part
         parts.push(parsePart(part));
         lastIndex = partIndex + part.length;
-    });
+    }
 
     // Add any remaining free text after the last formula part
     if (lastIndex < formula.length) {
@@ -194,32 +199,66 @@ function parsePart(definition: string): FormulaPart {
 }
 
 /**
- * Check if the report field formula value is containing circular references, e.g example:  A -> A,  A->B->A,  A->B->C->A, etc
+ * Check if a formula requires backend computation (e.g., currency conversion with exchange rates)
+ * This is used by OptimisticReportNames to skip optimistic updates when online and backend is needed
  */
-function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?: FieldList): boolean {
-    const formulaValues = extract(fieldValue);
-    if (formulaValues.length === 0 || isEmptyObject(fieldList)) {
+function requiresBackendComputation(parts: FormulaPart[], context?: FormulaContext): boolean {
+    if (!context) {
         return false;
     }
 
-    const visitedLists = new Set<string>();
+    const {report} = context;
+
+    for (const part of parts) {
+        if (part.type === FORMULA_PART_TYPES.REPORT) {
+            const [field, ...additionalPath] = part.fieldPath;
+            // Reconstruct format string by joining additional path elements with ':'
+            // This handles format strings with colons like 'HH:mm:ss'
+            const format = additionalPath.length > 0 ? additionalPath.join(':') : undefined;
+            const fieldName = field?.toLowerCase();
+
+            if (fieldName === 'total' || fieldName === 'reimbursable') {
+                // Use formatAmount to check whether a currency conversion is needed.
+                // A null return means the backend must handle the conversion.
+                // We rely on report.total because zero values can be computed optimistically.
+                const result = formatAmount(report.total, report.currency, format);
+                if (result === null) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Check if the report field formula value is containing circular references, e.g example:  A -> A,  A->B->A,  A->B->C->A, etc
+ */
+function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?: FieldList): boolean {
+    const formulaPartDefinitions = extract(fieldValue);
+    if (formulaPartDefinitions.length === 0 || isEmptyObject(fieldList)) {
+        return false;
+    }
+
+    const visitedFields = new Set<string>();
     const fieldsByName = new Map<string, {name: string; defaultValue: string}>(Object.values(fieldList).map((field) => [field.name, field]));
 
     // Helper function to check if a field has circular references
     const hasCircularReferencesRecursive = (currentFieldValue: string, currentFieldName: string): boolean => {
         // If we've already visited this field in the current path, return true
-        if (visitedLists.has(currentFieldName)) {
+        if (visitedFields.has(currentFieldName)) {
             return true;
         }
 
         // Add current field to the visited lists
-        visitedLists.add(currentFieldName);
+        visitedFields.add(currentFieldName);
 
-        // Extract all formula values from the current field
-        const currentFormulaValues = extract(currentFieldValue);
+        // Extract all formula part definitions
+        const currentFormulaPartDefinitions = extract(currentFieldValue);
 
-        for (const formula of currentFormulaValues) {
-            const part = parsePart(formula);
+        for (const formulaPartDefinition of currentFormulaPartDefinitions) {
+            const part = parsePart(formulaPartDefinition);
 
             // Only check field references (skip report, user, or freetext)
             if (part.type !== FORMULA_PART_TYPES.FIELD) {
@@ -233,8 +272,7 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
             }
 
             // Check if this reference creates a cycle
-            if (referencedFieldName === fieldName || visitedLists.has(referencedFieldName)) {
-                visitedLists.delete(currentFieldName);
+            if (referencedFieldName === fieldName || visitedFields.has(referencedFieldName)) {
                 return true;
             }
 
@@ -243,18 +281,24 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
             if (referencedField?.defaultValue) {
                 // Recursively check the referenced field
                 if (hasCircularReferencesRecursive(referencedField.defaultValue, referencedFieldName)) {
-                    visitedLists.delete(currentFieldName);
                     return true;
                 }
             }
         }
 
         // Remove current field from visited lists
-        visitedLists.delete(currentFieldName);
+        visitedFields.delete(currentFieldName);
         return false;
     };
 
     return hasCircularReferencesRecursive(fieldValue, fieldName);
+}
+
+/**
+ * Check if a formula part is a submission info part (report:submit:*)
+ */
+function isSubmissionInfoPart(part: FormulaPart): boolean {
+    return part.type === FORMULA_PART_TYPES.REPORT && part.fieldPath.at(0)?.toLowerCase() === 'submit';
 }
 
 /**
@@ -277,7 +321,11 @@ function compute(formula?: string, context?: FormulaContext): string {
         switch (part.type) {
             case FORMULA_PART_TYPES.REPORT:
                 value = computeReportPart(part, context);
-                value = value === '' ? part.definition : value;
+                // Apply fallback to formula definition for empty values, except for submission info
+                // Submission info explicitly returns empty strings when data is missing (matches backend)
+                if (value === '' && !isSubmissionInfoPart(part)) {
+                    value = part.definition;
+                }
                 break;
             case FORMULA_PART_TYPES.FIELD:
                 value = computeFieldPart(part);
@@ -327,7 +375,7 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
  * Compute the value of a report formula part
  */
 function computeReportPart(part: FormulaPart, context: FormulaContext): string {
-    const {report, policy} = context;
+    const {report, policy, allTransactions} = context;
     const [field, ...additionalPath] = part.fieldPath;
     // Reconstruct format string by joining additional path elements with ':'
     // This handles format strings with colons like 'HH:mm:ss'
@@ -338,16 +386,27 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
     }
 
     switch (field.toLowerCase()) {
+        case 'id':
+            return getBase62ReportID(Number(report.reportID));
+        case 'status':
+            return formatStatus(report.statusNum);
+        case 'expensescount':
+            return String(getExpensesCount(report, allTransactions));
         case 'type':
             return formatType(report.type);
         case 'startdate':
             return formatDate(getOldestTransactionDate(report.reportID, context), format);
         case 'enddate':
             return formatDate(getNewestTransactionDate(report.reportID, context), format);
-        case 'total':
-            return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
-        case 'reimbursable':
-            return formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, getCurrencySymbol(report.currency ?? '') ?? report.currency);
+        case 'total': {
+            const formattedAmount = formatAmount(report.total, report.currency, format);
+            // Return empty string when conversion needed (formatAmount returns null for unavailable conversions)
+            return formattedAmount ?? '';
+        }
+        case 'reimbursable': {
+            const formattedAmount = formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, report.currency, format);
+            return formattedAmount ?? '';
+        }
         case 'currency':
             return report.currency ?? '';
         case 'policyname':
@@ -357,6 +416,9 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
             return formatDate(getOldestReportActionDate(report.reportID), format);
+        case 'submit': {
+            return computeSubmitPart(additionalPath, context);
+        }
         case 'autoreporting': {
             const subField = additionalPath.at(0);
             // For multi-part formulas, format is everything after the subfield
@@ -366,6 +428,35 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         default:
             return part.definition;
     }
+}
+
+/**
+ * Get the number of expenses in a report
+ * @param report - The report to get expenses for
+ * @param allTransactions - Optional map of all transactions. If provided, uses this instead of fetching from Onyx
+ */
+function getExpensesCount(report: Report, allTransactions?: Record<string, Transaction>): number {
+    if (!report.reportID) {
+        return 0;
+    }
+
+    if (allTransactions) {
+        const transactions = Object.values(allTransactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === report.reportID);
+        return transactions?.filter((transaction) => !isTransactionPendingDelete(transaction))?.length ?? 0;
+    }
+
+    return report.transactionCount ?? 0;
+}
+
+/**
+ * Format a report status number to human-readable string
+ */
+function formatStatus(statusNum: number | undefined): string {
+    if (statusNum === undefined) {
+        return '';
+    }
+
+    return getHumanReadableStatus(statusNum);
 }
 
 /**
@@ -457,20 +548,46 @@ function getSubstring(value: string, args: string[]): string {
 
 /**
  * Format an amount value
+ * @returns The formatted amount string, or null if currency conversion is needed (unavailable on frontend)
  */
-function formatAmount(amount: number | undefined, currency: string | undefined): string {
+function formatAmount(amount: number | undefined, currency: string | undefined, displayCurrency?: string): string | null {
     if (amount === undefined) {
         return '';
     }
 
     const absoluteAmount = Math.abs(amount);
-    const formattedAmount = (absoluteAmount / 100).toFixed(2);
 
-    if (currency) {
-        return `${currency}${formattedAmount}`;
+    try {
+        const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
+        if (trimmedDisplayCurrency) {
+            if (trimmedDisplayCurrency === 'NOSYMBOL') {
+                return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
+            }
+
+            // Check if format is a valid currency code (e.g., USD, EUR, eur)
+            if (!isValidCurrencyCode(trimmedDisplayCurrency)) {
+                return '';
+            }
+
+            // If a currency conversion is needed (displayCurrency differs from the source),
+            // return null so the backend can compute it.
+            // We can only compute the value optimistically when the amount is 0.
+            if (absoluteAmount !== 0 && currency !== trimmedDisplayCurrency) {
+                return null;
+            }
+
+            return convertToDisplayString(absoluteAmount, trimmedDisplayCurrency);
+        }
+
+        if (currency && isValidCurrencyCode(currency)) {
+            return convertToDisplayString(absoluteAmount, currency);
+        }
+
+        return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
+    } catch (error) {
+        Log.hmmm('[Formula] formatAmount failed', {error, amount, currency, displayCurrency});
+        return '';
     }
-
-    return formattedAmount;
 }
 
 /**
@@ -488,16 +605,16 @@ function getOldestReportActionDate(reportID: string): string | undefined {
 
     let oldestDate: string | undefined;
 
-    Object.values(reportActions).forEach((action) => {
+    for (const action of Object.values(reportActions)) {
         if (!action?.created) {
-            return;
+            continue;
         }
 
         if (oldestDate && action.created > oldestDate) {
-            return;
+            continue;
         }
         oldestDate = action.created;
-    });
+    }
 
     return oldestDate;
 }
@@ -559,23 +676,23 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
 
     let oldestDate: string | undefined;
 
-    transactions.forEach((transaction) => {
+    for (const transaction of transactions) {
         const created = getCreated(transaction);
         if (!created) {
-            return;
+            continue;
         }
         // Skip transactions with pending deletion (offline deletes) to calculate dates properly.
         if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
+            continue;
         }
         if (oldestDate && created >= oldestDate) {
-            return;
+            continue;
         }
         if (isPartialTransaction(transaction)) {
-            return;
+            continue;
         }
         oldestDate = created;
-    });
+    }
 
     return oldestDate;
 }
@@ -728,27 +845,103 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
 
     let newestDate: string | undefined;
 
-    transactions.forEach((transaction) => {
+    for (const transaction of transactions) {
         const created = getCreated(transaction);
         if (!created) {
-            return;
+            continue;
         }
         // Skip transactions with pending deletion (offline deletes) to calculate dates properly.
         if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
+            continue;
         }
         if (newestDate && created <= newestDate) {
-            return;
+            continue;
         }
         if (isPartialTransaction(transaction)) {
-            return;
+            continue;
         }
         newestDate = created;
-    });
+    }
 
     return newestDate;
 }
 
-export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse, hasCircularReferences};
+/**
+ * Compute the value of a report:submit:* formula part
+ * Handles nested paths like submit:from:firstname, submit:to:email, submit:date
+ */
+function computeSubmitPart(path: string[], context: FormulaContext): string {
+    const [direction, ...subPath] = path;
+
+    if (!direction) {
+        return '';
+    }
+
+    switch (direction.toLowerCase()) {
+        case 'from':
+            return computePersonalDetailsField(subPath, context.submitterPersonalDetails, context.policy);
+        case 'to':
+            return computePersonalDetailsField(subPath, context.managerPersonalDetails, context.policy);
+        case 'date': {
+            // TODO: Use report.submitted once backend adds it (issue #568267)
+            // Using report.created as placeholder until then
+            const submittedDate = context.report.created;
+            const format = subPath.length > 0 ? subPath.join(':') : undefined;
+            return formatDate(submittedDate, format);
+        }
+        default:
+            return '';
+    }
+}
+
+/**
+ * Compute personal details information for either submitter (from) or manager (to)
+ */
+function computePersonalDetailsField(path: string[], personalDetails: PersonalDetails | undefined, policy: OnyxEntry<Policy>): string {
+    const [field] = path;
+
+    if (!personalDetails || !field) {
+        return '';
+    }
+
+    switch (field.toLowerCase()) {
+        case 'firstname':
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return personalDetails.firstName || personalDetails.login || '';
+        case 'lastname':
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return personalDetails.lastName || personalDetails.login || '';
+        case 'fullname':
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return personalDetails.displayName || personalDetails.login || '';
+        case 'email':
+            return personalDetails.login ?? '';
+        // userid/customfield1 returns employeeUserID from policy.employeeList
+        // TODO: Check policy.glCodes once backend adds it (issue #568268)
+        case 'userid':
+        case 'customfield1': {
+            const email = personalDetails.login;
+            if (!email || !policy?.employeeList) {
+                return '';
+            }
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            return policy.employeeList[email]?.employeeUserID ?? '';
+        }
+        // payrollid/customfield2 returns employeePayrollID from policy.employeeList
+        case 'payrollid':
+        case 'customfield2': {
+            const email = personalDetails.login;
+            if (!email || !policy?.employeeList) {
+                return '';
+            }
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            return policy.employeeList[email]?.employeePayrollID ?? '';
+        }
+        default:
+            return '';
+    }
+}
+
+export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse, hasCircularReferences, requiresBackendComputation};
 
 export type {FormulaContext, FormulaPart, FieldList};

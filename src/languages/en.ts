@@ -2,6 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
+import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -28,6 +29,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillableDefaultDescriptionParams,
@@ -144,6 +146,7 @@ import type {
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
+    NextStepParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -222,6 +225,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -247,6 +251,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -256,10 +262,12 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -321,12 +329,16 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
         count: 'Count',
         cancel: 'Cancel',
+        // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
         dismiss: 'Dismiss',
+        // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Proceed',
         yes: 'Yes',
         no: 'No',
+        // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
         ok: 'OK',
         notNow: 'Not now',
         noThanks: 'No thanks',
@@ -347,6 +359,7 @@ const translations = {
         searchWithThreeDots: 'Search...',
         next: 'Next',
         previous: 'Previous',
+        // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: 'Go back',
         create: 'Create',
         add: 'Add',
@@ -354,9 +367,11 @@ const translations = {
         save: 'Save',
         select: 'Select',
         deselect: 'Deselect',
+        // @context Menu or label title referring to the ability to select multiple items. Should be interpreted as a noun phrase, not a command.
         selectMultiple: 'Select multiple',
         saveChanges: 'Save changes',
         submit: 'Submit',
+        // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
         submitted: 'Submitted',
         rotate: 'Rotate',
         zoom: 'Zoom',
@@ -365,6 +380,7 @@ const translations = {
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         inbox: 'Inbox',
+        // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
         group: 'Group',
         profile: 'Profile',
@@ -374,6 +390,7 @@ const translations = {
         wallet: 'Wallet',
         preferences: 'Preferences',
         view: 'View',
+        viewReport: 'View report',
         review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'Not',
         signIn: 'Sign in',
@@ -398,6 +415,7 @@ const translations = {
         hidden: 'Hidden',
         visible: 'Visible',
         delete: 'Delete',
+        // @context UI label indicating that an item is archived. Maintain capitalization consistency across similar status labels.
         archived: 'archived',
         contacts: 'Contacts',
         recents: 'Recents',
@@ -405,6 +423,7 @@ const translations = {
         comment: 'Comment',
         download: 'Download',
         downloading: 'Downloading',
+        // @context Indicates that a file is currently being uploaded (sent to the server), not downloaded.
         uploading: 'Uploading',
         // @context as a verb, not a noun
         pin: 'Pin',
@@ -459,7 +478,7 @@ const translations = {
         error: {
             invalidAmount: 'Invalid amount',
             acceptTerms: 'You must accept the Terms of Service to continue',
-            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Please enter a complete phone number\n(e.g. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required',
             requestModified: 'This request is being modified by another member',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Character limit exceeded (${length}/${limit})`,
@@ -484,12 +503,15 @@ const translations = {
         comma: 'comma',
         semicolon: 'semicolon',
         please: 'Please',
+        // @context Call-to-action encouraging the user to reach out to support or the team. Should follow UI capitalization conventions.
         contactUs: 'contact us',
         pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
+        // @context Instruction prompting the user to correct multiple issues. Should use imperative form when translated.
         fixTheErrors: 'fix the errors',
         inTheFormBeforeContinuing: 'in the form before continuing',
         confirm: 'Confirm',
         reset: 'Reset',
+        // @context Status or button indicating that an action or process has been completed. Should reflect completion.
         done: 'Done',
         more: 'More',
         debitCard: 'Debit card',
@@ -501,10 +523,12 @@ const translations = {
         decline: 'Decline',
         reject: 'Reject',
         transferBalance: 'Transfer balance',
+        // @context Instruction telling the user to input data manually. Refers to entering text or values in a field.
         enterManually: 'Enter it manually',
         message: 'Message',
         leaveThread: 'Leave thread',
         you: 'You',
+        // @context Refers to the current user in the UI. Should follow capitalization rules for labels/pronouns in the target language.
         me: 'me',
         youAfterPreposition: 'you',
         your: 'your',
@@ -516,7 +540,9 @@ const translations = {
         areYouSure: 'Are you sure?',
         verify: 'Verify',
         yesContinue: 'Yes, continue',
+        // @context Provides an example format for a website URL.
         websiteExample: 'e.g. https://www.expensify.com',
+        // @context Provides an example format for a ZIP/postal code.
         zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
         title: 'Title',
@@ -526,6 +552,7 @@ const translations = {
         shareCode: 'Share code',
         share: 'Share',
         per: 'per',
+        // @context Unit label for “mile.” Should be treated as a measurement unit and may require capitalization depending on locale conventions.
         mi: 'mile',
         km: 'kilometer',
         copied: 'Copied!',
@@ -535,6 +562,7 @@ const translations = {
         letsDoThis: `Let's do this!`,
         letsStart: `Let's start`,
         showMore: 'Show more',
+        showLess: 'Show less',
         merchant: 'Merchant',
         category: 'Category',
         report: 'Report',
@@ -546,6 +574,7 @@ const translations = {
         replace: 'Replace',
         distance: 'Distance',
         mile: 'mile',
+        // @context Plural measurement unit for “mile.” Maintain consistent capitalization with the singular form.
         miles: 'miles',
         kilometer: 'kilometer',
         kilometers: 'kilometers',
@@ -553,6 +582,7 @@ const translations = {
         all: 'All',
         am: 'AM',
         pm: 'PM',
+        // @context Acronym meaning “To Be Determined.” Should be translated or localized according to the target language's convention.
         tbd: 'TBD',
         selectCurrency: 'Select a currency',
         selectSymbolOrCurrency: 'Select a symbol or currency',
@@ -578,6 +608,7 @@ const translations = {
         businessName: 'Business name',
         clear: 'Clear',
         type: 'Type',
+        reportName: 'Report name',
         action: 'Action',
         expenses: 'Expenses',
         totalSpend: 'Total spend',
@@ -594,6 +625,7 @@ const translations = {
         disable: 'Disable',
         export: 'Export',
         initialValue: 'Initial value',
+        // @context UI field indicating the current system date (e.g., “today’s date”). Not a label for selecting a date.
         currentDate: 'Current date',
         value: 'Value',
         downloadFailedTitle: 'Download failed',
@@ -606,11 +638,14 @@ const translations = {
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         chooseFiles: 'Choose files',
+        // @context Instruction for drag-and-drop upload area. Refers to dropping a file onto a designated zone, not “dropping” in a casual sense.
         dropTitle: 'Let it go',
+        // @context Instruction for dropping one or more files into an upload area.
         dropMessage: 'Drop your file here',
         ignore: 'Ignore',
         enabled: 'Enabled',
         disabled: 'Disabled',
+        // @context Action button for importing a file or data. Should use the verb form, not the noun form.
         import: 'Import',
         offlinePrompt: "You can't take this action right now.",
         // @context meaning "remaining to be paid, done, or dealt with", not "exceptionally good"
@@ -620,6 +655,7 @@ const translations = {
         unread: 'Unread',
         sent: 'Sent',
         links: 'Links',
+        // @context Used in date or calendar contexts to refer to a calendar day, not a duration (“daytime”).
         day: 'day',
         days: 'days',
         rename: 'Rename',
@@ -631,6 +667,7 @@ const translations = {
         chatNow: 'Chat now',
         workEmail: 'Work email',
         destination: 'Destination',
+        // @context Refers to a secondary or subordinate rate (e.g., mileage reimbursement). Should be localized consistently across accounting contexts.
         subrate: 'Subrate',
         perDiem: 'Per diem',
         validate: 'Validate',
@@ -687,6 +724,9 @@ const translations = {
         copyToClipboard: 'Copy to clipboard',
         thisIsTakingLongerThanExpected: 'This is taking longer than expected...',
         domains: 'Domains',
+        actionRequired: 'Action required',
+        duplicate: 'Duplicate',
+        duplicated: 'Duplicated',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -786,18 +826,33 @@ const translations = {
         continueInWeb: 'continue to the web app',
     },
     validateCodeModal: {
-        successfulSignInTitle: "Abracadabra,\nyou're signed in!",
+        successfulSignInTitle: dedent(`
+            Abracadabra,
+            you're signed in!
+        `),
         successfulSignInDescription: 'Head back to your original tab to continue.',
         title: "Here's your magic code",
-        description: 'Please enter the code from the device\nwhere it was originally requested',
-        doNotShare: 'Do not share your code with anyone.\nExpensify will never ask you for it!',
+        description: dedent(`
+            Please enter the code from the device
+            where it was originally requested
+        `),
+        doNotShare: dedent(`
+            Do not share your code with anyone.
+            Expensify will never ask you for it!
+        `),
         or: ', or',
         signInHere: 'just sign in here',
         expiredCodeTitle: 'Magic code expired',
         expiredCodeDescription: 'Go back to the original device and request a new code',
         successfulNewCodeRequest: 'Code requested. Please check your device.',
-        tfaRequiredTitle: 'Two-factor authentication\nrequired',
-        tfaRequiredDescription: "Please enter the two-factor authentication code\nwhere you're trying to sign in.",
+        tfaRequiredTitle: dedent(`
+            Two-factor authentication
+            required
+        `),
+        tfaRequiredDescription: dedent(`
+            Please enter the two-factor authentication code
+            where you're trying to sign in.
+        `),
         requestOneHere: 'request one here.',
     },
     moneyRequestConfirmationList: {
@@ -816,8 +871,8 @@ const translations = {
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
-            title: 'Submit an expense, refer your boss',
-            subtitleText: "Want your boss to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
+            title: 'Submit an expense, refer your team',
+            subtitleText: "Want your team to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
         },
     },
     videoChatButtonAndMenu: {
@@ -922,7 +977,7 @@ const translations = {
             `This chat room is for anything <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> related.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the + button to send an invoice.`,
-        beginningOfChatHistory: 'This chat is with ',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `This chat is with ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the + button.`,
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
@@ -1117,6 +1172,7 @@ const translations = {
         splitExpense: 'Split expense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} from ${merchant}`,
         addSplit: 'Add split',
+        makeSplitsEven: 'Make splits even',
         editSplits: 'Edit splits',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} greater than the original expense.`,
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} less than the original expense.`,
@@ -1152,7 +1208,9 @@ const translations = {
         findExpense: 'Find expense',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense (${amount} for ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` from <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moved this expense from your <a href="${reportUrl}">personal space</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moved this expense to your <a href="${reportUrl}">personal space</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1298,13 +1356,17 @@ const translations = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `changed the ${translatedChangedField} to ${newMerchant} (previously ${oldMerchant}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         basedOnAI: 'based on past activity',
-        basedOnMCC: 'based on workspace rule',
+        basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `based on <a href="${rulesLink}">workspace rules</a>` : 'based on workspace rule'),
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Invoice Report #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `moved expense from personal space to ${workspaceName ?? `chat with ${reportName}`}`,
         movedToPersonalSpace: 'moved expense to personal space',
-        tagSelection: 'Select a tag to better organize your spend.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
+            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'an' : 'a';
+            const tag = policyTagListName ?? 'tag';
+            return `Select ${article} ${tag} to better organize your spend.`;
+        },
         categorySelection: 'Select a category to better organize your spend.',
         error: {
             invalidCategoryLength: 'The category name exceeds 255 characters. Please shorten it or choose a different category.',
@@ -1391,11 +1453,10 @@ const translations = {
         }),
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
-        holdEducationalTitle: 'This request is on',
-        holdEducationalText: 'hold',
-        whatIsHoldExplain: 'Hold is like hitting “pause” on an expense to ask for more details before approval or payment.',
-        holdIsLeftBehind: 'Held expenses move to another report upon approval or payment.',
-        unholdWhenReady: 'Approvers can unhold expenses when they’re ready for approval or payment.',
+        holdEducationalTitle: 'Should you hold this expense?',
+        whatIsHoldExplain: "Hold is like hitting “pause” on an expense until you're ready to submit it.",
+        holdIsLeftBehind: 'Held expenses are left behind even if you submit an entire report.',
+        unholdWhenReady: "Unhold expenses when you're ready to submit them.",
         changePolicyEducational: {
             title: 'You moved this report!',
             description: 'Double-check these items, which tend to change when moving reports to a new workspace.',
@@ -1451,6 +1512,7 @@ const translations = {
             educationalTitle: 'Should you hold or reject?',
             educationalText: "If you're not ready to approve or pay an expense, you can hold or reject it.",
             holdExpenseTitle: 'Hold an expense to ask for more details before approval or payment.',
+            approveExpenseTitle: 'Approve other expenses while held expenses stay assigned to you.',
             heldExpenseLeftBehindTitle: 'Held expenses are left behind when you approve an entire report.',
             rejectExpenseTitle: "Reject an expense that you don't intend to approve or pay.",
             reasonPageTitle: 'Reject expense',
@@ -1522,6 +1584,7 @@ const translations = {
             always: 'Immediately',
             daily: 'Daily',
             mute: 'Mute',
+            // @context UI label indicating that something is concealed or not visible to the user.
             hidden: 'Hidden',
         },
     },
@@ -1550,6 +1613,130 @@ const translations = {
     },
     modal: {
         backdropLabel: 'Modal Backdrop',
+    },
+    nextStep: {
+        message: {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to add expenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to add expenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to add expenses.`;
+                }
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `No further action required!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to add a bank account.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to add a bank account.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to add a bank account.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` on ${eta}` : ` ${eta}`;
+                }
+
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>your</strong> expenses to automatically submit${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}'s</strong> expenses to automatically submit${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin's expenses to automatically submit${formattedETA}.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to fix the issue(s).`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to fix the issue(s).`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to fix the issue(s).`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to approve expenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to approve expenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to approve expenses.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to export this report.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to export this report.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to export this report.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to pay expenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to pay expenses.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to pay expenses.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to finish setting up a business bank account.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to finish setting up a business bank account.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to finish setting up a business bank account.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
+                let formattedETA = '';
+                if (eta) {
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` by ${eta}` : ` ${eta}`;
+                }
+
+                return `Waiting for payment to complete${formattedETA}.`;
+            },
+        },
+        eta: {
+            [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'shortly',
+            [CONST.NEXT_STEP.ETA_KEY.TODAY]: 'later today',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK]: 'on Sunday',
+            [CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH]: 'on the last business day of the month',
+            [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'on the last day of the month',
+            [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'at the end of your trip',
+        },
     },
     profilePage: {
         profile: 'Profile',
@@ -1589,14 +1776,13 @@ const translations = {
         placeholderText: 'Search to see options',
     },
     contacts: {
-        contactMethod: 'Contact method',
         contactMethods: 'Contact methods',
         featureRequiresValidate: 'This feature requires you to validate your account.',
         validateAccount: 'Validate your account',
-        helpTextBeforeEmail: 'Add more ways to send receipts. Forward them to ',
-        helpTextAfterEmail: ' or text them to 47777 (US numbers only).',
-        pleaseVerify: 'Please verify this contact method',
-        getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
+        helpText: ({email}: {email: string}) =>
+            `Add more ways to log in and send receipts to Expensify.<br/><br/>Add an email address to forward receipts to <a href="mailto:${email}">${email}</a> or add a phone number to text receipts to 47777 (US numbers only).`,
+        pleaseVerify: 'Please verify this contact method.',
+        getInTouch: "We'll use this method to contact you.",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}. It should arrive within a minute or two.`,
         setAsDefault: 'Set as default',
         yourDefaultContactMethod: "This is your current default contact method. Before you can delete it, you'll need to choose another contact method and click “Set as default”.",
@@ -1714,6 +1900,10 @@ const translations = {
             recordTroubleshootData: 'Record Troubleshoot Data',
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
+            sentryDebug: 'Sentry debug',
+            sentryDebugDescription: 'Log Sentry requests to console',
+            sentryHighlightedSpanOps: 'Highlighted span names',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -1844,8 +2034,11 @@ const translations = {
         noAuthenticatorApp: 'You’ll no longer require an authenticator app to log into Expensify.',
         stepCodes: 'Recovery codes',
         keepCodesSafe: 'Keep these recovery codes safe!',
-        codesLoseAccess:
-            "If you lose access to your authenticator app and don’t have these codes, you'll lose access to your account. \n\nNote: Setting up two-factor authentication will log you out of all other active sessions.",
+        codesLoseAccess: dedent(`
+            If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
+
+            Note: Setting up two-factor authentication will log you out of all other active sessions.
+        `),
         errorStepCodes: 'Please copy or download codes before continuing',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
@@ -2032,6 +2225,8 @@ const translations = {
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Please <a href="${missingDetailsLink}">add your personal details</a>, then try again.`,
+        unexpectedError: 'There was an error trying to get your Expensify card details. Please try again.',
         cardFraudAlert: {
             confirmButtonText: 'Yes, I do',
             reportFraudButtonText: "No, it wasn't me",
@@ -2055,6 +2250,10 @@ const translations = {
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
         makeOrTrackPaymentsTitle: 'Make or track payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to your <account-manager-link>Account Manager</account-manager-link> or <concierge-link>Concierge</concierge-link>.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
         },
@@ -2224,9 +2423,10 @@ const translations = {
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'Generating PDF...',
-        waitForPDF: 'Please wait while we generate the PDF',
+        generatingPDF: 'Generate PDF',
+        waitForPDF: 'Please wait while we generate the PDF.',
         errorPDF: 'There was an error when trying to generate your PDF',
+        successPDF: "Your PDF has been generated! If it didn't automatically download, use the button below.",
     },
     reportDescriptionPage: {
         roomDescription: 'Room description',
@@ -2385,19 +2585,21 @@ const translations = {
             addExpenseApprovalsTask: {
                 title: 'Add expense approvals',
                 description: ({workspaceMoreFeaturesLink}) =>
-                    `*Add expense approvals* to review your team's spend and keep it under control.\n` +
-                    '\n' +
-                    `Here's how:\n` +
-                    '\n' +
-                    '1. Go to *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *More features*.\n' +
-                    '4. Enable *Workflows*.\n' +
-                    '5. Navigate to *Workflows* in the workspace editor.\n' +
-                    '6. Enable *Add approvals*.\n' +
-                    `7. You'll be set as the expense approver. You can change this to any admin once you invite your team.\n` +
-                    '\n' +
-                    `[Take me to more features](${workspaceMoreFeaturesLink}).`,
+                    dedent(`
+                        *Add expense approvals* to review your team's spend and keep it under control.
+
+                        Here's how:
+
+                        1. Go to *Workspaces*.
+                        2. Select your workspace.
+                        3. Click *More features*.
+                        4. Enable *Workflows*.
+                        5. Navigate to *Workflows* in the workspace editor.
+                        6. Enable *Add approvals*.
+                        7. You'll be set as the expense approver. You can change this to any admin once you invite your team.
+
+                        [Take me to more features](${workspaceMoreFeaturesLink}).
+                    `),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Create](${workspaceConfirmationLink}) a workspace`,
@@ -2406,199 +2608,224 @@ const translations = {
             createWorkspaceTask: {
                 title: ({workspaceSettingsLink}) => `Create a [workspace](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
-                    '\n' +
-                    '1. Click *Workspaces* > *New workspace*.\n' +
-                    '\n' +
-                    `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
+                    dedent(`
+                        *Create a workspace* to track expenses, scan receipts, chat, and more.
+
+                        1. Click *Workspaces* > *New workspace*.
+
+                        *Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).
+                    `),
             },
             setupCategoriesTask: {
                 title: ({workspaceCategoriesLink}) => `Set up [categories](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
-                    '*Set up categories* so your team can code expenses for easy reporting.\n' +
-                    '\n' +
-                    '1. Click *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *Categories*.\n' +
-                    "4. Disable any categories you don't need.\n" +
-                    '5. Add your own categories in the top right.\n' +
-                    '\n' +
-                    `[Take me to workspace category settings](${workspaceCategoriesLink}).\n` +
-                    '\n' +
-                    `![Set up categories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+                    dedent(`
+                        *Set up categories* so your team can code expenses for easy reporting.
+
+                        1. Click *Workspaces*.
+                        2. Select your workspace.
+                        3. Click *Categories*.
+                        4. Disable any categories you don't need.
+                        5. Add your own categories in the top right.
+
+                        [Take me to workspace category settings](${workspaceCategoriesLink}).
+
+                        ![Set up categories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)
+                    `),
             },
             combinedTrackSubmitExpenseTask: {
                 title: 'Submit an expense',
-                description:
-                    '*Submit an expense* by entering an amount or scanning a receipt.\n' +
-                    '\n' +
-                    `1. Click the + button.\n` +
-                    '2. Choose *Create expense*.\n' +
-                    '3. Enter an amount or scan a receipt.\n' +
-                    `4. Add your boss's email or phone number.\n` +
-                    '5. Click *Create*.\n' +
-                    '\n' +
-                    'And you’re done!',
+                description: dedent(`
+                    *Submit an expense* by entering an amount or scanning a receipt.
+
+                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    2. Choose *Create expense*.
+                    3. Enter an amount or scan a receipt.
+                    4. Add your boss's email or phone number.
+                    5. Click *Create*.
+
+                    And you're done!
+                `),
             },
             adminSubmitExpenseTask: {
                 title: 'Submit an expense',
-                description:
-                    '*Submit an expense* by entering an amount or scanning a receipt.\n' +
-                    '\n' +
-                    `1. Click the + button.\n` +
-                    '2. Choose *Create expense*.\n' +
-                    '3. Enter an amount or scan a receipt.\n' +
-                    '4. Confirm details.\n' +
-                    '5. Click *Create*.\n' +
-                    '\n' +
-                    `And you're done!`,
+                description: dedent(`
+                    *Submit an expense* by entering an amount or scanning a receipt.
+
+                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    2. Choose *Create expense*.
+                    3. Enter an amount or scan a receipt.
+                    4. Confirm details.
+                    5. Click *Create*.
+
+                    And you're done!
+                `),
             },
             trackExpenseTask: {
                 title: 'Track an expense',
-                description:
-                    '*Track an expense* in any currency, whether you have a receipt or not.\n' +
-                    '\n' +
-                    `1. Click the + button.\n` +
-                    '2. Choose *Create expense*.\n' +
-                    '3. Enter an amount or scan a receipt.\n' +
-                    '4. Choose your *personal* space.\n' +
-                    '5. Click *Create*.\n' +
-                    '\n' +
-                    'And you’re done! Yep, it’s that easy.',
+                description: dedent(`
+                    *Track an expense* in any currency, whether you have a receipt or not.
+
+                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    2. Choose *Create expense*.
+                    3. Enter an amount or scan a receipt.
+                    4. Choose your *personal* space.
+                    5. Click *Create*.
+
+                    And you're done! Yep, it's that easy.
+                `),
             },
             addAccountingIntegrationTask: {
                 title: ({integrationName, workspaceAccountingLink}) =>
                     `Connect${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' to'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `Connect ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : 'to'} ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
-                    '\n' +
-                    '1. Click *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *Accounting*.\n' +
-                    `4. Find ${integrationName}.\n` +
-                    '5. Click *Connect*.\n' +
-                    '\n' +
-                    `${
-                        integrationName && CONST.connectionsVideoPaths[integrationName]
-                            ? `[Take me to accounting](${workspaceAccountingLink}).\n\n![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                            : `[Take me to accounting](${workspaceAccountingLink}).`
-                    }`,
+                    dedent(`
+                        Connect ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : 'to'} ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.
+
+                        1. Click *Workspaces*.
+                        2. Select your workspace.
+                        3. Click *Accounting*.
+                        4. Find ${integrationName}.
+                        5. Click *Connect*.
+
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Take me to accounting](${workspaceAccountingLink}).
+
+                        ![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Take me to accounting](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Connect [your corporate card](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Connect [your corporate cards](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    `Connect your corporate card to automatically import and code expenses.\n` +
-                    '\n' +
-                    '1. Click *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *Corporate cards*.\n' +
-                    '4. Follow the prompts to connect your card.\n' +
-                    '\n' +
-                    `[Take me to connect my corporate cards](${corporateCardLink}).`,
+                    dedent(`
+                        Connect the cards you already have for automatic transaction import, receipt matching, and reconciliation.
+
+                        1. Click *Workspaces*.
+                        2. Select your workspace.
+                        3. Click *Company cards*.
+                        4. Follow the prompts to connect your cards.
+
+                        [Take me to company cards](${corporateCardLink}).
+                    `),
             },
 
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Invite [your team](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
-                    '\n' +
-                    '1. Click *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *Members* > *Invite member*.\n' +
-                    '4. Enter emails or phone numbers. \n' +
-                    '5. Add a custom invite message if you’d like!\n' +
-                    '\n' +
-                    `[Take me to workspace members](${workspaceMembersLink}).\n` +
-                    '\n' +
-                    `![Invite your team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+                    dedent(`
+                        *Invite your team* to Expensify so they can start tracking expenses today.
+
+                        1. Click *Workspaces*.
+                        2. Select your workspace.
+                        3. Click *Members* > *Invite member*.
+                        4. Enter emails or phone numbers.
+                        5. Add a custom invite message if you'd like!
+
+                        [Take me to workspace members](${workspaceMembersLink}).
+
+                        ![Invite your team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)
+                    `),
             },
 
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Set up [categories](${workspaceCategoriesLink}) and [tags](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    '*Set up categories and tags* so your team can code expenses for easy reporting.\n' +
-                    '\n' +
-                    `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceCategoriesLink}).`,
+                    dedent(`
+                        *Set up categories and tags* so your team can code expenses for easy reporting.
+
+                        Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceCategoriesLink}).
+                    `),
             },
             setupTagsTask: {
                 title: ({workspaceTagsLink}) => `Set up [tags](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    'Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
-                    '\n' +
-                    '1. Click *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *More features*.\n' +
-                    '4. Enable *Tags*.\n' +
-                    '5. Navigate to *Tags* in the workspace editor.\n' +
-                    '6. Click *+ Add tag* to make your own.\n' +
-                    '\n' +
-                    `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
-                    '\n' +
-                    `![Set up tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+                    dedent(`
+                        Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.
+
+                        1. Click *Workspaces*.
+                        2. Select your workspace.
+                        3. Click *More features*.
+                        4. Enable *Tags*.
+                        5. Navigate to *Tags* in the workspace editor.
+                        6. Click *+ Add tag* to make your own.
+
+                        [Take me to more features](${workspaceMoreFeaturesLink}).
+
+                        ![Set up tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)
+                    `),
             },
 
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Invite your [accountant](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Invite your accountant* to collaborate on your workspace and manage your business expenses.\n' +
-                    '\n' +
-                    '1. Click *Workspaces*.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Click *Members*.\n' +
-                    '4. Click *Invite member*.\n' +
-                    "5. Enter your accountant's email address.\n" +
-                    '\n' +
-                    `[Invite your accountant now](${workspaceMembersLink}).`,
+                    dedent(`
+                        *Invite your accountant* to collaborate on your workspace and manage your business expenses.
+
+                        1. Click *Workspaces*.
+                        2. Select your workspace.
+                        3. Click *Members*.
+                        4. Click *Invite member*.
+                        5. Enter your accountant's email address.
+
+                        [Invite your accountant now](${workspaceMembersLink}).
+                    `),
             },
 
             startChatTask: {
                 title: 'Start a chat',
-                description:
-                    '*Start a chat* with anyone using their email or phone number.\n' +
-                    '\n' +
-                    `1. Click the + button.\n` +
-                    '2. Choose *Start chat*.\n' +
-                    '3. Enter an email or phone number.\n' +
-                    '\n' +
-                    'If they’re not using Expensify already, they’ll be invited automatically.\n' +
-                    '\n' +
-                    'Every chat will also turn into an email or text that they can respond to directly.',
+                description: dedent(`
+                    *Start a chat* with anyone using their email or phone number.
+
+                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    2. Choose *Start chat*.
+                    3. Enter an email or phone number.
+
+                    If they're not using Expensify already, they'll be invited automatically.
+
+                    Every chat will also turn into an email or text that they can respond to directly.
+                `),
             },
 
             splitExpenseTask: {
                 title: 'Split an expense',
-                description:
-                    '*Split expenses* with one or more people.\n' +
-                    '\n' +
-                    `1. Click the + button.\n` +
-                    '2. Choose *Start chat*.\n' +
-                    '3. Enter emails or phone numbers.\n' +
-                    '4. Click the grey *+* button in the chat > *Split expense*.\n' +
-                    '5. Create the expense by selecting *Manual*, *Scan*, or *Distance*.\n' +
-                    '\n' +
-                    'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
+                description: dedent(`
+                    *Split expenses* with one or more people.
+
+                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    2. Choose *Start chat*.
+                    3. Enter emails or phone numbers.
+                    4. Click the grey *+* button in the chat > *Split expense*.
+                    5. Create the expense by selecting *Manual*, *Scan*, or *Distance*.
+
+                    Feel free to add more details if you want, or just send it off. Let's get you paid back!
+                `),
             },
 
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    "Here's how to review and update your workspace settings:\n" +
-                    '1. Click Workspaces.\n' +
-                    '2. Select your workspace.\n' +
-                    '3. Review and update your settings.\n' +
-                    `[Go to your workspace.](${workspaceSettingsLink})`,
+                    dedent(`
+                        Here's how to review and update your workspace settings:
+                        1. Click Workspaces.
+                        2. Select your workspace.
+                        3. Review and update your settings.
+                        [Go to your workspace.](${workspaceSettingsLink})
+                    `),
             },
             createReportTask: {
                 title: 'Create your first report',
-                description:
-                    'Here’s how to create a report:\n' +
-                    '\n' +
-                    `1. Click the + button.\n` +
-                    '2. Choose *Create report*.\n' +
-                    '3. Click *Add expense*.\n' +
-                    '4. Add your first expense.\n' +
-                    '\n' +
-                    'And you’re done!',
+                description: dedent(`
+                    Here's how to create a report:
+
+                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    2. Choose *Create report*.
+                    3. Click *Add expense*.
+                    4. Add your first expense.
+
+                    And you're done!
+                `),
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
@@ -2611,10 +2838,18 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             onboardingPersonalSpendMessage: 'Here’s how to track your spend in a few clicks.',
-            onboardingManageTeamMessage:
-                "# Your free trial has started! Let's get you set up.\n👋 Hey there, I'm your Expensify setup specialist. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!",
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # Your free trial has started! Let's get you set up.
+                        👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your team's receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!
+                    `)
+                    : dedent(`
+                        # Your free trial has started! Let's get you set up.
+                        👋 Hey there, I'm your Expensify setup specialist. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Let’s get you set up\n👋 I’m here to help! To get you started, I’ve tailored your workspace settings for sole proprietors and similar businesses. You can adjust your workspace by clicking the link below!\n\nHere’s how to track your spend in a few clicks:',
+                "# Let’s get you set up\n👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!",
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             onboardingAdminMessage: "Learn how to manage your team's workspace as an admin and submit your own expenses.",
             onboardingLookingAroundMessage:
@@ -2840,6 +3075,8 @@ const translations = {
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to <a href="${workspaceRoute}">your workspace settings</a> to set it to USD and try again.`,
+        bbaAdded: 'Business bank account added!',
+        bbaAddedDescription: "It's ready to be used for payments.",
         error: {
             youNeedToSelectAnOption: 'Please select an option to proceed',
             noBankAccountAvailable: "Sorry, there's no bank account available",
@@ -3233,6 +3470,9 @@ const translations = {
         whatsYourAddress: "What's your address?",
         whatAreTheLast: "What are the last 4 digits of the owner's Social Security Number?",
         whatsYourLast: 'What are the last 4 digits of your Social Security Number?',
+        whatsYourNationality: 'What is your country of citizenship?',
+        whatsTheOwnersNationality: "What's the owner's country of citizenship?",
+        countryOfCitizenship: 'Country of citizenship',
         dontWorry: "Don't worry, we don't do any personal credit checks!",
         last4: 'Last 4 of SSN',
         whyDoWeAsk: 'Why do we ask for this?',
@@ -3327,8 +3567,11 @@ const translations = {
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: 'Codice Fiscale for Signatories, Authorized Users and Beneficial Owners.',
         PDSandFSG: 'PDS + FSG disclosure paperwork',
-        PDSandFSGDescription:
-            "Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).\n\nPlease read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.",
+        PDSandFSGDescription: dedent(`
+            Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).
+
+            Please read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.
+        `),
         pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a director of the business.',
         enterSignerInfo: 'Enter signer info',
         thisStep: 'This step has been completed',
@@ -4153,27 +4396,33 @@ const translations = {
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
                         label: 'Vendor bills',
-                        reimbursableDescription:
-                            'Out-of-pocket expenses will export as bills payable to the NetSuite vendor specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
-                        nonReimbursableDescription:
-                            'Company card expenses will export as bills payable to the NetSuite vendor specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        reimbursableDescription: dedent(`
+                            Out-of-pocket expenses will export as bills payable to the NetSuite vendor specified below.
+
+                            If you'd like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            Company card expenses will export as bills payable to the NetSuite vendor specified below.
+
+                            If you'd like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.
+                        `),
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
                         label: 'Journal entries',
-                        reimbursableDescription:
-                            'Out-of-pocket expenses will export as journal entries to the NetSuite account specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
-                        nonReimbursableDescription:
-                            'Company card expenses will export as journal entries to the NetSuite account specified below.\n' +
-                            '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        reimbursableDescription: dedent(`
+                            Out-of-pocket expenses will export as journal entries to the NetSuite account specified below.
+
+                            If you'd like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.
+                        `),
+                        nonReimbursableDescription: dedent(`
+                            Company card expenses will export as journal entries to the NetSuite account specified below.
+
+                            If you'd like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.
+                        `),
                     },
                 },
+                expenseReportDestinationConfirmDescription:
+                    "If you switch the company card export setting to expense reports, NetSuite vendors and posting accounts for individual cards will be disabled.\n\nDon't worry, we’ll still save your previous selections in case you want to switch back later.",
             },
             advancedConfig: {
                 autoSyncDescription: 'Expensify will automatically sync with NetSuite every day.',
@@ -4553,7 +4802,7 @@ const translations = {
             companyCard: 'company card',
             chooseCardFeed: 'Choose card feed',
             ukRegulation:
-                'Expensify, Inc. is an agent of Plaid Financial Ltd., an authorised payment institution regulated by the Financial Conduct Authority under the Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid provides you with regulated account information services through Expensify Limited as its agent.',
+                'Expensify Limited is an agent of Plaid Financial Ltd., an authorised payment institution regulated by the Financial Conduct Authority under the Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid provides you with regulated account information services through Expensify Limited as its agent.',
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
@@ -4618,8 +4867,12 @@ const translations = {
             addShippingDetails: 'Add shipping details',
             issuedCard: ({assignee}: AssigneeParams) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `issued ${assignee} an Expensify Card! The card will be shipped once shipping details are confirmed.`,
-            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `issued ${assignee} a virtual ${link}! The card can be used right away.`,
+            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `issued ${assignee} a virtual Expensify Card! The ${link} can be used right away.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} added shipping details. Expensify Card will arrive in 2-3 business days.`,
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} replaced their Expensify Card. The new card will arrive in 2-3 business days.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} replaced their virtual Expensify Card! The ${link} can be used right away.`,
+            card: 'card',
+            replacementCard: 'replacement card',
             verifyingHeader: 'Verifying',
             bankAccountVerifiedHeader: 'Bank account verified',
             verifyingBankAccount: 'Verifying bank account...',
@@ -4858,7 +5111,7 @@ const translations = {
             customNameWorkspaceNameExample: 'Workspace name: {report:workspacename}',
             customNameReportIDExample: 'Report ID: {report:id}',
             customNameTotalExample: 'Total: {report:total}.',
-            preventMembersFromChangingCustomNamesTitle: 'Prevent members from changing custom report names',
+            preventMembersFromChangingCustomNamesTitle: 'Prevent members from changing custom report titles',
         },
         reportFields: {
             addField: 'Add field',
@@ -4993,6 +5246,10 @@ const translations = {
                 title: 'Cannot make all tags optional',
                 description: `At least one tag must remain required because your workspace settings require tags.`,
             },
+            cannotMakeTagListRequired: {
+                title: 'Cannot make tag list required',
+                description: 'You can only make a tag list required if your policy has multiple tag levels configured.',
+            },
             tagCount: () => ({
                 one: '1 Tag',
                 other: (count: number) => `${count} Tags`,
@@ -5089,9 +5346,18 @@ const translations = {
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
-            makeMember: 'Make member',
-            makeAdmin: 'Make admin',
-            makeAuditor: 'Make auditor',
+            makeMember: () => ({
+                one: 'Make member',
+                other: 'Make members',
+            }),
+            makeAdmin: () => ({
+                one: 'Make admin',
+                other: 'Make admins',
+            }),
+            makeAuditor: () => ({
+                one: 'Make auditor',
+                other: 'Make auditors',
+            }),
             selectAll: 'Select all',
             error: {
                 genericAdd: 'There was a problem adding this workspace member',
@@ -5120,6 +5386,7 @@ const translations = {
             issueCard: 'Issue card',
             issueNewCard: {
                 whoNeedsCard: 'Who needs a card?',
+                inviteNewMember: 'Invite new member',
                 findMember: 'Find member',
                 chooseCardType: 'Choose a card type',
                 physicalCard: 'Physical card',
@@ -5144,7 +5411,6 @@ const translations = {
                 cardType: 'Card type',
                 limit: 'Limit',
                 limitType: 'Limit type',
-                name: 'Name',
                 disabledApprovalForSmartLimitError: 'Please enable approvals in <strong>Workflows > Add approvals</strong> before setting up smart limits',
             },
             deactivateCardModal: {
@@ -5711,6 +5977,8 @@ const translations = {
                     toUpgrade: 'To upgrade, click',
                     selectWorkspace: 'select a workspace, and change the plan type to',
                 },
+                upgradeWorkspaceWarning: `Can't upgrade workspace`,
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Your company has restricted workspace creation. Please reach out to an admin for help.',
             },
         },
         downgrade: {
@@ -5808,7 +6076,7 @@ const translations = {
                 adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
-                title: 'Expense reports',
+                title: 'Advanced',
                 subtitle: 'Automate expense report compliance, approvals, and payment.',
                 preventSelfApprovalsTitle: 'Prevent self-approvals',
                 preventSelfApprovalsSubtitle: 'Prevent workspace members from approving their own expense reports.',
@@ -5824,8 +6092,7 @@ const translations = {
                 autoPayApprovedReportsLockedSubtitle: 'Go to more features and enable workflows, then add payments to unlock this feature.',
                 autoPayReportsUnderTitle: 'Auto-pay reports under',
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Go to [more features](${moreFeaturesLink}) and enable workflows, then add ${featureName} to unlock this feature.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
             },
             categoryRules: {
@@ -5845,7 +6112,7 @@ const translations = {
                     expense: 'Individual expense',
                     expenseSubtitle: 'Flag expense amounts by category. This rule overrides the general workspace rule for max expense amount.',
                     daily: 'Category total',
-                    dailySubtitle: 'Flag total category spend per expense report.',
+                    dailySubtitle: 'Flag total daily category spend per expense report.',
                 },
                 requireReceiptsOver: 'Require receipts over',
                 requireReceiptsOverList: {
@@ -6046,6 +6313,12 @@ const translations = {
             }
             return `added a tax reclaimable portion of "${newValue}" to the distance rate "${customUnitRateName}`;
         },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `changed the index of the ${customUnitName} rate "${customUnitRateName}" to "${newValue}" ${oldValue ? `(previously "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'enabled' : 'disabled'} ${customUnitName} rate "${customUnitRateName}"`;
+        },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removed the "${customUnitName}" rate "${rateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
@@ -6103,11 +6376,122 @@ const translations = {
             `updated the auto-reporting frequency to "${newFrequency}" (previously "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `updated the approval mode to "${newValue}" (previously "${oldValue}")`,
         upgradedWorkspace: 'upgraded this workspace to the Control plan',
+        forcedCorporateUpgrade: `This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.`,
         downgradedWorkspace: 'downgraded this workspace to the Collect plan',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'enabled' : 'disabled'} categories`;
+                case 'tags':
+                    return `${enabled ? 'enabled' : 'disabled'} tags`;
+                case 'workflows':
+                    return `${enabled ? 'enabled' : 'disabled'} workflows`;
+                case 'distance rates':
+                    return `${enabled ? 'enabled' : 'disabled'} distance rates`;
+                case 'accounting':
+                    return `${enabled ? 'enabled' : 'disabled'} accounting`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'enabled' : 'disabled'} Expensify Cards`;
+                case 'company cards':
+                    return `${enabled ? 'enabled' : 'disabled'} company cards`;
+                case 'invoicing':
+                    return `${enabled ? 'enabled' : 'disabled'} invoicing`;
+                case 'per diem':
+                    return `${enabled ? 'enabled' : 'disabled'} per diem`;
+                case 'receipt partners':
+                    return `${enabled ? 'enabled' : 'disabled'} receipt partners`;
+                case 'rules':
+                    return `${enabled ? 'enabled' : 'disabled'} rules`;
+                case 'tax tracking':
+                    return `${enabled ? 'enabled' : 'disabled'} tax tracking`;
+                default:
+                    return `${enabled ? 'enabled' : 'disabled'} ${featureName}`;
+            }
+        },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `changed the default approver to ${newApprover} (previously ${previousApprover})` : `changed the default approver to ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `changed the approval workflow for ${members} to submit reports to ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previously default approver ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (previously default approver)';
+            } else if (previousApprover) {
+                text += ` (previously ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `changed the approval workflow for ${members} to submit reports to the default approver ${approver}`
+                : `changed the approval workflow for ${members} to submit reports to the default approver`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previously default approver ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (previously default approver)';
+            } else if (previousApprover) {
+                text += ` (previously ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `changed the approval workflow for ${approver} to forward approved reports to ${forwardsTo} (previously forwarded to ${previousForwardsTo})`
+                : `changed the approval workflow for ${approver} to forward approved reports to ${forwardsTo} (previously final approved reports)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `changed the approval workflow for ${approver} to stop forwarding approved reports (previously forwarded to ${previousForwardsTo})`
+                : `changed the approval workflow for ${approver} to stop forwarding approved reports`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
+        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+            if (!updatedField) {
+                return '';
+            }
+            switch (updatedField) {
+                case 'name': {
+                    return `renamed the tax "${oldValue}" to "${newValue}"`;
+                }
+                case 'code': {
+                    return `changed the tax code for "${taxName}" from "${oldValue}" to "${newValue}"`;
+                }
+                case 'rate': {
+                    return `changed the tax rate for "${taxName}" from "${oldValue}" to "${newValue}"`;
+                }
+                case 'enabled': {
+                    return `${oldValue ? 'disabled' : 'enabled'} the tax "${taxName}"`;
+                }
+                default: {
+                    return '';
+                }
+            }
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
@@ -6192,7 +6576,10 @@ const translations = {
                 subtitleWithOnlyCreateButton: 'Use the green button below to create a report.',
             },
             emptyInvoiceResults: {
-                title: "You haven't created any \ninvoices yet",
+                title: dedent(`
+                    You haven't created any
+                    invoices yet
+                `),
                 subtitle: 'Send an invoice or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to send an invoice.',
             },
@@ -6243,6 +6630,7 @@ const translations = {
             delete: 'Delete',
             hold: 'Hold',
             unhold: 'Remove hold',
+            reject: 'Reject',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
@@ -6312,6 +6700,7 @@ const translations = {
         groupBy: 'Group by',
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',
+            accessPlaceHolder: 'Open for details',
         },
         noCategory: 'No category',
         noTag: 'No tag',
@@ -6423,14 +6812,37 @@ const translations = {
             message: "We couldn't check for an update. Please try again in a bit.",
         },
     },
+    settlement: {
+        status: {
+            pending: 'Pending',
+            cleared: 'Cleared',
+            failed: 'Failed',
+        },
+        failedError: ({link}: {link: string}) => `We'll retry this settlement when you <a href="${link}">unlock your account</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Withdrawal ID: ${withdrawalID}`,
+    },
+    reportLayout: {
+        reportLayout: 'Report layout',
+        groupByLabel: 'Group by:',
+        selectGroupByOption: 'Select how to group report expenses',
+        uncategorized: 'Uncategorized',
+        noTag: 'No tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Select all expenses in ${groupName}`,
+        groupBy: {
+            category: 'Category',
+            tag: 'Tag',
+        },
+    },
     report: {
         newReport: {
+            createExpense: 'Create expense',
             createReport: 'Create report',
             chooseWorkspace: 'Choose a workspace for this report.',
             emptyReportConfirmationTitle: 'You already have an empty report',
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Are you sure you want to create another report in ${workspaceName}? You can access your empty reports in`,
             emptyReportConfirmationPromptLink: 'Reports',
+            emptyReportConfirmationDontShowAgain: "Don't show me this again",
             genericWorkspaceName: 'this workspace',
         },
         genericCreateReportFailureMessage: 'Unexpected error creating this chat. Please try again later.',
@@ -6696,9 +7108,9 @@ const translations = {
             body: "Want your friends to use Expensify, too? Just start a chat with them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText: 'Submit an expense, <success><strong>refer your boss</strong></success>.',
-            header: 'Submit an expense, refer your boss',
-            body: "Want your boss to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
+            buttonText: 'Submit an expense, <success><strong>refer your team</strong></success>.',
+            header: 'Submit an expense, refer your team',
+            body: "Want your team to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             header: 'Refer a friend',
@@ -6755,43 +7167,59 @@ const translations = {
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
         receiptNotSmartScanned: 'Receipt and expense details added manually.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
-            let message = 'Receipt required';
-            if (formattedLimit ?? category) {
-                message += ' over';
-                if (formattedLimit) {
-                    message += ` ${formattedLimit}`;
-                }
-                if (category) {
-                    message += ' category limit';
-                }
+            if (formattedLimit && category) {
+                return `Receipt required over ${formattedLimit} category limit`;
             }
-            return message;
+
+            if (formattedLimit) {
+                return `Receipt required over ${formattedLimit}`;
+            }
+
+            if (category) {
+                return `Receipt required over category limit`;
+            }
+
+            return 'Receipt required';
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Prohibited expense:';
-            switch (prohibitedExpenseType) {
-                case 'alcohol':
-                    return `${preMessage} alcohol`;
-                case 'gambling':
-                    return `${preMessage} gambling`;
-                case 'tobacco':
-                    return `${preMessage} tobacco`;
-                case 'adultEntertainment':
-                    return `${preMessage} adult entertainment`;
-                case 'hotelIncidentals':
-                    return `${preMessage} hotel incidentals`;
-                default:
-                    return `${preMessage}${prohibitedExpenseType}`;
+            const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
+                switch (prohibitedExpenseType) {
+                    case 'alcohol':
+                        return `alcohol`;
+                    case 'gambling':
+                        return `gambling`;
+                    case 'tobacco':
+                        return `tobacco`;
+                    case 'adultEntertainment':
+                        return `adult entertainment`;
+                    case 'hotelIncidentals':
+                        return `hotel incidentals`;
+                    default:
+                        return `${prohibitedExpenseType}`;
+                }
+            };
+            let types: string[] = [];
+            if (Array.isArray(prohibitedExpenseTypes)) {
+                types = prohibitedExpenseTypes;
+            } else if (prohibitedExpenseTypes) {
+                types = [prohibitedExpenseTypes];
             }
+            if (types.length === 0) {
+                return preMessage;
+            }
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Review required',
-        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return "Can't auto-match receipt due to broken bank connection";
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return isAdmin ? `Can't auto-match receipt due to broken bank connection which ${email} needs to fix` : "Can't auto-match receipt due to broken bank connection";
+                return isAdmin
+                    ? `Bank connection broken. <a href="${companyCardPageURL}">Reconnect to match receipt</a>`
+                    : 'Bank connection broken. Ask an admin to reconnect to match receipt.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Ask ${member} to mark as a cash or wait 7 days and try again` : 'Awaiting merge with card transaction.';
@@ -6828,6 +7256,7 @@ const translations = {
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
+        reportContainsExpensesWithViolations: 'Report contains expenses with violations.',
     },
     violationDismissal: {
         rter: {
@@ -6951,9 +7380,7 @@ const translations = {
                 `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
             preTrial: {
                 title: 'Start a free trial',
-                subtitleStart: 'As a next step, ',
-                subtitleLink: 'complete your setup checklist ',
-                subtitleEnd: 'so your team can start expensing.',
+                subtitle: 'As a next step, <a href="#">complete your setup checklist</a> so your team can start expensing.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
@@ -7172,7 +7599,10 @@ const translations = {
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to add a copilot. It should arrive within a minute or two.`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to update your copilot.`,
         notAllowed: 'Not so fast...',
-        noAccessMessage: "As a copilot, you don't have access to \nthis page. Sorry!",
+        noAccessMessage: dedent(`
+            As a copilot, you don't have access to
+            this page. Sorry!
+        `),
         notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
             `As a <a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">copilot</a> for ${accountOwnerEmail}, you don't have permission to take this action. Sorry!`,
         copilotAccess: 'Copilot access',
@@ -7261,12 +7691,13 @@ const translations = {
     },
     migratedUserWelcomeModal: {
         title: 'Welcome to New Expensify!',
-        subtitle: 'New Expensify has the same great automation, but now with amazing collaboration:',
+        subtitle: "It's got everything you love from our classic experience with a whole bunch of upgrades to make your life even easier:",
         confirmText: "Let's go!",
+        helpText: 'Try 2-min demo',
         features: {
-            chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
-            scanReceipt: '<strong>Scan receipts</strong> and get paid back',
-            crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
+            search: 'More powerful search on mobile, web, and desktop',
+            concierge: 'Built-in Concierge AI to help automate your expenses',
+            chat: 'Chat on any expense to resolve questions quickly',
         },
     },
     productTrainingTooltip: {
@@ -7319,7 +7750,7 @@ const translations = {
         },
         modal: {
             title: 'Take us for a test drive',
-            description: 'Take a quick product tour to get up to speed fast. No pit stops required!',
+            description: 'Take a quick product tour to get up to speed fast.',
             confirmText: 'Start test drive',
             helpText: 'Skip',
             employee: {
@@ -7362,6 +7793,73 @@ const translations = {
             header: 'Wooo! Your domain has been verified',
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>The domain <strong>${domainName}</strong> has been successfully verified and you can now set up SAML and other security features.</centered-text></muted-text>`,
+        },
+        saml: 'SAML',
+        samlFeatureList: {
+            title: 'SAML Single Sign-On (SSO)',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML SSO</a> is a security feature that gives you more control over how members with <strong>${domainName}</strong> emails log into Expensify. To enable it, you'll need to verify yourself as an authorized company admin.</muted-text>`,
+            fasterAndEasierLogin: 'Faster and easier login',
+            moreSecurityAndControl: 'More security and control',
+            onePasswordForAnything: 'One password for everything',
+        },
+        goToDomain: 'Go to domain',
+        samlLogin: {
+            title: 'SAML login',
+            subtitle: `<muted-text>Configure member sign-in with <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'Enable SAML login',
+            allowMembers: 'Allow members to log in with SAML.',
+            requireSamlLogin: 'Require SAML login',
+            anyMemberWillBeRequired: 'Any member signed in with a different method will be required to re-authenticate using SAML.',
+            enableError: "Couldn't update SAML enablement setting",
+            requireError: "Couldn't update SAML requirement setting",
+            disableSamlRequired: 'Disable SAML required',
+            oktaWarningPrompt: 'Are you sure? This will also disable Okta SCIM.',
+            requireWithEmptyMetadataError: 'Please add Identity Provider metadata below to enable',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML configuration details',
+            subtitle: 'Use these details to get SAML set up.',
+            identityProviderMetadata: 'Identity Provider Metadata',
+            entityID: 'Entity ID',
+            nameIDFormat: 'Name ID Format',
+            loginUrl: 'Login URL',
+            acsUrl: 'ACS (Assertion Consumer Service) URL',
+            logoutUrl: 'Logout URL',
+            sloUrl: 'SLO (Single Logout) URL',
+            serviceProviderMetaData: 'Service Provider MetaData',
+            oktaScimToken: 'Okta SCIM Token',
+            revealToken: 'Reveal token',
+            fetchError: "Couldn't fetch SAML configuration details",
+            setMetadataGenericError: "Couldn't set SAML MetaData",
+        },
+        accessRestricted: {
+            title: 'Access restricted',
+            subtitle: (domainName: string) => `Please verify yourself as an authorized company administrator for <strong>${domainName}</strong> if you need control over:`,
+            companyCardManagement: 'Company card management',
+            accountCreationAndDeletion: 'Account creation and deletion',
+            workspaceCreation: 'Workspace creation',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Add domain',
+            subtitle: 'Enter the name of the private domain you want to access (e.g. expensify.com).',
+            domainName: 'Domain name',
+            newDomain: 'New domain',
+        },
+        domainAdded: {
+            title: 'Domain added',
+            description: "Next, you'll need to verify ownership of the domain and adjust your security settings.",
+            configure: 'Configure',
+        },
+        enhancedSecurity: {
+            title: 'Enhanced security',
+            subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
+            enable: 'Enable',
+        },
+        admins: {
+            title: 'Admins',
+            findAdmin: 'Find admin',
         },
     },
 };

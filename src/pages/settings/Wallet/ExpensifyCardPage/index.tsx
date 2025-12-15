@@ -1,10 +1,12 @@
 import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
@@ -13,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -24,6 +27,7 @@ import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/Currenc
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
@@ -35,7 +39,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {CurrencyList} from '@src/types/onyx';
+import type {Card, CurrencyList, PrivatePersonalDetails} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useExpensifyCardContext from './useExpensifyCardContext';
 
@@ -49,6 +53,17 @@ type LimitTypeTranslationKeys = {
     limitNameKey: TranslationPaths | undefined;
     limitTitleKey: PossibleTitles | undefined;
 };
+
+/**
+ * Determines if the user should be redirected to the missing details page
+ * before revealing their card details (for UK/EU cards only).
+ */
+function shouldShowMissingDetailsPage(card: OnyxEntry<Card>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    const isUKOrEUCard = card?.nameValuePairs?.feedCountry === 'GB';
+    const hasMissingDetails = arePersonalDetailsMissing(privatePersonalDetails);
+
+    return hasMissingDetails && isUKOrEUCard;
+}
 
 function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): LimitTypeTranslationKeys {
     switch (limitType) {
@@ -69,9 +84,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [pin] = useOnyx(ONYXKEYS.ACTIVATED_CARD_PIN, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const isTravelCard = cardList?.[cardID]?.nameValuePairs?.isTravelCard;
     const shouldDisplayCardDomain = !isTravelCard && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
@@ -87,6 +104,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         }
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
+    const currentCard = useMemo(() => cardsToShow?.find((card) => String(card?.cardID) === cardID) ?? cardsToShow?.at(0), [cardsToShow, cardID]);
 
     useEffect(() => {
         return () => {
@@ -98,12 +116,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     }, [pin]);
 
     useEffect(() => {
-        setIsNotFound(!cardsToShow);
-    }, [cardList, cardsToShow]);
-
-    useEffect(() => {
-        resetValidateActionCodeSent();
-    }, []);
+        setIsNotFound(!currentCard);
+    }, [cardList, cardsToShow, currentCard]);
 
     const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !card?.nameValuePairs?.isTravelCard), [cardsToShow]);
     const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.isTravelCard), [cardsToShow]);
@@ -128,10 +142,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     // Cards that are already activated and working (OPEN) and cards shipped but not activated yet can be reported as missing or damaged
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
-    const currency = getCurrencyKeyByCountryCode(currencyList, cardsToShow?.at(0)?.nameValuePairs?.country ?? cardsToShow?.at(0)?.nameValuePairs?.feedCountry);
+    const currency = getCurrencyKeyByCountryCode(currencyList, currentCard?.nameValuePairs?.country ?? currentCard?.nameValuePairs?.feedCountry);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
-    const formattedAvailableSpendAmount = convertToDisplayString(cardsToShow?.at(0)?.availableSpend, currency);
-    const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
+    const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency);
+    const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
 
     const isSignedInAsDelegate = !!account?.delegatedAccess?.delegate || false;
 
@@ -223,6 +237,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                 showLockedAccountModal();
                                                                 return;
                                                             }
+
+                                                            // Check if user needs to add personal details first (UK/EU cards only)
+                                                            if (shouldShowMissingDetailsPage(card, privatePersonalDetails)) {
+                                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS.getRoute(String(card.cardID)));
+                                                                return;
+                                                            }
+                                                            resetValidateActionCodeSent();
                                                             if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
                                                                 Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
                                                                 return;
@@ -235,11 +256,23 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 ) : undefined
                                             }
                                         />
-                                        <DotIndicatorMessage
-                                            messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
-                                            type="error"
-                                            style={[styles.ph5]}
-                                        />
+                                        {cardsDetailsErrors[card.cardID] === 'cardPage.missingPrivateDetails' ? (
+                                            <FormHelpMessage
+                                                isError
+                                                shouldShowRedDotIndicator
+                                                message={translate('cardPage.missingPrivateDetails', {
+                                                    missingDetailsLink: `${environmentURL}/${ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS.getRoute(String(card.cardID))}`,
+                                                })}
+                                                style={[styles.ph5, styles.mv2]}
+                                                shouldRenderMessageAsHTML
+                                            />
+                                        ) : (
+                                            <DotIndicatorMessage
+                                                messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
+                                                type="error"
+                                                style={[styles.ph5, styles.mv2]}
+                                            />
+                                        )}
                                     </>
                                 )}
                                 {!isSignedInAsDelegate && (

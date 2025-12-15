@@ -1,9 +1,9 @@
-import React from 'react';
-import * as Expensicons from '@components/Icon/Expensicons';
+import React, {useMemo} from 'react';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -40,20 +40,29 @@ type DomainItem = {
 } & Pick<OfflineWithFeedbackProps, 'pendingAction'>;
 
 function DomainMenuItem({item, index}: DomainMenuItemProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Globe'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isAdmin, isValidated} = item;
+    const {isAdmin, isValidated, action} = item;
 
-    const threeDotsMenuItems: PopoverMenuItem[] | undefined =
-        !isValidated && isAdmin
-            ? [
-                  {
-                      icon: Expensicons.Globe,
-                      text: translate('domain.verifyDomain.title'),
-                      onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.accountID)),
-                  },
-              ]
-            : undefined;
+    const threeDotsMenuItems: PopoverMenuItem[] | undefined = useMemo(
+        () =>
+            isAdmin
+                ? [
+                      {
+                          icon: icons.Globe,
+                          text: translate('domain.goToDomain'),
+                          onSelected: action,
+                      },
+                      !isValidated && {
+                          icon: icons.Globe,
+                          text: translate('domain.verifyDomain.title'),
+                          onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.accountID)),
+                      },
+                  ].filter((menuItem) => !!menuItem)
+                : undefined,
+        [isAdmin, icons.Globe, translate, action, isValidated, item.accountID],
+    );
 
     return (
         <OfflineWithFeedback
@@ -65,8 +74,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel="row"
                 style={styles.mh5}
-                onPress={item.action}
-                disabled={!isAdmin}
+                onPress={action}
             >
                 {({hovered}) => (
                     <DomainsListRow

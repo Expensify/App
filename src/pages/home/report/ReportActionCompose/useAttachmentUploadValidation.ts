@@ -1,10 +1,10 @@
-import {useCallback, useContext, useRef} from 'react';
+import {useCallback, useContext, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {cleanFileObject, cleanFileObjectName, getFilesFromClipboardEvent} from '@libs/fileDownload/FileUtils';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type AttachmentUploadValidationProps = {
@@ -51,6 +52,8 @@ function useAttachmentUploadValidation({
 }: AttachmentUploadValidationProps) {
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModalScreen = useCallback(
@@ -83,7 +86,7 @@ function useAttachmentUploadValidation({
 
         if (shouldAddOrReplaceReceipt && transactionID) {
             const source = URL.createObjectURL(files.at(0) as Blob);
-            replaceReceipt({transactionID, file: files.at(0) as File, source, transactionPolicyCategories: policyCategories});
+            replaceReceipt({transactionID, file: files.at(0) as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
             return;
         }
 
@@ -93,9 +96,11 @@ function useAttachmentUploadValidation({
             report,
             parentReport: newParentReport,
             currentDate,
+            currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
         });
 
-        files.forEach((file, index) => {
+        for (const [index, file] of files.entries()) {
             const source = URL.createObjectURL(file as Blob);
             const newTransaction =
                 index === 0
@@ -107,8 +112,8 @@ function useAttachmentUploadValidation({
                       });
             const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
             setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true, file.type);
-            setMoneyRequestParticipantsFromReport(newTransactionID, report);
-        });
+            setMoneyRequestParticipantsFromReport(newTransactionID, report, currentUserPersonalDetails.accountID);
+        }
         Navigation.navigate(
             ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                 CONST.IOU.ACTION.CREATE,
