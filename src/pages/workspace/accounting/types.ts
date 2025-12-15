@@ -26,7 +26,7 @@ type WorkspaceUpgradeNavigationDetails = {
 
 type AccountingIntegration = {
     title: string;
-    icon: IconAsset;
+    icon?: IconAsset;
     setupConnectionFlow: React.ReactNode;
     onImportPagePress: () => void;
     subscribedImportSettings?: string[];
