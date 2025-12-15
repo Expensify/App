@@ -419,6 +419,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'avatarUrl':
         case 'created':
         case 'submitted':
+        case 'approved':
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
         case 'lastReadTime':
@@ -619,6 +620,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 submitted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                approved: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
