@@ -2049,20 +2049,28 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
-function getSearchColumnTranslationKey(columnId: ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS>): TranslationPaths {
+function getSearchColumnTranslationKey(columnId: ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.expense & typeof CONST.SEARCH.CUSTOM_COLUMNS.expenseReport>): TranslationPaths {
     // eslint-disable-next-line default-case
     switch (columnId) {
-        case CONST.SEARCH.CUSTOM_COLUMNS.DATE:
+        case CONST.SEARCH.TABLE_COLUMNS.DATE:
             return 'common.date';
-        case CONST.SEARCH.CUSTOM_COLUMNS.STATUS:
+        case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return 'common.status';
-        case CONST.SEARCH.CUSTOM_COLUMNS.TITLE:
+        case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return 'common.title';
-        case CONST.SEARCH.CUSTOM_COLUMNS.FROM:
+        case CONST.SEARCH.TABLE_COLUMNS.FROM:
             return 'common.from';
-        case CONST.SEARCH.CUSTOM_COLUMNS.TO:
+        case CONST.SEARCH.TABLE_COLUMNS.TO:
             return 'common.to';
-        case CONST.SEARCH.CUSTOM_COLUMNS.ACTION:
+        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+            return 'common.action';
+        case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
+            return 'common.receipt';
+        case CONST.SEARCH.TABLE_COLUMNS.TAG:
+            return 'common.tag';
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
+            return 'iou.amount';
+        case CONST.SEARCH.TABLE_COLUMNS.ACTION:
             return 'common.action';
     }
 }

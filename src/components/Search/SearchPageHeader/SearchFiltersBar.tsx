@@ -827,7 +827,7 @@ function SearchFiltersBar({
             expensifyIcons.Filter,
             expensifyIcons.Columns,
             openAdvancedFilters,
-            isLargeScreenWidth,
+            shouldShowColumnsButton,
             translate,
         ],
     );
