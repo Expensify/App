@@ -2,7 +2,6 @@ import {adminAccountIDsSelector} from '@selectors/Domain';
 import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -58,7 +57,7 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
             alternateText: formatPhoneNumber(details?.login ?? ''),
             icons: [
                 {
-                    source: details?.avatar ?? FallbackAvatar,
+                    source: details?.avatar ?? details?.fallbackIcon ?? '',
                     name: formatPhoneNumber(details?.login ?? ''),
                     type: CONST.ICON_TYPE_AVATAR,
                     id: accountID,
@@ -84,10 +83,10 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                 <SelectionList
                     data={filteredData}
                     onSelectRow={(option) => {
-                        if (!option.login) {
+                        if (!option.login || !option.accountID) {
                             return;
                         }
-                        choosePrimaryContact(domainAccountID, option.login === technicalContactEmail ? null : (option.login), technicalContactEmail);
+                        choosePrimaryContact(domainAccountID, option.accountID, option.login === technicalContactEmail ? null : option.login, technicalContactEmail);
                         Navigation.goBack();
                     }}
                     ListItem={InviteMemberListItem}
@@ -99,7 +98,7 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                         label: translate('selectionList.findMember'),
                         value: searchTerm,
                         onChangeText: setSearchTerm,
-                        headerMessage: searchTerm && !data?.length ? translate('common.noResultsFound') : '',
+                        headerMessage: searchTerm && !filteredData?.length ? translate('common.noResultsFound') : '',
                     }}
                     addBottomSafeAreaPadding
                     showScrollIndicator
