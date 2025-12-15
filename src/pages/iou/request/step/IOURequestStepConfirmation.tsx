@@ -45,7 +45,7 @@ import {
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
-import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -582,7 +582,6 @@ function IOURequestStepConfirmation({
                     action,
                     transactionParams: {
                         amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount,
-                        distance: isManualDistanceRequest && item.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity) : undefined,
                         attendees: item.comment?.attendees,
                         currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
                         created: item.created,
@@ -640,7 +639,6 @@ function IOURequestStepConfirmation({
             hasOutstandingChildTask,
             parentReportAction,
             transactionViolations,
-            isManualDistanceRequest,
         ],
     );
 
