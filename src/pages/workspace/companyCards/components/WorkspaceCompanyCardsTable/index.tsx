@@ -92,7 +92,7 @@ function WorkspaceCompanyCardsTable({
 
     // Filter and sort cards based on search input
     const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
-    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);
+    const sortCards = useCallback((cardsToSort: Card[]) => sortCardsByCardholderName(cardsToSort, personalDetails, localeCompare), [personalDetails, localeCompare]);
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
