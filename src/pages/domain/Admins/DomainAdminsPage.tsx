@@ -131,7 +131,12 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     listHeaderContent={listHeaderContent}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     ListItem={TableListItem}
-                    onSelectRow={() => {}}
+                    shouldShowRightCaret
+                    onSelectRow={(item: AdminOption) => {
+                        Navigation.setNavigationActionToMicrotaskQueue(() => {
+                            Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID));
+                        });
+                    }}
                     shouldShowListEmptyContent={false}
                     listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
                     showScrollIndicator={false}
