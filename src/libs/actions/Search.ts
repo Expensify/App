@@ -773,7 +773,7 @@ function rejectMoneyRequestInBulk(reportID: string, comment: string, policy: Ony
 
 /** Minimal transaction info needed for reject - only reportID is used */
 type TransactionReportInfo = {
-    reportID: string;
+    reportID?: string;
 };
 
 function rejectMoneyRequestsOnSearch(
@@ -787,6 +787,10 @@ function rejectMoneyRequestsOnSearch(
 
     const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {
         const reportID = selectedTransactions[transactionID].reportID;
+
+        if (!reportID) {
+            return acc;
+        }
 
         if (!acc[reportID]) {
             acc[reportID] = [];
