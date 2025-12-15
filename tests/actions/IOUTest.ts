@@ -10180,6 +10180,7 @@ describe('actions/IOU', () => {
 
         it('should the createdIOUReportActionID parameter not be undefined when rejecting an expense to an open report', async () => {
             // Mock API.write for this test
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const openingReport = {
