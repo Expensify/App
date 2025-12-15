@@ -123,7 +123,7 @@ function mapTransactionItemToSelectedEntry(
             ),
             action: item.action,
             groupCurrency: item.groupCurrency,
-            reportID: item?.reportID,
+            reportID: item.reportID,
             policyID: item.report?.policyID,
             amount: item.modifiedAmount ?? item.amount,
             groupAmount: item.groupAmount,

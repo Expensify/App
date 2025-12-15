@@ -180,7 +180,7 @@ type ListItem<K extends string | number = string> = {
     index?: number;
 
     /** ID of the report */
-    reportID?: string;
+    reportID: string;
 
     /** ID of the policy */
     policyID?: string;
