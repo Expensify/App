@@ -845,6 +845,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
+                            path: ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.route,
+                        },
                         [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
                             path: ROUTES.WORKSPACE_CUSTOM_FIELDS.route,
                         },
@@ -1001,8 +1004,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
                             path: ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.route,
                         },
-                        [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
-                            path: ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.route,
+                        [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {
+                            path: ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
@@ -1603,8 +1606,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: ROUTES.TRANSACTION_HOLD_REASON_RHP,
                         [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: ROUTES.SEARCH_REJECT_REASON_RHP,
                         [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP,
-                        [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: ROUTES.CHANGE_APPROVER_SEARCH_RHP,
-                        [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: ROUTES.CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]: {
@@ -1930,6 +1931,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.DOMAIN.SAML]: {
                     path: ROUTES.DOMAIN_SAML.route,
+                },
+                [SCREENS.DOMAIN.ADMINS]: {
+                    path: ROUTES.DOMAIN_ADMINS.route,
                 },
             },
         },

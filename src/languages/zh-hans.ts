@@ -1538,8 +1538,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 bypassApprovers: '绕过审批人',
                 bypassApproversSubtitle: '将自己指定为最终审批人，并跳过所有剩余审批人。',
             },
-            addApprover: {subtitle: '在我们将此报销单送交其余审批流程之前，请为其选择一位额外的审批人。', bulkSubtitle: '在我们将这些报表提交给其余审批流程之前，请为其选择一位额外审批人。'},
-            bulkSubtitle: '选择一个选项来更改这些报表的审批人。',
+            addApprover: {
+                subtitle: '在我们将此报销单送交其余审批流程之前，请为其选择一位额外的审批人。',
+            },
         },
         chooseWorkspace: '选择一个工作区',
     },
@@ -2294,7 +2295,6 @@ ${amount}，商户：${merchant} - ${date}`,
             title: '没有可显示的成员',
             expensesFromSubtitle: '所有工作区成员已属于现有的审批流程。',
             approverSubtitle: '所有审批人都属于一个现有的工作流程。',
-            bulkApproverSubtitle: '所选报表中没有符合条件的审批人。',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -2621,10 +2621,10 @@ ${amount}，商户：${merchant} - ${date}`,
                         *设置类别*，以便您的团队为报销支出编码，从而轻松生成报表。
 
                         1. 点击 *Workspaces*。
-                        3. 选择您的工作区。
-                        4. 点击 *Categories*。
-                        5. 禁用任何不需要的类别。
-                        6. 在右上角添加您自己的类别。
+                        2. 选择您的工作区。
+                        3. 点击 *Categories*。
+                        4. 禁用任何不需要的类别。
+                        5. 在右上角添加您自己的类别。
 
                         [带我前往工作区类别设置](${workspaceCategoriesLink})。
 
@@ -2713,10 +2713,10 @@ ${
                         *邀请您的团队*加入 Expensify，这样他们今天就可以开始记录费用。
 
                         1. 点击 *Workspaces*。
-                        3. 选择您的 workspace。
-                        4. 点击 *Members* > *Invite member*。
-                        5. 输入邮箱或电话号码。
-                        6. 如有需要，可添加自定义邀请信息！
+                        2. 选择您的 workspace。
+                        3. 点击 *Members* > *Invite member*。
+                        4. 输入邮箱或电话号码。
+                        5. 如有需要，可添加自定义邀请信息！
 
                         [带我前往 Workspace 成员页面](${workspaceMembersLink})。
 
@@ -2737,11 +2737,11 @@ ${
                         使用标签为报销添加更多详细信息，例如项目、客户、地点和部门。如果你需要多级标签，可以升级到 Control 方案。
 
                         1. 点击 *Workspaces*。
-                        3. 选择你的工作区。
-                        4. 点击 *More features*。
-                        5. 启用 *Tags*。
-                        6. 在工作区编辑器中前往 *Tags*。
-                        7. 点击 *+ Add tag* 创建你自己的标签。
+                        2. 选择你的工作区。
+                        3. 点击 *More features*。
+                        4. 启用 *Tags*。
+                        5. 在工作区编辑器中前往 *Tags*。
+                        6. 点击 *+ Add tag* 创建你自己的标签。
 
                         [带我前往更多功能](${workspaceMoreFeaturesLink})。
 
@@ -7765,11 +7765,12 @@ ${reportName}
             requireError: '无法更新 SAML 要求设置',
             disableSamlRequired: '禁用 SAML 要求',
             oktaWarningPrompt: '您确定吗？这也会禁用 Okta SCIM。',
+            requireWithEmptyMetadataError: '请在下方添加身份提供商元数据以启用',
         },
         samlConfigurationDetails: {
             title: 'SAML 配置详情',
             subtitle: '使用以下详细信息来完成 SAML 设置。',
-            identityProviderMetaData: '身份提供商元数据',
+            identityProviderMetadata: '身份提供商元数据',
             entityID: '实体 ID',
             nameIDFormat: '名称 ID 格式',
             loginUrl: '登录 URL',
@@ -7793,6 +7794,7 @@ ${reportName}
         addDomain: {title: '添加域', subtitle: '请输入您想访问的私有域名（例如：expensify.com）。', domainName: '域名', newDomain: '新域名'},
         domainAdded: {title: '已添加域名', description: '接下来，您需要验证域名的所有权并调整您的安全设置。', configure: '配置'},
         enhancedSecurity: {title: '增强的安全性', subtitle: '要求您域内的成员使用单点登录登录、限制工作区创建等。', enable: '启用'},
+        admins: {title: '管理员', findAdmin: '查找管理员'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

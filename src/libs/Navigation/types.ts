@@ -583,6 +583,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         accountID: string;
     };
+    [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
+        policyID: string;
+        accountID: string;
+    };
     [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
         policyID: string;
         accountID: string;
@@ -1319,10 +1323,10 @@ type SettingsNavigatorParamList = {
         subRateID: string;
     };
     [SCREENS.DOMAIN.VERIFY]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.DOMAIN.VERIFIED]: {
-        accountID: number;
+        domainAccountID: number;
     };
 } & ReimbursementAccountNavigatorParamList;
 
@@ -1977,6 +1981,12 @@ type ReimbursementAccountEnterSignerInfoNavigatorParamList = {
     };
 };
 
+type ConnectExistingBankAccountNavigatorParamList = {
+    [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {
+        policyID: string;
+    };
+};
+
 type WalletStatementNavigatorParamList = {
     [SCREENS.WALLET_STATEMENT_ROOT]: {
         /** The statement year and month as one string, i.e. 202110 */
@@ -2102,10 +2112,10 @@ type MergeTransactionNavigatorParamList = {
 
 type WorkspacesDomainModalNavigatorParamList = {
     [SCREENS.WORKSPACES_VERIFY_DOMAIN]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.WORKSPACES_ADD_DOMAIN]: undefined;
     [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: undefined;
@@ -2113,7 +2123,7 @@ type WorkspacesDomainModalNavigatorParamList = {
         accountID: number;
     };
     [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: {
-        accountID: number;
+        domainAccountID: number;
     };
 };
 
@@ -2329,9 +2339,6 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.INVOICES]: {
         policyID: string;
     };
@@ -2404,10 +2411,13 @@ type WorkspaceSplitNavigatorParamList = {
 
 type DomainSplitNavigatorParamList = {
     [SCREENS.DOMAIN.INITIAL]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.DOMAIN.SAML]: {
-        accountID: number;
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.ADMINS]: {
+        domainAccountID: number;
     };
 };
 
@@ -2669,8 +2679,6 @@ type SearchReportActionsParamList = {
         /** Selected transactions' report ID  */
         reportID: string;
     };
-    [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: undefined;
-    [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: undefined;
 };
 
 type SearchReportParamList = {
@@ -2870,6 +2878,7 @@ export type {
     ReportVerifyAccountNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
     ReimbursementAccountEnterSignerInfoNavigatorParamList,
+    ConnectExistingBankAccountNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
