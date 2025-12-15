@@ -118,21 +118,22 @@ function WorkspaceCompanyCardsList({
                         hoverStyle={styles.hoveredComponentBG}
                         disabled={isCardDeleted}
                         onPress={() => {
-                            if (assignedCard) {
-                                if (!assignedCard?.accountID || !assignedCard?.fundID) {
-                                    return;
-                                }
-
-                                return Navigation.navigate(
-                                    ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
-                                        policyID,
-                                        assignedCard.cardID.toString(),
-                                        getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID),
-                                    ),
-                                );
+                            if (!assignedCard) {
+                                onAssignCard();
+                                return;
                             }
 
-                            onAssignCard();
+                            if (!assignedCard?.accountID || !assignedCard?.fundID) {
+                                return;
+                            }
+
+                            return Navigation.navigate(
+                                ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
+                                    policyID,
+                                    assignedCard.cardID.toString(),
+                                    getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID),
+                                ),
+                            );
                         }}
                     >
                         {({hovered}) => (
