@@ -61,7 +61,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         if (!isSuccessful) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID), {forceReplace: true});
         clearIssueNewCardFlow(policyID);
     }, [isSuccessful, policyID]);
 
