@@ -6179,6 +6179,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 gambling: 'Jogos de azar',
                 tobacco: 'Tabaco',
                 adultEntertainment: 'Entretenimento adulto',
+                requireCompanyCard: 'Exigir cartões corporativos para todas as compras',
+                requireCompanyCardDescription: 'Sinalize todas as despesas em dinheiro, incluindo quilometragem e diárias.',
             },
             expenseReportRules: {
                 title: 'Avançado',
@@ -7357,6 +7359,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         confirmDuplicatesInfo: `Os duplicados que você não mantiver serão mantidos para que o remetente os exclua.`,
         hold: 'Esta despesa foi colocada em espera',
         resolvedDuplicates: 'duplicata resolvida',
+        companyCardRequired: 'Compras com cartão da empresa obrigatórias',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} é obrigatório`,

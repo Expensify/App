@@ -2698,7 +2698,7 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `连接[您的公司信用卡](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
                         连接您已有的卡片，以自动导入交易、匹配收据和进行对账。
@@ -6069,6 +6069,8 @@ ${reportName}
                 gambling: '赌博',
                 tobacco: '烟草',
                 adultEntertainment: '成人娱乐',
+                requireCompanyCard: '所有购买均需使用公司卡',
+                requireCompanyCardDescription: '标记所有现金支出，包括里程和日津贴费用。',
             },
             expenseReportRules: {
                 title: '高级',
@@ -7215,6 +7217,7 @@ ${reportName}
         confirmDuplicatesInfo: `您不保留的重复项将由提交者自行删除。`,
         hold: '此报销已被搁置',
         resolvedDuplicates: '已解决重复项',
+        companyCardRequired: '需要公司卡消费',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName}为必填项`,

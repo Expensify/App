@@ -6224,7 +6224,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 hotelIncidentals: 'Frais annexes d’hôtel',
                 gambling: 'Jeux d’argent',
                 tobacco: 'Tabac',
-                adultEntertainment: 'Divertissements pour adultes',
+                adultEntertainment: 'Divertissement pour adultes',
+                requireCompanyCard: 'Exiger des cartes d’entreprise pour tous les achats',
+                requireCompanyCardDescription: 'Marquez toutes les dépenses payées en espèces, y compris les frais kilométriques et les indemnités journalières.',
             },
             expenseReportRules: {
                 title: 'Avancé',
@@ -7404,6 +7406,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         confirmDuplicatesInfo: `Les doublons que vous ne conservez pas seront mis de côté pour que l’expéditeur les supprime.`,
         hold: 'Cette dépense a été mise en attente',
         resolvedDuplicates: 'a résolu le doublon',
+        companyCardRequired: 'Achats avec carte d’entreprise requis',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} est requis`,
