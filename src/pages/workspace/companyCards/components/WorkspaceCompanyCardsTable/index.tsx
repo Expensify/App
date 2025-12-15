@@ -8,12 +8,14 @@ import {PressableWithFeedback} from '@components/Pressable';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useSearchResults from '@hooks/useSearchResults';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterCardsByPersonalDetails, getCardsByCardholderName, getCompanyCardFeedWithDomainID, sortCardsByCardholderName} from '@libs/CardUtils';
+import {filterCardsByPersonalDetails, getCardFeedIcon, getCardsByCardholderName, getCompanyCardFeedWithDomainID, sortCardsByCardholderName} from '@libs/CardUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
@@ -47,20 +49,22 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const listRef = useRef<FlashListRef<string>>(null);
+    const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
+
+    const {cardList, ...assignedCards} = cardsList ?? {};
+    const [cardFeeds] = useCardFeeds(policyID);
+    const accountList = cardFeeds?.[feed]?.accountList;
 
     // Get all cards sorted by cardholder name
     const allCards = useMemo(() => {
         const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
         return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
     }, [cardsList, policy?.employeeList]);
-
-    const [cardFeeds] = useCardFeeds(policyID);
-
-    const accountList = cardFeeds?.[feed].accountList;
 
     // Filter and sort cards based on search input
     const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
@@ -70,24 +74,21 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
 
     const renderItem = useCallback(
-        ({item: accountName, index}: ListRenderItemInfo<string>) => {
-            // const cardID = Object.keys(cardsList ?? {}).find((id) => cardsList?.[id].cardID === card.cardID);
+        ({item: cardName, index}: ListRenderItemInfo<string>) => {
+            const assignedCard = Object.values(assignedCards ?? {}).find((card) => card.cardName === cardName);
 
-            const card = cardsList?.[accountName];
+            const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID];
 
-            const isCardDeleted = card?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const cardFeedIcon = getCardFeedIcon(feed as CompanyCardFeed, illustrations, companyCardFeedIcons);
 
-            const cardID = accountName;
-            const customCardName = customCardNames?.[card?.cardID ?? 0];
-
-            const isAssigned = cardsList?.[accountName]?.accountID;
+            const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             return (
                 <OfflineWithFeedback
-                    key={`${card?.nameValuePairs?.cardTitle}_${index}`}
+                    key={`${cardName}_${index}`}
                     errorRowStyles={styles.ph5}
-                    errors={card?.errors}
-                    pendingAction={card?.pendingAction}
+                    errors={assignedCard?.errors}
+                    pendingAction={assignedCard?.pendingAction}
                 >
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
@@ -96,13 +97,17 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
                         hoverStyle={styles.hoveredComponentBG}
                         disabled={isCardDeleted}
                         onPress={() => {
-                            if (!cardID || !card?.accountID || !card?.fundID) {
-                                return;
-                            }
+                            if (assignedCard) {
+                                if (!assignedCard?.accountID || !assignedCard?.fundID) {
+                                    return;
+                                }
 
-                            if (isAssigned) {
                                 return Navigation.navigate(
-                                    ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, getCompanyCardFeedWithDomainID(card?.bank as CompanyCardFeed, card?.fundID)),
+                                    ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
+                                        policyID,
+                                        assignedCard.cardID.toString(),
+                                        getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID),
+                                    ),
                                 );
                             }
 
@@ -111,10 +116,12 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
                     >
                         {({hovered}) => (
                             <WorkspaceCompanyCardsTableRow
-                                cardholder={personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID]}
-                                cardNumber={accountName}
-                                cardName={customCardName ?? ''}
+                                cardholder={personalDetails?.[assignedCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]}
+                                cardName={cardName}
+                                cardFeedIcon={cardFeedIcon}
+                                customCardName={customCardName}
                                 isHovered={hovered}
+                                isAssigned={!!assignedCard}
                                 onAssignCard={handleAssignCard}
                             />
                         )}
@@ -122,7 +129,22 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
                 </OfflineWithFeedback>
             );
         },
-        [cardsList, customCardNames, handleAssignCard, personalDetails, policyID, styles.br3, styles.highlightBG, styles.hoveredComponentBG, styles.mb3, styles.mh5, styles.ph5],
+        [
+            assignedCards,
+            companyCardFeedIcons,
+            customCardNames,
+            feed,
+            handleAssignCard,
+            illustrations,
+            personalDetails,
+            policyID,
+            styles.br3,
+            styles.highlightBG,
+            styles.hoveredComponentBG,
+            styles.mb3,
+            styles.mh5,
+            styles.ph5,
+        ],
     );
 
     const keyExtractor = useCallback((item: string, index: number) => `${item}_${index}`, []);
@@ -154,7 +176,7 @@ function WorkspaceCompanyCardsTable({feed, cardsList, policyID, handleAssignCard
                                 numberOfLines={1}
                                 style={[styles.textMicroSupporting, styles.lh16]}
                             >
-                                {translate('workspace.companyCards.cardNumber')}
+                                {translate('workspace.companyCards.card')}
                             </Text>
                         </View>
                         <View style={[styles.flex1]}>
