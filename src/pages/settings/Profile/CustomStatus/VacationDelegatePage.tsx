@@ -1,13 +1,13 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -34,6 +34,7 @@ function VacationDelegatePage() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const currentVacationDelegate = vacationDelegate?.delegate;
     const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const excludeLogins = useMemo(
         () => ({
@@ -93,7 +94,7 @@ function VacationDelegatePage() {
                         shouldShowSubscript: undefined,
                         icons: [
                             {
-                                source: delegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar,
+                                source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
                                 name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
                                 type: CONST.ICON_TYPE_AVATAR,
                                 id: delegatePersonalDetails?.accountID,
