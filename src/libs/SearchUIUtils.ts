@@ -885,7 +885,7 @@ function shouldShowYear(
                 if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
                     result.shouldShowYearSubmitted = true;
                 }
-            } 
+            }
             if (isTransactionListItemType(item)) {
                 const transactionCreated = getTransactionCreatedDate(item);
                 if (transactionCreated && DateUtils.doesDateBelongToAPastYear(transactionCreated)) {
