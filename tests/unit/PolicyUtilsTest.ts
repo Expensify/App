@@ -1592,7 +1592,7 @@ describe('PolicyUtils', () => {
                             {
                                 field: CONST.POLICY.FIELDS.TAG,
                                 condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
-                                value: 'lmao',
+                                value: 'Fake tag',
                             },
                         ],
                         approver: 'lol@hhh.com',
