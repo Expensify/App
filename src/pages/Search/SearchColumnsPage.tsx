@@ -4,14 +4,12 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {SearchMultipleSelectionPickerItem} from '@components/Search/SearchMultipleSelectionPicker';
-import {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionList from '@components/SelectionListWithSections';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {OptionData} from '@libs/ReportUtils';
 import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,9 +44,9 @@ function SearchColumnsPage() {
         const updatedColumnId = item.keyForList as ColumnId;
 
         if (item.isSelected) {
-            setSelectedItems(selectedItems.filter((columnId) => columnId !== item.keyForList));
+            setSelectedItems(selectedItems.filter((columnId) => columnId !== updatedColumnId));
         } else {
-            setSelectedItems([...selectedItems, item.keyForList]);
+            setSelectedItems([...selectedItems, updatedColumnId]);
         }
     };
 
