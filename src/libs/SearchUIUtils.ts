@@ -2619,7 +2619,7 @@ function getColumnsToShow(
     // If the user has set custom columns for the search, we need to respect their preference, and only show
     // them what they want to see
     if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
-        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
 
         for (const column of Object.keys(columns) as SearchCustomColumnIds[]) {
             columns[column] = visibleColumns.includes(column) || requiredColumns.has(column);
