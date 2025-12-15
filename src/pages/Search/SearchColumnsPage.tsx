@@ -3,7 +3,9 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
+import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
+import SelectionList from '@components/SelectionList';
+import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,17 +21,22 @@ function SearchColumnsPage() {
 
     const allColumns = Object.values(CONST.SEARCH.COLUMNS);
 
-    const initiallySelectedColumns = searchAdvancedFiltersForm?.columns
-        ?.filter((columnId) => Object.values(CONST.SEARCH.COLUMNS).includes(columnId as ValueOf<typeof CONST.SEARCH.COLUMNS>))
-        .map((columnId) => {
-            const columnName = translate(getSearchColumnTranslationKey(columnId as ValueOf<typeof CONST.SEARCH.COLUMNS>));
-            return {name: columnName, value: columnId};
-        });
+    const initiallySelectedColumns = searchAdvancedFiltersForm?.columns?.filter((columnId) => Object.values(CONST.SEARCH.COLUMNS).includes(columnId as ValueOf<typeof CONST.SEARCH.COLUMNS>));
 
-    const columnItems = allColumns.map((columnId) => {
-        const columnName = translate(getSearchColumnTranslationKey(columnId));
-        return {name: columnName, value: columnId};
-    });
+    const sections = [
+        {
+            title: undefined,
+            data: allColumns.map((columnId) => ({
+                text: translate(getSearchColumnTranslationKey(columnId)),
+                value: columnId,
+                keyForList: columnId,
+                isSelected: initiallySelectedColumns?.includes(columnId),
+            })),
+        },
+    ];
+
+    const applyChanges = () => {};
+
 
     return (
         <ScreenWrapper
@@ -40,12 +47,14 @@ function SearchColumnsPage() {
         >
             <HeaderWithBackButton title={translate('search.columms')} />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    disableScrollToTopOnSelect
-                    items={columnItems}
-                    initiallySelectedItems={initiallySelectedColumns}
-                    onSaveSelection={() => {}}
-                    shouldShowTextInput={false}
+                <SelectionList
+                    sections={sections}
+                    onSelectRow={onSelectItem}
+                    shouldStopPropagation
+                    shouldShowTooltips
+                    canSelectMultiple
+                    ListItem={MultiSelectListItem}
+                    footerContent={<SearchFilterPageFooterButtons applyChanges={applyChanges} />}
                 />
             </View>
         </ScreenWrapper>
