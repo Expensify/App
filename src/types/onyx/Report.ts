@@ -272,7 +272,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The report's next step */
         nextStep?: ReportNextStep;
     },
-    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport'
+    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport' | 'reportName'
 >;
 
 /** Collection of reports, indexed by report_{reportID} */
