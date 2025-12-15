@@ -111,6 +111,8 @@ function getRenderOptions({
         clearSignInData();
     }
 
+    falseFunc();
+
     // Show the Welcome form if a user is signing up for a new account in a domain that is not controlled
     const shouldShouldSignUpWelcomeForm = !!credentials?.login && !isAccountValidated && !account?.accountExists && !account?.domainControlled;
     const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;

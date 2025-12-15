@@ -14,8 +14,6 @@ export default function (): void {
         return;
     }
 
-    falseFunc();
-
     const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, browserTracingIntegration].filter((integration) => !!integration);
 
     Sentry.init({
