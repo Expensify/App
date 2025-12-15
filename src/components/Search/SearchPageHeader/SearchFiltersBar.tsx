@@ -807,7 +807,7 @@ function SearchFiltersBar({
                         link
                         small
                         shouldUseDefaultHover={false}
-                        text={translate('search.columms')}
+                        text={translate('search.columns')}
                         iconFill={theme.link}
                         iconHoverFill={theme.linkHover}
                         icon={expensifyIcons.Columns}

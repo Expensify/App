@@ -6698,7 +6698,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 subtitle: 'Zero despesas. Máxima tranquilidade. Muito bem!',
             },
         },
-        columms: 'Colunas',
+        columns: 'Colunas',
         resetColumns: 'Redefinir colunas',
         noColumnsError: 'Selecione pelo menos uma coluna antes de salvar',
         statements: 'Extratos',

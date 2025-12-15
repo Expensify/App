@@ -6703,7 +6703,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 subtitle: 'Nul onkosten. Maximale ontspanning. Goed gedaan!',
             },
         },
-        columms: 'Kolommen',
+        columns: 'Kolommen',
         resetColumns: 'Kolommen resetten',
         noColumnsError: 'Selecteer minstens één kolom voordat je opslaat',
         statements: 'Afschriften',

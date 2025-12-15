@@ -6744,7 +6744,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 subtitle: 'Zéro note de frais. Détente maximale. Bien joué !',
             },
         },
-        columms: 'Colonnes',
+        columns: 'Colonnes',
         resetColumns: 'Réinitialiser les colonnes',
         noColumnsError: 'Veuillez sélectionner au moins une colonne avant d’enregistrer',
         statements: 'Relevés',

@@ -6717,7 +6717,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 subtitle: 'Zero spese. Massimo relax. Ben fatto!',
             },
         },
-        columms: 'Colonne',
+        columns: 'Colonne',
         resetColumns: 'Reimposta colonne',
         noColumnsError: 'Seleziona almeno una colonna prima di salvare',
         statements: 'Estratti conto',

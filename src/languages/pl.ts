@@ -6693,7 +6693,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 subtitle: 'Zero wydatków. Maksymalny luz. Dobra robota!',
             },
         },
-        columms: 'Kolumny',
+        columns: 'Kolumny',
         resetColumns: 'Resetuj kolumny',
         noColumnsError: 'Proszę wybrać co najmniej jedną kolumnę przed zapisaniem',
         statements: 'Wyciągi',

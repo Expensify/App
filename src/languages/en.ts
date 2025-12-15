@@ -6590,7 +6590,7 @@ const translations = {
                 subtitle: 'Zero expenses. Maximum chill. Well done!',
             },
         },
-        columms: 'Columns',
+        columns: 'Columns',
         resetColumns: 'Reset columns',
         noColumnsError: 'Please select at least one column before saving',
         statements: 'Statements',

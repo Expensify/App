@@ -54,11 +54,9 @@ function SearchColumnsPage() {
         },
     ];
 
-    const shouldShowResetColumns = useMemo(() => {
-        const sortedSelectedColumnIds = [...selectedColumnIds].sort();
-        const sortedDefaultColumns = [...defaultColumns].sort();
-        return !arraysEqual(sortedSelectedColumnIds, sortedDefaultColumns);
-    }, [selectedColumnIds]);
+    const sortedDefaultColumns = [...defaultColumns].sort();
+    const sortedSelectedColumnIds = [...selectedColumnIds].sort();
+    const shouldShowResetColumns = !arraysEqual(sortedSelectedColumnIds, sortedDefaultColumns);
 
     const onSelectItem = (item: ListItem) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
@@ -93,7 +91,7 @@ function SearchColumnsPage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.columms')}>
+            <HeaderWithBackButton title={translate('search.columns')}>
                 {shouldShowResetColumns && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
             </HeaderWithBackButton>
             <View style={[styles.flex1]}>

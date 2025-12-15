@@ -6667,7 +6667,7 @@ ${reportName}
                 subtitle: '経費はゼロ。くつろぎはマックス。お見事です！',
             },
         },
-        columms: '列',
+        columns: '列',
         resetColumns: '列をリセット',
         noColumnsError: '保存する前に、少なくとも 1 つの列を選択してください',
         statements: 'ステートメント',

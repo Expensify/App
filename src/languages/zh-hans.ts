@@ -6567,7 +6567,7 @@ ${reportName}
                 subtitle: '报销为零，轻松满分。干得好！',
             },
         },
-        columms: '列',
+        columns: '列',
         resetColumns: '重置列',
         noColumnsError: '请在保存前至少选择一列',
         statements: '对账单',

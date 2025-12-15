@@ -6735,7 +6735,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 subtitle: 'Null Spesen. Maximale Entspannung. Gut gemacht!',
             },
         },
-        columms: 'Spalten',
+        columns: 'Spalten',
         resetColumns: 'Spalten zurücksetzen',
         noColumnsError: 'Bitte wählen Sie vor dem Speichern mindestens eine Spalte aus',
         statements: 'Abrechnungen',
