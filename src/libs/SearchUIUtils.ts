@@ -2455,16 +2455,33 @@ function getColumnsToShow(
     type?: SearchDataTypes,
 ): ColumnVisibility {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return {
-            [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-        };
+        const reportColumns = [
+            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.STATUS,
+            CONST.SEARCH.TABLE_COLUMNS.TITLE,
+            CONST.SEARCH.TABLE_COLUMNS.FROM,
+            CONST.SEARCH.TABLE_COLUMNS.TO,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        ];
+
+        const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
+
+        // If the user has set custom columns, toggle the visible columns on, with all other
+        // columns hidden by default
+        if (!arraysEqual(defaultColumns, visibleColumns) && visibleColumns.length > 0) {
+            const columns = Object.fromEntries(reportColumns.map((column) => [column, false]));
+
+            for (const column of visibleColumns) {
+                columns[column as keyof ColumnVisibility] = true;
+            }
+
+            return columns;
+        }
+
+        // All columns should be visible otherwise
+        return Object.fromEntries(reportColumns.map((column) => [column, true]));
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
@@ -2564,21 +2581,6 @@ function getColumnsToShow(
             }
         }
     };
-
-    const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
-
-    // If the user has set custom columns, we only need to control the visibility of those
-    if (!arraysEqual(defaultColumns, visibleColumns) && visibleColumns.length > 0) {
-        for (const column of Object.keys(columns)) {
-            columns[column as keyof ColumnVisibility] = false;
-        }
-
-        for (const column of visibleColumns) {
-            columns[column as keyof ColumnVisibility] = true;
-        }
-
-        return columns;
-    }
 
     if (Array.isArray(data)) {
         for (const item of data) {
