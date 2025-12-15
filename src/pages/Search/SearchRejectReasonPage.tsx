@@ -10,6 +10,7 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {SearchReportActionsParamList} from '@navigation/types';
 import RejectReasonFormView from '@pages/iou/RejectReasonFormView';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
@@ -44,7 +45,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             }
             Navigation.dismissModal();
             if (urlToNavigateBack) {
-                Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack));
+                Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack as Route));
             }
         },
         [context, allPolicies, allReports, route.name, selectedTransactionsForReject],
