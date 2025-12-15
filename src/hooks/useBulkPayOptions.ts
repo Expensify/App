@@ -5,7 +5,6 @@ import type {TupleToUnion} from 'type-fest';
 import {Bank, Cash, Wallet} from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
-import {canIOUBePaid} from '@libs/actions/IOU';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
@@ -38,6 +37,7 @@ type UseBulkPayOptionProps = {
     isCurrencySupportedWallet?: boolean;
     currency: string | undefined;
     formattedAmount: string;
+    onlyShowPayElsewhere: boolean;
 };
 
 type UseBulkPayOptionReturnType = {
@@ -55,6 +55,7 @@ function useBulkPayOptions({
     isCurrencySupportedWallet,
     currency,
     formattedAmount,
+    onlyShowPayElsewhere,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User'] as const);
     const {translate} = useLocalize();
@@ -79,10 +80,6 @@ function useBulkPayOptions({
     const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedWallet;
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
-    const onlyShowPayElsewhere = useMemo(
-        () => !canIOUBePaid(iouReport, chatReport, policy, undefined, false) && canIOUBePaid(iouReport, chatReport, policy, undefined, true),
-        [iouReport, chatReport, policy],
-    );
 
     function getLatestBankAccountItem() {
         if (!policy?.achAccount?.bankAccountID) {
