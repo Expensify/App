@@ -347,6 +347,10 @@ export default {
         marginBottom: 0,
     },
 
+    mbHalf: {
+        marginBottom: 2,
+    },
+
     mb1: {
         marginBottom: 4,
     },
@@ -573,6 +577,10 @@ export default {
 
     pr0: {
         paddingRight: 0,
+    },
+
+    pr0half: {
+        paddingRight: 2,
     },
 
     pr1: {

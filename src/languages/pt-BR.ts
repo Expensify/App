@@ -41,6 +41,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
     BillableDefaultDescriptionParams,
@@ -730,7 +731,10 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copiar para a área de transferência',
         thisIsTakingLongerThanExpected: 'Isso está levando mais tempo do que o esperado...',
         domains: 'Domínios',
+        viewReport: 'Ver relatório',
         actionRequired: 'Ação necessária',
+        duplicate: 'Duplicar',
+        duplicated: 'Duplicado',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -985,7 +989,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Esta sala de chat é para qualquer coisa relacionada a <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
             `Este chat é para faturas entre <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Use o botão + para enviar uma fatura.`,
-        beginningOfChatHistory: 'Este chat é com',
+        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `Este chat é com ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
             `É aqui que <strong>${submitterDisplayName}</strong> enviará despesas para <strong>${workspaceName}</strong>. Basta usar o botão +.`,
         beginningOfChatHistorySelfDM: 'Este é o seu espaço pessoal. Use-o para anotações, tarefas, rascunhos e lembretes.',
@@ -2647,10 +2651,10 @@ ${amount} para ${merchant} - ${date}`,
                         *Configure categorias* para que sua equipe possa classificar despesas para relatórios fáceis.
 
                         1. Clique em *Workspaces*.
-                        3. Selecione seu workspace.
-                        4. Clique em *Categories*.
-                        5. Desative quaisquer categorias de que você não precise.
-                        6. Adicione suas próprias categorias no canto superior direito.
+                        2. Selecione seu workspace.
+                        3. Clique em *Categories*.
+                        4. Desative quaisquer categorias de que você não precise.
+                        5. Adicione suas próprias categorias no canto superior direito.
 
                         [Leve-me para as configurações de categorias do workspace](${workspaceCategoriesLink}).
 
@@ -2739,10 +2743,10 @@ ${
                         *Convide sua equipe* para o Expensify para que eles possam começar a registrar despesas hoje.
 
                         1. Clique em *Workspaces*.
-                        3. Selecione seu workspace.
-                        4. Clique em *Members* > *Invite member*.
-                        5. Insira e-mails ou números de telefone.
-                        6. Adicione uma mensagem de convite personalizada, se quiser!
+                        2. Selecione seu workspace.
+                        3. Clique em *Members* > *Invite member*.
+                        4. Insira e-mails ou números de telefone.
+                        5. Adicione uma mensagem de convite personalizada, se quiser!
 
                         [Leve-me aos membros do workspace](${workspaceMembersLink}).
 
@@ -2763,11 +2767,11 @@ ${
                         Use tags para adicionar detalhes extras às despesas, como projetos, clientes, locais e departamentos. Se você precisar de vários níveis de tags, poderá fazer upgrade para o plano Control.
 
                         1. Clique em *Workspaces*.
-                        3. Selecione seu workspace.
-                        4. Clique em *More features*.
-                        5. Ative *Tags*.
-                        6. Vá para *Tags* no editor do workspace.
-                        7. Clique em *+ Add tag* para criar a sua própria.
+                        2. Selecione seu workspace.
+                        3. Clique em *More features*.
+                        4. Ative *Tags*.
+                        5. Vá para *Tags* no editor do workspace.
+                        6. Clique em *+ Add tag* para criar a sua própria.
 
                         [Leve-me para mais recursos](${workspaceMoreFeaturesLink}).
 
@@ -6071,6 +6075,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                     toUpgrade: 'Para fazer upgrade, clique',
                     selectWorkspace: 'selecione um workspace e altere o tipo de plano para',
                 },
+                upgradeWorkspaceWarning: 'Não é possível atualizar o espaço de trabalho',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Sua empresa restringiu a criação de espaços de trabalho. Entre em contato com um administrador para obter ajuda.',
             },
         },
         downgrade: {
@@ -6169,7 +6175,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 adultEntertainment: 'Entretenimento adulto',
             },
             expenseReportRules: {
-                title: 'Relatórios de despesas',
+                title: 'Avançado',
                 subtitle: 'Automatize a conformidade, as aprovações e o pagamento de relatórios de despesas.',
                 preventSelfApprovalsTitle: 'Impedir autoaprovações',
                 preventSelfApprovalsSubtitle: 'Impedir que membros do workspace aprovem seus próprios relatórios de despesas.',
@@ -6185,8 +6191,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 autoPayApprovedReportsLockedSubtitle: 'Vá para Mais recursos e ative Fluxos de trabalho, depois adicione Pagamentos para desbloquear este recurso.',
                 autoPayReportsUnderTitle: 'Relatórios de pagamento automático sob',
                 autoPayReportsUnderDescription: 'Relatórios de despesas totalmente compatíveis abaixo deste valor serão pagos automaticamente.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Vá para [mais recursos](${moreFeaturesLink}) e ative fluxos de trabalho, depois adicione ${featureName} para desbloquear este recurso.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Adicione ${featureName} para desbloquear esse recurso.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Vá para [mais recursos](${moreFeaturesLink}) e ative ${featureName} para desbloquear este recurso.`,
             },
@@ -6500,8 +6505,62 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                     return `${enabled ? 'ativado' : 'desativado'} ${featureName}`;
             }
         },
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `alterou o aprovador padrão para ${newApprover} (anteriormente ${previousApprover})` : `alterou o aprovador padrão para ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `alterou o fluxo de aprovação para ${members} enviar relatórios para ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(aprovador padrão anterior ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(aprovador padrão anterior)';
+            } else if (previousApprover) {
+                text += `(anteriormente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `alterou o fluxo de aprovação para que ${members} enviem relatórios ao aprovador padrão ${approver}`
+                : `alterou o fluxo de aprovação para que ${members} enviem relatórios ao aprovador padrão`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(aprovador padrão anterior ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(aprovador padrão anterior)';
+            } else if (previousApprover) {
+                text += `(anteriormente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `alterou o fluxo de aprovação de ${approver} para encaminhar relatórios aprovados para ${forwardsTo} (anteriormente encaminhava para ${previousForwardsTo})`
+                : `alterou o fluxo de aprovação de ${approver} para encaminhar relatórios aprovados para ${forwardsTo} (anteriormente, relatórios com aprovação final)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `alterou o fluxo de aprovação de ${approver} para deixar de encaminhar relatórios aprovados (anteriormente encaminhados para ${previousForwardsTo})`
+                : `alterou o fluxo de aprovação de ${approver} para interromper o encaminhamento de relatórios aprovados`,
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `Rastreamento de participante ${enabled ? 'ativado' : 'desativado'}`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `Reembolsos ${enabled ? 'ativado' : 'desativado'} para este workspace`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'ativado' : 'desativado'} reembolsos`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `adicionou o imposto "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removeu o imposto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6734,6 +6793,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não tem despesas.',
+            accessPlaceHolder: 'Abra para ver detalhes',
         },
         noCategory: 'Sem categoria',
         noTag: 'Sem tag',
@@ -6876,6 +6936,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Tem certeza de que deseja criar outro relatório em ${workspaceName}? Você pode acessar seus relatórios em branco em`,
             emptyReportConfirmationPromptLink: 'Relatórios',
+            emptyReportConfirmationDontShowAgain: 'Não mostrar isso novamente',
             genericWorkspaceName: 'este workspace',
         },
         genericCreateReportFailureMessage: 'Erro inesperado ao criar este chat. Tente novamente mais tarde.',
@@ -7852,11 +7913,12 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             requireError: 'Não foi possível atualizar a configuração de requisito SAML',
             disableSamlRequired: 'Desativar SAML obrigatório',
             oktaWarningPrompt: 'Você tem certeza? Isso também desativará o Okta SCIM.',
+            requireWithEmptyMetadataError: 'Adicione os metadados do Provedor de Identidade abaixo para ativar',
         },
         samlConfigurationDetails: {
             title: 'Detalhes da configuração SAML',
             subtitle: 'Use estes detalhes para configurar o SAML.',
-            identityProviderMetaData: 'Metadados do Provedor de Identidade',
+            identityProviderMetadata: 'Metadados do Provedor de Identidade',
             entityID: 'ID da entidade',
             nameIDFormat: 'Formato de ID de Nome',
             loginUrl: 'URL de login',
@@ -7869,6 +7931,31 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             fetchError: 'Não foi possível buscar os detalhes de configuração SAML',
             setMetadataGenericError: 'Não foi possível definir os metadados SAML',
         },
+        accessRestricted: {
+            title: 'Acesso restrito',
+            subtitle: (domainName: string) => `Confirme que você é um administrador autorizado da empresa para <strong>${domainName}</strong> se precisar de controle sobre:`,
+            companyCardManagement: 'Gerenciamento de cartões corporativos',
+            accountCreationAndDeletion: 'Criação e exclusão de conta',
+            workspaceCreation: 'Criação do espaço de trabalho',
+            samlSSO: 'SSO SAML',
+        },
+        addDomain: {
+            title: 'Adicionar domínio',
+            subtitle: 'Digite o nome do domínio privado que você deseja acessar (ex.: expensify.com).',
+            domainName: 'Nome de domínio',
+            newDomain: 'Novo domínio',
+        },
+        domainAdded: {
+            title: 'Domínio adicionado',
+            description: 'Em seguida, você precisará verificar a propriedade do domínio e ajustar suas configurações de segurança.',
+            configure: 'Configurar',
+        },
+        enhancedSecurity: {
+            title: 'Segurança aprimorada',
+            subtitle: 'Exija que os membros do seu domínio façam login por meio de logon único (SSO), restrinja a criação de espaços de trabalho e muito mais.',
+            enable: 'Ativar',
+        },
+        admins: {title: 'Administradores', findAdmin: 'Encontrar administrador'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
