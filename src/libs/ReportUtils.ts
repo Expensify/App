@@ -11279,7 +11279,6 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         merchant,
         modifiedMerchant: '',
         mccGroup,
-        participants: undefined,
     } as Transaction);
 
     const filteredPolicies = Object.values(allPolicies ?? {}).filter((policy) => shouldShowPolicy(policy, false, currentUserEmail));
