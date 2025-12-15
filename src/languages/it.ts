@@ -6739,6 +6739,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             },
         },
         columms: 'Columns',
+        noColumnsError: 'Please select at least one column before saving',
         statements: 'Estratti conto',
         unapprovedCash: 'Contanti non approvati',
         unapprovedCard: 'Carta non approvata',

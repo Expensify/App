@@ -6690,6 +6690,7 @@ ${reportName}
             },
         },
         columms: 'Columns',
+        noColumnsError: 'Please select at least one column before saving',
         statements: 'ステートメント',
         unapprovedCash: '未承認の現金',
         unapprovedCard: '未承認のカード',

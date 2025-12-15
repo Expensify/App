@@ -6759,6 +6759,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             },
         },
         columms: 'Columns',
+        noColumnsError: 'Please select at least one column before saving',
         statements: 'Abrechnungen',
         unapprovedCash: 'Nicht genehmigtes Bargeld',
         unapprovedCard: 'Nicht genehmigte Karte',

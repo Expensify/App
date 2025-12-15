@@ -6720,6 +6720,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             },
         },
         columms: 'Columns',
+        noColumnsError: 'Please select at least one column before saving',
         statements: 'Extratos',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCard: 'Cartão não aprovado',

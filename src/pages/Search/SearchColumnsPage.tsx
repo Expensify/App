@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem} from '@components/SelectionList/types';
@@ -63,6 +64,10 @@ function SearchColumnsPage() {
     };
 
     const applyChanges = () => {
+        if (!selectedColumnIds.length) {
+            return;
+        }
+
         const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {...searchAdvancedFiltersForm, columns: selectedColumnIds};
         const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters);
         clearAllFilters();
@@ -86,14 +91,23 @@ function SearchColumnsPage() {
                     canSelectMultiple
                     ListItem={MultiSelectListItem}
                     footerContent={
-                        <Button
-                            large
-                            success
-                            pressOnEnter
-                            style={[styles.mt3]}
-                            text={translate('common.save')}
-                            onPress={applyChanges}
-                        />
+                        <View style={[styles.gap2]}>
+                            {!selectedColumnIds.length && (
+                                <DotIndicatorMessage
+                                    type="error"
+                                    messages={{error: translate('search.noColumnsError')}}
+                                />
+                            )}
+
+                            <Button
+                                large
+                                success
+                                pressOnEnter
+                                style={[styles.mt3]}
+                                text={translate('common.save')}
+                                onPress={applyChanges}
+                            />
+                        </View>
                     }
                 />
             </View>
