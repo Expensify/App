@@ -173,9 +173,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         );
     }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate, icons.FallbackAvatar, invitedEmailsToAccountIDsDraft]);
 
-    const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
     const allApprovers = useMemo(() => {
         const members: SelectionListApprover[] = [...selectedMembers];
+        const approversEmail = approvalWorkflow?.approvers.map((member) => member?.email);
 
         if (!approvalWorkflow?.availableMembers) {
             return members;
@@ -249,11 +249,11 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     }, [
         selectedMembers,
         approvalWorkflow?.availableMembers,
+        approvalWorkflow?.approvers,
         policy?.employeeList,
         policy?.owner,
         policy?.preventSelfApproval,
         personalDetailLogins,
-        approversEmail,
         debouncedSearchTerm,
         areOptionsInitialized,
         availableOptions.userToInvite,
