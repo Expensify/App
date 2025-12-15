@@ -11,9 +11,9 @@ import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 import type Policy from './Policy';
 import type Report from './Report';
-import type Transaction from './Transaction';
 import type ReportAction from './ReportAction';
 import type ReportNameValuePairs from './ReportNameValuePairs';
+import type Transaction from './Transaction';
 import type {TransactionViolation} from './TransactionViolation';
 
 /** Types of search data */

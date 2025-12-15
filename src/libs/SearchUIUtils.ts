@@ -1139,11 +1139,9 @@ function getTransactionsSections(
 
  */
 function getTransactionsForReport(data: OnyxTypes.SearchResults['data'], reportID: string): OnyxTypes.Transaction[] {
-    return (
-        Object.entries(data)
-            .filter(([key, value]) => isTransactionEntry(key) && (value as OnyxTypes.Transaction)?.reportID === reportID)
-            .map(([, value]) => value as OnyxTypes.Transaction)
-    );
+    return Object.entries(data)
+        .filter(([key, value]) => isTransactionEntry(key) && (value as OnyxTypes.Transaction)?.reportID === reportID)
+        .map(([, value]) => value as OnyxTypes.Transaction);
 }
 
 /**
