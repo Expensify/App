@@ -5,6 +5,7 @@ import React, {useCallback, useContext, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 // eslint-disable-next-line no-restricted-imports
@@ -239,7 +240,7 @@ function SettlementButton({
     const latestBankItem = getLatestBankAccountItem();
 
     const paymentButtonOptions = useMemo(() => {
-        const buttonOptions = [];
+        const buttonOptions: Array<DropdownOption<string>> = [];
         const paymentMethods = getSettlementButtonPaymentMethods(icons, hasActivatedWallet, translate);
 
         const shortFormPayElsewhereButton = {
@@ -296,7 +297,7 @@ function SettlementButton({
                 buttonOptions.push({
                     text: latestBankItem.at(0)?.text ?? '',
                     icon: latestBankItem.at(0)?.icon,
-                    iconStyles: latestBankItem.at(0)?.iconStyles,
+                    additionalIconStyles: latestBankItem.at(0)?.iconStyles,
                     iconWidth: latestBankItem.at(0)?.iconSize,
                     iconHeight: latestBankItem.at(0)?.iconSize,
                     value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
@@ -308,8 +309,7 @@ function SettlementButton({
         }
 
         if ((hasMultiplePolicies || hasSinglePolicy) && canUseWallet && !isPersonalOnlyOption) {
-            // eslint-disable-next-line unicorn/no-array-for-each
-            activeAdminPolicies.forEach((p) => {
+            for (const p of activeAdminPolicies) {
                 const policyName = p.name;
                 buttonOptions.push({
                     text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
@@ -317,7 +317,7 @@ function SettlementButton({
                     value: p.id,
                     shouldUpdateSelectedIndex: false,
                 });
-            });
+            }
         }
 
         if (shouldShowPayElsewhereOption) {
@@ -544,11 +544,7 @@ function SettlementButton({
         return undefined;
     };
 
-    const handlePaymentSelection = (
-        event: GestureResponderEvent | KeyboardEvent | undefined,
-        selectedOption: PaymentMethodType | PaymentMethod,
-        triggerKYCFlow: (params: ContinueActionParams) => void,
-    ) => {
+    const handlePaymentSelection = (event: GestureResponderEvent | KeyboardEvent | undefined, selectedOption: string, triggerKYCFlow: (params: ContinueActionParams) => void) => {
         if (checkForNecessaryAction()) {
             return;
         }
@@ -602,7 +598,7 @@ function SettlementButton({
             currency={currency}
         >
             {(triggerKYCFlow, buttonRef) => (
-                <ButtonWithDropdownMenu<PaymentMethodType | PaymentMethod>
+                <ButtonWithDropdownMenu<string>
                     onOptionsMenuShow={onPaymentOptionsShow}
                     onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
