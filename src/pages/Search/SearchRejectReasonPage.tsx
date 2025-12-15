@@ -36,13 +36,16 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
 
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-            rejectMoneyRequestsOnSearch(context.currentSearchHash, selectedTransactionsForReject, comment, allPolicies, allReports);
+            const urlToNavigateBack = rejectMoneyRequestsOnSearch(context.currentSearchHash, selectedTransactionsForReject, comment, allPolicies, allReports);
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 context.clearSelectedTransactions(true);
             } else {
                 context.clearSelectedTransactions();
             }
-            Navigation.goBack();
+            Navigation.dismissModal();
+            if (urlToNavigateBack) {
+                Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack));
+            }
         },
         [context, allPolicies, allReports, route.name, selectedTransactionsForReject],
     );
