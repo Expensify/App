@@ -21,11 +21,6 @@ type AssigneeParams = {
     assignee: string;
 };
 
-type CharacterLengthLimitParams = {
-    limit: number;
-    length: number;
-};
-
 type ZipCodeExampleFormatParams = {
     zipSampleFormat: string;
 };
@@ -229,8 +224,6 @@ type CreateExpensesParams = {expensesNumber: number};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
-type CanceledRequestParams = {amount: string; submitterDisplayName: string};
-
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
 type PaidElsewhereParams = {payer?: string} | undefined;
@@ -364,8 +357,6 @@ type HeldRequestParams = {comment: string};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
-type ChangeReportPolicyParams = {fromPolicyName?: string; toPolicyName: string};
-
 type UpdatedPolicyDescriptionParams = {oldDescription: string; newDescription: string};
 
 type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
@@ -431,8 +422,6 @@ type UpdatedPolicyAuditRateParams = {oldAuditRate: number; newAuditRate: number}
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
 
 type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
-
-type ChangeTypeParams = {oldType: string; newType: string};
 
 type AccountOwnerParams = {accountOwnerEmail: string};
 
@@ -537,10 +526,6 @@ type WorkspaceMembersCountParams = {count: number};
 
 type OwnerOwesAmountParams = {amount: string; email: string};
 
-type ChangeOwnerSubscriptionParams = {usersCount: number; finalCount: number};
-
-type ChangeOwnerDuplicateSubscriptionParams = {email: string; workspaceName: string};
-
 type ChangeOwnerHasFailedSettlementsParams = {email: string};
 
 type ActionsAreCurrentlyRestricted = {workspaceName: string};
@@ -576,8 +561,6 @@ type EarlyDiscountSubtitleParams = {days: number; hours: number; minutes: number
 type CardNextPaymentParams = {nextPaymentDate: string};
 
 type CardEndingParams = {cardNumber: string};
-
-type CardInfoParams = {name: string; expiration: string; currency: string};
 
 type YourPlanPriceParams = {lower: string; upper: string};
 
@@ -1016,7 +999,6 @@ export type {
     IncorrectZipFormatParams,
     CardNextPaymentParams,
     CardEndingParams,
-    CardInfoParams,
     YourPlanPriceParams,
     SubscriptionSizeParams,
     SubscriptionCommitmentParams,
@@ -1040,8 +1022,6 @@ export type {
     ActionsAreCurrentlyRestricted,
     ChangeOwnerHasFailedSettlementsParams,
     OwnerOwesAmountParams,
-    ChangeOwnerDuplicateSubscriptionParams,
-    ChangeOwnerSubscriptionParams,
     SecondaryLoginParams,
     TaxAmountParams,
     CategoryNameParams,
@@ -1060,7 +1040,6 @@ export type {
     BeginningOfChatHistoryUserRoomParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
     BeginningOfChatHistoryDomainRoomParams,
-    CanceledRequestParams,
     CharacterLimitParams,
     ConfirmThatParams,
     CompanyCardFeedNameParams,
@@ -1161,8 +1140,6 @@ export type {
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
     ChangeFieldParams,
-    ChangeReportPolicyParams,
-    ChangeTypeParams,
     ExportedToIntegrationParams,
     AccountOwnerParams,
     IntegrationsMessageParams,
@@ -1189,7 +1166,6 @@ export type {
     CompanyCardBankName,
     DisconnectPromptParams,
     DisconnectTitleParams,
-    CharacterLengthLimitParams,
     OptionalParam,
     ImportedTypesParams,
     WorkspaceYouMayJoin,
