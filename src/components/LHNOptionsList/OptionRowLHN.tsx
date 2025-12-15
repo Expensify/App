@@ -170,6 +170,8 @@ function OptionRowLHN({
     const subscriptAvatarBorderColor = isOptionFocused ? focusedBackgroundColor : theme.sidebar;
     const firstIcon = optionItem.icons?.at(0);
 
+    // This is used to ensure that we display the text exactly as the user entered it when displaying LHN title, instead of parsing their text to HTML.
+    const shouldParseFullTitle = optionItem?.parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const alternateTextFSClass = FS.getChatFSClass(report);
 
     const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -273,6 +275,7 @@ function OptionRowLHN({
                                                 <DisplayNames
                                                     accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
                                                     fullTitle={optionItem.text ?? ''}
+                                                    shouldParseFullTitle={shouldParseFullTitle}
                                                     displayNamesWithTooltips={optionItem.displayNamesWithTooltips ?? []}
                                                     tooltipEnabled
                                                     numberOfLines={1}
