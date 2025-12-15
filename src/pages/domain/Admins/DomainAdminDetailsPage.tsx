@@ -78,7 +78,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                                     fallbackIcon={fallbackIcon}
                                 />
                             </OfflineWithFeedback>
-                            {!!(displayName) && (
+                            {!!displayName && (
                                 <Text
                                     style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
                                     numberOfLines={1}
