@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType} from '@components/Search/types';
-import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
+import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ListItem, TransactionGroupListExpandedProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -35,7 +35,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     accountID,
     isOffline,
     violations,
-    areAllOptionalColumnsHidden: areAllOptionalColumnsHiddenProp,
     transactions,
     transactionsVisibleLimit,
     setTransactionsVisibleLimit,
@@ -81,16 +80,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         return (Object.keys(columnsToShow) as SearchColumnType[]).filter((col) => columnsToShow[col]);
     }, [accountID, columns, isExpenseReportType, transactionsSnapshot?.data, transactionsSnapshot?.search.type]);
-
-    const areAllOptionalColumnsHidden = useMemo(() => {
-        if (isExpenseReportType) {
-            return areAllOptionalColumnsHiddenProp ?? false;
-        }
-        const canBeMissingColumns = getExpenseHeaders(groupBy)
-            .filter((header) => header.canBeMissing)
-            .map((header) => header.columnName);
-        return canBeMissingColumns.every((column) => !currentColumns.includes(column));
-    }, [areAllOptionalColumnsHiddenProp, currentColumns, groupBy, isExpenseReportType]);
 
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayShowMoreButton = isExpenseReportType ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults && !isOffline;
@@ -186,7 +175,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         isTaxAmountColumnWide={taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
                         shouldShowSorting={false}
                         columns={currentColumns}
-                        areAllOptionalColumnsHidden={areAllOptionalColumnsHidden ?? false}
                         groupBy={groupBy}
                     />
                 </View>
@@ -213,7 +201,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv1Half], styles.flex1]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
-                        areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                         shouldShowBottomBorder={shouldShowBottomBorder}
                         onArrowRightPress={() => openReportInRHP(transaction)}
                         shouldShowArrowRightOnNarrowLayout

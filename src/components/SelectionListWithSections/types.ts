@@ -547,7 +547,6 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
     columns?: SearchColumnType[];
-    areAllOptionalColumnsHidden?: boolean;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
@@ -578,7 +577,6 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     policies?: OnyxCollection<Policy>;
     accountID?: number;
     columns?: SearchColumnType[];
-    areAllOptionalColumnsHidden?: boolean;
     newTransactionID?: string;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     /** Callback to fire when DEW modal should be opened */
@@ -587,7 +585,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'areAllOptionalColumnsHidden'
+    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;

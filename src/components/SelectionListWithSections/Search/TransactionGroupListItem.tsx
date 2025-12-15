@@ -59,7 +59,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     searchType,
     accountID,
     isOffline,
-    areAllOptionalColumnsHidden,
     newTransactionID,
     violations,
     onDEWModalOpen,
@@ -351,7 +350,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 groupBy={groupBy}
                                 accountID={accountID}
                                 isOffline={isOffline}
-                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                                 violations={violations}
                                 transactions={transactions}
                                 transactionsVisibleLimit={transactionsVisibleLimit}

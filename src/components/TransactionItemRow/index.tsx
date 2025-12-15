@@ -107,7 +107,6 @@ type TransactionItemRowProps = {
     shouldShowErrors?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
-    areAllOptionalColumnsHidden?: boolean;
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: () => void;
