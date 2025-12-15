@@ -10,6 +10,7 @@ import MultiSelectListItem from '@components/SelectionListWithSections/MultiSele
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateAdvancedFilters} from '@libs/actions/Search';
 import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +24,7 @@ function SearchColumnsPage() {
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const [selectedItems, setSelectedItems] = useState<ColumnId[]>(() => {
+    const [selectedColumnIds, setSelectedColumnIds] = useState<ColumnId[]>(() => {
         const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => Object.values(CONST.SEARCH.COLUMNS).includes(columnId as ColumnId)) ?? [];
         return columnIds as ColumnId[];
     });
@@ -35,7 +36,7 @@ function SearchColumnsPage() {
                 text: translate(getSearchColumnTranslationKey(columnId)),
                 value: columnId,
                 keyForList: columnId,
-                isSelected: selectedItems?.includes(columnId),
+                isSelected: selectedColumnIds?.includes(columnId),
             })),
         },
     ];
@@ -44,13 +45,15 @@ function SearchColumnsPage() {
         const updatedColumnId = item.keyForList as ColumnId;
 
         if (item.isSelected) {
-            setSelectedItems(selectedItems.filter((columnId) => columnId !== updatedColumnId));
+            setSelectedColumnIds(selectedColumnIds.filter((columnId) => columnId !== updatedColumnId));
         } else {
-            setSelectedItems([...selectedItems, updatedColumnId]);
+            setSelectedColumnIds([...selectedColumnIds, updatedColumnId]);
         }
     };
 
-    const applyChanges = () => {};
+    const applyChanges = () => {
+        updateAdvancedFilters({columns: selectedColumnIds});
+    };
 
     return (
         <ScreenWrapper
