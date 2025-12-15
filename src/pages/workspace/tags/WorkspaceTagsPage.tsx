@@ -222,25 +222,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const glCodeTextStyle = useMemo(() => [styles.alignSelfStart], [styles.alignSelfStart]);
     const switchContainerStyle = useMemo(() => [StyleUtils.getMinimumWidth(variables.w72)], [StyleUtils]);
 
-    const switchComponent = useMemo(
-        () => (value: PolicyTag) => (
-            <Switch
-                isOn={value.enabled}
-                disabled={value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                accessibilityLabel={translate('workspace.tags.enableTag')}
-                onToggle={(newValue: boolean) => {
-                    if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [value])) {
-                        setIsCannotDeleteOrDisableLastTagModalVisible(true);
-                        return;
-                    }
-                    updateWorkspaceTagEnabled(newValue, value.name);
-                }}
-                showLockIcon={isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [value])}
-            />
-        ),
-        [policyTagLists, translate, updateWorkspaceTagEnabled, setIsCannotDeleteOrDisableLastTagModalVisible],
-    );
-
     const tagList = useMemo<TagListItem[]>(() => {
         if (isMultiLevelTags) {
             return policyTagLists.map((policyTagList) => {
@@ -301,10 +282,36 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             {tag['GL Code']}
                         </Text>
                     </View>
-                    <View style={switchContainerStyle}>{switchComponent(tag)}</View>
+                    <View style={switchContainerStyle}>
+                        <Switch
+                            isOn={tag.enabled}
+                            disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                            accessibilityLabel={translate('workspace.tags.enableTag')}
+                            onToggle={(newValue: boolean) => {
+                                if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
+                                    setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                                    return;
+                                }
+                                updateWorkspaceTagEnabled(newValue, tag.name);
+                            }}
+                            showLockIcon={isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])}
+                        />
+                    </View>
                 </>
             ) : (
-                <>{switchComponent(tag)}</>
+                <Switch
+                    isOn={tag.enabled}
+                    disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                    accessibilityLabel={translate('workspace.tags.enableTag')}
+                    onToggle={(newValue: boolean) => {
+                        if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
+                            setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                            return;
+                        }
+                        updateWorkspaceTagEnabled(newValue, tag.name);
+                    }}
+                    showLockIcon={isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])}
+                />
             ),
         }));
     }, [
@@ -315,11 +322,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         policy,
         policyTags,
         updateWorkspaceRequiresTag,
+        updateWorkspaceTagEnabled,
         isControlPolicyWithWideLayout,
         glCodeContainerStyle,
         glCodeTextStyle,
         switchContainerStyle,
-        switchComponent,
     ]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
