@@ -36,7 +36,6 @@ function getConvertedAmount(transaction: Transaction): number {
  */
 function calculateGroupTotal(transactionList: Transaction[], reportCurrency: string): number {
     let total = 0;
-
     for (const transaction of transactionList) {
         if (isTransactionPendingDelete(transaction)) {
             continue;
@@ -49,7 +48,6 @@ function calculateGroupTotal(transactionList: Transaction[], reportCurrency: str
             total += getConvertedAmount(transaction);
         }
     }
-
     return total;
 }
 
