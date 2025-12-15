@@ -1,9 +1,13 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -15,8 +19,16 @@ function SearchColumnsPage() {
 
     const allColumns = Object.values(CONST.SEARCH.COLUMNS);
 
-    const columnItems = allColumns.map((column) => {
-        const columnName = translate();
+    const initiallySelectedColumns = searchAdvancedFiltersForm?.columns
+        ?.filter((columnId) => Object.values(CONST.SEARCH.COLUMNS).includes(columnId as ValueOf<typeof CONST.SEARCH.COLUMNS>))
+        .map((columnId) => {
+            const columnName = translate(getSearchColumnTranslationKey(columnId as ValueOf<typeof CONST.SEARCH.COLUMNS>));
+            return {name: columnName, value: columnId};
+        });
+
+    const columnItems = allColumns.map((columnId) => {
+        const columnName = translate(getSearchColumnTranslationKey(columnId));
+        return {name: columnName, value: columnId};
     });
 
     return (
@@ -27,6 +39,14 @@ function SearchColumnsPage() {
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.columms')} />
+            <View style={[styles.flex1]}>
+                <SearchMultipleSelectionPicker
+                    items={columnItems}
+                    initiallySelectedItems={initiallySelectedColumns}
+                    onSaveSelection={() => {}}
+                    shouldShowTextInput={false}
+                />
+            </View>
         </ScreenWrapper>
     );
 }
