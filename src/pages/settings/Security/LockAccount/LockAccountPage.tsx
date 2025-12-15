@@ -37,8 +37,29 @@ function LockAccountPage() {
             shouldShowCancelButton: true,
             danger: true,
             shouldDisableConfirmButtonWhenOffline: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            // If there is no user accountID yet (because the app isn't fully setup yet), so return early
+            if (session?.accountID === -1) {
+                return;
+            }
+            setIsLoading(true);
+            lockAccount().then((response) => {
+                setIsLoading(false);
+                if (!response?.jsonCode) {
+                    return;
+                }
+
+                if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                    Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT);
+                } else {
+                    Navigation.navigate(ROUTES.SETTINGS_FAILED_TO_LOCK_ACCOUNT);
+                }
+            });
         });
-    }, [showConfirmModal, translate]);
+    }, [showConfirmModal, translate, session?.accountID, styles.mb5]);
 
     const lockAccountButton = (
         <Button
@@ -49,30 +70,7 @@ function LockAccountPage() {
             text={translate('lockAccountPage.reportSuspiciousActivity')}
             style={styles.mt6}
             pressOnEnter
-            onPress={() => {
-                showReportSuspiciousActivityModal().then((result) => {
-                    if (result.action !== ModalActions.CONFIRM) {
-                        return;
-                    }
-                    // If there is no user accountID yet (because the app isn't fully setup yet), so return early
-                    if (session?.accountID === -1) {
-                        return;
-                    }
-                    setIsLoading(true);
-                    lockAccount().then((response) => {
-                        setIsLoading(false);
-                        if (!response?.jsonCode) {
-                            return;
-                        }
-
-                        if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                            Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT);
-                        } else {
-                            Navigation.navigate(ROUTES.SETTINGS_FAILED_TO_LOCK_ACCOUNT);
-                        }
-                    });
-                });
-            }}
+            onPress={showReportSuspiciousActivityModal}
         />
     );
 

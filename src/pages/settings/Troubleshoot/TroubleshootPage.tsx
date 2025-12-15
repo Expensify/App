@@ -61,6 +61,8 @@ function TroubleshootPage() {
     const {resetOptions} = useOptionsList({shouldInitialize: false});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const {showConfirmModal} = useConfirmModal();
+    const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
+    const {setShouldResetSearchQuery} = useSearchContext();
     const showResetAndRefreshModal = useCallback(() => {
         return showConfirmModal({
             title: translate('common.areYouSure'),
@@ -68,10 +70,15 @@ function TroubleshootPage() {
             confirmText: translate('initialSettingsPage.troubleshoot.resetAndRefresh'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            resetOptions();
+            setShouldResetSearchQuery(true);
+            clearOnyxAndResetApp();
         });
-    }, [showConfirmModal, translate]);
-    const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
-    const {setShouldResetSearchQuery} = useSearchContext();
+    }, [showConfirmModal, translate, resetOptions, setShouldResetSearchQuery]);
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
             const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
@@ -146,16 +153,7 @@ function TroubleshootPage() {
             {
                 translationKey: 'initialSettingsPage.troubleshoot.clearCacheAndRestart',
                 icon: icons.RotateLeft,
-                action: () => {
-                    showResetAndRefreshModal().then((result) => {
-                        if (result.action !== ModalActions.CONFIRM) {
-                            return;
-                        }
-                        resetOptions();
-                        setShouldResetSearchQuery(true);
-                        clearOnyxAndResetApp();
-                    });
-                },
+                action: showResetAndRefreshModal,
             },
             {
                 translationKey: 'initialSettingsPage.troubleshoot.exportOnyxState',

@@ -303,8 +303,14 @@ function WalletPage() {
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
             danger: true,
+        }).then((result) => {
+            resetSelectedPaymentMethodData();
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            deletePaymentMethod();
         });
-    }, [showConfirmModal, translate]);
+    }, [showConfirmModal, translate, resetSelectedPaymentMethodData, deletePaymentMethod]);
 
     const threeDotMenuItems = useMemo(
         () => [
@@ -333,15 +339,7 @@ function WalletPage() {
                         closeModal(() => showLockedAccountModal());
                         return;
                     }
-                    closeModal(() => {
-                        showDeleteAccountModal().then((result) => {
-                            resetSelectedPaymentMethodData();
-                            if (result.action !== ModalActions.CONFIRM) {
-                                return;
-                            }
-                            deletePaymentMethod();
-                        });
-                    });
+                    closeModal(showDeleteAccountModal);
                 },
             },
             ...(shouldShowEnableGlobalReimbursementsButton

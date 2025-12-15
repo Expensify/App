@@ -36,6 +36,11 @@ function VisibilityPage({report}: VisibilityProps) {
             cancelText: translate('common.no'),
             shouldShowCancelButton: true,
             danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            changeVisibility(CONST.REPORT.VISIBILITY.PUBLIC);
         });
     };
 
@@ -83,12 +88,7 @@ function VisibilityPage({report}: VisibilityProps) {
                     data={visibilityOptions}
                     onSelectRow={(option) => {
                         if (option.value === CONST.REPORT.VISIBILITY.PUBLIC) {
-                            showPublicVisibilityModal().then((result) => {
-                                if (result.action !== ModalActions.CONFIRM) {
-                                    return;
-                                }
-                                changeVisibility(CONST.REPORT.VISIBILITY.PUBLIC);
-                            });
+                            showPublicVisibilityModal();
                             return;
                         }
                         changeVisibility(option.value);
