@@ -1594,7 +1594,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: {
                     screens: {
-                        [SCREENS.SEARCH.COLUMNS_RHP]: ROUTES.SEARCH_COLUMNS.route,
+                        [SCREENS.SEARCH.COLUMNS_RHP]: ROUTES.SEARCH_COLUMNS,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {

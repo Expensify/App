@@ -15,7 +15,7 @@ function SearchColumnsPage() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.columns')} />
+            <HeaderWithBackButton title={translate('search.columms')} />
         </ScreenWrapper>
     );
 }
