@@ -171,28 +171,6 @@ class OpenAIUtils {
         return block.type === 'text';
     }
 
-    /**
-     * @deprecated Use promptResponses instead. This method exists only for backwards compatibility with proposalPoliceComment.
-     */
-    public parseAssistantResponse<T extends AssistantResponse>(response: string): T | null {
-        const sanitized = sanitizeJSONStringValues(response);
-        let parsed: T;
-
-        try {
-            parsed = JSON.parse(sanitized) as T;
-        } catch (e) {
-            console.error('Failed to parse AI response as JSON:', response);
-            return null;
-        }
-
-        if (typeof parsed !== 'object' || typeof parsed.action !== 'string' || typeof parsed.message !== 'string') {
-            console.error('AI response missing required fields:', parsed);
-            return null;
-        }
-
-        return parsed;
-    }
-
     private static isRetryableError(error: unknown): boolean {
         // Handle known/predictable API errors
         if (error instanceof OpenAI.APIError) {
@@ -219,6 +197,28 @@ class OpenAIUtils {
         }
 
         return false;
+    }
+
+    /**
+     * @deprecated Use promptResponses instead. This method exists only for backwards compatibility with proposalPoliceComment.
+     */
+    public parseAssistantResponse<T extends AssistantResponse>(response: string): T | null {
+        const sanitized = sanitizeJSONStringValues(response);
+        let parsed: T;
+
+        try {
+            parsed = JSON.parse(sanitized) as T;
+        } catch (e) {
+            console.error('Failed to parse AI response as JSON:', response);
+            return null;
+        }
+
+        if (typeof parsed !== 'object' || typeof parsed.action !== 'string' || typeof parsed.message !== 'string') {
+            console.error('AI response missing required fields:', parsed);
+            return null;
+        }
+
+        return parsed;
     }
 }
 

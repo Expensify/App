@@ -30,7 +30,7 @@ class ChatGPTTranslator extends Translator {
     /**
      * The maximum number of times we'll retry a successful translation request in the event of hallucinations.
      */
-    public static readonly MAX_RETRIES: number = 4;
+    private static readonly MAX_RETRIES: number = 4;
 
     /**
      * OpenAI API client to perform translations.
