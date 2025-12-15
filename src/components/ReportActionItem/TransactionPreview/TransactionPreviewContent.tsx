@@ -147,7 +147,8 @@ function TransactionPreviewContent({
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
-    const isIOUSettled = isSettled(report?.reportID);
+    const pendingAction = action?.pendingAction;
+    const isIOUSettled = !pendingAction && isSettled(report?.reportID);
     const isSettlementOrApprovalPartial = !!report?.pendingFields?.partial;
     const isTransactionScanning = isScanning(transaction);
     const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;
