@@ -121,6 +121,7 @@ import type {
     FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
+    HarvestCreatedExpenseReportParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -263,6 +264,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -1015,6 +1018,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Solo gli amministratori possono inviare messaggi in questa stanza.',
     reportAction: {
         asCopilot: 'come copilota per',
+        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+            `ha creato questo rapporto per raccogliere tutte le spese di <a href="${reportUrl}">${reportName}</a> che non sono state inviate con la frequenza scelta`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notifica tutti in questa conversazione',
@@ -1922,6 +1927,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Registrare dati di risoluzione problemi',
             softKillTheApp: "Termina l'app in modo non forzato",
             kill: 'Termina',
+            sentryDebug: 'Debug Sentry',
+            sentryDebugDescription: 'Registra le richieste Sentry nella console',
+            sentryHighlightedSpanOps: 'Nomi degli span evidenziati',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Salva registro',
@@ -2658,10 +2667,10 @@ ${amount} per ${merchant} - ${date}`,
                         *Imposta le categorie* in modo che il tuo team possa codificare le spese per una rendicontazione semplice.
 
                         1. Fai clic su *Workspaces*.
-                        3. Seleziona il tuo workspace.
-                        4. Fai clic su *Categories*.
-                        5. Disabilita le categorie di cui non hai bisogno.
-                        6. Aggiungi le tue categorie in alto a destra.
+                        2. Seleziona il tuo workspace.
+                        3. Fai clic su *Categories*.
+                        4. Disabilita le categorie di cui non hai bisogno.
+                        5. Aggiungi le tue categorie in alto a destra.
 
                         [Portami alle impostazioni delle categorie del workspace](${workspaceCategoriesLink}).
 
@@ -2716,11 +2725,11 @@ ${amount} per ${merchant} - ${date}`,
                     dedent(`
                         Collega ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'il tuo' : 'a'} ${integrationName} per la codifica automatica delle spese e la sincronizzazione che rendono la chiusura di fine mese semplicissima.
 
-                        1. Fai clic su *Workspaces*.
-                        2. Seleziona il tuo workspace.
-                        3. Fai clic su *Accounting*.
+                        1. Fai clic su *Spazi di lavoro*.
+                        2. Seleziona il tuo spazio di lavoro.
+                        3. Fai clic su *Contabilità*.
                         4. Trova ${integrationName}.
-                        5. Fai clic su *Connect*.
+                        5. Fai clic su *Connetti*.
 
 ${
     integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -2750,10 +2759,10 @@ ${
                         *Invita il tuo team* su Expensify così potranno iniziare a tenere traccia delle spese oggi stesso.
 
                         1. Fai clic su *Workspaces*.
-                        3. Seleziona il tuo workspace.
-                        4. Fai clic su *Members* > *Invite member*.
-                        5. Inserisci email o numeri di telefono.
-                        6. Aggiungi un messaggio di invito personalizzato, se vuoi!
+                        2. Seleziona il tuo workspace.
+                        3. Fai clic su *Members* > *Invite member*.
+                        4. Inserisci email o numeri di telefono.
+                        5. Aggiungi un messaggio di invito personalizzato, se vuoi!
 
                         [Portami ai membri del workspace](${workspaceMembersLink}).
 
@@ -2774,11 +2783,11 @@ ${
                         Usa i tag per aggiungere ulteriori dettagli alle spese, come progetti, clienti, sedi e reparti. Se hai bisogno di più livelli di tag, puoi effettuare l’upgrade al piano Control.
 
                         1. Clicca su *Workspaces*.
-                        3. Seleziona il tuo workspace.
-                        4. Clicca su *More features*.
-                        5. Abilita *Tags*.
-                        6. Vai a *Tags* nell’editor del workspace.
-                        7. Clicca su *+ Add tag* per crearne uno tuo.
+                        2. Seleziona il tuo workspace.
+                        3. Clicca su *More features*.
+                        4. Abilita *Tags*.
+                        5. Vai a *Tags* nell’editor del workspace.
+                        6. Clicca su *+ Add tag* per crearne uno tuo.
 
                         [Portami a more features](${workspaceMoreFeaturesLink}).
 
@@ -6191,6 +6200,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 gambling: "Gioco d'azzardo",
                 tobacco: 'Tabacco',
                 adultEntertainment: 'Intrattenimento per adulti',
+                requireCompanyCard: 'Richiedi carte aziendali per tutti gli acquisti',
+                requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, incluse le spese per chilometraggio e le diarie.',
             },
             expenseReportRules: {
                 title: 'Avanzato',
@@ -6428,6 +6439,12 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 return `ha modificato la parte recuperabile delle imposte sulla tariffa distanza "${customUnitRateName}" in "${newValue}" (in precedenza "${oldValue}")`;
             }
             return `ha aggiunto una parte rimborsabile di imposta di "${newValue}" alla tariffa per distanza "${customUnitRateName}"`;
+        },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `ha modificato l’indice della tariffa ${customUnitName} "${customUnitRateName}" a "${newValue}" ${oldValue ? `(precedentemente "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'abilitato' : 'disabilitato'} la tariffa ${customUnitName} "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `ha rimosso la tariffa "${rateName}" dell’unità personalizzata "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `aggiunto campo report ${fieldType} "${fieldName}"`,
@@ -7366,6 +7383,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         confirmDuplicatesInfo: `I duplicati che non mantieni saranno conservati per consentire al mittente di eliminarli.`,
         hold: 'Questa spesa è stata messa in sospeso',
         resolvedDuplicates: 'ha risolto il duplicato',
+        companyCardRequired: 'Acquisti con carta aziendale obbligatori',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} è obbligatorio`,
@@ -7981,6 +7999,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             subtitle: 'Richiedi ai membri del tuo dominio di accedere tramite Single Sign-On, limita la creazione di spazi di lavoro e altro ancora.',
             enable: 'Abilita',
         },
+        admins: {title: 'Amministratori', findAdmin: 'Trova amministratore'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
