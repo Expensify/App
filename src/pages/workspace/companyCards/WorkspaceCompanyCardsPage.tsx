@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import DecisionModal from '@components/DecisionModal';
+import useAssignCard from '@hooks/useAssignCard';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -20,10 +21,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import WorkspaceCompanyCardsTable from './components/WorkspaceCompanyCardsTable';
-import useAssignCard from './hooks/useAssignCard';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
+import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
 import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
@@ -116,7 +116,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     )}
                     {isPending && <WorkspaceCompanyCardsFeedPendingPage />}
                     {isFeedAdded && !isPending && (
-                        <WorkspaceCompanyCardsTable
+                        <WorkspaceCompanyCardsList
                             selectedFeed={selectedFeed}
                             cardsList={cardsList}
                             shouldShowGBDisclaimer={shouldShowGBDisclaimer}

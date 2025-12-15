@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type WorkspaceCompanyCardsTableRowProps = {
+type WorkspaceCompanyCardsListRowProps = {
     /** Card number */
     cardName: string;
 
@@ -52,7 +52,7 @@ type WorkspaceCompanyCardsTableRowProps = {
     onAssignCard: () => void;
 };
 
-function WorkspaceCompanyCardsTableRow({
+function WorkspaceCompanyCardsListRow({
     cardholder,
     customCardName,
     cardName,
@@ -64,7 +64,7 @@ function WorkspaceCompanyCardsTableRow({
     isAssigningCardDisabled,
     shouldShowAssignCardButton,
     shouldUseNarrowTableRowLayout,
-}: WorkspaceCompanyCardsTableRowProps) {
+}: WorkspaceCompanyCardsListRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -169,6 +169,6 @@ function WorkspaceCompanyCardsTableRow({
     );
 }
 
-WorkspaceCompanyCardsTableRow.displayName = 'WorkspaceCompanyCardsListRow';
+WorkspaceCompanyCardsListRow.displayName = 'WorkspaceCompanyCardsListRow';
 
-export default WorkspaceCompanyCardsTableRow;
+export default WorkspaceCompanyCardsListRow;

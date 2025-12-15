@@ -1,27 +1,43 @@
-import React, {useCallback, useMemo} from 'react';
-import type {ListRenderItemInfo} from 'react-native';
-import {FlatList, View} from 'react-native';
+import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
+import {FlashList} from '@shopify/flash-list';
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
+import useCardFeeds from '@hooks/useCardFeeds';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterCardsByPersonalDetails, getCardsByCardholderName, getCompanyCardFeedWithDomainID, getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
+import {
+    filterCardsByPersonalDetails,
+    getCardFeedIcon,
+    getCardsByCardholderName,
+    getCompanyCardFeedWithDomainID,
+    getCompanyFeeds,
+    getPlaidInstitutionIconUrl,
+    sortCardsByCardholderName,
+} from '@libs/CardUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, WorkspaceCardsList} from '@src/types/onyx';
+import WorkspaceCompanyCardsListRow from './WorkspaceCompanyCardListRow';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
-import WorkspaceCompanyCardsListRow from './WorkspaceCompanyCardsListRow';
 
 type WorkspaceCompanyCardsListProps = {
+    /** Selected feed */
+    selectedFeed: CompanyCardFeedWithDomainID;
+
     /** List of company cards */
     cardsList: OnyxEntry<WorkspaceCardsList>;
 
@@ -29,41 +45,76 @@ type WorkspaceCompanyCardsListProps = {
     policyID: string;
 
     /** Handle assign card action */
-    handleAssignCard: () => void;
+    onAssignCard: () => void;
 
     /** Whether to disable assign card button */
-    isDisabledAssignCardButton?: boolean;
+    isAssigningCardDisabled?: boolean;
+
+    shouldShowAssignCardButton?: boolean;
 
     /** Whether to show GB disclaimer */
     shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDisabledAssignCardButton, shouldShowGBDisclaimer}: WorkspaceCompanyCardsListProps) {
+function WorkspaceCompanyCardsList({
+    selectedFeed,
+    cardsList,
+    policyID,
+    onAssignCard,
+    isAssigningCardDisabled,
+    shouldShowGBDisclaimer,
+    shouldShowAssignCardButton,
+}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const listRef = useRef<FlashListRef<string>>(null);
+    const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
 
+    const {cardList, ...assignedCards} = cardsList ?? {};
+    const [cardFeeds] = useCardFeeds(policyID);
+
+    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const cards = companyFeeds?.[selectedFeed]?.accountList;
+
+    const plaidUrl = getPlaidInstitutionIconUrl(selectedFeed);
+
+    // Get all cards sorted by cardholder name
     const allCards = useMemo(() => {
         const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
         return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
     }, [cardsList, policy?.employeeList]);
 
+    // Filter and sort cards based on search input
     const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
-    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);
+    const sortCards = useCallback((cardsToSort: Card[]) => sortCardsByCardholderName(cardsToSort, personalDetails, localeCompare), [personalDetails, localeCompare]);
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
+    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
+
+    const shouldUseNarrowTableRowLayout = isMediumScreenWidth || shouldUseNarrowLayout;
+
     const renderItem = useCallback(
-        ({item, index}: ListRenderItemInfo<Card>) => {
-            const cardID = Object.keys(cardsList ?? {}).find((id) => cardsList?.[id].cardID === item.cardID);
-            const isCardDeleted = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        ({item: cardName, index}: ListRenderItemInfo<string>) => {
+            const assignedCard = Object.values(assignedCards ?? {}).find((card) => card.cardName === cardName);
+
+            const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID];
+
+            const cardFeedIcon = getCardFeedIcon(selectedFeed as CompanyCardFeed, illustrations, companyCardFeedIcons);
+
+            const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
             return (
                 <OfflineWithFeedback
-                    key={`${item.nameValuePairs?.cardTitle}_${index}`}
+                    key={`${cardName}_${index}`}
                     errorRowStyles={styles.ph5}
-                    errors={item.errors}
-                    pendingAction={item.pendingAction}
+                    errors={assignedCard?.errors}
+                    pendingAction={assignedCard?.pendingAction}
                 >
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
@@ -72,78 +123,161 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
                         hoverStyle={styles.hoveredComponentBG}
                         disabled={isCardDeleted}
                         onPress={() => {
-                            if (!cardID || !item?.accountID || !item.fundID) {
-                                return;
+                            if (assignedCard) {
+                                if (!assignedCard?.accountID || !assignedCard?.fundID) {
+                                    return;
+                                }
+
+                                return Navigation.navigate(
+                                    ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
+                                        policyID,
+                                        assignedCard.cardID.toString(),
+                                        getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID),
+                                    ),
+                                );
                             }
-                            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, getCompanyCardFeedWithDomainID(item.bank as CompanyCardFeed, item.fundID)));
+
+                            onAssignCard();
                         }}
                     >
                         {({hovered}) => (
                             <WorkspaceCompanyCardsListRow
-                                cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
-                                cardNumber={item.lastFourPAN ?? ''}
-                                name={customCardNames?.[item.cardID] ?? getDefaultCardName(personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]?.firstName)}
+                                cardholder={personalDetails?.[assignedCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]}
+                                cardName={cardName}
+                                cardFeedIcon={cardFeedIcon}
+                                plaidUrl={plaidUrl}
+                                customCardName={customCardName}
                                 isHovered={hovered}
+                                isAssigned={!!assignedCard}
+                                onAssignCard={onAssignCard}
+                                isAssigningCardDisabled={isAssigningCardDisabled}
+                                shouldShowAssignCardButton={shouldShowAssignCardButton}
+                                shouldUseNarrowTableRowLayout={shouldUseNarrowTableRowLayout}
                             />
                         )}
                     </PressableWithFeedback>
                 </OfflineWithFeedback>
             );
         },
-        [cardsList, customCardNames, personalDetails, policyID, styles],
+        [
+            assignedCards,
+            companyCardFeedIcons,
+            customCardNames,
+            illustrations,
+            isAssigningCardDisabled,
+            onAssignCard,
+            personalDetails,
+            plaidUrl,
+            policyID,
+            selectedFeed,
+            shouldShowAssignCardButton,
+            shouldUseNarrowTableRowLayout,
+            styles.br3,
+            styles.highlightBG,
+            styles.hoveredComponentBG,
+            styles.mb3,
+            styles.mh5,
+            styles.ph5,
+        ],
     );
 
-    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
+    const keyExtractor = useCallback((item: string, index: number) => `${item}_${index}`, []);
 
-    const renderListHeader = (
-        <>
-            {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
-                <SearchBar
-                    label={translate('workspace.companyCards.findCard')}
-                    inputValue={inputValue}
-                    onChangeText={setInputValue}
-                    shouldShowEmptyState={isSearchEmpty}
-                    style={[styles.mt5]}
-                />
-            )}
-            {!isSearchEmpty && (
-                <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textMicroSupporting, styles.lh16]}
-                    >
-                        {translate('common.name')}
-                    </Text>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textMicroSupporting, styles.lh16, styles.mr7]}
-                    >
-                        {translate('workspace.expensifyCard.lastFour')}
-                    </Text>
-                </View>
-            )}
-        </>
+    const ListHeaderComponent = useMemo(
+        () =>
+            shouldUseNarrowTableRowLayout ? (
+                <View style={styles.h7} />
+            ) : (
+                <>
+                    {(cards?.length ?? 0) > CONST.SEARCH_ITEM_LIMIT && (
+                        <SearchBar
+                            label={translate('workspace.companyCards.findCard')}
+                            inputValue={inputValue}
+                            onChangeText={setInputValue}
+                            shouldShowEmptyState={isSearchEmpty}
+                            style={[styles.mt5]}
+                        />
+                    )}
+                    {!isSearchEmpty && (
+                        <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
+                            <View style={[styles.flex1]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.textMicroSupporting, styles.lh16]}
+                                >
+                                    {translate('common.member')}
+                                </Text>
+                            </View>
+                            <View style={[styles.flex1]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.textMicroSupporting, styles.lh16]}
+                                >
+                                    {translate('workspace.companyCards.card')}
+                                </Text>
+                            </View>
+                            <View style={[styles.flex1]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.textMicroSupporting, styles.textAlignRight, styles.lh16, styles.pr7]}
+                                >
+                                    {translate('workspace.companyCards.cardName')}
+                                </Text>
+                            </View>
+                        </View>
+                    )}
+                </>
+            ),
+        [
+            cards?.length,
+            inputValue,
+            isSearchEmpty,
+            setInputValue,
+            shouldUseNarrowTableRowLayout,
+            styles.appBG,
+            styles.flex1,
+            styles.flexRow,
+            styles.gap5,
+            styles.h7,
+            styles.justifyContentBetween,
+            styles.lh16,
+            styles.mh5,
+            styles.mt5,
+            styles.p4,
+            styles.pr7,
+            styles.textAlignRight,
+            styles.textMicroSupporting,
+            translate,
+        ],
     );
 
-    if (allCards.length === 0) {
+    // Show empty state when there are no cards
+    if (!cards?.length) {
         return (
             <WorkspaceCompanyCardsFeedAddedEmptyPage
                 shouldShowGBDisclaimer={shouldShowGBDisclaimer}
-                handleAssignCard={handleAssignCard}
-                isAssigningCardDisabled={isDisabledAssignCardButton}
+                handleAssignCard={onAssignCard}
+                isAssigningCardDisabled={isAssigningCardDisabled}
             />
         );
     }
 
     return (
-        <FlatList
-            contentContainerStyle={styles.flexGrow1}
-            data={filteredSortedCards}
-            renderItem={renderItem}
-            ListHeaderComponent={renderListHeader}
-            keyboardShouldPersistTaps="handled"
-        />
+        <View style={styles.flex1}>
+            <FlashList
+                ref={listRef}
+                data={cards}
+                renderItem={renderItem}
+                keyExtractor={keyExtractor}
+                ListHeaderComponent={ListHeaderComponent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.flexGrow1}
+            />
+        </View>
     );
 }
+
+WorkspaceCompanyCardsList.displayName = 'WorkspaceCompanyCardsTable';
 
 export default WorkspaceCompanyCardsList;
