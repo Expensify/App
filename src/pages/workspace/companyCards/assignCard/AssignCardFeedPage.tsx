@@ -10,7 +10,7 @@ import PlaidConnectionStep from '@pages/workspace/companyCards/addNew/PlaidConne
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
+import {clearAssignCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -25,10 +25,12 @@ import TransactionStartDateStep from './TransactionStartDateStep';
 type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD> & WithPolicyAndFullscreenLoadingProps;
 
 function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeedWithDomainID;
+    const cardID = route.params?.cardID ? decodeURIComponent(route.params?.cardID) : undefined;
+
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const currentStep = assignCard?.currentStep;
 
-    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeedWithDomainID;
     const backTo = route.params?.backTo;
     const policyID = policy?.id;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
@@ -40,6 +42,16 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             clearAssignCardStepAndData();
         };
     }, []);
+
+    // useEffect(() => {
+    //     if (cardID) {
+    //         setAssignCardStepAndData({
+    //             currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+    //             data: {encryptedCardNumber: cardSelected, cardNumber},
+    //             isEditing: false,
+    //         });
+    //     }
+    // }, [cardID]);
 
     if (isActingAsDelegate) {
         return (

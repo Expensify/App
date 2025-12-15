@@ -2174,8 +2174,9 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/assign-card`, backTo),
+        getRoute: (policyID: string, feed: string, cardID?: string, backTo?: string) =>
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/assign-card${cardID ? `/${encodeURIComponent(cardID)}` : ''}`, backTo),
     },
     WORKSPACE_COMPANY_CARD_DETAILS: {
         route: 'workspaces/:policyID/company-cards/:bank/:cardID',

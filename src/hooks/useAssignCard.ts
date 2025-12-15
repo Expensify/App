@@ -74,7 +74,11 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
 
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
 
-    const assignCard = () => {
+    const assignCard = (cardID?: string) => {
+        if (isAssigningCardDisabled) {
+            return;
+        }
+
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
             return;
@@ -138,7 +142,9 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
 
         clearAddNewCardFlow();
         setAssignCardStepAndData({data, currentStep});
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed)));
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed, cardID));
+        });
     };
 
     return {
