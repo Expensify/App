@@ -30,11 +30,11 @@ import {
     buildOptimisticReportPreview,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
-    canAddOrDeleteTransactions,
     canAddTransaction,
     canCreateRequest,
     canDeleteMoneyRequestReport,
     canDeleteReportAction,
+    canDeleteTransaction,
     canEditMoneyRequest,
     canEditReportDescription,
     canEditRoomVisibility,
@@ -50,6 +50,7 @@ import {
     findLastAccessedReport,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
+    getAvailableReportFields,
     getChatByParticipants,
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
@@ -101,6 +102,7 @@ import {
     shouldDisplayViolationsRBRInLHN,
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
+    shouldHideSingleReportField,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
@@ -130,7 +132,7 @@ import type {
 } from '@src/types/onyx';
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
-import type {ACHAccount} from '@src/types/onyx/Policy';
+import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
 import type {Participant, Participants} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -3931,27 +3933,27 @@ describe('ReportUtils', () => {
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
             it('Should show all participants name if count <= 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('Should show all participants name if count <= 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('Should show 5 participants name with ellipsis if count > 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
+                expect(getGroupChatName(formatPhoneNumber, eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
             });
 
             it('Should show all participants name if count > 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
             it('Should use correct display name for participants', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-                expect(getGroupChatName(fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
 
@@ -3965,7 +3967,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('Should show report name if count <= 5 and shouldApplyLimit is true', async () => {
@@ -3977,7 +3979,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('Should show report name if count > 5 and shouldApplyLimit is true', async () => {
@@ -3989,7 +3991,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('Should show report name if count > 5 and shouldApplyLimit is false', async () => {
@@ -4001,7 +4003,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('Should show participant names if report name is not available', async () => {
@@ -4013,7 +4015,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
         });
     });
@@ -5949,6 +5951,57 @@ describe('ReportUtils', () => {
             expect(result).toBe(false);
         });
 
+        it('should return false for a submitted report when the policy is submit and close with payment disabled', async () => {
+            // Given the policy is submit and close with payment disabled
+            const workflowDisabledPolicy: Policy = {
+                ...createRandomPolicy(2962),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                employeeList: {
+                    [currentUserEmail]: {email: currentUserEmail, submitsTo: currentUserEmail},
+                },
+                approver: currentUserEmail,
+            };
+            const report: Report = {
+                ...createRandomReport(10002, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                policyID: workflowDisabledPolicy.id,
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+            };
+            const createdAction: ReportAction = {...createRandomReportAction(123), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, originalMessage: {submittedTo: currentUserAccountID}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdAction.reportActionID]: createdAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workflowDisabledPolicy.id}`, workflowDisabledPolicy);
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [currentUserAccountID]: {
+                    accountID: currentUserAccountID,
+                    displayName: 'Lagertha Lothbrok',
+                    firstName: 'Lagertha',
+                    login: currentUserEmail,
+                    pronouns: 'She/her',
+                },
+            });
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+            // If the canAddTransaction is used for the case of adding expense into the report
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result should be false
+            expect(result).toBe(false);
+
+            // If the canAddTransaction is used for the case of moving transaction into the report
+            const result2 = canAddTransaction(report, isReportArchived.current, true);
+
+            // Then the result should be true
+            expect(result2).toBe(true);
+        });
+
         it('should return false for an archived report', async () => {
             // Given an archived expense report
             const report: Report = {
@@ -5984,7 +6037,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('canAddOrDeleteTransactions', () => {
+    describe('canDeleteTransaction', () => {
         it('should return true for a non-archived report', async () => {
             // Given a non-archived expense report
             const report: Report = {
@@ -5996,7 +6049,7 @@ describe('ReportUtils', () => {
             // When it's checked if the transactions can be deleted
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = canAddOrDeleteTransactions(report, policy, isReportArchived.current);
+            const result = canDeleteTransaction(report, isReportArchived.current);
 
             // Then the result is true
             expect(result).toBe(true);
@@ -6013,7 +6066,7 @@ describe('ReportUtils', () => {
 
             // When it's checked if the transactions can be deleted
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = canAddOrDeleteTransactions(report, policy, isReportArchived.current);
+            const result = canDeleteTransaction(report, isReportArchived.current);
 
             // Then the result is false
             expect(result).toBe(false);
@@ -6062,7 +6115,7 @@ describe('ReportUtils', () => {
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
 
-                expect(canAddOrDeleteTransactions(openReport, policy, false)).toBe(true);
+                expect(canDeleteTransaction(openReport, false)).toBe(true);
             });
 
             it('should return false for closed report when workflow is disabled', async () => {
@@ -6075,7 +6128,7 @@ describe('ReportUtils', () => {
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
 
-                expect(canAddOrDeleteTransactions(closedReport, policy, false)).toBe(false);
+                expect(canDeleteTransaction(closedReport, false)).toBe(false);
             });
         });
     });
@@ -6810,6 +6863,56 @@ describe('ReportUtils', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
             expect(canJoinChat(report, undefined, undefined)).toBe(true);
+        });
+
+        it('should respect workspace membership for restricted visibility rooms', async () => {
+            const policyID = '123456';
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            const policyWithoutCurrentUser: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                employeeList: {
+                    'employee@test.com': {
+                        role: CONST.POLICY.ROLE.USER,
+                        errors: {},
+                    },
+                },
+            };
+
+            const policyWithCurrentUser: Policy = {
+                ...createRandomPolicy(2),
+                id: policyID,
+                employeeList: {
+                    [currentUserEmail]: {
+                        role: CONST.POLICY.ROLE.USER,
+                        errors: {},
+                    },
+                },
+            };
+
+            const restrictedReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                policyID,
+                visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+                participants: {
+                    ...buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+            };
+
+            const publicReport: Report = {
+                ...restrictedReport,
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+            };
+
+            expect(canJoinChat(restrictedReport, undefined, policyWithoutCurrentUser)).toBe(false);
+            expect(canJoinChat(restrictedReport, undefined, policyWithCurrentUser)).toBe(true);
+            expect(canJoinChat(publicReport, undefined, policyWithoutCurrentUser)).toBe(true);
         });
     });
 
@@ -10142,6 +10245,135 @@ describe('ReportUtils', () => {
 
             // Then it should return the message from the report action (not the childReportName)
             expect(result).toBe('payer owes $100');
+        });
+    });
+
+    describe('getAvailableReportFields', () => {
+        const fieldList1 = {
+            expensify_field_id_LIST: {
+                type: 'dropdown',
+                values: ['value 1'],
+                disabledOptions: [false],
+                fieldID: 'field_id_LIST',
+                name: 'field list 1',
+            },
+        } as unknown as NonNullable<Policy['fieldList']>;
+        const fieldList2 = {
+            expensify_field_id_LIST_POLICY: {
+                type: 'dropdown',
+                values: ['value 1'],
+                disabledOptions: [false],
+                fieldID: 'field_id_LIST_POLICY',
+                name: 'field list 2',
+            },
+        } as unknown as NonNullable<Policy['fieldList']>;
+
+        it('should return report fieldList if report is settled', async () => {
+            const settledReport = {
+                reportID: '1',
+                policyID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                fieldList: fieldList1,
+            } as Report;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
+            expect(getAvailableReportFields(settledReport, Object.values(fieldList2))).toEqual(Object.values(fieldList1));
+        });
+
+        it('should merge report and policy field list', async () => {
+            const report = {
+                reportID: '2',
+                policyID: '1',
+                fieldList: fieldList1,
+            } as Report;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const mergedFieldList = [
+                {
+                    type: 'dropdown',
+                    values: ['value 1'],
+                    disabledOptions: [false],
+                    fieldID: 'field_id_LIST_POLICY',
+                    name: 'field list 2',
+                },
+                {
+                    type: 'dropdown',
+                    values: ['value 1'],
+                    disabledOptions: [false],
+                    fieldID: 'field_id_LIST',
+                    name: 'field list 1',
+                },
+            ];
+            expect(getAvailableReportFields(report, Object.values(fieldList2))).toEqual(mergedFieldList);
+        });
+
+        it('should overwrite report fieldList disabledOptions and values if field list exists in both report and policy', async () => {
+            const report = {
+                reportID: '2',
+                policyID: '1',
+                fieldList: fieldList1,
+            } as Report;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const policyFieldList = [
+                {
+                    type: 'dropdown',
+                    values: ['value 2'],
+                    disabledOptions: [true],
+                    fieldID: 'field_id_LIST',
+                    name: 'field list policy',
+                },
+                {
+                    type: 'dropdown',
+                    values: ['value'],
+                    disabledOptions: [false],
+                    fieldID: 'field_id_LIST_2',
+                    name: 'field list',
+                },
+            ] as unknown as PolicyReportField[];
+            const expectedFieldList = [
+                {
+                    type: 'dropdown',
+                    values: ['value 2'],
+                    disabledOptions: [true],
+                    fieldID: 'field_id_LIST',
+                    name: 'field list 1',
+                },
+                {
+                    type: 'dropdown',
+                    values: ['value'],
+                    disabledOptions: [false],
+                    fieldID: 'field_id_LIST_2',
+                    name: 'field list',
+                },
+            ] as unknown as PolicyReportField[];
+            expect(getAvailableReportFields(report, policyFieldList)).toEqual(expectedFieldList);
+        });
+    });
+
+    describe('shouldHideSingleReportField', () => {
+        it('should return true if report field has title type', () => {
+            const reportField = {
+                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+            } as PolicyReportField;
+            expect(shouldHideSingleReportField(reportField)).toBe(true);
+        });
+        it('should return false if report field is not of type list', () => {
+            const reportField = {
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+            } as PolicyReportField;
+            expect(shouldHideSingleReportField(reportField)).toBe(false);
+        });
+        it('should return false if list report field has some options enabled', () => {
+            const reportField = {
+                type: CONST.REPORT_FIELD_TYPES.LIST,
+                disabledOptions: [false, true, false],
+            } as PolicyReportField;
+            expect(shouldHideSingleReportField(reportField)).toBe(false);
+        });
+        it('should return false if all items in list report field are disabled', () => {
+            const reportField = {
+                type: CONST.REPORT_FIELD_TYPES.LIST,
+                disabledOptions: [true, true, true],
+            } as PolicyReportField;
+            expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
     });
 });

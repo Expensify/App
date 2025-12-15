@@ -119,7 +119,6 @@ import type {
     PolicyCategories,
     PolicyCategory,
     Report,
-    ReportAction,
     ReportActions,
     Request,
     TaxRatesWithDefault,
@@ -487,6 +486,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
 
     const finallyData: OnyxUpdate[] = [];
     const currentTime = DateUtils.getDBTime();
+    const reportIDToOptimisticCloseReportActionID: Record<string, string> = {};
     for (const report of reportsToArchive) {
         const {reportID, ownerAccountID, oldPolicyName} = report ?? {};
         const isInvoiceReceiverReport = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID;
@@ -527,7 +527,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [optimisticClosedReportAction.reportActionID]: optimisticClosedReportAction as ReportAction,
+                [optimisticClosedReportAction.reportActionID]: optimisticClosedReportAction,
             },
         });
 
@@ -549,15 +549,14 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             },
         });
 
-        // We are temporarily adding this workaround because 'DeleteWorkspace' doesn't
-        // support receiving the optimistic reportActions' ids for the moment.
-        finallyData.push({
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [optimisticClosedReportAction.reportActionID]: null,
             },
         });
+        reportIDToOptimisticCloseReportActionID[reportID] = optimisticClosedReportAction.reportActionID;
 
         for (const transactionViolationKey of Object.keys(transactionViolations ?? {})) {
             const transactionViolation = transactionViolations?.[transactionViolationKey];
@@ -617,7 +616,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             });
         }
     }
-    const apiParams: DeleteWorkspaceParams = {policyID};
+    const apiParams: DeleteWorkspaceParams = {policyID, reportIDToOptimisticCloseReportActionID: JSON.stringify(reportIDToOptimisticCloseReportActionID)};
 
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE, apiParams, {optimisticData, finallyData, failureData});
 
@@ -3486,17 +3485,17 @@ function buildOptimisticRecentlyUsedCurrencies(currency?: string) {
 // eslint-disable-next-line rulesdir/no-call-actions-from-actions
 function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
-    if (!ReportUtils.isIOUReportUsingReport(iouReport)) {
+    if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
         return;
     }
 
     // Generate new variables for the policy
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName(deprecatedSessionEmail);
-    const employeeAccountID = iouReport.ownerAccountID;
-    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport.currency);
-    const oldPersonalPolicyID = iouReport.policyID;
-    const iouReportID = iouReport.reportID;
+    const employeeAccountID = iouReport?.ownerAccountID;
+    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency);
+    const oldPersonalPolicyID = iouReport?.policyID;
+    const iouReportID = iouReport?.reportID;
 
     const {
         adminsChatReportID,
@@ -3530,7 +3529,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         isPolicyExpenseChatEnabled: true,
 
         // Setting the new workspace currency to the currency of the iouReport
-        outputCurrency: iouReport.currency ?? CONST.CURRENCY.USD,
+        outputCurrency: iouReport?.currency ?? CONST.CURRENCY.USD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         autoReporting: true,
         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
@@ -3747,7 +3746,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportActionID,
     };
 
-    const oldChatReportID = iouReport.chatReportID;
+    const oldChatReportID = iouReport?.chatReportID;
 
     // Next we need to convert the IOU report to Expense report.
     // We need to change:
@@ -3802,8 +3801,8 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     });
 
     // We need to move the report preview action from the DM to the expense chat.
-    const parentReport = deprecatedAllReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`];
-    const parentReportActionID = iouReport.parentReportActionID;
+    const parentReport = deprecatedAllReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.parentReportID}`];
+    const parentReportActionID = iouReport?.parentReportActionID;
     const reportPreview = iouReport?.parentReportID && parentReportActionID ? parentReport?.[parentReportActionID] : undefined;
 
     if (reportPreview?.reportActionID) {
@@ -3867,13 +3866,13 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
         value: {[movedIouReportAction.reportActionID]: movedIouReportAction},
     });
 
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
         value: {
             [movedIouReportAction.reportActionID]: {
                 ...movedIouReportAction,
@@ -3884,7 +3883,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
 
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
         value: {[movedIouReportAction.reportActionID]: null},
     });
 
@@ -3945,7 +3944,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         memberData: JSON.stringify(memberData),
         reportActionID: movedReportAction.reportActionID,
         expenseMovedReportActionID: movedIouReportAction.reportActionID,
-        currency: iouReport.currency ?? CONST.CURRENCY.USD,
+        currency: iouReport?.currency ?? CONST.CURRENCY.USD,
     };
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT, params, {optimisticData, successData, failureData});
@@ -4455,7 +4454,6 @@ function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = tr
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areRulesEnabled: enabled,
-                    preventSelfApproval: false,
                     ...(!enabled ? DISABLED_MAX_EXPENSE_VALUES : {}),
                     pendingFields: {
                         areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -4480,7 +4478,6 @@ function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = tr
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areRulesEnabled: !enabled,
-                    preventSelfApproval: policy?.preventSelfApproval,
                     ...(!enabled
                         ? {
                               maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt,
