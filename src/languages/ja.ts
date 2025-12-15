@@ -6689,6 +6689,7 @@ ${reportName}
                 subtitle: '経費はゼロ。くつろぎはマックス。お見事です！',
             },
         },
+        columms: 'Columns',
         statements: 'ステートメント',
         unapprovedCash: '未承認の現金',
         unapprovedCard: '未承認のカード',

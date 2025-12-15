@@ -803,7 +803,7 @@ function SearchFiltersBar({
                         link
                         small
                         shouldUseDefaultHover={false}
-                        text={filterButtonText}
+                        text={translate('search.columms')}
                         iconFill={theme.link}
                         iconHoverFill={theme.linkHover}
                         icon={expensifyIcons.Columns}
@@ -813,7 +813,19 @@ function SearchFiltersBar({
                 )}
             </View>
         ),
-        [filterButtonText, theme.link, theme.linkHover, styles.textMicroBold, openAdvancedFilters, expensifyIcons],
+        [
+            styles.flexRow,
+            styles.gap2,
+            styles.textMicroBold,
+            filterButtonText,
+            theme.link,
+            theme.linkHover,
+            expensifyIcons.Filter,
+            expensifyIcons.Columns,
+            openAdvancedFilters,
+            isLargeScreenWidth,
+            translate,
+        ],
     );
 
     if (hasErrors) {

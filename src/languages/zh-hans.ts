@@ -6589,6 +6589,7 @@ ${reportName}
                 subtitle: '报销为零，轻松满分。干得好！',
             },
         },
+        columms: 'Columns',
         statements: '对账单',
         unapprovedCash: '未批准的现金',
         unapprovedCard: '未批准的卡片',

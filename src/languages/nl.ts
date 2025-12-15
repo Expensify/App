@@ -6724,6 +6724,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 subtitle: 'Nul onkosten. Maximale ontspanning. Goed gedaan!',
             },
         },
+        columms: 'Columns',
         statements: 'Afschriften',
         unapprovedCash: 'Niet-goedgekeurde contanten',
         unapprovedCard: 'Niet-goedgekeurde kaart',
