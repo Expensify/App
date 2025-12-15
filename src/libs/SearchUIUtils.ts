@@ -2051,6 +2051,26 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+function getSearchColumnTranslationKey(columnId: ValueOf<typeof CONST.SEARCH.COLUMNS>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (columnId) {
+        case CONST.SEARCH.COLUMNS.DATE:
+            return 'common.date';
+        case CONST.SEARCH.COLUMNS.STATUS:
+            return 'common.status';
+        case CONST.SEARCH.COLUMNS.TITLE:
+            return 'common.title';
+        case CONST.SEARCH.COLUMNS.FROM:
+            return 'common.from';
+        case CONST.SEARCH.COLUMNS.TO:
+            return 'common.to';
+        case CONST.SEARCH.COLUMNS.TOTAL:
+            return 'common.total';
+        case CONST.SEARCH.COLUMNS.ACTION:
+            return 'common.action';
+    }
+}
+
 type OverflowMenuIconsType = Record<'Pencil', IconAsset>;
 
 /**
@@ -2711,5 +2731,6 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getTransactionFromTransactionListItem,
+    getSearchColumnTranslationKey,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

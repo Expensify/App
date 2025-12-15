@@ -6696,6 +6696,15 @@ const CONST = {
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
         },
+        COLUMNS: {
+            DATE: 'date',
+            STATUS: 'status',
+            TITLE: 'title',
+            FROM: 'from',
+            TO: 'to',
+            TOTAL: 'total',
+            ACTION: 'action',
+        },
         BOOLEAN: {
             YES: 'yes',
             NO: 'no',
