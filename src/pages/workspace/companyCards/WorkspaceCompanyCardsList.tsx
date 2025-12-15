@@ -28,8 +28,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, WorkspaceCardsList} from '@src/types/onyx';
-import WorkspaceCompanyCardsListRow from './WorkspaceCompanyCardListRow';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
+import WorkspaceCompanyCardsListRow from './WorkspaceCompanyCardsListRow';
 
 type WorkspaceCompanyCardsListProps = {
     /** Selected feed */
