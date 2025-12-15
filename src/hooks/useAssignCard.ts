@@ -1,4 +1,4 @@
-import {useCallback, useContext} from 'react';
+import {useContext} from 'react';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import {importPlaidAccounts} from '@libs/actions/Plaid';
 import {
@@ -58,9 +58,10 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
     const companyCards = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
-    const fetchCompanyCards = useCallback(() => {
+
+    const fetchCompanyCards = () => {
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
-    }, [policyID, domainOrWorkspaceAccountID]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
 
