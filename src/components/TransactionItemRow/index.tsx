@@ -576,7 +576,7 @@ function TransactionItemRow({
                             accessibilityLabel={CONST.ROLE.BUTTON}
                         >
                             <Icon
-                                src={Expensicons.ArrowRight}
+                                src={expensicons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={!isHover && styles.opacitySemiTransparent}
                                 small
