@@ -2471,7 +2471,7 @@ function getColumnsToShow(
         // If the user has set custom columns, toggle the visible columns on, with all other
         // columns hidden by default
         if (!arraysEqual(defaultColumns, visibleColumns) && visibleColumns.length > 0) {
-            const columns = Object.fromEntries(reportColumns.map((column) => [column, false]));
+            const columns = Object.fromEntries(reportColumns.map((column) => [column, true]));
 
             for (const column of visibleColumns) {
                 columns[column as keyof ColumnVisibility] = true;
