@@ -1,27 +1,34 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
-import SelectionList from '@components/SelectionList';
+import type {SearchMultipleSelectionPickerItem} from '@components/Search/SearchMultipleSelectionPicker';
+import {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {OptionData} from '@libs/ReportUtils';
 import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+type ColumnId = ValueOf<typeof CONST.SEARCH.COLUMNS>;
+
+const allColumns = Object.values(CONST.SEARCH.COLUMNS);
 
 function SearchColumnsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-
-    const allColumns = Object.values(CONST.SEARCH.COLUMNS);
-
-    const initiallySelectedColumns = searchAdvancedFiltersForm?.columns?.filter((columnId) => Object.values(CONST.SEARCH.COLUMNS).includes(columnId as ValueOf<typeof CONST.SEARCH.COLUMNS>));
+    const [selectedItems, setSelectedItems] = useState<ColumnId[]>(() => {
+        const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => Object.values(CONST.SEARCH.COLUMNS).includes(columnId as ColumnId)) ?? [];
+        return columnIds as ColumnId[];
+    });
 
     const sections = [
         {
@@ -30,13 +37,22 @@ function SearchColumnsPage() {
                 text: translate(getSearchColumnTranslationKey(columnId)),
                 value: columnId,
                 keyForList: columnId,
-                isSelected: initiallySelectedColumns?.includes(columnId),
+                isSelected: selectedItems?.includes(columnId),
             })),
         },
     ];
 
-    const applyChanges = () => {};
+    const onSelectItem = (item: ListItem) => {
+        const updatedColumnId = item.keyForList as ColumnId;
 
+        if (item.isSelected) {
+            setSelectedItems(selectedItems.filter((columnId) => columnId !== item.keyForList));
+        } else {
+            setSelectedItems([...selectedItems, item.keyForList]);
+        }
+    };
+
+    const applyChanges = () => {};
 
     return (
         <ScreenWrapper
@@ -54,7 +70,16 @@ function SearchColumnsPage() {
                     shouldShowTooltips
                     canSelectMultiple
                     ListItem={MultiSelectListItem}
-                    footerContent={<SearchFilterPageFooterButtons applyChanges={applyChanges} />}
+                    footerContent={
+                        <Button
+                            large
+                            success
+                            pressOnEnter
+                            style={[styles.mt3]}
+                            text={translate('common.save')}
+                            onPress={applyChanges}
+                        />
+                    }
                 />
             </View>
         </ScreenWrapper>
