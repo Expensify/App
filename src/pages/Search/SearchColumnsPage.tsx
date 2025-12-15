@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {SearchCustomColumnIds} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionList from '@components/SelectionListWithSections';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
@@ -20,9 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
-type ColumnId = ValueOf<typeof CONST.SEARCH.COLUMNS>;
-
-const allColumns = Object.values(CONST.SEARCH.COLUMNS);
+const allColumns = Object.values(CONST.SEARCH.CUSTOM_COLUMNS);
 
 function SearchColumnsPage() {
     const styles = useThemeStyles();
@@ -30,15 +28,15 @@ function SearchColumnsPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
-    const [selectedColumnIds, setSelectedColumnIds] = useState<ColumnId[]>(() => {
-        const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => Object.values(CONST.SEARCH.COLUMNS).includes(columnId as ColumnId)) ?? [];
+    const [selectedColumnIds, setSelectedColumnIds] = useState<SearchCustomColumnIds[]>(() => {
+        const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => Object.values(CONST.SEARCH.CUSTOM_COLUMNS).includes(columnId as SearchCustomColumnIds)) ?? [];
 
         // We dont allow the user to unselect all columns, so we can assume that no columns = all columns/none configured yet
-        if (!columnIds) {
+        if (!columnIds.length) {
             return allColumns;
         }
 
-        return columnIds as ColumnId[];
+        return columnIds as SearchCustomColumnIds[];
     });
 
     const sections = [
@@ -54,7 +52,7 @@ function SearchColumnsPage() {
     ];
 
     const onSelectItem = (item: ListItem) => {
-        const updatedColumnId = item.keyForList as ColumnId;
+        const updatedColumnId = item.keyForList as SearchCustomColumnIds;
 
         if (item.isSelected) {
             setSelectedColumnIds(selectedColumnIds.filter((columnId) => columnId !== updatedColumnId));

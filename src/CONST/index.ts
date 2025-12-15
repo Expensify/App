@@ -6696,7 +6696,7 @@ const CONST = {
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
         },
-        COLUMNS: {
+        CUSTOM_COLUMNS: {
             DATE: 'date',
             STATUS: 'status',
             TITLE: 'title',
