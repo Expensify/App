@@ -29,8 +29,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
 
 function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
-    const domainAccountID = route.params.domainAccountID;
-    const accountID = route.params.accountID;
+    const {domainAccountID, accountID} = route.params;
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
 
