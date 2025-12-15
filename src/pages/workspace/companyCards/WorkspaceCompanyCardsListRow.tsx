@@ -3,11 +3,11 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -68,6 +68,7 @@ function WorkspaceCompanyCardsListRow({
     const {translate} = useLocalize();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
+    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const customCardNameWithFallback = customCardName ?? getCardDefaultName(cardholder?.displayName);
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -7,7 +8,6 @@ import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
 import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
@@ -36,7 +36,7 @@ function FeedSelector({onFeedSelect, cardIcon, feedName, supportingText, shouldS
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
+    const Expensicons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
     return (
         <PressableWithFeedback
             onPress={onFeedSelect}

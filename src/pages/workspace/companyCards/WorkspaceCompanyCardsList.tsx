@@ -165,72 +165,48 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
 
     const keyExtractor = useCallback((item: string, index: number) => `${item}_${index}`, []);
 
-    const ListHeaderComponent = useMemo(
-        () =>
-            shouldUseNarrowTableRowLayout ? (
-                <View style={styles.h7} />
-            ) : (
-                <>
-                    {(cards?.length ?? 0) > CONST.SEARCH_ITEM_LIMIT && (
-                        <SearchBar
-                            label={translate('workspace.companyCards.findCard')}
-                            inputValue={inputValue}
-                            onChangeText={setInputValue}
-                            shouldShowEmptyState={isSearchEmpty}
-                            style={[styles.mt5]}
-                        />
-                    )}
-                    {!isSearchEmpty && (
-                        <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
-                            <View style={[styles.flex1]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.textMicroSupporting, styles.lh16]}
-                                >
-                                    {translate('common.member')}
-                                </Text>
-                            </View>
-                            <View style={[styles.flex1]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.textMicroSupporting, styles.lh16]}
-                                >
-                                    {translate('workspace.companyCards.card')}
-                                </Text>
-                            </View>
-                            <View style={[styles.flex1]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.textMicroSupporting, styles.textAlignRight, styles.lh16, styles.pr7]}
-                                >
-                                    {translate('workspace.companyCards.cardName')}
-                                </Text>
-                            </View>
-                        </View>
-                    )}
-                </>
-            ),
-        [
-            cards?.length,
-            inputValue,
-            isSearchEmpty,
-            setInputValue,
-            shouldUseNarrowTableRowLayout,
-            styles.appBG,
-            styles.flex1,
-            styles.flexRow,
-            styles.gap5,
-            styles.h7,
-            styles.justifyContentBetween,
-            styles.lh16,
-            styles.mh5,
-            styles.mt5,
-            styles.p4,
-            styles.pr7,
-            styles.textAlignRight,
-            styles.textMicroSupporting,
-            translate,
-        ],
+    const ListHeaderComponent = shouldUseNarrowTableRowLayout ? (
+        <View style={styles.h7} />
+    ) : (
+        <>
+            {(cards?.length ?? 0) > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.companyCards.findCard')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={isSearchEmpty}
+                    style={[styles.mt5]}
+                />
+            )}
+            {!isSearchEmpty && (
+                <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
+                    <View style={[styles.flex1]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textMicroSupporting, styles.lh16]}
+                        >
+                            {translate('common.member')}
+                        </Text>
+                    </View>
+                    <View style={[styles.flex1]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textMicroSupporting, styles.lh16]}
+                        >
+                            {translate('workspace.companyCards.card')}
+                        </Text>
+                    </View>
+                    <View style={[styles.flex1]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textMicroSupporting, styles.textAlignRight, styles.lh16, styles.pr7]}
+                        >
+                            {translate('workspace.companyCards.cardName')}
+                        </Text>
+                    </View>
+                </View>
+            )}
+        </>
     );
 
     // Show empty state when there are no cards
