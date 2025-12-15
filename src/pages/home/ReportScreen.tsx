@@ -600,11 +600,11 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     }, [fetchReport, prevTransactionThreadReportID, transactionThreadReportID]);
 
     useEffect(() => {
-        if (!reportID || !isFocused) {
+        if (!reportID || !isFocused || isInSidePanel) {
             return;
         }
         updateLastVisitTime(reportID);
-    }, [reportID, isFocused]);
+    }, [reportID, isFocused, isInSidePanel]);
 
     useEffect(() => {
         const skipOpenReportListener = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID}: {preexistingReportID: string}) => {
