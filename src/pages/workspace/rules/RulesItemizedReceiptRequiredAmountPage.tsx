@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
@@ -40,27 +40,26 @@ function RulesItemizedReceiptRequiredAmountPage({
             ? ''
             : convertToFrontendAmountAsString(policy?.maxExpenseAmountNoItemizedReceipt, policy?.outputCurrency);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM> = {};
-            const maxExpenseAmountNoItemizedReceipt = values.maxExpenseAmountNoItemizedReceipt;
+    const validate = (
+        values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM>,
+    ): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM> = {};
+        const maxExpenseAmountNoItemizedReceipt = values.maxExpenseAmountNoItemizedReceipt;
 
-            if (maxExpenseAmountNoItemizedReceipt) {
-                const maxExpenseAmountNoItemizedReceiptInCents = convertToBackendAmount(parseFloat(maxExpenseAmountNoItemizedReceipt));
-                const maxExpenseAmountNoReceipt = policy?.maxExpenseAmountNoReceipt ?? 0;
+        if (maxExpenseAmountNoItemizedReceipt) {
+            const maxExpenseAmountNoItemizedReceiptInCents = convertToBackendAmount(parseFloat(maxExpenseAmountNoItemizedReceipt));
+            const maxExpenseAmountNoReceipt = policy?.maxExpenseAmountNoReceipt ?? 0;
 
-                // Check if itemized receipt amount is lower than regular receipt amount
-                if (maxExpenseAmountNoReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE && maxExpenseAmountNoItemizedReceiptInCents < maxExpenseAmountNoReceipt) {
-                    errors.maxExpenseAmountNoItemizedReceipt = translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {
-                        amount: convertToFrontendAmountAsString(maxExpenseAmountNoReceipt, policy?.outputCurrency),
-                    });
-                }
+            // Check if itemized receipt amount is lower than regular receipt amount
+            if (maxExpenseAmountNoReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE && maxExpenseAmountNoItemizedReceiptInCents < maxExpenseAmountNoReceipt) {
+                errors.maxExpenseAmountNoItemizedReceipt = translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {
+                    amount: convertToFrontendAmountAsString(maxExpenseAmountNoReceipt, policy?.outputCurrency),
+                });
             }
+        }
 
-            return errors;
-        },
-        [policy?.maxExpenseAmountNoReceipt, policy?.outputCurrency, translate],
-    );
+        return errors;
+    };
 
     return (
         <AccessOrNotFoundWrapper
