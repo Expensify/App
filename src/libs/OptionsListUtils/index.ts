@@ -912,7 +912,9 @@ function createOption(
             showPersonalDetails && personalDetail?.login
                 ? personalDetail.login
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
-        const computedReportName = computeReportName(report);
+
+        const personalDetailsForCompute: PersonalDetailsList | undefined = personalDetails ?? undefined;
+        const computedReportName = computeReportName(report, undefined, undefined, undefined, allReportNameValuePairs, personalDetailsForCompute, undefined);
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
             : computedReportName;
@@ -964,7 +966,7 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(report);
+        option.text = computeReportName(report, undefined, undefined, undefined, allReportNameValuePairs, allPersonalDetails, undefined);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
@@ -1013,7 +1015,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(report);
+        option.text = computeReportName(report, undefined, undefined, undefined, allReportNameValuePairs, allPersonalDetails, undefined);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {
