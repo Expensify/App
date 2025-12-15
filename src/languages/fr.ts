@@ -1927,6 +1927,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Enregistrer les données de dépannage',
             softKillTheApp: 'Fermer l’application en douceur',
             kill: 'Tuer',
+            sentryDebug: 'Débogage Sentry',
+            sentryDebugDescription: 'Enregistrer les requêtes Sentry dans la console',
+            sentryHighlightedSpanOps: 'Noms de spans mis en valeur',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Enregistrer le journal',
