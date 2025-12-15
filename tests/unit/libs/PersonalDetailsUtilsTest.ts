@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
-import {createDisplayName, getEffectiveDisplayName, getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
+import {arePersonalDetailsMissing, createDisplayName, getEffectiveDisplayName, getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
 import {formatPhoneNumber} from '../../utils/TestHelper';
 
 type PersonalDetailsForDisplayName = Pick<PersonalDetails, 'firstName' | 'lastName'> & {
@@ -112,6 +112,7 @@ describe('PersonalDetailsUtils', () => {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             '1': {
                                 accountID: 1,
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_15.png',
                                 displayName: '3322076524',
                                 isOptimisticPersonalDetail: true,
                                 login: '3322076524',
@@ -119,6 +120,7 @@ describe('PersonalDetailsUtils', () => {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             '2': {
                                 accountID: 2,
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_18.png',
                                 displayName: 'test2@test.com',
                                 isOptimisticPersonalDetail: true,
                                 login: 'test2@test.com',
@@ -126,6 +128,7 @@ describe('PersonalDetailsUtils', () => {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             '3': {
                                 accountID: 3,
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_6.png',
                                 displayName: '(418) 543-8090',
                                 isOptimisticPersonalDetail: true,
                                 login: '+14185438090',
@@ -273,6 +276,178 @@ describe('PersonalDetailsUtils', () => {
             // This test assumes `formatPhoneNumber` correctly strips the `@expensify.sms` suffix
             // and formats the remaining phone number, as implied by the function's internal comment.
             expect(result).toBe('(800) 555-0000');
+        });
+    });
+
+    describe('arePersonalDetailsMissing', () => {
+        it.each([
+            [
+                'all required personal details are present',
+                {
+                    legalFirstName: 'John',
+                    legalLastName: 'Doe',
+                    dob: '1990-01-01',
+                    phoneNumber: '+15555555555',
+                    addresses: [{street: '123 Main St', city: 'New York', state: 'NY', country: 'US'}],
+                },
+                false,
+            ],
+            [
+                'addresses has multiple entries',
+                {
+                    legalFirstName: 'John',
+                    legalLastName: 'Doe',
+                    dob: '1990-01-01',
+                    phoneNumber: '+15555555555',
+                    addresses: [
+                        {street: '123 Main St', city: 'New York', state: 'NY'},
+                        {street: '456 Oak Ave', city: 'Los Angeles', state: 'CA', current: true},
+                    ],
+                },
+                false,
+            ],
+            [
+                'all fields are present with extra optional fields',
+                {
+                    legalFirstName: 'John',
+                    legalLastName: 'Doe',
+                    dob: '1990-01-01',
+                    phoneNumber: '+15555555555',
+                    addresses: [{street: '123 Main St', street2: 'Apt 4B', city: 'New York', state: 'NY', zip: '10001', country: 'US', current: true}],
+                    isLoading: false,
+                    errorFields: {},
+                    errors: null,
+                },
+                false,
+            ],
+            [
+                'whitespace-only strings are considered present',
+                {
+                    legalFirstName: '   ',
+                    legalLastName: '   ',
+                    dob: '   ',
+                    phoneNumber: '   ',
+                    addresses: [{street: '   '}],
+                },
+                false,
+            ],
+            [
+                'addresses contains minimal valid data',
+                {
+                    legalFirstName: 'John',
+                    legalLastName: 'Doe',
+                    dob: '1990-01-01',
+                    phoneNumber: '+15555555555',
+                    addresses: [{street: '123 Main St'}],
+                },
+                false,
+            ],
+        ] as const)('should return false when %s', (_description, details, expected) => {
+            expect(arePersonalDetailsMissing(details as unknown as PrivatePersonalDetails)).toBe(expected);
+        });
+
+        it.each([
+            [
+                'legalFirstName is missing',
+                {
+                    legalLastName: 'Doe',
+                    dob: '1990-01-01',
+                    phoneNumber: '+15555555555',
+                    addresses: [{street: '123 Main St'}],
+                },
+            ],
+            [
+                'legalFirstName is empty string',
+                {
+                    legalFirstName: '',
+                    legalLastName: 'Doe',
+                    dob: '1990-01-01',
+                    phoneNumber: '+15555555555',
+                    addresses: [{street: '123 Main St'}],
+                },
+            ],
+            [
+                'legalLastName is missing',
+                {
+                    legalFirstName: 'John',
+                    dob: '1990-01-01',
+                    phoneNumber: '+15555555555',
+                    addresses: [{street: '123 Main St'}],
+                },
+            ],
+            [
+                'legalLastName is empty string',
+                {
+                    legalFirstName: 'John',
+                    legalLastName: '',
+                    dob: '1990-01-01',
+                    phoneNumber: '+15555555555',
+                    addresses: [{street: '123 Main St'}],
+                },
+            ],
+            [
+                'dob is missing',
+                {
+                    legalFirstName: 'John',
+                    legalLastName: 'Doe',
+                    phoneNumber: '+15555555555',
+                    addresses: [{street: '123 Main St'}],
+                },
+            ],
+            [
+                'dob is empty string',
+                {
+                    legalFirstName: 'John',
+                    legalLastName: 'Doe',
+                    dob: '',
+                    phoneNumber: '+15555555555',
+                    addresses: [{street: '123 Main St'}],
+                },
+            ],
+            [
+                'phoneNumber is missing',
+                {
+                    legalFirstName: 'John',
+                    legalLastName: 'Doe',
+                    dob: '1990-01-01',
+                    addresses: [{street: '123 Main St'}],
+                },
+            ],
+            [
+                'phoneNumber is empty string',
+                {
+                    legalFirstName: 'John',
+                    legalLastName: 'Doe',
+                    dob: '1990-01-01',
+                    phoneNumber: '',
+                    addresses: [{street: '123 Main St'}],
+                },
+            ],
+            [
+                'addresses is missing',
+                {
+                    legalFirstName: 'John',
+                    legalLastName: 'Doe',
+                    dob: '1990-01-01',
+                    phoneNumber: '+15555555555',
+                },
+            ],
+            [
+                'addresses is an empty array',
+                {
+                    legalFirstName: 'John',
+                    legalLastName: 'Doe',
+                    dob: '1990-01-01',
+                    phoneNumber: '+15555555555',
+                    addresses: [],
+                },
+            ],
+            ['multiple required fields are missing', {legalFirstName: 'John'}],
+            ['all fields are missing', {}],
+            ['null', null],
+            ['undefined', undefined],
+        ] as const)('should return true when %s', (_description, details) => {
+            expect(arePersonalDetailsMissing(details as PrivatePersonalDetails)).toBe(true);
         });
     });
 });

@@ -55,10 +55,10 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
         },
         {
             title: accountName,
-            description: getQBDNonReimbursableExportAccountType(nonReimbursable),
+            description: getQBDNonReimbursableExportAccountType(translate, nonReimbursable),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT],
-            keyForList: getQBDNonReimbursableExportAccountType(nonReimbursable),
+            keyForList: getQBDNonReimbursableExportAccountType(translate, nonReimbursable),
         },
     ];
 
