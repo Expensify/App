@@ -1471,7 +1471,7 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
             applyWhen: [
                 {
                     condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
-                    field: 'category',
+                    field: CONST.POLICY.FIELDS.CATEGORY,
                     value: categoryName,
                 },
             ],
