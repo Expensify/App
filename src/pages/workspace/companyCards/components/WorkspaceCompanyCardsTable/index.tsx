@@ -167,6 +167,7 @@ function WorkspaceCompanyCardsTable({
             plaidUrl,
             policyID,
             selectedFeed,
+            shouldShowAssignCardButton,
             styles.br3,
             styles.highlightBG,
             styles.hoveredComponentBG,
