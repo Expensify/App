@@ -23,8 +23,8 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import arraysEqual from '@src/utils/arraysEqual';
 
-const allColumns = Object.values(CONST.SEARCH.CUSTOM_COLUMNS);
-const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
+const allCustomColumns = Object.values(CONST.SEARCH.CUSTOM_COLUMNS);
+const defaultCustomColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
 
 function SearchColumnsPage() {
     const styles = useThemeStyles();
@@ -37,7 +37,7 @@ function SearchColumnsPage() {
 
         // We dont allow the user to unselect all columns, so we can assume that no columns = default columns
         if (!columnIds.length) {
-            return defaultColumns;
+            return defaultCustomColumns;
         }
 
         return columnIds;
@@ -46,7 +46,7 @@ function SearchColumnsPage() {
     const sections: Array<SectionListDataType<ListItem>> = [
         {
             title: undefined,
-            data: allColumns.map((columnId) => ({
+            data: allCustomColumns.map((columnId) => ({
                 text: translate(getSearchColumnTranslationKey(columnId)),
                 value: columnId,
                 keyForList: columnId,
@@ -55,7 +55,7 @@ function SearchColumnsPage() {
         },
     ];
 
-    const sortedDefaultColumns = [...defaultColumns].sort();
+    const sortedDefaultColumns = [...defaultCustomColumns].sort();
     const sortedSelectedColumnIds = [...selectedColumnIds].sort();
     const shouldShowResetColumns = !arraysEqual(sortedSelectedColumnIds, sortedDefaultColumns);
 
@@ -70,7 +70,7 @@ function SearchColumnsPage() {
     };
 
     const resetColumns = () => {
-        setSelectedColumnIds(defaultColumns);
+        setSelectedColumnIds(defaultCustomColumns);
     };
 
     const applyChanges = () => {

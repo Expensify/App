@@ -2459,7 +2459,7 @@ function getColumnsToShow(
         // columns hidden by default
         if (!arraysEqual(defaultColumns, visibleColumns) && visibleColumns.length > 0) {
             const columns: ColumnVisibility = {};
-            const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR]);
+            const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
 
             for (const columnId of reportColumns) {
                 columns[columnId] = requiredColumns.has(columnId);

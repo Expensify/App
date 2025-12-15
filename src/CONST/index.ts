@@ -6711,7 +6711,7 @@ const CONST = {
         },
         get DEFAULT_COLUMNS() {
             return {
-                EXPENSE_REPORT: [this.TABLE_COLUMNS.DATE, this.TABLE_COLUMNS.STATUS, this.TABLE_COLUMNS.TITLE, this.TABLE_COLUMNS.FROM, this.TABLE_COLUMNS.TO, this.TABLE_COLUMNS.TOTAL],
+                EXPENSE_REPORT: [this.TABLE_COLUMNS.DATE, this.TABLE_COLUMNS.STATUS, this.TABLE_COLUMNS.TITLE, this.TABLE_COLUMNS.FROM, this.TABLE_COLUMNS.TO, this.TABLE_COLUMNS.ACTION],
             };
         },
         BOOLEAN: {
