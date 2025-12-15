@@ -73,11 +73,11 @@ function IOURequestStepParticipants({
     },
     transaction: initialTransaction,
 }: IOURequestStepParticipantsProps) {
-    const participants = useMemo(
-        () =>
-            iouType === CONST.IOU.TYPE.SPLIT ? initialTransaction?.participants : initialTransaction?.participants?.filter((participant) => !participant.isSender && participant.selected),
-        [initialTransaction?.participants, iouType],
-    );
+    const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
+    const participants = useMemo(() => {
+        const allParticipants = initialTransaction?.participants;
+        return isSplitRequest ? allParticipants : allParticipants?.filter((participant) => !participant.isSender && participant.selected);
+    }, [initialTransaction?.participants, isSplitRequest]);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -104,7 +104,6 @@ function IOURequestStepParticipants({
     const shouldAutoReport = useRef(true);
     const numberOfParticipants = useRef(participants?.length ?? 0);
     const iouRequestType = getRequestType(initialTransaction);
-    const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const headerTitle = useMemo(() => {
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
