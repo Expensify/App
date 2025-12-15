@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -18,9 +19,6 @@ type Props = {
     /** Icon for the card */
     cardIcon: IconAsset;
 
-    /** Whether to show assign card button */
-    shouldChangeLayout?: boolean;
-
     /** Feed name */
     feedName?: string;
 
@@ -34,15 +32,16 @@ type Props = {
     plaidUrl?: string | null;
 };
 
-function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, supportingText, shouldShowRBR = false, plaidUrl = null}: Props) {
+function FeedSelector({onFeedSelect, cardIcon, feedName, supportingText, shouldShowRBR = false, plaidUrl = null}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <PressableWithFeedback
             onPress={onFeedSelect}
-            wrapperStyle={!shouldChangeLayout && styles.flex1}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldChangeLayout && styles.mb3]}
+            wrapperStyle={styles.flex1}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldUseNarrowLayout && styles.mb3]}
             accessibilityLabel={feedName ?? ''}
         >
             {plaidUrl ? (

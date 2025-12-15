@@ -53,20 +53,20 @@ type WorkspaceCompanyCardsListHeaderButtonsProps = {
 };
 
 function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: WorkspaceCompanyCardsListHeaderButtonsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
     const styles = useThemeStyles();
+    const {isExtraSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const theme = useTheme();
     const illustrations = useThemeIllustrations();
+    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
+
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const shouldChangeLayout = shouldUseNarrowLayout;
     const feed = getCompanyCardFeed(selectedFeed);
     const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.[selectedFeed]?.customFeedName);
     const isCommercialFeed = isCustomFeed(selectedFeed);
@@ -123,19 +123,28 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
         return `${firstPart}${secondPart}`;
     }, [domain?.email, isCommercialFeed, policy?.name, translate]);
 
+    const shouldUseNarrowHeaderButtonsLayout = isExtraSmallScreenWidth && shouldUseNarrowLayout;
+
     return (
         <View>
-            <View style={[styles.w100, styles.ph5, !shouldChangeLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
+            <View
+                style={[
+                    styles.w100,
+                    styles.ph5,
+                    styles.gap2,
+                    styles.pb2,
+                    !shouldUseNarrowHeaderButtonsLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
+                ]}
+            >
                 <FeedSelector
                     plaidUrl={plaidUrl}
                     onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
                     cardIcon={getCardFeedIcon(feed, illustrations, companyCardFeedIcons)}
-                    shouldChangeLayout={shouldChangeLayout}
                     feedName={formattedFeedName}
                     supportingText={supportingText}
                     shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed)}
                 />
-                <View style={[styles.flexRow, styles.gap2]}>
+                <View style={shouldUseNarrowHeaderButtonsLayout && styles.flex1}>
                     <ButtonWithDropdownMenu
                         success={false}
                         onPress={() => {}}
