@@ -27,7 +27,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
-import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {
@@ -54,8 +53,6 @@ type SelectedOption = ListItem &
     Omit<OptionData, 'reportID'> & {
         reportID?: string;
     };
-
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'NewChatPage.getValidOptions'});
 
 function useOptions() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -86,44 +83,42 @@ function useOptions() {
     });
 
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const defaultOptions = useMemo(() => {
-        return memoizedGetValidOptions(
-            {
-                reports: listOptions?.reports ?? [],
-                personalDetails: (listOptions?.personalDetails ?? []).concat(contacts),
-            },
-            draftComments,
-            nvpDismissedProductTraining,
-            {
-                betas: betas ?? [],
-                includeSelfDM: true,
-            },
-            countryCode,
-        );
-    }, [listOptions?.reports, listOptions?.personalDetails, contacts, draftComments, betas, nvpDismissedProductTraining, countryCode]);
 
-    const unselectedOptions = useMemo(() => {
-        return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
-    }, [defaultOptions, selectedOptions]);
+    const reports = listOptions?.reports ?? [];
+    const personalDetails = listOptions?.personalDetails ?? [];
+
+    const defaultOptions = getValidOptions(
+        {
+            reports,
+            personalDetails: personalDetails.concat(contacts),
+        },
+        draftComments,
+        nvpDismissedProductTraining,
+        {
+            betas: betas ?? [],
+            includeSelfDM: true,
+        },
+        countryCode,
+    );
+
+    const unselectedOptions = filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
 
     const areOptionsInitialized = !isLoading;
 
-    const options = useMemo(() => {
-        return filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, {
-            selectedOptions,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        });
-    }, [debouncedSearchTerm, unselectedOptions, selectedOptions, countryCode]);
-    const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
-    const headerMessage = useMemo(() => {
-        return getHeaderMessage(
-            options.personalDetails.length + options.recentReports.length !== 0,
-            !!options.userToInvite,
-            debouncedSearchTerm.trim(),
-            countryCode,
-            selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
-        );
-    }, [cleanSearchTerm, debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions, countryCode]);
+    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, {
+        selectedOptions,
+        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+    });
+
+    const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+
+    const headerMessage = getHeaderMessage(
+        options.personalDetails.length + options.recentReports.length !== 0,
+        !!options.userToInvite,
+        debouncedSearchTerm.trim(),
+        countryCode,
+        selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
+    );
 
     useFocusEffect(
         useCallback(() => {
@@ -143,33 +138,28 @@ function useOptions() {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    const draftSelectedOptions = useMemo(() => {
-        if (!newGroupDraft?.participants || !listOptions?.personalDetails) {
-            return null;
-        }
+    const participants = newGroupDraft?.participants;
 
-        const result: OptionData[] = [];
-        for (const participant of newGroupDraft.participants) {
-            if (participant.accountID === personalData.accountID) {
-                continue;
-            }
-            let participantOption: OptionData | undefined | null = listOptions.personalDetails.find((option) => option.accountID === participant.accountID);
-            if (!participantOption) {
-                participantOption = getUserToInviteOption({
-                    searchValue: participant?.login,
-                });
-            }
-            if (!participantOption) {
-                continue;
-            }
-            result.push({
-                ...participantOption,
-                isSelected: true,
-            });
-        }
-
-        return result;
-    }, [listOptions?.personalDetails, newGroupDraft?.participants, personalData.accountID]);
+    const draftSelectedOptions: OptionData[] | null =
+        participants && personalDetails.length
+            ? participants.reduce<OptionData[]>((result, participant) => {
+                  if (participant.accountID === personalData.accountID) {
+                      return result;
+                  }
+                  const participantOption: OptionData | undefined | null =
+                      personalDetails.find((option) => option.accountID === participant.accountID) ??
+                      getUserToInviteOption({
+                          searchValue: participant?.login,
+                      });
+                  if (participantOption) {
+                      result.push({
+                          ...participantOption,
+                          isSelected: true,
+                      });
+                  }
+                  return result;
+              }, [])
+            : null;
 
     useEffect(() => {
         if (!draftSelectedOptions) {
@@ -194,12 +184,12 @@ function useOptions() {
         });
     }, [draftSelectedOptions, setSelectedOptions]);
 
-    const handleEndReached = useCallback(() => {
+    const handleEndReached = () => {
         if (!hasMore || isLoadingMore || !areOptionsInitialized) {
             return;
         }
         loadMore();
-    }, [hasMore, isLoadingMore, areOptionsInitialized, loadMore]);
+    };
 
     return {
         ...options,

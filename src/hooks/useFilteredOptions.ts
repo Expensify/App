@@ -1,5 +1,5 @@
 import reportsSelector from '@selectors/Attributes';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
@@ -70,8 +70,6 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
-    const totalReportsRef = useRef(0);
-
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
@@ -79,24 +77,17 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         selector: reportsSelector,
     });
 
-    const options = useMemo(() => {
-        if (!enabled || !allReports || !allPersonalDetails) {
-            return null;
-        }
+    const totalReports = allReports ? Object.keys(allReports).length : 0;
 
-        totalReportsRef.current = Object.keys(allReports).length;
-
-        // Use optimized pre-filtering: top N most recent reports
-        // Business logic filtering is handled by getValidOptions
-        const result = createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, {
-            maxRecentReports: reportsLimit,
-            includeP2P,
-            searchTerm,
-            betas,
-        });
-
-        return result;
-    }, [allReports, allPersonalDetails, reportAttributesDerived, enabled, reportsLimit, includeP2P, searchTerm, betas]);
+    const options: OptionList | null =
+        enabled && allReports && allPersonalDetails
+            ? createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, {
+                  maxRecentReports: reportsLimit,
+                  includeP2P,
+                  searchTerm,
+                  betas,
+              })
+            : null;
 
     // Reset loading state after options are computed
     useEffect(() => {
@@ -106,21 +97,19 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         setIsLoadingMore(false);
     }, [options, isLoadingMore]);
 
-    // Function to load more reports
-    const loadMore = useCallback(() => {
+    const loadMore = () => {
         if (!options || isLoadingMore) {
             return;
         }
 
-        const hasMoreToLoad = options.reports.length < totalReportsRef.current;
+        const hasMoreToLoad = options.reports.length < totalReports;
         if (hasMoreToLoad) {
             setIsLoadingMore(true);
             setReportsLimit((prev) => prev + batchSize);
         }
-    }, [options, isLoadingMore, batchSize]);
+    };
 
-    // Calculate if there are more reports to load
-    const hasMore = options ? options.reports.length < totalReportsRef.current : false;
+    const hasMore = options ? options.reports.length < totalReports : false;
 
     return {
         options,
