@@ -1,56 +1,32 @@
-import {getUnixTime} from 'date-fns';
-import {deepEqual} from 'fast-equals';
+import { getUnixTime } from 'date-fns';
+import { deepEqual } from 'fast-equals';
 import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type { OnyxCollection, OnyxEntry, OnyxUpdate } from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, MarkAsCashParams, TransactionThreadInfo} from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type { ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, MarkAsCashParams, TransactionThreadInfo } from '@libs/API/parameters';
+import { READ_COMMANDS, WRITE_COMMANDS } from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import { buildNextStepNew, buildOptimisticNextStep } from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import {rand64} from '@libs/NumberUtils';
-import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isModifiedExpenseAction} from '@libs/ReportActionsUtils';
-import {
-    buildOptimisticCreatedReportAction,
-    buildOptimisticDismissedViolationReportAction,
-    buildOptimisticMovedTransactionAction,
-    buildOptimisticSelfDMReport,
-    buildOptimisticUnHoldReportAction,
-    buildOptimisticUnreportedTransactionAction,
-    buildTransactionThread,
-    findSelfDMReportID,
-    getReportTransactions,
-    getTransactionDetails,
-    hasViolations as hasViolationsReportUtils,
-    shouldEnableNegative,
-} from '@libs/ReportUtils';
-import {isManagedCardTransaction, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
+import { rand64 } from '@libs/NumberUtils';
+import { hasDependentTags, isPaidGroupPolicy } from '@libs/PolicyUtils';
+import { getAllReportActions, getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isModifiedExpenseAction } from '@libs/ReportActionsUtils';
+import { buildOptimisticCreatedReportAction, buildOptimisticDismissedViolationReportAction, buildOptimisticMovedTransactionAction, buildOptimisticSelfDMReport, buildOptimisticUnHoldReportAction, buildOptimisticUnreportedTransactionAction, buildTransactionThread, findSelfDMReportID, getReportTransactions, getTransactionDetails, hasViolations as hasViolationsReportUtils, shouldEnableNegative } from '@libs/ReportUtils';
+import { isManagedCardTransaction, isOnHold, waypointHasValidAddress } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    PersonalDetails,
-    Policy,
-    PolicyCategories,
-    RecentWaypoint,
-    Report,
-    ReportAction,
-    ReportNextStepDeprecated,
-    ReviewDuplicates,
-    Transaction,
-    TransactionViolation,
-    TransactionViolations,
-} from '@src/types/onyx';
-import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
-import type {OnyxData} from '@src/types/onyx/Request';
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type { PersonalDetails, Policy, PolicyCategories, RecentWaypoint, Report, ReportAction, ReportNextStepDeprecated, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations } from '@src/types/onyx';
+import type { OriginalMessageIOU, OriginalMessageModifiedExpense } from '@src/types/onyx/OriginalMessage';
+import type { OnyxData } from '@src/types/onyx/Request';
+import type { WaypointCollection } from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import {getPolicyTagsData} from './Policy/Tag';
-import {getCurrentUserAccountID} from './Report';
+import { getPolicyTagsData } from './Policy/Tag';
+import { getCurrentUserAccountID } from './Report';
+
 
 const allTransactions: Record<string, Transaction> = {};
 Onyx.connect({
@@ -631,6 +607,7 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 value: transactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
             },
             // Optimistically adding the system message indicating we dismissed the violation
