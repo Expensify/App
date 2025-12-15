@@ -2092,9 +2092,9 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
         case CONST.SEARCH.TABLE_COLUMNS.DATE:
             return 'common.date';
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
-            return 'common.status';
+            return 'common.merchant';
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
-            return 'common.title';
+            return 'common.description';
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
             return 'common.from';
         case CONST.SEARCH.TABLE_COLUMNS.TO:
@@ -2105,8 +2105,6 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.receipt';
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return 'common.tag';
-        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
-            return 'iou.amount';
         case CONST.SEARCH.TABLE_COLUMNS.ACTION:
             return 'common.action';
         case CONST.SEARCH.TABLE_COLUMNS.TITLE:
