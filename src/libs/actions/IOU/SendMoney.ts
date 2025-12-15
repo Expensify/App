@@ -1,29 +1,33 @@
-import type { PaymentMethodType } from "@components/KYCWall/types";
-import { isEmptyObject } from "@github/libs/isEmptyObject";
-import { WRITE_COMMANDS } from "@libs/API/types";
-import DateUtils from "@libs/DateUtils";
-import { getMicroSecondOnyxErrorWithTranslationKey } from "@libs/ErrorUtils";
-import { addSMSDomainIfPhoneNumber } from "@libs/PhoneNumber";
-import { getReportActionText, getReportActionHtml } from "@libs/ReportActionsUtils";
-import type { OptionData } from "@libs/ReportUtils";
-import { getParsedComment, getChatByParticipants, buildOptimisticChatReport, buildOptimisticIOUReport, buildOptimisticMoneyRequestEntities, buildOptimisticReportPreview } from "@libs/ReportUtils";
-import { buildOptimisticTransaction } from "@libs/TransactionUtils";
-import ONYXKEYS from "@src/ONYXKEYS";
-import type { Receipt } from "@src/types/onyx/Transaction";
-import type { OnyxEntry, OnyxUpdate } from "react-native-onyx";
-import Onyx from "react-native-onyx";
-import type * as OnyxTypes from '@src/types/onyx';
-import type {
-    SendMoneyParams,
-} from '@libs/API/parameters';
-import CONST from "@src/CONST";
-import { notifyNewAction } from "@userActions/Report";
-import { dismissModalAndOpenReportInInboxTab } from ".";
-import { Str } from "expensify-common";
-import type {Participant} from '@src/types/onyx/IOU';
+import {Str} from 'expensify-common';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {PaymentMethodType} from '@components/KYCWall/types';
+import {isEmptyObject} from '@github/libs/isEmptyObject';
 import * as API from '@libs/API';
+import type {SendMoneyParams} from '@libs/API/parameters';
+import {WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
+import type {OptionData} from '@libs/ReportUtils';
+import {
+    buildOptimisticChatReport,
+    buildOptimisticIOUReport,
+    buildOptimisticMoneyRequestEntities,
+    buildOptimisticReportPreview,
+    getChatByParticipants,
+    getParsedComment,
+} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-
+import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+import {notifyNewAction} from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
+import type {Receipt} from '@src/types/onyx/Transaction';
+import {dismissModalAndOpenReportInInboxTab} from '.';
 
 type SendMoneyParamsData = {
     params: SendMoneyParams;
@@ -31,7 +35,6 @@ type SendMoneyParamsData = {
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
 };
-
 
 /**
  * @param managerID - Account ID of the person sending the money
@@ -506,6 +509,5 @@ function sendMoneyWithWallet(
     dismissModalAndOpenReportInInboxTab(params.chatReportID);
     notifyNewAction(params.chatReportID, managerID);
 }
-
 
 export {sendMoneyElsewhere, sendMoneyWithWallet};
