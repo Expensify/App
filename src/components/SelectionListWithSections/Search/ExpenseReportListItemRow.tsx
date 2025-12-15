@@ -82,7 +82,7 @@ function ExpenseReportListItemRow({
         [CONST.SEARCH.CUSTOM_COLUMNS.DATE]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                 <DateCell
-                    created={item.created ?? ''}
+                    date={item.created ?? ''}
                     showTooltip
                     isLargeScreenWidth
                 />
