@@ -1,37 +1,29 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
-import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import AccountUtils from '@libs/AccountUtils';
-import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
-import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {resetValidateActionCodeSent} from '@libs/actions/User';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import {getLatestErrorMessage, getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
 type ConfirmationStepProps = {
     /** ID of the policy that the card will be issued under */
     policyID: string | undefined;
-
-    /** Route to navigate to */
-    backTo?: Route;
 
     /** Array of step names */
     stepNames: readonly string[];
@@ -40,20 +32,13 @@ type ConfirmationStepProps = {
     startStepIndex: number;
 };
 
-function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: ConfirmationStepProps) {
+function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
-    const validateError = getLatestErrorMessageField(issueNewCard);
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const data = issueNewCard?.data;
-    const isSuccessful = issueNewCard?.isSuccessful;
-    const defaultFundID = useDefaultFundID(policyID);
-    const {isBetaEnabled} = usePermissions();
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
     const isAddApprovalEnabled = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !hasApprovalError;
     const shouldDisableSubmitButton = !isAddApprovalEnabled && data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART;
@@ -65,60 +50,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
         resetValidateActionCodeSent();
     }, []);
 
-    useEffect(() => {
-        if (!isSuccessful) {
-            return;
-        }
-        setIsValidateCodeActionModalVisible(false);
-    }, [isSuccessful]);
-
-    // If there's a validateCode error after using extended access, show the modal immediately so the user can see the error
-    // We compute these values outside the useEffect so we can use them to hide errors from the main screen
-    const validateCodeErrorField = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard';
-    const hasValidateCodeError = !!validateCodeAction?.errorFields?.[validateCodeErrorField];
-
-    useEffect(() => {
-        if (hasValidateCodeError && !isValidateCodeActionModalVisible) {
-            setIsValidateCodeActionModalVisible(true);
-        }
-    }, [hasValidateCodeError, isValidateCodeActionModalVisible]);
-
-    // If the card was issued successfully using extended access (without showing the modal), handle the redirect
-    useEffect(() => {
-        if (!isSuccessful || isValidateCodeActionModalVisible) {
-            return;
-        }
-
-        // Call redirect directly since onModalHide won't be triggered when modal was never shown
-        if (backTo) {
-            Navigation.goBack(backTo);
-        } else {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
-        }
-
-        clearIssueNewCardFlow(policyID);
-    }, [isSuccessful, isValidateCodeActionModalVisible, backTo, policyID]);
-
-    const submit = (validateCode: string) => {
-        // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
-        issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, data);
-    };
-
-    const handleIssueCard = () => {
-        // If the user has extended access and is trying to issue a virtual card, issue the card directly without requiring validateCode
-        const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
-        if (isVirtualCard && AccountUtils.hasValidateCodeExtendedAccess(account)) {
-            submit('');
-        } else {
-            setIsValidateCodeActionModalVisible(true);
-        }
-    };
-
-    // Don't show validateCode errors on the main screen - they should only appear in the modal
-    // This prevents the error from flashing on screen before the modal opens
-    const errorMessage = hasValidateCodeError
-        ? ''
-        : getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
+    const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
     const editStep = (step: IssueNewCardStep) => {
         setIssueNewCardStepAndData({step, isEditing: true, policyID});
@@ -129,19 +61,6 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
     };
 
     const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);
-
-    const onRedirect = useCallback(() => {
-        if (!isSuccessful) {
-            return;
-        }
-        if (backTo) {
-            Navigation.goBack(backTo);
-        } else {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
-        }
-
-        clearIssueNewCardFlow(policyID);
-    }, [backTo, policyID, isSuccessful]);
 
     return (
         <InteractiveStepWrapper
@@ -188,7 +107,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                 />
                 <MenuItemWithTopDescription
-                    description={translate('workspace.card.issueNewCard.name')}
+                    description={translate('workspace.card.issueNewCard.cardName')}
                     title={data?.cardTitle}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
@@ -201,33 +120,16 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
                         isDisabled={isOffline || shouldDisableSubmitButton}
                         isMessageHtml={shouldDisableSubmitButton}
                         isLoading={issueNewCard?.isLoading}
-                        onSubmit={handleIssueCard}
+                        onSubmit={() => {
+                            if (!policyID) {
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+                        }}
                         buttonText={translate('workspace.card.issueCard')}
                     />
                 </View>
             </ScrollView>
-            {!!issueNewCard && (
-                <ValidateCodeActionModal
-                    handleSubmitForm={submit}
-                    isLoading={issueNewCard?.isLoading}
-                    sendValidateCode={requestValidateCodeAction}
-                    validateCodeActionErrorField={validateCodeErrorField}
-                    validateError={validateError}
-                    clearError={() => clearIssueNewCardError(policyID)}
-                    onClose={() => {
-                        setIsValidateCodeActionModalVisible(false);
-                        // If the modal was opened due to an error , allow going back
-                        if (hasValidateCodeError) {
-                            handleBackButtonPress();
-                        }
-                    }}
-                    isVisible={isValidateCodeActionModalVisible}
-                    title={translate('cardPage.validateCardTitle')}
-                    descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
-                    onModalHide={onRedirect}
-                    disableAnimation
-                />
-            )}
         </InteractiveStepWrapper>
     );
 }

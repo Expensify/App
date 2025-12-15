@@ -18,6 +18,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {openDomainInitialPage} from '@libs/actions/Domain';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
@@ -53,23 +54,30 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const {translate} = useLocalize();
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
-    const accountID = route.params?.accountID;
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
+    const domainAccountID = route.params?.domainAccountID;
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
-    const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
+    const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: false});
 
     const domainMenuItems: DomainMenuItem[] = useMemo(() => {
         const menuItems: DomainMenuItem[] = [
             {
                 translationKey: 'domain.saml',
                 icon: icons.UserLock,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(accountID)))),
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(domainAccountID)))),
                 screenName: SCREENS.DOMAIN.SAML,
             },
         ];
 
         return menuItems;
-    }, [icons.UserLock, accountID, singleExecution, waitForNavigate]);
+    }, [domainAccountID, singleExecution, waitForNavigate, icons.UserLock]);
+
+    useEffect(() => {
+        if (!domainName) {
+            return;
+        }
+        openDomainInitialPage(domainName);
+    }, [domainName]);
 
     useEffect(() => {
         confirmReadyToOpenApp();
@@ -79,7 +87,14 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         <ScreenWrapper
             testID={DomainInitialPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContent={
+                !shouldDisplayLHB && (
+                    <NavigationTabBar
+                        selectedTab={NAVIGATION_TABS.WORKSPACES}
+                        shouldShowFloatingCameraButton={false}
+                    />
+                )
+            }
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.dismissModal()}

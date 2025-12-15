@@ -81,7 +81,6 @@ function HeaderWithBackButton({
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow'] as const);
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -224,7 +223,7 @@ function HeaderWithBackButton({
                             id={CONST.BACK_BUTTON_NATIVE_ID}
                         >
                             <Icon
-                                src={expensifyIcons.BackArrow}
+                                src={Expensicons.BackArrow}
                                 fill={iconFill ?? theme.icon}
                             />
                         </PressableWithoutFeedback>

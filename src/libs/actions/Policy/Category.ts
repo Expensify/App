@@ -27,12 +27,12 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getPolicy, goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, Report} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, Report, ReportAction} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -43,8 +43,17 @@ function appendSetupCategoriesOnboardingData(
     setupCategoryTaskParentReport: OnyxEntry<Report>,
     isSetupCategoriesTaskParentReportArchived: boolean,
     currentUserAccountID: number,
+    hasOutstandingChildTask: boolean,
+    parentReportAction: OnyxEntry<ReportAction> | undefined,
 ) {
-    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData(setupCategoryTaskReport, setupCategoryTaskParentReport, isSetupCategoriesTaskParentReportArchived, currentUserAccountID);
+    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData(
+        setupCategoryTaskReport,
+        setupCategoryTaskParentReport,
+        isSetupCategoriesTaskParentReportArchived,
+        currentUserAccountID,
+        hasOutstandingChildTask,
+        parentReportAction,
+    );
     onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
     onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
     onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
@@ -322,6 +331,8 @@ function setWorkspaceCategoryEnabled(
     setupCategoryTaskReport: OnyxEntry<Report>,
     setupCategoryTaskParentReport: OnyxEntry<Report>,
     currentUserAccountID: number,
+    hasOutstandingChildTask: boolean,
+    parentReportAction: OnyxEntry<ReportAction> | undefined,
 ) {
     const policyID = policyData.policy?.id;
     const policyCategoriesOptimisticData = {
@@ -389,7 +400,15 @@ function setWorkspaceCategoryEnabled(
     };
 
     pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
-    appendSetupCategoriesOnboardingData(onyxData, setupCategoryTaskReport, setupCategoryTaskParentReport, isSetupCategoriesTaskParentReportArchived, currentUserAccountID);
+    appendSetupCategoriesOnboardingData(
+        onyxData,
+        setupCategoryTaskReport,
+        setupCategoryTaskParentReport,
+        isSetupCategoriesTaskParentReportArchived,
+        currentUserAccountID,
+        hasOutstandingChildTask,
+        parentReportAction,
+    );
 
     const parameters = {
         policyID,
@@ -604,9 +623,19 @@ function createPolicyCategory(
     setupCategoryTaskReport: OnyxEntry<Report>,
     setupCategoryTaskParentReport: OnyxEntry<Report>,
     currentUserAccountID: number,
+    hasOutstandingChildTask: boolean,
+    parentReportAction: OnyxEntry<ReportAction>,
 ) {
     const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
-    appendSetupCategoriesOnboardingData(onyxData, setupCategoryTaskReport, setupCategoryTaskParentReport, isSetupCategoriesTaskParentReportArchived, currentUserAccountID);
+    appendSetupCategoriesOnboardingData(
+        onyxData,
+        setupCategoryTaskReport,
+        setupCategoryTaskParentReport,
+        isSetupCategoriesTaskParentReportArchived,
+        currentUserAccountID,
+        hasOutstandingChildTask,
+        parentReportAction,
+    );
     const parameters = {
         policyID,
         categories: JSON.stringify([{name: categoryName}]),
@@ -1000,6 +1029,8 @@ function deleteWorkspaceCategories(
     setupCategoryTaskReport: OnyxEntry<Report>,
     setupCategoryTaskParentReport: OnyxEntry<Report>,
     currentUserAccountID: number,
+    hasOutstandingChildTask: boolean,
+    parentReportAction: OnyxEntry<ReportAction>,
 ) {
     const policyID = policyData.policy?.id;
     const optimisticPolicyCategoriesData = categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
@@ -1051,7 +1082,15 @@ function deleteWorkspaceCategories(
     };
 
     pushTransactionViolationsOnyxData(onyxData, policyData, optimisticPolicyData, optimisticPolicyCategoriesData);
-    appendSetupCategoriesOnboardingData(onyxData, setupCategoryTaskReport, setupCategoryTaskParentReport, isSetupCategoriesTaskParentReportArchived, currentUserAccountID);
+    appendSetupCategoriesOnboardingData(
+        onyxData,
+        setupCategoryTaskReport,
+        setupCategoryTaskParentReport,
+        isSetupCategoriesTaskParentReportArchived,
+        currentUserAccountID,
+        hasOutstandingChildTask,
+        parentReportAction,
+    );
 
     const parameters = {
         policyID,
@@ -1065,16 +1104,30 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
     const policyID = policyData.policy?.id;
     const policyUpdate: Partial<Policy> = {
         areCategoriesEnabled: enabled,
+        requiresCategory: enabled,
         pendingFields: {
             areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         },
     };
+    const policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = Object.fromEntries(
+        Object.entries(policyData.categories).map(([categoryName]) => [
+            categoryName,
+            {
+                enabled,
+            },
+        ]),
+    );
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: policyUpdate,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: policyCategoriesUpdate,
             },
         ],
         successData: [
@@ -1091,8 +1144,21 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: Object.fromEntries(
+                    Object.entries(policyData.categories).map(([categoryName]) => [
+                        categoryName,
+                        {
+                            enabled: !enabled,
+                        },
+                    ]),
+                ),
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
+                    requiresCategory: !enabled,
                     areCategoriesEnabled: !enabled,
                     pendingFields: {
                         areCategoriesEnabled: null,
@@ -1101,24 +1167,6 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
             },
         ],
     };
-
-    let policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {};
-
-    if (!enabled) {
-        policyCategoriesUpdate = Object.fromEntries(
-            Object.entries(policyData.categories).map(([categoryName]) => [
-                categoryName,
-                {
-                    enabled: false,
-                },
-            ]),
-        );
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-            value: policyCategoriesUpdate,
-        });
-    }
 
     pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdate, policyCategoriesUpdate);
 
@@ -1403,10 +1451,11 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER, parameters, onyxData);
 }
 
-function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: string) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, taxID: string) {
+    if (!policy?.id) {
+        return;
+    }
+    const policyID = policy.id;
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
     const existingCategoryExpenseRule = updatedExpenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
@@ -1422,7 +1471,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
             applyWhen: [
                 {
                     condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
-                    field: 'category',
+                    field: CONST.POLICY.FIELDS.CATEGORY,
                     value: categoryName,
                 },
             ],
