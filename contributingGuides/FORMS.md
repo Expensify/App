@@ -180,7 +180,7 @@ For a working example, check [Form story](https://github.com/Expensify/App/blob/
 
 ### Character Limits
 
-If a field has a character limit, we should give that field a max limit. This is done by passing the character limit validation in the validate function.
+If a field has a character limit, we should give that field a max limit. This is done by passing the character limit validation in the validate function. Our general guidelines for character limits are 100 characters for titles/names and 500 characters for supporting/description messages. If a field has a specific need for a different limit, that is fine. Otherwise, please follow the guidelines for consistency.
 
 Here's an example for a form that has one input `name`, and has character limit of 100:
 
