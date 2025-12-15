@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -71,19 +71,13 @@ function SplitListItem<TItem extends ListItem>({
     }, [onInputFocus, index]);
 
     // Auto-focus input when item is selected and screen transition ends
-    useEffect(() => {
-        if (!didScreenTransitionEnd || !splitItem.isSelected || !splitItem.isEditable || !inputRef.current) {
+    useLayoutEffect(() => {
+        if (!splitItem.isSelected || !splitItem.isEditable || !didScreenTransitionEnd || !inputRef.current) {
             return;
         }
 
-        // Use InteractionManager to ensure input focus happens after all animations/interactions complete.
-        // This prevents focus from interrupting modal close/open animations which would cause UI glitches
-        // and "jumping" behavior when quickly navigating between screens.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            inputRef.current?.focus();
-        });
-    }, [didScreenTransitionEnd, splitItem.isSelected, splitItem.isEditable]);
+        inputRef.current.focus();
+    }, [splitItem.isSelected, splitItem.isEditable, didScreenTransitionEnd]);
 
     const inputCallbackRef = (ref: BaseTextInputRef | null) => {
         inputRef.current = ref;

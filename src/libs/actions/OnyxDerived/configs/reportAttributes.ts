@@ -143,12 +143,12 @@ export default createOnyxDerivedValueConfig({
 
                     // When an IOU report changes, we need to re-evaluate its parent chat report as well.
                     const parentChatReportIDsToUpdate = new Set<string>();
-                    dataToIterate.forEach((reportKey) => {
+                    for (const reportKey of dataToIterate) {
                         const report = reports[reportKey];
                         if (report?.chatReportID && report.reportID !== report.chatReportID) {
                             parentChatReportIDsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
                         }
-                    });
+                    }
                     if (parentChatReportIDsToUpdate.size > 0) {
                         dataToIterate.push(...Array.from(parentChatReportIDsToUpdate));
                     }
@@ -228,9 +228,9 @@ export default createOnyxDerivedValueConfig({
 
         // Propagate errors from IOU reports to their parent chat reports.
         const chatReportIDsWithErrors = new Set<string>();
-        Object.values(reports).forEach((report) => {
+        for (const report of Object.values(reports)) {
             if (!report?.reportID) {
-                return;
+                continue;
             }
 
             // If this is an IOU report and its calculated attributes have an error,
@@ -239,14 +239,16 @@ export default createOnyxDerivedValueConfig({
             if (report.chatReportID && report.reportID !== report.chatReportID && attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
                 chatReportIDsWithErrors.add(report.chatReportID);
             }
-        });
+        }
 
         // Apply the error status to the parent chat reports.
-        chatReportIDsWithErrors.forEach((chatReportID) => {
-            if (reportAttributes[chatReportID]) {
-                reportAttributes[chatReportID].brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        for (const chatReportID of chatReportIDsWithErrors) {
+            if (!reportAttributes[chatReportID]) {
+                continue;
             }
-        });
+
+            reportAttributes[chatReportID].brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
 
         // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
         if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {

@@ -845,6 +845,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
+                            path: ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.route,
+                        },
                         [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
                             path: ROUTES.WORKSPACE_CUSTOM_FIELDS.route,
                         },
@@ -1001,8 +1004,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
                             path: ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.route,
                         },
-                        [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {
-                            path: ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.route,
+                        [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
@@ -1605,11 +1608,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]: {
-                    screens: {
-                        [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: ROUTES.SEARCH_MONEY_REQUEST_REPORT.route,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
                     screens: {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(),
@@ -1780,11 +1778,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.route,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.EXPENSE_REPORT]: {
-                    screens: {
-                        [SCREENS.EXPENSE_REPORT_RHP]: ROUTES.EXPENSE_REPORT_RHP.route,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.DOMAIN]: {
                     screens: {
                         [SCREENS.WORKSPACES_VERIFY_DOMAIN]: {
@@ -1939,6 +1932,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             screens: {
                 [SCREENS.SEARCH.ROOT]: {
                     path: ROUTES.SEARCH_ROOT.route,
+                },
+                [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
+                    path: ROUTES.SEARCH_MONEY_REQUEST_REPORT.route,
                 },
             },
         },
