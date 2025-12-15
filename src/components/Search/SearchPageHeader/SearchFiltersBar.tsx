@@ -326,6 +326,10 @@ function SearchFiltersBar({
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [filterFormValues]);
 
+    const openSearchColumns = () => {
+        Navigation.navigate(ROUTES.SEARCH_COLUMNS);
+    };
+
     const isFormInitializedRef = useRef(false);
 
     useEffect(() => {
@@ -808,7 +812,7 @@ function SearchFiltersBar({
                         iconHoverFill={theme.linkHover}
                         icon={expensifyIcons.Columns}
                         textStyles={[styles.textMicroBold]}
-                        onPress={openAdvancedFilters}
+                        onPress={openSearchColumns}
                     />
                 )}
             </View>
