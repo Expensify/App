@@ -1,7 +1,6 @@
-import type {NavigationAction} from '@react-navigation/native';
+import {usePreventRemove} from '@react-navigation/native';
 import React, {memo, useCallback, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type DiscardChangesConfirmationProps from './types';
@@ -9,21 +8,15 @@ import type DiscardChangesConfirmationProps from './types';
 function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfirmationProps) {
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
-    const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
+    const shouldAllowNavigation = useRef(false);
 
-    useBeforeRemove(
-        useCallback(
-            (e) => {
-                if (!getHasUnsavedChanges()) {
-                    return;
-                }
+    const hasUnsavedChanges = getHasUnsavedChanges();
 
-                e.preventDefault();
-                blockedNavigationAction.current = e.data.action;
-                setIsVisible(true);
-            },
-            [getHasUnsavedChanges],
-        ),
+    usePreventRemove(
+        hasUnsavedChanges && !shouldAllowNavigation.current,
+        useCallback(() => {
+            setIsVisible(true);
+        }, []),
     );
 
     return (
@@ -36,9 +29,8 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
             cancelText={translate('common.cancel')}
             onConfirm={() => {
                 setIsVisible(false);
-                if (blockedNavigationAction.current) {
-                    navigationRef.current?.dispatch(blockedNavigationAction.current);
-                }
+                shouldAllowNavigation.current = true;
+                navigationRef.current?.goBack();
             }}
             onCancel={() => setIsVisible(false)}
             shouldHandleNavigationBack
