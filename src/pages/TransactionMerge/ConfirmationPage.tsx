@@ -97,7 +97,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                 Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
             }
         } else {
-            Navigation.dismissModal();
+            Navigation.dismissToPreviousRHP();
         }
     };
 
