@@ -1,8 +1,11 @@
+import {Platform} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {isMobile} from '@libs/Browser';
 import Log from '@libs/Log';
+import triggerNotifications from '@libs/Notification/triggerNotifications';
 import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
 import CONST from '@src/CONST';
@@ -53,6 +56,10 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response, lastUpdateI
 
     return onyxDataUpdatePromise
         .then(() => {
+            // Trigger notifications only on successful responses.
+            if (Platform.OS === 'web' && !isMobile() && response.jsonCode === 200 && response.onyxData?.length) {
+                triggerNotifications(response.onyxData);
+            }
             // Handle the request's success/failure data (client-side data)
             if (response.jsonCode === 200 && request.successData) {
                 return updateHandler(request.successData);
