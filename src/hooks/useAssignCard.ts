@@ -143,7 +143,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
         clearAddNewCardFlow();
         setAssignCardStepAndData({data, currentStep});
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed, cardID));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed: selectedFeed, cardID}));
         });
     };
 
