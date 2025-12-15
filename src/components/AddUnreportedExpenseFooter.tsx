@@ -11,7 +11,7 @@ import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, Report, ReportNextStep} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import {useSession} from './OnyxListItemProvider';
@@ -24,7 +24,7 @@ type AddUnreportedExpenseFooterProps = {
     /** The report to confirm */
     reportToConfirm: OnyxEntry<Report>;
     /** The report next step */
-    reportNextStep: OnyxEntry<ReportNextStep>;
+    reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     /** The policy */
     policy: OnyxEntry<Policy>;
     /** The policy categories */
@@ -53,7 +53,14 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (report && isIOUReport(report)) {
-                convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
+                convertBulkTrackedExpensesToIOU(
+                    [...selectedIds],
+                    report.reportID,
+                    isASAPSubmitBetaEnabled,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    session?.email ?? '',
+                    allTransactionViolations,
+                );
             } else {
                 changeTransactionsReport({
                     transactionIDs: [...selectedIds],
