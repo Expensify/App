@@ -1,6 +1,7 @@
 import {useCallback, useContext} from 'react';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import useCardFeeds from '@hooks/useCardFeeds';
+import type {CombinedCardFeed} from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
 import useNetwork from '@hooks/useNetwork';
@@ -31,7 +32,7 @@ import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type UseAssignCardProps = {
-    selectedFeed: CompanyCardFeedWithDomainID;
+    selectedFeed: CompanyCardFeedWithDomainID | undefined;
     policyID: string;
     setShouldShowOfflineModal: (shouldShow: boolean) => void;
 };
@@ -40,7 +41,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const currentFeedData = companyFeeds?.[selectedFeed];
+    const currentFeedData = selectedFeed ? companyFeeds?.[selectedFeed] : ({} as CombinedCardFeed);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -64,7 +65,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
 
     const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
-    const hasFeedError = !!cardFeeds?.[selectedFeed]?.errors;
+    const hasFeedError = selectedFeed ? !!cardFeeds?.[selectedFeed]?.errors : false;
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
