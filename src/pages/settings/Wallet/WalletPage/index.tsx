@@ -339,7 +339,9 @@ function WalletPage() {
                         closeModal(() => showLockedAccountModal());
                         return;
                     }
-                    closeModal(showDeleteAccountModal);
+                    closeModal(() => {
+                        showDeleteAccountModal();
+                    });
                 },
             },
             ...(shouldShowEnableGlobalReimbursementsButton
