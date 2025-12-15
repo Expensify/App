@@ -93,6 +93,7 @@ type TransactionItemRowProps = {
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
     submittedColumnSize?: TableColumnSize;
+    approvedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     onCheckboxPress?: (transactionID: string) => void;
