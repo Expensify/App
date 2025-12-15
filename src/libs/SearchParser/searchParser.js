@@ -1087,9 +1087,6 @@ function peg$parse(input, options) {
                                                                                 s1 = peg$parsepurchaseAmount();
                                                                                 if (s1 === peg$FAILED) {
                                                                                   s1 = peg$parsereportFieldDynamic();
-                                                                                  if (s1 === peg$FAILED) {
-                                                                                    s1 = peg$parsecolumns();
-                                                                                  }
                                                                                 }
                                                                               }
                                                                             }
@@ -3205,7 +3202,7 @@ function peg$parse(input, options) {
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy"
+    "type", "keyword", "groupCurrency", "groupBy", "columns"
   ]);
 
   function applyDefaults(filters) {

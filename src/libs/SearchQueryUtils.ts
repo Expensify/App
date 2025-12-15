@@ -970,6 +970,10 @@ function buildFilterFormValuesFromQuery(
         filtersForm[FILTER_KEYS.GROUP_BY] = queryJSON.groupBy;
     }
 
+    if (queryJSON.columns) {
+        filtersForm[FILTER_KEYS.COLUMNS] = queryJSON.columns;
+    }
+
     return filtersForm;
 }
 

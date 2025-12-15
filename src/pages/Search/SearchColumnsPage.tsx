@@ -29,14 +29,14 @@ function SearchColumnsPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     const [selectedColumnIds, setSelectedColumnIds] = useState<SearchCustomColumnIds[]>(() => {
-        const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => Object.values(CONST.SEARCH.CUSTOM_COLUMNS).includes(columnId as SearchCustomColumnIds)) ?? [];
+        const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => Object.values(CONST.SEARCH.CUSTOM_COLUMNS).includes(columnId)) ?? [];
 
         // We dont allow the user to unselect all columns, so we can assume that no columns = all columns/none configured yet
         if (!columnIds.length) {
             return allColumns;
         }
 
-        return columnIds as SearchCustomColumnIds[];
+        return columnIds;
     });
 
     const sections = [
@@ -68,6 +68,7 @@ function SearchColumnsPage() {
 
         const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {...searchAdvancedFiltersForm, columns: selectedColumnIds};
         const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters);
+
         clearAllFilters();
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
     };

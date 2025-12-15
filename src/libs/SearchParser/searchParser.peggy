@@ -38,7 +38,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy"
+    "type", "keyword", "groupCurrency", "groupBy", "columns"
   ]);
 
   function applyDefaults(filters) {
@@ -202,7 +202,6 @@ key "key"
       / purchaseCurrency
       / purchaseAmount
       / reportFieldDynamic
-      / columns
     )
 
 filterKey
