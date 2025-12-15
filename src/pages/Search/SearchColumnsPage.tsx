@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import arraysEqual from '@src/utils/arraysEqual';
 
 const allColumns = Object.values(CONST.SEARCH.CUSTOM_COLUMNS);
 const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
@@ -53,8 +54,11 @@ function SearchColumnsPage() {
         },
     ];
 
-    // JACK_TODO
-    const shouldShowResetColumns = true;
+    const shouldShowResetColumns = useMemo(() => {
+        const sortedSelectedColumnIds = [...selectedColumnIds].sort();
+        const sortedDefaultColumns = [...defaultColumns].sort();
+        return !arraysEqual(sortedSelectedColumnIds, sortedDefaultColumns);
+    }, [selectedColumnIds]);
 
     const onSelectItem = (item: ListItem) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
