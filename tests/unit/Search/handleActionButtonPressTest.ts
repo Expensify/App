@@ -92,7 +92,6 @@ const mockReportItemWithHold = {
             action: 'view',
             allActions: ['view'],
             amount: -1200,
-            canDelete: true,
             category: '',
             comment: {
                 comment: '',
@@ -103,7 +102,7 @@ const mockReportItemWithHold = {
             hasEReceipt: false,
             managerID: 1206,
             merchant: 'Qatar',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -181,7 +180,6 @@ const mockReportItemWithHold = {
             action: 'view',
             allActions: ['view'],
             amount: -12300,
-            canDelete: true,
             category: '',
             comment: {
                 comment: '',
@@ -190,7 +188,7 @@ const mockReportItemWithHold = {
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Forbes',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
