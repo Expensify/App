@@ -418,6 +418,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
     switch (key) {
         case 'avatarUrl':
         case 'created':
+        case 'submitted':
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
         case 'lastReadTime':
