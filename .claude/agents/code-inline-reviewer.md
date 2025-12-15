@@ -150,12 +150,14 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
   - Inline arrow functions: `prop={() =>`, `onPress={() =>`, `onCallback={() =>`
   - Hooks returning objects: `return {` inside custom hooks (files starting with `use`)
   - Object variables passed as props: `prop={someObject}` where `someObject` is not memoized
+  - Manually memoized components: `React.memo`, `memo`
 
 - **Condition**: Flag ONLY when ALL of these are true:
 
   1. An object literal, arrow function, or non-memoized variable is passed as a prop to a child component
   2. The child component IS memoized (either via `React.memo`/`memo()` OR React Compiler optimized)
   3. The parent component is NOT optimized by React Compiler
+  4. The new reference would actually cause the child to re-render
 
   **DO NOT flag if:**
 
@@ -163,6 +165,7 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
   - Parent component IS optimized by React Compiler (compiler auto-memoizes)
   - Props are primitives (strings, numbers, booleans)
   - The object/function is already wrapped in `useMemo`/`useCallback`
+  - Child uses custom memo comparator that prevents re-render despite new reference
 
 - **Reasoning**: React uses referential equality to determine if props changed. New object/function instances break memoization of child components. However, memoizing props only matters when the child is memoized AND the parent is not handled by React Compiler.
 
@@ -204,7 +207,17 @@ grep -E "memo\(|React\.memo" <child-path>
 
 2. **Is parent optimized by React Compiler?**
    - `"optimized": true` → **Skip PERF-4** (compiler auto-memoizes)
-   - `"optimized": false` → **Flag PERF-4** (must memoize manually)
+   - `"optimized": false` → go to step 3
+
+3. **Does child use custom memo comparator that prevents re-render?**
+   - Check the child component's memo declaration for a custom comparator function
+   - Analyze if the comparator would return `true` (prevent re-render) despite the new reference
+   - Examples that PREVENT re-render:
+     - `deepEqual(prevProps.propName, nextProps.propName)` - compares values, not references
+     - Comparator that doesn't check this specific prop at all
+     - Comparator that only checks primitive fields of the object
+   - If comparator prevents re-render → **Skip PERF-4**
+   - If no custom comparator or comparator uses reference equality → **Flag PERF-4**
 
 #### Examples
 
@@ -230,6 +243,26 @@ return <MemoizedList options={options} />;
 // ✅ RegularList is not memoized, so it re-renders anyway
 const options = { showHeader: true, pageSize: 10 };
 return <RegularList options={options} />;
+```
+
+**Do NOT flag** (child uses custom memo comparator that prevents re-render):
+```tsx
+// ✅ Example 1: deepEqual compares values, not references
+return <PopoverMenu anchorPosition={popoverAnchorPosition ?? {horizontal: 0, vertical: 0}} />;
+// Child's memo comparator uses deepEqual:
+// React.memo(PopoverMenu, (prevProps, nextProps) =>
+//     deepEqual(prevProps.anchorPosition, nextProps.anchorPosition) && ...
+// )
+
+// ✅ Example 2: Comparator ignores this prop entirely
+return <ListItem style={{padding: 10}} />;
+// Child's memo comparator only checks id:
+// React.memo(ListItem, (prev, next) => prev.id === next.id)
+
+// ✅ Example 3: Comparator checks only primitive fields of the object
+return <Card config={{id: item.id, enabled: true}} />;
+// Child's memo comparator:
+// React.memo(Card, (prev, next) => prev.config.id === next.config.id)
 ```
 
 ---
