@@ -90,10 +90,8 @@ function Confirmation() {
 
     const mergeDuplicates = useCallback(() => {
         const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
-        if (!reportAction?.childReportID) {
-            transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
-        }
-        IOU.mergeDuplicates(transactionsMergeParams);
+        const params = reportAction?.childReportID ? transactionsMergeParams : {...transactionsMergeParams, transactionThreadReportID};
+        IOU.mergeDuplicates(params);
         Navigation.setNavigationActionToMicrotaskQueue(() => navigateAfterMerge(reviewDuplicates?.reportID));
     }, [reportAction?.childReportID, transactionsMergeParams, reviewDuplicates?.reportID, navigateAfterMerge]);
 
