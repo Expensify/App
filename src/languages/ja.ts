@@ -734,6 +734,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'ドメイン',
         viewReport: 'レポートを表示',
         actionRequired: '対応が必要',
+        duplicate: '複製',
+        duplicated: '重複',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1562,9 +1564,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'このレポートを残りの承認ワークフローに回付する前に、追加の承認者を選択してください。',
-                bulkSubtitle: '残りの承認ワークフローに回す前に、これらのレポートの追加承認者を選択してください。',
             },
-            bulkSubtitle: 'これらのレポートの承認者を変更する方法を選択してください。',
         },
         chooseWorkspace: 'ワークスペースを選択',
     },
@@ -2321,7 +2321,6 @@ ${merchant} への ${amount}（${date}）`,
             title: '表示するメンバーがいません',
             expensesFromSubtitle: 'すべてのワークスペースメンバーは、すでに既存の承認ワークフローに属しています。',
             approverSubtitle: 'すべての承認者は既存のワークフローに属しています。',
-            bulkApproverSubtitle: '選択されたレポートの条件に一致する承認者がいません。',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -2653,10 +2652,10 @@ ${merchant} への ${amount}（${date}）`,
                         チームが経費を簡単にレポートできるように、*カテゴリーを設定*しましょう。
 
                         1. *ワークスペース* をクリックします。
-                        3. 自分のワークスペースを選択します。
-                        4. *カテゴリー* をクリックします。
-                        5. 不要なカテゴリーを無効にします。
-                        6. 画面右上から独自のカテゴリーを追加します。
+                        2. 自分のワークスペースを選択します。
+                        3. *カテゴリー* をクリックします。
+                        4. 不要なカテゴリーを無効にします。
+                        5. 画面右上から独自のカテゴリーを追加します。
 
                         [ワークスペースのカテゴリー設定を開く](${workspaceCategoriesLink})。
 
@@ -2745,10 +2744,10 @@ ${
                         *チームを招待*して、今すぐExpensifyで経費管理を始めましょう。
 
                         1. *ワークスペース* をクリックします。
-                        3. ワークスペースを選択します。
-                        4. *メンバー* > *メンバーを招待* をクリックします。
-                        5. メールアドレスまたは電話番号を入力します。
-                        6. 必要に応じて、招待メッセージをカスタマイズして追加します。
+                        2. ワークスペースを選択します。
+                        3. *メンバー* > *メンバーを招待* をクリックします。
+                        4. メールアドレスまたは電話番号を入力します。
+                        5. 必要に応じて、招待メッセージをカスタマイズして追加します。
 
                         [ワークスペースのメンバー画面へ移動](${workspaceMembersLink})。
 
@@ -2769,11 +2768,11 @@ ${
                         プロジェクト、クライアント、所在地、部署などの追加情報を、タグを使って経費に付加できます。複数レベルのタグが必要な場合は、Controlプランにアップグレードできます。
 
                         1. *Workspaces* をクリックします。
-                        3. ワークスペースを選択します。
-                        4. *More features* をクリックします。
-                        5. *Tags* を有効にします。
-                        6. ワークスペースエディタで *Tags* に移動します。
-                        7. *+ Add tag* をクリックして独自のタグを作成します。
+                        2. ワークスペースを選択します。
+                        3. *More features* をクリックします。
+                        4. *Tags* を有効にします。
+                        5. ワークスペースエディタで *Tags* に移動します。
+                        6. *+ Add tag* をクリックして独自のタグを作成します。
 
                         [More features に移動](${workspaceMoreFeaturesLink})。
 
@@ -6156,7 +6155,7 @@ ${reportName}
                 adultEntertainment: 'アダルトエンターテインメント',
             },
             expenseReportRules: {
-                title: '経費精算書',
+                title: '上級',
                 subtitle: '経費精算レポートのコンプライアンス、承認、支払いを自動化します。',
                 preventSelfApprovalsTitle: '自己承認を防ぐ',
                 preventSelfApprovalsSubtitle: 'ワークスペースメンバーが自分自身の経費精算レポートを承認できないようにします。',
@@ -6172,8 +6171,7 @@ ${reportName}
                 autoPayApprovedReportsLockedSubtitle: '「その他の機能」に移動してワークフローを有効にし、その後「支払い」を追加してこの機能を有効化してください。',
                 autoPayReportsUnderTitle: '以下のレポートを自動支払い',
                 autoPayReportsUnderDescription: 'この金額以下の、要件を完全に満たした経費精算書は自動的に支払われます。',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `[その他の機能](${moreFeaturesLink}) に移動してワークフローを有効にし、その後 ${featureName} を追加してこの機能を有効化してください。`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `${featureName} を追加して、この機能を有効にしてください。`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `[その他の機能](${moreFeaturesLink})に移動し、${featureName} を有効にしてこの機能をアンロックしてください。`,
             },
@@ -6478,6 +6476,60 @@ ${reportName}
                     return `${enabled ? '有効' : '無効'} ${featureName}`;
             }
         },
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `デフォルトの承認者を${newApprover}に変更しました（以前は${previousApprover}）` : `デフォルトの承認者を${newApprover}に変更しました`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `${members} の承認ワークフローを変更し、レポートを ${approver} に提出するようにしました`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(以前のデフォルト承認者 ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '（以前のデフォルト承認者）';
+            } else if (previousApprover) {
+                text += `(以前は${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `${members}の承認ワークフローを、デフォルトの承認者${approver}にレポートを提出するように変更しました`
+                : `${members}の承認ワークフローを変更し、レポートをデフォルトの承認者に提出するようにしました`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(以前のデフォルト承認者 ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '（以前のデフォルト承認者）';
+            } else if (previousApprover) {
+                text += `(以前は${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `${approver} の承認ワークフローを変更し、承認済みレポートを ${forwardsTo} に転送するようにしました（以前は ${previousForwardsTo} に転送していました）`
+                : `${approver} の承認ワークフローを変更し、承認済みレポートを ${forwardsTo} に転送するようにしました（以前は最終承認済みレポートのみを転送）`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `承認済みレポートの転送を停止するように${approver}の承認ワークフローを変更しました（以前は${previousForwardsTo}に転送していました）`
+                : `承認済みレポートの転送を停止するように、${approver} の承認ワークフローを変更しました`,
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 出席者の追跡`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? '有効' : '無効'} 件の払い戻し`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `税「${taxName}」を追加しました`,
@@ -7832,11 +7884,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             requireError: 'SAML 必須設定を更新できませんでした',
             disableSamlRequired: 'SAML 必須を無効にする',
             oktaWarningPrompt: 'よろしいですか？これにより Okta SCIM も無効になります。',
+            requireWithEmptyMetadataError: 'Id プロバイダーのメタデータを以下に追加して有効化してください',
         },
         samlConfigurationDetails: {
             title: 'SAML 設定の詳細',
             subtitle: 'これらの詳細を使用して、SAML を設定してください。',
-            identityProviderMetaData: 'ID プロバイダー メタデータ',
+            identityProviderMetadata: 'ID プロバイダー メタデータ',
             entityID: 'エンティティ ID',
             nameIDFormat: '名前 ID 形式',
             loginUrl: 'ログインURL',
@@ -7869,6 +7922,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須化し、ワークスペースの作成を制限するなど、さらに多くのことができます。',
             enable: '有効にする',
         },
+        admins: {title: '管理者', findAdmin: '管理者を検索'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
