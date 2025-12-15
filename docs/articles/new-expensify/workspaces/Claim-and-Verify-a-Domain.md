@@ -8,14 +8,17 @@ keywords: [New Expensify, claim domain, verify domain, private domain, domain se
 
 If you have a private domain (e.g., yourcompany.com), you can claim and verify it in Expensify to manage employee permissions and enable additional security features.
 
-# What you can do with a claimed domain
+# What you can do with a claimed and verified domain
 
 Once you've claimed a domain, you can:
-- Configure SAML login (once verified)
-- Monitor domain status and ownership
+- Grant specific permissions to employees using the domain in their email address.
+- Import and reconcile company credit cards and Expensify Cards.
+- Apply company credit card and Expensify Card rules.
 
 Once verified, you’ll also be able to:
-- Enforce SAML login for domain members
+- Assign delegates for employees on vacation.
+- Delete employee Expensify accounts.
+- Enable SAML/SSO for secure login.
 
 # Step 1: Claim Your Domain
 
