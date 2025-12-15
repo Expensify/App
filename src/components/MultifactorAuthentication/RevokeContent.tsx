@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Text from '@components/Text';
@@ -52,4 +52,4 @@ function MultifactorAuthenticationRevokeContent({isAccessRevoked, onGoBackPress,
 
 MultifactorAuthenticationRevokeContent.displayName = 'MultifactorAuthenticationRevokeContent';
 
-export default memo(MultifactorAuthenticationRevokeContent);
+export default MultifactorAuthenticationRevokeContent;

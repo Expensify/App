@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo} from 'react';
+import {useEffect} from 'react';
 import {doesDeviceSupportBiometrics, isBiometryConfigured, resetKeys, Status} from '@components/MultifactorAuthentication/helpers';
 import type {BiometricsStatus, MultifactorAuthenticationStatusKeyType, Register, UseBiometricsSetup} from '@components/MultifactorAuthentication/types';
 import useMultifactorAuthenticationStatus from '@components/MultifactorAuthentication/useMultifactorAuthenticationStatus';
@@ -37,35 +37,32 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
      * Marks the current authentication request as complete.
      * Clears any pending requirements while preserving success/failure state.
      */
-    const cancel = useCallback((wasRecentStepSuccessful?: boolean) => setStatus(Status.createCancelStatus(wasRecentStepSuccessful)), [setStatus]);
+    const cancel = (wasRecentStepSuccessful?: boolean) => setStatus(Status.createCancelStatus(wasRecentStepSuccessful));
 
     /** Memoized check for device biometric capability */
-    const deviceSupportBiometrics = useMemo(() => doesDeviceSupportBiometrics(), []);
+    const deviceSupportBiometrics = doesDeviceSupportBiometrics();
 
     /**
      * Updates the biometric configuration status by checking for stored public key.
      * Safe to call frequently as it doesn't trigger authentication prompts.
      */
-    const refreshStatus = useCallback(
-        async (overwriteStatus?: Partial<MultifactorAuthenticationStatus<BiometricsStatus>>, overwriteType?: MultifactorAuthenticationStatusKeyType) => {
-            const setupStatus = await isBiometryConfigured(accountID);
+    const refreshStatus = async (overwriteStatus?: Partial<MultifactorAuthenticationStatus<BiometricsStatus>>, overwriteType?: MultifactorAuthenticationStatusKeyType) => {
+        const setupStatus = await isBiometryConfigured(accountID);
 
-            const {isLocalPublicKeyInAuth, isAnyDeviceRegistered, isBiometryRegisteredLocally} = setupStatus;
+        const {isLocalPublicKeyInAuth, isAnyDeviceRegistered, isBiometryRegisteredLocally} = setupStatus;
 
-            return setStatus(
-                Status.createRefreshStatusStatus(
-                    {
-                        isLocalPublicKeyInAuth,
-                        isAnyDeviceRegistered,
-                        isBiometryRegisteredLocally,
-                    },
-                    overwriteStatus,
-                ),
-                overwriteType,
-            );
-        },
-        [accountID, setStatus],
-    );
+        return setStatus(
+            Status.createRefreshStatusStatus(
+                {
+                    isLocalPublicKeyInAuth,
+                    isAnyDeviceRegistered,
+                    isBiometryRegisteredLocally,
+                },
+                overwriteStatus,
+            ),
+            overwriteType,
+        );
+    };
 
     /** Check initial biometric configuration on mount */
     useEffect(() => {
@@ -76,7 +73,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
      * Resets biometric setup by removing stored keys and refreshing state.
      * Used when keys become invalid or during cleanup.
      */
-    const revoke = useCallback(async () => {
+    const revoke = async () => {
         await resetKeys(accountID);
         await revokePublicKeys();
         return refreshStatus(
@@ -90,7 +87,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
             },
             CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.NONE,
         );
-    }, [accountID, refreshStatus]);
+    };
 
     /**
      * Main registration flow for setting up biometric authentication.
@@ -106,108 +103,102 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
      *
      * Note: Will trigger system biometric prompt during key storage.
      */
-    const register = useCallback(
-        async ({validateCode, chainedWithAuthorization}) => {
-            /** Guard unsupported device */
-            if (!doesDeviceSupportBiometrics()) {
-                return setStatus(Status.createUnsupportedDeviceStatus);
+    const register = (async ({validateCode, chainedWithAuthorization}) => {
+        /** Guard unsupported device */
+        if (!doesDeviceSupportBiometrics()) {
+            return setStatus(Status.createUnsupportedDeviceStatus);
+        }
+
+        /** Guard missing validation code and request it */
+        if (!validateCode) {
+            return setStatus(Status.createValidateCodeMissingStatus);
+        }
+
+        /** Generate a new ED25519 key pair */
+        const {privateKey, publicKey} = generateKeyPair();
+
+        /** Save private key (handles existing/conflict cases) */
+        const privateKeyResult = await PrivateKeyStore.set(accountID, privateKey);
+        const privateKeyExists = privateKeyResult.reason === 'multifactorAuthentication.reason.expoErrors.keyExists';
+
+        if (!privateKeyResult.value) {
+            if (privateKeyExists && !status.value) {
+                /**
+                 * Handle edge case where private key exists but public key is missing.
+                 * Remove private key to unblock authentication rather than trying recovery.
+                 * This should never happen in the real app.
+                 */
+                await PrivateKeyStore.delete(accountID);
             }
+            return setStatus(Status.createKeyErrorStatus(privateKeyResult));
+        }
 
-            /** Guard missing validation code and request it */
-            if (!validateCode) {
-                return setStatus(Status.createValidateCodeMissingStatus);
-            }
+        /** Save public key */
+        const publicKeyResult = await PublicKeyStore.set(accountID, publicKey);
+        if (!publicKeyResult.value) {
+            return setStatus(Status.createKeyErrorStatus(publicKeyResult));
+        }
 
-            /** Generate a new ED25519 key pair */
-            const {privateKey, publicKey} = generateKeyPair();
+        /** Call backend to register the public key */
+        const {
+            step: {wasRecentStepSuccessful, isRequestFulfilled},
+            reason,
+        } = await processRegistration({
+            publicKey,
+            accountID,
+            validateCode,
+        });
 
-            /** Save private key (handles existing/conflict cases) */
-            const privateKeyResult = await PrivateKeyStore.set(accountID, privateKey);
-            const privateKeyExists = privateKeyResult.reason === 'multifactorAuthentication.reason.expoErrors.keyExists';
+        const successMessage = 'multifactorAuthentication.reason.success.keyPairGenerated';
+        const isCallSuccessful = wasRecentStepSuccessful && isRequestFulfilled;
 
-            if (!privateKeyResult.value) {
-                if (privateKeyExists && !status.value) {
-                    /**
-                     * Handle edge case where private key exists but public key is missing.
-                     * Remove private key to unblock authentication rather than trying recovery.
-                     * This should never happen in the real app.
-                     */
-                    await PrivateKeyStore.delete(accountID);
-                }
-                return setStatus(Status.createKeyErrorStatus(privateKeyResult));
-            }
+        /** Cleanup keys on failure to avoid partial state */
+        if (!isCallSuccessful) {
+            await resetKeys(accountID);
+        }
 
-            /** Save public key */
-            const publicKeyResult = await PublicKeyStore.set(accountID, publicKey);
-            if (!publicKeyResult.value) {
-                return setStatus(Status.createKeyErrorStatus(publicKeyResult));
-            }
+        const builtStatus = {
+            reason: isCallSuccessful ? successMessage : reason,
+            type: privateKeyResult.type,
+            step: {
+                wasRecentStepSuccessful: isCallSuccessful,
+                isRequestFulfilled: true,
+                requiredFactorForNextStep: undefined,
+            },
+        };
 
-            /** Call backend to register the public key */
-            const {
-                step: {wasRecentStepSuccessful, isRequestFulfilled},
-                reason,
-            } = await processRegistration({
-                publicKey,
-                accountID,
-                validateCode,
-            });
+        /** Persist and return the status */
+        const statusResult = setStatus(Status.createRegistrationResultStatus(builtStatus));
 
-            const successMessage = 'multifactorAuthentication.reason.success.keyPairGenerated';
-            const isCallSuccessful = wasRecentStepSuccessful && isRequestFulfilled;
+        await refreshStatus();
 
-            /** Cleanup keys on failure to avoid partial state */
-            if (!isCallSuccessful) {
-                await resetKeys(accountID);
-            }
-
-            const builtStatus = {
-                reason: isCallSuccessful ? successMessage : reason,
-                type: privateKeyResult.type,
+        /** In chained flow, return the private key on success */
+        if (chainedWithAuthorization && isCallSuccessful) {
+            return {
+                ...privateKeyResult,
                 step: {
-                    wasRecentStepSuccessful: isCallSuccessful,
-                    isRequestFulfilled: true,
-                    requiredFactorForNextStep: undefined,
+                    wasRecentStepSuccessful: true,
+                    isRequestFulfilled: false,
+                    requiredFactorForNextStep: CONST.MULTIFACTOR_AUTHENTICATION.FACTORS.SIGNED_CHALLENGE,
                 },
+                value: privateKey,
             };
+        }
 
-            /** Persist and return the status */
-            const statusResult = setStatus(Status.createRegistrationResultStatus(builtStatus));
+        return statusResult;
+    }) as Register;
 
-            await refreshStatus();
-
-            /** In chained flow, return the private key on success */
-            if (chainedWithAuthorization && isCallSuccessful) {
-                return {
-                    ...privateKeyResult,
-                    step: {
-                        wasRecentStepSuccessful: true,
-                        isRequestFulfilled: false,
-                        requiredFactorForNextStep: CONST.MULTIFACTOR_AUTHENTICATION.FACTORS.SIGNED_CHALLENGE,
-                    },
-                    value: privateKey,
-                };
-            }
-
-            return statusResult;
-        },
-        [accountID, setStatus, refreshStatus, status.value],
-    ) as Register;
-
-    return useMemo(
-        () => ({
-            ...status.step,
-            ...status.value,
-            deviceSupportBiometrics,
-            message: status.message,
-            title: status.title,
-            register,
-            revoke,
-            cancel,
-            refresh: refreshStatus,
-        }),
-        [cancel, deviceSupportBiometrics, refreshStatus, register, revoke, status.message, status.step, status.title, status.value],
-    );
+    return {
+        ...status.step,
+        ...status.value,
+        deviceSupportBiometrics,
+        message: status.message,
+        title: status.title,
+        register,
+        revoke,
+        cancel,
+        refresh: refreshStatus,
+    };
 }
 
 export default useNativeBiometricsSetup;

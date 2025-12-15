@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import {createAuthorizeErrorStatus} from '@components/MultifactorAuthentication/helpers';
 import type {MultifactorAuthorization} from '@components/MultifactorAuthentication/types';
@@ -31,52 +30,46 @@ function useNativeBiometrics() {
      *
      * Will trigger a multifactorial authentication prompt if no private key status is provided.
      */
-    const authorize = useCallback(
-        async <T extends MultifactorAuthenticationScenario>(scenario: T, params: Parameters<MultifactorAuthorization<T>>[1]): ReturnType<MultifactorAuthorization<T>> => {
-            const {chainedPrivateKeyStatus} = params;
-            const challenge = new MultifactorAuthenticationChallenge(scenario, params);
+    const authorize = async <T extends MultifactorAuthenticationScenario>(scenario: T, params: Parameters<MultifactorAuthorization<T>>[1]): ReturnType<MultifactorAuthorization<T>> => {
+        const {chainedPrivateKeyStatus} = params;
+        const challenge = new MultifactorAuthenticationChallenge(scenario, params);
 
-            const requestStatus = await challenge.request();
-            if (!requestStatus.value) {
-                return setStatus(createAuthorizeErrorStatus(requestStatus));
-            }
+        const requestStatus = await challenge.request();
+        if (!requestStatus.value) {
+            return setStatus(createAuthorizeErrorStatus(requestStatus));
+        }
 
-            const signature = await challenge.sign(accountID, chainedPrivateKeyStatus);
-            if (!signature.value) {
-                return setStatus(createAuthorizeErrorStatus(signature));
-            }
+        const signature = await challenge.sign(accountID, chainedPrivateKeyStatus);
+        if (!signature.value) {
+            return setStatus(createAuthorizeErrorStatus(signature));
+        }
 
-            const result = await challenge.send();
+        const result = await challenge.send();
 
-            return setStatus({
-                ...result,
-                step: {
-                    wasRecentStepSuccessful: result.value,
-                    isRequestFulfilled: true,
-                    requiredFactorForNextStep: undefined,
-                },
-            });
-        },
-        [accountID, setStatus],
-    );
+        return setStatus({
+            ...result,
+            step: {
+                wasRecentStepSuccessful: result.value,
+                isRequestFulfilled: true,
+                requiredFactorForNextStep: undefined,
+            },
+        });
+    };
 
     /**
      * Marks the current authorization request as complete.
      * Preserves the success/failure state while clearing any pending requirements.
      */
-    const cancel = useCallback(
-        (wasRecentStepSuccessful?: boolean) => {
-            return setStatus((prevStatus) => ({
-                ...prevStatus,
-                step: {
-                    isRequestFulfilled: true,
-                    requiredFactorForNextStep: undefined,
-                    wasRecentStepSuccessful,
-                },
-            }));
-        },
-        [setStatus],
-    );
+    const cancel = (wasRecentStepSuccessful?: boolean) => {
+        return setStatus((prevStatus) => ({
+            ...prevStatus,
+            step: {
+                isRequestFulfilled: true,
+                requiredFactorForNextStep: undefined,
+                wasRecentStepSuccessful,
+            },
+        }));
+    };
 
     return {status, authorize, cancel, setup: BiometricsSetup};
 }

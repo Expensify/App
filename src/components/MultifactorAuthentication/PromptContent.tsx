@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -40,4 +40,4 @@ function MultifactorAuthenticationPromptContent({title, subtitle}: MultifactorAu
 
 MultifactorAuthenticationPromptContent.displayName = 'MultifactorAuthenticationPromptContent';
 
-export default memo(MultifactorAuthenticationPromptContent);
+export default MultifactorAuthenticationPromptContent;

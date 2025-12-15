@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -27,29 +27,29 @@ function MultifactorAuthenticationScenarioApproveTransactionPage({route}: Multif
     const transactionID = route.params.transactionID;
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
 
-    const showConfirmModal = useCallback(() => {
+    const showConfirmModal = () => {
         setConfirmModalVisibility(true);
-    }, []);
+    };
 
-    const hideConfirmModal = useCallback(() => {
+    const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
-    }, []);
+    };
 
-    const approveTransaction = useCallback(() => {
+    const approveTransaction = () => {
         process(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {
             transactionID,
             successNotification,
             failureNotification,
         });
-    }, [process, transactionID]);
+    };
 
-    const denyTransaction = useCallback(() => {
+    const denyTransaction = () => {
         if (isConfirmModalVisible) {
             hideConfirmModal();
         }
         // TODO: MFA/Dev We do not know what scenario is in the context here, passing the screen as the second argument works but it is ugly
         trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE, failureNotification);
-    }, [isConfirmModalVisible, trigger, hideConfirmModal]);
+    };
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationScenarioApproveTransactionPage.displayName}>

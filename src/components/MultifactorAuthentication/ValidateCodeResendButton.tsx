@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -61,4 +61,4 @@ function MultifactorAuthenticationValidateCodeResendButton({
 
 MultifactorAuthenticationValidateCodeResendButton.displayName = 'MultifactorAuthenticationValidateCodeResendButton';
 
-export default memo(MultifactorAuthenticationValidateCodeResendButton);
+export default MultifactorAuthenticationValidateCodeResendButton;

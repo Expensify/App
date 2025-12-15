@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthentication/Context';
@@ -17,23 +17,23 @@ function MultifactorAuthenticationRevokePage() {
 
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
 
-    const onGoBackPress = useCallback(() => {
+    const onGoBackPress = () => {
         Navigation.dismissModal();
-    }, []);
+    };
 
-    const showConfirmModal = useCallback(() => {
+    const showConfirmModal = () => {
         setConfirmModalVisibility(true);
-    }, []);
+    };
 
-    const hideConfirmModal = useCallback(() => {
+    const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
-    }, []);
+    };
 
-    const onConfirm = useCallback(() => {
+    const onConfirm = () => {
         trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.REVOKE);
         hideConfirmModal();
         onGoBackPress();
-    }, [hideConfirmModal, onGoBackPress, trigger]);
+    };
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationRevokePage.displayName}>

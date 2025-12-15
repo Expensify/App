@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React from 'react';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import useLocalize from '@hooks/useLocalize';
@@ -35,4 +35,4 @@ function MultifactorAuthenticationApproveTransactionActions({onApprove, onDeny}:
 
 MultifactorAuthenticationApproveTransactionActions.displayName = 'MultifactorAuthenticationApproveTransactionActions';
 
-export default memo(MultifactorAuthenticationApproveTransactionActions);
+export default MultifactorAuthenticationApproveTransactionActions;

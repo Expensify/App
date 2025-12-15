@@ -1,4 +1,4 @@
-import React, {memo, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
@@ -38,21 +38,16 @@ function MultifactorAuthenticationApproveTransactionContent({transactionID}: Mul
     const reportID = chatReportID ?? iouReportID;
 
     // Calculate action
-    const action = useMemo(() => {
-        return getIOUActionForReportID(chatReportID, transactionID) ?? getIOUActionForReportID(iouReportID, transactionID);
-    }, [chatReportID, iouReportID, transactionID]);
+    const action = getIOUActionForReportID(chatReportID, transactionID) ?? getIOUActionForReportID(iouReportID, transactionID);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
 
     // Only subscribe to chatReport if it's different from iouReport (we already have iouReport from useReportWithTransactionsAndViolations)
     // This avoids subscribing to ALL reports which is expensive and triggers re-renders on every report change
     const needsChatReport = !!chatReportID && chatReportID !== iouReportID;
-    const chatReportKey = useMemo(() => {
-        if (!needsChatReport || !chatReportID) {
-            return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
-        }
-        return `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const;
-    }, [needsChatReport, chatReportID]);
+
+    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${needsChatReport && chatReportID ? chatReportID : CONST.DEFAULT_NUMBER_ID}` as const;
+
     const [chatReportFromOnyx] = useOnyx(chatReportKey, {canBeMissing: true});
 
     // Use chatReport from Onyx if it's different from iouReport, otherwise use iouReport
@@ -60,32 +55,22 @@ function MultifactorAuthenticationApproveTransactionContent({transactionID}: Mul
 
     // Create minimal allReports object for TransactionPreview - only include the reports we actually need
     // This avoids subscribing to ALL reports which triggers re-renders whenever any report changes
-    const allReports = useMemo((): OnyxCollection<Report> => {
-        const reports: OnyxCollection<Report> = {};
-        if (iouReportID && iouReport) {
-            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}` as const;
-            reports[reportKey] = iouReport;
-        }
-        if (needsChatReport && chatReportID && chatReport) {
-            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const;
-            reports[reportKey] = chatReport;
-        }
-        return reports;
-    }, [iouReportID, iouReport, needsChatReport, chatReportID, chatReport]);
+    const allReports: OnyxCollection<Report> = {};
+    if (iouReportID && iouReport) {
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}` as const;
+        allReports[reportKey] = iouReport;
+    }
+    if (needsChatReport && chatReportID && chatReport) {
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const;
+        allReports[reportKey] = chatReport;
+    }
 
-    const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length),
-        [StyleUtils, shouldUseNarrowLayout, transactions.length],
-    );
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length);
 
-    const shouldShowPayerAndReceiver = useMemo(() => {
-        if (!action || (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU)) {
-            return false;
-        }
+    const isIllegibleForShowingPayerAndReceiver = !action || (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU);
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return transactions.some((transactionX) => (transactionX?.modifiedAmount || transactionX?.amount) < 0);
-    }, [transactions, action, iouReport]);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldShowPayerAndReceiver = isIllegibleForShowingPayerAndReceiver ? false : transactions.some((transactionX) => (transactionX?.modifiedAmount || transactionX?.amount) < 0);
 
     const handlePreviewPressed = () => {
         if (!iouReportID || contextMenuRef.current?.isContextMenuOpening) {
@@ -134,4 +119,4 @@ function MultifactorAuthenticationApproveTransactionContent({transactionID}: Mul
 
 MultifactorAuthenticationApproveTransactionContent.displayName = 'MultifactorAuthenticationApproveTransactionContent';
 
-export default memo(MultifactorAuthenticationApproveTransactionContent);
+export default MultifactorAuthenticationApproveTransactionContent;

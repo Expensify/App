@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 
@@ -29,4 +29,4 @@ function MultifactorAuthenticationRevokeConfirmModal({isVisible, onConfirm, onCa
 
 MultifactorAuthenticationRevokeConfirmModal.displayName = 'MultifactorAuthenticationRevokeConfirmModal';
 
-export default memo(MultifactorAuthenticationRevokeConfirmModal);
+export default MultifactorAuthenticationRevokeConfirmModal;

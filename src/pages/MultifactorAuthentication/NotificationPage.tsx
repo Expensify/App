@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -21,9 +21,9 @@ type MultifactorAuthenticationNotificationPageProps = PlatformStackScreenProps<M
 function MultifactorAuthenticationNotificationPage({route}: MultifactorAuthenticationNotificationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const onGoBackPress = useCallback(() => {
+    const onGoBackPress = () => {
         Navigation.dismissModal();
-    }, []);
+    };
 
     const {info} = useMultifactorAuthenticationContext();
 

@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React from 'react';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import useLocalize from '@hooks/useLocalize';
@@ -31,4 +31,4 @@ function MultifactorAuthenticationPromptActions({onGoBackPress, onConfirm}: Mult
 
 MultifactorAuthenticationPromptActions.displayName = 'MultifactorAuthenticationPromptActions';
 
-export default memo(MultifactorAuthenticationPromptActions);
+export default MultifactorAuthenticationPromptActions;

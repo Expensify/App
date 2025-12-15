@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -117,33 +117,30 @@ function MultifactorAuthenticationValidateCodePage() {
     /**
      * Handle code input and clear formError upon text change
      */
-    const onCodeInput = useCallback(
-        (text: string) => {
-            setFormError({});
-            setCanShowError(false);
-            setInputCode(text);
+    const onCodeInput = (text: string) => {
+        setFormError({});
+        setCanShowError(false);
+        setInputCode(text);
 
-            // Clear backend errors
-            if (account?.errors) {
-                clearAccountMessages();
-            }
-        },
-        [account?.errors],
-    );
+        // Clear backend errors
+        if (account?.errors) {
+            clearAccountMessages();
+        }
+    };
 
-    const resendValidationCode = useCallback(() => {
+    const resendValidationCode = () => {
         resendValidateCode(contactMethod);
         inputRef.current?.clear();
         setInputCode('');
         setFormError({});
         setCanShowError(false);
         setTimeRemaining(CONST.REQUEST_CODE_DELAY);
-    }, [contactMethod]);
+    };
 
     /**
      * Validate and submit form
      */
-    const validateAndSubmitForm = useCallback(() => {
+    const validateAndSubmitForm = () => {
         // Check if already loading
         if (account?.isLoading) {
             return;
@@ -177,12 +174,12 @@ function MultifactorAuthenticationValidateCodePage() {
 
         // Call the submit callback (from context)
         update({validateCode: Number(inputCode)});
-    }, [account?.isLoading, account?.errors, inputCode, errorMessages.empty, errorMessages.invalid, update]);
+    };
 
-    const onGoBackPress = useCallback(() => {
+    const onGoBackPress = () => {
         trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE);
         // Navigation.goBack();
-    }, [trigger]);
+    };
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationValidateCodePage.displayName}>

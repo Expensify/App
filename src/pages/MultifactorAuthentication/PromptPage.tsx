@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthentication/config';
@@ -20,32 +20,32 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const {translate} = useLocalize();
     const {update, trigger} = useMultifactorAuthenticationContext();
 
-    const contentData = useMemo(() => MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType], [route.params.promptType]);
+    const contentData = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType];
 
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
 
-    const onConfirm = useCallback(() => {
+    const onConfirm = () => {
         update({softPromptDecision: true});
-    }, [update]);
+    };
 
-    const onGoBackPress = useCallback(() => {
+    const onGoBackPress = () => {
         update({softPromptDecision: false});
-    }, [update]);
+    };
 
-    const showConfirmModal = useCallback(() => {
+    const showConfirmModal = () => {
         setConfirmModalVisibility(true);
-    }, []);
+    };
 
-    const hideConfirmModal = useCallback(() => {
+    const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
-    }, []);
+    };
 
-    const denyTransaction = useCallback(() => {
+    const denyTransaction = () => {
         if (isConfirmModalVisible) {
             hideConfirmModal();
         }
         trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE);
-    }, [isConfirmModalVisible, trigger, hideConfirmModal]);
+    };
 
     if (!contentData) {
         return <NotFoundPage />;

@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import type {MultifactorAuthenticationPartialStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
@@ -24,7 +24,7 @@ export default function useMultifactorAuthenticationStatus<T>(
 ): UseMultifactorAuthenticationStatus<T> {
     const {translate} = useLocalize();
 
-    const defaultText = useMemo(() => translate('multifactorAuthentication.reason.generic.notRequested'), [translate]);
+    const defaultText = translate('multifactorAuthentication.reason.generic.notRequested');
 
     /**
      * State for the current multifactorial authentication status.
@@ -47,44 +47,41 @@ export default function useMultifactorAuthenticationStatus<T>(
      * or a function to transform the existing status. Returns the newly set status
      * for immediate use, though the status value from the hook can be used for reactive updates.
      */
-    const setStatus: SetMultifactorAuthenticationStatus<T> = useCallback(
-        (partialStatus, overwriteType) => {
-            const state = typeof partialStatus === 'function' ? partialStatus(previousStatus.current) : partialStatus;
-            const scenarioType = overwriteType ?? type;
+    const setStatus: SetMultifactorAuthenticationStatus<T> = (partialStatus, overwriteType) => {
+        const state = typeof partialStatus === 'function' ? partialStatus(previousStatus.current) : partialStatus;
+        const scenarioType = overwriteType ?? type;
 
-            const success = successSource.current ? successSource.current(state) : !!state.step.wasRecentStepSuccessful;
+        const success = successSource.current ? successSource.current(state) : !!state.step.wasRecentStepSuccessful;
 
-            const isAuthorization = scenarioType === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION;
+        const isAuthorization = scenarioType === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION;
 
-            const isAuthentication = scenarioType === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION;
-            const isAuthAction = isAuthentication || isAuthorization;
+        const isAuthentication = scenarioType === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION;
+        const isAuthAction = isAuthentication || isAuthorization;
 
-            const typeName = getAuthTypeName(state);
-            const statusType = success ? 'success' : 'failed';
-            const originalMessage = translate(state.reason);
+        const typeName = getAuthTypeName(state);
+        const statusType = success ? 'success' : 'failed';
+        const originalMessage = translate(state.reason);
 
-            const title = isAuthAction
-                ? translate(`multifactorAuthentication.statusMessage.${statusType}Title`, {authorization: isAuthorization})
-                : translate(`multifactorAuthentication.statusMessage.${statusType}TitleGeneral`);
+        const title = isAuthAction
+            ? translate(`multifactorAuthentication.statusMessage.${statusType}Title`, {authorization: isAuthorization})
+            : translate(`multifactorAuthentication.statusMessage.${statusType}TitleGeneral`);
 
-            const message = isAuthAction
-                ? translate(`multifactorAuthentication.statusMessage.${statusType}Message`, {authorization: isAuthorization, because: success ? typeName : originalMessage})
-                : originalMessage;
+        const message = isAuthAction
+            ? translate(`multifactorAuthentication.statusMessage.${statusType}Message`, {authorization: isAuthorization, because: success ? typeName : originalMessage})
+            : originalMessage;
 
-            const createdStatus = {
-                ...state,
-                typeName,
-                message,
-                title,
-            };
+        const createdStatus = {
+            ...state,
+            typeName,
+            message,
+            title,
+        };
 
-            setStatusSource(createdStatus);
-            previousStatus.current = createdStatus;
+        setStatusSource(createdStatus);
+        previousStatus.current = createdStatus;
 
-            return createdStatus;
-        },
-        [translate, type],
-    );
+        return createdStatus;
+    };
 
     return [status, setStatus];
 }

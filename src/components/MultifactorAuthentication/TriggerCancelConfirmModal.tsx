@@ -1,4 +1,4 @@
-import React, {memo} from 'react';
+import React from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
@@ -40,4 +40,4 @@ function MultifactorAuthenticationTriggerCancelConfirmModal({
 
 MultifactorAuthenticationTriggerCancelConfirmModal.displayName = 'MultifactorAuthenticationTriggerCancelConfirmModal';
 
-export default memo(MultifactorAuthenticationTriggerCancelConfirmModal);
+export default MultifactorAuthenticationTriggerCancelConfirmModal;
