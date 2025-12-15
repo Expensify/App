@@ -75,6 +75,8 @@ function Confirmation() {
         [duplicates, reviewDuplicates, newTransaction],
     );
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
+    const childReportID = reportAction?.childReportID;
+    const reviewDuplicatesReportID = reviewDuplicates?.reportID;
 
     const navigateAfterMerge = useCallback((reportID: string | undefined) => {
         if (reportID) {
@@ -89,16 +91,16 @@ function Confirmation() {
     }, []);
 
     const mergeDuplicates = useCallback(() => {
-        const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
-        const params = reportAction?.childReportID ? transactionsMergeParams : {...transactionsMergeParams, transactionThreadReportID};
+        const transactionThreadReportID = childReportID ?? generateReportID();
+        const params = childReportID ? transactionsMergeParams : {...transactionsMergeParams, transactionThreadReportID};
         IOU.mergeDuplicates(params);
-        Navigation.setNavigationActionToMicrotaskQueue(() => navigateAfterMerge(reviewDuplicates?.reportID));
-    }, [reportAction?.childReportID, transactionsMergeParams, reviewDuplicates?.reportID, navigateAfterMerge]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => navigateAfterMerge(reviewDuplicatesReportID));
+    }, [childReportID, transactionsMergeParams, reviewDuplicatesReportID, navigateAfterMerge]);
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-        Navigation.setNavigationActionToMicrotaskQueue(() => navigateAfterMerge(reviewDuplicates?.reportID));
-    }, [transactionsMergeParams, reviewDuplicates?.reportID, navigateAfterMerge]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => navigateAfterMerge(reviewDuplicatesReportID));
+    }, [transactionsMergeParams, reviewDuplicatesReportID, navigateAfterMerge]);
 
     const contextValue = useMemo(
         () => ({
