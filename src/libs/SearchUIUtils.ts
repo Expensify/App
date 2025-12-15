@@ -1879,9 +1879,19 @@ function getSortedSections(
  */
 function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string, localeCompare: LocaleContextProps['localeCompare'], shouldCompareOriginalValue = false): number {
     const isAsc = sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
+    const aIsEmpty = a === undefined || a === null || a === '';
+    const bIsEmpty = b === undefined || b === null || b === '';
 
-    if (a === undefined || b === undefined) {
+    if (aIsEmpty && bIsEmpty) {
         return 0;
+    }
+
+    if (aIsEmpty) {
+        return isAsc ? -1 : 1;
+    }
+
+    if (bIsEmpty) {
+        return isAsc ? 1 : -1;
     }
 
     if (typeof a === 'string' && typeof b === 'string') {
@@ -1915,7 +1925,7 @@ function getSortedTransactionData(data: TransactionListItemType[], localeCompare
     return data.sort((a, b) => {
         const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty as keyof TransactionListItemType];
         const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty as keyof TransactionListItemType];
-        console.log('sortingProperty', {sortingProperty, aValue, bValue, a, b});
+
         return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
     });
 }
