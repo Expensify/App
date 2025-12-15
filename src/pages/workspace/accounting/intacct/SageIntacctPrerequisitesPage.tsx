@@ -5,8 +5,6 @@ import type {GestureResponderEvent, Text as RNText} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -29,7 +27,7 @@ type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNaviga
 function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'NewWindow', 'Task'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Computer'] as const);
     const popoverAnchor = useRef<View | RNText | null>(null);
     const policyID: string = route.params.policyID;
@@ -58,7 +56,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
             {
                 title: translate('workspace.intacct.followSteps'),
                 key: 'workspace.intacct.followSteps',
-                icon: Expensicons.Task,
+                icon: icons.Task,
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
                 onPress: () => {
@@ -74,7 +72,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                 numberOfLinesTitle: 3,
             },
         ],
-        [icons.Download, icons.NewWindow, translate],
+        [icons.Download, icons.NewWindow, translate, icons.Task],
     );
 
     return (

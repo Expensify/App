@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
 import {
@@ -7,6 +8,7 @@ import {
     deleteWorkspaceCategories,
     enablePolicyCategories,
     renamePolicyCategory,
+    setPolicyCategoryTax,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
 } from '@libs/actions/Policy/Category';
@@ -392,6 +394,107 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
+        });
+    });
+
+    describe('SetPolicyCategoryTax', () => {
+        it('should set expense rule when category expense rule is not present', async () => {
+            // Given a policy
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areCategoriesEnabled = true;
+            const categoryName = 'Fake category';
+            const fakePolicyCategories = {
+                [categoryName]: {
+                    name: categoryName,
+                    enabled: false,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'GL Code': '',
+                    unencodedName: categoryName,
+                    externalID: '',
+                    areCommentsRequired: false,
+                    origin: '',
+                },
+            };
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakePolicyCategories);
+
+            setPolicyCategoryTax(fakePolicy, categoryName, 'VAT');
+            await waitForBatchedUpdates();
+
+            // Then the approval rule should be created with the tag name
+            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+
+            expect(updatedPolicy?.rules?.expenseRules).toHaveLength(1);
+            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.value).toBe(categoryName);
+            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.condition).toBe(CONST.POLICY.RULE_CONDITIONS.MATCHES);
+            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.field).toBe(CONST.POLICY.FIELDS.CATEGORY);
+            expect(updatedPolicy?.rules?.expenseRules?.[0].tax.field_id_TAX.externalID).toBe('VAT');
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should update expense rule when category expense rule is present', async () => {
+            // Given a policy with approval rules that reference a tag
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areCategoriesEnabled = true;
+            const categoryName = 'Fake category';
+            const fakePolicyCategories = {
+                [categoryName]: {
+                    name: categoryName,
+                    enabled: false,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'GL Code': '',
+                    unencodedName: categoryName,
+                    externalID: '',
+                    areCommentsRequired: false,
+                    origin: '',
+                },
+            };
+
+            // Create expense rule that uses the tag
+            fakePolicy.rules = {
+                expenseRules: [
+                    {
+                        tax: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            field_id_TAX: {
+                                externalID: 'GST',
+                            },
+                        },
+                        applyWhen: [
+                            {
+                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                field: CONST.POLICY.FIELDS.CATEGORY,
+                                value: categoryName,
+                            },
+                        ],
+                    },
+                ],
+            };
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakePolicyCategories);
+
+            setPolicyCategoryTax(fakePolicy, categoryName, 'VAT');
+            await waitForBatchedUpdates();
+
+            // Then the approval rule should be created with the tag name
+            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+
+            expect(updatedPolicy?.rules?.expenseRules).toHaveLength(1);
+            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.value).toBe(categoryName);
+            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.condition).toBe(CONST.POLICY.RULE_CONDITIONS.MATCHES);
+            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.field).toBe(CONST.POLICY.FIELDS.CATEGORY);
+            expect(updatedPolicy?.rules?.expenseRules?.[0].tax.field_id_TAX.externalID).toBe('VAT');
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
         });
     });
 });

@@ -28,6 +28,7 @@ function TextInputClearButton({style, onPressButton}: TextInputClearButtonProps)
                     e.preventDefault();
                 }}
                 onPress={onPressButton}
+                shouldUseAutoHitSlop
             >
                 <Icon
                     src={Expensicons.Clear}
