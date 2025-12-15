@@ -1,7 +1,8 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
-import {getPolicy, getWorkspaceAccountID, isPolicyAdmin} from '@libs/PolicyUtils';
+import usePolicy from '@hooks/usePolicy';
+import {getWorkspaceAccountID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isCardIssuedAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import useGetExpensifyCardFromReportAction from '@src/hooks/useGetExpensifyCardFromReportAction';
@@ -17,10 +18,9 @@ jest.mock('@components/OnyxListItemProvider', () => ({
     useCardList: jest.fn(),
     useWorkspaceCardList: jest.fn(),
 }));
+jest.mock('@hooks/usePolicy');
 
-// This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-const mockGetPolicy = getPolicy as jest.MockedFunction<typeof getPolicy>;
+const mockUsePolicy = usePolicy as jest.MockedFunction<typeof usePolicy>;
 const mockGetWorkspaceAccountID = getWorkspaceAccountID as jest.MockedFunction<typeof getWorkspaceAccountID>;
 const mockIsPolicyAdmin = isPolicyAdmin as jest.MockedFunction<typeof isPolicyAdmin>;
 const mockGetOriginalMessage = getOriginalMessage as jest.MockedFunction<typeof getOriginalMessage>;
@@ -78,7 +78,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
         await Onyx.clear();
         jest.clearAllMocks();
 
-        mockGetPolicy.mockReturnValue(mockPolicy);
+        mockUsePolicy.mockReturnValue(mockPolicy);
         mockGetWorkspaceAccountID.mockReturnValue(123);
         mockIsPolicyAdmin.mockReturnValue(false);
         mockGetOriginalMessage.mockReturnValue({cardID: 123, assigneeAccountID: 1});
@@ -134,7 +134,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
                 mockIsPolicyAdmin.mockReturnValue(true);
                 mockGetWorkspaceAccountID.mockReturnValue(123);
                 // Override the default policy for admin tests
-                mockGetPolicy.mockReturnValue({
+                mockUsePolicy.mockReturnValue({
                     id: 'policy123',
                     name: 'Test Policy',
                     role: CONST.POLICY.ROLE.ADMIN,
@@ -193,7 +193,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
 
         it('updates when allExpensifyCards changes for policy admin', async () => {
             mockIsPolicyAdmin.mockReturnValue(true);
-            mockGetPolicy.mockReturnValue({
+            mockUsePolicy.mockReturnValue({
                 id: 'policy123',
                 name: 'Test Policy',
                 role: CONST.POLICY.ROLE.ADMIN,
@@ -250,7 +250,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
                 isPolicyExpenseChatEnabled: false,
                 workspaceAccountID: 123,
             };
-            mockGetPolicy.mockReturnValue(testPolicy);
+            mockUsePolicy.mockReturnValue(testPolicy);
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
             mockUseCardList.mockReturnValue({'123': mockCard});
@@ -258,7 +258,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
             const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
             await waitForBatchedUpdatesWithAct();
 
-            expect(mockGetPolicy).toHaveBeenCalledWith('policy123');
+            expect(mockUsePolicy).toHaveBeenCalledWith('policy123');
             expect(mockIsPolicyAdmin).toHaveBeenCalledWith(testPolicy);
             expect(result.current).toEqual(mockCard);
         });
