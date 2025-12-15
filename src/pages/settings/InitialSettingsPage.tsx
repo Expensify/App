@@ -161,18 +161,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         confirmReadyToOpenApp();
     }, []);
 
-    const signOut = useCallback(
-        (shouldForceSignout = false) => {
-            if (!network.isOffline || shouldForceSignout) {
-                return signOutAndRedirectToSignIn();
-            }
-
-            // When offline, warn the user that any actions they took while offline will be lost if they sign out
-            showSignOutModal();
-        },
-        [network.isOffline],
-    );
-
     const {showConfirmModal} = useConfirmModal();
     const showSignOutModal = useCallback(() => {
         return showConfirmModal({
@@ -182,13 +170,25 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
             danger: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            signOut(true);
         });
-    }, [showConfirmModal, translate, signOut]);
+    }, [showConfirmModal, translate]);
+
+    const signOut = useCallback(
+        (shouldForceSignout = false) => {
+            if (!network.isOffline || shouldForceSignout) {
+                return signOutAndRedirectToSignIn();
+            }
+
+            // When offline, warn the user that any actions they took while offline will be lost if they sign out
+            showSignOutModal().then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                signOut(true);
+            });
+        },
+        [network.isOffline],
+    );
 
     const surveyCompletedWithinLastMonth = useMemo(() => {
         const surveyThresholdInDays = 30;
