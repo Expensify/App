@@ -8,6 +8,7 @@ import type {SearchCustomColumnIds} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionList from '@components/SelectionListWithSections';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
+import type {SectionListDataType} from '@components/SelectionListWithSections/types';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -42,13 +43,15 @@ function SearchColumnsPage() {
         return columnIds;
     });
 
-    const sections = [
+    const sections: Array<SectionListDataType<ListItem>> = [
         {
             title: undefined,
             data: allColumns.map((columnId) => ({
                 text: translate(getSearchColumnTranslationKey(columnId)),
                 value: columnId,
                 keyForList: columnId,
+                // We do not allow the user to unselect the total column, but we want to inform them that it will be in their column selection
+                isDisabled: columnId === CONST.SEARCH.CUSTOM_COLUMNS.TOTAL,
                 isSelected: selectedColumnIds?.includes(columnId),
             })),
         },
