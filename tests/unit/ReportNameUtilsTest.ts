@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
 import {createAdminRoom, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('ReportNameUtils', () => {
@@ -375,27 +376,27 @@ describe('ReportNameUtils', () => {
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
             it('shows all participants when count <= 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('shows all participants when count <= 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(fourParticipants, true)).toEqual('Four, One, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants, true)).toEqual('Four, One, Three, Two');
             });
 
             it('shows 5 participants with ellipsis when count > 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
+                expect(getGroupChatName(formatPhoneNumber, eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
             });
 
             it('shows all participants when count > 5 and shouldApplyLimit is false', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
             it('uses correct display names for participants', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-                expect(getGroupChatName(fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
+                expect(getGroupChatName(formatPhoneNumber, fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
 
@@ -408,7 +409,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('uses report name when available (limit true)', async () => {
@@ -419,7 +420,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('uses report name when >5 participants and limit true', async () => {
@@ -430,7 +431,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, true, report)).toEqual("Let's talk");
             });
 
             it('uses report name when >5 participants and limit false', async () => {
@@ -441,7 +442,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual("Let's talk");
             });
 
             it('falls back to participant names when report name is empty', async () => {
@@ -452,7 +453,7 @@ describe('ReportNameUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
         });
     });

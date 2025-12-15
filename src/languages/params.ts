@@ -89,6 +89,10 @@ type BeginningOfChatHistoryInvoiceRoomParams = {
     invoiceReceiver: string;
 };
 
+type BeginningOfChatHistoryParams = {
+    users: string;
+};
+
 type LearnMoreRouteParams = {
     learnMoreMethodsRoute: string;
     formattedPrice: string;
@@ -400,6 +404,10 @@ type UpdatedPolicyCustomUnitTaxRateExternalIDParams = {customUnitRateName: strin
 
 type UpdatedPolicyCustomUnitTaxClaimablePercentageParams = {customUnitRateName: string; newValue: number; oldValue?: number};
 
+type UpdatedPolicyCustomUnitRateIndexParams = {customUnitName: string; customUnitRateName: string; oldValue?: number; newValue: number};
+
+type UpdatedPolicyCustomUnitRateEnabledParams = {customUnitName: string; customUnitRateName: string; oldValue: boolean; newValue: boolean};
+
 type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
 
 type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
@@ -636,7 +644,7 @@ type AssignedCardParams = {
 
 type FeatureNameParams = {
     featureName: string;
-    moreFeaturesLink: string;
+    moreFeaturesLink?: string;
 };
 
 type AutoPayApprovedReportsLimitErrorParams = {
@@ -1051,6 +1059,7 @@ export type {
     BeginningOfChatHistoryAnnounceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryInvoiceRoomParams,
+    BeginningOfChatHistoryParams,
     BeginningOfArchivedRoomParams,
     BeginningOfChatHistoryUserRoomParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -1286,4 +1295,6 @@ export type {
     ReportFieldParams,
     FocusModeUpdateParams,
     TagSelectionParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
 };
