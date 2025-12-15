@@ -1164,7 +1164,11 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
 }
 
-function setPolicyTagApprover(policyID: string, policy: OnyxEntry<Policy>, tag: string, approver: string) {
+function setPolicyTagApprover(policy: OnyxEntry<Policy>, tag: string, approver: string) {
+    if (!policy?.id) {
+        return;
+    }
+    const policyID = policy.id;
     const prevApprovalRules = policy?.rules?.approvalRules ?? [];
     const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);
     const filteredApprovalRules = approverRuleToUpdate ? prevApprovalRules.filter((rule) => rule.id !== approverRuleToUpdate.id) : prevApprovalRules;
