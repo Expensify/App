@@ -1731,6 +1731,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.STATUS:
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
                 if (isDateColumnFullWidth) {
                     columnWidth = styles.flex1;
