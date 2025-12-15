@@ -14,7 +14,6 @@ import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Icon from '@components/Icon';
-import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -40,6 +39,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -58,7 +58,7 @@ import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyOwner} from '@libs/PolicyUtils';
+import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
     getActionableCardFraudAlertMessage,
@@ -66,9 +66,11 @@ import {
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
     getChangedApproverActionMessage,
+    getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
+    getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
@@ -87,6 +89,7 @@ import {
     getReopenedMessage,
     getReportActionMessage,
     getReportActionText,
+    getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
@@ -135,6 +138,7 @@ import {
     isResolvedConciergeCategoryOptions,
     isResolvedConciergeDescriptionOptions,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
+    isSystemUserMentioned,
     isTagModificationAction,
     isTaskAction,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
@@ -193,7 +197,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution, OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
@@ -328,7 +332,7 @@ type PureReportActionItemProps = {
         reportAction: OnyxTypes.ReportAction,
         reactionObject: Emoji,
         existingReactions: OnyxEntry<OnyxTypes.ReportActionReactions>,
-        paramSkinTone: number | undefined,
+        paramSkinTone: number,
         ignoreSkinToneOnCompare: boolean | undefined,
     ) => void;
 
@@ -500,6 +504,7 @@ function PureReportActionItem({
         isActionableMentionWhisper(action) || isActionableMentionInviteToSubmitExpenseConfirmWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
     const isReportArchived = useReportIsArchived(reportID);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -671,7 +676,7 @@ function PureReportActionItem({
     const showPopover = useCallback(
         (event: GestureResponderEvent | MouseEvent) => {
             // Block menu on the message being Edited or if the report action item has errors
-            if (draftMessage !== undefined || !isEmptyObject(action.errors) || !shouldDisplayContextMenu) {
+            if (draftMessage !== undefined || !isEmptyValueObject(action.errors) || !shouldDisplayContextMenu) {
                 return;
             }
 
@@ -720,8 +725,8 @@ function PureReportActionItem({
     );
 
     const toggleReaction = useCallback(
-        (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
-            toggleEmojiReaction(reportID, action, emoji, emojiReactions, undefined, ignoreSkinToneOnCompare);
+        (emoji: Emoji, preferredSkinTone: number, ignoreSkinToneOnCompare?: boolean) => {
+            toggleEmojiReaction(reportID, action, emoji, emojiReactions, preferredSkinTone, ignoreSkinToneOnCompare);
         },
         [reportID, action, emojiReactions, toggleEmojiReaction],
     );
@@ -939,7 +944,10 @@ function PureReportActionItem({
         const actionableMentionWhisperOptions = [];
         const isReportInPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
 
-        if (isReportInPolicy && (isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID))) {
+        // Show the invite to submit expense button even if one of the mentioned users is a not a policy member
+        const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login)) ?? false;
+
+        if ((isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) && isReportInPolicy && !isSystemUserMentioned(action) && !hasMentionedPolicyMembers) {
             actionableMentionWhisperOptions.push({
                 text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
@@ -1372,6 +1380,12 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getWorkspaceFeatureEnabledMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceAttendeeTrackingUpdateMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER)) {
+            children = <ReportActionItemBasicMessage message={getDefaultApproverUpdateMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO)) {
+            children = <ReportActionItemBasicMessage message={getSubmitsToUpdateMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO)) {
+            children = <ReportActionItemBasicMessage message={getForwardsToUpdateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceReimbursementUpdateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
@@ -1570,7 +1584,7 @@ function PureReportActionItem({
                             reportAction={action}
                             emojiReactions={isOnSearch ? {} : emojiReactions}
                             shouldBlockReactions={hasErrors}
-                            toggleReaction={(emoji, ignoreSkinToneOnCompare) => {
+                            toggleReaction={(emoji, preferredSkinTone, ignoreSkinToneOnCompare) => {
                                 if (isAnonymousUser()) {
                                     hideContextMenu(false);
 
@@ -1579,7 +1593,7 @@ function PureReportActionItem({
                                         signOutAndRedirectToSignIn();
                                     });
                                 } else {
-                                    toggleReaction(emoji, ignoreSkinToneOnCompare);
+                                    toggleReaction(emoji, preferredSkinTone, ignoreSkinToneOnCompare);
                                 }
                             }}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
@@ -1692,7 +1706,7 @@ function PureReportActionItem({
         return null;
     }
 
-    const hasErrors = !isEmptyObject(action.errors);
+    const hasErrors = !isEmptyValueObject(action.errors);
     const whisperedTo = getWhisperedTo(action);
     const isMultipleParticipant = whisperedTo.length > 1;
 
@@ -1809,7 +1823,7 @@ function PureReportActionItem({
                                                 <View style={[styles.pl6, styles.mr3]}>
                                                     <Icon
                                                         fill={theme.icon}
-                                                        src={Eye}
+                                                        src={expensifyIcons.Eye}
                                                         small
                                                     />
                                                 </View>

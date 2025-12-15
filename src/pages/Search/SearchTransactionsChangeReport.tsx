@@ -91,8 +91,8 @@ function SearchTransactionsChangeReport() {
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys]);
 
-    const createReportForPolicy = () => {
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses);
+    const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, false, shouldDismissEmptyReportsConfirmation);
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport(

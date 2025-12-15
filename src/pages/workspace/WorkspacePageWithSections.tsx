@@ -176,6 +176,11 @@ function WorkspacePageWithSections({
     }, [policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
+        if (shouldShow) {
+            goBackFromWorkspaceSettingPages();
+            return true;
+        }
+
         if (onBackButtonPress) {
             onBackButtonPress();
             return true;

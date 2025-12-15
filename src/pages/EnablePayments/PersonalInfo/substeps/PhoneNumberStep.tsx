@@ -63,6 +63,7 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             defaultValue={defaultPhoneNumber}
             enabledWhenOffline
             shouldShowPatriotActLink
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }

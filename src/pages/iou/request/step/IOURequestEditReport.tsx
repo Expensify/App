@@ -97,12 +97,13 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         Navigation.dismissModal();
     };
 
-    const createReportForPolicy = () => {
-        if (!policyForMovingExpenses?.id) {
+    const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!hasPerDiemTransactions && !policyForMovingExpenses?.id) {
             return;
         }
 
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses);
+        const policyForNewReportID = hasPerDiemTransactions ? selectedReport?.policyID : policyForMovingExpensesID;
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, false, shouldDismissEmptyReportsConfirmation);
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
@@ -114,7 +115,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
-        if (!policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (hasPerDiemTransactions) {
+            handleCreateReport();
+            return;
+        }
+        if (!hasPerDiemTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
