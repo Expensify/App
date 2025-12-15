@@ -53,7 +53,7 @@ function SearchColumnsPage() {
         },
     ];
 
-    // JACK TODO
+    // JACK_TODO
     const shouldShowResetColumns = true;
 
     const onSelectItem = (item: ListItem) => {
