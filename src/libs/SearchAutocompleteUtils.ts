@@ -228,7 +228,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
             // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
             return /^-?(?!.*[.,].*[.,])\d{0,8}(?:[.,]\d{0,2})?$/.test(range.value);
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.COLUMNS:
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
             return Object.values(CONST.SEARCH.CUSTOM_COLUMNS).includes(range.value as ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS>);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
             return isList.includes(range.value);

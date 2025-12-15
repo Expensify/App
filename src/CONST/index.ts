@@ -6787,6 +6787,7 @@ const CONST = {
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             GROUP_BY: 'groupBy',
+            COLUMNS: 'columns',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -6831,7 +6832,6 @@ const CONST = {
             ATTENDEE: 'attendee',
             IS: 'is',
             REPORT_FIELD: 'reportField',
-            COLUMNS: 'columns',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field

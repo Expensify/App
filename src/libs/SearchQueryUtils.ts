@@ -560,7 +560,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, groupBy, ...otherFilters} = supportedFilterValues;
+    const {type, status, groupBy, columns, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
@@ -584,6 +584,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (status && Array.isArray(status)) {
         const filterValueArray = [...new Set<string>(status)];
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
+    }
+
+    if (columns?.length) {
+        const filterValueArray = [...new Set<string>(columns)];
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -1150,6 +1155,9 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
             break;
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
             userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY);
+            break;
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
+            userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS);
             break;
         default:
             userFriendlyKey = getUserFriendlyKey(rawFilter.key as SearchFilterKey);
