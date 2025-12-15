@@ -738,6 +738,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Aktion erforderlich',
         duplicate: 'Duplizieren',
         duplicated: 'Dupliziert',
+        locked: 'Gesperrt',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -3118,6 +3119,10 @@ ${
             `Ups! Es scheint, dass die Währung deines Arbeitsbereichs auf eine andere Währung als USD eingestellt ist. Um fortzufahren, gehe bitte zu <a href="${workspaceRoute}">deinen Arbeitsbereichseinstellungen</a>, stelle sie auf USD ein und versuche es erneut.`,
         bbaAdded: 'Geschäftsbankkonto hinzugefügt!',
         bbaAddedDescription: 'Es ist bereit, für Zahlungen verwendet zu werden.',
+        lockedBankAccount: 'Gesperrtes Bankkonto',
+        unlockBankAccount: 'Bankkonto entsperren',
+        youCantPayThis: 'Du kannst diesen Bericht nicht bezahlen, weil du ein',
+        tapBelow: 'Tippe unten und der Concierge hilft dir bei den nächsten Schritten zur Entsperrung.',
         error: {
             youNeedToSelectAnOption: 'Bitte wählen Sie eine Option, um fortzufahren',
             noBankAccountAvailable: 'Entschuldigung, es ist kein Bankkonto verfügbar',

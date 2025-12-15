@@ -84,6 +84,9 @@ type MenuItemBaseProps = ForwardedFSClassProps & {
     /** Whether the badge should be shown as success */
     badgeSuccess?: boolean;
 
+    /** Whether the badge should be shown as error */
+    badgeError?: boolean;
+
     /** Used to apply offline styles to child text components */
     style?: StyleProp<ViewStyle>;
 
@@ -413,6 +416,7 @@ function MenuItem({
     badgeText,
     badgeIcon,
     badgeSuccess,
+    badgeError,
     style,
     wrapperStyle,
     titleWrapperStyle,
@@ -920,6 +924,7 @@ function MenuItem({
                                                         icon={badgeIcon}
                                                         badgeStyles={badgeStyle}
                                                         success={badgeSuccess}
+                                                        error={badgeError}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}

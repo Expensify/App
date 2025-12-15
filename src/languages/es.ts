@@ -377,6 +377,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Acción requerida',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
+        locked: 'Bloqueado',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -2694,6 +2695,10 @@ ${amount} para ${merchant} - ${date}`,
             `¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Para continuar, ve a <a href="${workspaceRoute}">la configuración del área de trabajo</a>, configúrala en USD e inténtalo nuevamente.`,
         bbaAdded: '¡Cuenta bancaria empresarial agregada!',
         bbaAddedDescription: 'Está lista para ser utilizada en pagos.',
+        lockedBankAccount: 'Cuenta bancaria bloqueada',
+        unlockBankAccount: 'Desbloquear cuenta bancaria',
+        youCantPayThis: 'No puedes pagar este informe porque tienes una',
+        tapBelow: 'Toca abajo y el Concierge te ayudará con los próximos pasos para desbloquearla.',
         error: {
             youNeedToSelectAnOption: 'Debes seleccionar una opción para continuar',
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',

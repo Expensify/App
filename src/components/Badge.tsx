@@ -75,8 +75,8 @@ function Badge({
             styles.defaultBadge,
             styles.alignSelfCenter,
             styles.ml2,
-            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC),
             badgeStyles,
+            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC),
         ],
         [styles.defaultBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles],
     );
