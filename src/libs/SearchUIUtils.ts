@@ -2063,8 +2063,6 @@ function getSearchColumnTranslationKey(columnId: ValueOf<typeof CONST.SEARCH.CUS
             return 'common.from';
         case CONST.SEARCH.CUSTOM_COLUMNS.TO:
             return 'common.to';
-        case CONST.SEARCH.CUSTOM_COLUMNS.TOTAL:
-            return 'common.total';
         case CONST.SEARCH.CUSTOM_COLUMNS.ACTION:
             return 'common.action';
     }

@@ -79,7 +79,7 @@ function ExpenseReportListItemRow({
     }, [item.type, item.total, item.currency]);
 
     const columnComponents = {
-        [CONST.SEARCH.CUSTOM_COLUMNS.DATE]: (
+        [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                 <DateCell
                     date={item.created ?? ''}
@@ -88,7 +88,7 @@ function ExpenseReportListItemRow({
                 />
             </View>
         ),
-        [CONST.SEARCH.CUSTOM_COLUMNS.STATUS]: (
+        [CONST.SEARCH.TABLE_COLUMNS.STATUS]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
                 <StatusCell
                     stateNum={item.stateNum}
@@ -96,7 +96,7 @@ function ExpenseReportListItemRow({
                 />
             </View>
         ),
-        [CONST.SEARCH.CUSTOM_COLUMNS.TITLE]: (
+        [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
                 <TitleCell
                     text={item.reportName ?? ''}
@@ -104,7 +104,7 @@ function ExpenseReportListItemRow({
                 />
             </View>
         ),
-        [CONST.SEARCH.CUSTOM_COLUMNS.FROM]: (
+        [CONST.SEARCH.TABLE_COLUMNS.FROM]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                 {!!item.from && (
                     <UserInfoCell
@@ -115,7 +115,7 @@ function ExpenseReportListItemRow({
                 )}
             </View>
         ),
-        [CONST.SEARCH.CUSTOM_COLUMNS.TO]: (
+        [CONST.SEARCH.TABLE_COLUMNS.TO]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TO)]}>
                 {!!item.to && (
                     <UserInfoCell
@@ -126,7 +126,7 @@ function ExpenseReportListItemRow({
                 )}
             </View>
         ),
-        [CONST.SEARCH.CUSTOM_COLUMNS.TOTAL]: (
+        [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
                 <TotalCell
                     total={total}
@@ -134,7 +134,7 @@ function ExpenseReportListItemRow({
                 />
             </View>
         ),
-        [CONST.SEARCH.CUSTOM_COLUMNS.ACTION]: (
+        [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                 <ActionCell
                     action={item.action}

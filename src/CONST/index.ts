@@ -6699,26 +6699,19 @@ const CONST = {
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
         },
-        CUSTOM_COLUMNS: {
-            DATE: 'date',
-            STATUS: 'status',
-            TITLE: 'title',
-            FROM: 'from',
-            TO: 'to',
-            TOTAL: 'total',
-            ACTION: 'action',
+        get CUSTOM_COLUMNS() {
+            return {
+                DATE: this.TABLE_COLUMNS.DATE,
+                STATUS: this.TABLE_COLUMNS.STATUS,
+                TITLE: this.TABLE_COLUMNS.TITLE,
+                FROM: this.TABLE_COLUMNS.FROM,
+                TO: this.TABLE_COLUMNS.TO,
+                ACTION: this.TABLE_COLUMNS.ACTION,
+            };
         },
         get DEFAULT_COLUMNS() {
             return {
-                EXPENSE_REPORT: [
-                    this.CUSTOM_COLUMNS.DATE,
-                    this.CUSTOM_COLUMNS.STATUS,
-                    this.CUSTOM_COLUMNS.TITLE,
-                    this.CUSTOM_COLUMNS.FROM,
-                    this.CUSTOM_COLUMNS.TO,
-                    this.CUSTOM_COLUMNS.TOTAL,
-                    this.CUSTOM_COLUMNS.ACTION,
-                ],
+                EXPENSE_REPORT: [this.TABLE_COLUMNS.DATE, this.TABLE_COLUMNS.STATUS, this.TABLE_COLUMNS.TITLE, this.TABLE_COLUMNS.FROM, this.TABLE_COLUMNS.TO, this.TABLE_COLUMNS.TOTAL],
             };
         },
         BOOLEAN: {

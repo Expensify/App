@@ -50,8 +50,6 @@ function SearchColumnsPage() {
                 text: translate(getSearchColumnTranslationKey(columnId)),
                 value: columnId,
                 keyForList: columnId,
-                // We do not allow the user to unselect the total column, but we want to inform them that it will be in their column selection
-                isDisabled: columnId === CONST.SEARCH.CUSTOM_COLUMNS.TOTAL,
                 isSelected: selectedColumnIds?.includes(columnId),
             })),
         },
