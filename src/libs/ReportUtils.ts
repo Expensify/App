@@ -77,7 +77,7 @@ import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {
@@ -9327,7 +9327,7 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     let reportAction: OnyxEntry<ReportAction>;
 
     for (const action of reportActionsArray) {
-        if (action && !isEmptyObject(action.errors)) {
+        if (action && !isEmptyValueObject(action.errors)) {
             Object.assign(reportActionErrors, action.errors);
 
             if (!reportAction) {
@@ -11069,11 +11069,11 @@ function hasActionWithErrorsForTransaction(reportID: string | undefined, transac
         .some((action) => {
             if (isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID) {
                 if (getOriginalMessage(action)?.IOUTransactionID === transaction?.transactionID) {
-                    return !isEmptyObject(action.errors);
+                    return !isEmptyValueObject(action.errors);
                 }
                 return false;
             }
-            return !isEmptyObject(action.errors);
+            return !isEmptyValueObject(action.errors);
         });
 }
 
