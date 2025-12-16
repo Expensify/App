@@ -583,6 +583,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         accountID: string;
     };
+    [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
+        policyID: string;
+        accountID: string;
+    };
     [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
         policyID: string;
         accountID: string;
@@ -1347,10 +1351,10 @@ type SettingsNavigatorParamList = {
         subRateID: string;
     };
     [SCREENS.DOMAIN.VERIFY]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.DOMAIN.VERIFIED]: {
-        accountID: number;
+        domainAccountID: number;
     };
 } & ReimbursementAccountNavigatorParamList;
 
@@ -2130,10 +2134,10 @@ type MergeTransactionNavigatorParamList = {
 
 type WorkspacesDomainModalNavigatorParamList = {
     [SCREENS.WORKSPACES_VERIFY_DOMAIN]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.WORKSPACES_ADD_DOMAIN]: undefined;
     [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: undefined;
@@ -2141,7 +2145,7 @@ type WorkspacesDomainModalNavigatorParamList = {
         accountID: number;
     };
     [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: {
-        accountID: number;
+        domainAccountID: number;
     };
 };
 
@@ -2196,6 +2200,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: NavigatorScreenParams<SearchColumnsParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2458,10 +2463,13 @@ type WorkspaceSplitNavigatorParamList = {
 
 type DomainSplitNavigatorParamList = {
     [SCREENS.DOMAIN.INITIAL]: {
-        accountID: number;
+        domainAccountID: number;
     };
     [SCREENS.DOMAIN.SAML]: {
-        accountID: number;
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.ADMINS]: {
+        domainAccountID: number;
     };
 };
 
@@ -2723,8 +2731,6 @@ type SearchReportActionsParamList = {
         /** Selected transactions' report ID  */
         reportID: string;
     };
-    [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: undefined;
-    [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: undefined;
 };
 
 type SearchReportParamList = {
@@ -2756,6 +2762,10 @@ type SearchAdvancedFiltersParamList = {
 
 type SearchSavedSearchParamList = {
     [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: SaveSearchParams;
+};
+
+type SearchColumnsParamList = {
+    [SCREENS.SEARCH.COLUMNS_RHP]: Record<string, never>;
 };
 
 type RestrictedActionParamList = {
@@ -2966,4 +2976,5 @@ export type {
     WorkspacesDomainModalNavigatorParamList,
     DomainSplitNavigatorParamList,
     DomainScreenName,
+    SearchColumnsParamList,
 };
