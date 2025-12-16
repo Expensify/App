@@ -6469,13 +6469,12 @@ describe('actions/IOU', () => {
         });
 
         it('should remove all existing category violations when the transaction Category is unset', async () => {
-            const spyOnyxUpdate = jest.spyOn(Onyx, 'update').mockImplementation(jest.fn());
             const transactionID = '1';
             const policyID = '2';
             const transactionThreadReportID = '3';
             const category = '';
             const fakePolicy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
                 requiresCategory: true,
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -6510,15 +6509,17 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Any existing category violations will be removed, leaving only the MISSING_CATEGORY violation in the end
-            expect(spyOnyxUpdate).toHaveBeenCalledWith(
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                        value: [expect.objectContaining({name: CONST.VIOLATIONS.MISSING_CATEGORY})],
-                    }),
-                ]),
-            );
-            spyOnyxUpdate.mockRestore();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    callback: (transactionViolations) => {
+                        Onyx.disconnect(connection);
+                        expect(transactionViolations).toHaveLength(1);
+                        expect(transactionViolations?.at(0)?.name).toEqual(CONST.VIOLATIONS.MISSING_CATEGORY);
+                        resolve();
+                    },
+                });
+            });
         });
     });
 
