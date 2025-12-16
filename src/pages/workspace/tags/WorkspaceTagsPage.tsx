@@ -720,7 +720,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             showScrollIndicator={false}
                             onCheckboxPress={toggleTag}
                             isSelected={isTagSelected}
-                            addBottomSafeAreaPadding
                             shouldShowRightCaret
                         />
                     )}

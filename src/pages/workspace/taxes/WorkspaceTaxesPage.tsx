@@ -437,7 +437,6 @@ function WorkspaceTaxesPage({
                     onCheckboxPress={toggleTax}
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress
-                    addBottomSafeAreaPadding
                     shouldShowRightCaret
                 />
                 <ConfirmModal

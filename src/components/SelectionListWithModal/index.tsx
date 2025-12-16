@@ -89,6 +89,7 @@ function SelectionListWithModal<TItem extends ListItem>({
             <SelectionList
                 ref={ref}
                 data={data}
+                addBottomSafeAreaPadding
                 selectedItems={selectedItemsProp}
                 onLongPressRow={handleLongPressRow}
                 // isScreenFocused={isScreenFocused}

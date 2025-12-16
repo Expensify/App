@@ -514,7 +514,6 @@ function PolicyDistanceRatesPage({
                         showListEmptyContent={false}
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress
-                        addBottomSafeAreaPadding
                         shouldShowRightCaret
                     />
                 )}

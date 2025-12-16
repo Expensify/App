@@ -833,7 +833,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         showListEmptyContent={false}
                         showScrollIndicator={false}
                         shouldUseUserSkeletonView
-                        addBottomSafeAreaPadding
                         shouldShowRightCaret
                     />
                 </>
