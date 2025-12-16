@@ -38,14 +38,13 @@ import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
 import type {
-    ExpenseReportNavigatorParamList,
     NavigationPartialRoute,
     NavigationRef,
     NavigationRoute,
     NavigationStateRoute,
     ReportsSplitNavigatorParamList,
+    RightModalNavigatorParamList,
     RootNavigatorParamList,
-    SearchMoneyRequestReportParamList,
     State,
 } from './types';
 
@@ -630,11 +629,11 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
     }
 
     const topmostSuperWideRHP = topmostSuperWideRHPModalStack.state?.routes.findLast(
-        (route) => route.name === SCREENS.EXPENSE_REPORT_RHP || route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT,
+        (route) => route.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
     );
     const topmostReportParams = topmostSuperWideRHP?.params as
-        | SearchMoneyRequestReportParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT]
-        | ExpenseReportNavigatorParamList[typeof SCREENS.EXPENSE_REPORT_RHP]
+        | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]
+        | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT]
         | undefined;
 
     return topmostReportParams?.reportID;

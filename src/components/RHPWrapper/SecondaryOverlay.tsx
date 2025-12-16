@@ -24,6 +24,18 @@ export default function SecondaryOverlay() {
     const isRHPDisplayedOnSuperWideRHP = shouldRenderSecondaryOverlayForRHPOnSuperWideRHP && isSuperWide;
     const isWideRHPDisplayedOnSuperWideRHP = shouldRenderSecondaryOverlayForWideRHP && isSuperWide;
 
+    /**
+     * These overlays are used to cover the space under the narrower RHP screen when more than one RHP width is displayed on the screen
+     * Their position is calculated as follows:
+     * The width of the window for which we calculate the overlay positions is the width of the RHP window, for example for Super Wide RHP it will be 1260 px on a wide layout.
+     * We need to move the overlay left from the left edge of the RHP below to the left edge of the RHP above.
+     * To calculate this, subtract the width of the widest RHP from the width of the RHP above.
+     * Please note that in these cases, the overlay is rendered from the RHP screen displayed below. For example, if we display RHP on Wide RHP, the secondary overlay is rendered from Wide RHP, etc.
+     * Three cases were described for the secondary overlay:
+     * 1. Single RHP is displayed on Wide RHP
+     * 2. Single RHP is displayed on Super Wide RHP
+     * 3. Wide RHP is displayed on Super Wide RHP route.
+     *  */
     if (isRHPDisplayedOnWideRHP) {
         return (
             <Overlay

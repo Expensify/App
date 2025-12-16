@@ -1,7 +1,7 @@
-type WideRHPWrapperProps = {
+type SuperWideRHPWrapperProps = {
     children: React.ReactNode;
 };
 
-export default function SuperWideRHPWrapper({children}: WideRHPWrapperProps) {
+export default function SuperWideRHPWrapper({children}: SuperWideRHPWrapperProps) {
     return children;
 }

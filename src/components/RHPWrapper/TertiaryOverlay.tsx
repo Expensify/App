@@ -9,6 +9,8 @@ export default function TertiaryOverlay() {
 
     const isWide = route?.key && wideRHPRouteKeys.includes(route.key);
 
+    // This overlay is used to cover the space under the narrower RHP screen when more than one RHP width is displayed on the screen
+    // There is a special case where three different RHP widths are displayed at the same time. In this case, an overlay under RHP should be rendered from Wide RHP.
     if (isWide && shouldRenderTertiaryOverlay) {
         return (
             <Overlay

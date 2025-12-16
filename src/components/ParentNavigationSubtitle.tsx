@@ -12,7 +12,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SearchMoneyRequestReportParamList} from '@libs/Navigation/types';
 import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -123,7 +122,8 @@ function ParentNavigationSubtitle({
             if (currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && isMoneyRequestReport(report)) {
                 const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
                 if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
-                    const moneyRequestReportID = (lastRoute?.params as SearchMoneyRequestReportParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT])?.reportID;
+                    // @TODO: Fix this case
+                    const moneyRequestReportID = lastRoute?.params?.reportID;
                     // If the parent report is already displayed underneath RHP, simply dismiss the modal
                     if (moneyRequestReportID === parentReportID) {
                         Navigation.dismissModal();
@@ -139,7 +139,8 @@ function ParentNavigationSubtitle({
 
                     if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
                         const lastPreviousRoute = previousRoute.state?.routes.at(-1);
-                        const moneyRequestReportID = (lastPreviousRoute?.params as SearchMoneyRequestReportParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT])?.reportID;
+                        // @TODO: Fix this case
+                        const moneyRequestReportID = lastPreviousRoute?.params?.reportID;
 
                         if (moneyRequestReportID === parentReportID && lastPreviousRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
                             Navigation.goBack();
@@ -173,6 +174,7 @@ function ParentNavigationSubtitle({
             const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
 
             if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && lastRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
+                // @TODO: Check this case
                 if (previousRoute.params && 'reportID' in previousRoute.params) {
                     const reportIDFromParams = previousRoute.params.reportID;
 

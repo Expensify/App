@@ -35,7 +35,6 @@ function getVisibleRHPKeys(allSuperWideRHPKeys: string[], allWideRHPKeys: string
     }
 
     const superWideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route?.key && allSuperWideRHPKeys.includes(route.key)) ?? -1;
-
     const wideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route?.key && allWideRHPKeys.includes(route.key)) ?? -1;
 
     let visibleRHPKeys;
