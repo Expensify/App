@@ -294,13 +294,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             );
         }
 
-        if (!params) {
-            return setStatus((prevStatus) => MergedHooksStatus.badRequestStatus(prevStatus));
-        }
-
         if (!NativeBiometrics.setup.isLocalPublicKeyInAuth) {
             /** Multifactor authentication is not configured, let's do that first */
             /** Run the setup method */
+            if (!params) {
+                return setStatus((prevStatus) => MergedHooksStatus.badRequestStatus(prevStatus));
+            }
+
             const requestStatus = await register({...params, chainedWithAuthorization: true}, scenario);
 
             if (!requestStatus.step.wasRecentStepSuccessful) {
@@ -310,8 +310,15 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return authorize(scenario, {...params, chainedPrivateKeyStatus: requestStatus});
         }
 
+        const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
+
+        // If the scenario is pure, the payload is not needed hence for the process call the params can be empty
+        if (!params && !('pure' in config)) {
+            return setStatus((prevStatus) => MergedHooksStatus.badRequestStatus(prevStatus));
+        }
+
         /** Multifactor authentication is configured already, let's do the challenge logic */
-        const result = await authorize(scenario, {...params, chainedPrivateKeyStatus: undefined});
+        const result = await authorize(scenario, {...(params as MultifactorAuthenticationScenarioParams<T>), chainedPrivateKeyStatus: undefined});
 
         if (result.reason === 'multifactorAuthentication.reason.error.keyMissingOnTheBE') {
             await NativeBiometrics.setup.revoke();
@@ -328,7 +335,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         const {scenario, payload} = mergedStatus.value;
         const {isRequestFulfilled} = mergedStatus.step;
 
-        if (!scenario || isRequestFulfilled || !payload) {
+        if (!scenario || isRequestFulfilled) {
             return setStatus(MergedHooksStatus.badRequestStatus(mergedStatus));
         }
 

@@ -10,6 +10,7 @@ export default {
     allowedAuthentication: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS,
     action: biometricsTest,
     screen: SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST,
+    pure: true,
     NOTIFICATIONS: {
         success: {
             illustration: 'OpenPadlock',

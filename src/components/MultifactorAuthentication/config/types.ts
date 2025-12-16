@@ -82,6 +82,7 @@ type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> =
     action: MultifactorAuthenticationScenarioPureMethod<T>;
     allowedAuthentication: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>;
     screen: MultifactorAuthenticationScreen;
+    pure?: true;
 } & MultifactorAuthenticationUI;
 
 type MultifactorAuthenticationScenarioConfigRecord = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfig<never>>;
