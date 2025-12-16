@@ -16,6 +16,7 @@ const policyBaseMock: Policy = {
 const reportBaseMock: Report = {
     chatReportID: '1706144653204915',
     created: '2024-12-21 13:05:20',
+    submitted: '2024-12-21 13:05:20',
     currency: 'USD',
     isWaitingOnBankAccount: false,
     managerID: 100,
@@ -60,6 +61,7 @@ const transactionItemBaseMock: TransactionListItemType = {
     category: '',
     comment: {comment: ''},
     created: '2024-12-21',
+    submitted: '2024-12-21',
     currency: 'USD',
     date: '2024-12-21',
     formattedFrom: 'Admin',
@@ -84,6 +86,7 @@ const transactionItemBaseMock: TransactionListItemType = {
     reportID: reportBaseMock.reportID,
     shouldShowMerchant: true,
     shouldShowYear: true,
+    shouldShowYearSubmitted: true,
     isAmountColumnWide: false,
     isTaxAmountColumnWide: false,
     tag: '',
