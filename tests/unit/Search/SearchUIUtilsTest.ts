@@ -2882,10 +2882,10 @@ describe('SearchUIUtils', () => {
             const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], [], true);
 
             // These columns should be shown based on data
-            expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]).toBe(true);
-            expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]).toBe(true);
-            expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]).toBe(true);
-            expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]).toBe(true);
 
             // From/To columns should not exist in expense report view
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBeUndefined();

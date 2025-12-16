@@ -230,7 +230,7 @@ function SearchTableHeader({
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
     // Only load Profile icon when it's needed for EXPENSE_REPORT type
-    const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? (['Profile'] as const) : ([] as const));
+    const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? ['Profile'] : []);
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
@@ -264,7 +264,7 @@ function SearchTableHeader({
             // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl4]}
             onSortPress={(columnName, order) => {
-                if (columnName === CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) {
+                if (columnName === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
                     return;
                 }
                 onSortPress(columnName, order);
