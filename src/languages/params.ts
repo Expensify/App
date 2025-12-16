@@ -92,6 +92,11 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
     policyName: string;
 };
 
+type HarvestCreatedExpenseReportParams = {
+    reportUrl: string;
+    reportName: string;
+};
+
 type DuplicateTransactionParams = {
     isSubmitted: boolean;
 };
@@ -331,6 +336,10 @@ type UpdatedPolicyCustomUnitTaxRateExternalIDParams = {customUnitRateName: strin
 
 type UpdatedPolicyCustomUnitTaxClaimablePercentageParams = {customUnitRateName: string; newValue: number; oldValue?: number};
 
+type UpdatedPolicyCustomUnitRateIndexParams = {customUnitName: string; customUnitRateName: string; oldValue?: number; newValue: number};
+
+type UpdatedPolicyCustomUnitRateEnabledParams = {customUnitName: string; customUnitRateName: string; oldValue: boolean; newValue: boolean};
+
 type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
 
 type PolicyAddedReportFieldOptionParams = {fieldName?: string; optionName: string};
@@ -523,7 +532,7 @@ type SpreadCategoriesParams = {
 
 type FeatureNameParams = {
     featureName: string;
-    moreFeaturesLink: string;
+    moreFeaturesLink?: string;
 };
 
 type DefaultAmountParams = {
@@ -931,6 +940,7 @@ export type {
     ReportArchiveReasonsMergedParams,
     ReportPolicyNameParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
+    HarvestCreatedExpenseReportParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     RequestCountParams,
@@ -1099,4 +1109,6 @@ export type {
     ReportFieldParams,
     FocusModeUpdateParams,
     TagSelectionParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
 };

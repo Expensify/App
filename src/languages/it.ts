@@ -79,6 +79,7 @@ import type {
     FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
+    HarvestCreatedExpenseReportParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -216,6 +217,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -688,6 +691,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domini',
         viewReport: 'Visualizza rendiconto',
         actionRequired: 'Azione richiesta',
+        duplicate: 'Duplica',
+        duplicated: 'Duplicato',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -965,6 +970,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Solo gli amministratori possono inviare messaggi in questa stanza.',
     reportAction: {
         asCopilot: 'come copilota per',
+        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+            `ha creato questo rapporto per raccogliere tutte le spese di <a href="${reportUrl}">${reportName}</a> che non sono state inviate con la frequenza scelta`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notifica tutti in questa conversazione',
@@ -1871,6 +1878,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Registrare dati di risoluzione problemi',
             softKillTheApp: "Termina l'app in modo non forzato",
             kill: 'Termina',
+            sentryDebug: 'Debug Sentry',
+            sentryDebugDescription: 'Registra le richieste Sentry nella console',
+            sentryHighlightedSpanOps: 'Nomi degli span evidenziati',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Salva registro',
@@ -2607,10 +2618,10 @@ ${amount} per ${merchant} - ${date}`,
                         *Imposta le categorie* in modo che il tuo team possa codificare le spese per una rendicontazione semplice.
 
                         1. Fai clic su *Workspaces*.
-                        3. Seleziona il tuo workspace.
-                        4. Fai clic su *Categories*.
-                        5. Disabilita le categorie di cui non hai bisogno.
-                        6. Aggiungi le tue categorie in alto a destra.
+                        2. Seleziona il tuo workspace.
+                        3. Fai clic su *Categories*.
+                        4. Disabilita le categorie di cui non hai bisogno.
+                        5. Aggiungi le tue categorie in alto a destra.
 
                         [Portami alle impostazioni delle categorie del workspace](${workspaceCategoriesLink}).
 
@@ -2665,11 +2676,11 @@ ${amount} per ${merchant} - ${date}`,
                     dedent(`
                         Collega ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'il tuo' : 'a'} ${integrationName} per la codifica automatica delle spese e la sincronizzazione che rendono la chiusura di fine mese semplicissima.
 
-                        1. Fai clic su *Workspaces*.
-                        2. Seleziona il tuo workspace.
-                        3. Fai clic su *Accounting*.
+                        1. Fai clic su *Spazi di lavoro*.
+                        2. Seleziona il tuo spazio di lavoro.
+                        3. Fai clic su *Contabilità*.
                         4. Trova ${integrationName}.
-                        5. Fai clic su *Connect*.
+                        5. Fai clic su *Connetti*.
 
 ${
     integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -2699,10 +2710,10 @@ ${
                         *Invita il tuo team* su Expensify così potranno iniziare a tenere traccia delle spese oggi stesso.
 
                         1. Fai clic su *Workspaces*.
-                        3. Seleziona il tuo workspace.
-                        4. Fai clic su *Members* > *Invite member*.
-                        5. Inserisci email o numeri di telefono.
-                        6. Aggiungi un messaggio di invito personalizzato, se vuoi!
+                        2. Seleziona il tuo workspace.
+                        3. Fai clic su *Members* > *Invite member*.
+                        4. Inserisci email o numeri di telefono.
+                        5. Aggiungi un messaggio di invito personalizzato, se vuoi!
 
                         [Portami ai membri del workspace](${workspaceMembersLink}).
 
@@ -2723,11 +2734,11 @@ ${
                         Usa i tag per aggiungere ulteriori dettagli alle spese, come progetti, clienti, sedi e reparti. Se hai bisogno di più livelli di tag, puoi effettuare l’upgrade al piano Control.
 
                         1. Clicca su *Workspaces*.
-                        3. Seleziona il tuo workspace.
-                        4. Clicca su *More features*.
-                        5. Abilita *Tags*.
-                        6. Vai a *Tags* nell’editor del workspace.
-                        7. Clicca su *+ Add tag* per crearne uno tuo.
+                        2. Seleziona il tuo workspace.
+                        3. Clicca su *More features*.
+                        4. Abilita *Tags*.
+                        5. Vai a *Tags* nell’editor del workspace.
+                        6. Clicca su *+ Add tag* per crearne uno tuo.
 
                         [Portami a more features](${workspaceMoreFeaturesLink}).
 
@@ -3083,6 +3094,7 @@ ${
             ownershipPercentage: 'Inserisci un numero percentuale valido',
             deletePaymentBankAccount:
                 'Questo conto bancario non può essere eliminato perché viene utilizzato per i pagamenti con Expensify Card. Se desideri comunque eliminare questo conto, contatta Concierge.',
+            sameDepositAndWithdrawalAccount: 'I conti di deposito e di prelievo sono gli stessi.',
         },
     },
     addPersonalBankAccount: {
@@ -6139,9 +6151,11 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 gambling: "Gioco d'azzardo",
                 tobacco: 'Tabacco',
                 adultEntertainment: 'Intrattenimento per adulti',
+                requireCompanyCard: 'Richiedi carte aziendali per tutti gli acquisti',
+                requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, incluse le spese per chilometraggio e le diarie.',
             },
             expenseReportRules: {
-                title: 'Note spese',
+                title: 'Avanzato',
                 subtitle: 'Automatizza la conformità delle note spese, le approvazioni e i pagamenti.',
                 preventSelfApprovalsTitle: 'Impedisci autoapprovazioni',
                 preventSelfApprovalsSubtitle: 'Impedisci ai membri dello spazio di lavoro di approvare i propri report spese.',
@@ -6157,8 +6171,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 autoPayApprovedReportsLockedSubtitle: 'Vai su Altre funzionalità e abilita i workflow, quindi aggiungi i pagamenti per sbloccare questa funzionalità.',
                 autoPayReportsUnderTitle: 'Pagamento automatico dei report inferiori a',
                 autoPayReportsUnderDescription: 'Le note spese completamente conformi inferiori a questo importo verranno rimborsate automaticamente.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Vai a [altre funzionalità](${moreFeaturesLink}) e abilita i flussi di lavoro, quindi aggiungi ${featureName} per sbloccare questa funzionalità.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Aggiungi ${featureName} per sbloccare questa funzionalità.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Vai a [altre funzionalità](${moreFeaturesLink}) e abilita ${featureName} per sbloccare questa funzione.`,
             },
@@ -6378,6 +6391,12 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             }
             return `ha aggiunto una parte rimborsabile di imposta di "${newValue}" alla tariffa per distanza "${customUnitRateName}"`;
         },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `ha modificato l’indice della tariffa ${customUnitName} "${customUnitRateName}" a "${newValue}" ${oldValue ? `(precedentemente "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'abilitato' : 'disabilitato'} la tariffa ${customUnitName} "${customUnitRateName}"`;
+        },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `ha rimosso la tariffa "${rateName}" dell’unità personalizzata "${customUnitName}"`,
         addedReportField: (fieldType: string, fieldName?: string) => `aggiunto campo report ${fieldType} "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
@@ -6474,6 +6493,60 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     return `${enabled ? 'abilitato' : 'disabilitato'} ${featureName}`;
             }
         },
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `ha cambiato l'approvatore predefinito in ${newApprover} (in precedenza ${previousApprover})` : `ha modificato l'approvatore predefinito in ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `ha modificato il flusso di approvazione per ${members} in modo che inviino i report a ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(in precedenza approvatore predefinito ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(in precedenza approvatore predefinito)';
+            } else if (previousApprover) {
+                text += `(precedentemente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `ha modificato il flusso di approvazione per ${members} per inviare i report all'approvatore predefinito ${approver}`
+                : `ha modificato il flusso di approvazione per ${members} per inviare i report all'approvatore predefinito`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(in precedenza approvatore predefinito ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(in precedenza approvatore predefinito)';
+            } else if (previousApprover) {
+                text += `(precedentemente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `ha modificato il flusso di approvazione per ${approver} per inoltrare i report approvati a ${forwardsTo} (in precedenza inoltrati a ${previousForwardsTo})`
+                : `ha modificato il flusso di approvazione per ${approver} in modo da inoltrare i report approvati a ${forwardsTo} (in precedenza solo i report approvati finali)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `ha modificato il flusso di approvazione per ${approver} per interrompere l'inoltro dei report approvati (in precedenza inoltrati a ${previousForwardsTo})`
+                : `ha modificato il flusso di approvazione per ${approver} per interrompere l'inoltro dei report approvati`,
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `Monitoraggio partecipanti ${enabled ? 'abilitato' : 'disabilitato'}`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'abilitato' : 'disabilitato'} rimborsi`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `ha aggiunto l’imposta "${taxName}"`,
@@ -6622,6 +6695,9 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 subtitle: 'Zero spese. Massimo relax. Ben fatto!',
             },
         },
+        columns: 'Colonne',
+        resetColumns: 'Reimposta colonne',
+        noColumnsError: 'Seleziona almeno una colonna prima di salvare',
         statements: 'Estratti conto',
         unapprovedCash: 'Contanti non approvati',
         unapprovedCard: 'Carta non approvata',
@@ -6852,6 +6928,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 `Sei sicuro di voler creare un altro report in ${workspaceName}? Puoi accedere ai tuoi report vuoti in`,
             emptyReportConfirmationPromptLink: 'Report',
             genericWorkspaceName: 'questo spazio di lavoro',
+            emptyReportConfirmationDontShowAgain: 'Non mostrarmelo di nuovo',
         },
         genericCreateReportFailureMessage: 'Errore imprevisto durante la creazione di questa chat. Riprova più tardi.',
         genericAddCommentFailureMessage: 'Errore imprevisto durante la pubblicazione del commento. Riprova più tardi.',
@@ -7260,6 +7337,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         confirmDuplicatesInfo: `I duplicati che non mantieni saranno conservati per consentire al mittente di eliminarli.`,
         hold: 'Questa spesa è stata messa in sospeso',
         resolvedDuplicates: 'ha risolto il duplicato',
+        companyCardRequired: 'Acquisti con carta aziendale obbligatori',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} è obbligatorio`,
@@ -7829,11 +7907,12 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             requireError: "Impossibile aggiornare l'impostazione dei requisiti SAML",
             disableSamlRequired: 'Disabilita SAML obbligatorio',
             oktaWarningPrompt: 'Sei sicuro? Questo disabiliterà anche Okta SCIM.',
+            requireWithEmptyMetadataError: 'Aggiungi di seguito i metadati del provider di identità per abilitare',
         },
         samlConfigurationDetails: {
             title: 'Dettagli di configurazione SAML',
             subtitle: 'Usa questi dettagli per configurare SAML.',
-            identityProviderMetaData: 'Metadati del provider di identità',
+            identityProviderMetadata: 'Metadati del provider di identità',
             entityID: 'ID entità',
             nameIDFormat: 'Formato ID nome',
             loginUrl: 'URL di accesso',
@@ -7846,6 +7925,31 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             fetchError: 'Impossibile recuperare i dettagli della configurazione SAML',
             setMetadataGenericError: 'Impossibile impostare i metadati SAML',
         },
+        accessRestricted: {
+            title: 'Accesso limitato',
+            subtitle: (domainName: string) => `Verificati come amministratore aziendale autorizzato per <strong>${domainName}</strong> se hai bisogno di gestire:`,
+            companyCardManagement: 'Gestione delle carte aziendali',
+            accountCreationAndDeletion: "Creazione e cancellazione dell'account",
+            workspaceCreation: 'Creazione dello spazio di lavoro',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Aggiungi dominio',
+            subtitle: 'Inserisci il nome del dominio privato a cui desideri accedere (ad esempio expensify.com).',
+            domainName: 'Nome di dominio',
+            newDomain: 'Nuovo dominio',
+        },
+        domainAdded: {
+            title: 'Dominio aggiunto',
+            description: 'Successivamente, dovrai verificare la proprietà del dominio e regolare le tue impostazioni di sicurezza.',
+            configure: 'Configura',
+        },
+        enhancedSecurity: {
+            title: 'Sicurezza avanzata',
+            subtitle: 'Richiedi ai membri del tuo dominio di accedere tramite Single Sign-On, limita la creazione di spazi di lavoro e altro ancora.',
+            enable: 'Abilita',
+        },
+        admins: {title: 'Amministratori', findAdmin: 'Trova amministratore'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

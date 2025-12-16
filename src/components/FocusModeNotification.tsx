@@ -16,7 +16,7 @@ type FocusModeNotificationProps = {
 function FocusModeNotification({onClose}: FocusModeNotificationProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['ThreeLeggedLaptopWoman'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ThreeLeggedLaptopWoman']);
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
     const priorityModePageUrl = `${environmentURL}/settings/preferences/priority-mode`;

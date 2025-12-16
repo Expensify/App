@@ -79,6 +79,7 @@ import type {
     FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
+    HarvestCreatedExpenseReportParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -216,6 +217,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -686,6 +689,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domínios',
         viewReport: 'Ver relatório',
         actionRequired: 'Ação necessária',
+        duplicate: 'Duplicar',
+        duplicated: 'Duplicado',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -963,6 +968,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Somente administradores podem enviar mensagens nesta sala.',
     reportAction: {
         asCopilot: 'como copiloto para',
+        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+            `criou este relatório para agrupar todas as despesas de <a href="${reportUrl}">${reportName}</a> que não puderam ser enviadas na frequência que você escolheu`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notificar todos nesta conversa',
@@ -1866,6 +1873,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Registrar Dados de Solução de Problemas',
             softKillTheApp: 'Encerrar o aplicativo sem forçar',
             kill: 'Encerrar',
+            sentryDebug: 'Depuração do Sentry',
+            sentryDebugDescription: 'Registrar solicitações do Sentry no console',
+            sentryHighlightedSpanOps: 'Nomes de spans destacados',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Salvar log',
@@ -2600,10 +2611,10 @@ ${amount} para ${merchant} - ${date}`,
                         *Configure categorias* para que sua equipe possa classificar despesas para relatórios fáceis.
 
                         1. Clique em *Workspaces*.
-                        3. Selecione seu workspace.
-                        4. Clique em *Categories*.
-                        5. Desative quaisquer categorias de que você não precise.
-                        6. Adicione suas próprias categorias no canto superior direito.
+                        2. Selecione seu workspace.
+                        3. Clique em *Categories*.
+                        4. Desative quaisquer categorias de que você não precise.
+                        5. Adicione suas próprias categorias no canto superior direito.
 
                         [Leve-me para as configurações de categorias do workspace](${workspaceCategoriesLink}).
 
@@ -2692,10 +2703,10 @@ ${
                         *Convide sua equipe* para o Expensify para que eles possam começar a registrar despesas hoje.
 
                         1. Clique em *Workspaces*.
-                        3. Selecione seu workspace.
-                        4. Clique em *Members* > *Invite member*.
-                        5. Insira e-mails ou números de telefone.
-                        6. Adicione uma mensagem de convite personalizada, se quiser!
+                        2. Selecione seu workspace.
+                        3. Clique em *Members* > *Invite member*.
+                        4. Insira e-mails ou números de telefone.
+                        5. Adicione uma mensagem de convite personalizada, se quiser!
 
                         [Leve-me aos membros do workspace](${workspaceMembersLink}).
 
@@ -2716,11 +2727,11 @@ ${
                         Use tags para adicionar detalhes extras às despesas, como projetos, clientes, locais e departamentos. Se você precisar de vários níveis de tags, poderá fazer upgrade para o plano Control.
 
                         1. Clique em *Workspaces*.
-                        3. Selecione seu workspace.
-                        4. Clique em *More features*.
-                        5. Ative *Tags*.
-                        6. Vá para *Tags* no editor do workspace.
-                        7. Clique em *+ Add tag* para criar a sua própria.
+                        2. Selecione seu workspace.
+                        3. Clique em *More features*.
+                        4. Ative *Tags*.
+                        5. Vá para *Tags* no editor do workspace.
+                        6. Clique em *+ Add tag* para criar a sua própria.
 
                         [Leve-me para mais recursos](${workspaceMoreFeaturesLink}).
 
@@ -3077,6 +3088,7 @@ ${
             ownershipPercentage: 'Insira um número de porcentagem válido',
             deletePaymentBankAccount:
                 'Esta conta bancária não pode ser excluída porque é usada para pagamentos do Expensify Card. Se ainda quiser excluir esta conta, entre em contato com a Concierge.',
+            sameDepositAndWithdrawalAccount: 'As contas de depósito e de saque são as mesmas.',
         },
     },
     addPersonalBankAccount: {
@@ -6122,9 +6134,11 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 gambling: 'Jogos de azar',
                 tobacco: 'Tabaco',
                 adultEntertainment: 'Entretenimento adulto',
+                requireCompanyCard: 'Exigir cartões corporativos para todas as compras',
+                requireCompanyCardDescription: 'Sinalize todas as despesas em dinheiro, incluindo quilometragem e diárias.',
             },
             expenseReportRules: {
-                title: 'Relatórios de despesas',
+                title: 'Avançado',
                 subtitle: 'Automatize a conformidade, as aprovações e o pagamento de relatórios de despesas.',
                 preventSelfApprovalsTitle: 'Impedir autoaprovações',
                 preventSelfApprovalsSubtitle: 'Impedir que membros do workspace aprovem seus próprios relatórios de despesas.',
@@ -6140,8 +6154,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 autoPayApprovedReportsLockedSubtitle: 'Vá para Mais recursos e ative Fluxos de trabalho, depois adicione Pagamentos para desbloquear este recurso.',
                 autoPayReportsUnderTitle: 'Relatórios de pagamento automático sob',
                 autoPayReportsUnderDescription: 'Relatórios de despesas totalmente compatíveis abaixo deste valor serão pagos automaticamente.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Vá para [mais recursos](${moreFeaturesLink}) e ative fluxos de trabalho, depois adicione ${featureName} para desbloquear este recurso.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Adicione ${featureName} para desbloquear esse recurso.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Vá para [mais recursos](${moreFeaturesLink}) e ative ${featureName} para desbloquear este recurso.`,
             },
@@ -6358,6 +6371,12 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             }
             return `adicionou uma parte de imposto recuperável de "${newValue}" à taxa de distância "${customUnitRateName}"`;
         },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `alterou o índice da tarifa ${customUnitName} "${customUnitRateName}" para "${newValue}" ${oldValue ? `(anteriormente "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'habilitado' : 'desabilitado'} tarifa ${customUnitName} "${customUnitRateName}"`;
+        },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `removeu a taxa "${customUnitName}" "${rateName}"`,
         addedReportField: (fieldType: string, fieldName?: string) => `${fieldType} de relatório "${fieldName}" adicionado`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
@@ -6454,6 +6473,60 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                     return `${enabled ? 'ativado' : 'desativado'} ${featureName}`;
             }
         },
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `alterou o aprovador padrão para ${newApprover} (anteriormente ${previousApprover})` : `alterou o aprovador padrão para ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `alterou o fluxo de aprovação para ${members} enviar relatórios para ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(aprovador padrão anterior ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(aprovador padrão anterior)';
+            } else if (previousApprover) {
+                text += `(anteriormente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `alterou o fluxo de aprovação para que ${members} enviem relatórios ao aprovador padrão ${approver}`
+                : `alterou o fluxo de aprovação para que ${members} enviem relatórios ao aprovador padrão`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(aprovador padrão anterior ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(aprovador padrão anterior)';
+            } else if (previousApprover) {
+                text += `(anteriormente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `alterou o fluxo de aprovação de ${approver} para encaminhar relatórios aprovados para ${forwardsTo} (anteriormente encaminhava para ${previousForwardsTo})`
+                : `alterou o fluxo de aprovação de ${approver} para encaminhar relatórios aprovados para ${forwardsTo} (anteriormente, relatórios com aprovação final)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `alterou o fluxo de aprovação de ${approver} para deixar de encaminhar relatórios aprovados (anteriormente encaminhados para ${previousForwardsTo})`
+                : `alterou o fluxo de aprovação de ${approver} para interromper o encaminhamento de relatórios aprovados`,
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `Rastreamento de participante ${enabled ? 'ativado' : 'desativado'}`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'ativado' : 'desativado'} reembolsos`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `adicionou o imposto "${taxName}"`,
@@ -6602,6 +6675,9 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 subtitle: 'Zero despesas. Máxima tranquilidade. Muito bem!',
             },
         },
+        columns: 'Colunas',
+        resetColumns: 'Redefinir colunas',
+        noColumnsError: 'Selecione pelo menos uma coluna antes de salvar',
         statements: 'Extratos',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCard: 'Cartão não aprovado',
@@ -6831,6 +6907,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Tem certeza de que deseja criar outro relatório em ${workspaceName}? Você pode acessar seus relatórios em branco em`,
             emptyReportConfirmationPromptLink: 'Relatórios',
+            emptyReportConfirmationDontShowAgain: 'Não mostrar isso novamente',
             genericWorkspaceName: 'este workspace',
         },
         genericCreateReportFailureMessage: 'Erro inesperado ao criar este chat. Tente novamente mais tarde.',
@@ -7239,6 +7316,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         confirmDuplicatesInfo: `Os duplicados que você não mantiver serão mantidos para que o remetente os exclua.`,
         hold: 'Esta despesa foi colocada em espera',
         resolvedDuplicates: 'duplicata resolvida',
+        companyCardRequired: 'Compras com cartão da empresa obrigatórias',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} é obrigatório`,
@@ -7806,11 +7884,12 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             requireError: 'Não foi possível atualizar a configuração de requisito SAML',
             disableSamlRequired: 'Desativar SAML obrigatório',
             oktaWarningPrompt: 'Você tem certeza? Isso também desativará o Okta SCIM.',
+            requireWithEmptyMetadataError: 'Adicione os metadados do Provedor de Identidade abaixo para ativar',
         },
         samlConfigurationDetails: {
             title: 'Detalhes da configuração SAML',
             subtitle: 'Use estes detalhes para configurar o SAML.',
-            identityProviderMetaData: 'Metadados do Provedor de Identidade',
+            identityProviderMetadata: 'Metadados do Provedor de Identidade',
             entityID: 'ID da entidade',
             nameIDFormat: 'Formato de ID de Nome',
             loginUrl: 'URL de login',
@@ -7823,6 +7902,31 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             fetchError: 'Não foi possível buscar os detalhes de configuração SAML',
             setMetadataGenericError: 'Não foi possível definir os metadados SAML',
         },
+        accessRestricted: {
+            title: 'Acesso restrito',
+            subtitle: (domainName: string) => `Confirme que você é um administrador autorizado da empresa para <strong>${domainName}</strong> se precisar de controle sobre:`,
+            companyCardManagement: 'Gerenciamento de cartões corporativos',
+            accountCreationAndDeletion: 'Criação e exclusão de conta',
+            workspaceCreation: 'Criação do espaço de trabalho',
+            samlSSO: 'SSO SAML',
+        },
+        addDomain: {
+            title: 'Adicionar domínio',
+            subtitle: 'Digite o nome do domínio privado que você deseja acessar (ex.: expensify.com).',
+            domainName: 'Nome de domínio',
+            newDomain: 'Novo domínio',
+        },
+        domainAdded: {
+            title: 'Domínio adicionado',
+            description: 'Em seguida, você precisará verificar a propriedade do domínio e ajustar suas configurações de segurança.',
+            configure: 'Configurar',
+        },
+        enhancedSecurity: {
+            title: 'Segurança aprimorada',
+            subtitle: 'Exija que os membros do seu domínio façam login por meio de logon único (SSO), restrinja a criação de espaços de trabalho e muito mais.',
+            enable: 'Ativar',
+        },
+        admins: {title: 'Administradores', findAdmin: 'Encontrar administrador'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
