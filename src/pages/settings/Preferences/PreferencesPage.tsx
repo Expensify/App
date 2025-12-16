@@ -28,7 +28,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import usePreferencesSectionIllustration from './usePreferencesSectionIllustration';
 
 function PreferencesPage() {
-    const illustrations = useMemoizedLazyIllustrations(['Gears'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Gears']);
     const preferencesIllustration = usePreferencesSectionIllustration();
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
 
