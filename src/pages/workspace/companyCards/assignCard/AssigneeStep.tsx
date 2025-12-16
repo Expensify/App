@@ -166,7 +166,7 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, assignCard?.data?.email, formatPhoneNumber, localeCompare]);
+    }, [isOffline, policy?.employeeList, assignCard?.data?.email, formatPhoneNumber, localeCompare, icons.FallbackAvatar]);
 
     const assignees = useMemo(() => {
         if (!debouncedSearchTerm) {
