@@ -25,7 +25,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const {localeCompare, formatPhoneNumber} = useLocalize();
+    const {localeCompare, formatPhoneNumber, translate} = useLocalize();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
@@ -51,7 +51,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             archivedReportsIDList: archivedReportsIdSet,
             isActionLoadingSet,
         });
-        results = getSortedSections(type, status ?? '', searchData, localeCompare, sortBy, sortOrder, groupBy).map((value) => value.reportID);
+        results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
     const allReports = results;
 
