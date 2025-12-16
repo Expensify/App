@@ -201,6 +201,14 @@ return <PopoverMenu anchorPosition={{x: 0, y: 0}} />;
 return <MemoizedList options={{ showHeader: true }} />;
 ```
 
+**Skip - spread props** (object is spread into individual props):
+```tsx
+// Object is spread directly into component - child receives individual props, not the object
+// Each individual prop has stable reference, so memoized child won't re-render
+const illustration = useAboutSectionIllustration(); // returns { illustration, illustrationStyle }
+return <Section {...illustration} />;
+```
+
 ---
 
 ### [PERF-5] Use shallow comparisons instead of deep comparisons
