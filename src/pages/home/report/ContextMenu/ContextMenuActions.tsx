@@ -157,19 +157,25 @@ function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
     return message?.html ?? '';
 }
 
+/** Strips HTML tags and returns plain text */
+function stripHTMLToText(html: string): string {
+    // Create a temporary div element to parse HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    // Use textContent to get plain text without any HTML tags or markdown
+    return tempDiv.textContent || tempDiv.innerText || '';
+}
+
 /** Sets the HTML string to Clipboard */
 function setClipboardMessage(content: string | undefined) {
     if (!content) {
         return;
     }
-    if (!Clipboard.canSetHtml()) {
-        Clipboard.setString(Parser.htmlToMarkdown(content));
-    } else {
-        // Use markdown format text for the plain text(clipboard type "text/plain") to ensure consistency across all platforms.
-        // More info: https://github.com/Expensify/App/issues/53718
-        const markdownText = Parser.htmlToMarkdown(content);
-        Clipboard.setHtml(content, markdownText);
-    }
+    // Always set plain text only to clipboard
+    // This ensures "paste as plain text" works correctly without markdown formatting
+    // If we set HTML, the paste handler will convert it to markdown even when user selects "paste as plain text"
+    const plainText = stripHTMLToText(content);
+    Clipboard.setString(plainText);
 }
 
 type ShouldShow = (args: {
