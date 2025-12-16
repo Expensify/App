@@ -109,7 +109,7 @@ function WorkspaceCompanyCardsSettingsPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceCompanyCardsSettingsPage.displayName}
+                testID="WorkspaceCompanyCardsSettingsPage"
                 style={styles.defaultModalContainer}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -169,7 +169,5 @@ function WorkspaceCompanyCardsSettingsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCompanyCardsSettingsPage.displayName = 'WorkspaceCompanyCardsSettingsPage';
 
 export default WorkspaceCompanyCardsSettingsPage;

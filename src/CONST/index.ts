@@ -6690,6 +6690,7 @@ const CONST = {
                     DATE: this.TABLE_COLUMNS.DATE,
                     SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
+                    POSTED: this.TABLE_COLUMNS.POSTED,
                     MERCHANT: this.TABLE_COLUMNS.MERCHANT,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
@@ -6697,6 +6698,7 @@ const CONST = {
                     TAG: this.TABLE_COLUMNS.TAG,
                     EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
                     STATUS: this.TABLE_COLUMNS.STATUS,
+                    TITLE: this.TABLE_COLUMNS.TITLE,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 EXPENSE_REPORT: {
@@ -6782,6 +6784,7 @@ const CONST = {
             DATE: 'date',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
+            POSTED: 'posted',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',

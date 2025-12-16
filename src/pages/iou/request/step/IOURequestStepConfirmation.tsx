@@ -1269,7 +1269,7 @@ function IOURequestStepConfirmation({
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
-            testID={IOURequestStepConfirmation.displayName}
+            testID="IOURequestStepConfirmation"
             headerGapStyles={isDraggingOver ? [styles.dropWrapper] : []}
         >
             <DragAndDropProvider
@@ -1373,8 +1373,6 @@ function IOURequestStepConfirmation({
         </ScreenWrapper>
     );
 }
-
-IOURequestStepConfirmation.displayName = 'IOURequestStepConfirmation';
 
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmation);

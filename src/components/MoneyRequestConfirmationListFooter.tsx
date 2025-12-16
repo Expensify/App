@@ -1052,8 +1052,6 @@ function MoneyRequestConfirmationListFooter({
     );
 }
 
-MoneyRequestConfirmationListFooter.displayName = 'MoneyRequestConfirmationListFooter';
-
 export default memo(
     MoneyRequestConfirmationListFooter,
     (prevProps, nextProps) =>
