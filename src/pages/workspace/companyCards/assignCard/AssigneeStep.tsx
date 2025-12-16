@@ -203,16 +203,16 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
     ]);
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim().toLowerCase();
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
         if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
         return getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
-    }, [searchTerm, availableOptions.userToInvite, assignees?.length, countryCode, translate]);
+    }, [debouncedSearchTerm, availableOptions.userToInvite, assignees?.length, countryCode, translate]);
 
     const textInputOptions = useMemo(
         () => ({
