@@ -618,23 +618,25 @@ function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryNa
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
 }
 
-function setPolicyCategoryItemizedReceiptsRequired(policyID: string, categoryName: string, maxAmountNoItemizedReceipt: number, policyCategories: PolicyCategories = {}) {
-    const originalMaxAmountNoItemizedReceipt = policyCategories?.[categoryName]?.maxAmountNoItemizedReceipt;
+function setPolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoItemizedReceipt: number) {
+    const policyID = policyData.policy?.id;
+    const originalMaxAmountNoItemizedReceipt = policyData.categories[categoryName]?.maxAmountNoItemizedReceipt;
+    const policyCategoriesOptimisticData = {
+        [categoryName]: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            pendingFields: {
+                maxAmountNoItemizedReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+            maxAmountNoItemizedReceipt,
+        },
+    };
 
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        pendingFields: {
-                            maxAmountNoItemizedReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                        maxAmountNoItemizedReceipt,
-                    },
-                },
+                value: policyCategoriesOptimisticData,
             },
         ],
         successData: [
@@ -669,6 +671,8 @@ function setPolicyCategoryItemizedReceiptsRequired(policyID: string, categoryNam
             },
         ],
     };
+
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
 
     const parameters: SetPolicyCategoryItemizedReceiptsRequiredParams = {
         policyID,
@@ -679,23 +683,25 @@ function setPolicyCategoryItemizedReceiptsRequired(policyID: string, categoryNam
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, onyxData);
 }
 
-function removePolicyCategoryItemizedReceiptsRequired(policyID: string, categoryName: string, policyCategories: PolicyCategories = {}) {
-    const originalMaxAmountNoItemizedReceipt = policyCategories?.[categoryName]?.maxAmountNoItemizedReceipt;
+function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categoryName: string) {
+    const policyID = policyData.policy?.id;
+    const originalMaxAmountNoItemizedReceipt = policyData.categories[categoryName]?.maxAmountNoItemizedReceipt;
+    const policyCategoriesOptimisticData = {
+        [categoryName]: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            pendingFields: {
+                maxAmountNoItemizedReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+            maxAmountNoItemizedReceipt: null,
+        },
+    };
 
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        pendingFields: {
-                            maxAmountNoItemizedReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                        maxAmountNoItemizedReceipt: null,
-                    },
-                },
+                value: policyCategoriesOptimisticData,
             },
         ],
         successData: [
@@ -730,6 +736,8 @@ function removePolicyCategoryItemizedReceiptsRequired(policyID: string, category
             },
         ],
     };
+
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
 
     const parameters: RemovePolicyCategoryItemizedReceiptsRequiredParams = {
         policyID,
