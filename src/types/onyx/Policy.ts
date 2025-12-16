@@ -1727,6 +1727,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** When this policy was last modified */
         lastModified?: string;
 
+        /** When this policy was created */
+        created?: string;
+
         /** The custom units data for this policy */
         customUnits?: Record<string, CustomUnit>;
 
@@ -1870,6 +1873,14 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of tax rates attached to a policy */
         taxRates?: TaxRatesWithDefault;
 
+        /** Time tracking configuration */
+        time?: {
+            /** Whether time tracking is enabled */
+            enabled?: boolean;
+            /** Default hourly rate */
+            rate?: number;
+        };
+
         /** A set of rules related to the workspace */
         rules?: {
             /** A set of rules related to the workspace approvals */
@@ -1998,6 +2009,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether Attendee Tracking is enabled */
         isAttendeeTrackingEnabled?: boolean;
+
+        /** Whether the policy requires purchases to be on a company card */
+        requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
