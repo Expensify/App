@@ -9,6 +9,7 @@ import RadioButton from '@components/RadioButton';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
+import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -420,6 +421,14 @@ function TransactionItemRow({
                     <TaxCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
+                    />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
+                    <StatusCell
+                        stateNum={transactionItem.report?.stateNum}
+                        statusNum={transactionItem.report?.statusNum}
                     />
                 </View>
             ),
