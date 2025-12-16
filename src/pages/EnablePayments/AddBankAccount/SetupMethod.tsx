@@ -21,7 +21,7 @@ function SetupMethod() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
-    const illustrations = useMemoizedLazyIllustrations(['MoneyWings'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['MoneyWings']);
 
     return (
         <View>

@@ -20,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'GalleryNotFound'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'GalleryNotFound']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

@@ -52,7 +52,7 @@ function IOURequestStepCategory({
 }: IOURequestStepCategoryProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
 
     const isUnreportedExpense = isExpenseUnreported(transaction);
     const {policyForMovingExpenses, policyForMovingExpensesID} = usePolicyForMovingExpenses();

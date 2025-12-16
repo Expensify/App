@@ -92,8 +92,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['FolderOpen'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table']);
+    const illustrations = useMemoizedLazyIllustrations(['FolderOpen']);
 
     const {
         taskReport: setupCategoryTaskReport,

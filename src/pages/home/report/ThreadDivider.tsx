@@ -24,7 +24,7 @@ type ThreadDividerProps = {
 };
 
 function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Thread'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Thread']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();

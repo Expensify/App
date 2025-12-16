@@ -20,7 +20,7 @@ function ManageTrips() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
-    const illustrations = useMemoizedLazyIllustrations(['Alert', 'PiggyBank'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Alert', 'PiggyBank']);
 
     const tripsFeatures: FeatureListItem[] = useMemo(
         () => [

@@ -19,7 +19,7 @@ type WorkspaceAdminRestrictedActionProps = {
 };
 
 function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActionProps) {
-    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();

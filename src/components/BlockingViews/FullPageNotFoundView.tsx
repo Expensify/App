@@ -85,7 +85,7 @@ function FullPageNotFoundView({
     const styles = useThemeStyles();
     const {isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
 
     if (shouldShow) {
         StatsCounter('FullPageNotFoundView');
