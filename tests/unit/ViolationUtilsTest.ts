@@ -448,7 +448,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
         });
 
-        it('should only return smartscanFailed violation for smart scan failed transactions', () => {
+        it('should keep other violations while adding smartscanFailed for smart scan failed transactions', () => {
             const partialTransaction = {
                 ...transaction,
                 amount: 0,
@@ -458,7 +458,43 @@ describe('getViolationsOnyxData', () => {
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             };
             const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
-            expect(result.value).toEqual([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}]);
+            expect(result.value).toEqual(
+                expect.arrayContaining([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}, missingCategoryViolation]),
+            );
+        });
+
+        it('should not add smartscanFailed when scan failed but required fields are filled', () => {
+            const transactionWithEnteredDetails = {
+                ...transaction,
+                amount: 10000,
+                merchant: 'Coffee Shop',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transactionWithEnteredDetails, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.SMARTSCAN_FAILED}));
+        });
+
+        it('should not add smartscanFailed when scan failed but modified fields are filled (amount and merchant)', () => {
+            const transactionWithModifiedDetails = {
+                ...transaction,
+                amount: 0,
+                modifiedAmount: 12345,
+                merchant: '',
+                modifiedMerchant: 'Manual Merchant',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(
+                transactionWithModifiedDetails as unknown as Transaction,
+                transactionViolations,
+                policy,
+                policyTags,
+                policyCategories,
+                false,
+                false,
+            );
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.SMARTSCAN_FAILED}));
         });
     });
 

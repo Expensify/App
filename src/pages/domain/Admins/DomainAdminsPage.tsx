@@ -40,8 +40,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Members'] as const);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Members']);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {

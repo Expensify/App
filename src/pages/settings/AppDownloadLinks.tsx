@@ -25,7 +25,7 @@ type DownloadMenuItem = MenuItemProps & {
 };
 
 function AppDownloadLinksPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Monitor', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Monitor', 'NewWindow']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const popoverAnchor = useRef<View>(null);

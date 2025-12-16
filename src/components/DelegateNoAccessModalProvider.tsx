@@ -39,7 +39,7 @@ function DelegateNoAccessModalProvider({children}: PropsWithChildren) {
 
     const delegateNoAccessPrompt = (
         <View style={[styles.renderHTML, styles.flexRow]}>
-            <RenderHTML html={translate('delegate.notAllowedMessage', {accountOwnerEmail: delegatorEmail})} />
+            <RenderHTML html={translate('delegate.notAllowedMessage', delegatorEmail)} />
         </View>
     );
     const contextValue = useMemo(

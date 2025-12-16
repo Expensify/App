@@ -171,6 +171,7 @@ function ReportActionItemSingle({
                 disabled={shouldDisableDetailPage}
                 accessibilityLabel={details.actorHint}
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON}
             >
                 <OfflineWithFeedback pendingAction={details.pendingFields?.avatar ?? undefined}>
                     <ReportActionAvatars
@@ -200,6 +201,7 @@ function ReportActionItemSingle({
                             disabled={shouldDisableDetailPage}
                             accessibilityLabel={details.actorHint}
                             role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_SINGLE_ACTOR_BUTTON}
                         >
                             {personArray?.map((fragment, index) => (
                                 <ReportActionItemFragment

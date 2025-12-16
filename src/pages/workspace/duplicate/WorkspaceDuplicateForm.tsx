@@ -31,9 +31,9 @@ type WorkspaceDuplicateFormProps = {
 };
 
 function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask']);
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera']);
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(policyID);

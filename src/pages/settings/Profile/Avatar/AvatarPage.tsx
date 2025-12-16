@@ -53,7 +53,7 @@ function ProfileAvatar() {
     const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
     const isSavingRef = useRef(false);
 
-    const icons = useMemoizedLazyExpensifyIcons(['Upload'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [cropImageData, setCropImageData] = useState<ImageData>({...EMPTY_FILE});

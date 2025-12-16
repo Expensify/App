@@ -58,6 +58,8 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     const isIOUReport = isMoneyRequestAction(action);
 
     if (isMemberChangeAction(action)) {
+        // This will be fixed: https://github.com/Expensify/App/issues/76852
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const fragment = getMemberChangeMessageFragment(action, getReportName);
 
         return (
@@ -109,6 +111,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                     isDisabled={completed}
                     text={translate(completed ? 'signerInfoStep.thisStep' : 'signerInfoStep.enterSignerInfo')}
                     onPress={() => handleEnterSignerInfoPress(policyID, bankAccountID, !!completed)}
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_ENTER_SIGNER_INFO}
                 />
             </View>
         );
@@ -186,6 +189,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                             success
                             text={translate('bankAccount.addBankAccount')}
                             onPress={openWorkspaceInvoicesPage}
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_ADD_BANK_ACCOUNT}
                         />
                     )}
                 </>

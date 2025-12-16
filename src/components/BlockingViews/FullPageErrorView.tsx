@@ -33,7 +33,7 @@ type FullPageErrorViewProps = {
 // eslint-disable-next-line rulesdir/no-negated-variables
 function FullPageErrorView({testID, children = null, shouldShow = false, title = '', subtitle = '', shouldForceFullScreen = false, subtitleStyle}: FullPageErrorViewProps) {
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
 
     if (shouldShow) {
         return (
