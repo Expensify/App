@@ -6090,8 +6090,8 @@ ${amount} para ${merchant} - ${date}`,
                 ? `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados (anteriormente reenviados a ${previousForwardsTo})`
                 : `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados`,
         updateCustomTaxName: ({oldName, newName}) => `cambió el nombre del impuesto personalizado a "${newName}" (antes "${oldName}")`,
-        updateCurrencyDefaultTax: ({oldName, newName}) => `cambió el impuesto predeterminado de la moneda del espacio de trabajo a "${newName}" (antes "${oldName}")`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}) => `cambió el impuesto predeterminado para moneda extranjera a "${newName}" (antes "${oldName}")`,
+        updateCurrencyDefaultTax: ({oldName, newName}) => `cambió la tasa impositiva predeterminada de la moneda del espacio de trabajo a "${newName}" (anteriormente "${oldName}")`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}) => `cambió la tasa impositiva predeterminada de la moneda extranjera a "${newName}" (anteriormente "${oldName}")`,
         addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
         deleteTax: ({taxName}) => `eliminó el impuesto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}) => {
