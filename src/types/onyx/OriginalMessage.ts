@@ -237,6 +237,12 @@ type OriginalMessageSubmitted = {
     cc?: string;
 };
 
+/** Model of `created` report action */
+type OriginalMessageCreated = {
+    /** The account id of the user the report is submitted to */
+    submittedTo?: number;
+};
+
 /** Model of `closed` report action */
 type OriginalMessageClosed = {
     /** Name of the policy */
@@ -467,6 +473,16 @@ type OriginalMessagePolicyChangeLog = {
     /** Custom field type  */
     field?: string;
 
+    /** Array of field changes for consolidated employee updates */
+    fields?: Array<{
+        /** The name of the field being updated */
+        field: string;
+        /** The previous value of the field */
+        oldValue: string;
+        /** The new value of the field */
+        newValue: string;
+    }>;
+
     /** Report field name */
     fieldName?: string;
 
@@ -565,6 +581,9 @@ type OriginalMessagePolicyChangeLog = {
 
     /** The ID of the transaction thread report */
     transactionThreadReportID?: string;
+
+    /** The name of the enabled/disabled feature */
+    featureName?: string;
 };
 
 /** Model of `join policy` report action */
@@ -779,8 +798,10 @@ type OriginalMessageUnreportedTransaction = {
 
 /** Model of MOVED_TRANSACTION report action */
 type OriginalMessageMovedTransaction = {
-    /** ID of the new report */
-    toReportID: string;
+    /** @Deprecated ID of the new report for backwards compatibility */
+    toReportID?: string;
+    /** ID of the original report */
+    fromReportID: string;
 };
 
 /** Model of `moved` report action */
@@ -957,7 +978,7 @@ type OriginalMessageIntegrationSyncFailed = {
 };
 
 /**
- * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ISSUED_VIRTUAL actions
+ * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ISSUED_VIRTUAL, and CARD_REPLACED_VIRTUAL actions
  */
 type OriginalMessageCard = {
     /** The id of the user the card was assigned to */
@@ -965,6 +986,9 @@ type OriginalMessageCard = {
 
     /** The id of the card */
     cardID: number;
+
+    /** Whether the card was issued without a shipping address */
+    hadMissingAddress?: boolean;
 };
 
 /**
@@ -989,13 +1013,15 @@ type OriginalMessageTakeControl = {
 };
 
 /**
- * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ASSIGNED and CARD_ISSUED_VIRTUAL actions
+ * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ASSIGNED, CARD_ISSUED_VIRTUAL and CARD_ISSUED_VIRTUAL actions
  */
 type IssueNewCardOriginalMessage = OriginalMessage<
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED
 >;
 
 /**
@@ -1036,7 +1062,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE]: never;
     [CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST]: OriginalMessageChronosOOOList;
     [CONST.REPORT.ACTIONS.TYPE.CLOSED]: OriginalMessageClosed;
-    [CONST.REPORT.ACTIONS.TYPE.CREATED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.CREATED]: OriginalMessageCreated;
     [CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION]: OriginalMessageDismissedViolation;
     [CONST.REPORT.ACTIONS.TYPE.EXPENSIFY_CARD_SYSTEM_MESSAGE]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: never;
@@ -1100,6 +1126,8 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL]: OriginalMessageCard;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL]: OriginalMessageCard;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;

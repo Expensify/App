@@ -20,7 +20,6 @@ function SearchRouterModal() {
     const [shouldHideInputCaret, setShouldHideInputCaret] = useState(isMobileWebIOS);
 
     const modalType = shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT : CONST.MODAL.MODAL_TYPE.POPOVER;
-    // For now were only enabling shouldUseReanimatedModal narrow layouts. On wide ones it's a popover and it is not migrated yet.
     return (
         <Modal
             type={modalType}

@@ -39,7 +39,6 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
     );
 
     const searchResults = searchOptions(searchValue, countries);
-    const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountry = useCallback(
         (option: Option) => {
@@ -58,12 +57,12 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
 
     const textInputOptions = useMemo(
         () => ({
-            value: searchValue,
+            headerMessage: searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
             label: translate('common.country'),
+            value: searchValue,
             onChangeText: setSearchValue,
-            headerMessage,
         }),
-        [headerMessage, searchValue, translate, setSearchValue],
+        [searchResults.length, searchValue, translate],
     );
 
     return (
@@ -83,11 +82,11 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
 
             <SelectionList
                 data={searchResults}
-                textInputOptions={textInputOptions}
                 ListItem={RadioListItem}
                 onSelectRow={selectCountry}
-                shouldSingleExecuteRowSelect
+                textInputOptions={textInputOptions}
                 initiallyFocusedItemKey={currentCountry}
+                shouldSingleExecuteRowSelect
                 addBottomSafeAreaPadding
             />
         </ScreenWrapper>

@@ -16,7 +16,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeSplitBill, setDraftSplitTransaction} from '@libs/actions/IOU';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
@@ -134,7 +133,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 isReadOnly={!isEditingSplitBill}
                                 shouldShowSmartScanFields
                                 receiptPath={transaction?.receipt?.source}
-                                receiptFilename={getReceiptFilenameFromTransaction(transaction)}
+                                receiptFilename={transaction?.receipt?.filename}
                                 isDistanceRequest={isDistanceRequest}
                                 isManualDistanceRequest={isManualDistanceRequest}
                                 isEditingSplitBill={isEditingSplitBill}

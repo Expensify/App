@@ -9,7 +9,6 @@ import IntlStore from '@src/languages/IntlStore';
 import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';
@@ -106,7 +105,7 @@ const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
     maxArgs: 2,
     equality: 'shallow',
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    skipCache: (params) => !isEmptyObject(params.at(2)),
+    skipCache: (params) => params.length > 2,
 });
 
 /**

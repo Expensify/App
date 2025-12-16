@@ -2,7 +2,7 @@ import {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 /**
@@ -21,7 +21,7 @@ function selectViolationsWithDuplicates(transactionIDs: string[], allTransaction
 
     for (const transactionID of transactionIDs) {
         const key = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
-        const transactionViolations = allTransactionsViolations[key];
+        const transactionViolations: TransactionViolations | undefined = allTransactionsViolations[key];
 
         if (!transactionViolations) {
             continue;
@@ -29,22 +29,22 @@ function selectViolationsWithDuplicates(transactionIDs: string[], allTransaction
 
         result[key] = transactionViolations;
 
-        transactionViolations
-            .filter((violations) => violations.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-            .flatMap((violations) => violations?.data?.duplicates ?? [])
-            // eslint-disable-next-line unicorn/no-array-for-each
-            .forEach((duplicateID) => {
-                if (!duplicateID) {
-                    return;
-                }
+        const duplicateTransactionIDs = transactionViolations
+            .filter((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+            .flatMap((violation) => violation.data?.duplicates ?? []);
 
-                const duplicateKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`;
-                const duplicateViolations = allTransactionsViolations[duplicateKey];
+        for (const duplicateID of duplicateTransactionIDs) {
+            if (!duplicateID) {
+                continue;
+            }
 
-                if (duplicateViolations) {
-                    result[duplicateKey] = duplicateViolations;
-                }
-            });
+            const duplicateKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`;
+            const duplicateViolations: TransactionViolations | undefined = allTransactionsViolations[duplicateKey];
+
+            if (duplicateViolations) {
+                result[duplicateKey] = duplicateViolations;
+            }
+        }
     }
 
     return result;
@@ -82,13 +82,14 @@ function selectTransactionsWithDuplicates(
             continue;
         }
 
-        transactionViolations
-            .filter((violations) => violations.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-            .flatMap((violations) => violations?.data?.duplicates ?? [])
-            // eslint-disable-next-line unicorn/no-array-for-each
-            .forEach((duplicateID) => {
+        for (const violation of transactionViolations) {
+            if (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION) {
+                continue;
+            }
+
+            for (const duplicateID of violation.data?.duplicates ?? []) {
                 if (!duplicateID) {
-                    return;
+                    continue;
                 }
 
                 const duplicateKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateID}`;
@@ -97,7 +98,8 @@ function selectTransactionsWithDuplicates(
                 if (duplicateTransaction) {
                     result[duplicateKey] = duplicateTransaction;
                 }
-            });
+            }
+        }
     }
     return result;
 }

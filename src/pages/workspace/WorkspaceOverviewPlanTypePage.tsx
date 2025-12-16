@@ -6,12 +6,12 @@ import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useTheme from '@hooks/useTheme';
@@ -40,6 +40,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const privateSubscription = usePrivateSubscription();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock'] as const);
 
     useEffect(() => {
         if (!policyID) {
@@ -73,7 +74,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const lockedIcon = (option: WorkspacePlanTypeItem) =>
         option.value === policy?.type ? (
             <Icon
-                src={Expensicons.Lock}
+                src={expensifyIcons.Lock}
                 fill={theme.success}
             />
         ) : null;

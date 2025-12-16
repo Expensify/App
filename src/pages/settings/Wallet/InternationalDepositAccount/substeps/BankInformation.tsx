@@ -106,6 +106,7 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
                                     lat: '',
                                     lng: '',
                                 }}
+                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                             />
                         </View>
                     ))}

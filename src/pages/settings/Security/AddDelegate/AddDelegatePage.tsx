@@ -91,7 +91,7 @@ function AddDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, translate]);
+    }, [availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);

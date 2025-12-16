@@ -49,7 +49,7 @@ function ChatListItem<TItem extends ListItem>({
         item.cursorStyle,
     ];
 
-    const fsClass = FS.getChatFSClass(personalDetails, report);
+    const fsClass = FS.getChatFSClass(report);
 
     return (
         <BaseListItem

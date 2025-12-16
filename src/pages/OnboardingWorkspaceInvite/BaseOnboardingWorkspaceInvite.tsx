@@ -43,6 +43,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const {translate, formatPhoneNumber} = useLocalize();
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const policy = usePolicy(onboardingPolicyID);
     const {onboardingMessages} = useOnboardingMessages();
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
@@ -117,7 +118,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             });
         }
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails.length, availableOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
@@ -137,6 +138,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 onboardingPolicyID,
                 shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
                 isInvitedAccountant,
+                onboardingPurposeSelected,
             });
 
             setOnboardingAdminsChatReportID();
@@ -158,6 +160,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             currentUserPersonalDetails.lastName,
             onboardingAdminsChatReportID,
             onboardingPolicyID,
+            onboardingPurposeSelected,
             isSmallScreenWidth,
             isBetaEnabled,
             session?.email,

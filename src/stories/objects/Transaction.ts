@@ -15,7 +15,6 @@ const transaction: Transaction & {mcc: string; modifiedMCC: string} = {
     },
     created: '2025-02-18',
     currency: 'PLN',
-    filename: '',
     hasEReceipt: false,
     inserted: '2025-02-18 14:23:29',
     managedCard: false,

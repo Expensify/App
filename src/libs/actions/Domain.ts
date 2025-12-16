@@ -49,7 +49,7 @@ function validateDomain(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {isValidationPending: true, domainValidationError: null},
+            value: {isValidationPending: true, domainValidationError: null, hasValidationSucceeded: null},
         },
     ];
 
@@ -57,7 +57,7 @@ function validateDomain(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {isValidationPending: null},
+            value: {isValidationPending: null, hasValidationSucceeded: true},
         },
     ];
 
@@ -102,6 +102,13 @@ function setSamlIdentity(accountID: number, domainName: string, metaIdentity: st
             value: {
                 samlMetadataError: null,
                 metaIdentity,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+            value: {
+                samlRequiredError: null,
             },
         },
     ];
@@ -159,7 +166,7 @@ function getSamlSettings(accountID: number, domainName: string) {
 /**
  * Sets whether logging in via SAML is enabled for the domain
  */
-function setSamlEnabled(enabled: boolean, accountID: number, domainName: string) {
+function setSamlEnabled({enabled, accountID, domainName}: {enabled: boolean; accountID: number; domainName: string}) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -220,7 +227,12 @@ function resetSamlEnabledError(accountID: number) {
 /**
  * Sets whether logging in via SAML is required for the domain
  */
-function setSamlRequired(required: boolean, accountID: number, domainName: string) {
+function setSamlRequired({required, accountID, domainName, metaIdentity}: {required: boolean; accountID: number; domainName: string; metaIdentity: string | undefined}) {
+    if (required && !metaIdentity) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {samlRequiredError: getMicroSecondOnyxErrorWithTranslationKey('domain.samlLogin.requireWithEmptyMetadataError')});
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -304,6 +316,41 @@ async function getScimToken(domainName: string): Promise<ScimTokenWithState> {
     }
 }
 
+/** Sends request for claiming a domain */
+function createDomain(domainName: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            value: {hasCreationSucceeded: null, isLoading: true},
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            value: {hasCreationSucceeded: true, isLoading: null},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            value: {isLoading: null},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.CREATE_DOMAIN, {domainName}, {optimisticData, successData, failureData});
+}
+
+/**
+ * For resetting createDomain form data
+ * Resets it only on the client's side, no server call is performed
+ */
+function resetCreateDomainForm() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -316,4 +363,6 @@ export {
     resetSamlRequiredError,
     setSamlIdentity,
     getScimToken,
+    createDomain,
+    resetCreateDomainForm,
 };

@@ -4,10 +4,11 @@ import {CommonActions, getPathFromState, StackActions} from '@react-navigation/n
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
-import {InteractionManager} from 'react-native';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
+import {SUPER_WIDE_RIGHT_MODALS, WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -34,7 +35,7 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
+import type {NavigationPartialRoute, NavigationRef, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES = new Set<Route>([
@@ -568,17 +569,25 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 
 /**
  * Closes the modal navigator (RHP, onboarding).
+ *
+ * @param options - Configuration object
+ * @param options.ref - Navigation ref to use (defaults to navigationRef)
+ * @param options.callback - Optional callback to execute after the modal has finished closing.
+ *                           The callback fires when RightModalNavigator unmounts.
+ *
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  */
-const dismissModal = (ref = navigationRef) => {
+const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; callback?: () => void} = {}) => {
     isNavigationReady().then(() => {
+        if (callback) {
+            const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {
+                subscription.remove();
+                callback();
+            });
+        }
+
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
-        // Let React Navigation finish modal transition
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            fireModalDismissed();
-        });
     });
 };
 
@@ -697,18 +706,47 @@ function clearPreloadedRoutes() {
     navigationRef.reset(rootStateWithoutPreloadedRoutes);
 }
 
-const modalDismissedListeners: Array<() => void> = [];
+/**
+ * When multiple screens are open in RHP, returns to the last modal stack specified in the parameter. If none are found, it dismisses the entire modal.
+ *
+ * @param modalStackNames - names of the modal stacks we want to dismiss to
+ */
+function dismissToModalStack(modalStackNames: Set<string>) {
+    const rootState = navigationRef.getRootState();
+    if (!rootState) {
+        return;
+    }
 
-function onModalDismissedOnce(callback: () => void) {
-    modalDismissedListeners.push(callback);
+    const rhpState = rootState.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
+
+    if (!rhpState) {
+        return;
+    }
+
+    const lastFoundModalStackIndex = rhpState.routes.findLastIndex((route) => modalStackNames.has(route.name));
+    const routesToPop = rhpState.routes.length - lastFoundModalStackIndex - 1;
+
+    if (routesToPop <= 0 || lastFoundModalStackIndex === -1) {
+        dismissModal();
+        return;
+    }
+
+    navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
 }
 
-// Wrap modal dismissal so listeners get called
-function fireModalDismissed() {
-    while (modalDismissedListeners.length) {
-        const cb = modalDismissedListeners.pop();
-        cb?.();
-    }
+/**
+ * Dismiss top layer modal and go back to the Wide/Super Wide RHP.
+ */
+function dismissToFirstRHP() {
+    const wideOrSuperWideModalStackNames = new Set([...SUPER_WIDE_RIGHT_MODALS, ...WIDE_RIGHT_MODALS]);
+    return dismissToModalStack(wideOrSuperWideModalStackNames);
+}
+
+/**
+ * Dismiss top layer modal and go back to the Wide RHP.
+ */
+function dismissToSecondRHP() {
+    return dismissToModalStack(WIDE_RIGHT_MODALS);
 }
 
 export default {
@@ -745,9 +783,9 @@ export default {
     isTopmostRouteModalScreen,
     isOnboardingFlow,
     clearPreloadedRoutes,
-    onModalDismissedOnce,
-    fireModalDismissed,
     isValidateLoginFlow,
+    dismissToFirstRHP,
+    dismissToSecondRHP,
 };
 
 export {navigationRef};

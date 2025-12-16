@@ -2,8 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
-// eslint-disable-next-line no-restricted-imports
 import {ChatBubble} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,7 +22,7 @@ function Finish() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Shield'] as const);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow'] as const);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -73,7 +71,7 @@ function Finish() {
                             onPress: () => {
                                 Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)));
                             },
-                            icon: Expensicons.Shield,
+                            icon: icons.Shield,
                             shouldShowRightIcon: true,
                             iconRight: icons.NewWindow,
                             outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
