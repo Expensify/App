@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useCallback, useLayoutEffect, useRef} from 'react';
+import {View} from 'react-native';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -32,7 +32,7 @@ function SplitListItem<TItem extends ListItem>({
     onInputFocus,
     onInputBlur,
 }: SplitListItemProps<TItem>) {
-    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -72,19 +72,13 @@ function SplitListItem<TItem extends ListItem>({
     }, [onInputFocus, index]);
 
     // Auto-focus input when item is selected and screen transition ends
-    useEffect(() => {
-        if (!didScreenTransitionEnd || !splitItem.isSelected || !splitItem.isEditable || !inputRef.current) {
+    useLayoutEffect(() => {
+        if (!splitItem.isSelected || !splitItem.isEditable || !didScreenTransitionEnd || !inputRef.current) {
             return;
         }
 
-        // Use InteractionManager to ensure input focus happens after all animations/interactions complete.
-        // This prevents focus from interrupting modal close/open animations which would cause UI glitches
-        // and "jumping" behavior when quickly navigating between screens.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            inputRef.current?.focus();
-        });
-    }, [didScreenTransitionEnd, splitItem.isSelected, splitItem.isEditable]);
+        inputRef.current.focus();
+    }, [splitItem.isSelected, splitItem.isEditable, didScreenTransitionEnd]);
 
     const inputCallbackRef = (ref: BaseTextInputRef | null) => {
         inputRef.current = ref;
@@ -213,7 +207,5 @@ function SplitListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-SplitListItem.displayName = 'SplitListItem';
 
 export default SplitListItem;
