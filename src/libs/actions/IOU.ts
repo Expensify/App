@@ -1558,7 +1558,7 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
         reportActionID: testDriveIOUParams.iouOptimisticParams.action.reportActionID,
     });
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const text = Localize.translateLocal('testDrive.employeeInviteMessage', {name: personalDetailsList?.[userAccountID]?.firstName ?? ''});
+    const text = Localize.translateLocal('testDrive.employeeInviteMessage', personalDetailsList?.[userAccountID]?.firstName ?? '');
     const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID, undefined, undefined, undefined, testDriveIOUParams.testDriveCommentReportActionID);
     textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
 

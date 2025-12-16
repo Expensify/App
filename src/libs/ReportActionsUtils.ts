@@ -2197,19 +2197,19 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
     if (isPending) {
         result.push({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            text: translateLocal('report.actions.type.exportedToIntegration.pending', {label}),
+            text: translateLocal('report.actions.type.exportedToIntegration.pending', label),
             url: '',
         });
     } else if (markedManually) {
         result.push({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            text: translateLocal('report.actions.type.exportedToIntegration.manual', {label}),
+            text: translateLocal('report.actions.type.exportedToIntegration.manual', label),
             url: '',
         });
     } else if (automaticAction) {
         result.push({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            text: translateLocal('report.actions.type.exportedToIntegration.automaticActionOne', {label}),
+            text: translateLocal('report.actions.type.exportedToIntegration.automaticActionOne', label),
             url: '',
         });
         const url = CONST.HELP_DOC_LINKS[label as keyof typeof CONST.HELP_DOC_LINKS];
@@ -2221,7 +2221,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
     } else {
         result.push({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            text: translateLocal('report.actions.type.exportedToIntegration.automatic', {label}),
+            text: translateLocal('report.actions.type.exportedToIntegration.automatic', label),
             url: '',
         });
     }
@@ -3278,7 +3278,7 @@ function getDemotedFromWorkspaceMessage(reportAction: OnyxEntry<ReportAction<typ
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const oldRole = translateLocal('workspace.common.roleName', {role: originalMessage?.oldRole}).toLowerCase();
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('workspaceActions.demotedFromWorkspace', {policyName, oldRole});
+    return translateLocal('workspaceActions.demotedFromWorkspace', policyName, oldRole);
 }
 
 function getUpdatedAuditRateMessage(reportAction: OnyxEntry<ReportAction>) {

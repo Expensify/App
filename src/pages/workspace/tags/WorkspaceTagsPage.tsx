@@ -644,9 +644,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const subtitleText = useMemo(() => {
         const emptyTagsSubtitle = hasAccountingConnections
-            ? translate('workspace.tags.emptyTags.subtitleWithAccounting', {
-                  accountingPageURL: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`,
-              })
+            ? translate('workspace.tags.emptyTags.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`)
             : translate('workspace.tags.emptyTags.subtitleHTML');
         return (
             <View style={[styles.renderHTML]}>

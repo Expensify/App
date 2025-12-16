@@ -535,11 +535,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         return (
             <View style={[styles.renderHTML]}>
-                <RenderHTML
-                    html={translate('workspace.categories.emptyCategories.subtitleWithAccounting', {
-                        accountingPageURL: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`,
-                    })}
-                />
+                <RenderHTML html={translate('workspace.categories.emptyCategories.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`)} />
             </View>
         );
     }, [policyHasAccountingConnections, styles.renderHTML, styles.textAlignCenter, styles.textSupporting, styles.textNormal, translate, environmentURL, policyId]);
