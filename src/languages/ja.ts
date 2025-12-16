@@ -3109,6 +3109,7 @@ ${
             fullName: '有効な氏名を入力してください',
             ownershipPercentage: '有効なパーセント数値を入力してください',
             deletePaymentBankAccount: 'この銀行口座は、Expensify Card の支払いに使用されているため削除できません。この口座をそれでも削除したい場合は、Concierge までご連絡ください。',
+            sameDepositAndWithdrawalAccount: '入金口座と出金口座が同じです。',
         },
     },
     addPersonalBankAccount: {
@@ -6666,6 +6667,9 @@ ${reportName}
                 subtitle: '経費はゼロ。くつろぎはマックス。お見事です！',
             },
         },
+        columns: '列',
+        resetColumns: '列をリセット',
+        noColumnsError: '保存する前に、少なくとも 1 つの列を選択してください',
         statements: 'ステートメント',
         unapprovedCash: '未承認の現金',
         unapprovedCard: '未承認のカード',

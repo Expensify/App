@@ -3110,6 +3110,7 @@ ${
             ownershipPercentage: 'Wprowadź prawidłową wartość procentową',
             deletePaymentBankAccount:
                 'To tego konta bankowego nie można usunąć, ponieważ jest używane do płatności Expensify Card. Jeśli mimo to chcesz usunąć to konto, skontaktuj się z Concierge.',
+            sameDepositAndWithdrawalAccount: 'Konto do wpłaty i konto do wypłaty są takie same.',
         },
     },
     addPersonalBankAccount: {
@@ -6692,6 +6693,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 subtitle: 'Zero wydatków. Maksymalny luz. Dobra robota!',
             },
         },
+        columns: 'Kolumny',
+        resetColumns: 'Resetuj kolumny',
+        noColumnsError: 'Proszę wybrać co najmniej jedną kolumnę przed zapisaniem',
         statements: 'Wyciągi',
         unapprovedCash: 'Niezaakceptowana gotówka',
         unapprovedCard: 'Niezatwierdzona karta',
