@@ -155,6 +155,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         },
         // Large collections omitted from deps to avoid recreation on every change.
         // Callback recreates via other deps during normal interaction, keeping data sufficiently current.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [
             currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
@@ -166,9 +167,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             allReportNextSteps,
             backTo,
             policies,
-            allReports,
-            allTransactions,
-            transactionViolations,
             activePolicyID,
             clearSelectedTransactions,
         ],
