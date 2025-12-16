@@ -406,7 +406,7 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
                 >
                     <AmountCell
-                        total={transactionItem.report?.type === CONST.REPORT.TYPE.EXPENSE ? -getOriginalAmount(transactionItem) : getOriginalAmount(transactionItem)}
+                        total={getOriginalAmount(transactionItem) * (transactionItem.report?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1)}
                         currency={getOriginalCurrency(transactionItem)}
                     />
                 </View>
