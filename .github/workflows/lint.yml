@@ -40,7 +40,7 @@ jobs:
           # See https://eslint.org/docs/latest/use/command-line-interface#--cache-strategy for more information
           key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'normalized-package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-eslint
+            ${{ runner.os }}-eslint-
 
       - name: Lint JavaScript and Typescript with ESLint
         run: npm run lint
