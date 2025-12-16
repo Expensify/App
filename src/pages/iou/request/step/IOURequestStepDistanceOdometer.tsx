@@ -45,7 +45,7 @@ import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotF
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
@@ -53,7 +53,7 @@ type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepDistanceOdometer({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backTo, backToReport},
+        params: {action, iouType, reportID, transactionID, backToReport, isEditingFromConfirmation},
     },
     transaction,
     currentUserPersonalDetails,
@@ -77,7 +77,7 @@ function IOURequestStepDistanceOdometer({
     // Track initial values for DiscardChangesConfirmation
     const initialStartReadingRef = useRef<string>('');
     const initialEndReadingRef = useRef<string>('');
-    // const initialStartImageRef = useRef<File | string | undefined>(undefined);
+    // const initialStartImageRef = useRef<File | string | undefined>(undefined)
     // const initialEndImageRef = useRef<File | string | undefined>(undefined);
     const hasInitializedRefs = useRef(false);
     // Track previous transaction values to detect when transaction is cleared (e.g., tab switch)
@@ -93,8 +93,8 @@ function IOURequestStepDistanceOdometer({
     const defaultExpensePolicy = useDefaultExpensePolicy();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isEditingFromConfirmation = !!backTo;
-    const isCreatingNewRequest = !(backTo || isEditing);
+    const isEditingConfirmation = isEditingFromConfirmation === 'editing';
+    const isCreatingNewRequest = !isEditingConfirmation && !isEditing;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -110,6 +110,11 @@ function IOURequestStepDistanceOdometer({
 
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
+    const confirmationRoute = useMemo(
+        () => ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, backToReport),
+        [action, backToReport, iouType, reportID, transactionID],
+    );
+
     // Get odometer images from transaction (only for display, not for initialization)
     // const odometerStartImage = transaction?.comment?.odometerStartImage;
     // const odometerEndImage = transaction?.comment?.odometerEndImage;
@@ -117,6 +122,10 @@ function IOURequestStepDistanceOdometer({
     // Reset component state when transaction has no odometer data (happens when switching tabs)
     // In Phase 1, we don't persist data from transaction since users can't save and exit
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         const currentStart = transaction?.comment?.odometerStart;
         const currentEnd = transaction?.comment?.odometerEnd;
 
@@ -128,19 +137,15 @@ function IOURequestStepDistanceOdometer({
 
         const hasTransactionData = (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined);
 
-        // Only reset if transaction was cleared (not just null initially) and we have local state
-        // We check local state via refs to avoid including them in dependencies
-        const hasLocalState = startReadingRef.current || endReadingRef.current;
-        
-        // Reset if transaction was cleared (had values before, now null) and we have local state
+        // Reset if transaction was cleared (had values before, now null)
         // This happens when switching tabs - transaction data is cleared but local state persists
-        // Also reset if transaction is empty but we have local state (component remounted after tab switch)
+        // Also reset if transaction is empty (component remounted after tab switch)
         // Don't reset in edit mode as we want to preserve user's changes
         const shouldReset = 
             hasInitializedRefs.current && 
             !isEditing && 
+            !isEditingConfirmation &&
             !hasTransactionData && 
-            hasLocalState && 
             (wasCleared || (prevTransactionStartRef.current === undefined && prevTransactionEndRef.current === undefined));
         
         if (shouldReset) {
@@ -160,7 +165,7 @@ function IOURequestStepDistanceOdometer({
         // Update refs to track previous values
         prevTransactionStartRef.current = currentStart;
         prevTransactionEndRef.current = currentEnd;
-    }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd]);
+    }, [isFocused, isEditing, isEditingConfirmation, transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd]);
 
     // Initialize initial values refs on mount for DiscardChangesConfirmation
     // These should never be updated after mount - they represent the "baseline" state
@@ -246,9 +251,9 @@ function IOURequestStepDistanceOdometer({
     // const endImageSource = getImageSource(odometerEndImage);
 
     const buttonText = useMemo(() => {
-        const shouldShowSave = isEditing || isEditingFromConfirmation;
+        const shouldShowSave = isEditing || isEditingConfirmation;
         return shouldShowSave ? translate('common.save') : translate('common.next');
-    }, [isEditing, isEditingFromConfirmation, translate]);
+    }, [isEditing, isEditingConfirmation, translate]);
 
     const handleStartReadingChange = useCallback(
         (text: string) => {
@@ -271,14 +276,8 @@ function IOURequestStepDistanceOdometer({
             if (formError) {
                 setFormError('');
             }
-            // Save to transaction immediately
-            const startValue = cleaned ? parseFloat(cleaned) : null;
-            const endValue = endReading ? parseFloat(endReading) : null;
-            if (startValue !== null && !Number.isNaN(startValue)) {
-                setMoneyRequestOdometerReading(transactionID, startValue, endValue !== null && !Number.isNaN(endValue) ? endValue : null, isTransactionDraft);
-            }
         },
-        [endReading, formError, transactionID, isTransactionDraft],
+        [formError],
     );
 
     const handleEndReadingChange = useCallback(
@@ -302,14 +301,8 @@ function IOURequestStepDistanceOdometer({
             if (formError) {
                 setFormError('');
             }
-            // Save to transaction immediately
-            const startValue = startReading ? parseFloat(startReading) : null;
-            const endValue = cleaned ? parseFloat(cleaned) : null;
-            if (endValue !== null && !Number.isNaN(endValue)) {
-                setMoneyRequestOdometerReading(transactionID, startValue !== null && !Number.isNaN(startValue) ? startValue : null, endValue, isTransactionDraft);
-            }
         },
-        [startReading, formError, transactionID, isTransactionDraft],
+        [formError],
     );
 
     // const handleCaptureImage = useCallback(
@@ -351,29 +344,37 @@ function IOURequestStepDistanceOdometer({
 
     useEffect(() => {
         allowNavigationRef.current = false;
-    }, [isFocused, isEditingFromConfirmation]);
+    }, [isFocused, isEditingConfirmation]);
 
     useBeforeRemove(
         useCallback(
             (event) => {
-                if (!isEditingFromConfirmation || !isFocused || allowNavigationRef.current) {
+                if (!isEditingConfirmation || !isFocused || allowNavigationRef.current) {
                     return;
                 }
                 event.preventDefault();
                 allowNavigationRef.current = true;
-                Navigation.goBack(backTo);
+                if (confirmationRoute) {
+                    Navigation.goBack(confirmationRoute);
+                    return;
+                }
+                Navigation.goBack();
             },
-            [isEditingFromConfirmation, isFocused, backTo],
+            [confirmationRoute, isEditingConfirmation, isFocused],
         ),
-        isEditingFromConfirmation && isFocused,
+        isEditingConfirmation && isFocused,
     );
 
     const navigateBack = useCallback(() => {
-        if (isEditingFromConfirmation) {
+        if (isEditingConfirmation) {
             allowNavigation();
         }
-        Navigation.goBack(backTo);
-    }, [allowNavigation, backTo, isEditingFromConfirmation]);
+        if (confirmationRoute) {
+            Navigation.goBack(confirmationRoute);
+            return;
+        }
+        Navigation.goBack();
+    }, [allowNavigation, confirmationRoute, isEditingConfirmation]);
 
     // Navigate to next page following Manual tab pattern
     const navigateToNextPage = useCallback(() => {
@@ -411,15 +412,24 @@ function IOURequestStepDistanceOdometer({
                     isASAPSubmitBetaEnabled: false,
                 });
             }
-            if (isEditingFromConfirmation) {
+            if (isEditingConfirmation) {
                 allowNavigation();
             }
-            Navigation.goBack(backTo);
+            if (confirmationRoute) {
+                Navigation.goBack(confirmationRoute);
+                return;
+            }
+            Navigation.goBack();
             return;
         }
 
-        if (backTo) {
-            Navigation.goBack(backTo);
+        if (isEditingConfirmation) {
+            allowNavigation();
+            if (confirmationRoute) {
+                Navigation.goBack(confirmationRoute);
+                return;
+            }
+            Navigation.goBack();
             return;
         }
 
@@ -442,7 +452,6 @@ function IOURequestStepDistanceOdometer({
         transactionID,
         isTransactionDraft,
         isEditing,
-        backTo,
         report,
         reportNameValuePairs,
         iouType,
@@ -455,7 +464,10 @@ function IOURequestStepDistanceOdometer({
         currentUserAccountIDParam,
         currentUserEmailParam,
         allowNavigation,
-        isEditingFromConfirmation,
+        isEditingConfirmation,
+        confirmationRoute,
+        transaction?.comment?.odometerEnd,
+        transaction?.comment?.odometerStart,
     ]);
 
     // Handle form submission with validation
@@ -485,7 +497,7 @@ function IOURequestStepDistanceOdometer({
         navigateToNextPage();
     }, [startReading, endReading, navigateToNextPage, translate]);
 
-    const shouldEnableDiscardConfirmation = !isEditingFromConfirmation;
+    const shouldEnableDiscardConfirmation = !isEditingConfirmation;
 
     return (
         <StepScreenWrapper

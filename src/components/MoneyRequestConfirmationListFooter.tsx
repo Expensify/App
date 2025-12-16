@@ -522,7 +522,7 @@ function MoneyRequestConfirmationListFooter({
                         }
 
                         if (isOdometerDistanceRequest) {
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID) as Route);
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID, true) as Route);
                             return;
                         }
 
