@@ -142,6 +142,5 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
     );
 }
 
-SingleSelectPopup.displayName = 'SingleSelectPopup';
 export type {SingleSelectPopupProps, SingleSelectItem};
 export default SingleSelectPopup;
