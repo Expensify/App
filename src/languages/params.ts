@@ -130,11 +130,6 @@ type RequestCountParams = {
     pendingReceipts: number;
 };
 
-type DeleteTransactionParams = {
-    amount: string;
-    merchant: string;
-};
-
 type MovedTransactionParams = {
     reportUrl: string;
     reportName?: string;
@@ -176,11 +171,7 @@ type RequestAmountParams = {amount: string};
 
 type ReportFieldParams = {name: string; value: string};
 
-type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
-
 type SplitAmountParams = {amount: string};
-
-type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
 type UserSplitParams = {amount: string};
 
@@ -223,8 +214,6 @@ type SizeExceededParams = {maxUploadSizeInMB: number};
 type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
 
 type NotAllowedExtensionParams = {allowedExtensions: string[]};
-
-type EnterMagicCodeParams = {contactMethod: string};
 
 type TransferParams = {amount: string};
 
@@ -326,8 +315,6 @@ type TaskCreatedActionParams = {title: string};
 type OptionalParam<T> = Partial<T>;
 
 type TermsParams = {amount: string};
-
-type ElectronicFundsParams = {percentage: string; amount: string};
 
 type LogSizeParams = {size: number};
 
@@ -464,11 +451,6 @@ type LastSyncDateParams = {
     formattedDate: string;
 };
 
-type CustomersOrJobsLabelParams = {
-    importFields: string[];
-    importType: string;
-};
-
 type ExportAgainModalDescriptionParams = {
     reportName: string;
     connectionName: ConnectionName;
@@ -527,10 +509,6 @@ type BillingBannerDisputePendingParams = {amountOwed: number; cardEnding: string
 type BillingBannerCardOnDisputeParams = {amountOwed: string; cardEnding: string};
 
 type TrialStartedTitleParams = {numOfDays: number};
-
-type EarlyDiscountTitleParams = {discountType: number};
-
-type EarlyDiscountSubtitleParams = {days: number; hours: number; minutes: number; seconds: number};
 
 type CardInfoParams = {name: string; expiration: string; currency: string};
 
@@ -593,22 +571,12 @@ type AssignedCardParams = {
     link: string;
 };
 
-type FeatureNameParams = {
-    featureName: string;
-    moreFeaturesLink?: string;
-};
-
 type DefaultAmountParams = {
     defaultAmount: string;
 };
 
 type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
-};
-
-type DemotedFromWorkspaceParams = {
-    policyName: string;
-    oldRole: string;
 };
 
 type IntegrationExportParams = {
@@ -711,10 +679,6 @@ type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
 };
 
-type EditDestinationSubtitleParams = {
-    destination: string;
-};
-
 type FlightLayoverParams = {
     layover: string;
 };
@@ -757,10 +721,6 @@ type TotalAmountGreaterOrLessThanOriginalParams = {
     amount: string;
 };
 
-type EmployeeInviteMessageParams = {
-    name: string;
-};
-
 type FlightParams = {
     startDate: string;
     airlineCode: string;
@@ -798,14 +758,6 @@ type QBDSetupErrorBodyParams = {
     conciergeLink: string;
 };
 
-type EmptyCategoriesSubtitleWithAccountingParams = {
-    accountingPageURL: string;
-};
-
-type EmptyTagsSubtitleWithAccountingParams = {
-    accountingPageURL: string;
-};
-
 type SettlementAccountInfoParams = {
     reconciliationAccountSettingsLink: string;
     accountNumber: string;
@@ -823,11 +775,6 @@ type MergeFailureUncreatedAccountDescriptionParams = {
 
 type MergeFailureDescriptionGenericParams = {
     email: string;
-};
-
-type EnableContinuousReconciliationParams = {
-    connectionName: string;
-    accountingAdvancedSettingsLink: string;
 };
 
 type WorkspaceUpgradeNoteParams = {
@@ -872,10 +819,6 @@ type PayAndDowngradeDescriptionParams = {
 
 type WalletAgreementParams = {
     walletAgreementUrl: string;
-};
-
-type ErrorODIntegrationParams = {
-    oldDotPolicyConnectionsURL: string;
 };
 
 type SettlementAccountReconciliationParams = {
@@ -923,9 +866,7 @@ export type {
     ConnectionParams,
     IntegrationExportParams,
     RemovedFromApprovalWorkflowParams,
-    DemotedFromWorkspaceParams,
     DefaultAmountParams,
-    FeatureNameParams,
     FileLimitParams,
     FileTypeParams,
     SpreadSheetColumnParams,
@@ -954,8 +895,6 @@ export type {
     BillingBannerDisputePendingParams,
     BillingBannerCardOnDisputeParams,
     TrialStartedTitleParams,
-    EarlyDiscountTitleParams,
-    EarlyDiscountSubtitleParams,
     RemoveMemberPromptParams,
     StatementTitleParams,
     RenamedWorkspaceNameActionParams,
@@ -981,10 +920,7 @@ export type {
     DateShouldBeBeforeParams,
     DeleteActionParams,
     DeleteConfirmationParams,
-    DidSplitAmountMessageParams,
     EditActionParams,
-    ElectronicFundsParams,
-    EnterMagicCodeParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     SubmittedToVacationDelegateParams,
@@ -1027,9 +963,7 @@ export type {
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     RequestCountParams,
-    DeleteTransactionParams,
     MovedTransactionParams,
-    RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
@@ -1088,7 +1022,6 @@ export type {
     ApprovalWorkflowErrorParams,
     ConnectionNameParams,
     LastSyncDateParams,
-    CustomersOrJobsLabelParams,
     ExportAgainModalDescriptionParams,
     IntegrationSyncFailedParams,
     AddEmployeeParams,
@@ -1122,7 +1055,6 @@ export type {
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,
     UpdatedPolicyDescriptionParams,
-    EditDestinationSubtitleParams,
     FlightLayoverParams,
     WorkEmailResendCodeParams,
     WorkEmailMergingBlockedParams,
@@ -1163,7 +1095,6 @@ export type {
     CreateExpensesParams,
     WorkspaceMembersCountParams,
     CurrencyInputDisabledTextParams,
-    EmployeeInviteMessageParams,
     FlightParams,
     AirlineParams,
     RailTicketParams,
@@ -1172,13 +1103,10 @@ export type {
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     QBDSetupErrorBodyParams,
-    EmptyCategoriesSubtitleWithAccountingParams,
-    EmptyTagsSubtitleWithAccountingParams,
     SettlementAccountInfoParams,
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
-    EnableContinuousReconciliationParams,
     WorkspaceUpgradeNoteParams,
     WorkflowSettingsParam,
     MovedActionParams,
@@ -1192,7 +1120,6 @@ export type {
     DependentMultiLevelTagsSubtitleParams,
     PayAndDowngradeDescriptionParams,
     WalletAgreementParams,
-    ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
     NextStepParams,
