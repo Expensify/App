@@ -7579,7 +7579,6 @@ const CONST = {
         HEADER_VIEW: {
             BACK_BUTTON: 'HeaderView-BackButton',
             DETAILS_BUTTON: 'HeaderView-DetailsButton',
-            TASK_ACTION_BUTTON: 'HeaderView-TaskActionButton',
         },
         SEARCH: {
             SEARCH_BUTTON: 'Search-SearchButton',
