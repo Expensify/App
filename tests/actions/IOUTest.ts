@@ -6469,6 +6469,7 @@ describe('actions/IOU', () => {
         });
 
         it('should remove all existing category violations when the transaction Category is unset', async () => {
+            const spyOnyxUpdate = jest.spyOn(Onyx, 'update').mockImplementation(jest.fn());
             const transactionID = '1';
             const policyID = '2';
             const transactionThreadReportID = '3';
@@ -6492,19 +6493,6 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID});
 
-            // Any existing category violations will be removed, leaving only the MISSING_CATEGORY violation in the end
-            const promise = new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                    callback: (transactionViolations) => {
-                        Onyx.disconnect(connection);
-                        expect(transactionViolations).toHaveLength(1);
-                        expect(transactionViolations?.at(0)?.name).toEqual(CONST.VIOLATIONS.MISSING_CATEGORY);
-                        resolve();
-                    },
-                });
-            });
-
             // When updating a money request category
             updateMoneyRequestCategory({
                 transactionID,
@@ -6521,7 +6509,16 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            await Promise.all([promise]);
+            // Any existing category violations will be removed, leaving only the MISSING_CATEGORY violation in the end
+            expect(spyOnyxUpdate).toHaveBeenCalledWith(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                        value: [expect.objectContaining({name: CONST.VIOLATIONS.MISSING_CATEGORY})],
+                    }),
+                ]),
+            );
+            spyOnyxUpdate.mockRestore();
         });
     });
 
