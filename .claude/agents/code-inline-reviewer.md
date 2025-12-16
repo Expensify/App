@@ -171,7 +171,9 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 #### MANDATORY: Check React Compiler optimization status
 
-Before flagging or skipping PERF-4, you MUST run (available in PATH from `.claude/scripts/`):
+**CRITICAL**: If you spot ANY pattern that MIGHT be a PERF-4 violation (inline object, arrow function, non-memoized variable passed as prop), you MUST run this script BEFORE deciding to flag or skip. Never skip PERF-4 analysis without first running this script on the file.
+
+Run (available in PATH from `.claude/scripts/`):
 
 ```bash
 checkReactCompilerOptimization.sh <file-path>
