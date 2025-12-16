@@ -5026,14 +5026,11 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             },
             companyCards: {
                 title: '会社カード',
-                subtitle: '既存の会社カードから支出をインポートする',
+                subtitle: '既にお持ちのカードを連携します。',
                 feed: {
-                    title: '会社カードをインポート',
-                    features: {
-                        support: '主要なすべてのカードプロバイダーに対応',
-                        assignCards: 'チーム全員にカードを割り当てる',
-                        automaticImport: '自動取引インポート',
-                    },
+                    title: '自分のカードを持ち込む（BYOC）',
+                    features: {support: '10,000以上の銀行のカードを連携', assignCards: 'チームの既存のカードをリンクする', automaticImport: '取引を自動的に取り込みます'},
+                    subtitle: 'すでにお持ちのカードをリンクして、自動取引の取り込み、レシート照合、および消込を行いましょう。',
                 },
                 bankConnectionError: '銀行接続の問題',
                 connectWithPlaid: 'Plaid で接続',

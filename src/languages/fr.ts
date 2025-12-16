@@ -5076,14 +5076,15 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             companyCards: {
                 title: 'Cartes d’entreprise',
-                subtitle: 'Importer les dépenses depuis les cartes d’entreprise existantes.',
+                subtitle: 'Connectez les cartes que vous avez déjà.',
                 feed: {
-                    title: 'Importer les cartes d’entreprise',
+                    title: 'Apportez vos propres cartes (BYOC)',
                     features: {
-                        support: 'Prise en charge de tous les principaux émetteurs de cartes',
-                        assignCards: 'Attribuer des cartes à toute l’équipe',
-                        automaticImport: 'Importation automatique des transactions',
+                        support: 'Connectez des cartes depuis plus de 10 000 banques',
+                        assignCards: 'Liez les cartes existantes de votre équipe',
+                        automaticImport: 'Nous importerons automatiquement les transactions',
                     },
+                    subtitle: 'Liez les cartes que vous avez déjà pour l’importation automatique des transactions, la correspondance des reçus et la réconciliation.',
                 },
                 bankConnectionError: 'Problème de connexion bancaire',
                 connectWithPlaid: 'se connecter via Plaid',
