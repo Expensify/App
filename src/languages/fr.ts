@@ -385,7 +385,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: 'Nom de famille',
         scanning: 'Numérisation',
         analyzing: 'Analyse en cours...',
-        addCardTermsOfService: 'Conditions d'utilisation d'Expensify',
+        addCardTermsOfService: "Conditions d'utilisation d'Expensify",
         perPerson: 'par personne',
         phone: 'Téléphone',
         phoneNumber: 'Numéro de téléphone',
