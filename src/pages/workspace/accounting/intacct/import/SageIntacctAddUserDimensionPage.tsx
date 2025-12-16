@@ -49,7 +49,7 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctAddUserDimensionPage.displayName}
+            displayName="SageIntacctAddUserDimensionPage"
             headerTitle="workspace.intacct.addUserDefinedDimension"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}

@@ -99,7 +99,7 @@ function SageIntacctDefaultVendorPage() {
         <SelectionScreen
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctDefaultVendorPage.displayName}
+            displayName="SageIntacctDefaultVendorPage"
             sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}

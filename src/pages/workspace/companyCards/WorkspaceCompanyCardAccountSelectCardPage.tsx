@@ -110,7 +110,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                 </View>
             }
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
-            displayName={WorkspaceCompanyCardAccountSelectCardPage.displayName}
+            displayName="WorkspaceCompanyCardAccountSelectCardPage"
             sections={[{data: searchedListOptions ?? []}]}
             listItem={RadioListItem}
             textInputLabel={translate('common.search')}

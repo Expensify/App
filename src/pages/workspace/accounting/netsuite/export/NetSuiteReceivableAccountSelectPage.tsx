@@ -69,7 +69,7 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteReceivableAccountSelectPage.displayName}
+            displayName="NetSuiteReceivableAccountSelectPage"
             sections={netsuiteReceivableAccountOptions.length ? [{data: netsuiteReceivableAccountOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateReceivableAccount}

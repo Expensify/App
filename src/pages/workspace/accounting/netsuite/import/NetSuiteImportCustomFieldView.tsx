@@ -86,7 +86,7 @@ function NetSuiteImportCustomFieldView({
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportCustomFieldView.displayName}
+            displayName="NetSuiteImportCustomFieldView"
             headerTitleAlreadyTranslated={customField ? getNameFromNetSuiteCustomField(customField) : ''}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}

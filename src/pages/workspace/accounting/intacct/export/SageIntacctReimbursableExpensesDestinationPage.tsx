@@ -59,7 +59,7 @@ function SageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConn
 
     return (
         <SelectionScreen
-            displayName={SageIntacctReimbursableExpensesDestinationPage.displayName}
+            displayName="SageIntacctReimbursableExpensesDestinationPage"
             title="workspace.accounting.exportAs"
             sections={[{data}]}
             listItem={RadioListItem}

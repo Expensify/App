@@ -55,7 +55,7 @@ function NetSuiteJournalEntryApprovalLevelSelectPage({policy}: WithPolicyConnect
 
     return (
         <SelectionScreen
-            displayName={NetSuiteJournalEntryApprovalLevelSelectPage.displayName}
+            displayName="NetSuiteJournalEntryApprovalLevelSelectPage"
             title="workspace.netsuite.advancedConfig.exportJournalsTo.label"
             headerContent={headerContent}
             sections={[{data}]}

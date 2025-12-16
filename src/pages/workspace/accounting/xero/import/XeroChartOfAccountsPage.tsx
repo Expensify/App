@@ -24,7 +24,7 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={XeroChartOfAccountsPage.displayName}
+            displayName="XeroChartOfAccountsPage"
             headerTitle="workspace.accounting.accounts"
             title="workspace.xero.accountsDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}

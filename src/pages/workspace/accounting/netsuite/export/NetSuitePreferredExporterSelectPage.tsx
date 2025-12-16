@@ -97,7 +97,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuitePreferredExporterSelectPage.displayName}
+            displayName="NetSuitePreferredExporterSelectPage"
             sections={[{data}]}
             listItem={RadioListItem}
             headerContent={headerContent}

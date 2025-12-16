@@ -55,7 +55,7 @@ function SageIntacctNonReimbursableExpensesDestinationPage({policy}: WithPolicyC
 
     return (
         <SelectionScreen
-            displayName={SageIntacctNonReimbursableExpensesDestinationPage.displayName}
+            displayName="SageIntacctNonReimbursableExpensesDestinationPage"
             title="workspace.accounting.exportAs"
             sections={[{data}]}
             listItem={RadioListItem}

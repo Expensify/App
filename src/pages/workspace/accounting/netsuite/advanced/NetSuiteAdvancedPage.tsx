@@ -264,7 +264,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteAdvancedPage.displayName}
+            displayName="NetSuiteAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             headerSubtitle={config?.subsidiary ?? ''}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}

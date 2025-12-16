@@ -78,7 +78,7 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
 
     return (
         <SelectionScreen
-            displayName={XeroPurchaseBillStatusSelectorPage.displayName}
+            displayName="XeroPurchaseBillStatusSelectorPage"
             title="workspace.xero.invoiceStatus.label"
             headerContent={headerContent}
             sections={[{data}]}

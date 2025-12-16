@@ -89,7 +89,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksDesktopExportPage.displayName}
+            displayName="QuickbooksDesktopExportPage"
             headerTitle="workspace.accounting.export"
             title="workspace.qbd.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}

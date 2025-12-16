@@ -145,7 +145,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctNonReimbursableExpensesPage.displayName}
+            displayName="SageIntacctNonReimbursableExpensesPage"
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.sageIntacct.nonReimbursableExpenses.description"
             onBackButtonPress={() => Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)))}

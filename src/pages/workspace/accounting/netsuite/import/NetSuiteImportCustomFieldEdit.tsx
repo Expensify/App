@@ -167,7 +167,7 @@ function NetSuiteImportCustomFieldEdit({
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportCustomFieldEdit.displayName}
+            displayName="NetSuiteImportCustomFieldEdit"
             headerTitle={`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}

@@ -55,7 +55,7 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
         <SelectionScreen
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctPaymentAccountPage.displayName}
+            displayName="SageIntacctPaymentAccountPage"
             sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}

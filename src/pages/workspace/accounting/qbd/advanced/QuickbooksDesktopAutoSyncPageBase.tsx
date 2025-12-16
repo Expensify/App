@@ -39,7 +39,7 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksDesktopAutoSyncPageBase.displayName}
+            displayName="QuickbooksDesktopAutoSyncPageBase"
             headerTitle="common.settings"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}

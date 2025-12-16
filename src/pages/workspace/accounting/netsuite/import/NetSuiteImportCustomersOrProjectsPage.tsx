@@ -60,7 +60,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportCustomersOrProjectsPage.displayName}
+            displayName="NetSuiteImportCustomersOrProjectsPage"
             headerTitle="workspace.netsuite.import.customersOrJobs.title"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}

@@ -52,7 +52,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
     return (
         <ConnectionLayout
             policyID={policyID}
-            displayName={QuickbooksCompanyCardExpenseAccountPage.displayName}
+            displayName="QuickbooksCompanyCardExpenseAccountPage"
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.qbo.exportCompanyCardsDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}

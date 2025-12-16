@@ -45,7 +45,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
         <SelectionScreen
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctEntityPage.displayName}
+            displayName="SageIntacctEntityPage"
             sections={sections ? [{data: sections}] : []}
             listItem={RadioListItem}
             onSelectRow={saveSelection}

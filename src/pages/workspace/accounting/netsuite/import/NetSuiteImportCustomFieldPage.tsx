@@ -112,7 +112,7 @@ function NetSuiteImportCustomFieldPage({
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportCustomFieldPage.displayName}
+            displayName="NetSuiteImportCustomFieldPage"
             headerTitle={`workspace.netsuite.import.importCustomFields.${importCustomField}.title`}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}

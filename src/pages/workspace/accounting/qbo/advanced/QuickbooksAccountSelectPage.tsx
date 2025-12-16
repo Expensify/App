@@ -81,7 +81,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksAccountSelectPage.displayName}
+            displayName="QuickbooksAccountSelectPage"
             sections={qboOnlineSelectorOptions.length ? [{data: qboOnlineSelectorOptions}] : []}
             listItem={RadioListItem}
             headerContent={listHeaderComponent}

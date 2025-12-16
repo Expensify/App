@@ -77,7 +77,7 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     return (
         <>
             <SelectionScreen
-                displayName={NetSuiteExportExpensesDestinationSelectPage.displayName}
+                displayName="NetSuiteExportExpensesDestinationSelectPage"
                 title="workspace.accounting.exportAs"
                 sections={[{data}]}
                 listItem={RadioListItem}

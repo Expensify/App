@@ -46,7 +46,7 @@ function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksDesktopAdvancedPage.displayName}
+            displayName="QuickbooksDesktopAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}

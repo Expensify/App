@@ -50,7 +50,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={XeroTrackingCategoryConfigurationPage.displayName}
+            displayName="XeroTrackingCategoryConfigurationPage"
             headerTitle="workspace.xero.trackingCategories"
             title="workspace.xero.trackingCategoriesDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}

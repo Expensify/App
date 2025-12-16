@@ -55,7 +55,7 @@ function NetSuiteExpenseReportApprovalLevelSelectPage({policy}: WithPolicyConnec
 
     return (
         <SelectionScreen
-            displayName={NetSuiteExpenseReportApprovalLevelSelectPage.displayName}
+            displayName="NetSuiteExpenseReportApprovalLevelSelectPage"
             title="workspace.netsuite.advancedConfig.exportReportsTo.label"
             headerContent={headerContent}
             sections={[{data}]}

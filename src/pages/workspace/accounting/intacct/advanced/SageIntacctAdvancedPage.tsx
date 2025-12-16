@@ -87,7 +87,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctAdvancedPage.displayName}
+            displayName="SageIntacctAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             headerSubtitle={getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel'))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}

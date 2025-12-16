@@ -66,7 +66,7 @@ function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsPr
 
     return (
         <SelectionScreen
-            displayName={QuickbooksAccountingMethodPage.displayName}
+            displayName="QuickbooksAccountingMethodPage"
             headerTitleAlreadyTranslated={translate('workspace.qbo.accountingMethods.label')}
             headerContent={headerContent}
             sections={[{data}]}

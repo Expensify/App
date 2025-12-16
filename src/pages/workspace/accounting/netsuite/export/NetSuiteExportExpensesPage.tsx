@@ -126,7 +126,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteExportExpensesPage.displayName}
+            displayName="NetSuiteExportExpensesPage"
             onBackButtonPress={() => Navigation.goBack(params.backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)))}
             headerTitle={`workspace.accounting.${isReimbursable ? 'exportOutOfPocket' : 'exportCompanyCard'}`}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}

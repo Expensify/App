@@ -106,7 +106,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksOutOfPocketExpenseConfigurationPage.displayName}
+            displayName="QuickbooksOutOfPocketExpenseConfigurationPage"
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.qbo.exportOutOfPocketExpensesDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}

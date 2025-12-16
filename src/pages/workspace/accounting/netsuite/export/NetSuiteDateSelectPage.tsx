@@ -67,7 +67,7 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <SelectionScreen
-            displayName={NetSuiteDateSelectPage.displayName}
+            displayName="NetSuiteDateSelectPage"
             title="workspace.netsuite.exportDate.label"
             headerContent={headerContent}
             sections={[{data}]}

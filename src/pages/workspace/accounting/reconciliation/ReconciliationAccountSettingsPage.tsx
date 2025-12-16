@@ -78,7 +78,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
 
     return (
         <ConnectionLayout
-            displayName={ReconciliationAccountSettingsPage.displayName}
+            displayName="ReconciliationAccountSettingsPage"
             headerTitle="workspace.accounting.reconciliationAccount"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
