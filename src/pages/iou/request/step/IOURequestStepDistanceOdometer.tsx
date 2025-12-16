@@ -22,13 +22,20 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useBeforeRemove from '@hooks/useBeforeRemove';
-import {setMoneyRequestDistance, setMoneyRequestOdometerReading, setMoneyRequestParticipantsFromReport, updateMoneyRequestDistance} from '@libs/actions/IOU';
+import {
+    setCustomUnitRateID,
+    setMoneyRequestDistance,
+    setMoneyRequestOdometerReading,
+    setMoneyRequestParticipantsFromReport,
+    updateMoneyRequestDistance,
+} from '@libs/actions/IOU';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {isArchivedReport} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, isArchivedReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -84,6 +91,7 @@ function IOURequestStepDistanceOdometer({
     const endReadingRef = useRef<string>('');
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -389,8 +397,31 @@ function IOURequestStepDistanceOdometer({
             return;
         }
 
-        // If there was no reportID, navigate to participant page
-        if (transactionID && reportID) {
+        // If there was no reportID, then that means the user started this flow from the global menu
+        // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
+        if (shouldUseDefaultExpensePolicy) {
+            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
+            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+            const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+            const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: transactionReportID,
+                isPolicyExpenseChat: true,
+                policy: defaultExpensePolicy,
+                lastSelectedDistanceRates,
+            });
+            setTransactionReport(transactionID, {reportID: transactionReportID}, true);
+            setCustomUnitRateID(transactionID, rateID);
+            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat, currentUserPersonalDetails.accountID).then(() => {
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                        CONST.IOU.ACTION.CREATE,
+                        iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+                        transactionID,
+                        activePolicyExpenseChat?.reportID,
+                    ),
+                );
+            });
+        } else if (transactionID && reportID) {
             navigateToParticipantPage(iouType, transactionID, reportID);
         }
     }, [
@@ -415,6 +446,10 @@ function IOURequestStepDistanceOdometer({
         confirmationRoute,
         transaction?.comment?.odometerEnd,
         transaction?.comment?.odometerStart,
+        shouldUseDefaultExpensePolicy,
+        defaultExpensePolicy,
+        personalPolicy?.autoReporting,
+        lastSelectedDistanceRates,
     ]);
 
     // Handle form submission with validation
