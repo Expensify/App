@@ -44,7 +44,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.POSTED,
-        translationKey: 'common.posted',
+        translationKey: 'search.filters.posted',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
