@@ -582,6 +582,8 @@ const ViolationsUtils = {
                 return translate('violations.taxRequired');
             case 'hold':
                 return translate('violations.hold');
+            case 'companyCardRequired':
+                return translate('violations.companyCardRequired');
             case CONST.VIOLATIONS.PROHIBITED_EXPENSE:
                 return translate('violations.prohibitedExpense', {
                     prohibitedExpenseTypes: violation.data?.prohibitedExpenseRule ?? [],
@@ -640,6 +642,7 @@ const ViolationsUtils = {
         report: OnyxEntry<Report>,
         violations: OnyxCollection<TransactionViolation[]>,
         currentUserEmail: string,
+        currentUserAccountID: number,
         policy: OnyxEntry<Policy>,
         transactions: Transaction[],
     ): boolean {
@@ -656,7 +659,10 @@ const ViolationsUtils = {
 
             // Check if any violation is not dismissed and should be shown based on user role and violation type
             return transactionViolations.some((violation: TransactionViolation) => {
-                return !isViolationDismissed(transaction, violation, currentUserEmail, report, policy) && shouldShowViolation(report, policy, violation.name, currentUserEmail);
+                return (
+                    !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
+                    shouldShowViolation(report, policy, violation.name, currentUserEmail)
+                );
             });
         });
     },

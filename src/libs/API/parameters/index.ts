@@ -430,6 +430,7 @@ export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishC
 export type {default as RejectMoneyRequestParams} from './RejectMoneyRequestParams';
 export type {default as MarkTransactionViolationAsResolvedParams} from './MarkTransactionViolationAsResolvedParams';
 export type {default as LockAccountParams} from './LockAccountParams';
+export type {default as RespondToProactiveAppReviewParams} from './RespondToProactiveAppReviewParams';
 export type {default as SetVacationDelegateParams} from './SetVacationDelegateParams';
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';
@@ -446,3 +447,4 @@ export type {default as GetScimTokenParams} from './GetScimTokenParams';
 export type {default as SetSamlIdentityParams} from './SetSamlIdentityParams';
 export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams';
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
+export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';

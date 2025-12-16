@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,6 +18,8 @@ type ActionableItemButtonsProps = {
     items: ActionableItem[];
     layout?: 'horizontal' | 'vertical';
     shouldUseLocalization?: boolean;
+    primaryTextNumberOfLines?: number;
+    textStyles?: StyleProp<TextStyle>;
 };
 
 function ActionableItemButtons(props: ActionableItemButtonsProps) {
@@ -32,6 +35,8 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                     text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
                     medium
                     success={item.isPrimary}
+                    primaryTextNumberOfLines={props.primaryTextNumberOfLines}
+                    textStyles={props.textStyles}
                 />
             ))}
         </View>
