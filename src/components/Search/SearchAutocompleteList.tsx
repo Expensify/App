@@ -22,6 +22,7 @@ import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -777,7 +778,7 @@ function SearchAutocompleteList({
     const styledRecentReports = recentReportsOptions.map((item) => ({
         ...item,
         pressableStyle: styles.br2,
-        text: StringUtils.lineBreaksToSpaces(item.text),
+        text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(item.text ?? '')),
         wrapperStyle: [styles.pr3, styles.pl3],
     }));
     sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
