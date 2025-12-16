@@ -1132,8 +1132,7 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
     }
 
     // Don't consider partial transactions (empty merchant and zero amount) as analyzing
-    const isEmptyMerchant = transaction.merchant === '' || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    if (isEmptyMerchant && transaction.amount === 0) {
+    if (isMerchantMissing(transaction) && transaction.amount === 0) {
         return false;
     }
 
