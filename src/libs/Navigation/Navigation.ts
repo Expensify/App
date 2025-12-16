@@ -615,22 +615,18 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
     if (!state) {
         return;
     }
-
     const topmostRightModalNavigator = state.routes?.at(-1);
 
     if (!topmostRightModalNavigator || topmostRightModalNavigator.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         return;
     }
 
-    const topmostSuperWideRHPModalStack = topmostRightModalNavigator.state?.routes.findLast((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name));
+    const topmostSuperWideRHP = topmostRightModalNavigator.state?.routes.findLast((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name));
 
-    if (!topmostSuperWideRHPModalStack) {
+    if (!topmostSuperWideRHP) {
         return;
     }
 
-    const topmostSuperWideRHP = topmostSuperWideRHPModalStack.state?.routes.findLast(
-        (route) => route.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-    );
     const topmostReportParams = topmostSuperWideRHP?.params as
         | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]
         | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT]
@@ -674,7 +670,7 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
         let areReportsIDsDefined = !!topmostSuperWideRHPReportID && !!reportID;
 
         if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
-            dismissToPreviousRHP();
+            dismissToSuperWideRHP();
             return;
         }
 
