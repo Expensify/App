@@ -41,7 +41,7 @@ function setMergeTransactionKey(transactionID: string, values: MergeTransactionU
     Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
 }
 
-function setupMergeTransactionDataAndNavigate(transactions: Transaction[], localeCompare: LocaleContextProps['localeCompare'], searchReports: Report[]) {
+function setupMergeTransactionDataAndNavigate(transactions: Transaction[], localeCompare: LocaleContextProps['localeCompare'], searchReports?: Report[]) {
     if (!transactions.length || transactions.length > 2) {
         return;
     }

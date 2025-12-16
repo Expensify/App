@@ -27,7 +27,7 @@ import {
     getCreationReportErrors,
     isInvoiceReport,
     isPaidGroupPolicy,
-    isTrackExpenseReport,
+    isTrackExpenseReportNew,
 } from '@libs/ReportUtils';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
@@ -112,7 +112,7 @@ function MoneyRequestReceiptView({
     const [isLoading, setIsLoading] = useState(true);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
-    const isTrackExpense = isTrackExpenseReport(report);
+    const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(report, parentReport, parentReportAction);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
         if (!parentReportAction) {

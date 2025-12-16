@@ -35,8 +35,8 @@ function useAllTransactions() {
             );
 
         return {
-            ...allTransactionsCollection,
             ...filteredSearchTransactions,
+            ...allTransactionsCollection,
         };
     }, [currentSearchResults?.data, allTransactionsCollection]);
 

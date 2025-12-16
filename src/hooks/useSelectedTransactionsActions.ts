@@ -130,6 +130,8 @@ function useSelectedTransactionsActions({
 
     const {translate, localeCompare} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
 

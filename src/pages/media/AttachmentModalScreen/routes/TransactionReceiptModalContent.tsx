@@ -130,6 +130,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     }, [receiptPath]);
 
     const moneyRequestReportID = isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseReportValue = isTrackExpenseReport(report);
 
     // eslint-disable-next-line rulesdir/no-negated-variables

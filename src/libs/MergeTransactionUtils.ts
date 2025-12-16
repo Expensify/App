@@ -533,7 +533,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(
     transaction: OnyxEntry<Transaction>,
     field: K,
     fieldValue: MergeTransaction[K],
-    searchReports: Array<OnyxEntry<Report>>,
+    searchReports?: Array<OnyxEntry<Report>>,
 ): MergeTransactionUpdateValues {
     const updatedValues: MergeTransactionUpdateValues = {
         [field]: fieldValue,
