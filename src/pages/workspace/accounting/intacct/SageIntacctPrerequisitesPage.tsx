@@ -27,8 +27,8 @@ type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNaviga
 function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'NewWindow', 'Task'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['Computer'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'NewWindow', 'Task']);
+    const illustrations = useMemoizedLazyIllustrations(['Computer']);
     const popoverAnchor = useRef<View | RNText | null>(null);
     const policyID: string = route.params.policyID;
     const backTo = route.params.backTo;
