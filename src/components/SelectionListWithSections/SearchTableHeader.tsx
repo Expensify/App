@@ -122,6 +122,11 @@ const taskHeaders: SearchColumnConfig[] = [
         canBeMissing: false,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
+        translationKey: 'common.status',
+        canBeMissing: false,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
         isColumnSortable: false,
