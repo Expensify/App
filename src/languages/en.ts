@@ -7840,6 +7840,10 @@ const translations = {
             title: 'Admins',
             findAdmin: 'Find admin',
         },
+        members:{
+            title: 'Members',
+            findMember: 'Find member',
+        }
     },
 };
 
