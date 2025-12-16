@@ -1,6 +1,6 @@
 import React from 'react';
 import type {FlatListProps, StyleProp, ViewStyle} from 'react-native';
-import {FlatList, View} from 'react-native';
+import {FlatList} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {useTableContext} from './TableContext';
 
@@ -15,6 +15,16 @@ type TableBodyProps<T> = {
     // Allow other FlatList props to be passed through
     [key: string]: unknown;
 };
+
+type RenderItemProps<T> = {
+    item: T;
+    index: number;
+    renderItem: (item: T, index: number) => React.ReactNode;
+};
+
+function TableBodyRenderItem<T>({item, index, renderItem}: RenderItemProps<T>) {
+    return <>{renderItem(item, index)}</>;
+}
 
 function TableBody<T>({renderItem, keyExtractor, ListEmptyComponent, contentContainerStyle, onScroll, onEndReached, onEndReachedThreshold, ...flatListProps}: TableBodyProps<T>) {
     const styles = useThemeStyles();
@@ -39,8 +49,8 @@ function TableBody<T>({renderItem, keyExtractor, ListEmptyComponent, contentCont
         return `item-${index}`;
     };
 
-    const renderItemWithIndex = ({item, index}: {item: T; index: number}) => {
-        return <>{renderItem(item, index)}</>;
+    const renderItemWithIndex = ({item: flatListItem, index: flatListIndex}: {item: T; index: number}) => {
+        return <TableBodyRenderItem item={flatListItem} index={flatListIndex} renderItem={renderItem} />;
     };
 
     return (

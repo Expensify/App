@@ -1,6 +1,6 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import type {ReactNode} from 'react';
-import {TableContext} from './TableContext';
+import TableContext from './TableContext';
 import type {FilterConfig, SortByConfig} from './TableContext';
 
 type TableProps<T> = {
@@ -26,29 +26,26 @@ function Table<T>({data, filters, sortBy, onSearch, children}: TableProps<T>) {
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [searchString, setSearchString] = useState('');
 
-    const setFilter = useCallback((key: string, value: unknown) => {
+    const setFilter = (key: string, value: unknown) => {
         setFilterValues((prev) => ({
             ...prev,
             [key]: value,
         }));
-    }, []);
+    };
 
-    const setSortByHandler = useCallback((key: string, order: 'asc' | 'desc') => {
+    const setSortByHandler = (key: string, order: 'asc' | 'desc') => {
         setCurrentSortBy(key);
         setSortOrder(order);
-    }, []);
+    };
 
-    const setSearchStringHandler = useCallback((value: string) => {
+    const setSearchStringHandler = (value: string) => {
         setSearchString(value);
-    }, []);
+    };
 
     // Apply filters using predicate functions
-    const filteredData = useMemo(() => {
-        if (!filters) {
-            return data;
-        }
-
-        return data.filter((item) => {
+    let filteredData = data;
+    if (filters) {
+        filteredData = data.filter((item) => {
             return Object.keys(filters).every((filterKey) => {
                 const filterConfig = filters[filterKey];
                 const filterValue = filterValues[filterKey];
@@ -72,45 +69,37 @@ function Table<T>({data, filters, sortBy, onSearch, children}: TableProps<T>) {
                 return filterConfig.predicate(item, filterValue);
             });
         });
-    }, [data, filters, filterValues]);
+    }
 
     // Apply search using onSearch callback
-    const searchedData = useMemo(() => {
-        if (!onSearch || !searchString.trim()) {
-            return filteredData;
-        }
-        return onSearch(filteredData, searchString);
-    }, [filteredData, onSearch, searchString]);
+    let searchedData = filteredData;
+    if (onSearch && searchString.trim()) {
+        searchedData = onSearch(filteredData, searchString);
+    }
 
     // Apply sorting using comparator function
-    const filteredAndSortedData = useMemo(() => {
-        if (!sortBy || !currentSortBy) {
-            return searchedData;
-        }
-
+    let filteredAndSortedData = searchedData;
+    if (sortBy && currentSortBy) {
         const sortedData = [...searchedData];
         sortedData.sort((a, b) => {
             return sortBy.comparator(a, b, currentSortBy, sortOrder);
         });
+        filteredAndSortedData = sortedData;
+    }
 
-        return sortedData;
-    }, [searchedData, sortBy, currentSortBy, sortOrder]);
-
-    const contextValue = useMemo(
-        () => ({
-            filteredAndSortedData,
-            filters: filterValues,
-            sortBy: currentSortBy,
-            sortOrder,
-            searchString,
-            setFilter,
-            setSortBy: setSortByHandler,
-            setSearchString: setSearchStringHandler,
-            filterConfigs: filters,
-            sortByConfig: sortBy,
-        }),
-        [filteredAndSortedData, filterValues, currentSortBy, sortOrder, searchString, setFilter, setSortByHandler, setSearchStringHandler, filters, sortBy],
-    );
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const contextValue = {
+        filteredAndSortedData,
+        filters: filterValues,
+        sortBy: currentSortBy,
+        sortOrder,
+        searchString,
+        setFilter,
+        setSortBy: setSortByHandler,
+        setSearchString: setSearchStringHandler,
+        filterConfigs: filters,
+        sortByConfig: sortBy,
+    };
 
     return <TableContext.Provider value={contextValue}>{children}</TableContext.Provider>;
 }

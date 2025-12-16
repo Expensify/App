@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import TextInput from '@components/TextInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -12,12 +12,13 @@ function TableSearchBar() {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
     const {searchString, setSearchString} = useTableContext();
 
-    const handleChangeText = useCallback(
-        (text: string) => {
-            setSearchString(text);
-        },
-        [setSearchString],
-    );
+    const handleChangeText = (text: string) => {
+        setSearchString(text);
+    };
+
+    const handleClearInput = () => {
+        setSearchString('');
+    };
 
     return (
         <View style={styles.flex1}>
@@ -29,7 +30,7 @@ function TableSearchBar() {
                 icon={searchString.length === 0 ? expensifyIcons.MagnifyingGlass : undefined}
                 shouldShowClearButton
                 shouldHideClearButton={searchString.length === 0}
-                onClearInput={() => setSearchString('')}
+                onClearInput={handleClearInput}
                 autoCapitalize="none"
                 autoCorrect={false}
                 spellCheck={false}
@@ -37,7 +38,4 @@ function TableSearchBar() {
         </View>
     );
 }
-
-TableSearchBar.displayName = 'TableSearchBar';
-
 export default TableSearchBar;

@@ -13,6 +13,4 @@ function TableHeader({children}: TableHeaderProps) {
     return <View style={styles.flexRow}>{children}</View>;
 }
 
-TableHeader.displayName = 'TableHeader';
-
 export default TableHeader;

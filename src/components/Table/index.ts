@@ -1,5 +1,6 @@
 import TableComponent from './Table';
 import TableBody from './TableBody';
+import type TableContext from './TableContext';
 import TableFilterButtons from './TableFilterButtons';
 import TableHeader from './TableHeader';
 import TableSearchBar from './TableSearchBar';
@@ -7,6 +8,7 @@ import TableSortButtons from './TableSortButtons';
 
 // Define the compound component type
 type TableComponentType = typeof TableComponent & {
+    Context: typeof TableContext;
     Header: typeof TableHeader;
     Body: typeof TableBody;
     FilterButtons: typeof TableFilterButtons;
@@ -23,10 +25,5 @@ Table.SearchBar = TableSearchBar;
 Table.SortButtons = TableSortButtons;
 
 export default Table;
-export {TableContext, useTableContext} from './TableContext';
+export {useTableContext} from './TableContext';
 export type {FilterConfig, SortByConfig, TableContextValue} from './TableContext';
-export {default as TableHeader} from './TableHeader';
-export {default as TableBody} from './TableBody';
-export {default as TableFilterButtons} from './TableFilterButtons';
-export {default as TableSearchBar} from './TableSearchBar';
-export {default as TableSortButtons} from './TableSortButtons';
