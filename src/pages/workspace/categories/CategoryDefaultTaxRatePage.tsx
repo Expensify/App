@@ -59,10 +59,10 @@ function CategoryDefaultTaxRatePage({
                 return;
             }
 
-            setPolicyCategoryTax(policy, categoryName, item.keyForList);
+            setPolicyCategoryTax(policyID, categoryName, item.keyForList);
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
         },
-        [policyID, policy, categoryName, selectedTaxRate],
+        [policyID, categoryName, selectedTaxRate],
     );
 
     return (
