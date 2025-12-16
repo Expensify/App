@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -51,9 +51,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     // Build the merged transaction data for display
-    const mergedTransactionData = useMemo(() => buildMergedTransactionData(targetTransaction, mergeTransaction), [targetTransaction, mergeTransaction]);
+    const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
 
-    const handleMergeExpenses = useCallback(() => {
+    const handleMergeExpenses = () => {
         if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
             return;
         }
@@ -79,18 +79,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         } else {
             Navigation.dismissModal();
         }
-    }, [
-        targetTransaction,
-        mergeTransaction,
-        sourceTransaction,
-        transactionID,
-        policy,
-        policyTags,
-        policyCategories,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        isASAPSubmitBetaEnabled,
-    ]);
+    };
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
         return <FullScreenLoadingIndicator />;
