@@ -197,14 +197,21 @@ function WorkspaceReportFieldsPage({
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             isCentralPane
-                            title={translate('workspace.common.reportTitle')}
+                            renderTitle={() => (
+                                <OfflineWithFeedback pendingAction={reportTitlePendingFields.defaultValue}>
+                                    <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}>
+                                        {translate('workspace.common.reportTitle')}
+                                    </Text>
+                                </OfflineWithFeedback>
+                            )}
                             renderSubtitle={() => (
-                                <View style={[[styles.renderHTML, styles.mt1]]}>
-                                    <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
-                                </View>
+                                <OfflineWithFeedback pendingAction={reportTitlePendingFields.defaultValue}>
+                                    <View style={[[styles.renderHTML, styles.mt1]]}>
+                                        <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
+                                    </View>
+                                </OfflineWithFeedback>
                             )}
                             containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
-                            titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                         >
                             <OfflineWithFeedback
                                 pendingAction={reportTitlePendingFields.defaultValue}
