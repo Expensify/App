@@ -12,12 +12,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getBase62ReportID from '@libs/getBase62ReportID';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import StatusCell from './StatusCell';
+import TextCell from './TextCell';
 import TitleCell from './TitleCell';
 import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -141,6 +143,16 @@ function ExpenseReportListItemRow({
                     total={total}
                     currency={currency}
                 />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
+                <TextCell text={getBase62ReportID(Number(item.reportID))} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.LONG_REPORT_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.LONG_REPORT_ID)]}>
+                <TextCell text={item.reportID ?? ''} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
