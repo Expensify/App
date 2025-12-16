@@ -6492,6 +6492,19 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID});
 
+            // Any existing category violations will be removed, leaving only the MISSING_CATEGORY violation in the end
+            const promise = new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    callback: (transactionViolations) => {
+                        Onyx.disconnect(connection);
+                        expect(transactionViolations).toHaveLength(1);
+                        expect(transactionViolations?.at(0)?.name).toEqual(CONST.VIOLATIONS.MISSING_CATEGORY);
+                        resolve();
+                    },
+                });
+            });
+
             // When updating a money request category
             updateMoneyRequestCategory({
                 transactionID,
@@ -6508,18 +6521,7 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            // Any existing category violations will be removed, leaving only the MISSING_CATEGORY violation in the end
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                    callback: (transactionViolations) => {
-                        Onyx.disconnect(connection);
-                        expect(transactionViolations).toHaveLength(1);
-                        expect(transactionViolations?.at(0)?.name).toEqual(CONST.VIOLATIONS.MISSING_CATEGORY);
-                        resolve();
-                    },
-                });
-            });
+            await Promise.all([promise]);
         });
     });
 
