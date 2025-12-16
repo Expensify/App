@@ -670,6 +670,7 @@ function getTransactionItemCommonFormattedProperties(
     const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
     const submitted = report?.submitted;
     const approved = report?.approved;
+    const posted = transactionItem?.posted;
 
     return {
         formattedFrom,
@@ -677,6 +678,7 @@ function getTransactionItemCommonFormattedProperties(
         date,
         submitted,
         approved,
+        posted,
         formattedTotal,
         formattedMerchant,
     };
@@ -937,7 +939,7 @@ function shouldShowYear(
             if (report?.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
                 result.shouldShowYearApproved = true;
             }
-            if (report?.posted && DateUtils.doesDateBelongToAPastYear(report.posted)) {
+            if (item?.posted && DateUtils.doesDateBelongToAPastYear(item?.posted)) {
                 result.shouldShowYearPosted = true;
             }
         } else if (!checkOnlyReports && isReportActionEntry(key)) {
@@ -1577,6 +1579,7 @@ function getReportSections(
         shouldShowYearCreated: shouldShowYearCreatedTransaction,
         shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
         shouldShowYearApproved: shouldShowYearApprovedTransaction,
+        shouldShowYearPosted: shouldShowYearPostedTransaction,
     } = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
     const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
@@ -1728,6 +1731,7 @@ function getReportSections(
                 shouldShowYear: shouldShowYearCreatedTransaction,
                 shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
                 shouldShowYearApproved: shouldShowYearApprovedTransaction,
+                shouldShowYearPosted: shouldShowYearPostedTransaction,
                 keyForList: transactionItem.transactionID,
                 violations: transactionViolations,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
