@@ -139,6 +139,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'date' as const,
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 'submitted' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'tag' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
@@ -163,6 +164,7 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'created' as const,
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 'submitted' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'formattedStatus' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'reportName' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
@@ -647,7 +649,7 @@ function getTransactionItemCommonFormattedProperties(
     policy: OnyxTypes.Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     report: OnyxTypes.Report | undefined,
-): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'submitted'> {
+): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'submitted' | 'approved'> {
     const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
     const fromName = getDisplayNameOrDefault(from);
@@ -666,12 +668,14 @@ function getTransactionItemCommonFormattedProperties(
     const merchant = getTransactionMerchant(transactionItem, policy);
     const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
     const submitted = report?.submitted;
+    const approved = report?.approved;
 
     return {
         formattedFrom,
         formattedTo,
         date,
         submitted,
+        approved,
         formattedTotal,
         formattedMerchant,
     };
@@ -853,6 +857,7 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
 type ShouldShowYearResult = {
     shouldShowYearCreated: boolean;
     shouldShowYearSubmitted: boolean;
+    shouldShowYearApproved: boolean;
 };
 
 /**
@@ -868,6 +873,7 @@ function shouldShowYear(
     const result: ShouldShowYearResult = {
         shouldShowYearCreated: false,
         shouldShowYearSubmitted: false,
+        shouldShowYearApproved: false,
     };
 
     const currentYear = new Date().getFullYear();
@@ -887,6 +893,9 @@ function shouldShowYear(
                 if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
                     result.shouldShowYearSubmitted = true;
                 }
+                if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
+                    result.shouldShowYearApproved = true;
+                }
             }
             if (isTransactionListItemType(item)) {
                 const transactionCreated = getTransactionCreatedDate(item);
@@ -895,6 +904,9 @@ function shouldShowYear(
                 }
                 if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
                     result.shouldShowYearSubmitted = true;
+                }
+                if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
+                    result.shouldShowYearApproved = true;
                 }
             }
 
@@ -916,6 +928,9 @@ function shouldShowYear(
             if (report?.submitted && DateUtils.doesDateBelongToAPastYear(report.submitted)) {
                 result.shouldShowYearSubmitted = true;
             }
+            if (report?.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
+                result.shouldShowYearApproved = true;
+            }
         } else if (!checkOnlyReports && isReportActionEntry(key)) {
             const item = data[key];
             for (const action of Object.values(item)) {
@@ -932,6 +947,9 @@ function shouldShowYear(
             }
             if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
                 result.shouldShowYearSubmitted = true;
+            }
+            if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
+                result.shouldShowYearApproved = true;
             }
         }
 
@@ -1093,7 +1111,7 @@ function getTransactionsSections(
     isActionLoadingSet: ReadonlySet<string> | undefined,
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const {shouldShowYearCreated, shouldShowYearSubmitted} = shouldShowYear(data);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved} = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
     // Pre-filter transaction keys to avoid repeated checks
@@ -1142,7 +1160,7 @@ function getTransactionsSections(
             const from = reportAction?.actorAccountID ? (personalDetailsMap.get(reportAction.actorAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted} = getTransactionItemCommonFormattedProperties(
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
                 from,
                 to,
@@ -1168,9 +1186,11 @@ function getTransactionsSections(
                 formattedMerchant,
                 date,
                 submitted,
+                approved,
                 shouldShowMerchant,
                 shouldShowYear: shouldShowYearCreated,
                 shouldShowYearSubmitted,
+                shouldShowYearApproved,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 violations: transactionViolations,
@@ -1542,7 +1562,11 @@ function getReportSections(
 ): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
-    const {shouldShowYearCreated: shouldShowYearCreatedTransaction, shouldShowYearSubmitted: shouldShowYearSubmittedTransaction} = shouldShowYear(data);
+    const {
+        shouldShowYearCreated: shouldShowYearCreatedTransaction,
+        shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
+        shouldShowYearApproved: shouldShowYearApprovedTransaction,
+    } = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
     const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
 
@@ -1565,7 +1589,11 @@ function getReportSections(
     );
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
-    const {shouldShowYearCreated: shouldShowYearCreatedReport, shouldShowYearSubmitted: shouldShowYearSubmittedReport} = shouldShowYear(data, true);
+    const {
+        shouldShowYearCreated: shouldShowYearCreatedReport,
+        shouldShowYearSubmitted: shouldShowYearSubmittedReport,
+        shouldShowYearApproved: shouldShowYearApprovedReport,
+    } = shouldShowYear(data, true);
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
@@ -1640,6 +1668,7 @@ function getReportSections(
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
                     shouldShowYear: shouldShowYearCreatedReport,
                     shouldShowYearSubmitted: shouldShowYearSubmittedReport,
+                    shouldShowYearApproved: shouldShowYearApprovedReport,
                     hasVisibleViolations: hasVisibleViolationsForReport,
                 };
 
@@ -1687,6 +1716,7 @@ function getReportSections(
                 shouldShowMerchant,
                 shouldShowYear: shouldShowYearCreatedTransaction,
                 shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
+                shouldShowYearApproved: shouldShowYearApprovedTransaction,
                 keyForList: transactionItem.transactionID,
                 violations: transactionViolations,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
@@ -2165,6 +2195,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.date';
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
             return 'common.submitted';
+        case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
+            return 'search.filters.approved';
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return 'common.merchant';
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
@@ -2566,6 +2598,7 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
             [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
             [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
             [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
             [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
@@ -2637,6 +2670,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
@@ -2847,7 +2881,7 @@ function getTableMinWidth(columns: SearchColumnType[]) {
             minWidth += 80;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
             minWidth += 48;
-        } else if (column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED) {
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED || column === CONST.SEARCH.TABLE_COLUMNS.APPROVED) {
             minWidth += 72;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {
             minWidth += 20;

@@ -98,6 +98,15 @@ function ExpenseReportListItemRow({
                 />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, false, item.shouldShowYearApproved)]}>
+                <DateCell
+                    date={item.approved ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.STATUS]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
                 <StatusCell

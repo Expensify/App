@@ -712,6 +712,7 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
+        GPS_MILEAGE: 'gpsMileage',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -6688,6 +6689,7 @@ const CONST = {
                     RECEIPT: this.TABLE_COLUMNS.RECEIPT,
                     DATE: this.TABLE_COLUMNS.DATE,
                     SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
+                    APPROVED: this.TABLE_COLUMNS.APPROVED,
                     MERCHANT: this.TABLE_COLUMNS.MERCHANT,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
@@ -6699,6 +6701,7 @@ const CONST = {
                 EXPENSE_REPORT: {
                     DATE: this.TABLE_COLUMNS.DATE,
                     SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
+                    APPROVED: this.TABLE_COLUMNS.APPROVED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
@@ -6778,6 +6781,7 @@ const CONST = {
             RECEIPT: 'receipt',
             DATE: 'date',
             SUBMITTED: 'submitted',
+            APPROVED: 'approved',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',

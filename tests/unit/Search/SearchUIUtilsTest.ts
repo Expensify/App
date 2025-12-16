@@ -111,6 +111,7 @@ const report2 = {
     chatReportID: '1706144653204915',
     created: '2024-12-21 13:05:20',
     submitted: '2024-12-21 13:05:20',
+    approved: undefined,
     currency: 'USD',
     isOneTransactionReport: true,
     isWaitingOnBankAccount: false,
@@ -134,6 +135,7 @@ const report3 = {
     chatType: undefined,
     created: '2025-03-05 16:34:27',
     submitted: '2025-03-05',
+    approved: undefined,
     currency: 'VND',
     isOneTransactionReport: false,
     isOwnPolicyExpenseChat: false,
@@ -767,6 +769,7 @@ const transactionsListItems = [
         comment: {comment: ''},
         created: '2024-12-21',
         submitted: undefined,
+        approved: undefined,
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
@@ -792,6 +795,7 @@ const transactionsListItems = [
         shouldShowMerchant: true,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -820,6 +824,7 @@ const transactionsListItems = [
         comment: {comment: ''},
         created: '2024-12-21',
         submitted: '2024-12-21 13:05:20',
+        approved: undefined,
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
@@ -844,6 +849,7 @@ const transactionsListItems = [
         shouldShowMerchant: true,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -883,6 +889,7 @@ const transactionsListItems = [
         comment: {comment: ''},
         created: '2025-03-05',
         submitted: '2025-03-05',
+        approved: undefined,
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
@@ -914,6 +921,7 @@ const transactionsListItems = [
         shouldShowMerchant: true,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
         keyForList: '3',
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -941,6 +949,7 @@ const transactionsListItems = [
         comment: {comment: ''},
         created: '2025-03-05',
         submitted: '2025-03-05',
+        approved: undefined,
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
@@ -972,6 +981,7 @@ const transactionsListItems = [
         shouldShowMerchant: true,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
         keyForList: '4',
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -1017,6 +1027,7 @@ const transactionReportGroupListItems = [
         reportName: 'Expense Report #123',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -1061,6 +1072,7 @@ const transactionReportGroupListItems = [
                 shouldShowMerchant: true,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
+                shouldShowYearApproved: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -1087,6 +1099,7 @@ const transactionReportGroupListItems = [
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         submitted: '2024-12-21 13:05:20',
+        approved: undefined,
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
@@ -1109,6 +1122,7 @@ const transactionReportGroupListItems = [
         reportName: 'Expense Report #123',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
         stateNum: 1,
         statusNum: 1,
         to: {
@@ -1163,6 +1177,7 @@ const transactionReportGroupListItems = [
                 shouldShowMerchant: true,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
+                shouldShowYearApproved: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -1193,6 +1208,7 @@ const transactionReportGroupListItems = [
         chatType: undefined,
         created: '2025-03-05 16:34:27',
         submitted: '2025-03-05',
+        approved: undefined,
         currency: 'VND',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
@@ -1211,6 +1227,7 @@ const transactionReportGroupListItems = [
         reportName: 'Approver owes ₫44.00',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
         stateNum: 1,
         statusNum: 1,
         total: 4400,
@@ -1277,6 +1294,7 @@ const transactionReportGroupListItems = [
                 shouldShowMerchant: true,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
+                shouldShowYearApproved: false,
                 keyForList: '3',
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1334,6 +1352,7 @@ const transactionReportGroupListItems = [
                 shouldShowMerchant: true,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
+                shouldShowYearApproved: false,
                 keyForList: '4',
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1378,6 +1397,7 @@ const transactionReportGroupListItems = [
         reportName: 'Expense Report #123',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -1829,7 +1849,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 47;
+            const expectedPropertyCount = 49;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1862,7 +1882,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 46;
+            const expectedPropertyCount = 47;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2704,6 +2724,7 @@ describe('SearchUIUtils', () => {
                 [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
@@ -2722,6 +2743,7 @@ describe('SearchUIUtils', () => {
                 [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
