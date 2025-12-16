@@ -144,7 +144,7 @@ function SelectionScreen<T = string>({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
     return (

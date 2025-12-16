@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 // will be migrated to proper list soon
 // eslint-disable-next-line no-restricted-imports
@@ -8,6 +7,7 @@ import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -38,6 +38,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOption, setSelectedOption] = useState<string>('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const policyID = route.params?.policyID;
     const integration = route.params?.integration;
@@ -67,7 +68,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
                     accountID: personalDetail?.accountID,
                     icons: [
                         {
-                            source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                            source: personalDetail?.avatar ?? icons.FallbackAvatar,
                             name: formatPhoneNumber(email),
                             type: CONST.ICON_TYPE_AVATAR,
                             id: personalDetail?.accountID,
@@ -85,7 +86,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, localeCompare, selectedOption]);
+    }, [policy?.employeeList, localeCompare, isOffline, icons.FallbackAvatar, selectedOption]);
 
     const sections = useMemo(() => {
         if (workspaceMembers.length === 0) {
