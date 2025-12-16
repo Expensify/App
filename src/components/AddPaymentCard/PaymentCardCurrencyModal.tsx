@@ -59,7 +59,7 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
                 style={styles.pb0}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={PaymentCardCurrencyModal.displayName}
+                testID="PaymentCardCurrencyModal"
             >
                 <HeaderWithBackButton
                     title={translate('common.currency')}

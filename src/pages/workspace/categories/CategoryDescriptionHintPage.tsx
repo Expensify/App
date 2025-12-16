@@ -47,7 +47,7 @@ function CategoryDescriptionHintPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryDescriptionHintPage.displayName}
+                testID="CategoryDescriptionHintPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

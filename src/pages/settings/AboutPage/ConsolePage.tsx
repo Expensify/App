@@ -158,7 +158,7 @@ function ConsolePage() {
 
     return (
         <ScreenWrapper
-            testID={ConsolePage.displayName}
+            testID="ConsolePage"
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton

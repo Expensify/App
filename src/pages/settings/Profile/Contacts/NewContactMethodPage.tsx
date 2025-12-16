@@ -96,7 +96,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
-            testID={NewContactMethodPage.displayName}
+            testID="NewContactMethodPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton

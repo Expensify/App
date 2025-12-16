@@ -5,7 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 function RequestEarlyCancellationPage() {
     return (
         <ScreenWrapper
-            testID={RequestEarlyCancellationPage.displayName}
+            testID="RequestEarlyCancellationPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >

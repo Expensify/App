@@ -66,7 +66,7 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
 
     return (
         <ScreenWrapper
-            testID={ExitSurveyConfirmPage.displayName}
+            testID="ExitSurveyConfirmPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton

@@ -88,7 +88,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                 inputRef?.current?.focus();
             }}
             shouldEnableMaxHeight
-            testID={TaskTitlePage.displayName}
+            testID="TaskTitlePage"
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>

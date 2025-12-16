@@ -484,7 +484,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     return (
         <ScreenWrapper
-            testID={WorkspaceInitialPage.displayName}
+            testID="WorkspaceInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={
                 shouldShowNavigationTabBar &&

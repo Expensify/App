@@ -29,7 +29,7 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={TripSummaryPage.displayName}
+            testID="TripSummaryPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView

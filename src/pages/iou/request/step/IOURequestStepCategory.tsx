@@ -169,7 +169,7 @@ function IOURequestStepCategory({
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowOfflineIndicator={policyCategories !== undefined}
-            testID={IOURequestStepCategory.displayName}
+            testID="IOURequestStepCategory"
             shouldEnableKeyboardAvoidingView={false}
         >
             {isLoading && (

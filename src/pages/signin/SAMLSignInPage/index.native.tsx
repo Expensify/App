@@ -90,7 +90,7 @@ function SAMLSignInPage() {
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             includeSafeAreaPaddingBottom={false}
-            testID={SAMLSignInPage.displayName}
+            testID="SAMLSignInPage"
         >
             {showNavigation && (
                 <HeaderWithBackButton

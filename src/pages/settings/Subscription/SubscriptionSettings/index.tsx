@@ -171,7 +171,7 @@ function SubscriptionSettings() {
 
     return (
         <ScreenWrapper
-            testID={SubscriptionSettings.displayName}
+            testID="SubscriptionSettings"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton

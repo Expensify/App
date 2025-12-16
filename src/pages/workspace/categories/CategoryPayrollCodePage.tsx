@@ -75,7 +75,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryPayrollCodePage.displayName}
+                testID="CategoryPayrollCodePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

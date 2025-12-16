@@ -34,7 +34,7 @@ function ReportVirtualCardFraudConfirmationPage({
             includeSafeAreaPaddingBottom
             includePaddingTop
             shouldEnableMaxHeight
-            testID={ReportVirtualCardFraudConfirmationPage.displayName}
+            testID="ReportVirtualCardFraudConfirmationPage"
             offlineIndicatorStyle={themeStyles.mtAuto}
         >
             <HeaderWithBackButton

@@ -354,7 +354,7 @@ function SignInPageWrapper({ref}: SignInPageProps) {
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight
             style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
-            testID={SignInPageWrapper.displayName}
+            testID="SignInPageWrapper"
         >
             <SignInPage ref={ref} />
         </ScreenWrapper>

@@ -497,7 +497,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={InitialSettingsPage.displayName}
+            testID="InitialSettingsPage"
             bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
         >

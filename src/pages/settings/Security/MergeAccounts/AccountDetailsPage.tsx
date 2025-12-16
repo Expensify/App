@@ -167,7 +167,7 @@ function AccountDetailsPage() {
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={AccountDetailsPage.displayName}
+            testID="AccountDetailsPage"
             shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButton

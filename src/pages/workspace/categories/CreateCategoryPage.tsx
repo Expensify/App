@@ -73,7 +73,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CreateCategoryPage.displayName}
+                testID="CreateCategoryPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

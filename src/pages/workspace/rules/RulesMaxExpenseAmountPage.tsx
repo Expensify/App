@@ -46,7 +46,7 @@ function RulesMaxExpenseAmountPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesMaxExpenseAmountPage.displayName}
+                testID="RulesMaxExpenseAmountPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.individualExpenseRules.maxExpenseAmount')}

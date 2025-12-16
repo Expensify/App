@@ -111,7 +111,7 @@ function IntroSchoolPrincipalPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={IntroSchoolPrincipalPage.displayName}
+            testID="IntroSchoolPrincipalPage"
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.introSchoolPrincipal')}

@@ -45,7 +45,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceCardSettingsPage.displayName}
+                testID="WorkspaceCardSettingsPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >

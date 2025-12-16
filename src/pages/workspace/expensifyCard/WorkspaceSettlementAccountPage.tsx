@@ -150,7 +150,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceSettlementAccountPage.displayName}
+                testID="WorkspaceSettlementAccountPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >

@@ -64,7 +64,7 @@ function ReviewCategory() {
     };
 
     return (
-        <ScreenWrapper testID={ReviewCategory.displayName}>
+        <ScreenWrapper testID="ReviewCategory">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}

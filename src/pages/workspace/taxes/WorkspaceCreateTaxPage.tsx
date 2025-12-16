@@ -90,7 +90,7 @@ function WorkspaceCreateTaxPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceCreateTaxPage.displayName}
+                testID="WorkspaceCreateTaxPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
             >

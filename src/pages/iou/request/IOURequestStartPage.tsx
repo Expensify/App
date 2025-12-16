@@ -253,7 +253,7 @@ function IOURequestStartPage({
                 shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 headerGapStyles={isDraggingOver ? styles.dropWrapper : []}
-                testID={IOURequestStartPage.displayName}
+                testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
                 <DragAndDropProvider

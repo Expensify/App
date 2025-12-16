@@ -176,7 +176,7 @@ function IOURequestStepSubrate({
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={IOURequestStepSubrate.displayName}
+            testID="IOURequestStepSubrate"
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton

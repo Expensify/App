@@ -7,7 +7,7 @@ function SearchFiltersKeywordPage() {
         <SearchFiltersTextBase
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD}
             titleKey="search.filters.keyword"
-            testID={SearchFiltersKeywordPage.displayName}
+            testID="SearchFiltersKeywordPage"
             characterLimit={CONST.MAX_COMMENT_LENGTH}
         />
     );

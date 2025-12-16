@@ -83,7 +83,7 @@ function CreateDistanceRatePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CreateDistanceRatePage.displayName}
+                testID="CreateDistanceRatePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton title={isDistanceRateUpgrade ? translate('common.rate') : translate('workspace.distanceRates.addRate')} />

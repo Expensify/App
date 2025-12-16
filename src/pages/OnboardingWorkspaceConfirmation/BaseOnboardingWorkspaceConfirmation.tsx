@@ -129,7 +129,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={BaseOnboardingWorkspaceConfirmation.displayName}
+            testID="BaseOnboardingWorkspaceConfirmation"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton progressBarPercentage={100} />

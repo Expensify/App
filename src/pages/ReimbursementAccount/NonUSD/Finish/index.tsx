@@ -35,7 +35,7 @@ function Finish() {
 
     return (
         <ScreenWrapper
-            testID={Finish.displayName}
+            testID="Finish"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight

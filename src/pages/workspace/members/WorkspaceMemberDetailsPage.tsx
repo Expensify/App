@@ -311,7 +311,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceMemberDetailsPage.displayName}
+                testID="WorkspaceMemberDetailsPage"
             >
                 <HeaderWithBackButton
                     title={displayName}

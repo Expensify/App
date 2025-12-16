@@ -77,7 +77,7 @@ function WorkspaceEditTaxPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceEditTaxPage.displayName}
+                testID="WorkspaceEditTaxPage"
                 style={styles.mb5}
             >
                 <View style={[styles.h100, styles.flex1]}>

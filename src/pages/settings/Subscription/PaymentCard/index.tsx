@@ -89,7 +89,7 @@ function AddPaymentCard() {
     }, [prevFormDataSetupComplete, formData?.setupComplete]);
 
     return (
-        <ScreenWrapper testID={AddPaymentCard.displayName}>
+        <ScreenWrapper testID="AddPaymentCard">
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton title={translate('subscription.paymentCard.addPaymentCard')} />
                 <View style={styles.containerWithSpaceBetween}>

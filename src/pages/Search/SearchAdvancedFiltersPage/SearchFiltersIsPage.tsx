@@ -76,7 +76,7 @@ function SearchFiltersIsPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersIsPage.displayName}
+            testID="SearchFiltersIsPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight

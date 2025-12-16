@@ -730,7 +730,7 @@ function WorkspacesListPage() {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={WorkspacesListPage.displayName}
+            testID="WorkspacesListPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={
                 shouldUseNarrowLayout && (

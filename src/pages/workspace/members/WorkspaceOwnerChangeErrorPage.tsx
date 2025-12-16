@@ -45,7 +45,7 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
             policyID={policyID}
         >
             <ScreenWrapper
-                testID={WorkspaceOwnerChangeErrorPage.displayName}
+                testID="WorkspaceOwnerChangeErrorPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton

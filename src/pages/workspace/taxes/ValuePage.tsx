@@ -65,7 +65,7 @@ function ValuePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={ValuePage.displayName}
+                testID="ValuePage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.taxes.value')}

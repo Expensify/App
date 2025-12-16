@@ -57,7 +57,7 @@ function ReportSettingsPage({report, policy, route}: ReportSettingsPageProps) {
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
     return (
-        <ScreenWrapper testID={ReportSettingsPage.displayName}>
+        <ScreenWrapper testID="ReportSettingsPage">
             <FullPageNotFoundView shouldShow={shouldDisableSettings}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}

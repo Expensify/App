@@ -59,7 +59,7 @@ function ReviewReimbursable() {
     };
 
     return (
-        <ScreenWrapper testID={ReviewReimbursable.displayName}>
+        <ScreenWrapper testID="ReviewReimbursable">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}

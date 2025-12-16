@@ -7,7 +7,7 @@ function SearchFiltersWithdrawalIDPage() {
         <SearchFiltersTextBase
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID}
             titleKey="common.withdrawalID"
-            testID={SearchFiltersWithdrawalIDPage.displayName}
+            testID="SearchFiltersWithdrawalIDPage"
             characterLimit={CONST.MAX_COMMENT_LENGTH}
         />
     );

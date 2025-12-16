@@ -110,7 +110,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
 
     return (
         <ScreenWrapper
-            testID={WorkspaceCompanyCardStatementCloseDateSelectionList.displayName}
+            testID="WorkspaceCompanyCardStatementCloseDateSelectionList"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight

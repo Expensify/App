@@ -159,7 +159,7 @@ function IOURequestStepTag({
             headerTitle={policyTagListName}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepTag.displayName}
+            testID="IOURequestStepTag"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             {!shouldShowTag && (

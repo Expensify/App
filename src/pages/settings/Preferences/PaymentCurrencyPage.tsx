@@ -30,7 +30,7 @@ function PaymentCurrencyPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={PaymentCurrencyPage.displayName}
+            testID="PaymentCurrencyPage"
         >
             {({didScreenTransitionEnd}) => (
                 <>

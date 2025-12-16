@@ -156,7 +156,7 @@ function IOURequestStepDestination({
                 onBackButtonPress={navigateBack}
                 shouldShowWrapper={!openedFromStartPage}
                 shouldShowNotFoundPage={shouldShowNotFoundPage}
-                testID={IOURequestStepDestination.displayName}
+                testID="IOURequestStepDestination"
             >
                 {isLoading && (
                     <ActivityIndicator

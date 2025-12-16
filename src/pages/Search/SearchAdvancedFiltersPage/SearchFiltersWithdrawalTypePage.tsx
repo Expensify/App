@@ -46,7 +46,7 @@ function SearchFiltersWithdrawalTypePage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersWithdrawalTypePage.displayName}
+            testID="SearchFiltersWithdrawalTypePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight

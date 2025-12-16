@@ -70,7 +70,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspacePerDiemDetailsPage.displayName}
+                testID="WorkspacePerDiemDetailsPage"
             >
                 <HeaderWithBackButton title={translate('workspace.perDiem.editPerDiemRate')} />
                 <ConfirmModal

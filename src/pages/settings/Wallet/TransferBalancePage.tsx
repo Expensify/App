@@ -113,7 +113,7 @@ function TransferBalancePage() {
 
     if (walletTransfer?.shouldShowSuccess && !walletTransfer?.loading) {
         return (
-            <ScreenWrapper testID={TransferBalancePage.displayName}>
+            <ScreenWrapper testID="TransferBalancePage">
                 <HeaderWithBackButton
                     title={translate('common.transferBalance')}
                     onBackButtonPress={dismissSuccessfulTransferBalancePage}
@@ -148,7 +148,7 @@ function TransferBalancePage() {
 
     return (
         <ScreenWrapper
-            testID={TransferBalancePage.displayName}
+            testID="TransferBalancePage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView

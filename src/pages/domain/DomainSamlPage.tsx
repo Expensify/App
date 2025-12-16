@@ -75,7 +75,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
-            testID={DomainSamlPage.displayName}
+            testID="DomainSamlPage"
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}

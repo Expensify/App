@@ -52,7 +52,7 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={SelectDelegateRolePage.displayName}
+            testID="SelectDelegateRolePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton

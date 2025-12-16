@@ -43,7 +43,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesRandomReportAuditPage.displayName}
+                testID="RulesRandomReportAuditPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}

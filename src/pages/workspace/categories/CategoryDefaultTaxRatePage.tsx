@@ -74,7 +74,7 @@ function CategoryDefaultTaxRatePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryDefaultTaxRatePage.displayName}
+                testID="CategoryDefaultTaxRatePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

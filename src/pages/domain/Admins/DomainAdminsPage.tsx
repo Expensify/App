@@ -112,7 +112,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
-            testID={DomainAdminsPage.displayName}
+            testID="DomainAdminsPage"
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}

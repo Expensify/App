@@ -39,7 +39,7 @@ function UnitSelectorModal({isVisible, currentUnit, onUnitSelected, onClose, lab
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={UnitSelectorModal.displayName}
+                testID="UnitSelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}

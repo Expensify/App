@@ -73,7 +73,7 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceExpensifyCardSelectorPage.displayName}
+                testID="WorkspaceExpensifyCardSelectorPage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >

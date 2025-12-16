@@ -104,7 +104,7 @@ function IOURequestStepAttendees({
             headerTitle={translate('iou.attendees')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepAttendees.displayName}
+            testID="IOURequestStepAttendees"
         >
             <MoneyRequestAttendeeSelector
                 onFinish={saveAttendees}

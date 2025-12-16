@@ -66,7 +66,7 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ReceiptReviewPage.displayName}
+            testID="ReceiptReviewPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >

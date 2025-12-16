@@ -59,7 +59,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceWorkflowsApprovalsCreatePage.displayName}
+                testID="WorkspaceWorkflowsApprovalsCreatePage"
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}

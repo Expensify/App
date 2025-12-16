@@ -37,7 +37,7 @@ function CategoryApproverPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryApproverPage.displayName}
+                testID="CategoryApproverPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

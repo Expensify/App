@@ -154,7 +154,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     }
 
     return (
-        <ScreenWrapper testID={ExpensifyCardPage.displayName}>
+        <ScreenWrapper testID="ExpensifyCardPage">
             <HeaderWithBackButton
                 title={pageTitle}
                 onBackButtonPress={() => Navigation.closeRHPFlow()}

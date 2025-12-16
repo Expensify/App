@@ -53,7 +53,7 @@ function KeyboardShortcutsPage({route}: KeyboardShortcutsPageProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={KeyboardShortcutsPage.displayName}
+            testID="KeyboardShortcutsPage"
         >
             <HeaderWithBackButton
                 title={translate('keyboardShortcutsPage.title')}

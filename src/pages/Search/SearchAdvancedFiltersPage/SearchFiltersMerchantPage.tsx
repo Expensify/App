@@ -7,7 +7,7 @@ function SearchFiltersMerchantPage() {
         <SearchFiltersTextBase
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
             titleKey="common.merchant"
-            testID={SearchFiltersMerchantPage.displayName}
+            testID="SearchFiltersMerchantPage"
             characterLimit={CONST.MERCHANT_NAME_MAX_BYTES}
         />
     );

@@ -16,7 +16,7 @@ function FailedToLockAccountPage() {
 
     return (
         <ScreenWrapper
-            testID={FailedToLockAccountPage.displayName}
+            testID="FailedToLockAccountPage"
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton

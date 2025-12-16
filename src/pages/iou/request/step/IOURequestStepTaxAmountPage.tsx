@@ -164,7 +164,7 @@ function IOURequestStepTaxAmountPage({
         <StepScreenWrapper
             headerTitle={translate('iou.taxAmount')}
             onBackButtonPress={navigateBack}
-            testID={IOURequestStepTaxAmountPage.displayName}
+            testID="IOURequestStepTaxAmountPage"
             shouldShowWrapper={!!(backTo || isEditing)}
             includeSafeAreaPaddingBottom
         >

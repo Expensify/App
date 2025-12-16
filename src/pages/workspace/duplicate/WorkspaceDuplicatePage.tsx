@@ -23,7 +23,7 @@ function WorkspaceDuplicatePage() {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceDuplicatePage.displayName}
+                testID="WorkspaceDuplicatePage"
             >
                 <WorkspaceDuplicateForm policyID={policyID} />
             </ScreenWrapper>

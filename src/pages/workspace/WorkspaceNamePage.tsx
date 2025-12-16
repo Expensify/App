@@ -64,7 +64,7 @@ function WorkspaceNamePage({policy}: Props) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceNamePage.displayName}
+                testID="WorkspaceNamePage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.workspaceName')}

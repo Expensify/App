@@ -64,7 +64,7 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 shouldEnableMaxHeight
-                testID={PolicyDistanceRateTaxRateEditPage.displayName}
+                testID="PolicyDistanceRateTaxRateEditPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.taxes.taxRate')}

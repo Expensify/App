@@ -59,7 +59,7 @@ function WorkspaceTaxesSettingsPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceTaxesSettingsPage.displayName}
+                testID="WorkspaceTaxesSettingsPage"
                 style={styles.defaultModalContainer}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >

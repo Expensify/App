@@ -80,7 +80,7 @@ function StateSelectionPage() {
 
     return (
         <ScreenWrapper
-            testID={StateSelectionPage.displayName}
+            testID="StateSelectionPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton

@@ -14,7 +14,7 @@ type LoadingPageProps = {
 function LoadingPage({onBackButtonPress, title}: LoadingPageProps) {
     const styles = useThemeStyles();
     return (
-        <ScreenWrapper testID={LoadingPage.displayName}>
+        <ScreenWrapper testID="LoadingPage">
             <HeaderWithBackButton
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBackButton

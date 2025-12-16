@@ -133,7 +133,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                 shouldShowOfflineIndicator={false}
                 style={[styles.flex1, styles.pt0]}
                 keyboardAvoidingViewBehavior="height"
-                testID={AdditionalDetailsStep.displayName}
+                testID="AdditionalDetailsStep"
             >
                 <HeaderWithBackButton
                     title={translate('additionalDetailsStep.headerTitle')}

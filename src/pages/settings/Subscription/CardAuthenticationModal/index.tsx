@@ -79,7 +79,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                 style={styles.pb0}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={CardAuthenticationModal.displayName}
+                testID="CardAuthenticationModal"
             >
                 <HeaderWithBackButton
                     title={headerTitle}

@@ -47,7 +47,7 @@ function PriorityModePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={PriorityModePage.displayName}
+            testID="PriorityModePage"
         >
             <HeaderWithBackButton
                 title={translate('priorityModePage.priorityMode')}

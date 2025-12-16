@@ -160,7 +160,7 @@ function AccountValidatePage() {
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={AccountValidatePage.displayName}
+            testID="AccountValidatePage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton

@@ -20,7 +20,7 @@ function RequireQuickBooksDesktopModal() {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={RequireQuickBooksDesktopModal.displayName}
+            testID="RequireQuickBooksDesktopModal"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton

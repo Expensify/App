@@ -19,7 +19,7 @@ function SearchFiltersAssigneePage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersAssigneePage.displayName}
+            testID="SearchFiltersAssigneePage"
             includeSafeAreaPaddingBottom
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}

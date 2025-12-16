@@ -50,7 +50,7 @@ function SetDatePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={SetDatePage.displayName}
+            testID="SetDatePage"
         >
             <HeaderWithBackButton
                 title={translate('statusPage.date')}

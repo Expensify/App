@@ -295,7 +295,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
     return (
         <ScreenWrapper
-            testID={NewReportWorkspaceSelectionPage.displayName}
+            testID="NewReportWorkspaceSelectionPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >

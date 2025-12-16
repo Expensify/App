@@ -204,7 +204,7 @@ function StatusClearAfterPage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={StatusClearAfterPage.displayName}
+            testID="StatusClearAfterPage"
         >
             <HeaderWithBackButton
                 title={translate('statusPage.clearAfter')}

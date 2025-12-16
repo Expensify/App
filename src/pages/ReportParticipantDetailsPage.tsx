@@ -70,7 +70,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     }
 
     return (
-        <ScreenWrapper testID={ReportParticipantDetails.displayName}>
+        <ScreenWrapper testID="ReportParticipantDetails">
             <HeaderWithBackButton
                 title={displayName}
                 onBackButtonPress={() => Navigation.goBack(backTo)}

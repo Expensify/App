@@ -373,7 +373,7 @@ function IOURequestStepAmount({
         <StepScreenWrapper
             headerTitle={translate('iou.amount')}
             onBackButtonPress={navigateBack}
-            testID={IOURequestStepAmount.displayName}
+            testID="IOURequestStepAmount"
             shouldShowWrapper={!!backTo || isEditing}
             includeSafeAreaPaddingBottom
             shouldShowNotFoundPage={shouldShowNotFoundPage}

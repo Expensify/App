@@ -61,7 +61,7 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersCurrencyBase.displayName}
+            testID="SearchFiltersCurrencyBase"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom

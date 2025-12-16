@@ -21,7 +21,7 @@ function PublicDomainErrorPage({route}: PublicDomainErrorPageProps) {
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={PublicDomainErrorPage.displayName}
+            testID="PublicDomainErrorPage"
         >
             <HeaderWithBackButton
                 title={translate('travel.header')}

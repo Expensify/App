@@ -42,7 +42,7 @@ function ThemePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={ThemePage.displayName}
+            testID="ThemePage"
         >
             <HeaderWithBackButton
                 title={translate('themePage.theme')}

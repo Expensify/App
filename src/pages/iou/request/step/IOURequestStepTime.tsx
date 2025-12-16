@@ -136,7 +136,7 @@ function IOURequestStepTime({
             onBackButtonPress={navigateBack}
             shouldShowNotFoundPage={shouldShowNotFound}
             shouldShowWrapper
-            testID={IOURequestStepTime.displayName}
+            testID="IOURequestStepTime"
             includeSafeAreaPaddingBottom
         >
             <FormProvider

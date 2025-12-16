@@ -86,7 +86,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceAutoReportingMonthlyOffsetPage.displayName}
+                testID="WorkspaceAutoReportingMonthlyOffsetPage"
             >
                 <FullPageNotFoundView
                     onBackButtonPress={goBackFromInvalidPolicy}

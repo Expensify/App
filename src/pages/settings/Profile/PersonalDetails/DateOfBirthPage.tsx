@@ -45,7 +45,7 @@ function DateOfBirthPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={DateOfBirthPage.displayName}
+            testID="DateOfBirthPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton

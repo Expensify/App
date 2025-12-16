@@ -47,7 +47,7 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
     }
 
     return (
-        <ScreenWrapper testID={ReportVirtualCardFraudPage.displayName}>
+        <ScreenWrapper testID="ReportVirtualCardFraudPage">
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
                     title={translate('reportFraudPage.title')}

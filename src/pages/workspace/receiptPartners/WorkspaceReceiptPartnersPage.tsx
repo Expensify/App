@@ -251,7 +251,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                 />
             ) : (
                 <ScreenWrapper
-                    testID={WorkspaceReceiptPartnersPage.displayName}
+                    testID="WorkspaceReceiptPartnersPage"
                     shouldShowOfflineIndicatorInWideScreen
                 >
                     <HeaderWithBackButton

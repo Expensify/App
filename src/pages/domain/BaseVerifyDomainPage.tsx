@@ -86,7 +86,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
 
     return (
         <ScreenWrapper
-            testID={BaseVerifyDomainPage.displayName}
+            testID="BaseVerifyDomainPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >

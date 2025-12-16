@@ -161,7 +161,7 @@ function WorkspaceCreateReportFieldsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={WorkspaceCreateReportFieldsPage.displayName}
+                testID="WorkspaceCreateReportFieldsPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

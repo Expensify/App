@@ -67,7 +67,7 @@ function ExitSurveyReasonPage() {
     );
 
     return (
-        <ScreenWrapper testID={ExitSurveyReasonPage.displayName}>
+        <ScreenWrapper testID="ExitSurveyReasonPage">
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack()}

@@ -55,7 +55,7 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={EditPerDiemCurrencyPage.displayName}
+                testID="EditPerDiemCurrencyPage"
             >
                 <HeaderWithBackButton
                     title={translate('common.currency')}

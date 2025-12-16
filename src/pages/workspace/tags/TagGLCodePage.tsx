@@ -82,7 +82,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={TagGLCodePage.displayName}
+                testID="TagGLCodePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

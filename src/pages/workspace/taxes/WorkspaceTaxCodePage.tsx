@@ -84,7 +84,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceTaxCodePage.displayName}
+                testID="WorkspaceTaxCodePage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.taxes.taxCode')}

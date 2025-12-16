@@ -75,7 +75,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryGLCodePage.displayName}
+                testID="CategoryGLCodePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

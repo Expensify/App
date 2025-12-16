@@ -27,7 +27,7 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
 
     return (
         <ScreenWrapper
-            testID={MergeTransactionsListPage.displayName}
+            testID="MergeTransactionsListPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >

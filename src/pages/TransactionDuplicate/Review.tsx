@@ -117,7 +117,7 @@ function TransactionDuplicateReview() {
 
     if (isLoadingPage) {
         return (
-            <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
+            <ScreenWrapper testID="TransactionDuplicateReview">
                 <View style={[styles.flex1]}>
                     <View style={[styles.appContentHeader, styles.borderBottom]}>
                         <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
@@ -129,7 +129,7 @@ function TransactionDuplicateReview() {
     }
 
     return (
-        <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
+        <ScreenWrapper testID="TransactionDuplicateReview">
             <FullPageNotFoundView shouldShow={shouldShowNotFound}>
                 <HeaderWithBackButton
                     title={translate('iou.reviewDuplicates')}

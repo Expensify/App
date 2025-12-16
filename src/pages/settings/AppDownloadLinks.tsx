@@ -61,7 +61,7 @@ function AppDownloadLinksPage() {
     ];
 
     return (
-        <ScreenWrapper testID={AppDownloadLinksPage.displayName}>
+        <ScreenWrapper testID="AppDownloadLinksPage">
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 onBackButtonPress={() => Navigation.goBack()}

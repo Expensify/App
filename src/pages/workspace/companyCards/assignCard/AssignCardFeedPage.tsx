@@ -44,7 +44,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
-                testID={AssignCardFeedPage.displayName}
+                testID="AssignCardFeedPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
             >

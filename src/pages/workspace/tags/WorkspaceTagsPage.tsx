@@ -665,7 +665,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding
                     style={[styles.defaultModalContainer]}
-                    testID={WorkspaceTagsPage.displayName}
+                    testID="WorkspaceTagsPage"
                     shouldShowOfflineIndicatorInWideScreen
                     offlineIndicatorStyle={styles.mtAuto}
                 >

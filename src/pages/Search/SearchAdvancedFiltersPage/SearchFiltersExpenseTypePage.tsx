@@ -42,7 +42,7 @@ function SearchFiltersExpenseTypePage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersExpenseTypePage.displayName}
+            testID="SearchFiltersExpenseTypePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}

@@ -91,7 +91,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
             <ScreenWrapper
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={PushRowModal.displayName}
+                testID="PushRowModal"
             >
                 <HeaderWithBackButton
                     title={headerTitle}

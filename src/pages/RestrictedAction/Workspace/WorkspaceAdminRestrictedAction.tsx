@@ -33,7 +33,7 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={WorkspaceAdminRestrictedAction.displayName}
+            testID="WorkspaceAdminRestrictedAction"
         >
             <HeaderWithBackButton
                 title={translate('workspace.restrictedAction.restricted')}

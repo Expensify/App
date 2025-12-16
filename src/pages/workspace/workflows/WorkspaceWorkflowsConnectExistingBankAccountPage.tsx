@@ -60,7 +60,7 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={WorkspaceWorkflowsConnectExistingBankAccountPage.displayName}
+            testID="WorkspaceWorkflowsConnectExistingBankAccountPage"
         >
             <HeaderWithBackButton
                 title={translate('bankAccount.addBankAccount')}

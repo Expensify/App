@@ -140,7 +140,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         <ScreenWrapper
             shouldEnableMaxHeight
             shouldUseCachedViewportHeight
-            testID={ImportedMembersConfirmationPage.displayName}
+            testID="ImportedMembersConfirmationPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >

@@ -74,7 +74,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={DisplayNamePage.displayName}
+            testID="DisplayNamePage"
         >
             <HeaderWithBackButton
                 title={translate('displayNamePage.headerTitle')}

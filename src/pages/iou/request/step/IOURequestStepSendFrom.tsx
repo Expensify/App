@@ -85,7 +85,7 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
             headerTitle={translate('workspace.invoices.sendFrom')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepSendFrom.displayName}
+            testID="IOURequestStepSendFrom"
             includeSafeAreaPaddingBottom
         >
             <SelectionList

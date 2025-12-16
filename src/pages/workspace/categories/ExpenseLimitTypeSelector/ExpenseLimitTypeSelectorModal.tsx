@@ -50,7 +50,7 @@ function ExpenseLimitTypeSelectorModal({isVisible, currentExpenseLimitType, onEx
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={ExpenseLimitTypeSelectorModal.displayName}
+                testID="ExpenseLimitTypeSelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}

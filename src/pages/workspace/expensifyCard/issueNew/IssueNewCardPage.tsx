@@ -125,7 +125,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
-                testID={IssueNewCardPage.displayName}
+                testID="IssueNewCardPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
             >

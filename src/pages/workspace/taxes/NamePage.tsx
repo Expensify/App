@@ -76,7 +76,7 @@ function NamePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={NamePage.displayName}
+                testID="NamePage"
             >
                 <HeaderWithBackButton
                     title={translate('common.name')}

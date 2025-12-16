@@ -5,7 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 function DisableAutoRenewSurveyPage() {
     return (
         <ScreenWrapper
-            testID={DisableAutoRenewSurveyPage.displayName}
+            testID="DisableAutoRenewSurveyPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >

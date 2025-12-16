@@ -182,7 +182,7 @@ function CategorySettingsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategorySettingsPage.displayName}
+                testID="CategorySettingsPage"
             >
                 <HeaderWithBackButton
                     title={decodedCategoryName}

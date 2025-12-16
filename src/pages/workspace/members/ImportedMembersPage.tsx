@@ -179,7 +179,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedMembersPage.displayName}
+            testID="ImportedMembersPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >

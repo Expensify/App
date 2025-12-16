@@ -103,7 +103,7 @@ function SelectBankStep() {
 
     return (
         <ScreenWrapper
-            testID={SelectBankStep.displayName}
+            testID="SelectBankStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight

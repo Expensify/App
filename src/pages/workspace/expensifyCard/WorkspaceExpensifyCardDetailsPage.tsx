@@ -107,7 +107,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceExpensifyCardDetailsPage.displayName}
+                testID="WorkspaceExpensifyCardDetailsPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.expensifyCard.cardDetails')}

@@ -60,7 +60,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
 
     return (
         <View
-            testID={TopLevelNavigationTabBar.displayName}
+            testID="TopLevelNavigationTabBar"
             style={[
                 styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom),
                 // There is a missing border right on the wide layout

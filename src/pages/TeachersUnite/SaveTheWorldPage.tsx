@@ -49,7 +49,7 @@ function SaveTheWorldPage() {
 
     return (
         <ScreenWrapper
-            testID={SaveTheWorldPage.displayName}
+            testID="SaveTheWorldPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen

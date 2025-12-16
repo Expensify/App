@@ -88,7 +88,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
 
     return (
         <ScreenWrapper
-            testID={CardInstructionsStep.displayName}
+            testID="CardInstructionsStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             enableEdgeToEdgeBottomSafeAreaPadding

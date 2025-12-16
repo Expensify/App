@@ -60,7 +60,7 @@ function ReviewBillable() {
     };
 
     return (
-        <ScreenWrapper testID={ReviewBillable.displayName}>
+        <ScreenWrapper testID="ReviewBillable">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}

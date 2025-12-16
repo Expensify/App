@@ -69,7 +69,7 @@ function AddDomainPage() {
     }, []);
 
     return (
-        <ScreenWrapper testID={AddDomainPage.displayName}>
+        <ScreenWrapper testID="AddDomainPage">
             <HeaderWithBackButton
                 title={translate('domain.addDomain.title')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.getRoute())}

@@ -76,7 +76,7 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={DomainSelectorPage.displayName}
+            testID="DomainSelectorPage"
         >
             <HeaderWithBackButton
                 title={translate('travel.domainSelector.title')}

@@ -27,7 +27,7 @@ function SetTimePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={SetTimePage.displayName}
+            testID="SetTimePage"
         >
             <HeaderWithBackButton
                 title={translate('statusPage.time')}

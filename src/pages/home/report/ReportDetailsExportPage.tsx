@@ -85,7 +85,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
 
     if (!canBeExported) {
         return (
-            <ScreenWrapper testID={ReportDetailsExportPage.displayName}>
+            <ScreenWrapper testID="ReportDetailsExportPage">
                 <HeaderWithBackButton
                     title={translate('common.export')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}

@@ -10,7 +10,7 @@ function MoneyRequestSkeletonView() {
     const styles = useThemeStyles();
     return (
         <SkeletonViewContentLoader
-            testID={MoneyRequestSkeletonView.displayName}
+            testID="MoneyRequestSkeletonView"
             animate
             width={styles.w100.width}
             height={variables.moneyRequestSkeletonHeight}

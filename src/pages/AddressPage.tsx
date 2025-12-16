@@ -86,7 +86,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
-            testID={AddressPage.displayName}
+            testID="AddressPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton

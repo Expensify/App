@@ -71,7 +71,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceOverviewCurrencyPage.displayName}
+                testID="WorkspaceOverviewCurrencyPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.editor.currencyInputLabel')}

@@ -113,7 +113,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceAutoReportingFrequencyPage.displayName}
+                testID="WorkspaceAutoReportingFrequencyPage"
             >
                 <FullPageNotFoundView
                     onBackButtonPress={goBackFromInvalidPolicy}

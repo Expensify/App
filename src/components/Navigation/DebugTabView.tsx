@@ -162,7 +162,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
 
     return (
         <View
-            testID={DebugTabView.displayName}
+            testID="DebugTabView"
             style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
         >
             <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>

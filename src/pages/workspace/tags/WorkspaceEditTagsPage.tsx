@@ -84,7 +84,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceEditTagsPage.displayName}
+                testID="WorkspaceEditTagsPage"
             >
                 <HeaderWithBackButton
                     title={translate(`workspace.tags.customTagName`)}

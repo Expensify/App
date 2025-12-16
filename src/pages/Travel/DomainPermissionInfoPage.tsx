@@ -21,7 +21,7 @@ function DomainPermissionInfoPage({route}: DomainPermissionInfoPageProps) {
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={DomainPermissionInfoPage.displayName}
+            testID="DomainPermissionInfoPage"
         >
             <HeaderWithBackButton title={translate('travel.domainPermissionInfo.title')} />
             <View style={[styles.flex1]}>

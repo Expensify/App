@@ -85,7 +85,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
 
     return (
         <ScreenWrapper
-            testID={DomainInitialPage.displayName}
+            testID="DomainInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={
                 !shouldDisplayLHB && (

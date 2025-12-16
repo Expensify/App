@@ -79,7 +79,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={EditPerDiemAmountPage.displayName}
+                testID="EditPerDiemAmountPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

@@ -48,7 +48,7 @@ function ConciergePage() {
     }, []);
 
     return (
-        <ScreenWrapper testID={ConciergePage.displayName}>
+        <ScreenWrapper testID="ConciergePage">
             <View style={[styles.borderBottom, styles.appContentHeader]}>
                 <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
             </View>

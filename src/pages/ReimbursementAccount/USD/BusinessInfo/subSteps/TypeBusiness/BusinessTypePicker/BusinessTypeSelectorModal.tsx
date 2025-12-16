@@ -56,7 +56,7 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={BusinessTypeSelectorModal.displayName}
+                testID="BusinessTypeSelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}

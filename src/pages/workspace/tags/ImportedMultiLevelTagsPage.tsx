@@ -50,7 +50,7 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedMultiLevelTagsPage.displayName}
+            testID="ImportedMultiLevelTagsPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >

@@ -33,7 +33,7 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
-                testID={WorkspaceInviteMessageRolePage.displayName}
+                testID="WorkspaceInviteMessageRolePage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 style={{marginTop: viewportOffsetTop}}

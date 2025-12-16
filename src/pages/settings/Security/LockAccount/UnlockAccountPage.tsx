@@ -17,7 +17,7 @@ function UnlockAccountPage() {
 
     return (
         <ScreenWrapper
-            testID={UnlockAccountPage.displayName}
+            testID="UnlockAccountPage"
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton

@@ -21,7 +21,7 @@ function DisableAutoRenewSurveyPage() {
 
     return (
         <ScreenWrapper
-            testID={DisableAutoRenewSurveyPage.displayName}
+            testID="DisableAutoRenewSurveyPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight

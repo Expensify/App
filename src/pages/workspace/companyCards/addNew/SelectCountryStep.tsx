@@ -129,7 +129,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
 
     return (
         <ScreenWrapper
-            testID={SelectCountryStep.displayName}
+            testID="SelectCountryStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight

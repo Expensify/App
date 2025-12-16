@@ -435,7 +435,7 @@ function IOURequestStepParticipants({
             headerTitle={headerTitle}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepParticipants.displayName}
+            testID="IOURequestStepParticipants"
         >
             {!!skipConfirmation && (
                 <FormHelpMessage

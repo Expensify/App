@@ -100,7 +100,7 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={RoomDescriptionPage.displayName}
+            testID="RoomDescriptionPage"
         >
             <HeaderWithBackButton
                 title={translate('reportDescriptionPage.roomDescription')}

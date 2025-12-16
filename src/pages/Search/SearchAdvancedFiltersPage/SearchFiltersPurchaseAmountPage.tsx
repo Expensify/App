@@ -7,7 +7,7 @@ function SearchFiltersPurchaseAmountPage() {
         <SearchFiltersPurchaseAmountBase
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT}
             title="common.purchaseAmount"
-            testID={SearchFiltersPurchaseAmountPage.displayName}
+            testID="SearchFiltersPurchaseAmountPage"
         />
     );
 }

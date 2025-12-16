@@ -146,7 +146,7 @@ function CardTypeStep() {
 
     return (
         <ScreenWrapper
-            testID={CardTypeStep.displayName}
+            testID="CardTypeStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight

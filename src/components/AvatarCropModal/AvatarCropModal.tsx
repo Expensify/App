@@ -368,7 +368,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
-                testID={AvatarCropModal.displayName}
+                testID="AvatarCropModal"
             >
                 {shouldUseNarrowLayout && <HeaderGap />}
                 <HeaderWithBackButton

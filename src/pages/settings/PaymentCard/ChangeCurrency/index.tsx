@@ -26,7 +26,7 @@ function ChangeCurrency() {
     }, []);
 
     return (
-        <ScreenWrapper testID={ChangeCurrency.displayName}>
+        <ScreenWrapper testID="ChangeCurrency">
             <HeaderWithBackButton title={translate('billingCurrency.changePaymentCurrency')} />
             <View style={styles.containerWithSpaceBetween}>
                 <PaymentCardChangeCurrencyForm

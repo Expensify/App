@@ -39,7 +39,7 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
         >
-            <ScreenWrapper testID={WorkspaceOwnerChangeSuccessPage.displayName}>
+            <ScreenWrapper testID="WorkspaceOwnerChangeSuccessPage">
                 <HeaderWithBackButton
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={closePage}

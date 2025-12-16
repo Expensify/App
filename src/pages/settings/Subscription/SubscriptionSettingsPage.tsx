@@ -50,7 +50,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
 
     return (
         <ScreenWrapper
-            testID={SubscriptionSettingsPage.displayName}
+            testID="SubscriptionSettingsPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton

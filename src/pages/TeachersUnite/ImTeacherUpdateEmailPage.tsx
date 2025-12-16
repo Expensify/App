@@ -22,7 +22,7 @@ function ImTeacherUpdateEmailPage() {
     const contactMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(ROUTES.I_AM_A_TEACHER)}`;
 
     return (
-        <ScreenWrapper testID={ImTeacherUpdateEmailPage.displayName}>
+        <ScreenWrapper testID="ImTeacherUpdateEmailPage">
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iAmATeacher')}
                 onBackButtonPress={() => Navigation.goBack()}

@@ -19,7 +19,7 @@ function SubscriptionPlanDowngradeBlockedPage() {
     };
     return (
         <ScreenWrapper
-            testID={SubscriptionPlanDowngradeBlockedPage.displayName}
+            testID="SubscriptionPlanDowngradeBlockedPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >

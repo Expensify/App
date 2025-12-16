@@ -79,7 +79,7 @@ function SearchFiltersCategoryPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersCategoryPage.displayName}
+            testID="SearchFiltersCategoryPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight

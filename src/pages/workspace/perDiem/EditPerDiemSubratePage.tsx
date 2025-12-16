@@ -77,7 +77,7 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={EditPerDiemSubratePage.displayName}
+                testID="EditPerDiemSubratePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

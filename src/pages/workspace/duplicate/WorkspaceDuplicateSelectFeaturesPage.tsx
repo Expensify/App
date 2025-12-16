@@ -20,7 +20,7 @@ function WorkspaceDuplicateSelectFeaturesPage() {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceDuplicateSelectFeaturesPage.displayName}
+                testID="WorkspaceDuplicateSelectFeaturesPage"
             >
                 <WorkspaceDuplicateSelectFeaturesForm policyID={policyID} />
             </ScreenWrapper>

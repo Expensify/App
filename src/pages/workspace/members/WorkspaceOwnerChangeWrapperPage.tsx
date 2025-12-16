@@ -68,7 +68,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
             policyID={policyID}
             shouldBeBlocked={!shouldShowChangeWorkspaceOwnerPage(fundList, error)}
         >
-            <ScreenWrapper testID={WorkspaceOwnerChangeWrapperPage.displayName}>
+            <ScreenWrapper testID="WorkspaceOwnerChangeWrapperPage">
                 <HeaderWithBackButton
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={() => {

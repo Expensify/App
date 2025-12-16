@@ -22,7 +22,7 @@ function ReimbursementAccountLoadingIndicator({onBackButtonPress}: Reimbursement
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}
-            testID={ReimbursementAccountLoadingIndicator.displayName}
+            testID="ReimbursementAccountLoadingIndicator"
         >
             <HeaderWithBackButton
                 title={translate('reimbursementAccountLoadingAnimation.oneMoment')}

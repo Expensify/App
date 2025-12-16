@@ -51,7 +51,7 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={NotificationPreferencePage.displayName}
+            testID="NotificationPreferencePage"
         >
             <FullPageNotFoundView shouldShow={shouldDisableNotificationPreferences}>
                 <HeaderWithBackButton

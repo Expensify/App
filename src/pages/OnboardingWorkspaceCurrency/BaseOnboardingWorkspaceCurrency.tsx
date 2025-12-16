@@ -48,7 +48,7 @@ function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnb
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
-            testID={BaseOnboardingWorkspaceCurrency.displayName}
+            testID="BaseOnboardingWorkspaceCurrency"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldShowOfflineIndicator={!onboardingIsMediumOrLargerScreenWidth}
         >

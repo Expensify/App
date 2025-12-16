@@ -59,7 +59,7 @@ function NewTaskDescriptionPage({route}: NewTaskDescriptionPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={NewTaskDescriptionPage.displayName}
+            testID="NewTaskDescriptionPage"
         >
             <>
                 <HeaderWithBackButton

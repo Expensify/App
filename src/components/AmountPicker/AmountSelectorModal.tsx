@@ -52,7 +52,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 includePaddingTop={false}
-                testID={AmountSelectorModal.displayName}
+                testID="AmountSelectorModal"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

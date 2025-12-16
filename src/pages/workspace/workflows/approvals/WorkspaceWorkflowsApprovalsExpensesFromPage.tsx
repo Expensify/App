@@ -162,7 +162,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <ApproverSelectionList
-                testID={WorkspaceWorkflowsApprovalsExpensesFromPage.displayName}
+                testID="WorkspaceWorkflowsApprovalsExpensesFromPage"
                 headerTitle={translate('workflowsExpensesFromPage.title')}
                 onBackButtonPress={goBack}
                 subtitle={

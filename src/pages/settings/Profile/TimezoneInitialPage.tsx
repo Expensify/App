@@ -27,7 +27,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
     const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
 
     return (
-        <ScreenWrapper testID={TimezoneInitialPage.displayName}>
+        <ScreenWrapper testID="TimezoneInitialPage">
             <HeaderWithBackButton
                 title={translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack()}

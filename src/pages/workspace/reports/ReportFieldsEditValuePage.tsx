@@ -71,7 +71,7 @@ function ReportFieldsEditValuePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={ReportFieldsEditValuePage.displayName}
+                testID="ReportFieldsEditValuePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

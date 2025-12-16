@@ -5,7 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 function ChangeBillingCurrency() {
     return (
         <ScreenWrapper
-            testID={ChangeBillingCurrency.displayName}
+            testID="ChangeBillingCurrency"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >

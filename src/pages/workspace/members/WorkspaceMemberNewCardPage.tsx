@@ -197,7 +197,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceMemberNewCardPage.displayName}
+                testID="WorkspaceMemberNewCardPage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >

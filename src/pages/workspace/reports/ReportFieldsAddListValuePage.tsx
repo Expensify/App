@@ -82,7 +82,7 @@ function ReportFieldsAddListValuePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={ReportFieldsAddListValuePage.displayName}
+                testID="ReportFieldsAddListValuePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

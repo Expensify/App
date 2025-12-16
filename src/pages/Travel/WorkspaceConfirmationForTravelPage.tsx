@@ -44,7 +44,7 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
-            testID={WorkspaceConfirmationForTravelPage.displayName}
+            testID="WorkspaceConfirmationForTravelPage"
         >
             <WorkspaceConfirmationForm
                 onBackButtonPress={goBack}

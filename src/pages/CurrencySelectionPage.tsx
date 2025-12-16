@@ -45,7 +45,7 @@ function CurrencySelectionPage({route}: CurrencySelectionPageProps) {
     );
 
     return (
-        <ScreenWrapper testID={CurrencySelectionPage.displayName}>
+        <ScreenWrapper testID="CurrencySelectionPage">
             <HeaderWithBackButton
                 title={translate('workspace.editor.currencyInputLabel')}
                 onBackButtonPress={goBack}

@@ -125,7 +125,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={PrivateNotesEditPageInternal.displayName}
+            testID="PrivateNotesEditPageInternal"
         >
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}

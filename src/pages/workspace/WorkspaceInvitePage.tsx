@@ -230,7 +230,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             <ScreenWrapper
                 shouldEnableMaxHeight
                 shouldUseCachedViewportHeight
-                testID={WorkspaceInvitePage.displayName}
+                testID="WorkspaceInvitePage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >

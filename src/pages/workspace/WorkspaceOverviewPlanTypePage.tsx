@@ -101,7 +101,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                testID={WorkspaceOverviewPlanTypePage.displayName}
+                testID="WorkspaceOverviewPlanTypePage"
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >

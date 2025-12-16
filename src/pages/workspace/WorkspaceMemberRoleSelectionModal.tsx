@@ -45,7 +45,7 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
-                testID={WorkspaceMemberDetailsRoleSelectionModal.displayName}
+                testID="WorkspaceMemberDetailsRoleSelectionModal"
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >

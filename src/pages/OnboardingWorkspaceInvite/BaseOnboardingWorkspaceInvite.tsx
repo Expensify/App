@@ -244,7 +244,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
-            testID={BaseOnboardingWorkspaceInvite.displayName}
+            testID="BaseOnboardingWorkspaceInvite"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldShowOfflineIndicator={isSmallScreenWidth}
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}

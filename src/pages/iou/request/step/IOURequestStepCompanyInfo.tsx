@@ -93,7 +93,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             headerTitle={translate('iou.companyInfo')}
             onBackButtonPress={() => Navigation.goBack(backTo)}
             shouldShowWrapper
-            testID={IOURequestStepCompanyInfo.displayName}
+            testID="IOURequestStepCompanyInfo"
         >
             <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('iou.companyInfoDescription')}</Text>
             <FormProvider

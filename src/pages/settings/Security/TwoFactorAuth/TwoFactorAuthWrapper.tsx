@@ -76,7 +76,7 @@ function TwoFactorAuthWrapper({
     if (isDelegateAccessRestricted) {
         return (
             <ScreenWrapper
-                testID={TwoFactorAuthWrapper.displayName}
+                testID="TwoFactorAuthWrapper"
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >

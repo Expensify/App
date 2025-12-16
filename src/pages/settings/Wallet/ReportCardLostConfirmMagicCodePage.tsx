@@ -70,7 +70,7 @@ function ReportCardLostConfirmMagicCodePage({
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
-                testID={ReportCardLostConfirmMagicCodePage.displayName}
+                testID="ReportCardLostConfirmMagicCodePage"
             >
                 <SuccessReportCardLost cardID={newCardID} />
             </ScreenWrapper>

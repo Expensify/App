@@ -132,7 +132,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ConfirmationPage.displayName}
+            testID="ConfirmationPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >

@@ -65,7 +65,7 @@ function ConnectedVerifiedBankAccount({
 
     return (
         <ScreenWrapper
-            testID={ConnectedVerifiedBankAccount.displayName}
+            testID="ConnectedVerifiedBankAccount"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight

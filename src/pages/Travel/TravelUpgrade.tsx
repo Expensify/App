@@ -45,7 +45,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator
-            testID={TravelUpgrade.displayName}
+            testID="TravelUpgrade"
             offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
         >

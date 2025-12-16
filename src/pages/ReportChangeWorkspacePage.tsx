@@ -151,7 +151,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
 
     return (
         <ScreenWrapper
-            testID={ReportChangeWorkspacePage.displayName}
+            testID="ReportChangeWorkspacePage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >

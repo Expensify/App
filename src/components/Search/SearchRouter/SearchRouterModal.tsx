@@ -35,7 +35,7 @@ function SearchRouterModal() {
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapperContainer
-                testID={SearchRouterModal.displayName}
+                testID="SearchRouterModal"
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
                 includePaddingTop={false}

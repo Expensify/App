@@ -51,7 +51,7 @@ function PreferencesPage() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={PreferencesPage.displayName}
+            testID="PreferencesPage"
         >
             <HeaderWithBackButton
                 title={translate('common.preferences')}

@@ -134,7 +134,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedTagsPage.displayName}
+            testID="ImportedTagsPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >

@@ -96,7 +96,7 @@ function ReceiptView({route}: ReceiptViewProps) {
 
     return (
         <ScreenWrapper
-            testID={ReceiptView.displayName}
+            testID="ReceiptView"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton

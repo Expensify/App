@@ -88,7 +88,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={PronounsPage.displayName}
+            testID="PronounsPage"
         >
             {isLoadingApp && !currentUserPersonalDetails.pronouns ? (
                 <FullScreenLoadingIndicator />

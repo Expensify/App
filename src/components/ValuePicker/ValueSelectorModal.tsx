@@ -30,7 +30,7 @@ function ValueSelectorModal({
             <ScreenWrapper
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={ValueSelectorModal.displayName}
+                testID="ValueSelectorModal"
                 shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
             >
                 <HeaderWithBackButton
