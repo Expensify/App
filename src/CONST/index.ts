@@ -6709,8 +6709,8 @@ const CONST = {
                     TO: this.TABLE_COLUMNS.TO,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                     TAG: this.TABLE_COLUMNS.TAG,
-                    ACTION: this.TABLE_COLUMNS.ACTION,
                     STATUS: this.TABLE_COLUMNS.STATUS,
+                    ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 EXPENSE_REPORT: {
                     DATE: this.TABLE_COLUMNS.DATE,
