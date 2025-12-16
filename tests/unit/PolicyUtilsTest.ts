@@ -1507,6 +1507,7 @@ describe('PolicyUtils', () => {
                 '1': {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
                     employeeList: {
                         [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                     },
@@ -1533,6 +1534,7 @@ describe('PolicyUtils', () => {
                 '1': {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
                     employeeList: {
                         [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                     },
@@ -1549,6 +1551,7 @@ describe('PolicyUtils', () => {
                 '1': {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
                     employeeList: {
                         [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
                     },
@@ -1556,6 +1559,7 @@ describe('PolicyUtils', () => {
                 '2': {
                     ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
                     pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
                     employeeList: {
                         [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
                     },
