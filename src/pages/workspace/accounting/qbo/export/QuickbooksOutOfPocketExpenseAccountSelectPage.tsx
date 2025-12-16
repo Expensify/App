@@ -119,7 +119,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksOutOfPocketExpenseAccountSelectPage.displayName}
+            displayName="QuickbooksOutOfPocketExpenseAccountSelectPage"
             sections={data.length ? [{data}] : []}
             listItem={RadioListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{description}</Text>}
@@ -137,7 +137,5 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
         />
     );
 }
-
-QuickbooksOutOfPocketExpenseAccountSelectPage.displayName = 'QuickbooksOutOfPocketExpenseAccountSelectPage';
 
 export default withPolicyConnections(QuickbooksOutOfPocketExpenseAccountSelectPage);

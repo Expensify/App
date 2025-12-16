@@ -195,8 +195,6 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
         );
     }
 
-    ModalStack.displayName = 'ModalStack';
-
     return ModalStack;
 }
 

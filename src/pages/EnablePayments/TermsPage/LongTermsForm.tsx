@@ -115,5 +115,4 @@ function LongTermsForm() {
     );
 }
 
-LongTermsForm.displayName = 'LongTermsForm';
 export default LongTermsForm;

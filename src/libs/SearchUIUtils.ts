@@ -140,6 +140,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'date' as const,
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 'submitted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.POSTED]: 'posted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'tag' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
@@ -650,7 +651,7 @@ function getTransactionItemCommonFormattedProperties(
     policy: OnyxTypes.Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     report: OnyxTypes.Report | undefined,
-): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'submitted' | 'approved'> {
+): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'submitted' | 'approved' | 'posted'> {
     const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
     const fromName = getDisplayNameOrDefault(from);
@@ -671,12 +672,16 @@ function getTransactionItemCommonFormattedProperties(
     const submitted = report?.submitted;
     const approved = report?.approved;
 
+    // Posted date is in the YYYYMMDD format, so we format it to YYYY-MM-DD here since JS's Date constructor interprets it as an invalid date.
+    const posted = !transactionItem?.posted ? '' : `${transactionItem?.posted.slice(0, 4)}-${transactionItem?.posted.slice(4, 6)}-${transactionItem?.posted.slice(6, 8)}`;
+
     return {
         formattedFrom,
         formattedTo,
         date,
         submitted,
         approved,
+        posted,
         formattedTotal,
         formattedMerchant,
     };
@@ -859,6 +864,7 @@ type ShouldShowYearResult = {
     shouldShowYearCreated: boolean;
     shouldShowYearSubmitted: boolean;
     shouldShowYearApproved: boolean;
+    shouldShowYearPosted: boolean;
 };
 
 /**
@@ -875,6 +881,7 @@ function shouldShowYear(
         shouldShowYearCreated: false,
         shouldShowYearSubmitted: false,
         shouldShowYearApproved: false,
+        shouldShowYearPosted: false,
     };
 
     const currentYear = new Date().getFullYear();
@@ -909,10 +916,16 @@ function shouldShowYear(
                 if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
                     result.shouldShowYearApproved = true;
                 }
+
+                // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
+                if (item?.posted) {
+                    const postedYear = parseInt(item.posted.slice(0, 4), 10);
+                    result.shouldShowYearPosted = postedYear !== currentYear;
+                }
             }
 
             // Early exit if all flags are true
-            if (result.shouldShowYearCreated && result.shouldShowYearSubmitted) {
+            if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted) {
                 return result;
             }
         }
@@ -931,6 +944,12 @@ function shouldShowYear(
             }
             if (report?.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
                 result.shouldShowYearApproved = true;
+            }
+
+            // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
+            if (item?.posted) {
+                const postedYear = parseInt(item.posted.slice(0, 4), 10);
+                result.shouldShowYearPosted = postedYear !== currentYear;
             }
         } else if (!checkOnlyReports && isReportActionEntry(key)) {
             const item = data[key];
@@ -955,7 +974,7 @@ function shouldShowYear(
         }
 
         // Early exit if all flags are true
-        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted) {
+        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted) {
             return result;
         }
     }
@@ -1112,7 +1131,7 @@ function getTransactionsSections(
     isActionLoadingSet: ReadonlySet<string> | undefined,
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved} = shouldShowYear(data);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted} = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
     // Pre-filter transaction keys to avoid repeated checks
@@ -1161,7 +1180,7 @@ function getTransactionsSections(
             const from = reportAction?.actorAccountID ? (personalDetailsMap.get(reportAction.actorAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved} = getTransactionItemCommonFormattedProperties(
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
                 from,
                 to,
@@ -1188,10 +1207,12 @@ function getTransactionsSections(
                 date,
                 submitted,
                 approved,
+                posted,
                 shouldShowMerchant,
                 shouldShowYear: shouldShowYearCreated,
                 shouldShowYearSubmitted,
                 shouldShowYearApproved,
+                shouldShowYearPosted,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 violations: transactionViolations,
@@ -1567,6 +1588,7 @@ function getReportSections(
         shouldShowYearCreated: shouldShowYearCreatedTransaction,
         shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
         shouldShowYearApproved: shouldShowYearApprovedTransaction,
+        shouldShowYearPosted: shouldShowYearPostedTransaction,
     } = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
     const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
@@ -1718,6 +1740,7 @@ function getReportSections(
                 shouldShowYear: shouldShowYearCreatedTransaction,
                 shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
                 shouldShowYearApproved: shouldShowYearApprovedTransaction,
+                shouldShowYearPosted: shouldShowYearPostedTransaction,
                 keyForList: transactionItem.transactionID,
                 violations: transactionViolations,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
@@ -2000,6 +2023,14 @@ function getSortedTransactionData(
 
     const sortingProperty = transactionColumnNamesToSortingProperty[sortBy];
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TITLE) {
+        return data.sort((a, b) => {
+            const aValue = a.report?.reportName ?? '';
+            const bValue = b.report?.reportName ?? '';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.STATUS) {
         return data.sort((a, b) => {
             const aReport = a.report;
@@ -2210,6 +2241,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.submitted';
         case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
             return 'search.filters.approved';
+        case CONST.SEARCH.TABLE_COLUMNS.POSTED:
+            return 'search.filters.posted';
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return 'common.merchant';
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
@@ -2682,6 +2715,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.POSTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
@@ -2691,9 +2725,9 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
           };
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
@@ -2894,7 +2928,7 @@ function getTableMinWidth(columns: SearchColumnType[]) {
             minWidth += 80;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
             minWidth += 48;
-        } else if (column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED || column === CONST.SEARCH.TABLE_COLUMNS.APPROVED) {
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED || column === CONST.SEARCH.TABLE_COLUMNS.APPROVED || column === CONST.SEARCH.TABLE_COLUMNS.POSTED) {
             minWidth += 72;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {
             minWidth += 20;

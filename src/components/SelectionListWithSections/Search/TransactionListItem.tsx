@@ -97,13 +97,14 @@ function TransactionListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const {amountColumnSize, dateColumnSize, taxAmountColumnSize, submittedColumnSize, approvedColumnSize} = useMemo(() => {
+    const {amountColumnSize, dateColumnSize, taxAmountColumnSize, submittedColumnSize, approvedColumnSize, postedColumnSize} = useMemo(() => {
         return {
             amountColumnSize: transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             taxAmountColumnSize: transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             submittedColumnSize: transactionItem.shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             approvedColumnSize: transactionItem.shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            postedColumnSize: transactionItem.shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
     }, [
         transactionItem.isAmountColumnWide,
@@ -111,6 +112,7 @@ function TransactionListItem<TItem extends ListItem>({
         transactionItem.shouldShowYear,
         transactionItem.shouldShowYearSubmitted,
         transactionItem.shouldShowYearApproved,
+        transactionItem.shouldShowYearPosted,
     ]);
 
     const transactionViolations = useMemo(() => {
@@ -193,6 +195,7 @@ function TransactionListItem<TItem extends ListItem>({
                     dateColumnSize={dateColumnSize}
                     submittedColumnSize={submittedColumnSize}
                     approvedColumnSize={approvedColumnSize}
+                    postedColumnSize={postedColumnSize}
                     amountColumnSize={amountColumnSize}
                     taxAmountColumnSize={taxAmountColumnSize}
                     shouldShowCheckbox={!!canSelectMultiple}
@@ -205,7 +208,5 @@ function TransactionListItem<TItem extends ListItem>({
         </OfflineWithFeedback>
     );
 }
-
-TransactionListItem.displayName = 'TransactionListItem';
 
 export default TransactionListItem;

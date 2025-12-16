@@ -1083,6 +1083,4 @@ function MoneyRequestView({
     );
 }
 
-MoneyRequestView.displayName = 'MoneyRequestView';
-
 export default MoneyRequestView;
