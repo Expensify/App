@@ -21,7 +21,7 @@ function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfL
             accessibilityLabel={accessibilityLabel}
             style={textStyles}
             numberOfLines={numberOfLines}
-            testID={`${DisplayNames.displayName}${testID !== undefined ? `-${testID}` : ''}`}
+            testID={`DisplayNames${testID !== undefined ? `-${testID}` : ''}`}
             fsClass={forwardedFSClass}
         >
             {titleContainsTextAndCustomEmoji ? (

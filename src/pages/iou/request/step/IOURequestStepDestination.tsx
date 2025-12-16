@@ -148,7 +148,7 @@ function IOURequestStepDestination({
         <ScreenWrapper
             includePaddingTop={false}
             keyboardVerticalOffset={keyboardVerticalOffset}
-            testID={`${IOURequestStepDestination.displayName}-container`}
+            testID="IOURequestStepDestination-container"
             shouldShowOfflineIndicator={false}
         >
             <StepScreenWrapper
