@@ -615,6 +615,10 @@ function IOURequestStepScan({
             return;
         }
 
+        if (!isMultiScanEnabled) {
+            removeDraftTransactions(true);
+        }
+
         for (const [index, file] of files.entries()) {
             const transaction =
                 initialTransaction &&

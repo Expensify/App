@@ -631,6 +631,10 @@ function IOURequestStepScan({
             return;
         }
 
+        if (!isMultiScanEnabled) {
+            removeDraftTransactions(true);
+        }
+
         for (const [index, file] of files.entries()) {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
