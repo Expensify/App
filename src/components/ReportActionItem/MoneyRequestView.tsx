@@ -436,7 +436,7 @@ function MoneyRequestView({
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         }
     } else {
-        if (!isDistanceRequest && !isPerDiemRequest) {
+        if (!isDistanceRequest && !isPerDiemRequest && !isTimeRequest) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
         if (isCancelled) {
