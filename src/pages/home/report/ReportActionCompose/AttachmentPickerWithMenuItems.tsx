@@ -138,7 +138,7 @@ function AttachmentPickerWithMenuItems({
     raiseIsScrollLikelyLayoutTriggered,
     shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Collapse', 'Document', 'Expand', 'Location', 'Paperclip', 'Task'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Collapse', 'Document', 'Expand', 'Location', 'Paperclip', 'Task']);
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
