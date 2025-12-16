@@ -52,7 +52,7 @@ const columnConfig: ColumnConfig[] = [
         canBeMissing: true,
     },
     {
-        columnName: CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
         translationKey: undefined, // comments have no title displayed
         isColumnSortable: false,
     },
