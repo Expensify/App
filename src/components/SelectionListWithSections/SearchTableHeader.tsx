@@ -348,7 +348,7 @@ function SearchTableHeader({
             // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl4]}
             onSortPress={(columnName, order) => {
-                if (columnName === CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) {
+                if (columnName === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
                     return;
                 }
                 onSortPress(columnName, order);

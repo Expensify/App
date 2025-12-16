@@ -12,6 +12,7 @@ import {
     getPolicyNameByID,
     getRateDisplayValue,
     getSubmitToAccountID,
+    getTagApproverRule,
     getTagList,
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
@@ -1564,6 +1565,76 @@ describe('PolicyUtils', () => {
             ];
             const result = hasPolicyWithXeroConnection(adminPolicies);
             expect(result).toBe(true);
+        });
+    });
+
+    describe('getTagApproverRule', () => {
+        it('should return undefined when no approval rules are present', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                rules: {
+                    approvalRules: [],
+                },
+            };
+            const result = getTagApproverRule(policy, '');
+            expect(result).toBeUndefined();
+        });
+    });
+
+    it('should return undefined when no tag approver rule is present', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            rules: {
+                approvalRules: [
+                    {
+                        id: 'rule-1',
+                        applyWhen: [
+                            {
+                                field: CONST.POLICY.FIELDS.TAG,
+                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                value: 'Fake tag',
+                            },
+                        ],
+                        approver: 'lol@hhh.com',
+                    },
+                ],
+            },
+        };
+        const result = getTagApproverRule(policy, 'NonExistentTag');
+        expect(result).toBeUndefined();
+    });
+
+    it('should return the tag approver rule when present', () => {
+        const tagName = 'ImportantTag';
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            rules: {
+                approvalRules: [
+                    {
+                        id: 'rule-1',
+                        applyWhen: [
+                            {
+                                field: CONST.POLICY.FIELDS.TAG,
+                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                value: tagName,
+                            },
+                        ],
+                        approver: 'approver@example.com',
+                    },
+                ],
+            },
+        };
+        const result = getTagApproverRule(policy, tagName);
+        expect(result).toEqual({
+            id: 'rule-1',
+            applyWhen: [
+                {
+                    field: CONST.POLICY.FIELDS.TAG,
+                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                    value: tagName,
+                },
+            ],
+            approver: 'approver@example.com',
         });
     });
 });
