@@ -1,6 +1,5 @@
 import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
 import {Str} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -96,7 +95,7 @@ function ReportFooter({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetail = useCurrentUserPersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
@@ -267,12 +266,16 @@ ReportFooter.displayName = 'ReportFooter';
 export default memo(
     ReportFooter,
     (prevProps, nextProps) =>
-        deepEqual(prevProps.report, nextProps.report) &&
+        // Report comes from useOnyx - reference is stable
+        prevProps.report === nextProps.report &&
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
-        deepEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
-        deepEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
-        deepEqual(prevProps.policy?.role, nextProps.policy?.role) &&
-        deepEqual(prevProps.reportTransactions, nextProps.reportTransactions),
+        // reportMetadata comes from useOnyx - reference is stable
+        prevProps.reportMetadata === nextProps.reportMetadata &&
+        // policy comes from useOnyx - comparing nested properties which may be stable
+        prevProps.policy?.employeeList === nextProps.policy?.employeeList &&
+        prevProps.policy?.role === nextProps.policy?.role &&
+        // reportTransactions comes from useOnyx - reference is stable
+        prevProps.reportTransactions === nextProps.reportTransactions,
 );

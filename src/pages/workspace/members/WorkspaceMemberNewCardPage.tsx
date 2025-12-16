@@ -65,7 +65,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const lazyIllustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage'] as const);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const [cardFeeds, , defaultFeed] = useCardFeeds(policyID);

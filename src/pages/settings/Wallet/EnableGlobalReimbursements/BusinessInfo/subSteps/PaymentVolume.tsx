@@ -29,7 +29,7 @@ function PaymentVolume({onNext, onMove, isEditing, currency}: PaymentVolumeProps
                 inputID: ANNUAL_VOLUME,
                 defaultValue: enableGlobalReimbursementsDraft?.[ANNUAL_VOLUME] ?? '',
                 options: annualVolumeRangeListOptions,
-                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', {currencyCode: currency}),
+                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', currency),
                 modalHeaderTitle: translate('businessInfoStep.selectAnnualPaymentVolume'),
                 searchInputTitle: translate('businessInfoStep.findAnnualPaymentVolume'),
             },

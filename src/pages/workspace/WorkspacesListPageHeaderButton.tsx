@@ -18,7 +18,7 @@ type WorkspacesListPageHeaderButtonProps = {
 };
 
 function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldShowNewDomainButton}: WorkspacesListPageHeaderButtonProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Globe', 'Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Globe', 'Plus']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

@@ -34,7 +34,7 @@ const is2FARequiredBecauseOfXeroSelector = (email?: string) => {
 };
 
 function RequireTwoFactorAuthenticationPage() {
-    const illustrations = useMemoizedLazyIllustrations(['Encryption'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
