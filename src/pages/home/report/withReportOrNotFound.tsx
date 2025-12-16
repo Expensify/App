@@ -128,6 +128,8 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             );
         }
 
+        WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
+
         return WithReportOrNotFound;
     };
 }

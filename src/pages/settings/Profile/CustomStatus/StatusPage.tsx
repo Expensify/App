@@ -5,7 +5,6 @@ import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButton
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
-import HeaderPageLayout from '@components/HeaderPageLayout';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';

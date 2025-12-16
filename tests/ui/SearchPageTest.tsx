@@ -17,7 +17,6 @@ import type {AuthScreensParamList, SearchFullscreenNavigatorParamList} from '@li
 // eslint-disable-next-line no-restricted-imports, no-restricted-syntax
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import SearchPage from '@pages/Search/SearchPage';
-import SearchPageNarrow from '@pages/Search/SearchPageNarrow';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';

@@ -100,6 +100,8 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         );
     }
 
+    WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
+
     return WithReportOrNotFound;
 }
 
