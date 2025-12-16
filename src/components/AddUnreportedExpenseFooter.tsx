@@ -29,25 +29,13 @@ type AddUnreportedExpenseFooterProps = {
     policy: OnyxEntry<Policy>;
     /** The policy categories */
     policyCategories: OnyxEntry<PolicyCategories>;
-    /** Callback to clear error message */
-    onClearError?: () => void;
     /** Error message displayed in this component */
     errorMessage: string;
     /** Function for setting new error message */
     setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
 };
 
-function AddUnreportedExpenseFooter({
-    selectedIds,
-    report,
-    reportToConfirm,
-    reportNextStep,
-    policy,
-    policyCategories,
-    onClearError,
-    errorMessage,
-    setErrorMessage,
-}: AddUnreportedExpenseFooterProps) {
+function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage}: AddUnreportedExpenseFooterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
@@ -91,7 +79,6 @@ function AddUnreportedExpenseFooter({
             }
         });
         setErrorMessage('');
-        onClearError?.();
     };
     return (
         <>

@@ -151,10 +151,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         }));
     }, [filteredTransactions, selectedIds]);
 
-    const handleClearError = useCallback(() => {
-        setErrorMessage('');
-    }, []);
-
     const headerMessage = useMemo(() => {
         if (debouncedSearchValue.trim() && unreportedExpenses?.length === 0) {
             return translate('common.noResultsFound');
@@ -289,7 +285,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         reportNextStep={reportNextStep}
                         policy={policy}
                         policyCategories={policyCategories}
-                        onClearError={handleClearError}
                         errorMessage={errorMessage}
                         setErrorMessage={setErrorMessage}
                     />
