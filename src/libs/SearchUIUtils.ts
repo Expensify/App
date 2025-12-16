@@ -59,6 +59,7 @@ import type {
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport, startMoneyRequest} from './actions/IOU';
 import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from './actions/isOpenConfirmNavigateExpensifyClassicModal';
@@ -2050,21 +2051,65 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
-function getSearchColumnTranslationKey(columnId: ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS>): TranslationPaths {
+function getCustomColumns(type: SearchDataTypes): SearchCustomColumnIds[] {
+    // eslint-disable-next-line default-case
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE);
+        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT);
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.INVOICE);
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.TASK);
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.TRIP);
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.CHAT);
+    }
+}
+
+function getCustomColumnDefault(type: SearchDataTypes): SearchCustomColumnIds[] {
+    // eslint-disable-next-line default-case
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            return CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE;
+        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            return CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT;
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return CONST.SEARCH.DEFAULT_COLUMNS.INVOICE;
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return CONST.SEARCH.DEFAULT_COLUMNS.TASK;
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return CONST.SEARCH.DEFAULT_COLUMNS.TRIP;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return CONST.SEARCH.DEFAULT_COLUMNS.CHAT;
+    }
+}
+
+function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): TranslationPaths {
     // eslint-disable-next-line default-case
     switch (columnId) {
-        case CONST.SEARCH.CUSTOM_COLUMNS.DATE:
+        case CONST.SEARCH.TABLE_COLUMNS.DATE:
             return 'common.date';
-        case CONST.SEARCH.CUSTOM_COLUMNS.STATUS:
-            return 'common.status';
-        case CONST.SEARCH.CUSTOM_COLUMNS.TITLE:
-            return 'common.title';
-        case CONST.SEARCH.CUSTOM_COLUMNS.FROM:
+        case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            return 'common.merchant';
+        case CONST.SEARCH.TABLE_COLUMNS.FROM:
             return 'common.from';
-        case CONST.SEARCH.CUSTOM_COLUMNS.TO:
+        case CONST.SEARCH.TABLE_COLUMNS.TO:
             return 'common.to';
-        case CONST.SEARCH.CUSTOM_COLUMNS.ACTION:
+        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+            return 'common.category';
+        case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
+            return 'common.receipt';
+        case CONST.SEARCH.TABLE_COLUMNS.TAG:
+            return 'common.tag';
+        case CONST.SEARCH.TABLE_COLUMNS.ACTION:
             return 'common.action';
+        case CONST.SEARCH.TABLE_COLUMNS.TITLE:
+            return 'common.title';
+        case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+            return 'common.status';
     }
 }
 
@@ -2572,6 +2617,18 @@ function getColumnsToShow(
         }
     };
 
+    // If the user has set custom columns for the search, we need to respect their preference, and only show
+    // them what they want to see
+    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
+        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
+
+        for (const column of Object.keys(columns) as SearchCustomColumnIds[]) {
+            columns[column] = visibleColumns.includes(column) || requiredColumns.has(column);
+        }
+
+        return columns;
+    }
+
     if (Array.isArray(data)) {
         for (const item of data) {
             updateColumns(item);
@@ -2766,5 +2823,7 @@ export {
     getTransactionFromTransactionListItem,
     getSearchColumnTranslationKey,
     getTableMinWidth,
+    getCustomColumns,
+    getCustomColumnDefault,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
