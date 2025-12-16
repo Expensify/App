@@ -146,7 +146,7 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
-        translationKey: 'common.reportName',
+        translationKey: 'common.title',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
@@ -220,7 +220,7 @@ function SearchTableHeader({
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
     // Only load Profile icon when it's needed for EXPENSE_REPORT type
-    const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? (['Profile'] as const) : ([] as const));
+    const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? ['Profile'] : []);
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
