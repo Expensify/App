@@ -10,6 +10,7 @@ import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
+import TextCell from '@components/SelectionListWithSections/Search/TextCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -211,10 +212,12 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report]);
 
-    const transactionAmount = getAmount(transactionItem);
-    const convertedAmount = transactionItem.convertedAmount ?? transactionAmount;
-    const rate = convertedAmount / transactionAmount;
-    const exchangeRate = `${rate} ${transactionItem.currency}`;
+    const fromAmount = getAmount(transactionItem);
+    const toAmount = transactionItem.convertedAmount ?? fromAmount;
+    const fromCurrency = transactionItem.modifiedCurrency ?? transactionItem.currency;
+    const toCurrency = transactionItem.groupCurrency ?? fromCurrency;
+    const exchangeRate = fromAmount ? Math.abs(toAmount / fromAmount) : 0;
+    const exchangeRateMessage = `${exchangeRate} ${fromCurrency}/${toCurrency}`;
 
     const columnComponent = useMemo(
         () => ({
@@ -393,7 +396,7 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
-                    <TextCell text={exchangeRate} />
+                    <TextCell text={exchangeRateMessage} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: (
@@ -430,27 +433,28 @@ function TransactionItemRow({
         }),
         [
             StyleUtils,
-            createdAt,
-            report?.submitted,
-            report?.approved,
-            isActionLoading,
-            isReportItemChild,
-            isDateColumnWide,
-            isSubmittedColumnWide,
-            isApprovedColumnWide,
-            isAmountColumnWide,
-            isTaxAmountColumnWide,
-            isInSingleTransactionReport,
-            isSelected,
-            merchant,
-            description,
-            onButtonPress,
+            transactionItem,
             shouldShowTooltip,
             shouldUseNarrowLayout,
-            transactionItem,
+            isSelected,
+            isDateColumnWide,
+            areAllOptionalColumnsHidden,
+            createdAt,
+            isSubmittedColumnWide,
+            report?.submitted,
+            report?.approved,
             report?.policyID,
             report?.total,
-            areAllOptionalColumnsHidden,
+            isApprovedColumnWide,
+            isReportItemChild,
+            onButtonPress,
+            isActionLoading,
+            merchant,
+            description,
+            isInSingleTransactionReport,
+            exchangeRateMessage,
+            isAmountColumnWide,
+            isTaxAmountColumnWide,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {

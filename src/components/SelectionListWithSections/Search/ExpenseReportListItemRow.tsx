@@ -18,7 +18,6 @@ import type {Policy} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import StatusCell from './StatusCell';
-import TextCell from './TextCell';
 import TitleCell from './TitleCell';
 import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
