@@ -2502,7 +2502,7 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 /**
- * @deprecated Use isTrackExpenseReportNew function instead
+ * @warning Use isTrackExpenseReportNew function instead
  *
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
