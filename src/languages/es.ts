@@ -248,6 +248,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Tarjeta',
         whyDoWeAskForThis: '¿Por qué pedimos esto?',
         required: 'Obligatorio',
+        automatic: 'Automático',
         showing: 'Mostrando',
         of: 'de',
         default: 'Predeterminado',
@@ -862,6 +863,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Problemas encontrados',
         }),
         fieldPending: 'Pendiente...',
+        automaticallyEnterExpenseDetails: 'Concierge introducirá automáticamente los detalles del gasto por ti, o puedes añadirlos manualmente.',
         receiptScanning: () => ({
             one: 'Escaneando recibo...',
             other: 'Escaneando recibos...',

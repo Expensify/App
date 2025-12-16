@@ -573,6 +573,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: '卡片',
         whyDoWeAskForThis: '我们为什么要请求这些信息？',
         required: '必填',
+        automatic: '自动',
         showing: '显示',
         of: '的',
         default: '默认',
@@ -821,7 +822,7 @@ const translations: TranslationDeepObject<typeof en> = {
             请输入在最初请求该代码的设备上显示的代码
         `),
         doNotShare: dedent(`
-            不要与任何人分享你的验证码。  
+            不要与任何人分享你的验证码。
             Expensify 永远不会向你索要它！
         `),
         or: '，或',
@@ -830,7 +831,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: '返回原始设备并请求新验证码',
         successfulNewCodeRequest: '已请求验证码。请检查您的设备。',
         tfaRequiredTitle: dedent(`
-            双重身份验证  
+            双重身份验证
             必填
         `),
         tfaRequiredDescription: dedent(`
@@ -1200,6 +1201,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: '收据正在等待与银行卡交易匹配。标记为现金以取消。',
         markAsCash: '标记为现金',
         routePending: '路由处理中…',
+        automaticallyEnterExpenseDetails: 'Concierge 将自动为您输入费用详情，或者您可以手动添加。',
         receiptScanning: () => ({
             one: '正在扫描收据…',
             other: '正在扫描收据…',

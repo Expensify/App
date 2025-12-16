@@ -203,6 +203,9 @@ type MenuItemBaseProps = ForwardedFSClassProps & {
     /** Label to be displayed on the right */
     rightLabel?: string;
 
+    /** Icon to be displayed next to the right label */
+    rightLabelIcon?: IconAsset;
+
     /** Text to display for the item */
     title?: string;
 
@@ -462,6 +465,7 @@ function MenuItem({
     titleContainerStyle,
     subtitle,
     shouldShowBasicTitle,
+    rightLabelIcon,
     label,
     shouldTruncateTitle = false,
     characterLimit = 200,
@@ -955,7 +959,15 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {!title && !!rightLabel && !errorText && (
-                                                    <View style={styles.justifyContentCenter}>
+                                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap1]}>
+                                                        {!!rightLabelIcon && (
+                                                            <Icon
+                                                                src={rightLabelIcon}
+                                                                fill={theme.icon}
+                                                                width={variables.iconSizeSmall}
+                                                                height={variables.iconSizeSmall}
+                                                            />
+                                                        )}
                                                         <Text style={styles.rightLabelMenuItem}>{rightLabel}</Text>
                                                     </View>
                                                 )}

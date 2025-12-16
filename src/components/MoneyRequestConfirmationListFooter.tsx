@@ -2,7 +2,7 @@ import {emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useMemo} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -12,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -33,10 +34,13 @@ import {
     isCreatedMissing,
     isFetchingWaypointsFromServer,
     isManagedCardTransaction,
+    isScanRequest,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+    willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,8 +50,10 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Badge from './Badge';
+import Button from './Button';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
+import Icon from './Icon';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -55,6 +61,7 @@ import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
+import Text from './Text';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -209,6 +216,12 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if the description is required */
     isDescriptionRequired: boolean;
+
+    /** Whether to show more fields */
+    showMoreFields: boolean;
+
+    /** Function to set the show more fields */
+    setShowMoreFields: (showMoreFields: boolean) => void;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -263,11 +276,14 @@ function MoneyRequestConfirmationListFooter({
     onToggleReimbursable,
     isReceiptEditable = false,
     isDescriptionRequired = false,
+    showMoreFields,
+    setShowMoreFields,
 }: MoneyRequestConfirmationListFooterProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid', 'Sparkles', 'DownArrow'] as const);
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
+    const theme = useTheme();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -282,6 +298,7 @@ function MoneyRequestConfirmationListFooter({
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
     const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
+    const isScan = isScanRequest(transaction);
 
     const allOutstandingReports = useMemo(() => {
         const outstandingReports = Object.values(outstandingReportsByPolicyID ?? {}).flatMap((outstandingReportsPolicy) => Object.values(outstandingReportsPolicy ?? {}));
@@ -437,6 +454,26 @@ function MoneyRequestConfirmationListFooter({
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID, exactlyMatch: true}), [reportID]);
 
+    const getRightLabelIcon = useCallback(
+        (fieldType: 'amount' | 'merchant' | 'date' | 'category') => {
+            return willFieldBeAutomaticallyFilled(transaction, fieldType) ? icons.Sparkles : undefined;
+        },
+        [transaction],
+    );
+
+    const getRightLabel = useCallback(
+        (fieldType: 'amount' | 'merchant' | 'date' | 'category', isRequiredField = false) => {
+            if (willFieldBeAutomaticallyFilled(transaction, fieldType)) {
+                return translate('common.automatic');
+            }
+            if (isRequiredField) {
+                return translate('common.required');
+            }
+            return '';
+        },
+        [transaction, translate],
+    );
+
     const fields = [
         {
             item: (
@@ -463,6 +500,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowSmartScanFields && shouldShowAmountField,
+            isRequired: true,
         },
         {
             item: (
@@ -496,6 +534,7 @@ function MoneyRequestConfirmationListFooter({
                 </View>
             ),
             shouldShow: true,
+            isRequired: true,
         },
         {
             item: (
@@ -523,6 +562,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isDistanceRequest,
+            isRequired: true,
         },
         {
             item: (
@@ -560,6 +600,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isDistanceRequest,
+            isRequired: false,
         },
         {
             item: (
@@ -581,11 +622,13 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!isReadOnly}
                     brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
-                    rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
+                    rightLabel={getRightLabel('merchant', !!isMerchantRequired && !shouldDisplayMerchantError)}
+                    rightLabelIcon={getRightLabelIcon('merchant')}
                     numberOfLinesTitle={2}
                 />
             ),
             shouldShow: shouldShowMerchant,
+            isRequired: false,
         },
         {
             item: (
@@ -625,12 +668,14 @@ function MoneyRequestConfirmationListFooter({
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
+                    rightLabel={getRightLabel('category', isCategoryRequired)}
+                    rightLabelIcon={getRightLabelIcon('category')}
                     brickRoadIndicator={shouldDisplayCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayCategoryError ? translate(formError) : ''}
                 />
             ),
             shouldShow: shouldShowCategories,
+            isRequired: false,
         },
         {
             item: (
@@ -656,6 +701,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowDate,
+            isRequired: false,
         },
         ...policyTagLists.map(({name}, index) => {
             const tagVisibilityItem = tagVisibility.at(index);
@@ -689,6 +735,7 @@ function MoneyRequestConfirmationListFooter({
                     />
                 ),
                 shouldShow,
+                isRequired: false,
             };
         }),
         {
@@ -714,6 +761,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowTax,
+            isRequired: false,
         },
         {
             item: (
@@ -736,6 +784,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowTax,
+            isRequired: false,
         },
         {
             item: (
@@ -760,6 +809,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowAttendees,
+            isRequired: false,
         },
         {
             item: (
@@ -779,6 +829,7 @@ function MoneyRequestConfirmationListFooter({
             ),
             shouldShow: shouldShowReimbursable,
             isSupplementary: true,
+            isRequired: false,
         },
         {
             item: (
@@ -797,6 +848,7 @@ function MoneyRequestConfirmationListFooter({
                 </View>
             ),
             shouldShow: shouldShowBillable,
+            isRequired: false,
         },
         {
             item: (
@@ -818,6 +870,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isPolicyExpenseChat,
+            isRequired: false,
         },
     ];
 
@@ -880,9 +933,11 @@ function MoneyRequestConfirmationListFooter({
         return badges;
     }, [firstDay, lastDay, translate, tripDays, icons]);
 
+    const shouldRestrictHeight = useMemo(() => !showMoreFields && isScan, [isScan, showMoreFields]);
+
     const receiptThumbnailContent = useMemo(
         () => (
-            <View style={[styles.moneyRequestImage, styles.expenseViewImageSmall]}>
+            <View style={[styles.moneyRequestImage, shouldRestrictHeight ? styles.flex1 : styles.expenseViewImageSmall]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -938,6 +993,7 @@ function MoneyRequestConfirmationListFooter({
                             fileExtension={fileExtension}
                             shouldUseThumbnailImage
                             shouldUseInitialObjectPosition={isDistanceRequest}
+                            shouldUseFullHeight
                         />
                     </PressableWithoutFocus>
                 )}
@@ -945,10 +1001,12 @@ function MoneyRequestConfirmationListFooter({
         ),
         [
             styles.moneyRequestImage,
-            styles.expenseViewImageSmall,
+            styles.receiptPreviewAspectRatio,
             styles.cursorDefault,
             styles.h100,
             styles.flex1,
+            styles.expenseViewImageSmall,
+            shouldRestrictHeight,
             isLocalFile,
             receiptFilename,
             translate,
@@ -962,10 +1020,10 @@ function MoneyRequestConfirmationListFooter({
             fileExtension,
             isDistanceRequest,
             transactionID,
+            isReceiptEditable,
+            reportID,
             action,
             iouType,
-            reportID,
-            isReceiptEditable,
         ],
     );
 
@@ -1044,7 +1102,7 @@ function MoneyRequestConfirmationListFooter({
                 </>
             )}
             {(!shouldShowMap || isManualDistanceRequest) && (
-                <View style={!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3}>
+                <View style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, styles.flex1]}>
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent
                         : showReceiptEmptyState && (
@@ -1056,12 +1114,44 @@ function MoneyRequestConfirmationListFooter({
 
                                       Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                                   }}
-                                  style={styles.expenseViewImageSmall}
+                                  style={[styles.expenseViewImageSmall, !shouldRestrictHeight && styles.receiptPreviewAspectRatio]}
                               />
                           )}
                 </View>
             )}
-            <View style={[styles.mb5]}>{fields.filter((field) => field.shouldShow).map((field) => field.item)}</View>
+
+            <View style={[styles.mb5, styles.mt2]}>
+                {isScan && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.mr8]}>
+                        <Icon
+                            src={icons.Sparkles}
+                            fill={theme.icon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                        <Text style={[styles.rightLabelMenuItem]}>{translate('iou.automaticallyEnterExpenseDetails')}</Text>
+                    </View>
+                )}
+
+                {fields.filter((field) => field.shouldShow && (field.isRequired ?? false)).map((field) => field.item)}
+
+                {!shouldRestrictHeight && fields.filter((field) => field.shouldShow && !(field.isRequired ?? false)).map((field) => <View key={field.item.key}>{field.item}</View>)}
+
+                {shouldRestrictHeight && fields.some((field) => field.shouldShow && !(field.isRequired ?? false)) && (
+                    <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
+                        <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
+                        <Button
+                            text={translate('common.showMore')}
+                            onPress={() => setShowMoreFields(true)}
+                            small
+                            shouldShowRightIcon
+                            iconRight={icons.DownArrow}
+                            innerStyles={[styles.hoveredComponentBG, styles.ph4, styles.pv2]}
+                            textStyles={[styles.buttonSmallText]}
+                        />
+                    </View>
+                )}
+            </View>
         </>
     );
 }
@@ -1109,5 +1199,6 @@ export default memo(
         prevProps.shouldShowTax === nextProps.shouldShowTax &&
         deepEqual(prevProps.transaction, nextProps.transaction) &&
         prevProps.transactionID === nextProps.transactionID &&
-        prevProps.unit === nextProps.unit,
+        prevProps.unit === nextProps.unit &&
+        prevProps.showMoreFields === nextProps.showMoreFields,
 );
