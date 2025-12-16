@@ -1962,6 +1962,14 @@ function getSortedTransactionData(data: TransactionListItemType[], localeCompare
 
     const sortingProperty = transactionColumnNamesToSortingProperty[sortBy];
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TITLE) {
+        return data.sort((a, b) => {
+            const aValue = a.report?.reportName ?? '';
+            const bValue = b.report?.reportName ?? '';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     if (!sortingProperty) {
         return data;
     }
