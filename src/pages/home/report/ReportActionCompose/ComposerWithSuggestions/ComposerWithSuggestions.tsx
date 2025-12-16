@@ -905,8 +905,6 @@ function ComposerWithSuggestions({
     );
 }
 
-ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
-
 export default memo(ComposerWithSuggestions);
 
 export type {ComposerWithSuggestionsProps, ComposerRef};

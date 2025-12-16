@@ -103,6 +103,4 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
     );
 }
 
-MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
-
 export default MiniQuickEmojiReactions;

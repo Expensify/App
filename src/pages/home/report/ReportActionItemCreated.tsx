@@ -83,6 +83,4 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     );
 }
 
-ReportActionItemCreated.displayName = 'ReportActionItemCreated';
-
 export default memo(ReportActionItemCreated);

@@ -53,6 +53,4 @@ function OfflineIndicator({style, containerStyles: containerStylesProp, addBotto
     );
 }
 
-OfflineIndicator.displayName = 'OfflineIndicator';
-
 export default OfflineIndicator;

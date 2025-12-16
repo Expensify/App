@@ -209,6 +209,4 @@ function TripRoomPreview({
     );
 }
 
-TripRoomPreview.displayName = 'TripRoomPreview';
-
 export default TripRoomPreview;

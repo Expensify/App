@@ -367,6 +367,5 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         />
     );
 }
-TransactionReceiptModalContent.displayName = 'TransactionReceiptModalContent';
 
 export default TransactionReceiptModalContent;
