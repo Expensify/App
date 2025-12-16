@@ -10,8 +10,8 @@ import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
-import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
+import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -23,6 +23,8 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import {isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
+    getAmount,
+    getCurrency,
     getDescription,
     getMerchant,
     getCreated as getTransactionCreated,
@@ -31,8 +33,6 @@ import {
     isMerchantMissing,
     isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
-    getAmount,
-    getCurrency,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
