@@ -68,10 +68,6 @@ jest.mock('@rnmapbox/maps', () => {
     };
 });
 
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
-
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
@@ -2788,6 +2784,28 @@ describe('OptionsListUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
+        });
+        it('should return last visible message text when last action is hidden (e.g. whisper)', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                lastMessageText: 'joined the chat',
+            };
+            const whisperAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [whisperAction.reportActionID]: whisperAction,
+            });
+            await waitForBatchedUpdates();
+
+            const expectedVisibleText = '';
+            const result = getLastMessageTextForReport({
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(result).toBe(expectedVisibleText);
         });
     });
 

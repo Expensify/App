@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,8 +39,9 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenAndHourglass']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare']);
 
-    const iconToDisplay = getIntegrationIcon(connectionName);
+    const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
     const canBeExported = canBeExportedUtil(report);
     const isExported = isExportedUtil(reportActions);
 
