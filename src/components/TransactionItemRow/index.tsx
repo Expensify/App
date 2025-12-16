@@ -31,6 +31,8 @@ import {
     isMerchantMissing,
     isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
+    getAmount,
+    getCurrency,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -404,8 +406,8 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
                 >
                     <AmountCell
-                        total={transactionItem.originalAmount}
-                        currency={transactionItem.originalCurrency}
+                        total={transactionItem.originalAmount ?? getAmount(transactionItem)}
+                        currency={transactionItem.originalCurrency ?? getCurrency(transactionItem)}
                     />
                 </View>
             ),
