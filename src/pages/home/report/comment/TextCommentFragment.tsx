@@ -104,7 +104,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
 
         const lines = htmlContent.split(/<br\s*\/?>/i);
         function isSingleEmojiLine(line: string) {
-            const trimmed = line.replace(/<br\s*\/?>/gi, '').trim();
+            const trimmed = line.replaceAll(/<br\s*\/?>/gi, '').trim();
             return /^<emoji>.*<\/emoji>$/.test(trimmed);
         }
         const processedLines = lines.map((line) => {
