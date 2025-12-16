@@ -39,7 +39,7 @@ function MigratedUserWelcomeModal() {
     const [isModalDisabled, setIsModalDisabled] = useState(true);
     const route = useRoute<PlatformStackRouteProp<MigratedUserModalNavigatorParamList, typeof SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT>>();
     const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
-    const illustrations = useMemoizedLazyIllustrations(['ExpensifyMobileApp', 'ChatBubbles'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ChatBubbles'] as const);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
     const ExpensifyFeatures = useMemo<FeatureListItem[]>(
