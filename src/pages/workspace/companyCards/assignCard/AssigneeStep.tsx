@@ -228,13 +228,11 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         <InteractiveStepWrapper
             wrapperID={AssigneeStep.displayName}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={0}
-            stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
             enableEdgeToEdgeBottomSafeAreaPadding
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.chooseTheCardholder')}</Text>
             <SelectionList
                 data={assignees}
                 onSelectRow={submit}
