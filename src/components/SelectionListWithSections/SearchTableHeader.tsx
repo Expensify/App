@@ -78,7 +78,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
-        translationKey: 'search.filters.originalAmount',
+        translationKey: 'common.originalAmount',
         canBeMissing: true,
     },
     {
