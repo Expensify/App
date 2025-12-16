@@ -2,6 +2,7 @@
  * @jest-environment node
  */
 import {execSync} from 'child_process';
+import fs from 'fs';
 import dedent from '@libs/StringUtils/dedent';
 import Git from '@scripts/utils/Git';
 
@@ -9,9 +10,30 @@ import Git from '@scripts/utils/Git';
 jest.mock('child_process');
 const mockExecSync = execSync as jest.MockedFunction<typeof execSync>;
 
+// Test constants for untracked files tests
+const MOCK_COMPONENT_CONTENT = 'const Component = () => null;\n';
+const MOCK_MULTI_LINE_COMPONENT_CONTENT = 'const Component = () => {\n  return <div>Hello</div>;\n};\n\nexport default Component;\n';
+const UNTRACKED_FILE_PATH = 'src/untracked.tsx';
+
+/**
+ * Helper to create a mock implementation for execSync that handles both git diff and git ls-files commands.
+ */
+function createMockExecSync(diffOutput: string, untrackedFilesOutput: string) {
+    return (command: string) => {
+        if (command.includes('git diff')) {
+            return diffOutput;
+        }
+        if (command.includes('git ls-files')) {
+            return untrackedFilesOutput;
+        }
+        return '';
+    };
+}
+
 describe('Git', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     describe('isValidRef', () => {
@@ -507,6 +529,636 @@ describe('Git', () => {
             expect(file.modifiedLines.size).toBe(2);
             expect(file.addedLines.size).toBe(1);
             expect(file.removedLines.size).toBe(0);
+        });
+
+        it('handles "No newline at end of file" markers correctly', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/file.ts b/file.ts
+                index 1234567..abcdefg 100644
+                --- a/file.ts
+                +++ b/file.ts
+                @@ -1,1 +1,1 @@
+                -const old = 'value';
+                \\ No newline at end of file
+                +const new = 'value';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.filePath).toBe('file.ts');
+            expect(file.hunks).toHaveLength(1);
+            expect(file.modifiedLines.size).toBe(1);
+            // The "No newline" marker should be ignored, not counted as a line
+            expect(file.hunks.at(0)?.lines.length).toBe(2); // One removed, one added
+        });
+    });
+
+    describe('fileDiffType', () => {
+        it('returns "added" for newly added files with single hunk starting at line 0', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/new-file.ts b/new-file.ts
+                new file mode 100644
+                index 0000000..1234567
+                --- /dev/null
+                +++ b/new-file.ts
+                @@ -0,0 +1,3 @@
+                +const hello = 'world';
+                +const foo = 'bar';
+                +const baz = 'qux';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('added');
+        });
+
+        it('returns "added" for newly added files with single line', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/single-line.ts b/single-line.ts
+                new file mode 100644
+                index 0000000..1234567
+                --- /dev/null
+                +++ b/single-line.ts
+                @@ -0,0 +1,1 @@
+                +export const test = 'value';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('added');
+        });
+
+        it('returns "added" for files with multiple hunks that are completely new', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/multi-hunk.ts b/multi-hunk.ts
+                new file mode 100644
+                index 0000000..1234567
+                --- /dev/null
+                +++ b/multi-hunk.ts
+                @@ -0,0 +1,2 @@
+                +const first = 'value';
+                +const second = 'value';
+                @@ -0,0 +3,2 @@
+                +const third = 'value';
+                +const fourth = 'value';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('added');
+        });
+
+        it('returns "modified" for files with modified lines', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/modified.ts b/modified.ts
+                index 1234567..abcdefg 100644
+                --- a/modified.ts
+                +++ b/modified.ts
+                @@ -1,1 +1,1 @@
+                -const old = 'value';
+                +const new = 'value';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('modified');
+        });
+
+        it('returns "modified" for files with removed lines', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/removed.ts b/removed.ts
+                index 1234567..abcdefg 100644
+                --- a/removed.ts
+                +++ b/removed.ts
+                @@ -2,2 +2,0 @@
+                -const removed1 = 'value1';
+                -const removed2 = 'value2';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('modified');
+        });
+
+        it('returns "modified" for files with both added and modified lines', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/mixed.ts b/mixed.ts
+                index 1234567..abcdefg 100644
+                --- a/mixed.ts
+                +++ b/mixed.ts
+                @@ -1,1 +1,2 @@
+                -const old = 'value';
+                +const new = 'value';
+                +const added = 'new';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('modified');
+        });
+
+        it('returns "modified" for files with both added and removed lines', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/mixed.ts b/mixed.ts
+                index 1234567..abcdefg 100644
+                --- a/mixed.ts
+                +++ b/mixed.ts
+                @@ -1,1 +1,1 @@
+                -const removed = 'value';
+                +const added = 'value';
+                @@ -3,0 +4,1 @@
+                +const newLine = 'new';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('modified');
+        });
+
+        it('returns "modified" for files with added lines but oldStart !== 0', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/inserted.ts b/inserted.ts
+                index 1234567..abcdefg 100644
+                --- a/inserted.ts
+                +++ b/inserted.ts
+                @@ -5,0 +6,2 @@
+                +const inserted1 = 'value1';
+                +const inserted2 = 'value2';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('modified');
+        });
+
+        it('returns "modified" for files with added lines but oldCount !== 0', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/partial.ts b/partial.ts
+                index 1234567..abcdefg 100644
+                --- a/partial.ts
+                +++ b/partial.ts
+                @@ -1,1 +1,2 @@
+                 const existing = 'value';
+                +const added = 'new';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('modified');
+        });
+
+        it('returns "modified" for files with no added lines', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/no-additions.ts b/no-additions.ts
+                index 1234567..abcdefg 100644
+                --- a/no-additions.ts
+                +++ b/no-additions.ts
+                @@ -1,2 +1,0 @@
+                -const removed1 = 'value1';
+                -const removed2 = 'value2';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('modified');
+        });
+
+        it('returns "modified" for files with only modified lines and no additions', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/modified-only.ts b/modified-only.ts
+                index 1234567..abcdefg 100644
+                --- a/modified-only.ts
+                +++ b/modified-only.ts
+                @@ -1,1 +1,1 @@
+                -const old = 'old';
+                +const new = 'new';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('modified');
+        });
+
+        it('returns "modified" for existing files with a single line added at the beginning', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/existing-file.ts b/existing-file.ts
+                index 1234567..abcdefg 100644
+                --- a/existing-file.ts
+                +++ b/existing-file.ts
+                @@ -0,0 +1,1 @@
+                +/* eslint-disable rulesdir/no-deep-equal-in-memo */
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            // Should be "modified" not "added" because the file existed before (--- a/existing-file.ts)
+            expect(file.diffType).toBe('modified');
+        });
+
+        it('returns "removed" for completely removed files', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/removed-file.ts b/removed-file.ts
+                deleted file mode 100644
+                index 1234567..0000000
+                --- a/removed-file.ts
+                +++ /dev/null
+                @@ -1,3 +0,0 @@
+                -const hello = 'world';
+                -const foo = 'bar';
+                -const baz = 'qux';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('removed');
+        });
+
+        it('returns "removed" for single-line files that are deleted', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/single-line-file.ts b/single-line-file.ts
+                deleted file mode 100644
+                index 1234567..0000000
+                --- a/single-line-file.ts
+                +++ /dev/null
+                @@ -1,1 +0,0 @@
+                -export const test = 'value';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('removed');
+            expect(file.filePath).toBe('single-line-file.ts');
+        });
+
+        it('returns "removed" for files with multiple hunks that are deleted', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/multi-hunk-removed.ts b/multi-hunk-removed.ts
+                deleted file mode 100644
+                index 1234567..0000000
+                --- a/multi-hunk-removed.ts
+                +++ /dev/null
+                @@ -1,2 +0,0 @@
+                -const first = 'value';
+                -const second = 'value';
+                @@ -5,3 +0,0 @@
+                -const third = 'value';
+                -const fourth = 'value';
+                -const fifth = 'value';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('removed');
+            expect(file.filePath).toBe('multi-hunk-removed.ts');
+            expect(file.hunks.length).toBeGreaterThan(1);
+        });
+
+        it('uses the old file path for removed files (not /dev/null)', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/src/utils/helper.ts b/src/utils/helper.ts
+                deleted file mode 100644
+                index 1234567..0000000
+                --- a/src/utils/helper.ts
+                +++ /dev/null
+                @@ -1,2 +0,0 @@
+                -export const helper = () => {};
+                -export const another = () => {};
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('removed');
+            expect(file.filePath).toBe('src/utils/helper.ts');
+            expect(file.filePath).not.toBe('/dev/null');
+        });
+
+        it('correctly populates removedLines for deleted files', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/deleted.ts b/deleted.ts
+                deleted file mode 100644
+                index 1234567..0000000
+                --- a/deleted.ts
+                +++ /dev/null
+                @@ -1,5 +0,0 @@
+                -const line1 = 'value1';
+                -const line2 = 'value2';
+                -const line3 = 'value3';
+                -const line4 = 'value4';
+                -const line5 = 'value5';
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.diffType).toBe('removed');
+            expect(file.removedLines.size).toBe(5);
+            expect(file.addedLines.size).toBe(0);
+            expect(file.modifiedLines.size).toBe(0);
+        });
+    });
+
+    describe('getUntrackedFiles', () => {
+        it('returns array of untracked file paths', () => {
+            mockExecSync.mockReturnValue('src/new-file.ts\nsrc/another-file.tsx\n');
+
+            const result = Git.getUntrackedFiles();
+
+            expect(result).toEqual(['src/new-file.ts', 'src/another-file.tsx']);
+            expect(mockExecSync).toHaveBeenCalledWith('git ls-files --others --exclude-standard', {
+                encoding: 'utf8',
+                cwd: process.cwd(),
+                stdio: 'pipe',
+            });
+        });
+
+        it('filters untracked files by file paths (single and multiple)', () => {
+            mockExecSync.mockReturnValue('src/file1.ts\nsrc/file2.tsx\nsrc/components/Button.tsx\n');
+
+            // Single file path
+            expect(Git.getUntrackedFiles('src/file1.ts')).toEqual(['src/file1.ts']);
+
+            // Multiple file paths
+            expect(Git.getUntrackedFiles(['src/file1.ts', 'src/components/Button.tsx'])).toEqual(['src/file1.ts', 'src/components/Button.tsx']);
+
+            // Directory path
+            expect(Git.getUntrackedFiles('src/components')).toEqual(['src/components/Button.tsx']);
+        });
+
+        it('returns empty array when git command fails or no untracked files exist', () => {
+            mockExecSync.mockReturnValue('');
+            expect(Git.getUntrackedFiles()).toEqual([]);
+
+            mockExecSync.mockImplementation(() => {
+                throw new Error('fatal: not a git repository');
+            });
+            expect(Git.getUntrackedFiles()).toEqual([]);
+        });
+    });
+
+    describe('diff with shouldIncludeUntrackedFiles', () => {
+        let mockExistsSync: jest.SpyInstance;
+        let mockReadFileSync: jest.SpyInstance;
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            mockExistsSync = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+            jest.spyOn(fs, 'statSync').mockReturnValue({isFile: () => true} as fs.Stats);
+            mockReadFileSync = jest.spyOn(fs, 'readFileSync');
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('does not include untracked files by default or when shouldIncludeUntrackedFiles is false', () => {
+            mockExecSync.mockReturnValue('');
+
+            // Default (not provided)
+            Git.diff('main');
+            expect(mockExecSync).toHaveBeenCalledTimes(1);
+
+            jest.clearAllMocks();
+
+            // Explicit false
+            Git.diff('main', undefined, undefined, false);
+            expect(mockExecSync).toHaveBeenCalledTimes(1);
+
+            // Verify git ls-files was not called
+            const calls = mockExecSync.mock.calls.map((call) => call[0]);
+            expect(calls).not.toContain(expect.stringContaining('git ls-files'));
+        });
+
+        it('does not include untracked files when toRef is provided even if shouldIncludeUntrackedFiles is true', () => {
+            mockExecSync.mockReturnValue('');
+
+            Git.diff('main', 'HEAD', undefined, true);
+
+            expect(mockExecSync).toHaveBeenCalledTimes(1);
+            const calls = mockExecSync.mock.calls.map((call) => call[0]);
+            expect(calls).not.toContain(expect.stringContaining('git ls-files'));
+        });
+
+        it('includes untracked files when shouldIncludeUntrackedFiles is true and toRef is undefined', () => {
+            mockExecSync.mockImplementation(createMockExecSync('', `${UNTRACKED_FILE_PATH}\n`));
+            mockReadFileSync.mockReturnValue(MOCK_COMPONENT_CONTENT);
+
+            const result = Git.diff('main', undefined, undefined, true);
+
+            expect(result.hasChanges).toBe(true);
+            expect(result.files).toHaveLength(1);
+
+            const file = result.files.at(0);
+            expect(file?.filePath).toBe(UNTRACKED_FILE_PATH);
+            expect(file?.diffType).toBe('added');
+            expect(file?.hunks).toHaveLength(1);
+            expect(Array.from(file?.addedLines ?? [])).toEqual([1, 2]);
+        });
+
+        it('merges tracked changes with untracked files', () => {
+            const mockDiffOutput = dedent(`
+                diff --git a/src/tracked.ts b/src/tracked.ts
+                index 1234567..abcdefg 100644
+                --- a/src/tracked.ts
+                +++ b/src/tracked.ts
+                @@ -1,1 +1,1 @@
+                -old
+                +new
+            `);
+
+            mockExecSync.mockImplementation(createMockExecSync(mockDiffOutput, `${UNTRACKED_FILE_PATH}\n`));
+            mockReadFileSync.mockReturnValue(MOCK_COMPONENT_CONTENT);
+
+            const result = Git.diff('main', undefined, undefined, true);
+
+            expect(result.hasChanges).toBe(true);
+            expect(result.files).toHaveLength(2);
+
+            const trackedFile = result.files.find((f) => f.filePath === 'src/tracked.ts');
+            const untrackedFile = result.files.find((f) => f.filePath === UNTRACKED_FILE_PATH);
+
+            expect(trackedFile?.diffType).toBe('modified');
+            expect(untrackedFile?.diffType).toBe('added');
+        });
+
+        it('filters untracked files by filePaths parameter', () => {
+            mockExecSync.mockImplementation(createMockExecSync('', 'src/file1.tsx\nsrc/file2.tsx\nsrc/file3.tsx\n'));
+            mockReadFileSync.mockReturnValue(MOCK_COMPONENT_CONTENT);
+
+            const result = Git.diff('main', undefined, ['src/file1.tsx', 'src/file3.tsx'], true);
+
+            expect(result.files).toHaveLength(2);
+            expect(result.files.some((f) => f.filePath === 'src/file1.tsx')).toBe(true);
+            expect(result.files.some((f) => f.filePath === 'src/file3.tsx')).toBe(true);
+            expect(result.files.some((f) => f.filePath === 'src/file2.tsx')).toBe(false);
+        });
+
+        it('handles multi-line untracked files correctly', () => {
+            mockExecSync.mockImplementation(createMockExecSync('', `${UNTRACKED_FILE_PATH}\n`));
+            mockReadFileSync.mockReturnValue(MOCK_MULTI_LINE_COMPONENT_CONTENT);
+
+            const result = Git.diff('main', undefined, undefined, true);
+
+            const file = result.files.at(0);
+            expect(file?.hunks.at(0)?.newCount).toBe(6);
+            expect(file?.hunks.at(0)?.lines).toHaveLength(6);
+            expect(Array.from(file?.addedLines ?? [])).toEqual([1, 2, 3, 4, 5, 6]);
+        });
+
+        it('skips untracked files that do not exist or cannot be read', () => {
+            mockExecSync.mockImplementation(createMockExecSync('', 'src/nonexistent.tsx\n'));
+
+            // File does not exist
+            mockExistsSync.mockReturnValue(false);
+            expect(Git.diff('main', undefined, undefined, true).files).toHaveLength(0);
+
+            // File cannot be read
+            mockExistsSync.mockReturnValue(true);
+            mockReadFileSync.mockImplementation(() => {
+                throw new Error('Permission denied');
+            });
+            expect(Git.diff('main', undefined, undefined, true).files).toHaveLength(0);
+        });
+
+        it('handles git ls-files command failure gracefully', () => {
+            mockExecSync.mockImplementation((command: string) => {
+                if (command.includes('git diff')) {
+                    return '';
+                }
+                if (command.includes('git ls-files')) {
+                    throw new Error('fatal: not a git repository');
+                }
+                return '';
+            });
+
+            const result = Git.diff('main', undefined, undefined, true);
+
+            expect(result.hasChanges).toBe(false);
+            expect(result.files).toHaveLength(0);
         });
     });
 });

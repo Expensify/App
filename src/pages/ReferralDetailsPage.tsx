@@ -26,10 +26,10 @@ import {showContextMenu} from './home/report/ContextMenu/ReportActionContextMenu
 type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 
 function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'QuestionMark']);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['PaymentHands'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PaymentHands']);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const popoverAnchor = useRef(null);
@@ -86,7 +86,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
                 wrapperStyle={styles.mb4}
                 ref={popoverAnchor}
                 title={translate('requestorStep.learnMore')}
-                icon={Expensicons.QuestionMark}
+                icon={icons.QuestionMark}
                 shouldShowRightIcon
                 iconRight={icons.NewWindow}
                 disabled={isExecuting}

@@ -16,6 +16,7 @@
         "Airplus",
         "airshipconfig",
         "airside",
+        "alrt",
         "Amal",
         "Amal's",
         "americanexpressfdx",
@@ -50,6 +51,7 @@
         "asar",
         "ASPAC",
         "assetlinks",
+        "accountid",
         "attributes.accountid",
         "attributes.reportid",
         "authorised",
@@ -94,6 +96,7 @@
         "buildscript",
         "Buildscript",
         "Bushwick",
+        "BYOC",
         "capitalone",
         "CAROOT",
         "Carta",
@@ -792,7 +795,8 @@
         "setuptools",
         "DYNAMICEXTERNAL",
         "RNCORE",
-        "Wooo"
+        "Wooo",
+        "Splittable"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

@@ -15,7 +15,7 @@ import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
 const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Meter']);
     const {translate} = useLocalize();
     const [source, setSource] = useState('');
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[3]);
@@ -53,7 +53,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         }
 
         items.push({
-            icon: Expensicons.Meter,
+            icon: icons.Meter,
             text: translate('videoPlayer.playbackSpeed'),
             subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
                 icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : undefined,
@@ -66,7 +66,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
             })),
         });
         return items;
-    }, [icons.Download, currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
+    }, [icons.Download, icons.Meter, currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
     const contextValue = useMemo(
         () => ({menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed, setSource}),

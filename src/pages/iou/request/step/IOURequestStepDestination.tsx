@@ -67,7 +67,7 @@ function IOURequestStepDestination({
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
 
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {translate} = useLocalize();
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -94,7 +94,7 @@ function IOURequestStepDestination({
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, accountID);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
-                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '');
+                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
             setCustomUnitRateID(transactionID, destination.keyForList ?? '');
             setMoneyRequestCurrency(transactionID, destination.currency);
@@ -138,7 +138,7 @@ function IOURequestStepDestination({
             return;
         }
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '');
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [transactionID, policy?.customUnits]);
 
