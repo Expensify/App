@@ -1962,6 +1962,14 @@ function getSortedTransactionData(data: TransactionListItemType[], localeCompare
 
     const sortingProperty = transactionColumnNamesToSortingProperty[sortBy];
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.WORKSPACE) {
+        return data.sort((a, b) => {
+            const aValue = a.policy?.name ?? '';
+            const bValue = b.policy?.name ?? '';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     if (!sortingProperty) {
         return data;
     }
@@ -2009,6 +2017,14 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
             }
 
             return localeCompare(b.created.toLowerCase(), a.created.toLowerCase());
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.WORKSPACE) {
+        return data.sort((a, b) => {
+            const aValue = a.policyName;
+            const bValue = b.policyName;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
 
