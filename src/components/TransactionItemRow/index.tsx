@@ -213,10 +213,6 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report]);
 
-    if (transactionItem.transactionID === '3710155799987794335') {
-        console.log('transactionItem', {transactionItem, originalAmount: (transactionItem.originalAmount ?? 0) * (transactionItem.report?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1), reportType: transactionItem.report?.type});
-    }
-
     const columnComponent = useMemo(
         () => ({
             [CONST.SEARCH.TABLE_COLUMNS.TYPE]: (
@@ -410,7 +406,7 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
                 >
                     <AmountCell
-                        total={transactionItem.report?.type === CONST.REPORT.TYPE.EXPENSE ? -(transactionItem.originalAmount ?? 0) : Math.abs(transactionItem.originalAmount ?? 0)}
+                        total={transactionItem.report?.type === CONST.REPORT.TYPE.EXPENSE ? -getOriginalAmount(transactionItem) : getOriginalAmount(transactionItem)}
                         currency={getOriginalCurrency(transactionItem)}
                     />
                 </View>
