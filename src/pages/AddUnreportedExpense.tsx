@@ -116,7 +116,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     }, []);
 
     const styles = useThemeStyles();
-    const selectionListRef = useRef<SelectionListHandle>(null);
+    const selectionListRef = useRef<SelectionListHandle<Transaction & ListItem>>(null);
 
     const shouldShowTextInput = useMemo(() => {
         return transactions.length >= CONST.SEARCH_ITEM_LIMIT;
