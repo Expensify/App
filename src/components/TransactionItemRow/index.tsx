@@ -24,6 +24,7 @@ import {isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
+    getCurrency,
     getDescription,
     getMerchant,
     getCreated as getTransactionCreated,
@@ -213,9 +214,11 @@ function TransactionItemRow({
     }, [transactionItem, translate, report]);
 
     const fromAmount = getAmount(transactionItem);
+    const fromCurrency = getCurrency(transactionItem);
+
     const toAmount = transactionItem.convertedAmount ?? fromAmount;
-    const fromCurrency = transactionItem.modifiedCurrency ?? transactionItem.currency;
     const toCurrency = transactionItem.groupCurrency ?? fromCurrency;
+
     const exchangeRate = fromAmount ? Math.abs(toAmount / fromAmount) : 0;
     const exchangeRateMessage = `${exchangeRate} ${fromCurrency}/${toCurrency}`;
 
