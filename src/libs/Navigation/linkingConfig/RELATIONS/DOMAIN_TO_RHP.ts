@@ -5,6 +5,7 @@ import SCREENS from '@src/SCREENS';
 const DOMAIN_TO_RHP: Partial<Record<keyof DomainSplitNavigatorParamList, string[]>> = {
     [SCREENS.DOMAIN.INITIAL]: [],
     [SCREENS.DOMAIN.SAML]: [SCREENS.DOMAIN.VERIFY, SCREENS.DOMAIN.VERIFIED],
+    [SCREENS.DOMAIN.ADMINS]: [SCREENS.DOMAIN.ADMIN_DETAILS],
 };
 
 export default DOMAIN_TO_RHP;
