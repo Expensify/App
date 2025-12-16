@@ -14894,10 +14894,10 @@ function updateSplitTransactions({
 
         if (isCreationOfSplits) {
             const isTransactionOnHold = isOnHold(originalTransaction);
-            const holdReportActionIDs: string[] = [];
-            const holdReportActionCommentIDs: string[] = [];
 
             if (isTransactionOnHold) {
+                const holdReportActionIDs: string[] = [];
+                const holdReportActionCommentIDs: string[] = [];
                 const transactionReportActions = getAllReportActions(firstIOU?.childReportID);
                 const holdReportAction = getReportAction(firstIOU?.childReportID, `${originalTransaction?.comment?.hold ?? ''}`);
 
@@ -14930,6 +14930,7 @@ function updateSplitTransactions({
                             ...holdReportAction,
                             reportActionID: newHoldReportActionID,
                             created: timestamp,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         };
 
                         // Create new optimistic hold report action comment with new ID and timestamp, keeping other information
@@ -14937,6 +14938,7 @@ function updateSplitTransactions({
                             ...holdReportActionComment,
                             reportActionID: newHoldReportActionCommentID,
                             created: reportActionTimestamp,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         };
 
                         // Add to optimisticData for this split's reportActions
@@ -14946,6 +14948,26 @@ function updateSplitTransactions({
                             value: {
                                 [newHoldReportActionID]: newHoldReportAction,
                                 [newHoldReportActionCommentID]: newHoldReportActionComment,
+                            },
+                        });
+
+                        // Add successData to clear pendingAction after API call succeeds
+                        successData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
+                            value: {
+                                [newHoldReportActionID]: {pendingAction: null},
+                                [newHoldReportActionCommentID]: {pendingAction: null},
+                            },
+                        });
+
+                        // Add failureData to remove optimistic hold report actions if the request fails
+                        failureData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
+                            value: {
+                                [newHoldReportActionID]: null,
+                                [newHoldReportActionCommentID]: null,
                             },
                         });
                     }
