@@ -1,10 +1,9 @@
 import React from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
@@ -15,16 +14,17 @@ type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
     handleAssignCard: () => void;
 
     /** Whether to disable assign card button */
-    isDisabledAssignCardButton?: boolean;
+    isAssigningCardDisabled?: boolean;
 
     /** Whether to disable GB disclaimer */
     shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAssignCardButton, shouldShowGBDisclaimer}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
+function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['CompanyCardsEmptyState'] as const);
+    const Expensicons = useMemoizedLazyExpensifyIcons(['Plus'] as const);
 
     return (
         <ScrollView
@@ -46,7 +46,7 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAs
                         buttonAction: handleAssignCard,
                         icon: Expensicons.Plus,
                         success: true,
-                        isDisabled: isDisabledAssignCardButton,
+                        isDisabled: isAssigningCardDisabled,
                     },
                 ]}
             />

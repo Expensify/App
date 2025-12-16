@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
@@ -12,7 +11,6 @@ import Text from '@components/Text';
 import type {CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
-import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -52,29 +50,23 @@ type WorkspaceCompanyCardsListHeaderButtonsProps = {
 
     /** Currently selected feed */
     selectedFeed: CompanyCardFeedWithDomainID;
-
-    /** Whether to show assign card button */
-    shouldShowAssignCardButton?: boolean;
-
-    /** Handle assign card action */
-    handleAssignCard: () => void;
 };
 
-function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldShowAssignCardButton, handleAssignCard}: WorkspaceCompanyCardsListHeaderButtonsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
+function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: WorkspaceCompanyCardsListHeaderButtonsProps) {
     const styles = useThemeStyles();
+    const {isExtraSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const theme = useTheme();
     const illustrations = useThemeIllustrations();
+    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
+
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
     const feed = getCompanyCardFeed(selectedFeed);
     const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.[selectedFeed]?.customFeedName);
     const isCommercialFeed = isCustomFeed(selectedFeed);
@@ -86,7 +78,6 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
     const hasFeedError = !!cardFeeds?.[selectedFeed]?.errors;
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
-    const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
 
     const openBankConnection = () => {
@@ -132,29 +123,28 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
         return `${firstPart}${secondPart}`;
     }, [domain?.email, isCommercialFeed, policy?.name, translate]);
 
+    const shouldUseNarrowHeaderButtonsLayout = isExtraSmallScreenWidth && shouldUseNarrowLayout;
+
     return (
         <View>
-            <View style={[styles.w100, styles.ph5, !shouldChangeLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
+            <View
+                style={[
+                    styles.w100,
+                    styles.ph5,
+                    styles.gap2,
+                    styles.pb2,
+                    !shouldUseNarrowHeaderButtonsLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
+                ]}
+            >
                 <FeedSelector
                     plaidUrl={plaidUrl}
                     onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
                     cardIcon={getCardFeedIcon(feed, illustrations, companyCardFeedIcons)}
-                    shouldChangeLayout={shouldChangeLayout}
                     feedName={formattedFeedName}
                     supportingText={supportingText}
                     shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed)}
                 />
-                <View style={[styles.flexRow, styles.gap2]}>
-                    {!!shouldShowAssignCardButton && (
-                        <Button
-                            success
-                            isDisabled={!currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard}
-                            onPress={handleAssignCard}
-                            icon={Expensicons.Plus}
-                            text={translate('workspace.companyCards.assignCard')}
-                            style={shouldChangeLayout && styles.flex1}
-                        />
-                    )}
+                <View style={shouldUseNarrowHeaderButtonsLayout && styles.flex1}>
                     <ButtonWithDropdownMenu
                         success={false}
                         onPress={() => {}}
@@ -162,7 +152,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                         customText={translate('common.more')}
                         options={secondaryActions}
                         isSplitButton={false}
-                        wrapperStyle={shouldShowAssignCardButton ? styles.flexGrow0 : styles.flex1}
+                        wrapperStyle={styles.flexGrow0}
                     />
                 </View>
             </View>
