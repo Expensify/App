@@ -408,7 +408,7 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
                 >
                     <AmountCell
-                        total={getOriginalAmount(transactionItem) ?? getAmount(transactionItem, isExpenseReport(report), transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, true, false)}
+                        total={getOriginalAmount(transactionItem) ?? getAmount(transactionItem)}
                         currency={getOriginalCurrency(transactionItem) ?? getCurrency(transactionItem)}
                     />
                 </View>
