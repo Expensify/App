@@ -483,7 +483,7 @@ function MoneyReportHeader({
         const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
         if (errors?.dewSubmitFailed) {
             optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowError(theme.danger);
-        } else if (hasPendingDEWSubmit(reportActions)) {
+        } else if (hasPendingDEWSubmit(reportActions, hasDynamicExternalWorkflow(policy))) {
             optimisticNextStep = buildOptimisticNextStepForDEWOfflineSubmission();
         }
     }
