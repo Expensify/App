@@ -353,7 +353,7 @@ function resetCreateDomainForm() {
     Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
 }
 
-function choosePrimaryContact(domainAccountID: number, newTechnicalContactAccountID: number, newTechnicalContactEmail: string | null, currentTechnicalContactEmail?: string) {
+function choosePrimaryContact(domainAccountID: number, newTechnicalContactAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

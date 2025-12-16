@@ -87,7 +87,9 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                         if (!option.login || !option.accountID) {
                             return;
                         }
-                        choosePrimaryContact(domainAccountID, option.accountID, option.login === technicalContactEmail ? null : option.login, technicalContactEmail);
+                        if (option.login !== technicalContactEmail) {
+                            choosePrimaryContact(domainAccountID, option.accountID, option.login, technicalContactEmail);
+                        }
                         Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
                     }}
                     ListItem={InviteMemberListItem}
