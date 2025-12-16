@@ -215,8 +215,8 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
         </>
     );
 
-    // Show empty state when there are no cards
-    if (!cards?.length) {
+    // Show empty state when there are no cards (but not when loading)
+    if (!cards?.length && !isLoadingCardsList) {
         return (
             <WorkspaceCompanyCardsFeedAddedEmptyPage
                 shouldShowGBDisclaimer={shouldShowGBDisclaimer}
@@ -230,10 +230,11 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
         <View style={styles.flex1}>
             <FlashList
                 ref={listRef}
-                data={cards}
+                data={isLoadingCardsList ? [] : (cards ?? [])}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 ListHeaderComponent={ListHeaderComponent}
+                ListEmptyComponent={!isOffline && isLoadingCardsList ? <TableRowSkeleton fixedNumItems={5} /> : undefined}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={styles.flexGrow1}
