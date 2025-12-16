@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type UseSaveTheWorldSectionIllustration from './types';
 
 const useSaveTheWorldSectionIllustration: UseSaveTheWorldSectionIllustration = () => {
-    const illustrations = useMemoizedLazyIllustrations(['SaveTheWorldScale'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['SaveTheWorldScale']);
     const styles = useThemeStyles();
 
     return {
