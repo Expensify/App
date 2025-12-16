@@ -53,7 +53,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     if (isLoadingOnyxValue(domainMetadata)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (
