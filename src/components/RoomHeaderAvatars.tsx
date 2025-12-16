@@ -38,7 +38,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
         }
     };
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserAccountID = getCurrentUserAccountID();
@@ -66,7 +66,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                     onImageRemoved={() => updatePolicyRoomAvatar(report.reportID)}
                     onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, file)}
-                    editIcon={Expensicons.Camera}
+                    editIcon={expensifyIcons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     pendingAction={report.pendingFields?.avatar}
                     errors={report.errorFields?.avatar ?? null}

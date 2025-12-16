@@ -80,7 +80,7 @@ describe('CardSectionUtils', () => {
 
     beforeAll(() => {
         // Get illustrations using renderHook BEFORE fake timers to avoid timing issues
-        const {result} = renderHook(() => useMemoizedLazyIllustrations(['CreditCardEyes'] as const));
+        const {result} = renderHook(() => useMemoizedLazyIllustrations(['CreditCardEyes']));
         creditCardEyesIcon = result.current.CreditCardEyes;
 
         mockGetSubscriptionStatus.mockReturnValue('');
@@ -105,6 +105,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toBeUndefined();
     });
@@ -123,6 +124,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwed.title',
@@ -159,6 +161,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
@@ -183,6 +186,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
@@ -207,6 +211,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerUnderInvoicing.title',
@@ -231,6 +236,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerUnderInvoicingOverdue.title',
@@ -255,6 +261,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.billingDisputePending.title',
@@ -279,6 +286,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardAuthenticationRequired.title',
@@ -303,6 +311,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.insufficientFunds.title',
@@ -327,6 +336,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpired.title',
@@ -345,6 +355,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpired.title',
@@ -369,6 +380,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: true,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpireSoon.title',
@@ -393,6 +405,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.retryBillingSuccess.title',
@@ -417,6 +430,7 @@ describe('CardSectionUtils', () => {
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
                 fundList: undefined,
+                billingStatus: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.retryBillingError.title',

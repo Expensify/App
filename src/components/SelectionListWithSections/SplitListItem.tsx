@@ -1,4 +1,4 @@
-import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
@@ -32,7 +32,7 @@ function SplitListItem<TItem extends ListItem>({
     onInputFocus,
     onInputBlur,
 }: SplitListItemProps<TItem>) {
-    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -59,8 +59,6 @@ function SplitListItem<TItem extends ListItem>({
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
 
-    const [prefixCharacterMargin, setPrefixCharacterMargin] = useState<number>(CONST.CHARACTER_WIDTH);
-    const inputMarginLeft = prefixCharacterMargin + styles.pl1.paddingLeft;
     const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
     const focusHandler = useCallback(() => {
         if (!onInputFocus) {
@@ -166,54 +164,33 @@ function SplitListItem<TItem extends ListItem>({
                 </View>
                 <View style={[styles.flexRow]}>
                     <View style={[styles.justifyContentCenter]}>
-                        {!splitItem.isEditable ? (
-                            <View style={styles.cannotBeEditedSplitInputContainer}>
-                                <Text
-                                    style={[styles.optionRowAmountInput, styles.pAbsolute]}
-                                    onLayout={(event) => {
-                                        if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
-                                            return;
-                                        }
-                                        setPrefixCharacterMargin(event?.nativeEvent?.layout.width);
-                                    }}
-                                >
-                                    {splitItem.currencySymbol}
-                                </Text>
-                                <Text
-                                    style={[styles.optionRowAmountInput, styles.pl3, styles.getSplitListItemAmountStyle(inputMarginLeft, contentWidth)]}
-                                    numberOfLines={1}
-                                >
-                                    {convertToDisplayStringWithoutCurrency(splitItem.amount, splitItem.currency)}
-                                </Text>
-                            </View>
-                        ) : (
-                            <MoneyRequestAmountInput
-                                ref={inputCallbackRef}
-                                autoGrow={false}
-                                amount={splitItem.amount}
-                                currency={splitItem.currency}
-                                prefixCharacter={splitItem.currencySymbol}
-                                disableKeyboard={false}
-                                isCurrencyPressable={false}
-                                hideFocusedState={false}
-                                hideCurrencySymbol
-                                submitBehavior="blurAndSubmit"
-                                formatAmountOnBlur
-                                onAmountChange={onSplitExpenseAmountChange}
-                                prefixContainerStyle={[styles.pv0, styles.h100]}
-                                prefixStyle={styles.lineHeightUndefined}
-                                inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
-                                containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
-                                touchableInputWrapperStyle={[styles.ml3]}
-                                maxLength={formattedOriginalAmount.length + 1}
-                                contentWidth={contentWidth}
-                                shouldApplyPaddingToContainer
-                                shouldUseDefaultLineHeightForPrefix={false}
-                                shouldWrapInputInContainer={false}
-                                onFocus={focusHandler}
-                                onBlur={onInputBlur}
-                            />
-                        )}
+                        <MoneyRequestAmountInput
+                            ref={inputCallbackRef}
+                            disabled={!splitItem.isEditable}
+                            autoGrow={false}
+                            amount={splitItem.amount}
+                            currency={splitItem.currency}
+                            prefixCharacter={splitItem.currencySymbol}
+                            disableKeyboard={false}
+                            isCurrencyPressable={false}
+                            hideFocusedState={false}
+                            hideCurrencySymbol
+                            submitBehavior="blurAndSubmit"
+                            formatAmountOnBlur
+                            onAmountChange={onSplitExpenseAmountChange}
+                            prefixContainerStyle={[styles.pv0, styles.h100]}
+                            prefixStyle={styles.lineHeightUndefined}
+                            inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
+                            containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
+                            touchableInputWrapperStyle={[styles.ml3]}
+                            maxLength={formattedOriginalAmount.length + 1}
+                            contentWidth={contentWidth}
+                            shouldApplyPaddingToContainer
+                            shouldUseDefaultLineHeightForPrefix={false}
+                            shouldWrapInputInContainer={false}
+                            onFocus={focusHandler}
+                            onBlur={onInputBlur}
+                        />
                     </View>
                     <View style={[styles.popoverMenuIcon]}>
                         {!splitItem.isEditable ? null : (
