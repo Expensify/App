@@ -613,6 +613,7 @@ type CreateDistanceRequestInformation = {
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -631,6 +632,7 @@ type CreateSplitsAndOnyxDataParams = {
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
 };
 
 type TrackExpenseTransactionParams = {
@@ -764,6 +766,7 @@ type StartSplitBilActionParams = {
     shouldPlaySound?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
 };
 
 type UpdateSplitTransactionsParams = {
@@ -3792,7 +3795,6 @@ function mergePolicyRecentlyUsedCategories(category: string | undefined, policyR
     return mergedCategories;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: string[]) {
     let mergedCurrencies: string[];
     if (currency) {
@@ -4760,10 +4762,15 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     ) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         // If the amount, currency or date have been modified, we remove the duplicate violations since they would be out of date as the transaction has changed
-        const optimisticViolations =
+        let optimisticViolations =
             hasModifiedAmount || hasModifiedDate || hasModifiedCurrency
                 ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
                 : currentTransactionViolations;
+        optimisticViolations =
+            hasModifiedCategory && transactionChanges.category === ''
+                ? optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY)
+                : optimisticViolations;
+
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
             optimisticViolations,
@@ -7045,6 +7052,7 @@ function createSplitsAndOnyxData({
     isASAPSubmitBetaEnabled,
     transactionViolations,
     quickAction,
+    policyRecentlyUsedCurrencies,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7412,8 +7420,7 @@ function createSplitsAndOnyxData({
         }
 
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
+        const optimisticRecentlyUsedCurrencies = mergePolicyRecentlyUsedCurrencies(currency, policyRecentlyUsedCurrencies);
 
         // Add tag to optimistic policy recently used tags when a participant is a workspace
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat
@@ -7536,6 +7543,7 @@ type SplitBillActionsParams = {
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
 };
 
 /**
@@ -7564,6 +7572,7 @@ function splitBill({
     isASAPSubmitBetaEnabled,
     transactionViolations,
     quickAction,
+    policyRecentlyUsedCurrencies,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7590,6 +7599,7 @@ function splitBill({
         isASAPSubmitBetaEnabled,
         transactionViolations,
         quickAction,
+        policyRecentlyUsedCurrencies,
     });
 
     const parameters: SplitBillParams = {
@@ -7649,6 +7659,7 @@ function splitBillAndOpenReport({
     isASAPSubmitBetaEnabled,
     transactionViolations,
     quickAction,
+    policyRecentlyUsedCurrencies,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7675,6 +7686,7 @@ function splitBillAndOpenReport({
         policyRecentlyUsedCategories,
         transactionViolations,
         quickAction,
+        policyRecentlyUsedCurrencies,
     });
 
     const parameters: SplitBillParams = {
@@ -7730,6 +7742,7 @@ function startSplitBill({
     shouldPlaySound = true,
     policyRecentlyUsedCategories,
     quickAction,
+    policyRecentlyUsedCurrencies,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7895,6 +7908,7 @@ function startSplitBill({
         taxCode,
         taxAmount,
         quickAction,
+        policyRecentlyUsedCurrencies,
     };
 
     if (existingSplitChatReport) {
@@ -7994,8 +8008,7 @@ function startSplitBill({
             policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(participant.policyID),
             transactionTags: tag,
         });
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
+        const optimisticRecentlyUsedCurrencies = mergePolicyRecentlyUsedCurrencies(currency, policyRecentlyUsedCurrencies);
 
         if (optimisticPolicyRecentlyUsedCategories.length > 0) {
             optimisticData.push({
@@ -8387,6 +8400,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         isASAPSubmitBetaEnabled,
         transactionViolations,
         quickAction,
+        policyRecentlyUsedCurrencies,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -8456,6 +8470,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             isASAPSubmitBetaEnabled,
             transactionViolations,
             quickAction,
+            policyRecentlyUsedCurrencies,
         });
         onyxData = splitOnyxData;
 
@@ -12243,14 +12258,7 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Repor
     let participants: Participant[] = [];
 
     if (isPolicyExpenseChatReportUtil(chatReport) || shouldAddAsReport) {
-        participants = [
-            {
-                accountID: shouldAddAsReport && report?.ownerAccountID ? report.ownerAccountID : CONST.DEFAULT_NUMBER_ID,
-                reportID: chatReport?.reportID,
-                isPolicyExpenseChat: isPolicyExpenseChatReportUtil(chatReport),
-                selected: true,
-            },
-        ];
+        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: isPolicyExpenseChatReportUtil(chatReport), selected: true}];
     } else if (isInvoiceRoom(chatReport)) {
         participants = [
             {reportID: chatReport?.reportID, selected: true},

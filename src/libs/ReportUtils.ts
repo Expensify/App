@@ -120,9 +120,9 @@ import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
+import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
-import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
@@ -1199,12 +1199,6 @@ Onyx.connectWithoutView({
     },
 });
 
-let cachedSelfDMReportID: OnyxEntry<string>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SELF_DM_REPORT_ID,
-    callback: (value) => (cachedSelfDMReportID = value),
-});
-
 let hiddenTranslation = '';
 let unavailableTranslation = '';
 
@@ -1868,9 +1862,6 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 function findSelfDMReportID(): string | undefined {
-    if (cachedSelfDMReportID) {
-        return cachedSelfDMReportID;
-    }
     if (!allReports) {
         return;
     }
@@ -2319,6 +2310,24 @@ function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValu
 }
 
 /**
+ * Whether the report was created during harvesting
+ */
+function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): boolean {
+    return !!originalID && origin === 'harvest';
+}
+
+/**
+ * Returns the original reportID for a harvest-created report
+ */
+function getHarvestOriginalReportID(origin?: string, originalID?: string): string | undefined {
+    if (!originalID || !isHarvestCreatedExpenseReport(origin, originalID)) {
+        return undefined;
+    }
+
+    return originalID;
+}
+
+/**
  * Whether the report with the provided reportID is an archived non-expense report
  */
 function isArchivedNonExpenseReportWithID(report?: OnyxInputOrEntry<Report>, isReportArchived = false) {
@@ -2493,14 +2502,25 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 /**
- * A Track Expense Report is a thread where the parent the parentReportAction is a transaction, and
- * parentReportAction has type of track.
+ * @deprecated Use isTrackExpenseReportNew function instead
+ *
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
         const selfDMReportID = findSelfDMReportID();
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         return !isEmptyObject(parentReportAction) && selfDMReportID === report.parentReportID && isTrackExpenseAction(parentReportAction);
+    }
+    return false;
+}
+
+/**
+ * A Track Expense Report is a thread where the parent the parentReportAction is a transaction, and
+ * parentReportAction has type of track.
+ */
+function isTrackExpenseReportNew(report: OnyxInputOrEntry<Report>, parentReport: OnyxInputOrEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    if (isThread(report)) {
+        return !isEmptyObject(parentReportAction) && isSelfDM(parentReport) && isTrackExpenseAction(parentReportAction);
     }
     return false;
 }
@@ -2613,6 +2633,7 @@ function isOneTransactionThread(report: OnyxEntry<Report>, parentReport: OnyxEnt
  * Checks if given report is a transaction thread
  */
 function isReportTransactionThread(report: OnyxEntry<Report>) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return isMoneyRequest(report) || isTrackExpenseReport(report);
 }
 
@@ -2704,16 +2725,13 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
     if (!isMoneyRequestReport(moneyRequestReport) || isReportArchived) {
         return false;
     }
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(moneyRequestReport?.policyID);
 
     // Adding or deleting transactions is not allowed on a closed report
     if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isOpenReport(moneyRequestReport)) {
         return false;
     }
 
-    if (isInstantSubmitEnabled(policy) && isProcessingReport(moneyRequestReport)) {
+    if (isProcessingReport(moneyRequestReport) && isExpenseReport(moneyRequestReport)) {
         return isAwaitingFirstLevelApproval(moneyRequestReport);
     }
 
@@ -2938,7 +2956,7 @@ function canDeleteMoneyRequestReport(report: Report, reportTransactions: Transac
         }
 
         const isReportSubmitter = isCurrentUserSubmitter(report);
-        return isReportSubmitter && isReportOpenOrProcessing;
+        return isReportSubmitter && (isOpenReport(report) || (isProcessingReport(report) && isAwaitingFirstLevelApproval(report)));
     }
 
     return false;
@@ -4871,6 +4889,7 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>): bool
 }
 
 function canModifyHoldStatus(report: Report, reportAction: ReportAction): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (!isMoneyRequestReport(report) || isTrackExpenseReport(report)) {
         return false;
     }
@@ -4900,6 +4919,7 @@ function canHoldUnholdReportAction(
     const isApproved = isReportApproved({report});
     const isRequestIOU = isIOUReport(report);
     const isHoldActionCreator = isActionCreator(holdReportAction);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseMoneyReport = isTrackExpenseReport(report);
     const isActionOwner = isActionCreator(reportAction);
     const isApprover = isMoneyRequestReport(report) && report.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
@@ -10511,9 +10531,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     }
     if (isApproved) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.approvedAmount', {
-            amount: formattedAmount,
-        });
+        return translateLocal('iou.approvedAmount', formattedAmount);
     }
     if (isSplitBillReportAction(reportAction)) {
         translationKey = 'iou.didSplitAmount';
@@ -11103,7 +11121,13 @@ function isAdminOwnerApproverOrReportOwner(report: OnyxEntry<Report>, policy: On
 /**
  * Whether the user can join a report
  */
-function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>, policy: OnyxEntry<Policy>, isReportArchived = false): boolean {
+function canJoinChat(
+    report: OnyxEntry<Report>,
+    parentReportAction: OnyxInputOrEntry<ReportAction>,
+    policy: OnyxEntry<Policy>,
+    parentReport: OnyxEntry<Report>,
+    isReportArchived = false,
+): boolean {
     // We disabled thread functions for whisper action
     // So we should not show join option for existing thread on whisper message that has already been left, or manually leave it
     if (isWhisperAction(parentReportAction)) {
@@ -11115,7 +11139,7 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrE
         return false;
     }
 
-    const isExpenseChat = isMoneyRequestReport(report) || isMoneyRequest(report) || isInvoiceReport(report) || isTrackExpenseReport(report);
+    const isExpenseChat = isMoneyRequestReport(report) || isMoneyRequest(report) || isInvoiceReport(report) || isTrackExpenseReportNew(report, parentReport, parentReportAction);
     // Anyone viewing these chat types is already a participant and therefore cannot join
     if (isRootGroupChat(report, isReportArchived) || isSelfDM(report) || isInvoiceRoom(report) || isSystemChat(report) || isExpenseChat) {
         return false;
@@ -11191,6 +11215,14 @@ function getReportActionActorAccountID(
             }
 
             return actorAccountID;
+        }
+
+        case CONST.REPORT.ACTIONS.TYPE.CREATED: {
+            const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
+            if (isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
+                return CONST.ACCOUNT_ID.CONCIERGE;
+            }
+            return reportAction?.actorAccountID;
         }
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
@@ -11292,7 +11324,6 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         merchant,
         modifiedMerchant: '',
         mccGroup,
-        participants: undefined,
     } as Transaction);
 
     const filteredPolicies = Object.values(allPolicies ?? {}).filter((policy) => shouldShowPolicy(policy, false, currentUserEmail));
@@ -12897,54 +12928,6 @@ function isWorkspaceMemberLeavingWorkspaceRoom(report: OnyxEntry<Report>, isPoli
     return (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || hasAccessPolicyExpenseChat) && isPolicyEmployee;
 }
 
-function getReportURLForCurrentContext(reportID: string | undefined): string {
-    if (!reportID) {
-        return `${environmentURL}/r/`;
-    }
-    const isInSearchContext = isSearchTopmostFullScreenRoute();
-    if (!isInSearchContext) {
-        return `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`;
-    }
-
-    // Navigation can return routes with a leading slash or missing when still mounting.
-    // Normalize everything to match the path shape used by ROUTES helpers.
-    const normalizeRoute = (route?: string) => {
-        if (!route) {
-            return undefined;
-        }
-        return route.startsWith('/') ? route.substring(1) : route;
-    };
-
-    const activeRoute = normalizeRoute(Navigation.getActiveRoute());
-
-    let backToRoute: string | undefined;
-
-    if (activeRoute) {
-        const [, queryString = ''] = activeRoute.split('?');
-        if (queryString) {
-            const params = new URLSearchParams(queryString);
-            const encodedBackTo = params.get('backTo');
-            if (encodedBackTo) {
-                // Prefer the backTo param when present; it points to the exact search state we left.
-                backToRoute = normalizeRoute(decodeURIComponent(encodedBackTo));
-            }
-        }
-
-        if (!backToRoute && activeRoute.startsWith(ROUTES.SEARCH_ROOT.route)) {
-            // Otherwise keep the current search route (preserves tab + filters) as the return target.
-            backToRoute = activeRoute;
-        }
-    }
-
-    if (!backToRoute?.startsWith(ROUTES.SEARCH_ROOT.route)) {
-        // Fall back to the generic search home when we can't recover a valid route.
-        backToRoute = ROUTES.SEARCH_ROOT.route;
-    }
-
-    const relativePath = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: backToRoute});
-    return `${environmentURL}/${relativePath}`;
-}
-
 /**
  * Checks if all selected items have the necessary Onyx data hydrated for bulk rejection.
  */
@@ -13178,6 +13161,7 @@ export {
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getInvoicesChatName,
+    getHarvestOriginalReportID,
     getPayeeName,
     getReportSummariesForEmptyCheck,
     reportSummariesOnyxSelector,
@@ -13239,6 +13223,7 @@ export {
     isExpensifyOnlyParticipantInReport,
     isGroupChat,
     isGroupChatAdmin,
+    isHarvestCreatedExpenseReport,
     isGroupPolicy,
     isReportInGroupPolicy,
     isHoldCreator,
@@ -13284,6 +13269,7 @@ export {
     isSystemChat,
     isTaskReport,
     isThread,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     isTrackExpenseReport,
     isUnread,
     isUnreadWithMention,
@@ -13412,7 +13398,6 @@ export {
     isWorkspaceThread,
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
-    getReportURLForCurrentContext,
     getReportStatusColorStyle,
     getMovedActionMessage,
     excludeParticipantsForDisplay,
@@ -13426,8 +13411,10 @@ export {
     shouldBlockSubmitDueToStrictPolicyRules,
     isWorkspaceChat,
     isOneTransactionReport,
+    isTrackExpenseReportNew,
     shouldHideSingleReportField,
 };
+
 export type {
     Ancestor,
     DisplayNameWithTooltips,
