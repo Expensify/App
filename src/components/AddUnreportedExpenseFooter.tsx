@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -31,12 +31,25 @@ type AddUnreportedExpenseFooterProps = {
     policyCategories: OnyxEntry<PolicyCategories>;
     /** Callback to clear error message */
     onClearError?: () => void;
+    /** Error message displayed in this component */
+    errorMessage: string;
+    /** Function for setting new error message */
+    setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
 };
 
-function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, onClearError}: AddUnreportedExpenseFooterProps) {
+function AddUnreportedExpenseFooter({
+    selectedIds,
+    report,
+    reportToConfirm,
+    reportNextStep,
+    policy,
+    policyCategories,
+    onClearError,
+    errorMessage,
+    setErrorMessage,
+}: AddUnreportedExpenseFooterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [errorMessage, setErrorMessage] = useState<string>('');
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();

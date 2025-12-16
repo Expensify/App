@@ -290,6 +290,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         policy={policy}
                         policyCategories={policyCategories}
                         onClearError={handleClearError}
+                        errorMessage={errorMessage}
+                        setErrorMessage={setErrorMessage}
                     />
                 }
                 disableMaintainingScrollPosition
