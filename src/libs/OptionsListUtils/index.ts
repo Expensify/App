@@ -1790,7 +1790,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     - It doesn't have a login
     - It is not an invoice room that should be shown
     */
-    if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !option.login && (!isDM || !shouldAlwaysIncludeDM) && !shouldShowInvoiceRoom) {
+    if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !option.login && (!option.isDM || !shouldAlwaysIncludeDM) && !shouldShowInvoiceRoom) {
         return false;
     }
 

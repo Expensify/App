@@ -325,7 +325,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const itemRightSideComponent = useCallback(
         (item: ListItem & Option, isFocused?: boolean) => {
-            if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login))) {
+            if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login)) || !item.login) {
                 return null;
             }
 
