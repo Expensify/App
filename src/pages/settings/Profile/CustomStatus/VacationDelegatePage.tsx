@@ -128,7 +128,7 @@ function VacationDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [vacationDelegate, delegatePersonalDetails, availableOptions.personalDetails, availableOptions.recentReports, translate, availableOptions.userToInvite]);
+    }, [vacationDelegate, delegatePersonalDetails, availableOptions.personalDetails, availableOptions.recentReports, translate, availableOptions.userToInvite, icons.FallbackAvatar]);
 
     const onSelectRow = useCallback(
         (option: Participant) => {
