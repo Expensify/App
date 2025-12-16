@@ -24,7 +24,7 @@ type WorkspaceOwnerChangeSuccessPageProps = PlatformStackScreenProps<SettingsNav
 function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['MoneyWaving'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['MoneyWaving']);
 
     const accountID = Number(route.params.accountID) ?? -1;
     const policyID = route.params.policyID;

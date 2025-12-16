@@ -20,8 +20,8 @@ function SetupMethod() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
-    const icons = useMemoizedLazyExpensifyIcons(['Bank'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['MoneyWings'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Bank']);
+    const illustrations = useMemoizedLazyIllustrations(['MoneyWings']);
 
     return (
         <View>

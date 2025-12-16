@@ -78,7 +78,7 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbles', 'CommentBubbles'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbles', 'CommentBubbles']);
 
     if (promotedActions.length === 0) {
         return null;

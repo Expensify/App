@@ -41,7 +41,7 @@ import ROUTES from '@src/ROUTES';
 
 function SubscriptionSettings() {
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Coins'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Coins']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});

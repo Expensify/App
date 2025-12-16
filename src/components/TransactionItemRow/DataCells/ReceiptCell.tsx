@@ -20,7 +20,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const icons = useMemoizedLazyExpensifyIcons(['Receipt'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const backgroundStyles = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
     const {hovered, bind} = useHover();
     const isMissingReceiptSource = !hasReceiptSource(transactionItem);

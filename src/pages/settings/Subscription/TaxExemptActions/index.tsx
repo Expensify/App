@@ -17,7 +17,7 @@ const anchorAlignment = {
 function TaxExemptActions() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Coins'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Coins']);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [

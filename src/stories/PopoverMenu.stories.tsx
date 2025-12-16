@@ -25,7 +25,7 @@ const story: Meta<typeof PopoverMenu> = {
 function Template(props: PopoverMenuProps) {
     const [isVisible, setIsVisible] = React.useState(false);
     const toggleVisibility = () => setIsVisible(!isVisible);
-    const icons = useMemoizedLazyExpensifyIcons(['Bank', 'CreditCard'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Bank', 'CreditCard']);
     return (
         <>
             <MenuItem

@@ -14,7 +14,7 @@ const anchorAlignment = {
 
 function CardSectionActions() {
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'MoneyCircle'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'MoneyCircle']);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [

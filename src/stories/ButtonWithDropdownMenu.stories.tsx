@@ -17,7 +17,7 @@ const story = {
 };
 
 function Template(props: ButtonWithDropdownMenuProps<unknown>) {
-    const icons = useMemoizedLazyExpensifyIcons(['Wallet'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Wallet']);
 
     const options = useMemo(
         () => [

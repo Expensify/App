@@ -9,7 +9,7 @@ import variables from '@styles/variables';
 function PDFThumbnailError() {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptSlash'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptSlash']);
 
     return (
         <View style={[styles.justifyContentCenter, styles.pdfErrorPlaceholder, styles.alignItemsCenter]}>

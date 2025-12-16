@@ -28,7 +28,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role}: FloatingRece
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | ViewType | Text | null>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
     const {translate} = useLocalize();
 
     const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {

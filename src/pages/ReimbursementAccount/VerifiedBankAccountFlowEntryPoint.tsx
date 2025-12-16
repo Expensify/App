@@ -92,7 +92,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Lock', 'Bank'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Lock', 'Bank']);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});

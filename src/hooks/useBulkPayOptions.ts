@@ -53,7 +53,7 @@ function useBulkPayOptions({
     currency,
     formattedAmount,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();

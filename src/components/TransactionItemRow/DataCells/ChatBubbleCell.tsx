@@ -62,7 +62,7 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
     );
 
     const StyleUtils = useStyleUtils();
-    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbleCounter'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbleCounter']);
 
     const iconSize = shouldUseNarrowLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
     const fontSize = shouldUseNarrowLayout ? variables.fontSizeXXSmall : variables.fontSizeExtraSmall;

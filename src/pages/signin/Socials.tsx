@@ -41,7 +41,7 @@ const socialList: Social[] = [
 function Socials() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Podcast', 'Twitter', 'Instagram', 'Facebook', 'Linkedin'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Podcast', 'Twitter', 'Instagram', 'Facebook', 'Linkedin']);
 
     return (
         <View style={[styles.flexRow, styles.flexWrap]}>

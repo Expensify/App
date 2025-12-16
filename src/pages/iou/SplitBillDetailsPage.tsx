@@ -41,7 +41,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const {translate} = useLocalize();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
 
     const reportID = report?.reportID;
     const originalMessage = reportAction && isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction) : undefined;

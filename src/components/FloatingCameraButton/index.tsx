@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import BaseFloatingCameraButton from './BaseFloatingCameraButton';
 
 function FloatingCameraButton() {
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'ReceiptPlus'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'ReceiptPlus']);
     const icon = getPlatform(true) === CONST.PLATFORM.MOBILE_WEB ? expensifyIcons.Camera : expensifyIcons.ReceiptPlus;
 
     return <BaseFloatingCameraButton icon={icon} />;

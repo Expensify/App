@@ -37,7 +37,7 @@ function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isIn
     const {translate} = useLocalize();
     const theme = useTheme();
     const isLoadedRef = useRef(false);
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlaceholderPlus', 'Receipt'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlaceholderPlus', 'Receipt']);
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
     const containerStyle = [

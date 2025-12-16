@@ -29,7 +29,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
     const canAddTransactionToReport = canAddTransaction(report, isReportArchived);
     const addExpenseDropdownOptions = [
         {

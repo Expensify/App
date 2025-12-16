@@ -41,7 +41,7 @@ function TransferBalancePage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {paddingBottom} = useSafeAreaPaddings();
-    const icons = useMemoizedLazyExpensifyIcons(['Bank'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER, {canBeMissing: true});

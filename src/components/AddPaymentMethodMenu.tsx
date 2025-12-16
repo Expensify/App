@@ -57,7 +57,7 @@ function AddPaymentMethodMenu({
     onItemSelected,
     shouldShowPersonalBankAccountOption = false,
 }: AddPaymentMethodMenuProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Bank'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Bank']);
     const {translate} = useLocalize();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});

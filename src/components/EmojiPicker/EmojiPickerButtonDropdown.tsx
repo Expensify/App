@@ -42,7 +42,7 @@ function EmojiPickerButtonDropdown(
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Emoji'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Emoji']);
 
     useEffect(() => resetEmojiPopoverAnchor, []);
     const onPress = () => {

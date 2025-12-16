@@ -37,7 +37,7 @@ type EReceiptThumbnailProps = {
 };
 
 function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'EReceiptIcon'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'EReceiptIcon']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
