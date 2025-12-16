@@ -11,6 +11,7 @@ import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
+import TitleCell from '@components/SelectionListWithSections/Search/TitleCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -389,26 +390,35 @@ function TransactionItemRow({
                     />
                 </View>
             ),
+            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
+                    <TitleCell
+                        text={transactionItem.report?.reportName ?? ''}
+                        isLargeScreenWidth={isLargeScreenWidth}
+                    />
+                </View>
+            ),
         }),
         [
             StyleUtils,
-            createdAt,
-            isActionLoading,
-            isReportItemChild,
-            isDateColumnWide,
-            isAmountColumnWide,
-            isTaxAmountColumnWide,
-            isInSingleTransactionReport,
-            isSelected,
-            merchant,
-            description,
-            onButtonPress,
+            transactionItem,
             shouldShowTooltip,
             shouldUseNarrowLayout,
-            transactionItem,
+            isSelected,
+            isDateColumnWide,
+            areAllOptionalColumnsHidden,
+            createdAt,
+            isReportItemChild,
+            onButtonPress,
+            isActionLoading,
             report?.policyID,
             report?.total,
-            areAllOptionalColumnsHidden,
+            merchant,
+            description,
+            isInSingleTransactionReport,
+            isAmountColumnWide,
+            isTaxAmountColumnWide,
+            isLargeScreenWidth,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
