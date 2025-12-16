@@ -33,6 +33,7 @@ const mockTransaction: TransactionListItemType = {
     created: '2025-09-19',
     submitted: '2025-09-19',
     approved: undefined,
+    posted: undefined,
     currency: 'USD',
     policy: {
         id: '06F34677820A4D07',
@@ -69,6 +70,7 @@ const mockTransaction: TransactionListItemType = {
     shouldShowYear: true,
     shouldShowYearSubmitted: false,
     shouldShowYearApproved: false,
+    shouldShowYearPosted: false,
     keyForList: '1',
     isAmountColumnWide: false,
     isTaxAmountColumnWide: false,

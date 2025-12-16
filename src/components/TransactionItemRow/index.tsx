@@ -93,6 +93,7 @@ type TransactionItemRowProps = {
     dateColumnSize: TableColumnSize;
     submittedColumnSize?: TableColumnSize;
     approvedColumnSize?: TableColumnSize;
+    postedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     onCheckboxPress?: (transactionID: string) => void;
@@ -137,6 +138,7 @@ function TransactionItemRow({
     dateColumnSize,
     submittedColumnSize,
     approvedColumnSize,
+    postedColumnSize,
     amountColumnSize,
     taxAmountColumnSize,
     onCheckboxPress = () => {},
@@ -170,6 +172,7 @@ function TransactionItemRow({
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isApprovedColumnWide = approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isPostedColumnWide = postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
@@ -280,6 +283,18 @@ function TransactionItemRow({
                 >
                     <DateCell
                         date={report?.approved ?? ''}
+                        showTooltip={shouldShowTooltip}
+                        isLargeScreenWidth={!shouldUseNarrowLayout}
+                    />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.POSTED]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.POSTED}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, false, false, false, areAllOptionalColumnsHidden, false, false, isPostedColumnWide)]}
+                >
+                    <DateCell
+                        date={transactionItem.posted ?? ''}
                         showTooltip={shouldShowTooltip}
                         isLargeScreenWidth={!shouldUseNarrowLayout}
                     />
@@ -438,6 +453,7 @@ function TransactionItemRow({
             report?.policyID,
             report?.total,
             isApprovedColumnWide,
+            isPostedColumnWide,
             isReportItemChild,
             onButtonPress,
             isActionLoading,
