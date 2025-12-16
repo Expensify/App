@@ -143,6 +143,4 @@ function FilePicker({children}: FilePickerProps) {
     return <>{renderChildren()}</>;
 }
 
-FilePicker.displayName = 'FilePicker';
-
 export default FilePicker;

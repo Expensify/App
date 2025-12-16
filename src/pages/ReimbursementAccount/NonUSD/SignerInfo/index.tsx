@@ -205,7 +205,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={SignerInfo.displayName}
+            wrapperID="SignerInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('signerInfoStep.signerInfo')}
             stepNames={stepNames}
@@ -245,7 +245,5 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         </InteractiveStepWrapper>
     );
 }
-
-SignerInfo.displayName = 'SignerInfo';
 
 export default SignerInfo;

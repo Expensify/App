@@ -62,7 +62,7 @@ function SearchFiltersTaxRatePage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersTaxRatePage.displayName}
+            testID="SearchFiltersTaxRatePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -83,7 +83,5 @@ function SearchFiltersTaxRatePage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersTaxRatePage.displayName = 'SearchFiltersTaxRatePage';
 
 export default SearchFiltersTaxRatePage;

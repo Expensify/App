@@ -273,6 +273,4 @@ function ExpenseReportListItemRow({
     );
 }
 
-ExpenseReportListItemRow.displayName = 'ExpenseReportListItemRow';
-
 export default ExpenseReportListItemRow;

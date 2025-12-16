@@ -98,6 +98,4 @@ function SortableTableHeader({
     );
 }
 
-SortableTableHeader.displayName = 'SortableTableHeader';
-
 export default SortableTableHeader;
