@@ -6,11 +6,12 @@ import {WideRHPContext} from '@components/WideRHPContextProvider';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import NAVIGATORS from '@src/NAVIGATORS';
 
-type SuperWideRHPWrapperProps = {
+type WideRHPWrapperProps = {
     children: React.ReactNode;
+    shouldShow?: boolean;
 };
 
-export default function SuperWideRHPWrapper({children}: SuperWideRHPWrapperProps) {
+export default function WideRHPWrapper({children, shouldShow}: WideRHPWrapperProps) {
     const {syncRHPKeys} = useContext(WideRHPContext);
 
     // This hook handles the case when a wider RHP is displayed above a narrower one.
@@ -18,6 +19,10 @@ export default function SuperWideRHPWrapper({children}: SuperWideRHPWrapperProps
     useFocusEffect(
         useCallback(
             () => () => {
+                if (!shouldShow) {
+                    return;
+                }
+
                 // Synchronization after RHP unmount is handled in RightModalNavigator.tsx.
                 const isRHPOpened = navigationRef?.getRootState()?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
                 if (!isRHPOpened) {
@@ -26,9 +31,13 @@ export default function SuperWideRHPWrapper({children}: SuperWideRHPWrapperProps
 
                 syncRHPKeys();
             },
-            [syncRHPKeys],
+            [shouldShow, syncRHPKeys],
         ),
     );
+
+    if (!shouldShow) {
+        return children;
+    }
 
     return (
         <>
