@@ -55,7 +55,7 @@ function TagApproverPage({route}: TagApproverPageProps) {
                     policyID={policyID}
                     selectedApprover={tagApprover ?? ''}
                     setApprover={(email) => {
-                        setPolicyTagApprover(policy, tagName, email);
+                        setPolicyTagApprover(policyID, tagName, email);
                         Navigation.setNavigationActionToMicrotaskQueue(goBack);
                     }}
                 />

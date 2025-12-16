@@ -8,7 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {shouldShowPolicy} from '@libs/PolicyUtils';
+import {getPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -16,7 +16,7 @@ import ROUTES from '@src/ROUTES';
 function SystemChatReportFooterMessage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const {environmentURL} = useEnvironment();
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     const [choice] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
@@ -25,10 +25,12 @@ function SystemChatReportFooterMessage() {
 
     const adminChatReportID = useMemo(() => {
         const adminPolicy = activePolicyID
-            ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]
+            ? // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+              // eslint-disable-next-line @typescript-eslint/no-deprecated
+              getPolicy(activePolicyID)
             : Object.values(policies ?? {}).find((policy) => shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins);
 
-        return adminPolicy?.chatReportIDAdmins ?? CONST.DEFAULT_NUMBER_ID;
+        return String(adminPolicy?.chatReportIDAdmins ?? -1);
     }, [activePolicyID, policies, currentUserLogin]);
 
     const [adminChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${adminChatReportID}`, {canBeMissing: true});

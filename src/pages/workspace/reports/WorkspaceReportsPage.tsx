@@ -80,7 +80,7 @@ function WorkspaceReportFieldsPage({
     }, [policy?.fieldList]);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
-    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnections) {
@@ -208,7 +208,7 @@ function WorkspaceReportFieldsPage({
                         >
                             <OfflineWithFeedback
                                 pendingAction={reportTitlePendingFields.defaultValue}
-                                shouldForceOpacity={!!reportTitlePendingFields.defaultValue}
+                                shouldForceOpacity={reportTitlePendingFields.defaultValue === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}
                                 errors={reportTitleErrors}
                                 errorRowStyles={[styles.mh0]}
                                 errorRowTextStyles={[styles.mv2]}
