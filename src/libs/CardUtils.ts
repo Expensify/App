@@ -474,7 +474,7 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, customFeedName?: s
 
     const feedName = getBankName(feed);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const formattedFeedName = feedName && shouldAddCardsSuffix ? translateLocal('workspace.companyCards.feedName', {feedName}) : feedName;
+    const formattedFeedName = feedName && shouldAddCardsSuffix ? translateLocal('workspace.companyCards.feedName', feedName) : feedName;
 
     // Custom feed name can be empty. Fallback to default feed name
     // Fallback to feed key name for unknown feeds

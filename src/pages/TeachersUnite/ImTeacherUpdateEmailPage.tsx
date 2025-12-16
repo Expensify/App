@@ -15,7 +15,7 @@ import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 
 function ImTeacherUpdateEmailPage() {
-    const illustrations = useMemoizedLazyIllustrations(['EmailAddress'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['EmailAddress']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -34,7 +34,7 @@ function ImTeacherUpdateEmailPage() {
                 title={translate('teachersUnitePage.updateYourEmail')}
                 CustomSubtitle={
                     <Text style={[styles.textAlignCenter]}>
-                        <RenderHTML html={translate('teachersUnitePage.schoolMailAsDefault', {contactMethodsRoute})} />
+                        <RenderHTML html={translate('teachersUnitePage.schoolMailAsDefault', contactMethodsRoute)} />
                     </Text>
                 }
                 iconWidth={variables.signInLogoWidthLargeScreen}
