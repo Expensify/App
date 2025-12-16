@@ -565,6 +565,9 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 };
 
 type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** The visible columns for the report */
+    columns?: SearchColumnType[];
+
     /** Whether the item's action is loading */
     isLoading?: boolean;
 
@@ -1041,7 +1044,7 @@ type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWit
 
 type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
-type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
+type SortableColumnName = SearchColumnType;
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
 
