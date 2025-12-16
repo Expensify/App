@@ -275,12 +275,9 @@ function MoneyReportHeader({
     const nextApproverAccountID = useMemo(() => getNextApproverAccountID(moneyRequestReport), [moneyRequestReport]);
     const isSubmitterSameAsNextApprover = useMemo(
         () => isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID),
-        [moneyRequestReport, nextApproverAccountID]
+        [moneyRequestReport, nextApproverAccountID],
     );
-    const isBlockSubmitDueToPreventSelfApproval = useMemo(
-        () => isSubmitterSameAsNextApprover && policy?.preventSelfApproval,
-        [isSubmitterSameAsNextApprover, policy?.preventSelfApproval]
-    );
+    const isBlockSubmitDueToPreventSelfApproval = useMemo(() => isSubmitterSameAsNextApprover && policy?.preventSelfApproval, [isSubmitterSameAsNextApprover, policy?.preventSelfApproval]);
     const isBlockSubmitDueToStrictPolicyRules = useMemo(() => {
         return shouldBlockSubmitDueToStrictPolicyRules(moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, accountID, email ?? '', transactions);
     }, [moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, accountID, email, transactions]);
