@@ -1375,23 +1375,6 @@ const CONST = {
             ACTION_VISIBLE_THRESHOLD: 250,
             MAX_GROUPING_TIME: 300000,
         },
-        TRANSACTION_LIST: {
-            COLUMNS: {
-                COMMENTS: 'comments',
-                RECEIPT: 'receipt',
-                DATE: 'date',
-                MERCHANT: 'merchant',
-                DESCRIPTION: 'description',
-                FROM: 'from',
-                TO: 'to',
-                CATEGORY: 'category',
-                TAG: 'tag',
-                TOTAL_AMOUNT: 'amount',
-                TYPE: 'type',
-                ACTION: 'action',
-                TAX: 'tax',
-            },
-        },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
             USER: 'CANCEL_REASON_USER',
