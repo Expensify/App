@@ -720,7 +720,7 @@ function printResults({success, failuresForAddedFiles, failuresForModifiedFiles,
 
         // TODO: In Phase 2, remove the 'with warnings' suffix,
         // since we are not printing errors for modified files.
-        logMethod(`React Compiler compliance check passed ${hasModifiedFilesErrors ? 'with warnings' : ''}!`);
+        logMethod(`React Compiler compliance check passed${hasModifiedFilesErrors ? ' with warnings' : ''}!`);
         return true;
     }
 
