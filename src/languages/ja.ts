@@ -691,6 +691,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: '対応が必要',
         duplicate: '複製',
         duplicated: '重複',
+        exchangeRate: '為替レート',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
