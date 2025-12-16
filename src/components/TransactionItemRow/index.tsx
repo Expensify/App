@@ -390,7 +390,7 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.LONG_REPORT_ID]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.LONG_REPORT_ID)]}>
-                    <TextCell text={transactionItem.reportID ?? ''} />
+                    <TextCell text={transactionItem.reportID} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TAX]: (

@@ -3,10 +3,10 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type TextCellProps = {
-    text: string;
+    text?: string;
 };
 
-function TextCell({text}: TextCellProps) {
+function TextCell({text = ''}: TextCellProps) {
     const styles = useThemeStyles();
 
     return (

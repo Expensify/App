@@ -152,7 +152,7 @@ function ExpenseReportListItemRow({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.LONG_REPORT_ID]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.LONG_REPORT_ID)]}>
-                <TextCell text={item.reportID ?? ''} />
+                <TextCell text={item.reportID} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
