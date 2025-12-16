@@ -309,6 +309,10 @@ function BasePopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
+        } else if (!selectedItem.shouldCloseModalOnSelect) {
+            onItemSelected?.(selectedItem, index, event);
+            selectedItem.onSelected?.();
+            setFocusedIndex(-1);
         } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
             onItemSelected?.(selectedItem, index, event);
             if (selectedItem.shouldCloseModalOnSelect !== false) {
@@ -319,9 +323,6 @@ function BasePopoverMenu({
                     undefined,
                     selectedItem.shouldCloseAllModals,
                 );
-            } else {
-                selectedItem.onSelected?.();
-                setFocusedIndex(-1);
             }
         } else {
             onItemSelected?.(selectedItem, index, event);
