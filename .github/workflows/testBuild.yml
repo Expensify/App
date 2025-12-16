@@ -61,6 +61,24 @@ jobs:
           echo "::error::🕵️‍♀️ Please carefully review the pull request before running a test build to ensure it does not contain any malicious code"
           exit 1
 
+      - name: Validate App PR number is not a URL
+        if: ${{ inputs.APP_PULL_REQUEST_NUMBER != '' }}
+        run: |
+          INPUT="${{ inputs.APP_PULL_REQUEST_NUMBER }}"
+          if [[ "$INPUT" =~ ^https?:// ]]; then
+            echo "::error::❌ Please enter a PR number (e.g., 12345), not a URL. You entered: $INPUT"
+            exit 1
+          fi
+
+      - name: Validate Mobile-Expensify PR number is not a URL
+        if: ${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_NUMBER != '' }}
+        run: |
+          INPUT="${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_NUMBER }}"
+          if [[ "$INPUT" =~ ^https?:// ]]; then
+            echo "::error::❌ Please enter a PR number (e.g., 12345), not a URL. You entered: $INPUT"
+            exit 1
+          fi
+
       - name: Check if App pull request number is correct
         if: ${{ github.event_name == 'workflow_dispatch' }}
         id: getHeadRef
