@@ -161,6 +161,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'common.to',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.WORKSPACE,
+        translationKey: 'workspace.common.workspace',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
         translationKey: 'common.total',
     },
@@ -168,10 +172,6 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
         isColumnSortable: false,
-    },
-    {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.WORKSPACE,
-        translationKey: 'workspace.common.workspace',
     },
 ];
 

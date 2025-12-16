@@ -1,17 +1,20 @@
 import React, {Fragment, useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
+import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getPolicyName, getWorkspaceIcon} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -148,7 +151,25 @@ function ExpenseReportListItemRow({
                 />
             </View>
         ),
-        [CONST.SEARCH.TABLE_COLUMNS.WORKSPACE]: <View></View>,
+        [CONST.SEARCH.TABLE_COLUMNS.WORKSPACE]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WORKSPACE)]}>
+                <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
+                    <Avatar
+                        imageStyles={[styles.alignSelfCenter]}
+                        size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                        source={getWorkspaceIcon(item).source}
+                        avatarID={item.policyID}
+                        name={item.policyName ?? ''}
+                        type={CONST.ICON_TYPE_WORKSPACE}
+                    />
+                    <TextWithTooltip
+                        text={getPolicyName({report: item})}
+                        shouldShowTooltip
+                        style={[styles.flex1, styles.flexGrow1]}
+                    />
+                </View>
+            </View>
+        ),
     };
 
     const thereIsFromAndTo = !!item?.from && !!item?.to;

@@ -341,6 +341,7 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
+    w200: 200,
     // Transaction item row heights based on layout types
     // Wide screen (desktop) layout
     optionRowWideItemHeight: 64,
