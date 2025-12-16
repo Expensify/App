@@ -99,6 +99,10 @@ function getRenderOptions({
     const isSAMLRequired = !!account?.isSAMLRequired;
     const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
     const hasSMSDeliveryFailure = !!account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
+    
+    setTimeout(() => {
+        throw new Error('test new commit');
+    }, 6000);
 
     // True, if the user has SAML required, and we haven't yet initiated SAML for their account
     const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
@@ -111,9 +115,6 @@ function getRenderOptions({
         clearSignInData();
     }
 
-    setTimeout(() => {
-        throw new Error('test new commit');
-    }, 6000);
 
 
     // Show the Welcome form if a user is signing up for a new account in a domain that is not controlled
