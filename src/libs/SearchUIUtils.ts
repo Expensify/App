@@ -143,6 +143,8 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: 'billable' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: null,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
@@ -1953,6 +1955,24 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
 
 /**
  * @private
+ * Gets the value to use for sorting a transaction by a given property.
+ * Handles special cases like comments and boolean fields (reimbursable, billable).
+ */
+function getTransactionSortValue(transaction: TransactionListItemType, sortingProperty: string): unknown {
+    if (sortingProperty === 'comment') {
+        return transaction.comment?.comment;
+    }
+
+    if (sortingProperty === 'reimbursable' || sortingProperty === 'billable') {
+        const boolValue = transaction[sortingProperty as keyof TransactionListItemType];
+        return boolValue ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+    }
+
+    return transaction[sortingProperty as keyof TransactionListItemType];
+}
+
+/**
+ * @private
  * Sorts transaction sections based on a specified column and sort order.
  */
 function getSortedTransactionData(data: TransactionListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
@@ -1967,8 +1987,8 @@ function getSortedTransactionData(data: TransactionListItemType[], localeCompare
     }
 
     return data.sort((a, b) => {
-        const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty as keyof TransactionListItemType];
-        const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty as keyof TransactionListItemType];
+        const aValue = getTransactionSortValue(a, sortingProperty);
+        const bValue = getTransactionSortValue(b, sortingProperty);
 
         const primaryComparison = compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
 
@@ -1976,7 +1996,7 @@ function getSortedTransactionData(data: TransactionListItemType[], localeCompare
             return primaryComparison;
         }
 
-        // If we have a tie in the primary comparison, we add a tie breaker on created and/or transactionID as a last resort to make the sort deterministic
+        // If we have a tie in the primary comparison, we add a tie breaker on date and/or transactionID as a last resort to make the sort deterministic
         const createdComparison = compareValues(a.created, b.created, sortOrder, 'created', localeCompare);
 
         if (createdComparison !== 0) {
