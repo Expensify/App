@@ -1,12 +1,10 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
+import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import {SUPER_WIDE_RIGHT_MODALS, WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -15,11 +13,9 @@ import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import type {Account} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getStateFromPath from './helpers/getStateFromPath';
@@ -37,25 +33,18 @@ import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationRef, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
 
-// Routes which are part of the flow to set up 2FA
-const SET_UP_2FA_ROUTES = new Set<Route>([
-    ROUTES.REQUIRE_TWO_FACTOR_AUTH,
-    ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
-    ROUTES.SETTINGS_2FA_VERIFY.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
-    ROUTES.SETTINGS_2FA_SUCCESS.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
+// Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
+const SET_UP_2FA_SCREENS = new Set<string>([
+    SCREENS.TWO_FACTOR_AUTH.ROOT,
+    SCREENS.TWO_FACTOR_AUTH.VERIFY,
+    SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT,
+    SCREENS.TWO_FACTOR_AUTH.SUCCESS,
+    SCREENS.TWO_FACTOR_AUTH.DISABLED,
+    SCREENS.TWO_FACTOR_AUTH.DISABLE,
 ]);
 
-let account: OnyxEntry<Account>;
-// We have used `connectWithoutView` here because it is not connected to any UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value;
-    },
-});
-
-function shouldShowRequire2FAPage() {
-    return !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth;
+function isTwoFactorSetupScreen(screen: string | undefined): boolean {
+    return screen ? SET_UP_2FA_SCREENS.has(screen) : false;
 }
 
 let resolveNavigationIsReadyPromise: () => void;
@@ -82,21 +71,52 @@ function getShouldPopToSidebar() {
     return shouldPopToSidebar;
 }
 
+/**
+ * Recursively get the deepest focused screen name from the navigation state.
+ * Unlike findFocusedRoute, this also handles the case where the nested navigator
+ * hasn't been mounted yet and the target screen is in params instead of state.
+ */
+function getDeepestFocusedScreenName(route: NavigationRoute | NavigationState | PartialState<NavigationState> | undefined): string | undefined {
+    if (!route) {
+        return undefined;
+    }
+
+    // NavigationState case - has routes array and index
+    if ('routes' in route && 'index' in route && Array.isArray(route.routes) && typeof route.index === 'number') {
+        const focusedRoute = route.routes[route.index];
+        return getDeepestFocusedScreenName(focusedRoute);
+    }
+
+    // Route with nested state case
+    if ('state' in route && route.state) {
+        return getDeepestFocusedScreenName(route.state);
+    }
+
+    // Route with params.screen case (initial navigation before navigator mounts)
+    if ('params' in route && route.params && typeof route.params === 'object' && 'screen' in route.params) {
+        const params = route.params as {screen?: string; params?: Record<string, unknown>};
+        if (params.screen) {
+            return getDeepestFocusedScreenName({name: params.screen, params: params.params});
+        }
+    }
+
+    // Leaf route - return the name
+    if ('name' in route) {
+        return route.name;
+    }
+
+    return undefined;
+}
+
 type CanNavigateParams = {
     route?: Route;
     backToRoute?: Route;
 };
 
 /**
- * Checks if the route can be navigated to based on whether the navigation ref is ready and if 2FA is required to be set up.
+ * Checks if navigation is ready.
  */
 function canNavigate(methodName: string, params: CanNavigateParams = {}): boolean {
-    // Block navigation if 2FA is required and the targetRoute is not part of the flow to enable 2FA
-    const targetRoute = params.route ?? params.backToRoute;
-    if (shouldShowRequire2FAPage() && targetRoute && !SET_UP_2FA_ROUTES.has(targetRoute)) {
-        Log.info(`[Navigation] Blocked navigation because 2FA is required to be set up to access route: ${targetRoute}`);
-        return false;
-    }
     if (navigationRef.isReady()) {
         return true;
     }
@@ -788,4 +808,4 @@ export default {
     dismissToSecondRHP,
 };
 
-export {navigationRef};
+export {navigationRef, getDeepestFocusedScreenName, isTwoFactorSetupScreen};
