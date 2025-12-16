@@ -172,7 +172,7 @@ function getReportPreviewAction(
     isPaidAnimationRunning?: boolean,
     isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
-    hasDEWSubmitPendingOrFailed?: boolean,
+    isDEWSubmitPending?: boolean,
     violationsData?: {currentUserEmail?: string; violations?: OnyxCollection<TransactionViolation[]>},
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
@@ -192,8 +192,7 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
-    // If DEW submit failed or there's a pending DEW submission, show VIEW
-    if (hasDEWSubmitPendingOrFailed && isOpenReport(report)) {
+    if (isDEWSubmitPending && isOpenReport(report)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 

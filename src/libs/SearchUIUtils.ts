@@ -77,7 +77,7 @@ import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatE
 import {
     getIOUActionForReportID,
     getOriginalMessage,
-    hasDEWSubmitPendingOrFailed,
+    hasPendingDEWSubmit,
     isCreatedAction,
     isDeletedAction,
     isHoldAction,
@@ -1238,8 +1238,7 @@ function getActions(
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
-    // Check for DEW submit failed or pending DEW submission - show View
-    if (hasDEWSubmitPendingOrFailed(reportActions, hasDynamicExternalWorkflow(policy))) {
+    if (hasPendingDEWSubmit(reportActions, hasDynamicExternalWorkflow(policy))) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
