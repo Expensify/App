@@ -14,6 +14,7 @@ type UseMergeTransactionsReturn = {
     targetTransaction?: Transaction;
     sourceTransaction?: Transaction;
     targetTransactionReport?: Report;
+    sourceTransactionReport?: Report;
 };
 
 function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): UseMergeTransactionsReturn {
@@ -32,12 +33,14 @@ function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): Us
     let targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction);
     let sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction);
     let targetTransactionReport;
+    let sourceTransactionReport;
 
     // Always use transactions from the search snapshot if we're coming from the Reports page
     if (searchHash) {
         targetTransaction = targetTransaction ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`];
         sourceTransaction = sourceTransaction ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`];
         targetTransactionReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`];
+        sourceTransactionReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction?.reportID}`];
     } else {
         targetTransaction = targetTransaction ?? onyxTargetTransaction;
         sourceTransaction = sourceTransaction ?? onyxSourceTransaction;
@@ -46,11 +49,15 @@ function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): Us
     const [onyxTargetTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {
         canBeMissing: true,
     });
+    const [onyxSourceTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction?.reportID}`, {
+        canBeMissing: true,
+    });
 
     return {
         targetTransaction,
         sourceTransaction,
         targetTransactionReport: targetTransactionReport ?? onyxTargetTransactionReport,
+        sourceTransactionReport: sourceTransactionReport ?? onyxSourceTransactionReport,
     };
 }
 

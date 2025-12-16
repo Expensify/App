@@ -43,7 +43,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {transactionID, backTo} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
-    const {targetTransaction, sourceTransaction} = useMergeTransactions({mergeTransaction});
+    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
@@ -73,7 +73,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
-            const updatedValues = getMergeFieldUpdatedValues(transaction, field, fieldValue);
+            const updatedValues = getMergeFieldUpdatedValues(transaction, field, fieldValue, [targetTransactionReport, sourceTransactionReport]);
 
             setMergeTransactionKey(transactionID, {
                 ...updatedValues,
@@ -83,7 +83,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                 } as Partial<Record<MergeFieldKey, string>>,
             });
         },
-        [mergeTransaction?.selectedTransactionByField, transactionID],
+        [mergeTransaction?.selectedTransactionByField, transactionID, targetTransactionReport, sourceTransactionReport],
     );
 
     // Handle continue

@@ -41,7 +41,7 @@ function setMergeTransactionKey(transactionID: string, values: MergeTransactionU
     Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
 }
 
-function setupMergeTransactionDataAndNavigate(transactions: Transaction[], localeCompare: LocaleContextProps['localeCompare'], hash?: number) {
+function setupMergeTransactionDataAndNavigate(transactions: Transaction[], localeCompare: LocaleContextProps['localeCompare'], searchReports: Report[]) {
     if (!transactions.length || transactions.length > 2) {
         return;
     }
@@ -70,10 +70,10 @@ function setupMergeTransactionDataAndNavigate(transactions: Transaction[], local
     setupMergeTransactionData(onyxMergeTransactionID, {targetTransactionID: targetTransaction?.transactionID, sourceTransactionID: sourceTransaction?.transactionID});
     if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
         // Navigate to the receipt review page if both transactions have a receipt
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute(), hash));
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute()));
     } else {
         // If transactions are identical, skip to the confirmation page
-        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare);
+        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare, searchReports);
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(onyxMergeTransactionID, mergeableData);
@@ -85,7 +85,7 @@ function setupMergeTransactionDataAndNavigate(transactions: Transaction[], local
         if (receipt) {
             setMergeTransactionKey(onyxMergeTransactionID, {receipt});
         }
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute(), hash));
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute()));
     }
 }
 

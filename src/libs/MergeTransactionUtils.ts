@@ -4,7 +4,7 @@ import type {TupleToUnion} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {MergeTransaction, Transaction} from '@src/types/onyx';
+import type {MergeTransaction, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -199,7 +199,12 @@ function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
  * @param localeCompare - The localize compare function
  * @returns mergeableData and conflictFields
  */
-function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, localeCompare: LocaleContextProps['localeCompare']) {
+function getMergeableDataAndConflictFields(
+    targetTransaction: OnyxEntry<Transaction>,
+    sourceTransaction: OnyxEntry<Transaction>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    searchReports: Report[] = [],
+) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
 
@@ -251,7 +256,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         // We allow user to select unreported report
         if (field === 'reportID') {
             if (targetValue === sourceValue) {
-                const updatedValues = getMergeFieldUpdatedValues(targetTransaction, field, SafeString(targetValue));
+                const updatedValues = getMergeFieldUpdatedValues(targetTransaction, field, SafeString(targetValue), searchReports);
                 Object.assign(mergeableData, updatedValues);
             } else {
                 conflictFields.push(field);
@@ -281,7 +286,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
             const selectedTransaction = isTargetValueEmpty ? sourceTransaction : targetTransaction;
             const selectedFieldValue = isTargetValueEmpty ? sourceValue : targetValue;
-            const updatedValues = getMergeFieldUpdatedValues(selectedTransaction, field, selectedFieldValue as MergeTransaction[typeof field]);
+            const updatedValues = getMergeFieldUpdatedValues(selectedTransaction, field, selectedFieldValue as MergeTransaction[typeof field], searchReports);
             Object.assign(mergeableData, updatedValues);
         } else {
             conflictFields.push(field);
@@ -524,7 +529,12 @@ function buildMergeFieldsData(
  * Build updated values for merge transaction field selection
  * Handles special cases like currency for amount field, reportID and additional fields for distance requests
  */
-function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEntry<Transaction>, field: K, fieldValue: MergeTransaction[K]): MergeTransactionUpdateValues {
+function getMergeFieldUpdatedValues<K extends MergeFieldKey>(
+    transaction: OnyxEntry<Transaction>,
+    field: K,
+    fieldValue: MergeTransaction[K],
+    searchReports: Array<OnyxEntry<Report>>,
+): MergeTransactionUpdateValues {
     const updatedValues: MergeTransactionUpdateValues = {
         [field]: fieldValue,
     };
@@ -534,7 +544,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEn
     }
 
     if (field === 'reportID') {
-        const reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction)));
+        const reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction), searchReports));
         updatedValues.reportName = reportName.length ? reportName : undefined;
     }
 

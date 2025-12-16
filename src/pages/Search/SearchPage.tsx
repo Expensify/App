@@ -738,7 +738,7 @@ function SearchPage({route}: SearchPageProps) {
                     text: translate('common.merge'),
                     icon: expensifyIcons.ArrowCollapse,
                     value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                    onSelected: () => setupMergeTransactionDataAndNavigate(transactions, localeCompare, queryJSON?.hash),
+                    onSelected: () => setupMergeTransactionDataAndNavigate(transactions, localeCompare, reports),
                 });
             }
         }
