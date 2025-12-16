@@ -11,7 +11,7 @@ import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/SelectionListWithSections/types';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
-import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
+import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -1127,8 +1127,7 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
 
     // Only consider analyzing if category is actually missing
     const category = getCategory(transaction);
-    const isUncategorized = !category || category.toLowerCase() === 'uncategorized';
-    if (!isUncategorized) {
+    if (!isCategoryMissing(category)) {
         return false;
     }
 
