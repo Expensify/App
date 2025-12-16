@@ -20,9 +20,11 @@ import {
     filterSelfDMChat,
     filterWorkspaceChats,
     formatMemberForList,
+    getCurrentUserSearchTerms,
     getLastActorDisplayName,
     getLastMessageTextForReport,
     getMemberInviteOptions,
+    getPersonalDetailSearchTerms,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
     getValidOptions,
@@ -65,10 +67,6 @@ jest.mock('@rnmapbox/maps', () => {
         setAccessToken: jest.fn(),
     };
 });
-
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -2786,6 +2784,48 @@ describe('OptionsListUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
+        });
+        it('should return last visible message text when last action is hidden (e.g. whisper)', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                lastMessageText: 'joined the chat',
+            };
+            const whisperAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [whisperAction.reportActionID]: whisperAction,
+            });
+            await waitForBatchedUpdates();
+
+            const expectedVisibleText = '';
+            const result = getLastMessageTextForReport({
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(result).toBe(expectedVisibleText);
+        });
+    });
+
+    describe('getPersonalDetailSearchTerms', () => {
+        it('should include display name', () => {
+            const displayName = 'test';
+            const searchTerms = getPersonalDetailSearchTerms({displayName});
+            expect(searchTerms.includes(displayName)).toBe(true);
+            const searchTerms2 = getPersonalDetailSearchTerms({participantsList: [{displayName, accountID: 123}]});
+            expect(searchTerms2.includes(displayName)).toBe(true);
+        });
+    });
+
+    describe('getCurrentUserSearchTerms', () => {
+        it('should include display name', () => {
+            const displayName = 'test';
+            const searchTerms = getCurrentUserSearchTerms({displayName});
+            expect(searchTerms.includes(displayName)).toBe(true);
+            const searchTerms2 = getCurrentUserSearchTerms({text: displayName});
+            expect(searchTerms2.includes(displayName)).toBe(true);
         });
     });
 });

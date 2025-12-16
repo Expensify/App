@@ -1,7 +1,29 @@
 // This file contains all the SVG imports for illustrations used in the app
 // Company Cards
 import type {SvgProps} from 'react-native-svg';
+import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
+import BankOfAmericaCompanyCardDetail from '@assets/images/companyCards/card-bofa.svg';
+import BrexCompanyCardDetail from '@assets/images/companyCards/card-brex.svg';
+import CapitalOneCompanyCardDetail from '@assets/images/companyCards/card-capitalone.svg';
+import ChaseCompanyCardDetail from '@assets/images/companyCards/card-chase.svg';
+import CitibankCompanyCardDetail from '@assets/images/companyCards/card-citi.svg';
+import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
+import PlaidCompanyCardDetail from '@assets/images/companyCards/card-plaid.svg';
+import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
+import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
+import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
+import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
+import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
+import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-brex-large.svg';
+import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/card-capital_one-large.svg';
+import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
+import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
+import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
+import PlaidCompanyCardDetailLarge from '@assets/images/companyCards/large/card-plaid-large.svg';
+import StripeCompanyCardDetailLarge from '@assets/images/companyCards/large/card-stripe-large.svg';
+import VisaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-visa-large.svg';
+import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/card-wellsfargo-large.svg';
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 // Other assets
@@ -27,6 +49,8 @@ import DjBoothReferenceHands from '@assets/images/product-illustrations/dj-booth
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
+import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
+import FolderWithPapersAndWatch from '@assets/images/product-illustrations/folder-with-papers-and-watch.svg';
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
 import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
@@ -34,6 +58,7 @@ import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
+import PlanetWithMobileApp from '@assets/images/product-illustrations/planet-with-mobile-app.svg';
 import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
@@ -57,6 +82,7 @@ import Abacus from '@assets/images/simple-illustrations/simple-illustration__aba
 // Simple Illustrations - Original core ones
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
+import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
@@ -67,6 +93,7 @@ import Car from '@assets/images/simple-illustrations/simple-illustration__car.sv
 import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
+import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
@@ -134,13 +161,35 @@ import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
     // Company Cards
+    AmexCardCompanyCardDetail,
+    BankOfAmericaCompanyCardDetail,
+    BrexCompanyCardDetail,
+    CapitalOneCompanyCardDetail,
+    ChaseCompanyCardDetail,
+    CitibankCompanyCardDetail,
+    MasterCardCompanyCardDetail,
+    PlaidCompanyCardDetail,
+    StripeCompanyCardDetail,
+    VisaCompanyCardDetail,
+    WellsFargoCompanyCardDetail,
+    AmexCardCompanyCardDetailLarge,
+    BankOfAmericaCompanyCardDetailLarge,
+    BrexCompanyCardDetailLarge,
+    CapitalOneCompanyCardDetailLarge,
+    ChaseCompanyCardDetailLarge,
+    CitibankCompanyCardDetailLarge,
+    MasterCardCompanyCardDetailLarge,
+    PlaidCompanyCardDetailLarge,
+    StripeCompanyCardDetailLarge,
+    VisaCompanyCardDetailLarge,
+    WellsFargoCompanyCardDetailLarge,
     CompanyCardsEmptyState,
-    CompanyCardsPendingState,
+    EmptyCardState,
     PendingBank,
+    CompanyCardsPendingState,
 
     // Other assets
     Computer,
-    EmptyCardState,
     ExpensifyCardImage,
     LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
@@ -159,6 +208,8 @@ const Illustrations = {
     EmptyStateExpenses,
     HoldExpense,
     ReceiptFairy,
+    Fireworks,
+    FolderWithPapersAndWatch,
     FolderWithPapers,
     Hands,
     CardReplacementSuccess,
@@ -166,6 +217,7 @@ const Illustrations = {
     ModalHoldOrReject,
     MushroomTopHat,
     PaymentHands,
+    PlanetWithMobileApp,
     ReceiptsStackedOnPin,
     RocketBlue,
     RocketDude,
@@ -269,6 +321,8 @@ const Illustrations = {
     LockOpen,
     Mailbox,
     ShieldYellow,
+    Clock,
+    Members,
 };
 
 /**
