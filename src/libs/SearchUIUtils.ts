@@ -2161,6 +2161,10 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.receipt';
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return 'common.tag';
+        case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
+            return 'common.reimbursable';
+        case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+            return 'common.billable';
         case CONST.SEARCH.TABLE_COLUMNS.ACTION:
             return 'common.action';
         case CONST.SEARCH.TABLE_COLUMNS.TITLE:
