@@ -2870,7 +2870,7 @@ ${
             containsReservedWord: '名前に「Expensify」または「Concierge」という単語を含めることはできません',
             hasInvalidCharacter: '名前にコンマまたはセミコロンを含めることはできません',
             requiredFirstName: '名は空欄にできません',
-            cannotContainSpecialCharacters: 'Name cannot contain special characters.',
+            cannotContainSpecialCharacters: '名前に特殊文字を含めることはできません。',
         },
     },
     privatePersonalDetails: {
