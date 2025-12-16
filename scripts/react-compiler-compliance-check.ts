@@ -671,9 +671,6 @@ function printResults({success, failuresForAddedFiles, failuresForModifiedFiles,
             log();
 
             printFailures(failuresForModifiedFiles);
-
-            log();
-            logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and can get ignored.');
         }
     }
 
@@ -716,11 +713,12 @@ function printResults({success, failuresForAddedFiles, failuresForModifiedFiles,
     const isPassed = didCheckForAddedFilesPass && !hasManualMemoErrors;
 
     if (isPassed) {
-        const logMethod = hasModifiedFilesErrors ? logWarn : logSuccess;
+        if (hasModifiedFilesErrors) {
+            // TODO: In Phase 2, remove the warnings and print errors for modified files.
+            logWarn(`React Compiler compliance check passed with warnings! The warnings must NOT be fixed and can get ignored.`);
+        }
 
-        // TODO: In Phase 2, remove the 'with warnings' suffix,
-        // since we are not printing errors for modified files.
-        logMethod(`React Compiler compliance check passed${hasModifiedFilesErrors ? ' with warnings' : ''}!`);
+        logSuccess('React Compiler compliance check passed!');
         return true;
     }
 
