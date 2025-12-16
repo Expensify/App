@@ -151,7 +151,11 @@ function ExpenseReportListItemRow({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.WORKSPACE]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WORKSPACE)]}>
-                <WorkspaceCell policyID={item.policyID} />
+                <WorkspaceCell
+                    policyID={item.policyID}
+                    policyName={policy?.name}
+                    avatarURL={policy?.avatarURL}
+                />
             </View>
         ),
     };
