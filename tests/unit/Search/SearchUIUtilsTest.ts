@@ -2758,6 +2758,8 @@ describe('SearchUIUtils', () => {
                 [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
             });
         });
 
@@ -2777,6 +2779,8 @@ describe('SearchUIUtils', () => {
                 // Total should always be visible
                 [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
             });
         });
 
