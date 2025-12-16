@@ -449,7 +449,6 @@ export {
     getScimToken,
     createDomain,
     resetCreateDomainForm,
-    addAdminToDomain,
     revokeDomainAdminAccess,
     clearRemoveAdminError,
 };

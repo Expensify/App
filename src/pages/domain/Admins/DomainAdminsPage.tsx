@@ -15,6 +15,8 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearRemoveAdminError} from '@libs/actions/Domain';
+import {getLatestError} from '@libs/ErrorUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -48,6 +50,11 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
+
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        canBeMissing: true,
+    });
+
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const data: AdminOption[] = [];
@@ -67,6 +74,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     id: accountID,
                 },
             ],
+            errors: getLatestError(domainErrors?.adminErrors?.[accountID]?.errors),
         });
     }
 
@@ -138,6 +146,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     showScrollIndicator={false}
                     addBottomSafeAreaPadding
                     customListHeader={getCustomListHeader()}
+                    onDismissError={(item: AdminOption) => clearRemoveAdminError(domainAccountID, item.accountID)}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
