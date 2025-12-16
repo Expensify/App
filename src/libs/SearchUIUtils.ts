@@ -2047,6 +2047,8 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
             return 'iou.cash';
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
             return 'common.perDiem';
+        case CONST.SEARCH.TRANSACTION_TYPE.TIME:
+            return 'iou.time';
     }
 }
 
