@@ -408,8 +408,8 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
                 >
                     <AmountCell
-                        total={getOriginalAmount(transactionItem) ?? getAmount(transactionItem)}
-                        currency={getOriginalCurrency(transactionItem) ?? getCurrency(transactionItem)}
+                        total={getOriginalAmount(transactionItem)}
+                        currency={getOriginalCurrency(transactionItem)}
                     />
                 </View>
             ),
@@ -456,6 +456,7 @@ function TransactionItemRow({
             report?.policyID,
             report?.total,
             areAllOptionalColumnsHidden,
+            report,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
