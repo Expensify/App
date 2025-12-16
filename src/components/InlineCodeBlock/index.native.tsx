@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import type {TDefaultRendererProps} from 'react-native-render-html';
 import Text from '@components/Text';
 import type InlineCodeBlockProps from './types';
@@ -27,7 +28,9 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
         >
-            <Text style={[boxModelStyle, textStyle]}>{data}</Text>
+            <View style={[boxModelStyle]}>
+                <Text style={[textStyle]}>{data}</Text>
+            </View>
         </TDefaultRenderer>
     );
 }
