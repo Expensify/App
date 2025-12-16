@@ -60,11 +60,11 @@ type WorkspaceExpensifyCardListPageProps = {
 };
 
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ExpensifyCardImage'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ExpensifyCardImage']);
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
