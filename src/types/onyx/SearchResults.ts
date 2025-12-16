@@ -175,6 +175,9 @@ type SearchTransaction = {
 
     /** Billable status of the transaction */
     billable?: boolean;
+
+    /** The card transaction's posted date */
+    posted?: string;
 };
 
 /** Model of tasks search result */
