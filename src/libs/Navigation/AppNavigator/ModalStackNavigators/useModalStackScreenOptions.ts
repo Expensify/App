@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import variables from '@styles/variables';
 
 function useWideModalStackScreenOptions() {
     const styles = useThemeStyles();
