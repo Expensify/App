@@ -9,6 +9,7 @@ import RadioButton from '@components/RadioButton';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
+import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
 import TextCell from '@components/SelectionListWithSections/Search/TextCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
@@ -92,6 +93,7 @@ type TransactionItemRowProps = {
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
     submittedColumnSize?: TableColumnSize;
+    approvedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     onCheckboxPress?: (transactionID: string) => void;
@@ -135,6 +137,7 @@ function TransactionItemRow({
     shouldShowTooltip,
     dateColumnSize,
     submittedColumnSize,
+    approvedColumnSize,
     amountColumnSize,
     taxAmountColumnSize,
     onCheckboxPress = () => {},
@@ -167,6 +170,7 @@ function TransactionItemRow({
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isApprovedColumnWide = approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
@@ -265,6 +269,18 @@ function TransactionItemRow({
                 >
                     <DateCell
                         date={report?.submitted ?? ''}
+                        showTooltip={shouldShowTooltip}
+                        isLargeScreenWidth={!shouldUseNarrowLayout}
+                    />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.APPROVED}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, areAllOptionalColumnsHidden, false, isApprovedColumnWide)]}
+                >
+                    <DateCell
+                        date={report?.approved ?? ''}
                         showTooltip={shouldShowTooltip}
                         isLargeScreenWidth={!shouldUseNarrowLayout}
                     />
@@ -404,15 +420,25 @@ function TransactionItemRow({
                     />
                 </View>
             ),
+            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
+                    <StatusCell
+                        stateNum={transactionItem.report?.stateNum}
+                        statusNum={transactionItem.report?.statusNum}
+                    />
+                </View>
+            ),
         }),
         [
             StyleUtils,
             createdAt,
             report?.submitted,
+            report?.approved,
             isActionLoading,
             isReportItemChild,
             isDateColumnWide,
             isSubmittedColumnWide,
+            isApprovedColumnWide,
             isAmountColumnWide,
             isTaxAmountColumnWide,
             isInSingleTransactionReport,

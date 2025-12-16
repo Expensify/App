@@ -17,6 +17,7 @@ const mockReportItemWithHold = {
     chatReportID: '2108006919825366',
     created: '2024-12-04 23:18:33',
     submitted: '2024-12-04',
+    approved: undefined,
     currency: 'USD',
     isOneTransactionReport: false,
     isPolicyExpenseChat: false,
@@ -66,6 +67,7 @@ const mockReportItemWithHold = {
     },
     shouldShowYear: false,
     shouldShowYearSubmitted: false,
+    shouldShowYearApproved: false,
     transactions: [
         {
             report: {
@@ -94,6 +96,7 @@ const mockReportItemWithHold = {
             action: 'view',
             allActions: ['view'],
             amount: -1200,
+            canDelete: true,
             category: '',
             comment: {
                 comment: '',
@@ -110,6 +113,7 @@ const mockReportItemWithHold = {
             modifiedMerchant: '',
             parentTransactionID: '',
             submitted: '2024-12-04',
+            approved: undefined,
             policyID: '48D7178DE42EE9F9',
             reportID: '1350959062018695',
             reportType: 'expense',
@@ -154,6 +158,7 @@ const mockReportItemWithHold = {
             shouldShowMerchant: true,
             shouldShowYear: false,
             shouldShowYearSubmitted: false,
+            shouldShowYearApproved: false,
             keyForList: '1049531721038862176',
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
@@ -184,12 +189,14 @@ const mockReportItemWithHold = {
             action: 'view',
             allActions: ['view'],
             amount: -12300,
+            canDelete: true,
             category: '',
             comment: {
                 comment: '',
             },
             created: '2024-12-04',
             submitted: '2024-12-04',
+            approved: undefined,
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Forbes',
@@ -221,6 +228,7 @@ const mockReportItemWithHold = {
             shouldShowMerchant: true,
             shouldShowYear: false,
             shouldShowYearSubmitted: false,
+            shouldShowYearApproved: false,
             keyForList: '5345995386715609966',
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
