@@ -5,8 +5,10 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, Report} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import getIconForAction from './getIconForAction';
+import {getPerDiemCustomUnit} from './PolicyUtils';
 import {canCreateRequest} from './ReportUtils';
 
 const getQuickActionIcon = (icons: Record<'CalendarSolid' | 'Car' | 'Task', IconAsset>, action: QuickActionName): IconAsset => {
@@ -98,8 +100,14 @@ const isQuickActionAllowed = (
     isReportArchived: boolean | undefined,
     isRestrictedToPreferredPolicy = false,
 ) => {
-    if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM && !quickActionPolicy?.arePerDiemRatesEnabled) {
-        return false;
+    if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
+        if (!quickActionPolicy?.arePerDiemRatesEnabled) {
+            return false;
+        }
+        const perDiemCustomUnit = getPerDiemCustomUnit(quickActionPolicy);
+        if (isEmptyObject(perDiemCustomUnit?.rates)) {
+            return false;
+        }
     }
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
