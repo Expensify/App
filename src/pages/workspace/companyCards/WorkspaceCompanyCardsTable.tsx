@@ -1,5 +1,5 @@
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useCallback, useMemo} from 'react';
-import type {ListRenderItemInfo} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Table from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
