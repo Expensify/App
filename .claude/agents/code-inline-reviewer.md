@@ -157,7 +157,7 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 #### Before flagging: Run optimization check
 
-**MANDATORY**: Run this script for ANY potential PERF-4 (available in PATH):
+**YOU MUST call `checkReactCompilerOptimization.sh` on EVERY .tsx file from the diff.**
 
 ```bash
 checkReactCompilerOptimization.sh <file-path>
