@@ -66,12 +66,11 @@ function WalletPage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus'] as const);
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe']);
+    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus']);
     const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet']);
     const walletIllustration = useWalletSectionIllustration();
 
