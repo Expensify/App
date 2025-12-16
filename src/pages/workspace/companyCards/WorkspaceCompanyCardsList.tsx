@@ -15,6 +15,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useNetwork from '@hooks/useNetwork';
 import {
     filterCardsByPersonalDetails,
@@ -63,7 +64,9 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
     const listRef = useRef<FlashListRef<string>>(null);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const isLoadingPersonalDetails = !isOffline && isLoadingOnyxValue(personalDetailsMetadata);
+    const isLoadingCardsTableData = isLoadingCardsList || isLoadingPersonalDetails;
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
 
@@ -216,7 +219,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
     );
 
     // Show empty state when there are no cards (but not when loading)
-    if (!cards?.length && !isLoadingCardsList) {
+    if (!cards?.length && !isLoadingCardsTableData) {
         return (
             <WorkspaceCompanyCardsFeedAddedEmptyPage
                 shouldShowGBDisclaimer={shouldShowGBDisclaimer}
@@ -230,11 +233,11 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
         <View style={styles.flex1}>
             <FlashList
                 ref={listRef}
-                data={isLoadingCardsList ? [] : (cards ?? [])}
+                data={isLoadingCardsTableData ? [] : (cards ?? [])}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 ListHeaderComponent={ListHeaderComponent}
-                ListEmptyComponent={!isOffline && isLoadingCardsList ? <TableRowSkeleton fixedNumItems={5} /> : undefined}
+                ListEmptyComponent={!isOffline && isLoadingCardsTableData ? <TableRowSkeleton fixedNumItems={5} /> : undefined}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={styles.flexGrow1}

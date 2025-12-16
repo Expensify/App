@@ -61,7 +61,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
     const isLoading = !isOffline && !cardFeeds;
-    const isLoadingCardsList = (!isOffline && isLoadingOnyxValue(cardsListMetadata)) || testLoadingDelay;
+    const isLoadingCardsList = (!isOffline && isLoadingOnyxValue(cardsListMetadata));
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
 
