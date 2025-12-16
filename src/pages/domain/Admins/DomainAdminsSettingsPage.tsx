@@ -1,3 +1,4 @@
+import {technicalContactEmailSelector} from '@selectors/Domain';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import {clearChoosePrimaryContactError} from '@userActions/Domain';
+import {clearSetPrimaryContactError} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -28,10 +29,10 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         canBeMissing: true,
     });
-    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+    const [technicalContactEmail] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
+        selector: technicalContactEmailSelector,
     });
-    const currentlySelectedUser = domainSettings?.settings?.technicalContactEmail;
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -50,11 +51,11 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 <OfflineWithFeedback
                     pendingAction={domainPendingActions?.technicalContactEmail}
                     errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
-                    onClose={() => clearChoosePrimaryContactError(domainAccountID)}
+                    onClose={() => clearSetPrimaryContactError(domainAccountID)}
                 >
                     <MenuItemWithTopDescription
                         description={translate('domain.admins.primaryContact')}
-                        title={currentlySelectedUser}
+                        title={technicalContactEmail}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
                     />

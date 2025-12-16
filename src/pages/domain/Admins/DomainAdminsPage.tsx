@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, technicalContactEmailSelector} from '@selectors/Domain';
 import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
@@ -52,13 +52,13 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         selector: adminAccountIDsSelector,
     });
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+    const [technicalContactEmail] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
+        selector: technicalContactEmailSelector,
     });
 
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
-    const primaryContact = domainSettings?.settings?.technicalContactEmail;
 
     const data: AdminOption[] = [];
     for (const accountID of adminAccountIDs ?? []) {
@@ -77,7 +77,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     id: accountID,
                 },
             ],
-            rightElement: primaryContact === details?.login && <Badge text={translate('domain.admins.primaryContact')} />,
+            rightElement: technicalContactEmail === details?.login && <Badge text={translate('domain.admins.primaryContact')} />,
         });
     }
 
