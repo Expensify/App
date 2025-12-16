@@ -22,7 +22,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
-import WorkspacesEmptyStateComponent from '@components/WorkspacesEmptyStateComponent';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleBackButton from '@hooks/useHandleBackButton';
@@ -72,6 +71,7 @@ import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import WorkspacesEmptyStateComponent from './WorkspacesEmptyStateComponent';
 import WorkspacesListPageHeaderButton from './WorkspacesListPageHeaderButton';
 import WorkspacesListRow from './WorkspacesListRow';
 
@@ -121,7 +121,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
@@ -217,6 +217,7 @@ function WorkspacesListPage() {
             reimbursementAccountError,
             bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
+            localeCompare,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
