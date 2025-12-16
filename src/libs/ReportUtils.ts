@@ -6370,12 +6370,12 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
         const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
         if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
             const lastRouteParams = lastRoute?.params;
-            const newbackRoute = lastRouteParams && 'backTo' in lastRouteParams ? lastRouteParams?.backTo : undefined;
+            const newBackRoute = lastRouteParams && 'backTo' in lastRouteParams ? lastRouteParams?.backTo : undefined;
             if (isFromRHP) {
                 Navigation.dismissModal();
             }
             Navigation.isNavigationReady().then(() => {
-                Navigation.goBack(newbackRoute as Route);
+                Navigation.goBack(newBackRoute as Route);
             });
             return;
         }
