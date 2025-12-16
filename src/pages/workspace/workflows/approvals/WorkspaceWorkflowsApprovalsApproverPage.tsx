@@ -142,7 +142,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             const isRemovingApprover = approvers.length === 0;
 
             if (isRemovingApprover) {
-                clearApprovalWorkflowApprover({approverIndex, approvalWorkflow});
+                clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow: approvalWorkflow});
                 goBack();
                 return;
             }
@@ -161,7 +161,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     overLimitForwardsTo: '',
                 },
                 approverIndex,
-                approvalWorkflow,
+                currentApprovalWorkflow: approvalWorkflow,
                 policy,
                 personalDetailsByEmail,
             });
