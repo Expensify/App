@@ -1375,23 +1375,6 @@ const CONST = {
             ACTION_VISIBLE_THRESHOLD: 250,
             MAX_GROUPING_TIME: 300000,
         },
-        TRANSACTION_LIST: {
-            COLUMNS: {
-                COMMENTS: 'comments',
-                RECEIPT: 'receipt',
-                DATE: 'date',
-                MERCHANT: 'merchant',
-                DESCRIPTION: 'description',
-                FROM: 'from',
-                TO: 'to',
-                CATEGORY: 'category',
-                TAG: 'tag',
-                TOTAL_AMOUNT: 'amount',
-                TYPE: 'type',
-                ACTION: 'action',
-                TAX: 'tax',
-            },
-        },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
             USER: 'CANCEL_REASON_USER',
@@ -6704,6 +6687,7 @@ const CONST = {
                 EXPENSE: {
                     RECEIPT: this.TABLE_COLUMNS.RECEIPT,
                     DATE: this.TABLE_COLUMNS.DATE,
+                    SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     MERCHANT: this.TABLE_COLUMNS.MERCHANT,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
@@ -6714,6 +6698,7 @@ const CONST = {
                 },
                 EXPENSE_REPORT: {
                     DATE: this.TABLE_COLUMNS.DATE,
+                    SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
@@ -6791,6 +6776,7 @@ const CONST = {
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
+            SUBMITTED: 'submitted',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
@@ -6810,6 +6796,7 @@ const CONST = {
             WITHDRAWAL_ID: 'withdrawalID',
             AVATAR: 'avatar',
             STATUS: 'status',
+            TAX: 'tax',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',

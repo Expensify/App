@@ -35,6 +35,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.date',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
+        translationKey: 'common.submitted',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
         canBeMissing: true,
@@ -146,6 +150,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'common.date',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
+        translationKey: 'common.submitted',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
         translationKey: 'common.status',
     },
@@ -197,6 +205,7 @@ type SearchTableHeaderProps = {
     sortOrder?: SortOrder;
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
     shouldShowYear: boolean;
+    shouldShowYearSubmitted?: boolean;
     isAmountColumnWide: boolean;
     isTaxAmountColumnWide: boolean;
     shouldShowSorting: boolean;
@@ -212,6 +221,7 @@ function SearchTableHeader({
     sortOrder,
     onSortPress,
     shouldShowYear,
+    shouldShowYearSubmitted,
     shouldShowSorting,
     canSelectMultiple,
     isAmountColumnWide,
@@ -250,6 +260,7 @@ function SearchTableHeader({
             areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
             shouldShowColumn={shouldShowColumn}
             dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+            submittedColumnSize={shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             taxAmountColumnSize={isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             shouldShowSorting={shouldShowSorting}
@@ -258,7 +269,7 @@ function SearchTableHeader({
             // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl4]}
             onSortPress={(columnName, order) => {
-                if (columnName === CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) {
+                if (columnName === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
                     return;
                 }
                 onSortPress(columnName, order);

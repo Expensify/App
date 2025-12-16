@@ -89,6 +89,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The date the report was created */
         created?: string;
 
+        /** The date the report was submitted */
+        submitted?: string;
+
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
