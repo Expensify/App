@@ -163,6 +163,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
     // - A 1:1 DM
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = isPolicyExpenseChat(rootParentReport) ? getPolicyExpenseChatName({report: rootParentReport}) : buildReportNameFromParticipantNames({report: rootParentReport});
     const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true});
     // If we can't determine either the report name or policy name, return the default message
@@ -190,6 +191,7 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
     }
 
     if (movedFromReport) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const originReportName = getReportName(movedFromReport);
         return translate('iou.movedFromReport', {reportName: originReportName ?? ''});
     }
