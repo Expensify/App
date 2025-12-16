@@ -250,7 +250,7 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false, areAllOptionalColumnsHidden)]}
                 >
                     <DateCell
-                        created={createdAt}
+                        date={createdAt}
                         showTooltip={shouldShowTooltip}
                         isLargeScreenWidth={!shouldUseNarrowLayout}
                     />
@@ -434,7 +434,7 @@ function TransactionItemRow({
                         <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
                                 <DateCell
-                                    created={createdAt}
+                                    date={createdAt}
                                     showTooltip={shouldShowTooltip}
                                     isLargeScreenWidth={!shouldUseNarrowLayout}
                                 />
