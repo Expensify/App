@@ -5,7 +5,7 @@ import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -32,6 +32,7 @@ import {formatPhoneNumber} from './LocalePhoneNumber';
 import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
+import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
@@ -877,7 +878,7 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, policy?: OnyxEntry<Policy>): boolean {
     if (!reportAction) {
         return false;
     }
@@ -933,6 +934,10 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     if (!isVisiblePreviewOrMoneyRequest(reportAction)) {
+        return false;
+    }
+
+    if (isConciergeCategoryOptions(reportAction) && policy && !policy.areCategoriesEnabled) {
         return false;
     }
 
@@ -2551,7 +2556,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
                     return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.always');
                 }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.default', {defaultAmount: formatAmount()});
+                return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.default', formatAmount());
             };
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspaceActions.updateCategoryMaxAmountNoReceipt', {
@@ -2742,6 +2747,26 @@ function getWorkspaceCustomUnitRateUpdatedMessage(action: ReportAction): string 
             customUnitRateName,
             newValue: parseFloat(parseFloat(newValue ?? 0).toFixed(2)),
             oldValue: typeof oldValue === 'number' ? parseFloat(parseFloat(oldValue ?? 0).toFixed(2)) : undefined,
+        });
+    }
+
+    if (customUnitName && customUnitRateName && updatedField === 'index' && typeof newValue === 'number') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updatedCustomUnitRateIndex', {
+            customUnitName,
+            customUnitRateName,
+            oldValue: oldValue ? Number(oldValue) : undefined,
+            newValue,
+        });
+    }
+
+    if (customUnitName && customUnitRateName && updatedField === 'enabled' && typeof oldValue === 'boolean' && typeof newValue === 'boolean') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updatedCustomUnitRateEnabled', {
+            customUnitName,
+            customUnitRateName,
+            oldValue,
+            newValue,
         });
     }
 
@@ -3345,7 +3370,7 @@ function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.T
     // If mentionedAccountIDs exists and has values, use the first one
     if (mentionedAccountIDs?.length) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.changeApprover.changedApproverMessage', {managerID: mentionedAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID});
+        return translateLocal('iou.changeApprover.changedApproverMessage', mentionedAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID);
     }
 
     // Fallback: If mentionedAccountIDs is missing (common with OldDot take control actions),
@@ -3355,7 +3380,12 @@ function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.T
         return '';
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.changeApprover.changedApproverMessage', {managerID: actorAccountID});
+    return translateLocal('iou.changeApprover.changedApproverMessage', actorAccountID);
+}
+
+function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate) {
+    const reportUrl = getReportURLForCurrentContext(reportID);
+    return translate('reportAction.harvestCreatedExpenseReport', {reportUrl, reportName});
 }
 
 function isCardIssuedAction(
@@ -3440,20 +3470,20 @@ function getCardIssuedMessage({
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED: {
             if (cardIssuedActionOriginalMessage?.hadMissingAddress) {
-                return translate('workspace.expensifyCard.addedShippingDetails', {assignee});
+                return translate('workspace.expensifyCard.addedShippingDetails', assignee);
             }
-            return translate('workspace.expensifyCard.issuedCard', {assignee});
+            return translate('workspace.expensifyCard.issuedCard', assignee);
         }
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
             return translate('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink(translate('workspace.expensifyCard.card'))});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
             return translate('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-            return translate('workspace.expensifyCard.issuedCardNoShippingDetails', {assignee});
+            return translate('workspace.expensifyCard.issuedCardNoShippingDetails', assignee);
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL:
             return translate('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink(translate('workspace.expensifyCard.replacementCard'))});
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED:
-            return translate('workspace.expensifyCard.replacedCard', {assignee});
+            return translate('workspace.expensifyCard.replacedCard', assignee);
         default:
             return '';
     }
@@ -3755,6 +3785,7 @@ export {
     isPendingHide,
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,
+    getHarvestCreatedExpenseReportMessage,
     isSystemUserMentioned,
 };
 

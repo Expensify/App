@@ -27,7 +27,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass']);
 
     const cabinClassMapping: Record<string, string> = {
         UNKNOWN_CABIN: translate('travel.flightDetails.cabinClasses.unknown'),
@@ -150,7 +150,5 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
         </>
     );
 }
-
-FlightTripDetails.displayName = 'FlightTripDetails';
 
 export default FlightTripDetails;

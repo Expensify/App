@@ -92,7 +92,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
 
     return (
         <ScreenWrapper
-            testID={BaseShareLogList.displayName}
+            testID="BaseShareLogList"
             includeSafeAreaPaddingBottom={false}
         >
             {({didScreenTransitionEnd}) => (
@@ -119,7 +119,5 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         </ScreenWrapper>
     );
 }
-
-BaseShareLogList.displayName = 'ShareLogPage';
 
 export default BaseShareLogList;
