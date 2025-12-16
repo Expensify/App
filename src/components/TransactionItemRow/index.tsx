@@ -20,21 +20,21 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import {isSettled} from '@libs/ReportUtils';
+import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
     getCurrency,
     getDescription,
     getMerchant,
+    getOriginalAmount,
+    getOriginalCurrency,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
     isMerchantMissing,
     isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
-    getOriginalAmount,
-    getOriginalCurrency,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -408,7 +408,7 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
                 >
                     <AmountCell
-                        total={getOriginalAmount(transactionItem) ?? getAmount(transactionItem)}
+                        total={getOriginalAmount(transactionItem) ?? getAmount(transactionItem, isExpenseReport(report), transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, true, false)}
                         currency={getOriginalCurrency(transactionItem) ?? getCurrency(transactionItem)}
                     />
                 </View>
