@@ -41,7 +41,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass'] as const);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
     const [list] = useCardsList(feed);
@@ -142,11 +142,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
             <View style={[styles.renderHTML, styles.ph5, styles.mv3, styles.textSupporting]}>
-                <RenderHTML
-                    html={translate('workspace.companyCards.chooseCardFor', {
-                        assignee: assigneeDisplayName,
-                    })}
-                />
+                <RenderHTML html={translate('workspace.companyCards.chooseCardFor', assigneeDisplayName)} />
             </View>
         </View>
     );

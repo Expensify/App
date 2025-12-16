@@ -395,7 +395,7 @@ type MenuItemBaseProps = ForwardedFSClassProps & {
     /** Whether the screen containing the item is focused */
     isFocused?: boolean;
 
-    /** Label for Sentry INP tracking */
+    /** Label for Sentry tracking */
     sentryLabel?: string;
 };
 

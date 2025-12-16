@@ -13,20 +13,23 @@ import type {NavigationRoute} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import defaultWideRHPContextValue from './default';
-import getIsRHPDisplayedBelow from './getIsRHPDisplayedBelow';
-import getVisibleRHPKeys from './getVisibleRHPRouteKeys';
+import getIsWideRHPOpenedBelow from './getIsWideRHPOpenedBelow';
+import getVisibleWideRHPKeys from './getVisibleRHPRouteKeys';
 import type {WideRHPContextType} from './types';
 import useShouldRenderOverlay from './useShouldRenderOverlay';
 
 // 0 is folded/hidden, 1 is expanded/shown
 const expandedRHPProgress = new Animated.Value(0);
 const innerRHPProgress = new Animated.Value(0);
-const secondOverlayWideRHPProgress = new Animated.Value(0);
-const secondOverlayRHPOnWideRHPProgress = new Animated.Value(0);
-const secondOverlayRHPOnSuperWideRHPProgress = new Animated.Value(0);
+const secondOverlayProgress = new Animated.Value(0);
 const thirdOverlayProgress = new Animated.Value(0);
+
+// This array contains the names of wide and super wide right modals.
+const WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT]);
+const SUPER_WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT]);
 
 // The width of the left panel in Wide RHP where the receipt is displayed
 const receiptPaneRHPWidth = calculateReceiptPaneRHPWidth(Dimensions.get('window').width);
@@ -95,48 +98,52 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
     const [multiTransactionExpenseReportIDs, setMultiTransactionExpenseReportIDs] = useState<Set<string>>(new Set());
 
+    // When closing Wide RHP, it is no longer the focused screen, this variable helps to determine the moment when Wide RHP is still visible on the screen but no longer focused
+    const [isWideRHPClosing, setIsWideRHPClosing] = useState(false);
+
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
 
     const focusedRoute = useRootNavigationState((state) => (state ? findFocusedRoute(state) : undefined));
 
     const isWideRHPFocused = useMemo(() => {
-        return !!focusedRoute?.key && allWideRHPRouteKeys.includes(focusedRoute.key);
-    }, [focusedRoute?.key, allWideRHPRouteKeys]);
+        return !!focusedRoute?.key && wideRHPRouteKeys.includes(focusedRoute.key);
+    }, [focusedRoute?.key, wideRHPRouteKeys]);
 
     // Whether Wide RHP is displayed below the currently displayed screen
-    const {isWideRHPBelow, isSuperWideRHPBelow} = getIsRHPDisplayedBelow(focusedRoute?.key, allSuperWideRHPRouteKeys, allWideRHPRouteKeys);
+    const isWideRHPBelow = useMemo(() => getIsWideRHPOpenedBelow(focusedRoute, allWideRHPRouteKeys), [allWideRHPRouteKeys, focusedRoute]);
+
+    // Whether Super Wide RHP is displayed below the currently displayed screen
+    const isSuperWideRHPBelow = useMemo(() => getIsWideRHPOpenedBelow(focusedRoute, allSuperWideRHPRouteKeys), [allSuperWideRHPRouteKeys, focusedRoute]);
 
     // Updates the Wide RHP visible keys table from the all keys table
-    const syncRHPKeys = useCallback(() => {
-        const {visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys} = getVisibleRHPKeys(allSuperWideRHPRouteKeys, allWideRHPRouteKeys);
-        setWideRHPRouteKeys(visibleWideRHPRouteKeys);
-        setSuperWideRHPRouteKeys(visibleSuperWideRHPRouteKeys);
-    }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys]);
+    const syncWideRHPKeys = useCallback(() => {
+        setWideRHPRouteKeys(getVisibleWideRHPKeys(allWideRHPRouteKeys));
+    }, [allWideRHPRouteKeys]);
+
+    // Updates the Super Wide RHP visible keys table from the all keys table
+    const syncSuperWideRHPKeys = useCallback(() => {
+        setSuperWideRHPRouteKeys(getVisibleWideRHPKeys(allSuperWideRHPRouteKeys));
+    }, [allSuperWideRHPRouteKeys]);
 
     const clearWideRHPKeys = useCallback(() => {
         setWideRHPRouteKeys([]);
         setSuperWideRHPRouteKeys([]);
     }, []);
 
+    // Once we have updated the array of all Wide RHP keys, we should sync it with the array of RHP keys visible on the screen
+    useEffect(() => {
+        syncWideRHPKeys();
+    }, [allWideRHPRouteKeys, syncWideRHPKeys]);
+
     // Once we have updated the array of all Super Wide RHP keys, we should sync it with the array of RHP keys visible on the screen
     useEffect(() => {
-        syncRHPKeys();
-    }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys, syncRHPKeys]);
+        syncSuperWideRHPKeys();
+    }, [allSuperWideRHPRouteKeys, syncSuperWideRHPKeys]);
 
     /**
-     * Effect that manages the secondary overlay animation for single RHP displayed on Super Wide RHP and rendering state.
+     * Effect that manages the secondary overlay animation and rendering state.
      */
-    const shouldRenderSecondaryOverlayForRHPOnSuperWideRHP = useShouldRenderOverlay(isSuperWideRHPBelow && !isWideRHPBelow && !isWideRHPFocused, secondOverlayRHPOnSuperWideRHPProgress);
-
-    /**
-     * Effect that manages the secondary overlay animation for single RHP displayed on Wide RHP and rendering state.
-     */
-    const shouldRenderSecondaryOverlayForRHPOnWideRHP = useShouldRenderOverlay(isWideRHPBelow && !isWideRHPFocused, secondOverlayRHPOnWideRHPProgress);
-
-    /**
-     * Effect that manages the secondary overlay animation for Wide RHP displayed on Super Wide RHP and rendering state.
-     */
-    const shouldRenderSecondaryOverlayForWideRHP = useShouldRenderOverlay(isSuperWideRHPBelow && (!!isWideRHPFocused || isWideRHPBelow), secondOverlayWideRHPProgress);
+    const shouldRenderSecondaryOverlay = useShouldRenderOverlay(isWideRHPBelow || isSuperWideRHPBelow, secondOverlayProgress);
 
     /**
      * Effect that manages the tertiary overlay animation and rendering state.
@@ -149,6 +156,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     useEffect(() => {
         const numberOfSuperWideRoutes = superWideRHPRouteKeys.length;
         const numberOfWideRoutes = wideRHPRouteKeys.length;
+
         if (numberOfSuperWideRoutes > 0) {
             expandedRHPProgress.setValue(2);
             innerRHPProgress.setValue(numberOfWideRoutes > 0 ? 1 : 0);
@@ -162,6 +170,16 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     }, [superWideRHPRouteKeys.length, wideRHPRouteKeys.length]);
 
     /**
+     * Adds a route to the wide RHP route keys list, enabling wide RHP display for that route.
+     */
+    const showWideRHPVersion = useCallback((route: NavigationRoute) => showWideRHPRoute(route, setAllWideRHPRouteKeys), []);
+
+    /**
+     * Adds a route to the super wide RHP route keys list, enabling wide RHP display for that route.
+     */
+    const showSuperWideRHPVersion = useCallback((route: NavigationRoute) => showWideRHPRoute(route, setAllSuperWideRHPRouteKeys), []);
+
+    /**
      * Removes a route from the super wide RHP route keys list, disabling wide RHP display for that route.
      */
     const removeSuperWideRHPRouteKey = useCallback((route: NavigationRoute) => removeWideRHPRoute(route, setAllSuperWideRHPRouteKeys), []);
@@ -170,28 +188,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      * Removes a route from the wide RHP route keys list, disabling wide RHP display for that route.
      */
     const removeWideRHPRouteKey = useCallback((route: NavigationRoute) => removeWideRHPRoute(route, setAllWideRHPRouteKeys), []);
-
-    /**
-     * Adds a route to the wide RHP route keys list, enabling wide RHP display for that route.
-     */
-    const showWideRHPVersion = useCallback(
-        (route: NavigationRoute) => {
-            removeSuperWideRHPRouteKey(route);
-            showWideRHPRoute(route, setAllWideRHPRouteKeys);
-        },
-        [removeSuperWideRHPRouteKey],
-    );
-
-    /**
-     * Adds a route to the super wide RHP route keys list, enabling super wide RHP display for that route.
-     */
-    const showSuperWideRHPVersion = useCallback(
-        (route: NavigationRoute) => {
-            removeWideRHPRouteKey(route);
-            showWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
-        },
-        [removeWideRHPRouteKey],
-    );
 
     /**
      * Marks a report ID as an expense report, adding it to the expense reports set.
@@ -301,9 +297,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             showSuperWideRHPVersion,
             removeWideRHPRouteKey,
             removeSuperWideRHPRouteKey,
-            shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
-            shouldRenderSecondaryOverlayForRHPOnWideRHP,
-            shouldRenderSecondaryOverlayForWideRHP,
+            shouldRenderSecondaryOverlay,
             shouldRenderTertiaryOverlay,
             markReportIDAsExpense,
             markReportIDAsMultiTransactionExpense,
@@ -311,7 +305,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
-            syncRHPKeys,
+            isWideRHPClosing,
+            setIsWideRHPClosing,
+            syncWideRHPKeys,
+            syncSuperWideRHPKeys,
             clearWideRHPKeys,
         }),
         [
@@ -321,9 +318,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             showSuperWideRHPVersion,
             removeWideRHPRouteKey,
             removeSuperWideRHPRouteKey,
-            shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
-            shouldRenderSecondaryOverlayForRHPOnWideRHP,
-            shouldRenderSecondaryOverlayForWideRHP,
+            shouldRenderSecondaryOverlay,
             shouldRenderTertiaryOverlay,
             markReportIDAsExpense,
             markReportIDAsMultiTransactionExpense,
@@ -331,7 +326,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
-            syncRHPKeys,
+            isWideRHPClosing,
+            syncWideRHPKeys,
+            syncSuperWideRHPKeys,
             clearWideRHPKeys,
         ],
     );
@@ -351,9 +348,9 @@ export {
     innerRHPProgress,
     modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
-    secondOverlayWideRHPProgress,
-    secondOverlayRHPOnWideRHPProgress,
-    secondOverlayRHPOnSuperWideRHPProgress,
+    secondOverlayProgress,
+    SUPER_WIDE_RIGHT_MODALS,
     thirdOverlayProgress,
+    WIDE_RIGHT_MODALS,
     WideRHPContext,
 };
