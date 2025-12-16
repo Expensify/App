@@ -6709,6 +6709,8 @@ const CONST = {
                     TO: this.TABLE_COLUMNS.TO,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                     TAG: this.TABLE_COLUMNS.TAG,
+                    REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
+                    LONG_REPORT_ID: this.TABLE_COLUMNS.LONG_REPORT_ID,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 EXPENSE_REPORT: {
@@ -6717,6 +6719,8 @@ const CONST = {
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
+                    REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
+                    LONG_REPORT_ID: this.TABLE_COLUMNS.LONG_REPORT_ID,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 INVOICE: {},
@@ -6809,6 +6813,8 @@ const CONST = {
             WITHDRAWAL_ID: 'withdrawalID',
             AVATAR: 'avatar',
             STATUS: 'status',
+            REPORT_ID: 'reportID',
+            LONG_REPORT_ID: 'longReportID',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
