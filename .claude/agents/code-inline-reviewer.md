@@ -179,6 +179,8 @@ Run (available in PATH from `.claude/scripts/`):
 checkReactCompilerOptimization.sh <file-path>
 ```
 
+**Note on new files:** If the script returns "File not found", this means the file is NEW in this PR. New files must pass react-compiler healthcheck before merge, so assume all components in new files ARE optimized → **Skip PERF-4**.
+
 This returns optimization status for the parent and all child components:
 
 ```json
