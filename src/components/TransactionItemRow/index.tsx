@@ -23,9 +23,8 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import {isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
-    getAmount,
-    getCurrency,
     getDescription,
+    getExchangeRate,
     getMerchant,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
@@ -213,14 +212,7 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report]);
 
-    const fromAmount = getAmount(transactionItem);
-    const fromCurrency = getCurrency(transactionItem);
-
-    const toAmount = transactionItem.convertedAmount ?? fromAmount;
-    const toCurrency = transactionItem.groupCurrency ?? fromCurrency;
-
-    const exchangeRate = fromAmount ? Math.abs(toAmount / fromAmount) : 0;
-    const exchangeRateMessage = `${exchangeRate} ${fromCurrency}/${toCurrency}`;
+    const exchangeRate = getExchangeRate(transactionItem);
 
     const columnComponent = useMemo(
         () => ({
@@ -398,8 +390,8 @@ function TransactionItemRow({
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
-                    <TextCell text={exchangeRateMessage} />
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE)]}>
+                    <TextCell text={exchangeRate} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: (
@@ -455,7 +447,6 @@ function TransactionItemRow({
             merchant,
             description,
             isInSingleTransactionReport,
-            exchangeRateMessage,
             isAmountColumnWide,
             isTaxAmountColumnWide,
         ],

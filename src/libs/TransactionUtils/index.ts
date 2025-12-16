@@ -9,6 +9,7 @@ import type {ValueOf} from 'type-fest';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/SelectionListWithSections/types';
+import {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
@@ -763,6 +764,20 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
 
     // To avoid -0 being shown, lets only change the sign if the value is other than 0.
     return amount ? -amount : 0;
+}
+
+/**
+ * Returns the exchange rate for a transaction
+ */
+function getExchangeRate(transaction: TransactionWithOptionalSearchFields) {
+    const fromAmount = getAmount(transaction);
+    const fromCurrency = getCurrency(transaction);
+
+    const toAmount = transaction.convertedAmount ?? fromAmount;
+    const toCurrency = transaction.groupCurrency ?? fromCurrency;
+
+    const exchangeRate = fromAmount ? Math.abs(toAmount / fromAmount) : 0;
+    return `${exchangeRate} ${fromCurrency}/${toCurrency}`;
 }
 
 /**
@@ -2266,6 +2281,7 @@ export {
     isManualRequest,
     isScanRequest,
     getAmount,
+    getExchangeRate,
     getAttendees,
     getTaxAmount,
     getTaxCode,
