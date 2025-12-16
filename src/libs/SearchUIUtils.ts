@@ -2500,21 +2500,17 @@ function getColumnsToShow(
             CONST.SEARCH.TABLE_COLUMNS.ACTION,
         ];
 
-        // If there are no visible columns, everything should be visible
-        if (!visibleColumns.length) {
-            return Object.fromEntries(reportColumns.map((column) => [column, true]));
-        }
-
         // If the user has set custom columns, toggle the visible columns on, with all other
         // columns hidden by default
         const columns: ColumnVisibility = {};
         const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+        const columnsToShow = visibleColumns.length ? visibleColumns : CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT;
 
         for (const columnId of reportColumns) {
             columns[columnId] = requiredColumns.has(columnId);
         }
 
-        for (const column of visibleColumns) {
+        for (const column of columnsToShow) {
             columns[column as keyof ColumnVisibility] = true;
         }
 
