@@ -456,7 +456,6 @@ function TransactionItemRow({
             report?.policyID,
             report?.total,
             areAllOptionalColumnsHidden,
-            report,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
