@@ -1,8 +1,10 @@
+import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import {createAuthorizeErrorStatus} from '@components/MultifactorAuthentication/helpers';
 import type {MultifactorAuthorization} from '@components/MultifactorAuthentication/types';
 import useMultifactorAuthenticationStatus from '@components/MultifactorAuthentication/useMultifactorAuthenticationStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import MultifactorAuthenticationChallenge from '@libs/MultifactorAuthentication/Biometrics/Challenge';
 import CONST from '@src/CONST';
 import useNativeBiometricsSetup from './useNativeBiometricsSetup';
@@ -21,6 +23,7 @@ function useNativeBiometrics() {
     const [status, setStatus] = useMultifactorAuthenticationStatus(false, CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION);
     const BiometricsSetup = useNativeBiometricsSetup();
     const {accountID} = useCurrentUserPersonalDetails();
+    const {translate} = useLocalize();
 
     /**
      * Requests, signs and verifies a multifactorial authentication challenge for transaction authorization.
@@ -32,7 +35,14 @@ function useNativeBiometrics() {
      */
     const authorize = async <T extends MultifactorAuthenticationScenario>(scenario: T, params: Parameters<MultifactorAuthorization<T>>[1]): ReturnType<MultifactorAuthorization<T>> => {
         const {chainedPrivateKeyStatus} = params;
-        const challenge = new MultifactorAuthenticationChallenge(scenario, params);
+
+        const {nativePromptTitle: nativePromptTitleTPath} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
+
+        const nativePromptTitle = translate(nativePromptTitleTPath);
+
+        const challenge = new MultifactorAuthenticationChallenge(scenario, params, {
+            nativePromptTitle,
+        });
 
         const requestStatus = await challenge.request();
         if (!requestStatus.value) {

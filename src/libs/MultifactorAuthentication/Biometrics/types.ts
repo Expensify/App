@@ -143,6 +143,10 @@ type MultifactorAuthenticationKeyInfo<T extends KeyInfoType> = {
     response: ResponseDetails<T>;
 };
 
+type MultifactorKeyStoreOptions = {
+    nativePromptTitle?: string;
+};
+
 export type {
     MultifactorAuthenticationFactor,
     MultifactorAuthenticationStep,
@@ -155,4 +159,5 @@ export type {
     MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationActionParams,
     MultifactorAuthenticationTriggerArgument,
+    MultifactorKeyStoreOptions,
 };

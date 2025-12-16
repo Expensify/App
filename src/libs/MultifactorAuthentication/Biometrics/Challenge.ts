@@ -6,7 +6,7 @@ import {signToken as signTokenED25519} from './ED25519';
 import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
 import {isChallengeSigned, processScenario} from './helpers';
 import {PrivateKeyStore, PublicKeyStore} from './KeyStore';
-import type {MultifactorAuthenticationPartialStatus} from './types';
+import type {MultifactorAuthenticationPartialStatus, MultifactorKeyStoreOptions} from './types';
 import VALUES from './VALUES';
 
 /**
@@ -32,6 +32,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
     constructor(
         private readonly scenario: T,
         private readonly params: MultifactorAuthenticationScenarioAdditionalParams<T>,
+        private readonly options?: MultifactorKeyStoreOptions,
     ) {}
 
     /** Creates a standardized error response with the given reason key */
@@ -74,7 +75,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
             return this.createErrorReturnValue('multifactorAuthentication.reason.error.challengeIsAlreadySigned');
         }
 
-        const {value, type, reason} = chainedPrivateKeyStatus?.value ? chainedPrivateKeyStatus : await PrivateKeyStore.get(accountID);
+        const {value, type, reason} = chainedPrivateKeyStatus?.value ? chainedPrivateKeyStatus : await PrivateKeyStore.get(accountID, this.options);
 
         if (!value) {
             return this.createErrorReturnValue(reason || 'multifactorAuthentication.reason.error.keyMissing');

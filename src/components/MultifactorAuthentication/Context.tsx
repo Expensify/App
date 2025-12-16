@@ -206,7 +206,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return setStatus(...MergedHooksStatus.createBiometricsNotAllowedStatus(scenario, params));
         }
 
-        const result = await NativeBiometrics.setup.register(params);
+        const {nativePromptTitle: nativePromptTitleTPath} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
+
+        const nativePromptTitle = translate(nativePromptTitleTPath);
+
+        const result = await NativeBiometrics.setup.register({...params, nativePromptTitle});
         const status = convertResultIntoMultifactorAuthenticationStatus(result, scenario, CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION, params);
         const mergedResult = setStatus(status);
 

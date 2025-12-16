@@ -103,7 +103,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
      *
      * Note: Will trigger system biometric prompt during key storage.
      */
-    const register = (async ({validateCode, chainedWithAuthorization}) => {
+    const register = (async ({validateCode, chainedWithAuthorization, nativePromptTitle}) => {
         /** Guard unsupported device */
         if (!doesDeviceSupportBiometrics()) {
             return setStatus(Status.createUnsupportedDeviceStatus);
@@ -118,7 +118,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
         const {privateKey, publicKey} = generateKeyPair();
 
         /** Save private key (handles existing/conflict cases) */
-        const privateKeyResult = await PrivateKeyStore.set(accountID, privateKey);
+        const privateKeyResult = await PrivateKeyStore.set(accountID, privateKey, {nativePromptTitle});
         const privateKeyExists = privateKeyResult.reason === 'multifactorAuthentication.reason.expoErrors.keyExists';
 
         if (!privateKeyResult.value) {

@@ -83,6 +83,7 @@ type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> =
     allowedAuthentication: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>;
     screen: MultifactorAuthenticationScreen;
     pure?: true;
+    nativePromptTitle?: TranslationPaths;
 } & MultifactorAuthenticationUI;
 
 type MultifactorAuthenticationScenarioConfigRecord = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfig<never>>;

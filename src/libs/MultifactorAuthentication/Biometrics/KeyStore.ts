@@ -2,14 +2,13 @@ import type {TranslationPaths} from '@src/languages/types';
 import {decodeExpoMessage} from './helpers';
 import {SECURE_STORE_METHODS, SECURE_STORE_VALUES} from './SecureStore';
 import type {SecureStoreOptions} from './SecureStore';
-import type {MultifactorAuthenticationKeyType, MultifactorAuthenticationPartialStatus} from './types';
+import type {MultifactorAuthenticationKeyType, MultifactorAuthenticationPartialStatus, MultifactorKeyStoreOptions} from './types';
 import VALUES from './VALUES';
 
 const STATIC_OPTIONS = {
     keychainService: VALUES.KEYCHAIN_SERVICE,
     keychainAccessible: SECURE_STORE_VALUES.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
     enableDeviceFallback: true,
-    authenticationPrompt: 'Approve the transaction',
     returnUsedAuthenticationType: true,
 } as const;
 
@@ -18,19 +17,21 @@ const STATIC_OPTIONS = {
  * Private keys require multifactorial authentication/credential auth, while public keys don't.
  * Also configures keychain access and credential alternatives.
  */
-const options = (key: string): SecureStoreOptions => {
+const secureStoreOptions = (key: string, KSOptions?: MultifactorKeyStoreOptions): SecureStoreOptions => {
     const isPrivateKey = key.endsWith(VALUES.KEY_ALIASES.PRIVATE_KEY);
+
     return {
         failOnUpdate: isPrivateKey,
         requireAuthentication: isPrivateKey,
         forceAuthenticationOnSave: isPrivateKey,
         forceReadAuthenticationOnSimulators: isPrivateKey,
+        authenticationPrompt: KSOptions?.nativePromptTitle ?? 'Approve transaction',
     };
 };
 
 const MultifactorAuthenticationStore = {
-    get: (key: string) => SECURE_STORE_METHODS.getItemAsync(key, {...options(key), ...STATIC_OPTIONS}),
-    set: (key: string, value: string) => SECURE_STORE_METHODS.setItemAsync(key, value, {...options(key), ...STATIC_OPTIONS}),
+    get: (key: string, KSOptions?: MultifactorKeyStoreOptions) => SECURE_STORE_METHODS.getItemAsync(key, {...secureStoreOptions(key, KSOptions), ...STATIC_OPTIONS}),
+    set: (key: string, value: string, KSOptions?: MultifactorKeyStoreOptions) => SECURE_STORE_METHODS.setItemAsync(key, value, {...secureStoreOptions(key, KSOptions), ...STATIC_OPTIONS}),
     delete: (key: string) =>
         SECURE_STORE_METHODS.deleteItemAsync(key, {
             keychainService: VALUES.KEYCHAIN_SERVICE,
@@ -53,9 +54,9 @@ class MultifactorAuthenticationKeyStore {
      * Stores a value in SecureStore. For private keys, this will trigger an auth prompt.
      * Returns success/failure status with a reason message and auth type used.
      */
-    public async set(accountID: number, value: string): Promise<MultifactorAuthenticationPartialStatus<boolean, true>> {
+    public async set(accountID: number, value: string, KSOptions?: MultifactorKeyStoreOptions): Promise<MultifactorAuthenticationPartialStatus<boolean, true>> {
         try {
-            const type = await MultifactorAuthenticationStore.set(`${accountID}_${this.key}`, value);
+            const type = await MultifactorAuthenticationStore.set(`${accountID}_${this.key}`, value, KSOptions);
             return {
                 value: true,
                 reason: 'multifactorAuthentication.reason.success.keySavedInSecureStore' as TranslationPaths,
@@ -92,9 +93,9 @@ class MultifactorAuthenticationKeyStore {
      * Retrieves a value from SecureStore. For private keys, this will trigger an auth prompt.
      * Returns the stored value (or null) with a reason message and auth type used.
      */
-    public async get(accountID: number): Promise<MultifactorAuthenticationPartialStatus<string | null, true>> {
+    public async get(accountID: number, KSOptions?: MultifactorKeyStoreOptions): Promise<MultifactorAuthenticationPartialStatus<string | null, true>> {
         try {
-            const [key, type] = await MultifactorAuthenticationStore.get(`${accountID}_${this.key}`);
+            const [key, type] = await MultifactorAuthenticationStore.get(`${accountID}_${this.key}`, KSOptions);
             return {
                 value: key,
                 reason: `multifactorAuthentication.reason.success.${key ? 'keyRetrievedFromSecureStore' : 'keyNotInSecureStore'}`,

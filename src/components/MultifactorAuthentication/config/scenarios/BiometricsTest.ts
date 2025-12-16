@@ -41,4 +41,5 @@ export default {
             cancelButtonText: 'common.cancel',
         },
     },
+    nativePromptTitle: 'multifactorAuthentication.biometrics.additionalFactorPageTitle',
 } as const satisfies MultifactorAuthenticationScenarioConfig;

@@ -48,6 +48,7 @@ export default {
             cancelButtonText: 'common.cancel',
         },
     },
+    nativePromptTitle: 'multifactorAuthentication.approveTransaction.headerButtonTitle',
 } as const satisfies MultifactorAuthenticationScenarioConfig<Payload>;
 
 export type {Payload};
