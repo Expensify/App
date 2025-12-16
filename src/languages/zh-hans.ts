@@ -688,6 +688,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: '需要操作',
         duplicate: '复制',
         duplicated: '已重复',
+        reimbursableTotal: '可报销总额',
+        nonReimbursableTotal: '不可报销总额',
     },
     supportalNoAccess: {
         title: '先别急',

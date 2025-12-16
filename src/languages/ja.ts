@@ -691,6 +691,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: '対応が必要',
         duplicate: '複製',
         duplicated: '重複',
+        reimbursableTotal: '経費精算対象の合計',
+        nonReimbursableTotal: '非払い戻し合計',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
