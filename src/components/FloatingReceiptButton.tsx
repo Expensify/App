@@ -3,12 +3,14 @@ import React, {useRef} from 'react';
 import type {GestureResponderEvent, Role, Text, View as ViewType} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
 import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
+import Tooltip from './Tooltip';
 
 type FloatingReceiptButtonProps = {
     /* Callback to fire on request to toggle the FloatingReceiptButton */
@@ -27,6 +29,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role}: FloatingRece
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | ViewType | Text | null>(null);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus'] as const);
+    const {translate} = useLocalize();
 
     const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         // Drop focus to avoid blue focus ring.
@@ -35,36 +38,38 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role}: FloatingRece
     };
 
     return (
-        <PressableWithoutFeedback
-            ref={(el) => {
-                fabPressable.current = el ?? null;
-            }}
-            style={[
-                styles.navigationTabBarFABItem,
+        <Tooltip text={translate('tabSelector.scan')}>
+            <PressableWithoutFeedback
+                ref={(el) => {
+                    fabPressable.current = el ?? null;
+                }}
+                style={[
+                    styles.navigationTabBarFABItem,
 
-                // Prevent text selection on touch devices (e.g. on long press)
-                canUseTouchScreen() && styles.userSelectNone,
-            ]}
-            accessibilityLabel={accessibilityLabel}
-            onPress={toggleFabAction}
-            role={role}
-            shouldUseHapticsOnLongPress
-            testID="floating-receipt-button"
-        >
-            {({hovered}) => (
-                <View
-                    style={[styles.floatingActionButton, {borderRadius}, styles.floatingActionButtonSmall, hovered && {backgroundColor: successHover}]}
-                    testID="floating-receipt-button-container"
-                >
-                    <Icon
-                        fill={textLight}
-                        src={icons.ReceiptPlus}
-                        width={variables.iconSizeSmall}
-                        height={variables.iconSizeSmall}
-                    />
-                </View>
-            )}
-        </PressableWithoutFeedback>
+                    // Prevent text selection on touch devices (e.g. on long press)
+                    canUseTouchScreen() && styles.userSelectNone,
+                ]}
+                accessibilityLabel={accessibilityLabel}
+                onPress={toggleFabAction}
+                role={role}
+                shouldUseHapticsOnLongPress
+                testID="floating-receipt-button"
+            >
+                {({hovered}) => (
+                    <View
+                        style={[styles.floatingActionButton, {borderRadius}, styles.floatingActionButtonSmall, hovered && {backgroundColor: successHover}]}
+                        testID="floating-receipt-button-container"
+                    >
+                        <Icon
+                            fill={textLight}
+                            src={icons.ReceiptPlus}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
+                        />
+                    </View>
+                )}
+            </PressableWithoutFeedback>
+        </Tooltip>
     );
 }
 

@@ -3,14 +3,13 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import DotLottieAnimations from '@components/LottieAnimations';
-import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {
     SearchAction,
     SearchColumnType,
+    SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchGroupBy,
@@ -275,7 +274,6 @@ type SearchTypeMenuItem = {
     hash: number;
     similarSearchHash: number;
     emptyState?: {
-        headerMedia: DotLottieAnimation;
         title: TranslationPaths;
         subtitle: TranslationPaths;
         buttons?: Array<{
@@ -2052,6 +2050,24 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+function getSearchColumnTranslationKey(columnId: ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (columnId) {
+        case CONST.SEARCH.CUSTOM_COLUMNS.DATE:
+            return 'common.date';
+        case CONST.SEARCH.CUSTOM_COLUMNS.STATUS:
+            return 'common.status';
+        case CONST.SEARCH.CUSTOM_COLUMNS.TITLE:
+            return 'common.title';
+        case CONST.SEARCH.CUSTOM_COLUMNS.FROM:
+            return 'common.from';
+        case CONST.SEARCH.CUSTOM_COLUMNS.TO:
+            return 'common.to';
+        case CONST.SEARCH.CUSTOM_COLUMNS.ACTION:
+            return 'common.action';
+    }
+}
+
 type OverflowMenuIconsType = Record<'Pencil', IconAsset>;
 
 /**
@@ -2137,7 +2153,6 @@ function createTypeMenuSections(
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
                     subtitle: 'search.searchResults.emptySubmitResults.subtitle',
                     buttons:
@@ -2166,7 +2181,6 @@ function createTypeMenuSections(
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyApproveResults.title',
                     subtitle: 'search.searchResults.emptyApproveResults.subtitle',
                 },
@@ -2176,7 +2190,6 @@ function createTypeMenuSections(
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.PAY],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyPayResults.title',
                     subtitle: 'search.searchResults.emptyPayResults.subtitle',
                 },
@@ -2186,7 +2199,6 @@ function createTypeMenuSections(
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyExportResults.title',
                     subtitle: 'search.searchResults.emptyExportResults.subtitle',
                 },
@@ -2209,7 +2221,6 @@ function createTypeMenuSections(
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.STATEMENTS],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyStatementsResults.title',
                     subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
                 },
@@ -2219,7 +2230,6 @@ function createTypeMenuSections(
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
                     subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
                 },
@@ -2229,7 +2239,6 @@ function createTypeMenuSections(
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
                     subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
                 },
@@ -2239,7 +2248,6 @@ function createTypeMenuSections(
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyStatementsResults.title',
                     subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
                 },
@@ -2429,20 +2437,41 @@ function getActionOptions(translate: LocaleContextProps['translate']) {
 function getColumnsToShow(
     currentAccountID: number | undefined,
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
+    visibleColumns: SearchCustomColumnIds[] = [],
     isExpenseReportView = false,
     type?: SearchDataTypes,
 ): ColumnVisibility {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return {
-            [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-        };
+        const reportColumns = [
+            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.STATUS,
+            CONST.SEARCH.TABLE_COLUMNS.TITLE,
+            CONST.SEARCH.TABLE_COLUMNS.FROM,
+            CONST.SEARCH.TABLE_COLUMNS.TO,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        ];
+
+        // If there are no visible columns, everything should be visible
+        if (!visibleColumns.length) {
+            return Object.fromEntries(reportColumns.map((column) => [column, true]));
+        }
+
+        // If the user has set custom columns, toggle the visible columns on, with all other
+        // columns hidden by default
+        const columns: ColumnVisibility = {};
+        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+
+        for (const columnId of reportColumns) {
+            columns[columnId] = requiredColumns.has(columnId);
+        }
+
+        for (const column of visibleColumns) {
+            columns[column as keyof ColumnVisibility] = true;
+        }
+
+        return columns;
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
@@ -2497,6 +2526,7 @@ function getColumnsToShow(
           };
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
+
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
         const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
@@ -2667,6 +2697,28 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
+function getTableMinWidth(columns: SearchColumnType[]) {
+    // Starts at 24px to account for the checkbox width
+    let minWidth = 24;
+
+    for (const column of columns) {
+        if (column === CONST.SEARCH.TABLE_COLUMNS.RECEIPT || column === CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) {
+            minWidth += 36;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.AVATAR) {
+            minWidth += 40;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.STATUS || column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
+            minWidth += 80;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
+            minWidth += 48;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {
+            minWidth += 20;
+        } else {
+            minWidth += 200;
+        }
+    }
+    return minWidth;
+}
+
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -2712,5 +2764,7 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getTransactionFromTransactionListItem,
+    getSearchColumnTranslationKey,
+    getTableMinWidth,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

@@ -89,7 +89,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
             setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             return;
         }
-        assignWorkspaceCompanyCard(policyID, {...data, bankName});
+        assignWorkspaceCompanyCard(policy, {...data, bankName});
     };
 
     const editStep = (step: AssignCardStep) => {
