@@ -6695,6 +6695,7 @@ const CONST = {
                     TO: this.TABLE_COLUMNS.TO,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                     TAG: this.TABLE_COLUMNS.TAG,
+                    EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
@@ -6801,6 +6802,7 @@ const CONST = {
             AVATAR: 'avatar',
             STATUS: 'status',
             TAX: 'tax',
+            EXCHANGE_RATE: 'exchangeRate',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
