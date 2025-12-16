@@ -11650,6 +11650,7 @@ function submitReport(
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
         value: {
             [optimisticSubmittedReportAction.reportActionID]: {
+                pendingAction: null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
             },
         },

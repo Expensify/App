@@ -279,25 +279,12 @@ function getMostRecentActiveDEWSubmitFailedAction(reportActions: OnyxEntry<Repor
  * Checks if there's a pending SUBMITTED action (submission in progress).
  * This is used to detect when a DEW submission is in progress (offline submission).
  */
-function hasPendingDEWSubmit(reportActions: OnyxEntry<ReportActions> | ReportAction[]): boolean {
-    const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
-    return actionsArray.some((action): action is ReportAction => isSubmittedAction(action) && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-}
-
-/**
- * Checks if there's a DEW submit that has failed or is currently pending.
- * This is used to determine if we should show the VIEW action instead of SUBMIT.
- */
-function hasDEWSubmitPendingOrFailed(reportActions: OnyxEntry<ReportActions> | ReportAction[], isDEWPolicy: boolean): boolean {
+function hasPendingDEWSubmit(reportActions: OnyxEntry<ReportActions> | ReportAction[], isDEWPolicy: boolean): boolean {
     if (!isDEWPolicy) {
         return false;
     }
-
-    if (getMostRecentActiveDEWSubmitFailedAction(reportActions)) {
-        return true;
-    }
-
-    return hasPendingDEWSubmit(reportActions);
+    const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
+    return actionsArray.some((action): action is ReportAction => isSubmittedAction(action) && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 }
 
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
@@ -3712,7 +3699,6 @@ export {
     isDynamicExternalWorkflowSubmitFailedAction,
     getMostRecentActiveDEWSubmitFailedAction,
     hasPendingDEWSubmit,
-    hasDEWSubmitPendingOrFailed,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,

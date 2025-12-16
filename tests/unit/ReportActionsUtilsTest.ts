@@ -1878,120 +1878,142 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('hasDEWSubmitPendingOrFailed', () => {
-        it('should return true when there is a DEW submit failed action on DEW policy', () => {
-            // Given report actions containing a DEW_SUBMIT_FAILED action
+    describe('hasPendingDEWSubmit', () => {
+        it('should return true when there is a pending SUBMITTED action and isDEWPolicy is true', () => {
+            // Given a SUBMITTED action with pendingAction ADD and isDEWPolicy is true
             const actionId1 = '1';
             const reportActions: ReportActions = {
                 [actionId1]: {
                     ...createRandomReportAction(0),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 10:00:00',
                     reportActionID: actionId1,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
                     message: [],
                     previousMessage: [],
-                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
             };
 
-            // When checking if DEW submit is pending or failed with isDEWPolicy = true
-            const result = ReportActionsUtils.hasDEWSubmitPendingOrFailed(reportActions, true);
+            // When checking if there's a pending DEW submit
+            const result = ReportActionsUtils.hasPendingDEWSubmit(reportActions, true);
 
-            // Then it should return true because there's a DEW submit failed action
+            // Then it should return true because there's a pending SUBMITTED action and the policy is DEW
             expect(result).toBe(true);
         });
 
-        it('should return false when not a DEW policy even with DEW submit failed action', () => {
-            // Given report actions containing a DEW_SUBMIT_FAILED action
+        it('should return false when there is a pending SUBMITTED action but isDEWPolicy is false', () => {
+            // Given a SUBMITTED action with pendingAction ADD but isDEWPolicy is false
             const actionId1 = '1';
             const reportActions: ReportActions = {
                 [actionId1]: {
                     ...createRandomReportAction(0),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 10:00:00',
                     reportActionID: actionId1,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
                     message: [],
                     previousMessage: [],
-                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
             };
 
-            // When checking if DEW submit is pending or failed with isDEWPolicy = false
-            const result = ReportActionsUtils.hasDEWSubmitPendingOrFailed(reportActions, false);
+            // When checking if there's a pending DEW submit with isDEWPolicy false
+            const result = ReportActionsUtils.hasPendingDEWSubmit(reportActions, false);
 
-            // Then it should return false because it's not a DEW policy
+            // Then it should return false because the policy is not DEW
             expect(result).toBe(false);
         });
 
-        it('should return true when there is a pending SUBMITTED action on DEW policy', () => {
-            // Given report actions containing a SUBMITTED action with pendingAction = ADD
+        it('should return false when there is no pending SUBMITTED action', () => {
+            // Given a SUBMITTED action without pendingAction ADD
             const actionId1 = '1';
             const reportActions: ReportActions = {
                 [actionId1]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 10:00:00',
                     reportActionID: actionId1,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    originalMessage: {amount: 10000, currency: 'USD'},
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
             };
 
-            // When checking if DEW submit is pending or failed with isDEWPolicy = true
-            const result = ReportActionsUtils.hasDEWSubmitPendingOrFailed(reportActions, true);
+            // When checking if there's a pending DEW submit
+            const result = ReportActionsUtils.hasPendingDEWSubmit(reportActions, true);
 
-            // Then it should return true because there's a pending submission on DEW policy
-            expect(result).toBe(true);
-        });
-
-        it('should return false when there is a pending SUBMITTED action but NOT a DEW policy', () => {
-            // Given report actions containing a SUBMITTED action with pendingAction = ADD
-            const actionId1 = '1';
-            const reportActions: ReportActions = {
-                [actionId1]: {
-                    ...createRandomReportAction(0),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    reportActionID: actionId1,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    originalMessage: {amount: 10000, currency: 'USD'},
-                    message: [],
-                    previousMessage: [],
-                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
-            };
-
-            // When checking if DEW submit is pending or failed with isDEWPolicy = false
-            const result = ReportActionsUtils.hasDEWSubmitPendingOrFailed(reportActions, false);
-
-            // Then it should return false because it's not a DEW policy
+            // Then it should return false because the SUBMITTED action doesn't have pendingAction ADD
             expect(result).toBe(false);
         });
 
         it('should return false for empty report actions', () => {
-            // Given an empty report actions object
+            // Given empty report actions and isDEWPolicy is true
 
-            // When checking if DEW submit is pending or failed
-            const result = ReportActionsUtils.hasDEWSubmitPendingOrFailed({}, true);
+            // When checking if there's a pending DEW submit
+            const result = ReportActionsUtils.hasPendingDEWSubmit({}, true);
 
             // Then it should return false because there are no actions
             expect(result).toBe(false);
         });
 
-        it('should return false when SUBMITTED action is not pending on DEW policy', () => {
-            // Given report actions containing a SUBMITTED action without pendingAction
+        it('should handle array input and return true when there is a pending SUBMITTED action', () => {
+            // Given an array of report actions with a pending SUBMITTED action
+            const reportActionsArray: ReportAction[] = [
+                {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: '1',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+            ];
+
+            // When checking if there's a pending DEW submit
+            const result = ReportActionsUtils.hasPendingDEWSubmit(reportActionsArray, true);
+
+            // Then it should return true because there's a pending SUBMITTED action
+            expect(result).toBe(true);
+        });
+
+        it('should return false when SUBMITTED action has UPDATE pendingAction instead of ADD', () => {
+            // Given a SUBMITTED action with pendingAction UPDATE (not ADD)
             const actionId1 = '1';
             const reportActions: ReportActions = {
                 [actionId1]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 10:00:00',
                     reportActionID: actionId1,
-                    pendingAction: undefined,
-                    originalMessage: {amount: 10000, currency: 'USD'},
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
             };
 
-            // When checking if DEW submit is pending or failed with isDEWPolicy = true
-            const result = ReportActionsUtils.hasDEWSubmitPendingOrFailed(reportActions, true);
+            // When checking if there's a pending DEW submit
+            const result = ReportActionsUtils.hasPendingDEWSubmit(reportActions, true);
 
-            // Then it should return false because the SUBMITTED action is not pending
+            // Then it should return false because pendingAction is UPDATE, not ADD
             expect(result).toBe(false);
         });
     });

@@ -13,7 +13,7 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPreferredExporter,
 } from './PolicyUtils';
-import {getAllReportActions, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, hasDEWSubmitPendingOrFailed, isMoneyRequestAction} from './ReportActionsUtils';
+import {getAllReportActions, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, hasPendingDEWSubmit, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     canAddTransaction as canAddTransactionUtil,
     canHoldUnholdReportAction,
@@ -96,8 +96,7 @@ function isSubmitAction(
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isOpenReport = isOpenReportUtils(report);
 
-    // Don't show submit button if DEW submit has failed or is pending
-    if (hasDEWSubmitPendingOrFailed(reportActions ?? [], hasDynamicExternalWorkflow(policy))) {
+    if (hasPendingDEWSubmit(reportActions ?? [], hasDynamicExternalWorkflow(policy))) {
         return false;
     }
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
