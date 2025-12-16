@@ -3,9 +3,9 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import {clearAllFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -24,19 +24,22 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 import useSingleExecution from './useSingleExecution';
+import useSuggestedSearchDefaultNavigation from './useSuggestedSearchDefaultNavigation';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useWindowDimensions from './useWindowDimensions';
 
 export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {hash, similarSearchHash} = queryJSON;
+    const shouldSkipSuggestedSearchNavigation = !!queryJSON.rawFilterList;
 
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const {typeMenuSections, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
+    const {clearSelectedTransactions} = useSearchContext();
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -46,12 +49,21 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Checkmark'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Checkmark', 'Pencil']);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
+
+    useSuggestedSearchDefaultNavigation({
+        shouldShowSkeleton: shouldShowSuggestedSearchSkeleton,
+        flattenedMenuItems,
+        similarSearchHash,
+        clearSelectedTransactions,
+        shouldSkipNavigation: shouldSkipSuggestedSearchNavigation,
+    });
 
     // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
     const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);
@@ -66,8 +78,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     }, []);
 
     const getOverflowMenu = useCallback(
-        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal, true, closeMenu),
-        [showDeleteModal, closeMenu],
+        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, showDeleteModal, true, closeMenu),
+        [showDeleteModal, closeMenu, expensifyIcons],
     );
 
     const {savedSearchesMenuItems, isSavedSearchActive} = useMemo(() => {
@@ -96,7 +108,6 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             return {
                 ...baseMenuItem,
                 onSelected: () => {
-                    clearAllFilters();
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
                 },
                 rightComponent: (
@@ -132,9 +143,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             return -1;
         }
 
-        const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
         return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    }, [similarSearchHash, isSavedSearchActive, typeMenuSections]);
+    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
 
     const popoverMenuItems = useMemo(() => {
         return typeMenuSections
@@ -169,7 +179,6 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                             containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
                             shouldCallAfterModalHide: true,
                             onSelected: singleExecution(() => {
-                                clearAllFilters();
                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                             }),
                         });

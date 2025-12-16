@@ -238,6 +238,7 @@ const CONST = {
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
     TOOLTIP_ANIMATION_DURATION: 500,
+    DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
@@ -706,6 +707,7 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
+        TIME_TRACKING: 'timeTracking',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
@@ -1028,7 +1030,7 @@ const CONST = {
     COLLECT_UPGRADE_HELP_URL: 'https://help.expensify.com/Hidden/collect-upgrade',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
-    DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain',
+    DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Verify-a-Domain',
     SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
@@ -1054,6 +1056,7 @@ const CONST = {
         WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/expensify-payments-wallet-terms-of-service`,
         BANCORP_WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
         EXPENSIFY_APPROVED_PROGRAM_URL: `${USE_EXPENSIFY_URL}/accountants-program`,
+        TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
     },
     OLDDOT_URLS: {
         ADMIN_POLICIES_URL: 'admin_policies',
@@ -1138,6 +1141,7 @@ const CONST = {
             PAY: 'pay',
             MERGE: 'merge',
             REPORT_LAYOUT: 'reportLayout',
+            DUPLICATE: 'duplicate',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1159,7 +1163,6 @@ const CONST = {
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
             ADD_EXPENSE: 'addExpense',
-            REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -1172,7 +1175,9 @@ const CONST = {
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             REJECT: 'reject',
+            REJECT_BULK: 'rejectBulk',
             MERGE: 'merge',
+            DUPLICATE: 'duplicate',
         },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
@@ -1196,6 +1201,8 @@ const CONST = {
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
+                CARD_REPLACED_VIRTUAL: 'CARDREPLACEDVIRTUAL',
+                CARD_REPLACED: 'CARDREPLACED',
                 CARD_ASSIGNED: 'CARDASSIGNED',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
@@ -1322,7 +1329,11 @@ const CONST = {
                     UPDATE_DISABLED_FIELDS: 'POLICYCHANGELOG_UPDATE_DISABLED_FIELDS',
                     UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
                     UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
+                    UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
+                    UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
+                    UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
+                    UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
                     UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
@@ -1682,6 +1693,15 @@ const CONST = {
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
+        SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
+        SPAN_SKELETON: 'ManualSkeleton',
+        SPAN_BOOTSPLASH: {
+            ROOT: 'BootsplashVisible',
+            NAVIGATION: 'BootsplashVisibleNavigation',
+            ONYX: 'BootsplashVisibleOnyx',
+            LOCALE: 'BootsplashVisibleLocale',
+            SPLASH_HIDER: 'BootsplashVisibleHider',
+        },
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
@@ -1690,6 +1710,11 @@ const CONST = {
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
+        ATTRIBUTE_MIN_DURATION: 'min_duration',
+        ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
+        CONFIG: {
+            SKELETON_MIN_DURATION: 10_000,
+        },
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1810,6 +1835,7 @@ const CONST = {
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
         INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
+        BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR: 'The deposit and withdrawal accounts are the same.',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
@@ -3089,6 +3115,7 @@ const CONST = {
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
             IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
+            REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -3453,6 +3480,11 @@ const CONST = {
         FREQUENCY_SETTING: {
             DAILY: 'daily',
             MONTHLY: 'monthly',
+        },
+        TERMINATION_REASON: {
+            LOST: 'lost',
+            STOLEN: 'stolen',
+            DAMAGED: 'damaged',
         },
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
     },
@@ -3877,7 +3909,7 @@ const CONST = {
     // Character Limits
     FORM_CHARACTER_LIMIT: 50,
     STANDARD_LENGTH_LIMIT: 100,
-    STANDARD_LIST_ITEM_LIMIT: 8,
+    STANDARD_LIST_ITEM_LIMIT: 12,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
@@ -5697,6 +5729,7 @@ const CONST = {
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
+        COMPANY_CARD_REQUIRED: 'companyCardRequired',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
@@ -6611,7 +6644,6 @@ const CONST = {
         },
         ACTION_TYPES: {
             VIEW: 'view',
-            REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -6636,6 +6668,7 @@ const CONST = {
             DELETE: 'delete',
             REJECT: 'reject',
             CHANGE_REPORT: 'changeReport',
+            SPLIT: 'split',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -6646,6 +6679,11 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
+        },
+        SETTLEMENT_STATUS: {
+            PENDING: 'pending',
+            CLEARED: 'cleared',
+            FAILED: 'failed',
         },
         IS_VALUES: {
             READ: 'read',
@@ -6660,6 +6698,51 @@ const CONST = {
             FROM: 'from',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
+        },
+        get CUSTOM_COLUMNS() {
+            return {
+                EXPENSE: {
+                    RECEIPT: this.TABLE_COLUMNS.RECEIPT,
+                    DATE: this.TABLE_COLUMNS.DATE,
+                    MERCHANT: this.TABLE_COLUMNS.MERCHANT,
+                    FROM: this.TABLE_COLUMNS.FROM,
+                    TO: this.TABLE_COLUMNS.TO,
+                    CATEGORY: this.TABLE_COLUMNS.CATEGORY,
+                    TAG: this.TABLE_COLUMNS.TAG,
+                    ACTION: this.TABLE_COLUMNS.ACTION,
+                },
+                EXPENSE_REPORT: {
+                    DATE: this.TABLE_COLUMNS.DATE,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
+                    TITLE: this.TABLE_COLUMNS.TITLE,
+                    FROM: this.TABLE_COLUMNS.FROM,
+                    TO: this.TABLE_COLUMNS.TO,
+                    ACTION: this.TABLE_COLUMNS.ACTION,
+                },
+                INVOICE: {},
+                TASK: {},
+                TRIP: {},
+                CHAT: {},
+            };
+        },
+        get DEFAULT_COLUMNS() {
+            return {
+                EXPENSE: [
+                    this.TABLE_COLUMNS.RECEIPT,
+                    this.TABLE_COLUMNS.DATE,
+                    this.TABLE_COLUMNS.MERCHANT,
+                    this.TABLE_COLUMNS.FROM,
+                    this.TABLE_COLUMNS.TO,
+                    this.TABLE_COLUMNS.CATEGORY,
+                    this.TABLE_COLUMNS.TAG,
+                    this.TABLE_COLUMNS.ACTION,
+                ],
+                EXPENSE_REPORT: [this.TABLE_COLUMNS.DATE, this.TABLE_COLUMNS.STATUS, this.TABLE_COLUMNS.TITLE, this.TABLE_COLUMNS.FROM, this.TABLE_COLUMNS.TO, this.TABLE_COLUMNS.ACTION],
+                INVOICE: [],
+                TASK: [],
+                TRIP: [],
+                CHAT: [],
+            };
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6743,6 +6826,7 @@ const CONST = {
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             GROUP_BY: 'groupBy',
+            COLUMNS: 'columns',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -6798,7 +6882,8 @@ const CONST = {
             BEFORE_PREFIX: 'reportFieldBefore-',
         },
         TAG_EMPTY_VALUE: 'none',
-        CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
+        CATEGORY_EMPTY_VALUE: 'none',
+        CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
@@ -6850,6 +6935,7 @@ const CONST = {
             ATTENDEE: 'attendee',
             IS: 'is',
             REPORT_FIELD: 'report-field',
+            COLUMNS: 'columns',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
@@ -7005,6 +7091,30 @@ const CONST = {
                 alias: 'policy-prevent-member-changing-title',
                 name: undefined,
                 icon: undefined,
+            },
+            preventSelfApproval: {
+                id: 'preventSelfApproval' as const,
+                alias: 'prevent-self-approval',
+                name: 'Advanced Approvals' as const,
+                title: `workspace.upgrade.approvals.title` as const,
+                description: `workspace.upgrade.approvals.description` as const,
+                icon: 'AdvancedApprovalsSquare',
+            },
+            autoApproveCompliantReports: {
+                id: 'autoApproveCompliantReports' as const,
+                alias: 'auto-approve-compliant-reports',
+                name: 'Advanced Approvals' as const,
+                title: `workspace.upgrade.approvals.title` as const,
+                description: `workspace.upgrade.approvals.description` as const,
+                icon: 'AdvancedApprovalsSquare',
+            },
+            autoPayApprovedReports: {
+                id: 'autoPayApprovedReports' as const,
+                alias: 'auto-pay-approved-reports',
+                name: 'Advanced Approvals' as const,
+                title: `workspace.upgrade.approvals.title` as const,
+                description: `workspace.upgrade.approvals.description` as const,
+                icon: 'AdvancedApprovalsSquare',
             },
             categories: {
                 id: 'categories' as const,
@@ -7223,7 +7333,9 @@ const CONST = {
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
         HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
+        HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
+        HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
     },
 
     DEBUG: {
@@ -7445,6 +7557,25 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
+    },
+
+    MODAL_EVENTS: {
+        CLOSED: 'modalClosed',
+    },
+
+    LIST_BEHAVIOR: {
+        REGULAR: 'regular',
+        INVERTED: 'inverted',
+    },
+
+    SENTRY_LABEL: {
+        NAVIGATION_TAB_BAR: {
+            EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
+            INBOX: 'NavigationTabBar-Inbox',
+            REPORTS: 'NavigationTabBar-Reports',
+            WORKSPACES: 'NavigationTabBar-Workspaces',
+            ACCOUNT: 'NavigationTabBar-Account',
+        },
     },
 } as const;
 

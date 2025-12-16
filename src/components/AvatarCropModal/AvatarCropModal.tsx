@@ -17,6 +17,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -60,6 +61,8 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Zoom']);
+
     const originalImageWidth = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -400,7 +403,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                 />
                                 <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                     <Icon
-                                        src={Expensicons.Zoom}
+                                        src={expensifyIcons.Zoom}
                                         fill={theme.icon}
                                     />
 

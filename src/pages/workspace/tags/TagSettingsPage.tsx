@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,6 +44,7 @@ type TagSettingsPageProps =
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {orderWeight, policyID, tagName, backTo, parentTagsFilter} = route.params;
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const {translate} = useLocalize();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
@@ -208,7 +210,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 description={translate(`workspace.tags.glCode`)}
                                 title={currentPolicyTag?.['GL Code']}
                                 onPress={navigateToEditGlCode}
-                                iconRight={hasAccountingConnections ? Expensicons.Lock : undefined}
+                                iconRight={hasAccountingConnections ? expensifyIcons.Lock : undefined}
                                 interactive={!hasAccountingConnections && !hasDependentTags}
                                 shouldShowRightIcon={!hasDependentTags}
                             />
