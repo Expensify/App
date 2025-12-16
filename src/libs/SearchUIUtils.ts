@@ -2543,15 +2543,15 @@ function getColumnsToShow(
 
     const columns: ColumnVisibility = isExpenseReportView
         ? {
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: true,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: true,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: false,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: false,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]: false,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]: false,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: true,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
           }
         : {
               [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,

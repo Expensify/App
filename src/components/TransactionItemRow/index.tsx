@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
