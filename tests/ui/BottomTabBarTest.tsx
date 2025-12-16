@@ -96,7 +96,7 @@ describe('NavigationTabBar', () => {
 
                     renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
             describe('Has RBR', () => {
@@ -116,7 +116,7 @@ describe('NavigationTabBar', () => {
 
                     renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
         });
@@ -143,7 +143,7 @@ describe('NavigationTabBar', () => {
 
                     renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
             describe('Has RBR', () => {
@@ -162,7 +162,7 @@ describe('NavigationTabBar', () => {
 
                     renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
         });

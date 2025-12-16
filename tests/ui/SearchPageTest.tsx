@@ -108,7 +108,7 @@ describe('SearchPageNarrow', () => {
     it('NavigationTabBar should be hidden when the search input is focused', async () => {
         renderPage();
 
-        expect(screen.getByTestId(SearchPageNarrow.displayName)).toBeTruthy();
+        expect(screen.getByTestId('SearchPageNarrow')).toBeTruthy();
 
         // Initially, there are two NavigationTabBars on screen: one from TopLevelNavigationTabBar and one from SearchPageNarrow.
         let navigationTabBars = screen.getAllByTestId('NavigationTabBar');
