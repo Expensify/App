@@ -99,7 +99,7 @@ function SearchFiltersBar({
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading} = useSearchContext();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
@@ -113,7 +113,7 @@ function SearchFiltersBar({
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: searchResultsErrorSelector});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
 
     const taxRates = getAllTaxRates(allPolicies);
 
@@ -307,6 +307,7 @@ function SearchFiltersBar({
             // If the type has changed, reset the status so we dont have an invalid status selected
             if (updatedFilterFormValues.type !== filterFormValues.type) {
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                updatedFilterFormValues.columns = [];
             }
 
             const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
@@ -323,6 +324,10 @@ function SearchFiltersBar({
         updateAdvancedFilters(filterFormValues, true);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [filterFormValues]);
+
+    const openSearchColumns = () => {
+        Navigation.navigate(ROUTES.SEARCH_COLUMNS);
+    };
 
     const isFormInitializedRef = useRef(false);
 
@@ -777,6 +782,8 @@ function SearchFiltersBar({
         [],
     );
 
+    const shouldShowColumnsButton = isLargeScreenWidth && (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE || queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
+
     const filterButtonText = useMemo(
         () => translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : ''),
         [translate, hiddenSelectedFilters.length],
@@ -784,19 +791,46 @@ function SearchFiltersBar({
 
     const renderListFooter = useCallback(
         () => (
-            <Button
-                link
-                small
-                shouldUseDefaultHover={false}
-                text={filterButtonText}
-                iconFill={theme.link}
-                iconHoverFill={theme.linkHover}
-                icon={expensifyIcons.Filter}
-                textStyles={[styles.textMicroBold]}
-                onPress={openAdvancedFilters}
-            />
+            <View style={[styles.flexRow, styles.gap2]}>
+                <Button
+                    link
+                    small
+                    shouldUseDefaultHover={false}
+                    text={filterButtonText}
+                    iconFill={theme.link}
+                    iconHoverFill={theme.linkHover}
+                    icon={expensifyIcons.Filter}
+                    textStyles={[styles.textMicroBold]}
+                    onPress={openAdvancedFilters}
+                />
+                {shouldShowColumnsButton && (
+                    <Button
+                        link
+                        small
+                        shouldUseDefaultHover={false}
+                        text={translate('search.columns')}
+                        iconFill={theme.link}
+                        iconHoverFill={theme.linkHover}
+                        icon={expensifyIcons.Columns}
+                        textStyles={[styles.textMicroBold]}
+                        onPress={openSearchColumns}
+                    />
+                )}
+            </View>
         ),
-        [filterButtonText, theme.link, theme.linkHover, styles.textMicroBold, openAdvancedFilters, expensifyIcons],
+        [
+            styles.flexRow,
+            styles.gap2,
+            styles.textMicroBold,
+            filterButtonText,
+            theme.link,
+            theme.linkHover,
+            expensifyIcons.Filter,
+            expensifyIcons.Columns,
+            openAdvancedFilters,
+            shouldShowColumnsButton,
+            translate,
+        ],
     );
 
     if (hasErrors) {

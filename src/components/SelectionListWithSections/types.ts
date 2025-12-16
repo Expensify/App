@@ -243,6 +243,9 @@ type TransactionListItemType = ListItem &
         /** Report to which the transaction belongs */
         report: Report | undefined;
 
+        /** The date the report was submitted */
+        submitted?: string;
+
         /** Policy to which the transaction belongs */
         policy: Policy | undefined;
 
@@ -280,6 +283,11 @@ type TransactionListItemType = ListItem &
          * This is true if at least one transaction in the dataset was created in past years
          */
         shouldShowYear: boolean;
+
+        /** Whether we should show the year for the submitted date.
+         * This is true if at least one transaction in the dataset was submitted in past years
+         */
+        shouldShowYearSubmitted: boolean;
 
         isAmountColumnWide: boolean;
 
@@ -398,6 +406,12 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
          * This is true if at least one report in the dataset was created in past years
          */
         shouldShowYear: boolean;
+
+        /**
+         * Whether we should show the year for the submitted date.
+         * This is true if at least one report in the dataset was submitted in past years
+         */
+        shouldShowYearSubmitted: boolean;
 
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;
@@ -565,6 +579,9 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 };
 
 type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** The visible columns for the report */
+    columns?: SearchColumnType[];
+
     /** Whether the item's action is loading */
     isLoading?: boolean;
 
@@ -1041,7 +1058,7 @@ type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWit
 
 type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
-type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
+type SortableColumnName = SearchColumnType;
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
 

@@ -16,6 +16,7 @@ const mockReportItemWithHold = {
     allActions: ['approve'],
     chatReportID: '2108006919825366',
     created: '2024-12-04 23:18:33',
+    submitted: '2024-12-04',
     currency: 'USD',
     isOneTransactionReport: false,
     isPolicyExpenseChat: false,
@@ -64,6 +65,7 @@ const mockReportItemWithHold = {
         validated: false,
     },
     shouldShowYear: false,
+    shouldShowYearSubmitted: false,
     transactions: [
         {
             report: {
@@ -107,6 +109,7 @@ const mockReportItemWithHold = {
             modifiedCurrency: '',
             modifiedMerchant: '',
             parentTransactionID: '',
+            submitted: '2024-12-04',
             policyID: '48D7178DE42EE9F9',
             reportID: '1350959062018695',
             reportType: 'expense',
@@ -150,6 +153,7 @@ const mockReportItemWithHold = {
             date: '2024-12-04',
             shouldShowMerchant: true,
             shouldShowYear: false,
+            shouldShowYearSubmitted: false,
             keyForList: '1049531721038862176',
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
@@ -185,6 +189,7 @@ const mockReportItemWithHold = {
                 comment: '',
             },
             created: '2024-12-04',
+            submitted: '2024-12-04',
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Forbes',
@@ -215,6 +220,7 @@ const mockReportItemWithHold = {
             date: '2024-12-04',
             shouldShowMerchant: true,
             shouldShowYear: false,
+            shouldShowYearSubmitted: false,
             keyForList: '5345995386715609966',
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
