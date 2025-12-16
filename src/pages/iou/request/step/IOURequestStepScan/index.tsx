@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
-import {transactionDraftReceiptsSelector, transactionDraftValuesSelector} from '@selectors/TransactionDraft';
+import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import {InteractionManager, PanResponder, StyleSheet, View} from 'react-native';
@@ -139,10 +139,6 @@ function IOURequestStepScan({
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
-        canBeMissing: true,
-    });
-    const [optimisticTransactionsReceipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftReceiptsSelector,
         canBeMissing: true,
     });
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
@@ -853,13 +849,9 @@ function IOURequestStepScan({
     };
 
     const submitMultiScanReceipts = () => {
-        const transactionReceipts = (optimisticTransactionsReceipts ?? [])
-            .filter((receipt): receipt is ReceiptWithTransactionID & {source: string} => !!receipt.source)
-            .map((receipt) => ({
-                ...receipt,
-                file: receiptFiles.find((receiptFile) => receiptFile.transactionID === receipt.transactionID)?.file,
-            }));
-        submitReceipts(transactionReceipts);
+        const transactionIDs = new Set(optimisticTransactions?.map((transaction) => transaction?.transactionID));
+        const validReceiptFiles = receiptFiles.filter((receiptFile) => transactionIDs.has(receiptFile.transactionID));
+        submitReceipts(validReceiptFiles);
     };
 
     const mobileCameraView = () => (
