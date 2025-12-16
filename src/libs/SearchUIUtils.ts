@@ -924,7 +924,7 @@ function shouldShowYear(
             }
 
             // Early exit if all flags are true
-            if (result.shouldShowYearCreated && result.shouldShowYearSubmitted) {
+            if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted) {
                 return result;
             }
         }
@@ -973,7 +973,7 @@ function shouldShowYear(
         }
 
         // Early exit if all flags are true
-        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted) {
+        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted) {
             return result;
         }
     }
