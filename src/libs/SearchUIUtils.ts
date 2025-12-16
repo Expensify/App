@@ -670,7 +670,9 @@ function getTransactionItemCommonFormattedProperties(
     const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
     const submitted = report?.submitted;
     const approved = report?.approved;
-    const posted = transactionItem?.posted;
+
+    // Posted date is in the YYYYMMDD format, so we format it to YYYY-MM-DD here since JS's Date constructor interprets it as an invalid date.
+    const posted = !transactionItem?.posted ? '' : `${transactionItem?.posted.slice(0, 4)}-${transactionItem?.posted.slice(4, 6)}-${transactionItem?.posted.slice(6, 8)}`;
 
     return {
         formattedFrom,
@@ -913,8 +915,11 @@ function shouldShowYear(
                 if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
                     result.shouldShowYearApproved = true;
                 }
-                if (item.posted && DateUtils.doesDateBelongToAPastYear(item.posted)) {
-                    result.shouldShowYearPosted = true;
+
+                // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
+                if (item?.posted) {
+                    const postedYear = parseInt(item.posted.slice(0, 4), 10);
+                    result.shouldShowYearPosted = postedYear !== currentYear;
                 }
             }
 
