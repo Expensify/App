@@ -218,6 +218,4 @@ function ReportActionItemImage({
     );
 }
 
-ReportActionItemImage.displayName = 'ReportActionItemImage';
-
 export default ReportActionItemImage;

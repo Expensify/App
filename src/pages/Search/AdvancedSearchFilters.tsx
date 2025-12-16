@@ -717,6 +717,4 @@ function AdvancedSearchFilters() {
     );
 }
 
-AdvancedSearchFilters.displayName = 'AdvancedSearchFilters';
-
 export default AdvancedSearchFilters;

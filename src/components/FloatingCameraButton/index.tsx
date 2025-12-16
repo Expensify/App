@@ -12,6 +12,4 @@ function FloatingCameraButton() {
     return <BaseFloatingCameraButton icon={icon} />;
 }
 
-FloatingCameraButton.displayName = 'FloatingCameraButton';
-
 export default FloatingCameraButton;

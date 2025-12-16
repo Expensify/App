@@ -143,7 +143,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
-            <ScreenWrapper testID={ChangeReceiptBillingAccountPage.displayName}>
+            <ScreenWrapper testID="ChangeReceiptBillingAccountPage">
                 <HeaderWithBackButton title={translate('workspace.receiptPartners.uber.centralBillingAccount')} />
                 <Text style={[styles.ph5, styles.pb3]}>{translate('workspace.receiptPartners.uber.centralBillingDescription')}</Text>
                 <SelectionList
@@ -163,7 +163,5 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
         </AccessOrNotFoundWrapper>
     );
 }
-
-ChangeReceiptBillingAccountPage.displayName = 'ChangeReceiptBillingAccountPage';
 
 export default ChangeReceiptBillingAccountPage;
