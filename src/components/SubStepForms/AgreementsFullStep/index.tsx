@@ -101,7 +101,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
 
     return (
         <InteractiveStepWrapper
-            wrapperID={AgreementsFullStep.displayName}
+            wrapperID="AgreementsFullStep"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('agreementsStep.agreements')}
             stepNames={stepNames}

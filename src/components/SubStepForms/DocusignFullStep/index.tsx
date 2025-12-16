@@ -96,7 +96,7 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
 
     return (
         <InteractiveStepWrapper
-            wrapperID={DocusignFullStep.displayName}
+            wrapperID="DocusignFullStep"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('docusignStep.subheader')}
             stepNames={stepNames}

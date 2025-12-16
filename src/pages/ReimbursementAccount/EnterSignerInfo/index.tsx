@@ -90,7 +90,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={EnterSignerInfo.displayName}
+            wrapperID="EnterSignerInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('signerInfoStep.signerInfo')}
         >

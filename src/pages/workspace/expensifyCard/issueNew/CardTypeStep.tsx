@@ -59,7 +59,7 @@ function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) 
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CardTypeStep.displayName}
+            wrapperID="CardTypeStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}

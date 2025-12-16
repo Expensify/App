@@ -74,7 +74,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CardNameStep.displayName}
+            wrapperID="CardNameStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}

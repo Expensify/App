@@ -108,7 +108,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BusinessInfo.displayName}
+            wrapperID="BusinessInfo"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('businessInfoStep.businessInfo')}

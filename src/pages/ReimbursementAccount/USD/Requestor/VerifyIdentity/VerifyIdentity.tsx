@@ -61,7 +61,7 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={VerifyIdentity.displayName}
+            wrapperID="VerifyIdentity"
             headerTitle={translate('onfidoStep.verifyIdentity')}
             handleBackButtonPress={onBackButtonPress}
             startStepIndex={3}

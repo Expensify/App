@@ -61,7 +61,7 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CountryFullStep.displayName}
+            wrapperID="CountryFullStep"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('countryStep.confirmCurrency')}
             stepNames={stepNames}

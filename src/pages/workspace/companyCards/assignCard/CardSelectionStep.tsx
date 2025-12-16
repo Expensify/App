@@ -149,7 +149,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CardSelectionStep.displayName}
+            wrapperID="CardSelectionStep"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={assigneeDisplayName}

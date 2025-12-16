@@ -143,7 +143,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BusinessInfo.displayName}
+            wrapperID="BusinessInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('businessInfoStep.businessInfoTitle')}
             stepNames={stepNames}

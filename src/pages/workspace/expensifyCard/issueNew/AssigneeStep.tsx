@@ -210,7 +210,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
 
     return (
         <InteractiveStepWrapper
-            wrapperID={AssigneeStep.displayName}
+            wrapperID="AssigneeStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}

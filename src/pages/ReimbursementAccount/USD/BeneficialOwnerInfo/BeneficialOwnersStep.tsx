@@ -211,7 +211,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BeneficialOwnersStep.displayName}
+            wrapperID="BeneficialOwnersStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('beneficialOwnerInfoStep.companyOwner')}
