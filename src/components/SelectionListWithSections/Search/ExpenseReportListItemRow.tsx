@@ -18,6 +18,7 @@ import type {Policy} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import StatusCell from './StatusCell';
+import TextCell from './TextCell';
 import TitleCell from './TitleCell';
 import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -142,6 +143,11 @@ function ExpenseReportListItemRow({
                         displayName={item.to.displayName ?? item.to.login ?? ''}
                     />
                 )}
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+                <TextCell text={'exchangerate'} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
