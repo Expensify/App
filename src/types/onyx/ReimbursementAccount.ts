@@ -215,8 +215,19 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
             requestorIdentityID?: {
                 /** status of check */
                 status: string;
-                /** fields that failed */
-                errors: Record<string, string>;
+                /** result with validation errors */
+                apiResult?: {
+                    /** contains validation qualifiers that provide additional details about the identity verification result */
+                    qualifiers: {
+                        /** array of individual validation checks that were flagged during identity verification */
+                        qualifier: Array<{
+                            /** Unique code of the error */
+                            key: string;
+                            /** Message of the error */
+                            message: string;
+                        }>;
+                    };
+                };
             };
         };
     };

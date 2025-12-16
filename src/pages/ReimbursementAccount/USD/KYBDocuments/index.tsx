@@ -10,6 +10,8 @@ import UploadFile from '@components/UploadFile';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import isUserAddressVerificationRequired from '@pages/ReimbursementAccount/USD/utils/isUserAddressVerificationRequired';
+import isUserDOBVerificationRequired from '@pages/ReimbursementAccount/USD/utils/isUserDOBVerificationRequired';
 import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,10 +28,9 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const reimbursementAccountData = reimbursementAccount?.achData?.verifications?.externalApiResponse;
 
-    const submit = useCallback(() => {
-        console.log('submit');
-    }, []);
+    const submit = useCallback(() => {}, []);
 
     const DOCUMENTS_CONFIG = useMemo(
         () =>
@@ -38,34 +39,45 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
                     inputID: 'companyTaxID',
                     title: 'documentsStep.taxIDVerification',
                     description: 'documentsStep.taxIDVerificationDescription',
-                    required: reimbursementAccount?.achData?.verifications?.externalApiResponse?.companyTaxID?.status !== 'pass',
+                    required: reimbursementAccountData?.companyTaxID?.status !== 'pass',
                 },
                 {
                     inputID: 'nameChangeDocument',
                     title: 'documentsStep.nameChangeDocument',
                     description: 'documentsStep.nameChangeDocumentDescription',
-                    required: reimbursementAccount?.achData?.verifications?.externalApiResponse?.lexisNexisInstantIDResult?.status !== 'pass',
+                    required: reimbursementAccountData?.lexisNexisInstantIDResult?.status !== 'pass',
                 },
                 {
                     inputID: 'companyAddressVerification',
                     title: 'documentsStep.companyAddressVerification',
                     description: 'documentsStep.companyAddressVerificationDescription',
-                    required: reimbursementAccount?.achData?.verifications?.externalApiResponse?.lexisNexisInstantIDResult?.status !== 'pass',
+                    required: reimbursementAccountData?.lexisNexisInstantIDResult?.status !== 'pass',
                 },
                 {
                     inputID: 'userAddressVerification',
                     title: 'documentsStep.userAddressVerification',
                     description: 'documentsStep.userAddressVerificationDescription',
-                    required: reimbursementAccount?.achData?.verifications?.externalApiResponse?.requestorIdentityID?.status !== 'pass',
+                    required: isUserAddressVerificationRequired(
+                        reimbursementAccountData?.requestorIdentityID?.status,
+                        reimbursementAccountData?.requestorIdentityID?.apiResult?.qualifiers?.qualifier,
+                    ),
                 },
                 {
                     inputID: 'userDOBVerification',
                     title: 'documentsStep.userDOBVerification',
                     description: 'documentsStep.userDOBVerificationDescription',
-                    required: reimbursementAccount?.achData?.verifications?.externalApiResponse?.requestorIdentityID?.status !== 'pass',
+                    required: isUserDOBVerificationRequired(
+                        reimbursementAccountData?.requestorIdentityID?.status,
+                        reimbursementAccountData?.requestorIdentityID?.apiResult?.qualifiers?.qualifier,
+                    ),
                 },
             ] as const,
-        [],
+        [
+            reimbursementAccountData?.companyTaxID?.status,
+            reimbursementAccountData?.lexisNexisInstantIDResult?.status,
+            reimbursementAccountData?.requestorIdentityID?.apiResult?.qualifiers?.qualifier,
+            reimbursementAccountData?.requestorIdentityID?.status,
+        ],
     );
 
     const [uploadedFiles, setUploadedFiles] = useState<Record<string, FileObject[]>>({
