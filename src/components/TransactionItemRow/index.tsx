@@ -447,6 +447,7 @@ function TransactionItemRow({
             merchant,
             description,
             isInSingleTransactionReport,
+            exchangeRate,
             isAmountColumnWide,
             isTaxAmountColumnWide,
         ],
