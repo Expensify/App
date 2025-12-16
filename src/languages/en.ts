@@ -4768,7 +4768,7 @@ const translations = {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Last business day of the month',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Custom day of month',
             },
-            assign: 'Assign',
+            assign: 'Assign1',
             assignCard: 'Assign card',
             findCard: 'Find card',
             cardNumber: 'Card number',
