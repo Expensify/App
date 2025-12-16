@@ -1917,6 +1917,7 @@ function getSortedSections(
     status: SearchStatus,
     data: ListItemDataType<typeof type, typeof status>,
     localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocaleContextProps['translate'],
     sortBy?: SearchColumnType,
     sortOrder?: SortOrder,
     groupBy?: SearchGroupBy,
@@ -1928,7 +1929,7 @@ function getSortedSections(
         return getSortedTaskData(data as TaskListItemType[], localeCompare, sortBy, sortOrder);
     }
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare, sortBy, sortOrder);
+        return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare, translate, sortBy, sortOrder);
     }
 
     if (groupBy) {
@@ -1944,7 +1945,7 @@ function getSortedSections(
         }
     }
 
-    return getSortedTransactionData(data as TransactionListItemType[], localeCompare, sortBy, sortOrder);
+    return getSortedTransactionData(data as TransactionListItemType[], localeCompare, translate, sortBy, sortOrder);
 }
 
 /**
@@ -1985,12 +1986,33 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
  * @private
  * Sorts transaction sections based on a specified column and sort order.
  */
-function getSortedTransactionData(data: TransactionListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+function getSortedTransactionData(
+    data: TransactionListItemType[],
+    localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocaleContextProps['translate'],
+    sortBy?: SearchColumnType,
+    sortOrder?: SortOrder,
+) {
     if (!sortBy || !sortOrder) {
         return data;
     }
 
     const sortingProperty = transactionColumnNamesToSortingProperty[sortBy];
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.STATUS) {
+        return data.sort((a, b) => {
+            const aReport = a.report;
+            const bReport = b.report;
+
+            if (!aReport || !bReport) {
+                return 0;
+            }
+
+            const aValue = getReportStatusTranslation({stateNum: aReport.stateNum, statusNum: aReport.statusNum, translate});
+            const bValue = getReportStatusTranslation({stateNum: bReport.stateNum, statusNum: bReport.statusNum, translate});
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
 
     if (!sortingProperty) {
         return data;
@@ -2027,9 +2049,15 @@ function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContex
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedReportData(data: TransactionReportGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+function getSortedReportData(
+    data: TransactionReportGroupListItemType[],
+    localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocaleContextProps['translate'],
+    sortBy?: SearchColumnType,
+    sortOrder?: SortOrder,
+) {
     for (const report of data) {
-        report.transactions = getSortedTransactionData(report.transactions, localeCompare, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
+        report.transactions = getSortedTransactionData(report.transactions, localeCompare, translate, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
     }
 
     if (!sortBy || !sortOrder) {
@@ -2663,6 +2691,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
           };
@@ -2843,6 +2872,7 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
         isTaxAmountColumnWide,
         violations,
         hash,
+        canDelete,
         accountID,
         policyID,
         ...transaction
