@@ -26,6 +26,14 @@ jobs:
         with:
           IS_DESKTOP_BUILD: true
 
+      - name: Cache ESLint
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/eslint
+          key: ${{ runner.os }}-eslint-${{ hashFiles('**/*.js', '**/*.ts', '**/*.tsx', '.eslintrc.js', '.eslintignore', 'eslint.config.*') }}
+          restore-keys: |
+            ${{ runner.os }}-eslint-
+
       - name: Lint JavaScript and Typescript with ESLint
         run: npm run lint
         env:
