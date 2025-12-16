@@ -55,7 +55,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const policyID = policyIDFromProps ?? policyIDFromRoute;
     const [cardFeeds] = useCardFeeds(policyID);
     const prevFeedsData = usePrevious(cardFeeds);
-    const illustrations = useMemoizedLazyIllustrations(['PendingBank'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
     const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
@@ -121,10 +121,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
 
     const CustomSubtitle = (
         <Text style={[styles.textAlignCenter, styles.textSupporting]}>
-            {bankName &&
-                translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, {
-                    bankName: addNewCard?.data?.plaidConnectedFeedName ?? bankName,
-                })}
+            {bankName && translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, addNewCard?.data?.plaidConnectedFeedName ?? bankName)}
             <TextLink onPress={onOpenBankConnectionFlow}>{translate('workspace.moreFeatures.companyCards.pendingBankLink')}</TextLink>.
         </Text>
     );
