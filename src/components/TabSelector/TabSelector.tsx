@@ -1,6 +1,6 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
 import {TabActions} from '@react-navigation/native';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
@@ -100,7 +100,7 @@ function TabSelector({
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
+    const defaultAffectedAnimatedTabs = Array.from({length: state.routes.length}, (v, i) => i);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
     const viewRef = useRef<View>(null);
     const [selectorWidth, setSelectorWidth] = React.useState(0);
