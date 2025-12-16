@@ -9,6 +9,7 @@ import RadioButton from '@components/RadioButton';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
+import TextCell from '@components/SelectionListWithSections/Search/TextCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -18,6 +19,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
+import getBase62ReportID from '@libs/getBase62ReportID';
 import {isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
@@ -379,6 +381,16 @@ function TransactionItemRow({
                         shouldShowTooltip={shouldShowTooltip}
                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                     />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
+                    <TextCell text={getBase62ReportID(Number(transactionItem.reportID))} />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.LONG_REPORT_ID]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.LONG_REPORT_ID)]}>
+                    <TextCell text={transactionItem.reportID ?? ''} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TAX]: (
