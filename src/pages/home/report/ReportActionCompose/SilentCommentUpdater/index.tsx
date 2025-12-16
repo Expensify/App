@@ -11,7 +11,15 @@ import type SilentCommentUpdaterProps from './types';
  * It is connected to the actual draft comment in onyx. The comment in onyx might updates multiple times, and we want to avoid
  * re-rendering a UI component for that. That's why the side effect was moved down to a separate component.
  */
-function SilentCommentUpdater({commentRef, reportID, value, updateComment, isCommentPendingSaved, isTransitioningToPreExistingReport}: SilentCommentUpdaterProps) {
+function SilentCommentUpdater({
+    commentRef,
+    reportID,
+    value,
+    updateComment,
+    isCommentPendingSaved,
+    isTransitioningToPreExistingReport,
+    onTransitionToPreExistingReportComplete,
+}: SilentCommentUpdaterProps) {
     const [comment = '', commentResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
     const prevCommentProp = usePrevious(comment);
     const prevReportId = usePrevious(reportID);
@@ -26,8 +34,7 @@ function SilentCommentUpdater({commentRef, reportID, value, updateComment, isCom
         // Skip sync when transitioning to a preexisting report
         // This prevents overwriting the just-saved draft with an empty string
         if (isTransitioningToPreExistingReport.current && reportID !== prevReportId) {
-            // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
-            isTransitioningToPreExistingReport.current = false;
+            onTransitionToPreExistingReportComplete();
             return;
         }
 
@@ -54,6 +61,7 @@ function SilentCommentUpdater({commentRef, reportID, value, updateComment, isCom
         commentRef,
         isCommentPendingSaved,
         isTransitioningToPreExistingReport,
+        onTransitionToPreExistingReportComplete,
         commentResult,
     ]);
 

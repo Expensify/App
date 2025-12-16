@@ -283,6 +283,11 @@ function ComposerWithSuggestions({
     // The ref to check whether we're transitioning to a preexisting report
     const isTransitioningToPreExistingReport = useRef(false);
 
+    // Callback to clear the transitioning flag - passed to SilentCommentUpdater to avoid prop mutation
+    const handleTransitionToPreExistingReportComplete = useCallback(() => {
+        isTransitioningToPreExistingReport.current = false;
+    }, []);
+
     const animatedRef = useAnimatedRef();
     /**
      * Set the TextInput Ref
@@ -904,6 +909,7 @@ function ComposerWithSuggestions({
                     commentRef={commentRef}
                     isCommentPendingSaved={isCommentPendingSaved}
                     isTransitioningToPreExistingReport={isTransitioningToPreExistingReport}
+                    onTransitionToPreExistingReportComplete={handleTransitionToPreExistingReportComplete}
                 />
             )}
 
