@@ -103,8 +103,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         certifyTrueInformation?: boolean;
         acceptTermsAndConditions?: boolean;
     }>({});
+    const isNonUSDWorkspace = !!policyCurrency && policyCurrency !== CONST.CURRENCY.USD;
     const hasUnsupportedCurrency =
-        isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && policyCurrency && policyCurrency !== CONST.CURRENCY.USD
+        isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && isNonUSDWorkspace
             ? !isCurrencySupportedForECards(policyCurrency)
             : !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType);
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
@@ -116,9 +117,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     if (isFocused) {
         workspaceRoute = `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())}`;
     }
-    useEffect(() => {
-        return () => getPaymentMethods(true);
-    }, []);
 
     const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
     const achData = reimbursementAccount?.achData;
@@ -144,7 +142,17 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [isResettingBankAccount, setIsResettingBankAccount] = useState(false);
-    const [isNonUSDSetup, setIsNonUSDSetup] = useState(!!(policyCurrency && policyCurrency !== CONST.CURRENCY.USD));
+    const [isNonUSDSetup, setIsNonUSDSetup] = useState(policy ? isNonUSDWorkspace : achData?.currency !== CONST.CURRENCY.USD || reimbursementAccountDraft?.currency !== CONST.CURRENCY.USD);
+
+    useEffect(() => {
+        return () => {
+            // we only want to refresh payment methods if user has an in progress VBBA
+            if (!hasInProgressVBBA(achData) && backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE) {
+                return;
+            }
+            getPaymentMethods(true);
+        };
+    }, []);
 
     useEffect(() => {
         if (!policyCurrency || isNonUSDSetup === (policyCurrency !== CONST.CURRENCY.USD)) {

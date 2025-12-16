@@ -49,7 +49,7 @@ const hasInProgressNonUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean
 
 /** Returns true if VBBA flow is in progress */
 const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean) => {
-    if (isNonUSDWorkspace) {
+    if (isNonUSDWorkspace ?? (!!achData?.currency && achData.currency !== CONST.CURRENCY.USD)) {
         return hasInProgressNonUSDVBBA(achData);
     }
 
