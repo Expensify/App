@@ -8,7 +8,7 @@ import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -40,7 +40,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
     const [imageAspectRatio, setImageAspectRatio] = useState<string | number | undefined>(undefined);
     const [distanceEReceiptAspectRatio, setDistanceEReceiptAspectRatio] = useState<string | number | undefined>(undefined);
     const [shouldShow, debounceShouldShow, setShouldShow] = useDebouncedState(false, CONST.TIMING.SHOW_HOVER_PREVIEW_DELAY);
-    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const hasMeasured = useRef(false);
     const {windowHeight} = useWindowDimensions();
     const [isLoading, setIsLoading] = useState(true);
