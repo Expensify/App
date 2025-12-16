@@ -386,6 +386,7 @@ const searchResults: OnyxTypes.SearchResults = {
         [`report_${reportID5}`]: report5,
         [`transactions_${transactionID}`]: {
             amount: -5000,
+            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -415,6 +416,7 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`transactions_${transactionID2}`]: {
             amount: -5000,
+            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -445,6 +447,7 @@ const searchResults: OnyxTypes.SearchResults = {
         ...allViolations,
         [`transactions_${transactionID3}`]: {
             amount: 1200,
+            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -474,6 +477,7 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`transactions_${transactionID4}`]: {
             amount: 3200,
+            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -759,6 +763,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction1,
         holdReportAction: undefined,
+        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -810,6 +815,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction2,
         holdReportAction: undefined,
+        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -871,6 +877,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction3,
         holdReportAction: undefined,
+        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -927,6 +934,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction4,
         holdReportAction: undefined,
+        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -1020,6 +1028,7 @@ const transactionReportGroupListItems = [
                 reportAction: reportAction1,
                 holdReportAction: undefined,
                 amount: -5000,
+                canDelete: true,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1114,6 +1123,7 @@ const transactionReportGroupListItems = [
                 reportAction: reportAction2,
                 holdReportAction: undefined,
                 amount: -5000,
+                canDelete: true,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1215,7 +1225,122 @@ const transactionReportGroupListItems = [
             displayName: 'Approver',
             login: 'approver@policy.com',
         },
-        transactions: [transactionsListItems.at(2), transactionsListItems.at(3)],
+        transactions: [
+            {
+                amount: 1200,
+                action: 'view',
+                allActions: ['view'],
+                report: report3,
+                policy,
+                reportAction: reportAction3,
+                holdReportAction: undefined,
+                canDelete: true,
+                cardID: undefined,
+                cardName: undefined,
+                category: '',
+                comment: {comment: ''},
+                created: '2025-03-05',
+                currency: 'VND',
+                hasEReceipt: false,
+                merchant: '(none)',
+                modifiedAmount: 0,
+                modifiedCreated: '',
+                modifiedCurrency: '',
+                modifiedMerchant: '',
+                parentTransactionID: '',
+                reportID: '99999',
+                tag: '',
+                transactionID: '3',
+                from: {
+                    accountID: 18439984,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    displayName: 'Admin',
+                    login: 'admin@policy.com',
+                },
+                to: {
+                    accountID: 1111111,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    displayName: 'Approver',
+                    login: 'approver@policy.com',
+                },
+                formattedFrom: 'Admin',
+                formattedTo: 'Approver',
+                formattedTotal: 1200,
+                formattedMerchant: '',
+                date: '2025-03-05',
+                shouldShowMerchant: true,
+                shouldShowYear: true,
+                keyForList: '3',
+                isAmountColumnWide: false,
+                isTaxAmountColumnWide: false,
+                receipt: undefined,
+                taxAmount: undefined,
+                mccGroup: undefined,
+                modifiedMCCGroup: undefined,
+                pendingAction: undefined,
+                errors: undefined,
+                violations: [],
+                groupAmount: -5000,
+                groupCurrency: 'USD',
+            },
+            {
+                amount: 3200,
+                action: 'view',
+                allActions: ['view'],
+                report: report3,
+                policy,
+                reportAction: reportAction4,
+                holdReportAction: undefined,
+                canDelete: true,
+                cardID: undefined,
+                cardName: undefined,
+                category: '',
+                comment: {comment: ''},
+                created: '2025-03-05',
+                currency: 'VND',
+                hasEReceipt: false,
+                merchant: '(none)',
+                modifiedAmount: 0,
+                modifiedCreated: '',
+                modifiedCurrency: '',
+                modifiedMerchant: '',
+                parentTransactionID: '',
+                reportID: '99999',
+                tag: '',
+                transactionID: '4',
+                from: {
+                    accountID: 18439984,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    displayName: 'Admin',
+                    login: 'admin@policy.com',
+                },
+                to: {
+                    accountID: 1111111,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    displayName: 'Approver',
+                    login: 'approver@policy.com',
+                },
+                formattedFrom: 'Admin',
+                formattedTo: 'Approver',
+                formattedTotal: 3200,
+                formattedMerchant: '',
+                date: '2025-03-05',
+                shouldShowMerchant: true,
+                shouldShowYear: true,
+                keyForList: '4',
+                isAmountColumnWide: false,
+                isTaxAmountColumnWide: false,
+                receipt: undefined,
+                taxAmount: undefined,
+                mccGroup: undefined,
+                modifiedMCCGroup: undefined,
+                pendingAction: undefined,
+                errors: undefined,
+                violations: [],
+                groupAmount: -5000,
+                groupCurrency: 'USD',
+            },
+        ],
     },
     {
         groupedBy: 'expense-report',
@@ -1696,7 +1821,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 45;
+            const expectedPropertyCount = 46;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1729,7 +1854,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 45;
+            const expectedPropertyCount = 46;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2321,6 +2446,7 @@ describe('SearchUIUtils', () => {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactions_1805965960759424086: {
                         amount: 0,
+                        canDelete: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
                         comment: {
                             comment: '',
@@ -2443,6 +2569,7 @@ describe('SearchUIUtils', () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactions_1805965960759424086: {
                     amount: 0,
+                    canDelete: false,
                     cardID: undefined,
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
