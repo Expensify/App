@@ -4,6 +4,8 @@ import React, {useMemo, useState} from 'react';
 import {CheckSquare} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+// will be miragrated soon
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, SelectionListHandle, SelectionListProps} from '@components/SelectionListWithSections/types';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';

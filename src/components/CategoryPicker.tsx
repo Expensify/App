@@ -11,6 +11,7 @@ import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
 import RadioListItem from './SelectionListWithSections/RadioListItem';
 import type {ListItem} from './SelectionListWithSections/types';

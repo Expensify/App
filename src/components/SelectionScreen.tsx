@@ -16,6 +16,7 @@ import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
 import type RadioListItem from './SelectionListWithSections/RadioListItem';
 import type TableListItem from './SelectionListWithSections/TableListItem';
