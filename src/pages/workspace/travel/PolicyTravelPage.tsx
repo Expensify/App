@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -41,9 +41,9 @@ function WorkspaceTravelPage({
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
-    const mainContent = useMemo(() => {
-        const step = getTravelStep(policy, travelSettings, isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED), policies, currentUserLogin);
+    const step = getTravelStep(policy, travelSettings, isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED), policies, currentUserLogin);
 
+    const mainContent = (() => {
         switch (step) {
             case CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP:
                 return <BookOrManageYourTrip policyID={policyID} />;
@@ -52,7 +52,7 @@ function WorkspaceTravelPage({
             default:
                 return <GetStartedTravel policyID={policyID} />;
         }
-    }, [policy, travelSettings, isBetaEnabled, policies, currentUserLogin, policyID]);
+    })();
 
     return (
         <AccessOrNotFoundWrapper

@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import {Linking, View} from 'react-native';
@@ -28,19 +28,16 @@ function ManageTrips({policyID}: ManageTripsProps) {
 
     const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts']);
 
-    const tripsFeatures: FeatureListItem[] = useMemo(
-        () => [
-            {
-                icon: illustrations.PiggyBank,
-                translationKey: 'travel.features.saveMoney',
-            },
-            {
-                icon: illustrations.TravelAlerts,
-                translationKey: 'travel.features.alerts',
-            },
-        ],
-        [illustrations.PiggyBank, illustrations.TravelAlerts],
-    );
+    const tripsFeatures: FeatureListItem[] = [
+        {
+            icon: illustrations.PiggyBank,
+            translationKey: 'travel.features.saveMoney',
+        },
+        {
+            icon: illustrations.TravelAlerts,
+            translationKey: 'travel.features.alerts',
+        },
+    ];
 
     const navigateToBookTravelDemo = () => {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
