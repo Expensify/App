@@ -30,6 +30,8 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION, {canBeMissing: false});
+    const isVerifiedValidateActionCode = pendingContactAction?.isVerifiedValidateActionCode;
     const navigateBackTo = route?.params?.backTo;
 
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -54,8 +56,12 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
             );
             return;
         }
+        if (isVerifiedValidateActionCode) {
+            Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
+            return;
+        }
         Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.getRoute(navigateBackTo));
-    }, [navigateBackTo, isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, isUserValidated, showLockedAccountModal]);
+    }, [navigateBackTo, isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, isUserValidated, showLockedAccountModal, isVerifiedValidateActionCode]);
 
     return (
         <ScreenWrapper

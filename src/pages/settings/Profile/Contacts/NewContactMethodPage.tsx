@@ -110,7 +110,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         }
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod), navigateBackTo, true));
         clearUnvalidatedNewContactMethodAction();
-    }, [navigateToConfirmMagicCode, pendingContactAction?.actionVerified, pendingContactAction?.contactMethod, navigateBackTo]);
+    }, [pendingContactAction?.actionVerified, pendingContactAction?.contactMethod, navigateBackTo]);
 
     return (
         <ScreenWrapper
