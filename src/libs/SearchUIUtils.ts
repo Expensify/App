@@ -1970,7 +1970,20 @@ function getSortedTransactionData(data: TransactionListItemType[], localeCompare
         const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty as keyof TransactionListItemType];
         const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty as keyof TransactionListItemType];
 
-        return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
+        const primaryComparison = compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
+
+        if (primaryComparison !== 0) {
+            return primaryComparison;
+        }
+
+        // If we have a tie in the primary comparison, we add a tie breaker on created and/or transactionID as a last resort to make the sort deterministic
+        const createdComparison = compareValues(a.created, b.created, sortOrder, 'created', localeCompare);
+
+        if (createdComparison !== 0) {
+            return createdComparison;
+        }
+
+        return compareValues(a.transactionID, b.transactionID, sortOrder, 'transactionID', localeCompare);
     });
 }
 
