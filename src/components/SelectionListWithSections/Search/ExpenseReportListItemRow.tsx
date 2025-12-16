@@ -20,7 +20,6 @@ import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import StatusCell from './StatusCell';
 import TextCell from './TextCell';
-import TitleCell from './TitleCell';
 import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 import UserInfoCell from './UserInfoCell';
@@ -118,7 +117,7 @@ function ExpenseReportListItemRow({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
-                <TitleCell
+                <TextCell
                     text={item.reportName ?? ''}
                     isLargeScreenWidth={isLargeScreenWidth}
                 />
