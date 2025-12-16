@@ -82,6 +82,7 @@ import {
     isWhisperAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
@@ -104,7 +105,6 @@ import {
     getRejectedReportMessage,
     getReportActionActorAccountID,
     getReportLastMessage,
-    getReportName,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportPreviewMessage,
@@ -357,17 +357,13 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
 
 /**
  * Get the participant option for a report.
- *
- * @param shouldAddCurrentUserPostfix - Whether to add the current user postfix (e.g., "(You)") when the participant is the current user
  */
-function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>, shouldAddCurrentUserPostfix?: boolean): Participant {
+function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
     const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
-    const displayName =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        participant?.displayName ||
-        formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login || participant.text, true, shouldAddCurrentUserPostfix && currentUserAccountID === participant.accountID));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const displayName = participant?.displayName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login || participant.text));
 
     return {
         keyForList: String(detail?.accountID ?? login),
@@ -662,8 +658,8 @@ function getLastMessageTextForReport({
             : undefined;
         // For workspace chats, use the report title
         if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            lastMessageTextFromReport = formatReportLastMessageText(getReportName(iouReport));
+            const reportName = computeReportName(iouReport);
+            lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
             const reportPreviewMessage = getReportPreviewMessage(
                 !isEmptyObject(iouReport) ? iouReport : null,
@@ -917,11 +913,12 @@ function createOption(
             showPersonalDetails && personalDetail?.login
                 ? personalDetail.login
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
+
+        const personalDetailsForCompute: PersonalDetailsList | undefined = personalDetails ?? undefined;
+        const computedReportName = computeReportName(report, undefined, undefined, undefined, allReportNameValuePairs, personalDetailsForCompute, undefined);
         reportName = showPersonalDetails
-            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), personalDetailsData: personalDetails ?? undefined, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ||
-              formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
-            : // eslint-disable-next-line @typescript-eslint/no-deprecated
-              getReportName(report);
+            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
+            : computedReportName;
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportName =
@@ -938,7 +935,8 @@ function createOption(
     result.subtitle = subtitle;
 
     // Set login and accountID only for single participant cases (used in SearchOption context)
-    if (!hasMultipleParticipants && (!report || (report && !reportUtilsIsGroupChat(report) && !reportUtilsIsChatRoom(report)))) {
+    // Also always set for personal details options (showPersonalDetails: true) to ensure search filtering works correctly
+    if (showPersonalDetails || (!hasMultipleParticipants && (!report || (report && !reportUtilsIsGroupChat(report) && !reportUtilsIsChatRoom(report))))) {
         result.login = personalDetail?.login;
         result.accountID = Number(personalDetail?.accountID);
     }
@@ -969,8 +967,7 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        option.text = getReportName(report);
+        option.text = computeReportName(report, undefined, undefined, undefined, allReportNameValuePairs, allPersonalDetails, undefined);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
@@ -1019,8 +1016,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        option.text = getReportName(report);
+        option.text = computeReportName(report, undefined, undefined, undefined, allReportNameValuePairs, allPersonalDetails, undefined);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {
@@ -1237,6 +1233,119 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     return {
         reports: allReportOptions,
         personalDetails: allPersonalDetailsOptions as Array<SearchOption<PersonalDetails>>,
+    };
+}
+
+/**
+ * Creates an optimized option list with smart pre-filtering.
+ *
+ * Performance optimization approach:
+ * 1. Pre-filters reports using shouldReportBeInOptionList with correct parameters (betas, etc.)
+ * 2. Sorts by lastVisibleActionCreated (most recent first)
+ * 3. Limits to top N reports
+ * 4. Processes only those N reports
+ *
+ * This avoids processing thousands of reports while ensuring correct filtering.
+ *
+ * Use this for screens that need recent reports (NewChatPage, WorkspaceInvitePage, etc.)
+ */
+function createFilteredOptionList(
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    reports: OnyxCollection<Report>,
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    options: {
+        maxRecentReports?: number;
+        includeP2P?: boolean;
+        searchTerm?: string;
+        betas?: OnyxEntry<Beta[]>;
+    } = {},
+) {
+    const {maxRecentReports = 500, includeP2P = true, searchTerm = ''} = options;
+    const reportMapForAccountIDs: Record<number, Report> = {};
+
+    // Step 1: Pre-filter reports to avoid processing thousands
+    // Only filter out null/undefined - let shouldReportBeInOptionList handle business logic
+    const reportsArray = Object.values(reports ?? {}).filter((report): report is Report => {
+        return !!report;
+    });
+
+    // Step 2: Sort by lastVisibleActionCreated (most recent first)
+    const sortedReports = reportsArray.sort((a, b) => {
+        const aTime = new Date(a.lastVisibleActionCreated ?? 0).getTime();
+        const bTime = new Date(b.lastVisibleActionCreated ?? 0).getTime();
+        return bTime - aTime;
+    });
+
+    // Step 3: Limit to top N reports
+    const limitedReports = sortedReports.slice(0, maxRecentReports);
+
+    // Step 4: If search term is present, build report map with ONLY 1:1 DM reports
+    // This allows personal details to have valid 1:1 DM reportIDs for proper avatar display
+    // Users without 1:1 DMs will have no report mapped, causing getIcons to fall back to personal avatar
+    if (searchTerm?.trim()) {
+        const allReportsArray = Object.values(reports ?? {});
+
+        // Add ONLY 1:1 DM reports (never add group/policy chats to maintain personal avatars)
+        for (const report of allReportsArray) {
+            if (!report) {
+                continue;
+            }
+
+            // Check if this is a 1:1 DM (not a group/policy/room chat)
+            const is1on1DM = reportUtilsIsOneOnOneChat(report);
+
+            if (is1on1DM) {
+                const accountIDs = getParticipantsAccountIDsForDisplay(report);
+                for (const accountID of accountIDs) {
+                    // ALWAYS set 1:1 DMs - prioritize them over policy/group chats
+                    // This ensures proper avatar display for personal details
+                    reportMapForAccountIDs[accountID] = report;
+                }
+            }
+        }
+    }
+
+    // Step 5: Process the limited set of reports (performance optimization)
+    const reportOptions: Array<SearchOption<Report>> = [];
+    for (const report of limitedReports) {
+        const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived);
+
+        if (reportMapEntry) {
+            const [accountID, reportValue] = reportMapEntry;
+
+            // Preserve 1:1 DMs from Step 4 - don't overwrite them with non-1:1 reports
+            const existing = reportMapForAccountIDs[accountID];
+            const existingIs1on1 = existing && reportUtilsIsOneOnOneChat(existing);
+            const newIs1on1 = reportUtilsIsOneOnOneChat(reportValue);
+
+            // Only overwrite if: no existing, existing is not 1:1, or both are 1:1 (prefer newer)
+            const shouldOverwrite = !existing || !existingIs1on1 || newIs1on1;
+
+            if (shouldOverwrite) {
+                reportMapForAccountIDs[accountID] = reportValue;
+            }
+        }
+
+        if (reportOption) {
+            reportOptions.push(reportOption);
+        }
+    }
+
+    // Step 6: Process personal details (all of them - needed for search functionality)
+    const personalDetailsOptions = includeP2P
+        ? Object.values(personalDetails ?? {}).map((personalDetail) => {
+              const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+
+              return {
+                  item: personalDetail,
+                  ...createOption([accountID], personalDetails, reportMapForAccountIDs[accountID], {showPersonalDetails: true}, reportAttributesDerived),
+              };
+          })
+        : [];
+
+    return {
+        reports: reportOptions,
+        personalDetails: personalDetailsOptions as Array<SearchOption<PersonalDetails>>,
     };
 }
 
@@ -1994,14 +2103,10 @@ function getValidOptions(
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
     if (!includeSelectedOptions) {
         for (const option of selectedOptions) {
-            if (option.login) {
-                loginsToExclude[option.login] = true;
+            if (!option.login) {
                 continue;
             }
-
-            if (option.reportID) {
-                loginsToExclude[option.reportID] = true;
-            }
+            loginsToExclude[option.login] = true;
         }
     }
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, shouldShowGBR = false, ...getValidReportsConfig} = config;
@@ -2413,8 +2518,6 @@ function shouldOptionShowTooltip(option: SearchOptionData): boolean {
 
 /**
  * Handles the logic for displaying selected participants from the search term
- *
- * @param shouldAddCurrentUserPostfix - Whether to add the current user postfix (e.g., "(You)") when the participant is the current user
  */
 function formatSectionsFromSearchTerm(
     searchTerm: string,
@@ -2425,7 +2528,6 @@ function formatSectionsFromSearchTerm(
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    shouldAddCurrentUserPostfix?: boolean,
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
@@ -2437,9 +2539,7 @@ function formatSectionsFromSearchTerm(
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          return isReportPolicyExpenseChat
-                              ? getPolicyExpenseReportOption(participant, reportAttributesDerived)
-                              : getParticipantsOption(participant, personalDetails, shouldAddCurrentUserPostfix);
+                          return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
@@ -2452,10 +2552,7 @@ function formatSectionsFromSearchTerm(
     // This will add them to the list of options, deduping them if they already exist in the other lists
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
-        const isPartOfSearchTerm = getPersonalDetailSearchTerms({...participant, login: participant.login ?? personalDetails[participant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login})
-            .join(' ')
-            .toLowerCase()
-            .includes(cleanSearchTerm);
+        const isPartOfSearchTerm = getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm);
         const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID) || filteredWorkspaceChats.some((report) => report.accountID === accountID);
         const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
 
@@ -2468,9 +2565,7 @@ function formatSectionsFromSearchTerm(
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      return isReportPolicyExpenseChat
-                          ? getPolicyExpenseReportOption(participant, reportAttributesDerived)
-                          : getParticipantsOption(participant, personalDetails, shouldAddCurrentUserPostfix);
+                      return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
@@ -2495,7 +2590,7 @@ function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>) {
     if (item.accountID === currentUserAccountID) {
         return getCurrentUserSearchTerms(item);
     }
-    return [item.participantsList?.[0]?.displayName ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', item.text ?? ''];
+    return [item.participantsList?.[0]?.displayName ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
 }
 
 function getCurrentUserSearchTerms(item: Partial<SearchOptionData>) {
@@ -2830,6 +2925,7 @@ export {
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,
     createOptionList,
+    createFilteredOptionList,
     createOption,
     filterAndOrderOptions,
     filterOptions,
