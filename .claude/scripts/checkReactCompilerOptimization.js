@@ -322,9 +322,12 @@ for (const [usedAs, data] of importDataMap) {
         variants: data.variants.map((variant) => {
             const optimizedSet = optimizationResults.get(variant.path) || new Set();
             const isOptimized = optimizedSet.has(data.originalName);
+            // Make path relative to cwd for cleaner output
+            const relativePath = path.relative(process.cwd(), variant.path);
             return {
                 optimized: isOptimized,
                 platform: variant.platform,
+                sourcePath: relativePath,
             };
         }),
     };

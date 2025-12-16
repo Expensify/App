@@ -170,8 +170,9 @@ checkReactCompilerOptimization.sh <file-path>
 1. **Parent in `parentOptimized`?** → YES = **Skip** (compiler auto-memoizes)
 
 2. **Child has custom memo comparator that PREVENTS re-render for this prop?**
-   (e.g., uses `deepEqual` on this prop, or ignores this prop entirely)
-   → YES = **Skip**
+   → Use `sourcePath` from script output to read child's source file
+   → Grep for `React.memo` or `memo(`
+   → If custom comparator prevents re-render despite new reference for this prop → **Skip**
 
 3. **Child is memoized?** (`optimized: true` OR `React.memo`)
    - NO → **Skip** (child re-renders anyway)
@@ -186,11 +187,10 @@ checkReactCompilerOptimization.sh <file-path>
 return <MemoizedList options={{ showHeader: true }} />;
 ```
 
-**Skip - custom comparator** (child uses deepEqual on this prop):
+**Skip - custom comparator** (comparator prevents re-render for this prop):
 ```tsx
-// PopoverMenu has: React.memo(PopoverMenu, (prev, next) =>
-//     deepEqual(prev.anchorPosition, next.anchorPosition) && ...)
-// deepEqual prevents re-render despite new reference
+// Script output: sourcePath: "src/components/PopoverMenu.tsx"
+// PopoverMenu.tsx has custom memo comparator that handles anchorPosition
 return <PopoverMenu anchorPosition={{x: 0, y: 0}} />;
 ```
 
