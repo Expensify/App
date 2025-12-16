@@ -303,9 +303,6 @@ type TransactionListItemType = ListItem &
         /** The display name of the purchaser card, if any */
         cardName?: string;
 
-        /** Parent report action id */
-        moneyRequestReportActionID?: string;
-
         /** The available actions that can be performed for the transaction */
         allActions: SearchTransactionAction[];
 
@@ -585,6 +582,9 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 };
 
 type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** The visible columns for the report */
+    columns?: SearchColumnType[];
+
     /** Whether the item's action is loading */
     isLoading?: boolean;
 
@@ -619,6 +619,7 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     transactionsQueryJSON?: SearchQueryJSON;
     isInSingleTransactionReport: boolean;
     searchTransactions: (pageSize?: number) => void;
+    onLongPress: (transaction: TransactionListItemType) => void;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {

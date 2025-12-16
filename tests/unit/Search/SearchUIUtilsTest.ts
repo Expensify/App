@@ -386,7 +386,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`report_${reportID5}`]: report5,
         [`transactions_${transactionID}`]: {
             amount: -5000,
-            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -397,7 +396,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Expense',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
@@ -410,14 +409,12 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
             errors: undefined,
             groupAmount: -5000,
             groupCurrency: 'USD',
         },
         [`transactions_${transactionID2}`]: {
             amount: -5000,
-            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -428,7 +425,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Expense',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
@@ -440,7 +437,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             groupAmount: -5000,
@@ -449,7 +445,6 @@ const searchResults: OnyxTypes.SearchResults = {
         ...allViolations,
         [`transactions_${transactionID3}`]: {
             amount: 1200,
-            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -460,7 +455,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             merchant: '(none)',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -472,7 +467,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             groupAmount: -5000,
@@ -480,7 +474,6 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`transactions_${transactionID4}`]: {
             amount: 3200,
-            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -491,7 +484,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             merchant: '(none)',
-            modifiedAmount: '',
+            modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -503,7 +496,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             groupAmount: -5000,
@@ -767,7 +759,6 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction1,
         holdReportAction: undefined,
-        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -776,7 +767,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: '',
+        formattedMerchant: 'Expense',
         formattedTo: '',
         formattedTotal: 5000,
         from: {
@@ -788,14 +779,14 @@ const transactionsListItems = [
         hasEReceipt: false,
         keyForList: '1',
         merchant: 'Expense',
-        modifiedAmount: '',
+        modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         reportID: '123456789',
-        shouldShowMerchant: false,
+        shouldShowMerchant: true,
         shouldShowYear: true,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -806,7 +797,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
         errors: undefined,
         violations: [],
         groupAmount: -5000,
@@ -820,7 +810,6 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction2,
         holdReportAction: undefined,
-        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -829,7 +818,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: '',
+        formattedMerchant: 'Expense',
         formattedTo: 'Admin',
         formattedTotal: 5000,
         from: {
@@ -841,13 +830,13 @@ const transactionsListItems = [
         hasEReceipt: false,
         keyForList: '2',
         merchant: 'Expense',
-        modifiedAmount: '',
+        modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         reportID: '11111',
-        shouldShowMerchant: false,
+        shouldShowMerchant: true,
         shouldShowYear: true,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -863,7 +852,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         violations: [
@@ -883,7 +871,6 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction3,
         holdReportAction: undefined,
-        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -892,7 +879,7 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
-        modifiedAmount: '',
+        modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
@@ -917,7 +904,7 @@ const transactionsListItems = [
         formattedTotal: 1200,
         formattedMerchant: '',
         date: '2025-03-05',
-        shouldShowMerchant: false,
+        shouldShowMerchant: true,
         shouldShowYear: true,
         keyForList: '3',
         isAmountColumnWide: false,
@@ -926,7 +913,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         violations: [],
@@ -941,7 +927,6 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction4,
         holdReportAction: undefined,
-        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -950,7 +935,7 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
-        modifiedAmount: '',
+        modifiedAmount: 0,
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
@@ -975,7 +960,7 @@ const transactionsListItems = [
         formattedTotal: 3200,
         formattedMerchant: '',
         date: '2025-03-05',
-        shouldShowMerchant: false,
+        shouldShowMerchant: true,
         shouldShowYear: true,
         keyForList: '4',
         isAmountColumnWide: false,
@@ -984,7 +969,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         violations: [],
@@ -1036,7 +1020,6 @@ const transactionReportGroupListItems = [
                 reportAction: reportAction1,
                 holdReportAction: undefined,
                 amount: -5000,
-                canDelete: true,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1045,7 +1028,7 @@ const transactionReportGroupListItems = [
                 currency: 'USD',
                 date: '2024-12-21',
                 formattedFrom: 'Admin',
-                formattedMerchant: '',
+                formattedMerchant: 'Expense',
                 formattedTo: '',
                 formattedTotal: 5000,
                 from: {
@@ -1057,14 +1040,14 @@ const transactionReportGroupListItems = [
                 hasEReceipt: false,
                 keyForList: '1',
                 merchant: 'Expense',
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 reportID: '123456789',
-                shouldShowMerchant: false,
+                shouldShowMerchant: true,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1075,7 +1058,6 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: '789',
                 errors: undefined,
                 violations: [],
                 groupAmount: -5000,
@@ -1132,7 +1114,6 @@ const transactionReportGroupListItems = [
                 reportAction: reportAction2,
                 holdReportAction: undefined,
                 amount: -5000,
-                canDelete: true,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1141,7 +1122,7 @@ const transactionReportGroupListItems = [
                 currency: 'USD',
                 date: '2024-12-21',
                 formattedFrom: 'Admin',
-                formattedMerchant: '',
+                formattedMerchant: 'Expense',
                 formattedTo: 'Admin',
                 formattedTotal: 5000,
                 from: {
@@ -1159,13 +1140,13 @@ const transactionReportGroupListItems = [
                 ],
                 keyForList: '2',
                 merchant: 'Expense',
-                modifiedAmount: '',
+                modifiedAmount: 0,
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 reportID: '11111',
-                shouldShowMerchant: false,
+                shouldShowMerchant: true,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1181,7 +1162,6 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: '789',
                 pendingAction: undefined,
                 errors: undefined,
                 groupAmount: -5000,
@@ -1735,7 +1715,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 47;
+            const expectedPropertyCount = 45;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1768,7 +1748,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 47;
+            const expectedPropertyCount = 45;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1966,7 +1946,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {})
                 .map((section) => section.menuItems)
                 .flat();
@@ -2045,7 +2025,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -2108,7 +2088,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -2150,7 +2130,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {});
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2160,7 +2140,7 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {});
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2177,7 +2157,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -2206,7 +2186,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -2239,7 +2219,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {});
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -2260,7 +2240,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -2303,7 +2283,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {});
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -2329,7 +2309,7 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false, {});
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
 
@@ -2339,7 +2319,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {})
                 .map((section) => section.menuItems)
                 .flat();
@@ -2360,7 +2340,6 @@ describe('SearchUIUtils', () => {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactions_1805965960759424086: {
                         amount: 0,
-                        canDelete: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
                         comment: {
                             comment: '',
@@ -2483,7 +2462,6 @@ describe('SearchUIUtils', () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactions_1805965960759424086: {
                     amount: 0,
-                    canDelete: false,
                     cardID: undefined,
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
@@ -2607,6 +2585,36 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getColumnsToShow', () => {
+        test('Should show all columns when no custom columns are saved & viewing expense reports', () => {
+            expect(SearchUIUtils.getColumnsToShow(1, [], [], false, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual({
+                [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+            });
+        });
+
+        test('Should show specific columns when custom columns are saved & viewing expense reports', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.STATUS, CONST.SEARCH.TABLE_COLUMNS.TITLE];
+
+            expect(SearchUIUtils.getColumnsToShow(1, [], visibleColumns, false, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual({
+                // Avatar should always be visible
+                [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
+                // Total should always be visible
+                [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
+            });
+        });
+
         test('Should only show columns when at least one transaction has a value for them', () => {
             // Use the existing transaction as a base and modify only the fields we need to test
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
@@ -2690,7 +2698,7 @@ describe('SearchUIUtils', () => {
             };
 
             // Test 1: No optional fields should be shown when all transactions are empty
-            let columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, emptyTransaction], false);
+            let columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, emptyTransaction], [], false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(false);
@@ -2699,22 +2707,22 @@ describe('SearchUIUtils', () => {
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBe(false);
 
             // Test 2: Merchant column should show when at least one transaction has merchant
-            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, merchantTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, merchantTransaction], [], false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
 
             // Test 3: Category column should show when at least one transaction has category
-            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, categoryTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, categoryTransaction], [], false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
 
             // Test 4: Tag column should show when at least one transaction has tag
-            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, tagTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, tagTransaction], [], false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
 
             // Test 5: Description column should show when at least one transaction has description
-            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, descriptionTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, descriptionTransaction], [], false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
 
@@ -2727,12 +2735,12 @@ describe('SearchUIUtils', () => {
                 [`reportActions_${reportID2}`]: {[differentUsersTransactionIOUAction.reportActionID]: differentUsersTransactionIOUAction},
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
-            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, false);
+            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, [], false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBe(true);
 
             // Test 7: Multiple columns should show when transactions have different fields
-            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [merchantTransaction, categoryTransaction, tagTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [merchantTransaction, categoryTransaction, tagTransaction], [], false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(true);
@@ -2755,7 +2763,7 @@ describe('SearchUIUtils', () => {
             };
 
             // In expense report view, From/To columns should not be shown
-            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], true);
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], [], true);
 
             // These columns should be shown based on data
             expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]).toBe(true);
@@ -2776,13 +2784,13 @@ describe('SearchUIUtils', () => {
                 merchant: '',
                 modifiedMerchant: 'Modified Merchant',
                 comment: {comment: ''},
-                category: 'Uncategorized', // This is in CONST.SEARCH.CATEGORY_EMPTY_VALUE
+                category: 'none', // This is in CONST.SEARCH.CATEGORY_EMPTY_VALUE
                 tag: CONST.SEARCH.TAG_EMPTY_VALUE, // This is the empty tag value
                 accountID: adminAccountID,
                 managerID: adminAccountID,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], false);
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], [], false);
 
             // Should show merchant column because modifiedMerchant has value
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
@@ -2812,49 +2820,7 @@ describe('SearchUIUtils', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, {reportActionID: transactionListItem.moneyRequestReportActionID}, undefined, undefined);
-        });
-
-        test('Should create transaction thread report for legacy transactions without IOU action (moneyRequestReportActionID = "0")', () => {
-            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
-
-            // Create a legacy transaction item with moneyRequestReportActionID = '0'
-            const legacyTransactionItem = {
-                ...transactionListItem,
-                moneyRequestReportActionID: '0',
-            };
-
-            SearchUIUtils.createAndOpenSearchTransactionThread(legacyTransactionItem, backTo, undefined, undefined, false);
-
-            // Extract the transaction by removing UI-specific and search-specific fields
-            const {
-                keyForList,
-                action,
-                allActions,
-                report,
-                from,
-                to,
-                formattedFrom,
-                formattedTo,
-                formattedTotal,
-                formattedMerchant,
-                date,
-                shouldShowMerchant,
-                shouldShowYear,
-                isAmountColumnWide,
-                isTaxAmountColumnWide,
-                violations,
-                hash: itemHash,
-                moneyRequestReportActionID,
-                canDelete,
-                accountID,
-                policyID: searchPolicyID,
-                ...expectedTransaction
-            } = legacyTransactionItem;
-
-            // For legacy transactions (moneyRequestReportActionID = '0'), should pass transaction and violations
-            // reportActionID will be undefined since there's no IOU action
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report, {reportActionID: undefined}, expect.objectContaining(expectedTransaction), violations);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, {reportActionID: '11111111'}, undefined, undefined);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
@@ -2900,7 +2866,7 @@ describe('SearchUIUtils', () => {
             await waitForBatchedUpdates();
 
             const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionListItem.reportID}`);
-            const parentReportAction = transactionListItem.moneyRequestReportActionID && parentReport?.[transactionListItem.moneyRequestReportActionID];
+            const parentReportAction = transactionListItem?.reportAction?.reportActionID && parentReport?.[transactionListItem?.reportAction?.reportActionID];
 
             expect(parentReportAction).toBeTruthy();
         });
