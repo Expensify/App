@@ -545,7 +545,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(
 
     if (field === 'reportID') {
         const reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction), searchReports));
-        updatedValues.reportName = reportName.length ? reportName : undefined;
+        updatedValues.reportName = reportName.length ? reportName : null;
     }
 
     if (field === 'merchant' && isDistanceRequest(transaction)) {
