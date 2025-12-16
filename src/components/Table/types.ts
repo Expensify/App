@@ -1,5 +1,6 @@
+import type {FlashListProps} from '@shopify/flash-list';
 import type {PropsWithChildren} from 'react';
-import type {FlatListProps, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 type TableColumnStyling = {
     flex?: number;
@@ -29,9 +30,9 @@ type IsItemInFilterCallback<T> = (item: T, filters: string[]) => boolean;
 
 type IsItemInSearchCallback<T> = (item: T, searchString: string) => boolean;
 
-type SharedFlatListProps<T> = Omit<FlatListProps<T>, 'data'>;
+type SharedListProps<T> = Omit<FlashListProps<T>, 'data'>;
 
-type TableProps<T, ColumnKey extends string = string> = SharedFlatListProps<T> &
+type TableProps<T, ColumnKey extends string = string> = SharedListProps<T> &
     PropsWithChildren<{
         data: T[] | undefined;
         columns: Array<TableColumn<ColumnKey>>;
@@ -44,4 +45,4 @@ type TableProps<T, ColumnKey extends string = string> = SharedFlatListProps<T> &
         isItemInSearch?: IsItemInSearchCallback<T>;
     }>;
 
-export type {TableColumn, FilterConfig, FilterConfigEntry, SharedFlatListProps, TableProps, TableSortOrder, CompareItemsCallback, IsItemInFilterCallback, IsItemInSearchCallback};
+export type {TableColumn, FilterConfig, FilterConfigEntry, SharedListProps, TableProps, TableSortOrder, CompareItemsCallback, IsItemInFilterCallback, IsItemInSearchCallback};

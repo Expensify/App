@@ -3,7 +3,7 @@ import TableContext from './TableContext';
 import type {TableContextValue, UpdateFilterCallback, UpdateSortingCallback} from './TableContext';
 import type {TableProps} from './types';
 
-function Table<T, ColumnKey extends string = string>({data = [], columns, filters, compareItems, isItemInFilter, isItemInSearch, children, ...flatListProps}: TableProps<T, ColumnKey>) {
+function Table<T, ColumnKey extends string = string>({data = [], columns, filters, compareItems, isItemInFilter, isItemInSearch, children, ...listProps}: TableProps<T, ColumnKey>) {
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
     }
@@ -99,7 +99,7 @@ function Table<T, ColumnKey extends string = string>({data = [], columns, filter
         updateSorting,
         updateSearchString: setSearchString,
         filterConfig: filters,
-        flatListProps,
+        listProps,
     };
 
     return <TableContext.Provider value={contextValue as unknown as TableContextValue<unknown, string>}>{children}</TableContext.Provider>;

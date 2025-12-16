@@ -1,5 +1,5 @@
 import {createContext, useContext} from 'react';
-import type {FilterConfig, SharedFlatListProps, TableColumn} from './types';
+import type {FilterConfig, SharedListProps, TableColumn} from './types';
 
 type UpdateSortingCallback<ColumnKey extends string = string> = (params: {columnKey?: ColumnKey; order?: 'asc' | 'desc'}) => void;
 type UpdateSearchStringCallback = (value: string) => void;
@@ -17,7 +17,7 @@ type TableContextValue<T, ColumnKey extends string = string> = {
     updateSorting: UpdateSortingCallback<ColumnKey>;
     updateSearchString: UpdateSearchStringCallback;
     filterConfig: FilterConfig | undefined;
-    flatListProps: SharedFlatListProps<T>;
+    listProps: SharedListProps<T>;
 };
 
 const defaultTableContextValue: TableContextValue<unknown, string> = {
@@ -32,23 +32,21 @@ const defaultTableContextValue: TableContextValue<unknown, string> = {
     updateSorting: () => {},
     updateSearchString: () => {},
     filterConfig: undefined,
-    flatListProps: {} as SharedFlatListProps<unknown>,
+    listProps: {} as SharedListProps<unknown>,
 };
-
-type TableContextType<T> = React.Context<TableContextValue<T>>;
 
 const TableContext = createContext(defaultTableContextValue);
 
-function useTableContext<T>(): TableContextValue<T> {
+function useTableContext<T, ColumnKey extends string = string>() {
     const context = useContext(TableContext);
 
     if (context === defaultTableContextValue && context.currentFilters === undefined) {
         throw new Error('useTableContext must be used within a Table provider');
     }
 
-    return context as TableContextValue<T>;
+    return context as unknown as TableContextValue<T, ColumnKey>;
 }
 
 export default TableContext;
 export {useTableContext};
-export type {TableContextType, TableContextValue, UpdateSortingCallback, UpdateSearchStringCallback, UpdateFilterCallback};
+export type {TableContextValue, UpdateSortingCallback, UpdateSearchStringCallback, UpdateFilterCallback};

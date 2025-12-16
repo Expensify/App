@@ -1,5 +1,6 @@
+import {FlashList} from '@shopify/flash-list';
 import React from 'react';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,8 +9,8 @@ import {useTableContext} from './TableContext';
 function TableBody<T>() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {filteredAndSortedData, originalDataLength, searchString, flatListProps} = useTableContext<T>();
-    const {keyExtractor, ListEmptyComponent, contentContainerStyle, onScroll, onEndReached, onEndReachedThreshold} = flatListProps ?? {};
+    const {filteredAndSortedData, originalDataLength, searchString, listProps} = useTableContext<T>();
+    const {keyExtractor, ListEmptyComponent, contentContainerStyle, onScroll, onEndReached, onEndReachedThreshold} = listProps ?? {};
 
     const defaultKeyExtractor = (item: T, index: number): string => {
         if (keyExtractor) {
@@ -40,7 +41,7 @@ function TableBody<T>() {
     );
 
     return (
-        <FlatList<T>
+        <FlashList<T>
             data={filteredAndSortedData}
             keyExtractor={defaultKeyExtractor}
             ListEmptyComponent={isEmptySearchResult ? EmptySearchComponent : ListEmptyComponent}
@@ -49,7 +50,7 @@ function TableBody<T>() {
             onEndReached={onEndReached}
             onEndReachedThreshold={onEndReachedThreshold}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...flatListProps}
+            {...listProps}
         />
     );
 }
