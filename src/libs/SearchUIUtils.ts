@@ -8,6 +8,7 @@ import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSe
 import type {
     SearchAction,
     SearchColumnType,
+    SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchGroupBy,
@@ -2048,6 +2049,24 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+function getSearchColumnTranslationKey(columnId: ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (columnId) {
+        case CONST.SEARCH.CUSTOM_COLUMNS.DATE:
+            return 'common.date';
+        case CONST.SEARCH.CUSTOM_COLUMNS.STATUS:
+            return 'common.status';
+        case CONST.SEARCH.CUSTOM_COLUMNS.TITLE:
+            return 'common.title';
+        case CONST.SEARCH.CUSTOM_COLUMNS.FROM:
+            return 'common.from';
+        case CONST.SEARCH.CUSTOM_COLUMNS.TO:
+            return 'common.to';
+        case CONST.SEARCH.CUSTOM_COLUMNS.ACTION:
+            return 'common.action';
+    }
+}
+
 type OverflowMenuIconsType = Record<'Pencil', IconAsset>;
 
 /**
@@ -2417,20 +2436,41 @@ function getActionOptions(translate: LocaleContextProps['translate']) {
 function getColumnsToShow(
     currentAccountID: number | undefined,
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
+    visibleColumns: SearchCustomColumnIds[] = [],
     isExpenseReportView = false,
     type?: SearchDataTypes,
 ): ColumnVisibility {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return {
-            [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-        };
+        const reportColumns = [
+            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.STATUS,
+            CONST.SEARCH.TABLE_COLUMNS.TITLE,
+            CONST.SEARCH.TABLE_COLUMNS.FROM,
+            CONST.SEARCH.TABLE_COLUMNS.TO,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        ];
+
+        // If there are no visible columns, everything should be visible
+        if (!visibleColumns.length) {
+            return Object.fromEntries(reportColumns.map((column) => [column, true]));
+        }
+
+        // If the user has set custom columns, toggle the visible columns on, with all other
+        // columns hidden by default
+        const columns: ColumnVisibility = {};
+        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+
+        for (const columnId of reportColumns) {
+            columns[columnId] = requiredColumns.has(columnId);
+        }
+
+        for (const column of visibleColumns) {
+            columns[column as keyof ColumnVisibility] = true;
+        }
+
+        return columns;
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
@@ -2485,6 +2525,7 @@ function getColumnsToShow(
           };
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
+
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
         const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
@@ -2722,6 +2763,7 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getTransactionFromTransactionListItem,
+    getSearchColumnTranslationKey,
     getTableMinWidth,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
