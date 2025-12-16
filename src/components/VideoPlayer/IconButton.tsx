@@ -16,9 +16,10 @@ type IconButtonProps = {
     hoverStyle?: StyleProp<ViewStyle>;
     small?: boolean;
     shouldForceRenderingTooltipBelow?: boolean;
+    sentryLabel?: string;
 };
 
-function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipText = '', small = false, shouldForceRenderingTooltipBelow = false}: IconButtonProps) {
+function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipText = '', small = false, shouldForceRenderingTooltipBelow = false, sentryLabel}: IconButtonProps) {
     const styles = useThemeStyles();
     return (
         <Tooltip
@@ -31,6 +32,7 @@ function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipTex
                 style={[styles.videoIconButton, style]}
                 hoverStyle={[styles.videoIconButtonHovered, hoverStyle]}
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={sentryLabel}
             >
                 <Icon
                     src={src}

@@ -221,6 +221,7 @@ function HeaderWithBackButton({
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
                             id={CONST.BACK_BUTTON_NATIVE_ID}
+                            sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
                         >
                             <Icon
                                 src={Expensicons.BackArrow}
@@ -270,6 +271,7 @@ function HeaderWithBackButton({
                                         style={[styles.touchableButtonImage]}
                                         role="button"
                                         accessibilityLabel={translate('common.download')}
+                                        sentryLabel={CONST.SENTRY_LABEL.HEADER.DOWNLOAD_BUTTON}
                                     >
                                         <Icon
                                             src={icons.Download}
@@ -290,6 +292,7 @@ function HeaderWithBackButton({
                                 style={[styles.touchableButtonImage]}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.CLOSE_BUTTON}
                             >
                                 <Icon
                                     src={Expensicons.Close}

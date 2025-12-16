@@ -445,6 +445,7 @@ function BaseVideoPlayer({
                                     toggleControl();
                                 }}
                                 style={[styles.flex1, styles.noSelect]}
+                                sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.VIDEO}
                             >
                                 {shouldUseSharedVideoElement ? (
                                     <>

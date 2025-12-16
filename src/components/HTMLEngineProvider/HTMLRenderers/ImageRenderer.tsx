@@ -129,6 +129,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
                             shouldUseHapticsOnLongPress
                             role={getButtonRole(true)}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.IMAGE}
                         >
                             {thumbnailImageComponent}
                         </PressableWithoutFocus>

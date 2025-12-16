@@ -7538,6 +7538,37 @@ const CONST = {
             NEW_WORKSPACE: 'FABMenu-NewWorkspace',
             QUICK_ACTION: 'FABMenu-QuickAction',
         },
+        ATTACHMENT_CAROUSEL: {
+            PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
+            NEXT_BUTTON: 'AttachmentCarousel-NextButton',
+            ITEM: 'AttachmentCarousel-Item',
+            MODERATION_BUTTON: 'AttachmentCarousel-ModerationButton',
+            RETRY_BUTTON: 'AttachmentView-RetryButton',
+        },
+        ATTACHMENT_MODAL: {
+            SEND_BUTTON: 'AttachmentModal-SendButton',
+            IMAGE_ZOOM: 'AttachmentModal-ImageZoom',
+        },
+        HEADER: {
+            BACK_BUTTON: 'Header-BackButton',
+            DOWNLOAD_BUTTON: 'Header-DownloadButton',
+            CLOSE_BUTTON: 'Header-CloseButton',
+        },
+        VIDEO_PLAYER: {
+            PLAY_PAUSE_BUTTON: 'VideoPlayer-PlayPauseButton',
+            FULLSCREEN_BUTTON: 'VideoPlayer-FullscreenButton',
+            MORE_BUTTON: 'VideoPlayer-MoreButton',
+            EXPAND_BUTTON: 'VideoPlayer-ExpandButton',
+            THUMBNAIL: 'VideoPlayer-Thumbnail',
+            MUTE_BUTTON: 'VideoPlayer-MuteButton',
+            VIDEO: 'VideoPlayer-Video',
+        },
+        HTML_RENDERER: {
+            IMAGE: 'HTMLRenderer-Image',
+        },
+        RECEIPT: {
+            IMAGE: 'Receipt-Image',
+        },
     },
 } as const;
 

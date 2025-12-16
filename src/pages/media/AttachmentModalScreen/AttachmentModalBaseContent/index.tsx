@@ -341,6 +341,7 @@ function AttachmentModalBaseContent({
                                         onPress={submitAndClose}
                                         isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
                                         pressOnEnter
+                                        sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_MODAL.SEND_BUTTON}
                                     />
                                 </Animated.View>
                             )}

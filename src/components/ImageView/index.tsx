@@ -221,6 +221,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 onPress={onContainerPress}
                 role={CONST.ROLE.IMG}
                 accessibilityLabel={fileName}
+                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_MODAL.IMAGE_ZOOM}
             >
                 <Image
                     source={{uri: url}}
