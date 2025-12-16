@@ -6809,6 +6809,7 @@ const CONST = {
             WITHDRAWAL_ID: 'withdrawalID',
             AVATAR: 'avatar',
             STATUS: 'status',
+            TAX: 'tax',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
