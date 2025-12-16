@@ -34,11 +34,11 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
-    const {transactionID, backTo, hash} = route.params;
+    const {transactionID, backTo} = route.params;
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
-    const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction, hash});
+    const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
 
     const policyID = targetTransactionReport?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});

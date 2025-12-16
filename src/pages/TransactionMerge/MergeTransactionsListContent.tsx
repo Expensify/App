@@ -27,12 +27,11 @@ import MergeTransactionItem from './MergeTransactionItem';
 type MergeTransactionsListContentProps = {
     transactionID: string;
     mergeTransaction: OnyxEntry<MergeTransaction>;
-    hash?: number;
 };
 
 type MergeTransactionListItemType = Transaction & ListItem;
 
-function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: MergeTransactionsListContentProps) {
+function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves'] as const);
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -43,7 +42,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
     const {isOffline} = useNetwork();
 
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
-    const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction, hash});
+    const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionReport?.policyID}`, {canBeMissing: true});
 
     useEffect(() => {

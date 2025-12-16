@@ -1,3 +1,4 @@
+import {useSearchContext} from '@components/Search/SearchContext';
 import {getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,9 +16,11 @@ type UseMergeTransactionsReturn = {
     targetTransactionReport?: Report;
 };
 
-function useMergeTransactions({mergeTransaction, hash}: UseMergeTransactionsProps): UseMergeTransactionsReturn {
+function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): UseMergeTransactionsReturn {
     // eslint-disable-next-line rulesdir/no-default-id-values
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const searchContext = useSearchContext();
+    const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
 
     const [onyxTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
@@ -31,7 +34,7 @@ function useMergeTransactions({mergeTransaction, hash}: UseMergeTransactionsProp
     let targetTransactionReport;
 
     // Always use transactions from the search snapshot if we're coming from the Reports page
-    if (hash) {
+    if (searchHash) {
         targetTransaction = targetTransaction ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`];
         sourceTransaction = sourceTransaction ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`];
         targetTransactionReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`];

@@ -17,7 +17,7 @@ type MergeTransactionsListPageProps = PlatformStackScreenProps<MergeTransactionN
 
 function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
     const {translate} = useLocalize();
-    const {transactionID, backTo, hash} = route.params;
+    const {transactionID, backTo} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
 
@@ -41,7 +41,6 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
                 <MergeTransactionsListContent
                     transactionID={transactionID}
                     mergeTransaction={mergeTransaction}
-                    hash={hash}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
