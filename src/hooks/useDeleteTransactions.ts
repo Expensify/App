@@ -111,6 +111,15 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     allPolicyRecentlyUsedCategories?.[
                         `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(getIOURequestPolicyID(originalTransaction, report))}`
                     ] ?? [];
+
+                const remainingSplitExpenses = childTransactions.map((childTransaction) => initSplitExpenseItemData(childTransaction));
+                const hasEditableSplitExpensesLeft = remainingSplitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
+
+                if (!hasEditableSplitExpensesLeft) {
+                    nonSplitTransactions.push(...splitTransactionsByOriginalTransactionID[transactionID]);
+                    continue;
+                }
+
                 updateSplitTransactions({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
@@ -118,7 +127,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionData: {
                         reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                         originalTransactionID: transactionID,
-                        splitExpenses: childTransactions.map((childTransaction) => initSplitExpenseItemData(childTransaction)),
+                        splitExpenses: remainingSplitExpenses,
                     },
                     searchContext: {
                         currentSearchHash: currentSearchHash ?? 0,
