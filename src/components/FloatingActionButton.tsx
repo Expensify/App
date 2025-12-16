@@ -16,6 +16,7 @@ import Icon from './Icon';
 import {PlusCircle} from './Icon/Expensicons';
 import {PressableWithFeedback, PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
+import Tooltip from './Tooltip';
 
 const FAB_PATH = 'M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z';
 const SMALL_FAB_PATH =
@@ -95,48 +96,50 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
     if (isLHBVisible) {
         return (
-            <PressableWithoutFeedback
-                ref={(el) => {
-                    fabPressable.current = el ?? null;
-                    if (buttonRef && 'current' in buttonRef) {
-                        buttonRef.current = el ?? null;
-                    }
-                }}
-                style={[
-                    styles.navigationTabBarFABItem,
+            <Tooltip text={translate('common.create')}>
+                <PressableWithoutFeedback
+                    ref={(el) => {
+                        fabPressable.current = el ?? null;
+                        if (buttonRef && 'current' in buttonRef) {
+                            buttonRef.current = el ?? null;
+                        }
+                    }}
+                    style={[
+                        styles.navigationTabBarFABItem,
 
-                    // Prevent text selection on touch devices (e.g. on long press)
-                    canUseTouchScreen() && styles.userSelectNone,
-                    styles.flex1,
-                ]}
-                accessibilityLabel={accessibilityLabel}
-                onPress={toggleFabAction}
-                onLongPress={longPressFabAction}
-                role={role}
-                shouldUseHapticsOnLongPress
-                testID="floating-action-button"
-            >
-                {({hovered}) => {
-                    isHovered.set(hovered);
+                        // Prevent text selection on touch devices (e.g. on long press)
+                        canUseTouchScreen() && styles.userSelectNone,
+                        styles.flex1,
+                    ]}
+                    accessibilityLabel={accessibilityLabel}
+                    onPress={toggleFabAction}
+                    onLongPress={longPressFabAction}
+                    role={role}
+                    shouldUseHapticsOnLongPress
+                    testID="floating-action-button"
+                >
+                    {({hovered}) => {
+                        isHovered.set(hovered);
 
-                    return (
-                        <Animated.View
-                            style={[styles.floatingActionButton, {borderRadius}, styles.floatingActionButtonSmall, animatedStyle]}
-                            testID="fab-animated-container"
-                        >
-                            <Svg
-                                width={fabSize}
-                                height={fabSize}
+                        return (
+                            <Animated.View
+                                style={[styles.floatingActionButton, {borderRadius}, styles.floatingActionButtonSmall, animatedStyle]}
+                                testID="fab-animated-container"
                             >
-                                <AnimatedPath
-                                    d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
-                                    fill={icon}
-                                />
-                            </Svg>
-                        </Animated.View>
-                    );
-                }}
-            </PressableWithoutFeedback>
+                                <Svg
+                                    width={fabSize}
+                                    height={fabSize}
+                                >
+                                    <AnimatedPath
+                                        d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
+                                        fill={icon}
+                                    />
+                                </Svg>
+                            </Animated.View>
+                        );
+                    }}
+                </PressableWithoutFeedback>
+            </Tooltip>
         );
     }
 

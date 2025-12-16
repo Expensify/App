@@ -3112,6 +3112,7 @@ ${
             ownershipPercentage: 'Voer een geldig percentage in',
             deletePaymentBankAccount:
                 'Deze bankrekening kan niet worden verwijderd omdat deze wordt gebruikt voor Expensify Card-betalingen. Als je deze rekening toch wilt verwijderen, neem dan contact op met Concierge.',
+            sameDepositAndWithdrawalAccount: 'De stortings- en opnamerekeningen zijn hetzelfde.',
         },
     },
     addPersonalBankAccount: {
@@ -6702,6 +6703,9 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 subtitle: 'Nul onkosten. Maximale ontspanning. Goed gedaan!',
             },
         },
+        columns: 'Kolommen',
+        resetColumns: 'Kolommen resetten',
+        noColumnsError: 'Selecteer minstens één kolom voordat je opslaat',
         statements: 'Afschriften',
         unapprovedCash: 'Niet-goedgekeurde contanten',
         unapprovedCard: 'Niet-goedgekeurde kaart',
