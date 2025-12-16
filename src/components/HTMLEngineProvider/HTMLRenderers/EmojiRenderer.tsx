@@ -19,7 +19,7 @@ function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TP
     }, [tnode.attributes, styles, styleProp]);
     return (
         <EmojiWithTooltip
-            oneLine={'oneLine' in tnode.attributes}
+            oneLine={'oneline' in tnode.attributes}
             style={[style, styles.cursorDefault, styles.emojiDefaultStyles]}
             emojiCode={'data' in tnode ? tnode.data : ''}
             isMedium={'ismedium' in tnode.attributes}
