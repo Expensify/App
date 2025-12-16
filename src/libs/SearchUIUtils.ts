@@ -1998,8 +1998,10 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
     }
 
     if (typeof a === 'number' && typeof b === 'number') {
-        const aValue = (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || sortBy.toLowerCase() === CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT) && !shouldCompareOriginalValue ? Math.abs(a) : a;
-        const bValue = (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || sortBy.toLowerCase() === CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT) && !shouldCompareOriginalValue ? Math.abs(b) : b;
+        const aValue =
+            (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || sortBy.toLowerCase() === CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT) && !shouldCompareOriginalValue ? Math.abs(a) : a;
+        const bValue =
+            (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || sortBy.toLowerCase() === CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT) && !shouldCompareOriginalValue ? Math.abs(b) : b;
         return isAsc ? aValue - bValue : bValue - aValue;
     }
 
