@@ -860,7 +860,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
-                            title={shouldShowCategoryAnalyzing ? 'Analyzing...' : decodedCategoryName}
+                            title={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
                             numberOfLinesTitle={2}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
