@@ -49,9 +49,12 @@ type WorkspaceCompanyCardsListProps = {
 
     /** Whether to show GB disclaimer */
     shouldShowGBDisclaimer?: boolean;
+
+    /** Whether the cards list is loading */
+    isLoadingCardsList?: boolean;
 };
 
-function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer}: WorkspaceCompanyCardsListProps) {
+function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer, isLoadingCardsList = false}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const listRef = useRef<FlashListRef<string>>(null);
