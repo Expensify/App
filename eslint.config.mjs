@@ -129,6 +129,10 @@ const restrictedImportPaths = [
         name: './SelectionListWithSections',
         message: 'If possible use `SelectionList` without sections',
     },
+    {
+        name: '@components/SelectionListWithSections',
+        message: 'If possible use `SelectionList` without sections',
+    },
 ];
 
 const restrictedImportPatterns = [
