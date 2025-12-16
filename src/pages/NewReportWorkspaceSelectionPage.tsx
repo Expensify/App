@@ -21,6 +21,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
@@ -121,28 +122,30 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
             if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
                 const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
-                changeTransactionsReport({
-                    transactionIDs: selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
-                    newReport: optimisticReport,
-                    isASAPSubmitBetaEnabled,
-                    accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    email: currentUserPersonalDetails?.email ?? '',
-                    policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
-                    reportNextStep,
-                    allReportsCollection: allReports,
-                    allTransactionsCollection: allTransactions,
-                    allTransactionViolationsCollection: transactionViolations,
+                setNavigationActionToMicrotaskQueue(() => {
+                    changeTransactionsReport({
+                        transactionIDs: selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
+                        newReport: optimisticReport,
+                        isASAPSubmitBetaEnabled,
+                        accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        email: currentUserPersonalDetails?.email ?? '',
+                        policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                        reportNextStep,
+                        allReportsCollection: allReports,
+                        allTransactionsCollection: allTransactions,
+                        allTransactionViolationsCollection: transactionViolations,
+                    });
+
+                    // eslint-disable-next-line rulesdir/no-default-id-values
+                    setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
+
+                    if (selectedTransactionIDs.length) {
+                        clearSelectedTransactions(true);
+                    }
+                    if (selectedTransactionsKeys.length) {
+                        clearSelectedTransactions();
+                    }
                 });
-
-                // eslint-disable-next-line rulesdir/no-default-id-values
-                setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
-
-                if (selectedTransactionIDs.length) {
-                    clearSelectedTransactions(true);
-                }
-                if (selectedTransactionsKeys.length) {
-                    clearSelectedTransactions();
-                }
 
                 Navigation.dismissModal();
                 Navigation.goBack(backTo ?? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
