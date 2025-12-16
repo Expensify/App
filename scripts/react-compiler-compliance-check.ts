@@ -658,19 +658,11 @@ function printResults({success, failuresForAddedFiles, failuresForModifiedFiles,
         log();
     }
 
-    // In Phase 1, we only fail the check if there are any React Compiler errors in added files.
-    // TODO: Starting in Phase 2, always print errors instead.
-    const didRegularCheckPass = !failuresForAddedFiles || failuresForAddedFiles.size === 0;
-
+    const hasModifiedFilesErrors = failuresForModifiedFiles && failuresForModifiedFiles.size > 0;
+    const hasAddedFilesErrors = failuresForAddedFiles && failuresForAddedFiles.size > 0;
     const hasManualMemoErrors = manualMemoFailures && manualMemoFailures.size > 0;
-    const isPassed = didRegularCheckPass && !hasManualMemoErrors;
 
-    const shouldPrintModifiedFilesErrors = failuresForModifiedFiles && failuresForModifiedFiles.size > 0;
-    const shouldPrintAddedFilesErrors = failuresForAddedFiles && failuresForAddedFiles.size > 0;
-
-    const shouldPrintErrors = !!shouldPrintModifiedFilesErrors || !!shouldPrintAddedFilesErrors;
-
-    if (shouldPrintModifiedFilesErrors) {
+    if (hasModifiedFilesErrors) {
         const {distinctErrorFileNames} = getErrorsByFile(failuresForModifiedFiles);
 
         if (distinctErrorFileNames.size > 0) {
@@ -685,7 +677,7 @@ function printResults({success, failuresForAddedFiles, failuresForModifiedFiles,
         }
     }
 
-    if (shouldPrintAddedFilesErrors) {
+    if (hasAddedFilesErrors) {
         const {distinctErrorFileNames} = getErrorsByFile(failuresForAddedFiles);
 
         if (distinctErrorFileNames.size > 0) {
@@ -697,8 +689,8 @@ function printResults({success, failuresForAddedFiles, failuresForModifiedFiles,
         }
     }
 
-    // Print an extra empty line if no enforced errors are printed.
-    if (shouldPrintErrors && !hasManualMemoErrors) {
+    // Print an extra empty line if we are printing errors and no manual memo errors are printed.
+    if ((!!hasModifiedFilesErrors || !!hasAddedFilesErrors) && !hasManualMemoErrors) {
         log();
     }
 
@@ -717,8 +709,18 @@ function printResults({success, failuresForAddedFiles, failuresForModifiedFiles,
         }
     }
 
+    // In Phase 1, we only fail the check if there are any React Compiler errors in added files.
+    // TODO: Starting in Phase 2, print errors for modified files and fail pipeline if there are any errors.
+    const didCheckForAddedFilesPass = !failuresForAddedFiles || failuresForAddedFiles.size === 0;
+
+    const isPassed = didCheckForAddedFilesPass && !hasManualMemoErrors;
+
     if (isPassed) {
-        logSuccess('All files pass React Compiler compliance check!');
+        const logMethod = hasModifiedFilesErrors ? logWarn : logSuccess;
+
+        // TODO: In Phase 2, remove the 'with warnings' suffix,
+        // since we are not printing errors for modified files.
+        logMethod(`React Compiler compliance check passed ${hasModifiedFilesErrors ? 'with warnings' : ''}!`);
         return true;
     }
 
