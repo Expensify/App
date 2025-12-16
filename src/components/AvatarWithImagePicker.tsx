@@ -320,6 +320,4 @@ function AvatarWithImagePicker({
     );
 }
 
-AvatarWithImagePicker.displayName = 'AvatarWithImagePicker';
-
 export default AvatarWithImagePicker;

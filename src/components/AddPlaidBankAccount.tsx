@@ -274,6 +274,4 @@ function AddPlaidBankAccount({
     );
 }
 
-AddPlaidBankAccount.displayName = 'AddPlaidBankAccount';
-
 export default AddPlaidBankAccount;

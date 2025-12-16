@@ -71,6 +71,4 @@ function ArchivedReportFooter({report}: ArchivedReportFooterProps) {
     );
 }
 
-ArchivedReportFooter.displayName = 'ArchivedReportFooter';
-
 export default ArchivedReportFooter;

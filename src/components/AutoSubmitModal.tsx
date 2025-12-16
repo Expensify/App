@@ -90,4 +90,3 @@ function AutoSubmitModal() {
 }
 
 export default AutoSubmitModal;
-AutoSubmitModal.displayName = 'AutoSubmitModal';

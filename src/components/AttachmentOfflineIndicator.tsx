@@ -53,6 +53,4 @@ function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndica
     );
 }
 
-AttachmentOfflineIndicator.displayName = 'AttachmentOfflineIndicator';
-
 export default AttachmentOfflineIndicator;
