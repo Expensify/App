@@ -13,7 +13,7 @@ import fs, {readFileSync} from 'fs';
 import path from 'path';
 import type {TupleToUnion} from 'type-fest';
 import CLI from './utils/CLI';
-import {hasEslintDisableComment} from './utils/EslintUtils';
+import EslintUtils from './utils/EslintUtils';
 import FileUtils from './utils/FileUtils';
 import Git from './utils/Git';
 import type {DiffResult} from './utils/Git';
@@ -356,11 +356,11 @@ class DiffAnalyzer {
         for (const file of diffResult.files) {
             for (const hunk of file.hunks) {
                 for (const line of hunk.lines) {
-                    if (hasEslintDisableComment(line.content, true, [...this.ESLINT_LINT_RULES])) {
+                    if (EslintUtils.hasEslintDisableComment(line.content, true, [...this.ESLINT_LINT_RULES])) {
                         filesWithEslintDisable.add(file.filePath);
                     }
 
-                    if (hasEslintDisableComment(line.content, false, [...this.ESLINT_LINT_RULES])) {
+                    if (EslintUtils.hasEslintDisableComment(line.content, false, [...this.ESLINT_LINT_RULES])) {
                         if (!linesWithEslintDisableNextLine.has(file.filePath)) {
                             linesWithEslintDisableNextLine.set(file.filePath, new Set());
                         }
