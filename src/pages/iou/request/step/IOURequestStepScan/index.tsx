@@ -85,8 +85,6 @@ import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
 import type {ReceiptFile} from './types';
 
-type ReceiptWithTransactionID = Receipt & {transactionID: string};
-
 function IOURequestStepScan({
     report,
     route: {
