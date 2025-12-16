@@ -398,7 +398,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const textInputOptions = useMemo(
         () => ({
             label: translate('selectionList.findMember'),
-            textInputValue: searchValue,
+            value: searchValue,
             onChangeText: setSearchValue,
             headerMessage: searchValue.trim() && !participants.length ? memberNotFoundMessage : '',
             ref: textInputRef,
