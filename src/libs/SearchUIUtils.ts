@@ -939,8 +939,11 @@ function shouldShowYear(
             if (report?.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
                 result.shouldShowYearApproved = true;
             }
-            if (item?.posted && DateUtils.doesDateBelongToAPastYear(item?.posted)) {
-                result.shouldShowYearPosted = true;
+
+            // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
+            if (item?.posted) {
+                const postedYear = parseInt(item.posted.slice(0, 4), 10);
+                result.shouldShowYearPosted = postedYear !== currentYear;
             }
         } else if (!checkOnlyReports && isReportActionEntry(key)) {
             const item = data[key];
