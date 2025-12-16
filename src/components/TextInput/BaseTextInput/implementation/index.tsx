@@ -281,6 +281,7 @@ function BaseTextInput({
     ]);
 
     const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
+
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
@@ -538,6 +539,9 @@ function BaseTextInput({
                 onSetTextInputWidth={setTextInputWidth}
                 onSetTextInputHeight={setTextInputHeight}
                 isPrefixCharacterPaddingCalculated={isPrefixCharacterPaddingCalculated}
+                // Since the hidden input is absolutely positioned, container styles don't automatically apply.
+                // We pass the container styles directly to match the visible input's dimensions.
+                hiddenInputStyle={styles.hiddenTextInputContainer}
             />
         </>
     );
