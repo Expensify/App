@@ -143,11 +143,11 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 ---
 
-### [PERF-4] Memoize objects and functions passed as props
+### [PERF-4] Memoize objects (including arrays) and functions passed as props
 
-- **Search patterns**: `prop={{`, `={() =>`, `prop={variable}` (where variable is non-memoized object/function)
+- **Search patterns**: `prop={{`, `prop={[`, `={() =>`, `prop={variable}` (where variable is non-memoized object/function)
 
-- **Applies ONLY to**: Objects/functions passed directly as JSX props. Does NOT apply to:
+- **Applies ONLY to**: Objects (including arrays)/functions passed directly as JSX props. Does NOT apply to:
   - Code inside callbacks (`.then()`, event handlers)
   - Code inside `useEffect`/`useMemo`/`useCallback` bodies
   - Primitives (strings, numbers, booleans)
