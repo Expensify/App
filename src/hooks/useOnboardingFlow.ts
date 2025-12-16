@@ -1,4 +1,3 @@
-import {needsTwoFactorAuthSetupSelector} from '@selectors/Account';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
@@ -48,8 +47,8 @@ function useOnboardingFlowRouter() {
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
     const shouldShowRequire2FAPage = useMemo(
-        () => needsTwoFactorAuthSetupSelector(account) || (!!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlowSelector(onboardingValues)),
-        [account, onboardingValues],
+        () => (!!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth) || (!!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlowSelector(onboardingValues)),
+        [account?.requiresTwoFactorAuth, account?.needsTwoFactorAuthSetup, account?.twoFactorAuthSetupInProgress, onboardingValues],
     );
 
     useEffect(() => {
