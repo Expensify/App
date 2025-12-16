@@ -2,7 +2,6 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
@@ -12,8 +11,8 @@ import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
+import WorkspaceCell from '@components/SelectionListWithSections/Search/WorkspaceCell';
 import Text from '@components/Text';
-import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,7 +20,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import {getPolicyName, getWorkspaceIcon, isSettled} from '@libs/ReportUtils';
+import {isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
@@ -384,21 +383,7 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.WORKSPACE]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WORKSPACE)]}>
-                    <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
-                        <Avatar
-                            imageStyles={[styles.alignSelfCenter]}
-                            size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                            source={getWorkspaceIcon(transactionItem.report).source}
-                            avatarID={transactionItem.report?.policyID}
-                            name={getPolicyName({report: transactionItem.report})}
-                            type={CONST.ICON_TYPE_WORKSPACE}
-                        />
-                        <TextWithTooltip
-                            text={getPolicyName({report: transactionItem.report})}
-                            shouldShowTooltip
-                            style={[styles.flex1, styles.flexGrow1]}
-                        />
-                    </View>
+                    <WorkspaceCell policyID={transactionItem.report?.policyID} />
                 </View>
             ),
         }),
@@ -421,12 +406,6 @@ function TransactionItemRow({
             isInSingleTransactionReport,
             isAmountColumnWide,
             isTaxAmountColumnWide,
-            styles.flexRow,
-            styles.gap3,
-            styles.flex1,
-            styles.alignItemsCenter,
-            styles.alignSelfCenter,
-            styles.flexGrow1,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
