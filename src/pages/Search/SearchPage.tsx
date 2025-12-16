@@ -286,9 +286,13 @@ function SearchPage({route}: SearchPageProps) {
                         );
                         return;
                     }
-                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReportID, adminPolicy, formatPhoneNumber);
+                    // Get transactions for this report from allTransactions
+                    const reportTransactions = Object.values(allTransactions ?? {}).filter(
+                        (transaction): transaction is Transaction => !!transaction && transaction.reportID === itemReportID,
+                    );
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReportID, adminPolicy, reportTransactions, formatPhoneNumber);
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReportID, adminPolicy);
+                        moveIOUReportToPolicy(itemReportID, adminPolicy, reportTransactions);
                     }
                 }
             }

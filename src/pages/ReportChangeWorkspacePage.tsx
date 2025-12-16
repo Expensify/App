@@ -32,7 +32,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {DismissedProductTraining, PersonalDetailsList} from '@src/types/onyx';
+import type {DismissedProductTraining, PersonalDetailsList, Transaction} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
@@ -54,6 +54,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true, selector: changePolicyTrainingModalDismissedSelector});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const submitterEmailSelector = useCallback(
         (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login,
@@ -66,6 +67,11 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const session = useSession();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
+    // Get transactions for this report
+    const reportTransactions = useMemo(() => {
+        return Object.values(allTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
+    }, [allTransactions, reportID]);
+
     const selectPolicy = useCallback(
         (policyID?: string) => {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -75,9 +81,9 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy, formatPhoneNumber);
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy, reportTransactions, formatPhoneNumber);
                 if (!invite?.policyExpenseChatReportID) {
-                    moveIOUReportToPolicy(reportID, policy);
+                    moveIOUReportToPolicy(reportID, policy, reportTransactions);
                 }
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -114,6 +120,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             route.params,
             reportID,
             report,
+            reportTransactions,
             formatPhoneNumber,
             isReportLastVisibleArchived,
             session?.accountID,
