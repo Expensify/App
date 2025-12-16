@@ -2169,7 +2169,7 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.status';
         case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
             return 'common.reportID';
-        case CONST.SEARCH.TABLE_COLUMNS.LONG_REPORT_ID:
+        case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             return 'common.longID';
     }
 }
@@ -2558,7 +2558,7 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
             [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.LONG_REPORT_ID]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
         };
 
@@ -2632,7 +2632,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.LONG_REPORT_ID]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
           };
