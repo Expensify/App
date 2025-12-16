@@ -2554,7 +2554,7 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
             [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.WORKSPACE]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.WORKSPACE]: false,
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
         };
