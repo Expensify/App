@@ -11501,7 +11501,7 @@ function submitReport(
         expenseReport.currency ?? '',
         expenseReport.reportID,
         adminAccountID,
-        policy?.approvalMode,
+        policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC,
     );
 
     // buildOptimisticNextStep is used in parallel
