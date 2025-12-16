@@ -238,6 +238,7 @@ function withRenderTrace({id}: WrappedComponentConfig) {
             );
         }
 
+        WithRenderTrace.displayName = `withRenderTrace(${getComponentDisplayName(WrappedComponent as React.ComponentType)})`;
         return WithRenderTrace;
     };
 }

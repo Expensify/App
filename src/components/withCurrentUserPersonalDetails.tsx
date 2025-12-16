@@ -22,6 +22,8 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps>(Wra
         );
     }
 
+    WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
+
     return WithCurrentUserPersonalDetails;
 }
 
