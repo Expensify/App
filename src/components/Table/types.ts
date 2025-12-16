@@ -1,27 +1,48 @@
 import type {PropsWithChildren} from 'react';
-import type {FlatListProps} from 'react-native';
+import type {FlatListProps, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-type FilterConfig = {
-    options: Array<{label: string; value: unknown}>;
-    filterType: 'multi-select' | 'single-select';
-    default: unknown;
-    predicate: <T>(item: T, filterValue: unknown) => boolean;
+type TableColumnStyling = {
+    flex?: number;
+    containerStyles?: StyleProp<ViewStyle>;
+    labelStyles?: StyleProp<TextStyle>;
 };
 
-type SortByConfig = {
-    options: Array<{label: string; value: string}>;
-    default: string;
-    comparator: <T>(a: T, b: T, sortKey: string, order: 'asc' | 'desc') => number;
+type TableColumn<ColumnKey extends string = string> = {
+    key: ColumnKey;
+    label: string;
+    styling?: TableColumnStyling;
 };
+
+type FilterConfig = Record<
+    string,
+    {
+        filterType?: 'multi-select' | 'single-select';
+        options?: string[];
+        default?: string;
+    }
+>;
+
+type TableSortOrder = 'asc' | 'desc';
+
+type CompareItemsCallback<T, ColumnKey extends string = string> = (a: T, b: T, sortColumn: ColumnKey, order: TableSortOrder) => number;
+
+type IsItemInFilterCallback<T> = (item: T, filters: string[]) => boolean;
+
+type IsItemInSearchCallback<T> = (item: T, searchString: string) => boolean;
 
 type SharedFlatListProps<T> = Omit<FlatListProps<T>, 'data'>;
 
-type TableProps<T> = SharedFlatListProps<T> &
+type TableProps<T, ColumnKey extends string = string> = SharedFlatListProps<T> &
     PropsWithChildren<{
         data: T[] | undefined;
-        filters?: Record<string, FilterConfig>;
-        sortBy?: SortByConfig;
-        onSearch?: (items: T[], searchString: string) => T[];
+        columns: Array<TableColumn<ColumnKey>>;
+        filters?: FilterConfig;
+        initialFilters?: string[];
+        initialSortColumn?: string;
+        initialSearchString?: string;
+        compareItems?: CompareItemsCallback<T, ColumnKey>;
+        isItemInFilter?: IsItemInFilterCallback<T>;
+        isItemInSearch?: IsItemInSearchCallback<T>;
     }>;
 
-export type {FilterConfig, SortByConfig, SharedFlatListProps, TableProps};
+export type {TableColumn, FilterConfig, SharedFlatListProps, TableProps, TableSortOrder, CompareItemsCallback, IsItemInFilterCallback, IsItemInSearchCallback};

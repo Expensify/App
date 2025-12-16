@@ -47,7 +47,7 @@ function SortButton({option, isActive, sortOrder, onPress}: SortButtonProps) {
 function TableSortButtons() {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong'] as const);
-    const {sortByConfig, sortBy, sortOrder, setSortBy} = useTableContext();
+    const {sortByConfig, sortColumn: sortBy, sortOrder, updateSorting: setSortBy} = useTableContext();
 
     const handleSortPress = (sortKey: string) => {
         // If clicking the same sort key, toggle order; otherwise set new sort key with ascending order

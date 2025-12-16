@@ -10,7 +10,7 @@ function TableSearchBar() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
-    const {searchString, setSearchString} = useTableContext();
+    const {searchString, updateSearchString: setSearchString} = useTableContext();
 
     const handleChangeText = (text: string) => {
         setSearchString(text);

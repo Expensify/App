@@ -1,16 +1,86 @@
-import React from 'react';
-import type {ReactNode} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
+import Icon from '@components/Icon';
+import {PressableWithFeedback} from '@components/Pressable';
+import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
+import {useTableContext} from './TableContext';
+import type {TableColumn} from './types';
 
-type TableHeaderProps = {
-    children: ReactNode;
-};
-
-function TableHeader({children}: TableHeaderProps) {
+function TableHeader() {
     const styles = useThemeStyles();
+    const {columns} = useTableContext();
 
-    return <View style={styles.flexRow}>{children}</View>;
+    return (
+        <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
+            {columns.map((column) => {
+                return (
+                    <TableHeaderColumn
+                        column={column}
+                        key={column.key}
+                    />
+                );
+            })}
+        </View>
+    );
+}
+
+function TableHeaderColumn({column}: {column: TableColumn}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong'] as const);
+
+    const {sortColumn, sortOrder, updateSorting} = useTableContext();
+    const isSortingByColumn = column.key === sortColumn;
+    const [sortToggleCount, setSortToggleCount] = useState(0);
+    const sortIcon = sortOrder === 'asc' ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
+
+    const toggleSorting = () => {
+        if (sortToggleCount >= 2) {
+            updateSorting({columnKey: undefined});
+            setSortToggleCount(0);
+            return;
+        }
+
+        const newSortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+        setSortToggleCount((prev) => prev + 1);
+        updateSorting({columnKey: column.key, order: newSortOrder});
+    };
+
+    return (
+        <PressableWithFeedback
+            accessible
+            accessibilityLabel={column.label}
+            accessibilityRole="button"
+            style={[styles.flexRow, styles.alignItemsCenter, column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
+            onPress={toggleSorting}
+        >
+            <Text
+                numberOfLines={1}
+                color={theme.textSupporting}
+                style={[
+                    styles.lh16,
+                    column.styling?.labelStyles,
+                    isSortingByColumn ? styles.textMicroBoldSupporting : [styles.textMicroSupporting, styles.pr1, {marginRight: variables.iconSizeExtraSmall, marginBottom: 1, marginTop: 1}],
+                ]}
+            >
+                {column.label}
+            </Text>
+
+            {isSortingByColumn && (
+                <Icon
+                    additionalStyles={styles.ml1}
+                    width={variables.iconSizeExtraSmall}
+                    height={12}
+                    src={sortIcon}
+                    fill={theme.icon}
+                />
+            )}
+        </PressableWithFeedback>
+    );
 }
 
 export default TableHeader;

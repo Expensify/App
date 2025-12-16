@@ -1,37 +1,45 @@
 import React, {useState} from 'react';
 import TableContext from './TableContext';
-import type {TableContextValue} from './TableContext';
+import type {TableContextValue, UpdateFilterCallback, UpdateSortingCallback} from './TableContext';
 import type {TableProps} from './types';
 
-function Table<T>({data = [], filters, sortBy, onSearch, children, ...flatListProps}: TableProps<T>) {
-    const [filterValues, setFilterValues] = useState<Record<string, unknown>>(() => {
-        const initialFilters: Record<string, unknown> = {};
-        if (filters) {
-            for (const key of Object.keys(filters)) {
-                initialFilters[key] = filters[key].default;
-            }
-        }
-        return initialFilters;
+function Table<T, ColumnKey extends string = string>({data = [], columns, filters, compareItems, isItemInFilter, isItemInSearch, children, ...flatListProps}: TableProps<T, ColumnKey>) {
+    if (!columns || columns.length === 0) {
+        throw new Error('Table columns must be provided');
+    }
+
+    const [currentFilters, setCurrentFilters] = useState<Record<string, unknown>>(() => {
+        return {};
+
+        // const initialFilters: Record<string, unknown> = {};
+        // if (filters) {
+        //     for (const key of Object.keys(filters)) {
+        //         initialFilters[key] = filters[key].default;
+        //     }
+        // }
+        // return initialFilters;
     });
 
-    const [currentSortBy, setCurrentSortBy] = useState<string | undefined>(sortBy?.default);
+    const [sortColumn, setSortColumn] = useState<ColumnKey | undefined>();
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [searchString, setSearchString] = useState('');
 
-    const setFilter = (key: string, value: unknown) => {
-        setFilterValues((prev) => ({
+    const updateFilter: UpdateFilterCallback = ({key, value}) => {
+        setCurrentFilters((prev) => ({
             ...prev,
             [key]: value,
         }));
     };
 
-    const setSortByHandler = (key: string, order: 'asc' | 'desc') => {
-        setCurrentSortBy(key);
-        setSortOrder(order);
-    };
+    const updateSorting: UpdateSortingCallback<ColumnKey> = ({columnKey, order}) => {
+        if (columnKey) {
+            setSortColumn(columnKey);
+            setSortOrder(order ?? 'asc');
+            return;
+        }
 
-    const setSearchStringHandler = (value: string) => {
-        setSearchString(value);
+        setSortColumn(undefined);
+        setSortOrder('asc');
     };
 
     // Apply filters using predicate functions
@@ -40,7 +48,8 @@ function Table<T>({data = [], filters, sortBy, onSearch, children, ...flatListPr
         filteredData = data.filter((item) => {
             return Object.keys(filters).every((filterKey) => {
                 const filterConfig = filters[filterKey];
-                const filterValue = filterValues[filterKey];
+                // const filterValue = filterValues[filterKey];
+                const filterValue = undefined;
 
                 // If filter value is empty/undefined, include the item
                 if (filterValue === undefined || filterValue === null) {
@@ -54,47 +63,47 @@ function Table<T>({data = [], filters, sortBy, onSearch, children, ...flatListPr
                         return true;
                     }
                     // For multi-select, item passes if it matches any selected value
-                    return filterValueArray.some((value) => filterConfig.predicate(item, value));
+                    return filterValueArray.some((value) => isItemInFilter?.(item, value) ?? true);
                 }
 
                 // Handle single-select filters
-                return filterConfig.predicate(item, filterValue);
+                return isItemInFilter?.(item, filterValue) ?? true;
             });
         });
     }
 
     // Apply search using onSearch callback
     let searchedData = filteredData;
-    if (onSearch && searchString.trim()) {
-        searchedData = onSearch(filteredData, searchString);
+    if (isItemInSearch && searchString.trim()) {
+        searchedData = filteredData.filter((item) => isItemInSearch(item, searchString));
     }
 
     // Apply sorting using comparator function
     let filteredAndSortedData = searchedData;
-    if (sortBy && currentSortBy) {
+    if (sortColumn) {
         const sortedData = [...searchedData];
         sortedData.sort((a, b) => {
-            return sortBy.comparator(a, b, currentSortBy, sortOrder);
+            return compareItems?.(a, b, sortColumn, sortOrder) ?? 0;
         });
         filteredAndSortedData = sortedData;
     }
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const contextValue: TableContextValue<T> = {
+    const contextValue: TableContextValue<T, ColumnKey> = {
         filteredAndSortedData,
-        filters: filterValues,
-        sortBy: currentSortBy,
+        columns,
+        currentFilters,
+        sortColumn,
         sortOrder,
         searchString,
-        setFilter,
-        setSortBy: setSortByHandler,
-        setSearchString: setSearchStringHandler,
-        filterConfigs: filters,
-        sortByConfig: sortBy,
+        updateFilter,
+        updateSorting,
+        updateSearchString: setSearchString,
+        filterConfig: filters,
         flatListProps,
     };
 
-    return <TableContext.Provider value={contextValue as TableContextValue<unknown>}>{children}</TableContext.Provider>;
+    return <TableContext.Provider value={contextValue as unknown as TableContextValue<unknown, string>}>{children}</TableContext.Provider>;
 }
 
 Table.displayName = 'Table';

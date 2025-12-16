@@ -162,7 +162,7 @@ function renderFilterItem({item}: {item: FilterButtonItem}) {
 
 function TableFilterButtons() {
     const styles = useThemeStyles();
-    const {filterConfigs, filters, setFilter} = useTableContext();
+    const {currentFilters: filterConfigs, currentFilters: filters, updateFilter: setFilter} = useTableContext();
 
     const filterItems = buildFilterItems(filterConfigs, filters, setFilter);
 
