@@ -681,6 +681,8 @@ const translations = {
         actionRequired: 'Action required',
         duplicate: 'Duplicate',
         duplicated: 'Duplicated',
+        reimbursableTotal: 'Reimbursable total',
+        nonReimbursableTotal: 'Non-reimbursable total',
     },
     supportalNoAccess: {
         title: 'Not so fast',

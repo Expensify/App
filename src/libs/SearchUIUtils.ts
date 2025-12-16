@@ -2199,6 +2199,10 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.title';
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
             return 'common.status';
+        case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
+            return 'common.reimbursableTotal';
+        case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
+            return 'common.nonReimbursableTotal';
     }
 }
 
