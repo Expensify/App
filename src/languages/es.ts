@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {BeginningOfChatHistoryParams, HarvestCreatedExpenseReportParams, TagSelectionParams, ViolationsRterParams} from './params';
+import type {BeginningOfChatHistoryParams, HarvestCreatedExpenseReportParams, SplitDateRangeParams, TagSelectionParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -796,6 +796,7 @@ const translations: TranslationDeepObject<typeof en> = {
     iou: {
         amount: 'Importe',
         percent: 'Porcentaje',
+        date: 'Fecha',
         taxAmount: 'Importe del impuesto',
         taxRate: 'Tasa de impuesto',
         approve: ({formattedAmount} = {}) => (formattedAmount ? `Aprobar ${formattedAmount}` : 'Aprobar'),
@@ -805,6 +806,8 @@ const translations: TranslationDeepObject<typeof en> = {
         original: 'Original',
         split: 'Dividir',
         splitExpense: 'Dividir gasto',
+        splitDates: 'Fechas de división',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} al ${endDate} (${count} días)`,
         splitExpenseSubtitle: ({amount, merchant}) => `${amount} de ${merchant}`,
         splitByPercentage: 'Dividir por porcentaje',
         addSplit: 'Añadir división',

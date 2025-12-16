@@ -93,6 +93,12 @@ type Comment = {
     /** Total that the user currently owes for splitExpenses */
     splitExpensesTotal?: number;
 
+    /** Start date for splits */
+    splitsStartDate?: string;
+
+    /** End date for splits */
+    splitsEndDate?: string;
+
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
 
