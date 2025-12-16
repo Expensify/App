@@ -19,19 +19,16 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
 
     const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts', 'EmptyStateTravel'] as const);
 
-    const tripsFeatures: FeatureListItem[] = useMemo(
-        () => [
-            {
-                icon: illustrations.PiggyBank,
-                translationKey: 'travel.features.saveMoney',
-            },
-            {
-                icon: illustrations.TravelAlerts,
-                translationKey: 'travel.features.alerts',
-            },
-        ],
-        [illustrations.PiggyBank, illustrations.TravelAlerts],
-    );
+    const tripsFeatures: FeatureListItem[] = [
+        {
+            icon: illustrations.PiggyBank,
+            translationKey: 'travel.features.saveMoney',
+        },
+        {
+            icon: illustrations.TravelAlerts,
+            translationKey: 'travel.features.alerts',
+        },
+    ];
     return (
         <FeatureList
             menuItems={tripsFeatures}
