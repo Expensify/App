@@ -6710,7 +6710,6 @@ const CONST = {
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                     TAG: this.TABLE_COLUMNS.TAG,
                     TITLE: this.TABLE_COLUMNS.TITLE,
-                    STATUS: this.TABLE_COLUMNS.STATUS,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 EXPENSE_REPORT: {
