@@ -257,14 +257,16 @@ const ViolationsUtils = {
             }
         }
 
-        const shouldShowSmartScanFailedError = isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
+        // Only show SmartScan failed when scan failed AND the user hasn't filled required fields yet
+        const hasUserStartedFixingSmartscan = !TransactionUtils.isAmountMissing(updatedTransaction) || !TransactionUtils.isMerchantMissing(updatedTransaction);
+        const shouldShowSmartScanFailedError =
+            isScanRequest &&
+            updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED &&
+            TransactionUtils.hasMissingSmartscanFields(updatedTransaction, iouReport ?? undefined) &&
+            !hasUserStartedFixingSmartscan;
         const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
         if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
-            return {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
-                value: [{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}],
-            };
+            newTransactionViolations.push({name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true});
         }
         if (!shouldShowSmartScanFailedError && hasSmartScanFailedError) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});

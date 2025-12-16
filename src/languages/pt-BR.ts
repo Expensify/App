@@ -3110,6 +3110,7 @@ ${
             ownershipPercentage: 'Insira um número de porcentagem válido',
             deletePaymentBankAccount:
                 'Esta conta bancária não pode ser excluída porque é usada para pagamentos do Expensify Card. Se ainda quiser excluir esta conta, entre em contato com a Concierge.',
+            sameDepositAndWithdrawalAccount: 'As contas de depósito e de saque são as mesmas.',
         },
     },
     addPersonalBankAccount: {
@@ -6697,6 +6698,9 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 subtitle: 'Zero despesas. Máxima tranquilidade. Muito bem!',
             },
         },
+        columns: 'Colunas',
+        resetColumns: 'Redefinir colunas',
+        noColumnsError: 'Selecione pelo menos uma coluna antes de salvar',
         statements: 'Extratos',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCard: 'Cartão não aprovado',

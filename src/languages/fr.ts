@@ -3134,6 +3134,7 @@ ${
             ownershipPercentage: 'Veuillez saisir un nombre de pourcentage valide',
             deletePaymentBankAccount:
                 'Ce compte bancaire ne peut pas être supprimé car il est utilisé pour les paiements par Expensify Card. Si vous souhaitez tout de même supprimer ce compte, veuillez contacter Concierge.',
+            sameDepositAndWithdrawalAccount: 'Les comptes de dépôt et de retrait sont identiques.',
         },
     },
     addPersonalBankAccount: {
@@ -6743,6 +6744,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 subtitle: 'Zéro note de frais. Détente maximale. Bien joué !',
             },
         },
+        columns: 'Colonnes',
+        resetColumns: 'Réinitialiser les colonnes',
+        noColumnsError: 'Veuillez sélectionner au moins une colonne avant d’enregistrer',
         statements: 'Relevés',
         unapprovedCash: 'Espèces non approuvées',
         unapprovedCard: 'Carte non approuvée',
