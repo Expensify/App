@@ -125,6 +125,10 @@ const restrictedImportPaths = [
         name: '@src/utils/findNodeHandle',
         message: "Do not use 'findNodeHandle' as it is no longer supported on web.",
     },
+    {
+        name: './SelectionListWithSections',
+        message: 'If possible use `SelectionList` without sections',
+    },
 ];
 
 const restrictedImportPatterns = [
