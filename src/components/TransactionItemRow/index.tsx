@@ -111,6 +111,7 @@ type TransactionItemRowProps = {
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: () => void;
+    shouldShowArrowRightOnNarrowLayout?: boolean;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -152,15 +153,16 @@ function TransactionItemRow({
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
+    shouldShowArrowRightOnNarrowLayout,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
     const {isLargeScreenWidth} = useResponsiveLayout();
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
+    const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -248,7 +250,7 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false, areAllOptionalColumnsHidden)]}
                 >
                     <DateCell
-                        created={createdAt}
+                        date={createdAt}
                         showTooltip={shouldShowTooltip}
                         isLargeScreenWidth={!shouldUseNarrowLayout}
                     />
@@ -432,7 +434,7 @@ function TransactionItemRow({
                         <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
                                 <DateCell
-                                    created={createdAt}
+                                    date={createdAt}
                                     showTooltip={shouldShowTooltip}
                                     isLargeScreenWidth={!shouldUseNarrowLayout}
                                 />
@@ -468,6 +470,16 @@ function TransactionItemRow({
                                 </View>
                             )}
                         </View>
+                        {!!shouldShowArrowRightOnNarrowLayout && (
+                            <View style={[styles.justifyContentEnd, styles.alignItemsEnd, styles.mbHalf, styles.ml1]}>
+                                <Icon
+                                    src={expensicons.ArrowRight}
+                                    fill={theme.icon}
+                                    additionalStyles={styles.opacitySemiTransparent}
+                                    small
+                                />
+                            </View>
+                        )}
                         {shouldShowRadioButton && (
                             <View style={[styles.ml3, styles.justifyContentCenter]}>
                                 <RadioButton
@@ -564,7 +576,7 @@ function TransactionItemRow({
                             {({hovered}) => {
                                 return (
                                     <Icon
-                                        src={expensifyIcons.ArrowRight}
+                                        src={expensicons.ArrowRight}
                                         fill={theme.icon}
                                         additionalStyles={!hovered && styles.opacitySemiTransparent}
                                         small
