@@ -40,7 +40,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const privateSubscription = usePrivateSubscription();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
 
     useEffect(() => {
         if (!policyID) {

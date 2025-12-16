@@ -315,9 +315,7 @@ function SearchTableHeader({
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
     // Only load Profile icon when it's needed for EXPENSE_REPORT type or grouped transactions
-    const icons = useMemoizedLazyExpensifyIcons(
-        type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || !!groupBy ? (['Profile', 'Bank', 'CreditCard'] as const) : ([] as const),
-    ) satisfies SearchHeaderIcons;
+    const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || !!groupBy ? ['Profile', 'Bank', 'CreditCard'] : []) satisfies SearchHeaderIcons;
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {

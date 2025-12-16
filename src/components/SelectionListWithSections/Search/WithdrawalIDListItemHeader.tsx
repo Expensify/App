@@ -65,7 +65,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     const accountLabel = useMemo(() => {
         const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
