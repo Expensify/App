@@ -315,15 +315,13 @@ function BasePopoverMenu({
             setFocusedIndex(-1);
         } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
             onItemSelected?.(selectedItem, index, event);
-            if (selectedItem.shouldCloseModalOnSelect !== false) {
-                close(
-                    () => {
-                        selectedItem.onSelected?.();
-                    },
-                    undefined,
-                    selectedItem.shouldCloseAllModals,
-                );
-            }
+            close(
+                () => {
+                    selectedItem.onSelected?.();
+                },
+                undefined,
+                selectedItem.shouldCloseAllModals,
+            );
         } else {
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
