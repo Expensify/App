@@ -6,9 +6,7 @@ import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-// import {Gallery} from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-// import ReceiptImage from '@components/ReceiptImage';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -24,7 +22,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useBeforeRemove from '@hooks/useBeforeRemove';
-import {setMoneyRequestDistance, /* setMoneyRequestOdometerImage, */ setMoneyRequestOdometerReading, setMoneyRequestParticipantsFromReport, updateMoneyRequestDistance} from '@libs/actions/IOU';
+import {setMoneyRequestDistance, setMoneyRequestOdometerReading, setMoneyRequestParticipantsFromReport, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -77,8 +75,6 @@ function IOURequestStepDistanceOdometer({
     // Track initial values for DiscardChangesConfirmation
     const initialStartReadingRef = useRef<string>('');
     const initialEndReadingRef = useRef<string>('');
-    // const initialStartImageRef = useRef<File | string | undefined>(undefined)
-    // const initialEndImageRef = useRef<File | string | undefined>(undefined);
     const hasInitializedRefs = useRef(false);
     // Track previous transaction values to detect when transaction is cleared (e.g., tab switch)
     const prevTransactionStartRef = useRef<number | null | undefined>(undefined);
@@ -114,10 +110,6 @@ function IOURequestStepDistanceOdometer({
         () => ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, backToReport),
         [action, backToReport, iouType, reportID, transactionID],
     );
-
-    // Get odometer images from transaction (only for display, not for initialization)
-    // const odometerStartImage = transaction?.comment?.odometerStartImage;
-    // const odometerEndImage = transaction?.comment?.odometerEndImage;
 
     // Reset component state when transaction has no odometer data (happens when switching tabs)
     // In Phase 1, we don't persist data from transaction since users can't save and exit
@@ -155,8 +147,6 @@ function IOURequestStepDistanceOdometer({
             endReadingRef.current = '';
             initialStartReadingRef.current = '';
             initialEndReadingRef.current = '';
-            // initialStartImageRef.current = undefined;
-            // initialEndImageRef.current = undefined;
             setFormError('');
             // Force TextInput remount to reset label position
             setInputKey((prev) => prev + 1);
@@ -179,8 +169,6 @@ function IOURequestStepDistanceOdometer({
         const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
         initialStartReadingRef.current = startValue;
         initialEndReadingRef.current = endValue;
-        // initialStartImageRef.current = transaction?.comment?.odometerStartImage;
-        // initialEndImageRef.current = transaction?.comment?.odometerEndImage;
         hasInitializedRefs.current = true;
     }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd]);
 
@@ -226,29 +214,6 @@ function IOURequestStepDistanceOdometer({
         // Show 0 if distance is negative
         return distance <= 0 ? 0 : distance;
     }, [startReading, endReading]);
-
-    // Get image source for web (blob URL) or native (URI string)
-    // const getImageSource = useCallback((image: File | string | {uri?: string} | undefined): string | undefined => {
-    //     if (!image) {
-    //         return undefined;
-    //     }
-    //     // Web: File object, create blob URL
-    //     if (typeof image !== 'string' && image instanceof File) {
-    //         return URL.createObjectURL(image);
-    //     }
-    //     // Native: URI string, use directly
-    //     if (typeof image === 'string') {
-    //         return image;
-    //     }
-    //     // Native: Object with uri property (fallback for compatibility)
-    //     if (typeof image === 'object' && 'uri' in image && typeof image.uri === 'string') {
-    //         return image.uri;
-    //     }
-    //     return undefined;
-    // }, []);
-
-    // const startImageSource = getImageSource(odometerStartImage);
-    // const endImageSource = getImageSource(odometerEndImage);
 
     const buttonText = useMemo(() => {
         const shouldShowSave = isEditing || isEditingConfirmation;
@@ -304,24 +269,6 @@ function IOURequestStepDistanceOdometer({
         },
         [formError],
     );
-
-    // const handleCaptureImage = useCallback(
-    //     (imageType: 'start' | 'end') => {
-    //         Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(transactionID, imageType, Navigation.getActiveRouteWithoutParams()));
-    //     },
-    //     [transactionID],
-    // );
-
-    // const handleViewOdometerImage = useCallback(
-    //     (imageType: 'start' | 'end') => {
-    //         if (!reportID || !transactionID) {
-    //             return;
-    //         }
-    //         // Navigate to receipt modal with imageType parameter
-    //         Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, false, false, undefined, imageType));
-    //     },
-    //     [reportID, transactionID],
-    // );
 
     // Navigate to confirmation page helper - following Manual tab pattern
     const navigateToConfirmationPage = useCallback(() => {
@@ -524,36 +471,6 @@ function IOURequestStepDistanceOdometer({
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
                         </View>
-                        {/* <PressableWithFeedback
-                            accessible={false}
-                            accessibilityRole="button"
-                            onPress={() => {
-                                if (odometerStartImage) {
-                                    handleViewOdometerImage('start');
-                                } else {
-                                    handleCaptureImage('start');
-                                }
-                            }}
-                            style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
-                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                styles.overflowHidden,
-                                StyleUtils.getBackgroundColorStyle(theme.border),
-                            ]}
-                        >
-                            <ReceiptImage
-                                source={startImageSource ?? ''}
-                                shouldUseThumbnailImage
-                                thumbnailContainerStyles={styles.bgTransparent}
-                                isAuthTokenRequired
-                                fallbackIcon={Gallery}
-                                fallbackIconSize={20}
-                                fallbackIconColor={theme.icon}
-                                iconSize="x-small"
-                                loadingIconSize="small"
-                                shouldUseInitialObjectPosition
-                            />
-                        </PressableWithFeedback> */}
                     </View>
 
                     {/* End Reading */}
@@ -570,36 +487,6 @@ function IOURequestStepDistanceOdometer({
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
                         </View>
-                        {/* <PressableWithFeedback
-                            accessible={false}
-                            accessibilityRole="button"
-                            onPress={() => {
-                                if (odometerEndImage) {
-                                    handleViewOdometerImage('end');
-                                } else {
-                                    handleCaptureImage('end');
-                                }
-                            }}
-                            style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
-                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                styles.overflowHidden,
-                                StyleUtils.getBackgroundColorStyle(theme.border),
-                            ]}
-                        >
-                            <ReceiptImage
-                                source={endImageSource ?? ''}
-                                shouldUseThumbnailImage
-                                thumbnailContainerStyles={styles.bgTransparent}
-                                isAuthTokenRequired
-                                fallbackIcon={Gallery}
-                                fallbackIconSize={20}
-                                fallbackIconColor={theme.icon}
-                                iconSize="x-small"
-                                loadingIconSize="small"
-                                shouldUseInitialObjectPosition
-                            />
-                        </PressableWithFeedback> */}
                     </View>
 
                     {/* Total Distance Display - always shown, updated live */}
@@ -636,9 +523,7 @@ function IOURequestStepDistanceOdometer({
                 isEnabled={shouldEnableDiscardConfirmation}
                 getHasUnsavedChanges={() => {
                     const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
-                    // const hasImageChanges =
-                    //     transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
-                    return hasReadingChanges; // || hasImageChanges;
+                    return hasReadingChanges;
                 }}
             />
         </StepScreenWrapper>
