@@ -214,7 +214,7 @@ function WorkspaceReportFieldsPage({
                             containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                         >
                             <OfflineWithFeedback
-                                pendingAction={reportTitlePendingFields.defaultValue || policy?.pendingAction}
+                                pendingAction={reportTitlePendingFields.defaultValue ?? policy?.pendingAction}
                                 shouldForceOpacity={reportTitlePendingFields.defaultValue === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}
                                 errors={reportTitleErrors}
                                 errorRowStyles={[styles.mh0]}
@@ -230,7 +230,7 @@ function WorkspaceReportFieldsPage({
                                 />
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
-                                pendingAction={reportTitlePendingFields.deletable || policy?.pendingAction}
+                                pendingAction={reportTitlePendingFields.deletable ?? policy?.pendingAction}
                                 title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
