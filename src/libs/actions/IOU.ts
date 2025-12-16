@@ -91,7 +91,6 @@ import {
     getSubmitToAccountID,
     hasDependentTags,
     hasDynamicExternalWorkflow,
-    hasOnlyPersonalPolicies,
     isControlPolicy,
     isDelayedSubmissionEnabled,
     isPaidGroupPolicy,
