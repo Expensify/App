@@ -20,7 +20,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import {isSettled} from '@libs/ReportUtils';
+import {isSettled, isExpenseReport} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
@@ -212,10 +212,6 @@ function TransactionItemRow({
             return error;
         }
     }, [transactionItem, translate, report]);
-
-    if (transactionItem.transactionID === '3710155799987794335') {
-        console.log('transactionItem', {transactionItem, originalAmount: (transactionItem.originalAmount ?? 0) * (transactionItem.report?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1), reportType: transactionItem.report?.type});
-    }
 
     const columnComponent = useMemo(
         () => ({
@@ -410,7 +406,7 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
                 >
                     <AmountCell
-                        total={transactionItem.report?.type === CONST.REPORT.TYPE.EXPENSE ? -(transactionItem.originalAmount ?? 0) : getOriginalAmount(transactionItem)}
+                        total={isExpenseReport(transactionItem.report) ? -(transactionItem.originalAmount ?? 0) : getOriginalAmount(transactionItem)}
                         currency={getOriginalCurrency(transactionItem)}
                     />
                 </View>
