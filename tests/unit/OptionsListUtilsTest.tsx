@@ -1565,12 +1565,13 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Mr Sinister');
         });
 
-        it('should include archived chats in options', () => {
+        it('should find archived chats', () => {
+            const searchText = 'Archived';
+            // Given a set of options
+            // When we call getSearchOptions with all betas
             const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL]});
-
-            const archivedReport = options.recentReports.find((report) => report.reportID === '10');
-            expect(archivedReport).toBeDefined();
-            expect(!!archivedReport?.private_isArchived).toBe(true);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
+            expect(!!filteredOptions.recentReports.at(0)?.private_isArchived).toBe(true);
         });
 
         it('should filter options by email if dot is skipped in the email', () => {
