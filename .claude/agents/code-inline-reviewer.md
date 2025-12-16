@@ -244,6 +244,7 @@ memo(ReportActionItem, (prevProps, nextProps) =>
    - Focus ONLY on the changed lines, not the entire file
    - **CRITICAL**: Only create inline comments on lines that are part of the diff. Do NOT add comments to lines outside the diff, even if they contain violations. Comments on unchanged lines will fail to be created.
 2. **For analyzing changed files:**
+   - **NEVER use `cat` or other Bash commands to read files. ALWAYS use the Read tool.**
    - **For large files (>5000 lines):** Use the Grep tool to search for specific violation patterns instead of reading the entire file. Focus grep searches on the changed portions shown in the diff.
    - **For smaller files:** You may read the full file using the Read tool
    - **If a Read fails with token limit error:** Immediately switch to using Grep with targeted patterns for the rules you're checking
