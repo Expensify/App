@@ -6695,6 +6695,7 @@ const CONST = {
                     TO: this.TABLE_COLUMNS.TO,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                     TAG: this.TABLE_COLUMNS.TAG,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 EXPENSE_REPORT: {

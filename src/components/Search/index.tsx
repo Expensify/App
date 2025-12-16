@@ -867,7 +867,7 @@ function Search({
 
     const sortedSelectedData = useMemo(
         () =>
-            getSortedSections(type, status, filteredData, localeCompare, sortBy, sortOrder, validGroupBy).map((item) => {
+            getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy).map((item) => {
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
@@ -888,7 +888,7 @@ function Search({
 
                 return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
             }),
-        [type, status, filteredData, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, selectedTransactions, canSelectMultiple, localeCompare, hash],
+        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, selectedTransactions, canSelectMultiple, hash],
     );
 
     useEffect(() => {

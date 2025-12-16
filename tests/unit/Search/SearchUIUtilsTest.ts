@@ -34,7 +34,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {formatPhoneNumber, localeCompare} from '../../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -2034,6 +2034,7 @@ describe('SearchUIUtils', () => {
                 CONST.SEARCH.STATUS.EXPENSE.ALL,
                 reportActionListItems,
                 localeCompare,
+                translateLocal,
             ) as ReportActionListItemType[];
             // Should return all report actions sorted by creation date in descending order (newest first)
             expect(sortedActions).toHaveLength(5);
@@ -2042,36 +2043,47 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getSortedTransactionData result when groupBy is undefined', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionsListItems, localeCompare, 'date', 'asc', undefined)).toStrictEqual(transactionsListItems);
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionsListItems, localeCompare, translateLocal, 'date', 'asc', undefined)).toStrictEqual(
+                transactionsListItems,
+            );
         });
 
         it('should return getSortedReportData result when type is expense-report', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, '', transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getSortedReportData result when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getSortedReportData result when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getSortedMemberData result when type is EXPENSE and groupBy is member', () => {
             expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionMemberGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.FROM),
+                SearchUIUtils.getSortedSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    '',
+                    transactionMemberGroupListItems,
+                    localeCompare,
+                    translateLocal,
+                    'date',
+                    'asc',
+                    CONST.SEARCH.GROUP_BY.FROM,
+                ),
             ).toStrictEqual(transactionMemberGroupListItemsSorted);
         });
 
         it('should return getSortedCardData result when type is EXPENSE and groupBy is card', () => {
             expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionCardGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.CARD),
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionCardGroupListItems, localeCompare, translateLocal, 'date', 'asc', CONST.SEARCH.GROUP_BY.CARD),
             ).toStrictEqual(transactionCardGroupListItemsSorted);
         });
 
@@ -2082,6 +2094,7 @@ describe('SearchUIUtils', () => {
                     '',
                     transactionWithdrawalIDGroupListItems,
                     localeCompare,
+                    translateLocal,
                     'date',
                     'asc',
                     CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
