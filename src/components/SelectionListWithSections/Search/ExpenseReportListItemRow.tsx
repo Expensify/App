@@ -148,6 +148,7 @@ function ExpenseReportListItemRow({
                 />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.WORKSPACE]: <View></View>,
     };
 
     const thereIsFromAndTo = !!item?.from && !!item?.to;

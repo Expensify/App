@@ -380,6 +380,7 @@ function TransactionItemRow({
                     />
                 </View>
             ),
+            [CONST.SEARCH.TABLE_COLUMNS.WORKSPACE]: <View></View>,
         }),
         [
             StyleUtils,
