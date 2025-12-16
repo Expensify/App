@@ -6788,7 +6788,7 @@ const CONST = {
             TO: 'to',
             CATEGORY: 'category',
             TAG: 'tag',
-            ORIGINAL_AMOUNT: 'originalAmount',
+            ORIGINAL_AMOUNT: 'originalamount',
             TOTAL_AMOUNT: 'amount',
             TOTAL: 'total',
             TYPE: 'type',
