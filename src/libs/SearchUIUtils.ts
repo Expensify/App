@@ -2544,20 +2544,21 @@ function getColumnsToShow(
     type?: SearchDataTypes,
 ): ColumnVisibility {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        const reportColumns = [
-            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-            CONST.SEARCH.TABLE_COLUMNS.DATE,
-            CONST.SEARCH.TABLE_COLUMNS.STATUS,
-            CONST.SEARCH.TABLE_COLUMNS.TITLE,
-            CONST.SEARCH.TABLE_COLUMNS.FROM,
-            CONST.SEARCH.TABLE_COLUMNS.TO,
-            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
-            CONST.SEARCH.TABLE_COLUMNS.ACTION,
-        ];
+        const reportColumns: ColumnVisibility = {
+            [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+        };
 
         // If there are no visible columns, everything should be visible
         if (!visibleColumns.length) {
-            return Object.fromEntries(reportColumns.map((column) => [column, true]));
+            return reportColumns;
         }
 
         // If the user has set custom columns, toggle the visible columns on, with all other
@@ -2565,7 +2566,7 @@ function getColumnsToShow(
         const columns: ColumnVisibility = {};
         const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
 
-        for (const columnId of reportColumns) {
+        for (const columnId of Object.keys(reportColumns) as SearchColumnType[]) {
             columns[columnId] = requiredColumns.has(columnId);
         }
 
