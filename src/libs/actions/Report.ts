@@ -70,8 +70,6 @@ import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import getEnvironment from '@libs/Environment/getEnvironment';
 import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {compute} from '@libs/Formula';
-import type {FormulaContext} from '@libs/Formula';
 import fileDownload from '@libs/fileDownload';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
@@ -5446,13 +5444,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     return {policyExpenseChatReportID: optimisticPolicyExpenseChatReportID};
 }
 
-function convertIOUReportToExpenseReport(
-    iouReport: Report,
-    policy: Policy,
-    policyID: string,
-    optimisticPolicyExpenseChatReportID: string,
-    reportTransactions?: Record<string, Transaction>,
-) {
+function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, policyID: string, optimisticPolicyExpenseChatReportID: string) {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -5476,13 +5468,7 @@ function convertIOUReportToExpenseReport(
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
     if (!!titleReportField && isPaidGroupPolicy(policy)) {
-        const formulaContext: FormulaContext = {
-            report: expenseReport,
-            policy,
-            allTransactions: reportTransactions ?? {},
-        };
-        const computedName = compute(titleReportField.defaultValue, formulaContext);
-        expenseReport.reportName = computedName || expenseReport.reportName;
+        expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
     }
 
     const reportID = iouReport.reportID;
@@ -5499,12 +5485,12 @@ function convertIOUReportToExpenseReport(
     });
 
     // The expense report transactions need to have the amount reversed to negative values
-    const existingReportTransactions = getReportTransactions(reportID);
+    const iouReportTransactions = getReportTransactions(reportID);
 
     // For performance reasons, we are going to compose a merge collection data for transactions
     const transactionsOptimisticData: Record<string, Transaction> = {};
     const transactionFailureData: Record<string, Transaction> = {};
-    for (const transaction of existingReportTransactions) {
+    for (const transaction of iouReportTransactions) {
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
             amount: -transaction.amount,
