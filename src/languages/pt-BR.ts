@@ -5038,14 +5038,15 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             },
             companyCards: {
                 title: 'Cartões corporativos',
-                subtitle: 'Importar gastos de cartões corporativos existentes.',
+                subtitle: 'Conecte os cartões que você já tem.',
                 feed: {
-                    title: 'Importar cartões corporativos',
+                    title: 'Traga seus próprios cartões (BYOC)',
                     features: {
-                        support: 'Suporte para todos os principais provedores de cartão',
-                        assignCards: 'Atribuir cartões para toda a equipe',
-                        automaticImport: 'Importação automática de transações',
+                        support: 'Conecte cartões de mais de 10.000 bancos',
+                        assignCards: 'Vincule os cartões existentes da sua equipe',
+                        automaticImport: 'Vamos importar as transações automaticamente',
                     },
+                    subtitle: 'Vincule os cartões que você já possui para importação automática de transações, correspondência de recibos e reconciliação.',
                 },
                 bankConnectionError: 'Problema de conexão bancária',
                 connectWithPlaid: 'conectar via Plaid',

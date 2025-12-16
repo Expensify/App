@@ -5047,14 +5047,15 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             },
             companyCards: {
                 title: 'Bedrijfskaarten',
-                subtitle: 'Uitgaven importeren van bestaande zakelijke kaarten.',
+                subtitle: 'Koppel de kaarten die je al hebt.',
                 feed: {
-                    title: 'Bedrijfskaarten importeren',
+                    title: 'Gebruik je eigen kaarten (BYOC)',
                     features: {
-                        support: 'Ondersteuning voor alle grote kaartaanbieders',
-                        assignCards: 'Kaarten toewijzen aan het hele team',
-                        automaticImport: 'Automatische transactie-import',
+                        support: 'Koppel kaarten van meer dan 10.000 banken',
+                        assignCards: 'Koppel de bestaande kaarten van je team',
+                        automaticImport: 'We halen transacties automatisch op',
                     },
+                    subtitle: 'Koppel de kaarten die je al hebt voor automatische transactie-import, bonkoppeling en reconciliatie.',
                 },
                 bankConnectionError: 'Probleem met bankverbinding',
                 connectWithPlaid: 'verbinden via Plaid',
