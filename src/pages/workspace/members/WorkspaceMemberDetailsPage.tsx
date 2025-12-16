@@ -423,11 +423,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             />
                             {shouldShowCardsSection && (
                                 <>
-                                    <View style={[styles.ph5, styles.pv3]}>
-                                        <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
-                                            {translate('walletPage.assignedCards')}
-                                        </Text>
-                                    </View>
+                                    {memberCards.length > 0 && (
+                                        <View style={[styles.ph5, styles.pv3]}>
+                                            <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                                {translate('walletPage.assignedCards')}
+                                            </Text>
+                                        </View>
+                                    )}
                                     {memberCards.map((memberCard) => {
                                         const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                                         const plaidUrl = getPlaidInstitutionIconUrl(memberCard?.bank);
