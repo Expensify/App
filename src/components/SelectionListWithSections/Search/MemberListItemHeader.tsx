@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
@@ -55,10 +55,8 @@ function MemberListItemHeader<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [formattedDisplayName, formattedLogin] = useMemo(
-        () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
-        [memberItem, formatPhoneNumber],
-    );
+    const formattedDisplayName = formatPhoneNumber(getDisplayNameOrDefault(memberItem));
+    const formattedLogin = formatPhoneNumber(memberItem.login ?? '');
 
     return (
         <View>

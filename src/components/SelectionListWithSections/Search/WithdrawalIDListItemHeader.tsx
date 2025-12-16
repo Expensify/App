@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
@@ -67,30 +67,26 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
-    const accountLabel = useMemo(() => {
-        const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
-        const maskedNumber = withdrawalIDItem.accountNumber ? `xx${withdrawalIDItem.accountNumber.slice(-4)}` : '';
-
-        return `${formattedBankName} ${maskedNumber}`;
-    }, [withdrawalIDItem.accountNumber, withdrawalIDItem.bankName]);
+    const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
+    const maskedNumber = withdrawalIDItem.accountNumber ? `xx${withdrawalIDItem.accountNumber.slice(-4)}` : '';
+    const accountLabel = `${formattedBankName} ${maskedNumber}`;
 
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
-    const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
     );
-    const badgeProps = useMemo(() => getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme), [withdrawalIDItem.state, translate, theme]);
-    const settlementStatus = useMemo(() => getSettlementStatus(withdrawalIDItem.state), [withdrawalIDItem.state]);
+    const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
+    const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
     const withdrawalInfoText = translate('settlement.withdrawalInfo', {date: formattedWithdrawalDate, withdrawalID: withdrawalIDItem.entryID});
 
-    const failedErrorHTML = useMemo(() => {
-        if (settlementStatus !== CONST.SEARCH.SETTLEMENT_STATUS.FAILED) {
-            return '';
-        }
-        const walletLink = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
-        return translate('settlement.failedError', {link: walletLink});
-    }, [settlementStatus, environmentURL, translate]);
+    const failedErrorHTML =
+        settlementStatus !== CONST.SEARCH.SETTLEMENT_STATUS.FAILED
+            ? ''
+            : (() => {
+                  const walletLink = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
+                  return translate('settlement.failedError', {link: walletLink});
+              })();
 
     return (
         <View>
