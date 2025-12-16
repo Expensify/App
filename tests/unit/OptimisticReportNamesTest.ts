@@ -101,7 +101,7 @@ describe('OptimisticReportNames', () => {
 
             const result = shouldComputeReportName(
                 {
-                    ...mockReport,
+                    ...mockReport
                     type: 'iou',
                 } as Report,
                 mockContext,
