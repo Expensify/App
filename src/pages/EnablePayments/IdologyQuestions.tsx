@@ -40,7 +40,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [shouldHideSkipAnswer, setShouldHideSkipAnswer] = useState(false);

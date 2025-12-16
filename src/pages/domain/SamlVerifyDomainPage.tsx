@@ -12,7 +12,7 @@ function SamlVerifyDomainPage({route}: SamlVerifyDomainPageProps) {
 
     return (
         <BaseVerifyDomainPage
-            accountID={domainAccountID}
+            domainAccountID={domainAccountID}
             forwardTo={ROUTES.DOMAIN_VERIFIED.getRoute(route.params.domainAccountID)}
         />
     );

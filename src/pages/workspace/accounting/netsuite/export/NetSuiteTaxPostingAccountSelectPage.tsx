@@ -21,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {isBetaEnabled} = usePermissions();
 
     const policyID = policy?.id;
