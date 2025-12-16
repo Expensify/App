@@ -11,7 +11,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 
-
 OnyxUpdateManager();
 
 describe('actions/App', () => {
