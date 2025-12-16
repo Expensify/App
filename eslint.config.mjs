@@ -127,11 +127,11 @@ const restrictedImportPaths = [
     },
     {
         name: './SelectionListWithSections',
-        message: 'If possible use `SelectionList` without sections',
+        message: 'Use `SelectionList` for flat data. Only use `SelectionListWithSection` when data is actually sectioned.',
     },
     {
         name: '@components/SelectionListWithSections',
-        message: 'If possible use `SelectionList` without sections',
+        message: 'Use `SelectionList` for flat data. Only use `SelectionListWithSection` when data is actually sectioned.',
     },
 ];
 

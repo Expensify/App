@@ -3,7 +3,6 @@ import type {ForwardedRef} from 'react';
 import React, {useMemo, useState} from 'react';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-// will be migrated soon
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, SelectionListHandle, SelectionListProps} from '@components/SelectionListWithSections/types';
