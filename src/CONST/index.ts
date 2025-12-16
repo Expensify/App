@@ -6697,8 +6697,6 @@ const CONST = {
                     TAG: this.TABLE_COLUMNS.TAG,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     ACTION: this.TABLE_COLUMNS.ACTION,
-                    REIMBURSABLE_TOTAL: this.TABLE_COLUMNS.REIMBURSABLE_TOTAL,
-                    NON_REIMBURSABLE_TOTAL: this.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
                 },
                 EXPENSE_REPORT: {
                     DATE: this.TABLE_COLUMNS.DATE,
@@ -6708,6 +6706,8 @@ const CONST = {
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
+                    REIMBURSABLE_TOTAL: this.TABLE_COLUMNS.REIMBURSABLE_TOTAL,
+                    NON_REIMBURSABLE_TOTAL: this.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 INVOICE: {},
