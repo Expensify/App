@@ -34,7 +34,7 @@ function PaymentVolume({onNext, onMove, isEditing}: PaymentVolumeProps) {
                 inputID: ANNUAL_VOLUME,
                 defaultValue: annualVolumeDefaultValue,
                 options: annualVolumeRangeListOptions,
-                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', {currencyCode: currency}),
+                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', currency),
                 modalHeaderTitle: translate('businessInfoStep.selectAnnualPaymentVolume'),
                 searchInputTitle: translate('businessInfoStep.findAnnualPaymentVolume'),
             },

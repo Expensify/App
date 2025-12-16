@@ -524,7 +524,7 @@ function MoneyRequestConfirmationList({
     const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
         let text;
         if (expensesNumber > 1) {
-            text = translate('iou.createExpenses', {expensesNumber});
+            text = translate('iou.createExpenses', expensesNumber);
         } else if (isTypeInvoice) {
             if (hasInvoicingDetails(policy)) {
                 text = translate('iou.sendInvoice', {amount: formattedAmount});
