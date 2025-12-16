@@ -6468,7 +6468,7 @@ describe('actions/IOU', () => {
             });
         });
 
-        it('should remove all existing category violations when the transaction "Category" is unset', async () => {
+        it('should remove all existing category violations when the transaction Category is unset', async () => {
             const transactionID = '1';
             const policyID = '2';
             const transactionThreadReportID = '3';
