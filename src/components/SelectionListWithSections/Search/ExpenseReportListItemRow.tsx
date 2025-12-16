@@ -145,11 +145,6 @@ function ExpenseReportListItemRow({
                 )}
             </View>
         ),
-        [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
-                <TextCell text={'exchangerate'} />
-            </View>
-        ),
         [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
                 <TotalCell

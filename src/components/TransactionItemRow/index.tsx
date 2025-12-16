@@ -22,6 +22,7 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import {isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
+    getAmount,
     getDescription,
     getMerchant,
     getCreated as getTransactionCreated,
@@ -210,6 +211,11 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report]);
 
+    const transactionAmount = getAmount(transactionItem);
+    const convertedAmount = transactionItem.convertedAmount ?? transactionAmount;
+    const rate = convertedAmount / transactionAmount;
+    const exchangeRate = `${rate} ${transactionItem.currency}`;
+
     const columnComponent = useMemo(
         () => ({
             [CONST.SEARCH.TABLE_COLUMNS.TYPE]: (
@@ -383,6 +389,11 @@ function TransactionItemRow({
                         transaction={transactionItem}
                         isInSingleTransactionReport={isInSingleTransactionReport}
                     />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+                    <TextCell text={exchangeRate} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: (
