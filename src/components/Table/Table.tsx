@@ -1,17 +1,9 @@
 import React, {useState} from 'react';
-import type {ReactNode} from 'react';
 import TableContext from './TableContext';
-import type {FilterConfig, SortByConfig} from './TableContext';
+import type {TableContextValue} from './TableContext';
+import type {TableProps} from './types';
 
-type TableProps<T> = {
-    data: T[];
-    filters?: Record<string, FilterConfig>;
-    sortBy?: SortByConfig;
-    onSearch?: (items: T[], searchString: string) => T[];
-    children: ReactNode;
-};
-
-function Table<T>({data, filters, sortBy, onSearch, children}: TableProps<T>) {
+function Table<T>({data = [], filters, sortBy, onSearch, children, ...flatListProps}: TableProps<T>) {
     const [filterValues, setFilterValues] = useState<Record<string, unknown>>(() => {
         const initialFilters: Record<string, unknown> = {};
         if (filters) {
@@ -88,7 +80,7 @@ function Table<T>({data, filters, sortBy, onSearch, children}: TableProps<T>) {
     }
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const contextValue = {
+    const contextValue: TableContextValue<T> = {
         filteredAndSortedData,
         filters: filterValues,
         sortBy: currentSortBy,
@@ -99,9 +91,10 @@ function Table<T>({data, filters, sortBy, onSearch, children}: TableProps<T>) {
         setSearchString: setSearchStringHandler,
         filterConfigs: filters,
         sortByConfig: sortBy,
+        flatListProps,
     };
 
-    return <TableContext.Provider value={contextValue}>{children}</TableContext.Provider>;
+    return <TableContext.Provider value={contextValue as TableContextValue<unknown>}>{children}</TableContext.Provider>;
 }
 
 Table.displayName = 'Table';

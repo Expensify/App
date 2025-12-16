@@ -1,34 +1,12 @@
 import React from 'react';
-import type {FlatListProps, StyleProp, ViewStyle} from 'react-native';
 import {FlatList} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {useTableContext} from './TableContext';
 
-type TableBodyProps<T> = {
-    renderItem: (item: T, index: number) => React.ReactNode;
-    keyExtractor?: (item: T, index: number) => string;
-    ListEmptyComponent?: React.ComponentType | React.ReactElement | null;
-    contentContainerStyle?: StyleProp<ViewStyle>;
-    onScroll?: FlatListProps<T>['onScroll'];
-    onEndReached?: FlatListProps<T>['onEndReached'];
-    onEndReachedThreshold?: number;
-    // Allow other FlatList props to be passed through
-    [key: string]: unknown;
-};
-
-type RenderItemProps<T> = {
-    item: T;
-    index: number;
-    renderItem: (item: T, index: number) => React.ReactNode;
-};
-
-function TableBodyRenderItem<T>({item, index, renderItem}: RenderItemProps<T>) {
-    return <>{renderItem(item, index)}</>;
-}
-
-function TableBody<T>({renderItem, keyExtractor, ListEmptyComponent, contentContainerStyle, onScroll, onEndReached, onEndReachedThreshold, ...flatListProps}: TableBodyProps<T>) {
+function TableBody<T>() {
     const styles = useThemeStyles();
-    const {filteredAndSortedData} = useTableContext<T>();
+    const {filteredAndSortedData, flatListProps} = useTableContext<T>();
+    const {keyExtractor, ListEmptyComponent, contentContainerStyle, onScroll, onEndReached, onEndReachedThreshold} = flatListProps ?? {};
 
     const defaultKeyExtractor = (item: T, index: number): string => {
         if (keyExtractor) {
@@ -49,14 +27,9 @@ function TableBody<T>({renderItem, keyExtractor, ListEmptyComponent, contentCont
         return `item-${index}`;
     };
 
-    const renderItemWithIndex = ({item: flatListItem, index: flatListIndex}: {item: T; index: number}) => {
-        return <TableBodyRenderItem item={flatListItem} index={flatListIndex} renderItem={renderItem} />;
-    };
-
     return (
-        <FlatList
+        <FlatList<T>
             data={filteredAndSortedData}
-            renderItem={renderItemWithIndex}
             keyExtractor={defaultKeyExtractor}
             ListEmptyComponent={ListEmptyComponent}
             contentContainerStyle={[contentContainerStyle, filteredAndSortedData.length === 0 && styles.flex1]}

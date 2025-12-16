@@ -8,7 +8,7 @@ import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPo
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {useTableContext} from './TableContext';
-import type {FilterConfig} from './TableContext';
+import type {FilterConfig} from './types';
 
 type FilterButtonItem = {
     key: string;

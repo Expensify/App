@@ -75,7 +75,6 @@ function TableSortButtons() {
                         isActive={isActive}
                         sortOrder={sortOrder}
                         onPress={handleSortPress}
-                        expensifyIcons={expensifyIcons}
                     />
                 );
             })}

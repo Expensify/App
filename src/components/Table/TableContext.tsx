@@ -1,17 +1,5 @@
 import {createContext, useContext} from 'react';
-
-type FilterConfig = {
-    options: Array<{label: string; value: unknown}>;
-    filterType: 'multi-select' | 'single-select';
-    default: unknown;
-    predicate: <T>(item: T, filterValue: unknown) => boolean;
-};
-
-type SortByConfig = {
-    options: Array<{label: string; value: string}>;
-    default: string;
-    comparator: <T>(a: T, b: T, sortKey: string, order: 'asc' | 'desc') => number;
-};
+import type {FilterConfig, SharedFlatListProps, SortByConfig} from './types';
 
 type TableContextValue<T> = {
     filteredAndSortedData: T[];
@@ -24,6 +12,7 @@ type TableContextValue<T> = {
     setSearchString: (value: string) => void;
     filterConfigs: Record<string, FilterConfig> | undefined;
     sortByConfig: SortByConfig | undefined;
+    flatListProps: SharedFlatListProps<T>;
 };
 
 const defaultTableContextValue: TableContextValue<unknown> = {
@@ -37,18 +26,23 @@ const defaultTableContextValue: TableContextValue<unknown> = {
     setSearchString: () => {},
     filterConfigs: undefined,
     sortByConfig: undefined,
+    flatListProps: {} as SharedFlatListProps<unknown>,
 };
 
-const TableContext = createContext<TableContextValue<unknown>>(defaultTableContextValue);
+type TableContextType<T> = React.Context<TableContextValue<T>>;
+
+const TableContext = createContext(defaultTableContextValue);
 
 function useTableContext<T>(): TableContextValue<T> {
     const context = useContext(TableContext);
+
     if (context === defaultTableContextValue && context.filterConfigs === undefined) {
         throw new Error('useTableContext must be used within a Table provider');
     }
+
     return context as TableContextValue<T>;
 }
 
 export default TableContext;
 export {useTableContext};
-export type {FilterConfig, SortByConfig, TableContextValue};
+export type {TableContextType, TableContextValue};
