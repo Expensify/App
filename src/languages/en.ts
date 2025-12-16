@@ -62,6 +62,7 @@ import type {
     FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
+    HarvestCreatedExpenseReportParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -204,6 +205,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -676,6 +679,8 @@ const translations = {
         thisIsTakingLongerThanExpected: 'This is taking longer than expected...',
         domains: 'Domains',
         actionRequired: 'Action required',
+        duplicate: 'Duplicate',
+        duplicated: 'Duplicated',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -948,6 +953,8 @@ const translations = {
     adminOnlyCanPost: 'Only admins can send messages in this room.',
     reportAction: {
         asCopilot: 'as copilot for',
+        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+            `created this report to hold all expenses from <a href="${reportUrl}">${reportName}</a> that couldn't be submitted on your chosen frequency`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notify everyone in this conversation',
@@ -1847,6 +1854,10 @@ const translations = {
             recordTroubleshootData: 'Record Troubleshoot Data',
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
+            sentryDebug: 'Sentry debug',
+            sentryDebugDescription: 'Log Sentry requests to console',
+            sentryHighlightedSpanOps: 'Highlighted span names',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -2566,10 +2577,10 @@ const translations = {
                         *Set up categories* so your team can code expenses for easy reporting.
 
                         1. Click *Workspaces*.
-                        3. Select your workspace.
-                        4. Click *Categories*.
-                        5. Disable any categories you don't need.
-                        6. Add your own categories in the top right.
+                        2. Select your workspace.
+                        3. Click *Categories*.
+                        4. Disable any categories you don't need.
+                        5. Add your own categories in the top right.
 
                         [Take me to workspace category settings](${workspaceCategoriesLink}).
 
@@ -2661,10 +2672,10 @@ const translations = {
                         *Invite your team* to Expensify so they can start tracking expenses today.
 
                         1. Click *Workspaces*.
-                        3. Select your workspace.
-                        4. Click *Members* > *Invite member*.
-                        5. Enter emails or phone numbers.
-                        6. Add a custom invite message if you'd like!
+                        2. Select your workspace.
+                        3. Click *Members* > *Invite member*.
+                        4. Enter emails or phone numbers.
+                        5. Add a custom invite message if you'd like!
 
                         [Take me to workspace members](${workspaceMembersLink}).
 
@@ -2688,11 +2699,11 @@ const translations = {
                         Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.
 
                         1. Click *Workspaces*.
-                        3. Select your workspace.
-                        4. Click *More features*.
-                        5. Enable *Tags*.
-                        6. Navigate to *Tags* in the workspace editor.
-                        7. Click *+ Add tag* to make your own.
+                        2. Select your workspace.
+                        3. Click *More features*.
+                        4. Enable *Tags*.
+                        5. Navigate to *Tags* in the workspace editor.
+                        6. Click *+ Add tag* to make your own.
 
                         [Take me to more features](${workspaceMoreFeaturesLink}).
 
@@ -3054,6 +3065,7 @@ const translations = {
             ownershipPercentage: 'Please enter a valid percentage number',
             deletePaymentBankAccount:
                 "This bank account can't be deleted because it is used for Expensify Card payments. If you would still like to delete this account, please reach out to Concierge.",
+            sameDepositAndWithdrawalAccount: 'The deposit and withdrawal accounts are the same.',
         },
     },
     addPersonalBankAccount: {
@@ -6013,9 +6025,11 @@ const translations = {
                 gambling: 'Gambling',
                 tobacco: 'Tobacco',
                 adultEntertainment: 'Adult entertainment',
+                requireCompanyCard: 'Require company cards for all purchases',
+                requireCompanyCardDescription: 'Flag all cash spend, including mileage and per-diem expenses.',
             },
             expenseReportRules: {
-                title: 'Expense reports',
+                title: 'Advanced',
                 subtitle: 'Automate expense report compliance, approvals, and payment.',
                 preventSelfApprovalsTitle: 'Prevent self-approvals',
                 preventSelfApprovalsSubtitle: 'Prevent workspace members from approving their own expense reports.',
@@ -6031,8 +6045,7 @@ const translations = {
                 autoPayApprovedReportsLockedSubtitle: 'Go to more features and enable workflows, then add payments to unlock this feature.',
                 autoPayReportsUnderTitle: 'Auto-pay reports under',
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Go to [more features](${moreFeaturesLink}) and enable workflows, then add ${featureName} to unlock this feature.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
             },
             categoryRules: {
@@ -6253,6 +6266,12 @@ const translations = {
             }
             return `added a tax reclaimable portion of "${newValue}" to the distance rate "${customUnitRateName}`;
         },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `changed the index of the ${customUnitName} rate "${customUnitRateName}" to "${newValue}" ${oldValue ? `(previously "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'enabled' : 'disabled'} ${customUnitName} rate "${customUnitRateName}"`;
+        },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removed the "${customUnitName}" rate "${rateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
@@ -6347,6 +6366,60 @@ const translations = {
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `changed the default approver to ${newApprover} (previously ${previousApprover})` : `changed the default approver to ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `changed the approval workflow for ${members} to submit reports to ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previously default approver ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (previously default approver)';
+            } else if (previousApprover) {
+                text += ` (previously ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `changed the approval workflow for ${members} to submit reports to the default approver ${approver}`
+                : `changed the approval workflow for ${members} to submit reports to the default approver`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previously default approver ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (previously default approver)';
+            } else if (previousApprover) {
+                text += ` (previously ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `changed the approval workflow for ${approver} to forward approved reports to ${forwardsTo} (previously forwarded to ${previousForwardsTo})`
+                : `changed the approval workflow for ${approver} to forward approved reports to ${forwardsTo} (previously final approved reports)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `changed the approval workflow for ${approver} to stop forwarding approved reports (previously forwarded to ${previousForwardsTo})`
+                : `changed the approval workflow for ${approver} to stop forwarding approved reports`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
@@ -6494,6 +6567,9 @@ const translations = {
                 subtitle: 'Zero expenses. Maximum chill. Well done!',
             },
         },
+        columns: 'Columns',
+        resetColumns: 'Reset columns',
+        noColumnsError: 'Please select at least one column before saving',
         statements: 'Statements',
         unapprovedCash: 'Unapproved cash',
         unapprovedCard: 'Unapproved card',
@@ -6722,6 +6798,7 @@ const translations = {
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Are you sure you want to create another report in ${workspaceName}? You can access your empty reports in`,
             emptyReportConfirmationPromptLink: 'Reports',
+            emptyReportConfirmationDontShowAgain: "Don't show me this again",
             genericWorkspaceName: 'this workspace',
         },
         genericCreateReportFailureMessage: 'Unexpected error creating this chat. Please try again later.',
@@ -7132,6 +7209,7 @@ const translations = {
         confirmDuplicatesInfo: `The duplicates you don't keep will be held for the submitter to delete.`,
         hold: 'This expense was put on hold',
         resolvedDuplicates: 'resolved the duplicate',
+        companyCardRequired: 'Company card purchases required',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
@@ -7693,11 +7771,12 @@ const translations = {
             requireError: "Couldn't update SAML requirement setting",
             disableSamlRequired: 'Disable SAML required',
             oktaWarningPrompt: 'Are you sure? This will also disable Okta SCIM.',
+            requireWithEmptyMetadataError: 'Please add Identity Provider metadata below to enable',
         },
         samlConfigurationDetails: {
             title: 'SAML configuration details',
             subtitle: 'Use these details to get SAML set up.',
-            identityProviderMetaData: 'Identity Provider MetaData',
+            identityProviderMetadata: 'Identity Provider Metadata',
             entityID: 'Entity ID',
             nameIDFormat: 'Name ID Format',
             loginUrl: 'Login URL',
@@ -7709,6 +7788,34 @@ const translations = {
             revealToken: 'Reveal token',
             fetchError: "Couldn't fetch SAML configuration details",
             setMetadataGenericError: "Couldn't set SAML MetaData",
+        },
+        accessRestricted: {
+            title: 'Access restricted',
+            subtitle: (domainName: string) => `Please verify yourself as an authorized company administrator for <strong>${domainName}</strong> if you need control over:`,
+            companyCardManagement: 'Company card management',
+            accountCreationAndDeletion: 'Account creation and deletion',
+            workspaceCreation: 'Workspace creation',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Add domain',
+            subtitle: 'Enter the name of the private domain you want to access (e.g. expensify.com).',
+            domainName: 'Domain name',
+            newDomain: 'New domain',
+        },
+        domainAdded: {
+            title: 'Domain added',
+            description: "Next, you'll need to verify ownership of the domain and adjust your security settings.",
+            configure: 'Configure',
+        },
+        enhancedSecurity: {
+            title: 'Enhanced security',
+            subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
+            enable: 'Enable',
+        },
+        admins: {
+            title: 'Admins',
+            findAdmin: 'Find admin',
         },
     },
 };

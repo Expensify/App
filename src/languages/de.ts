@@ -74,6 +74,7 @@ import type {
     FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
+    HarvestCreatedExpenseReportParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -216,6 +217,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -686,6 +689,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domänen',
         viewReport: 'Bericht anzeigen',
         actionRequired: 'Aktion erforderlich',
+        duplicate: 'Duplizieren',
+        duplicated: 'Dupliziert',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -964,6 +969,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Nur Administratoren können Nachrichten in diesem Raum senden.',
     reportAction: {
         asCopilot: 'als Copilot für',
+        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+            `hat diesen Bericht erstellt, um alle Ausgaben aus <a href="${reportUrl}">${reportName}</a> aufzunehmen, die mit der von dir gewählten Frequenz nicht eingereicht werden konnten`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Alle in dieser Unterhaltung benachrichtigen',
@@ -1876,6 +1883,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: 'Fehlerdaten aufzeichnen',
             softKillTheApp: 'App sanft beenden',
             kill: 'Beenden',
+            sentryDebug: 'Sentry-Debug',
+            sentryDebugDescription: 'Sentry-Anfragen in der Konsole protokollieren',
+            sentryHighlightedSpanOps: 'Hervorgehobene Span-Namen',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: 'Protokoll speichern',
@@ -2616,10 +2627,10 @@ ${amount} für ${merchant} – ${date}`,
                         *Richten Sie Kategorien ein*, damit Ihr Team Ausgaben für eine einfache Berichterstattung codieren kann.
 
                         1. Klicken Sie auf *Workspaces*.
-                        3. Wählen Sie Ihren Workspace.
-                        4. Klicken Sie auf *Categories*.
-                        5. Deaktivieren Sie alle Kategorien, die Sie nicht benötigen.
-                        6. Fügen Sie oben rechts Ihre eigenen Kategorien hinzu.
+                        2. Wählen Sie Ihren Workspace.
+                        3. Klicken Sie auf *Categories*.
+                        4. Deaktivieren Sie alle Kategorien, die Sie nicht benötigen.
+                        5. Fügen Sie oben rechts Ihre eigenen Kategorien hinzu.
 
                         [Zu den Workspace-Kategorieeinstellungen](${workspaceCategoriesLink}).
 
@@ -2708,10 +2719,10 @@ ${
                         *Laden Sie Ihr Team ein*, Expensify zu nutzen, damit es noch heute mit der Spesenerfassung beginnen kann.
 
                         1. Klicken Sie auf *Workspaces*.
-                        3. Wählen Sie Ihren Workspace aus.
-                        4. Klicken Sie auf *Members* > *Invite member*.
-                        5. Geben Sie E-Mail-Adressen oder Telefonnummern ein.
-                        6. Fügen Sie eine individuelle Einladung hinzu, wenn Sie möchten!
+                        2. Wählen Sie Ihren Workspace aus.
+                        3. Klicken Sie auf *Members* > *Invite member*.
+                        4. Geben Sie E-Mail-Adressen oder Telefonnummern ein.
+                        5. Fügen Sie eine individuelle Einladung hinzu, wenn Sie möchten!
 
                         [Zu den Workspace-Mitgliedern wechseln](${workspaceMembersLink}).
 
@@ -2732,11 +2743,11 @@ ${
                         Verwenden Sie Tags, um zusätzliche Ausgabendetails wie Projekte, Kunden, Standorte und Abteilungen hinzuzufügen. Wenn Sie mehrere Ebenen von Tags benötigen, können Sie auf den Control-Tarif upgraden.
 
                         1. Klicken Sie auf *Workspaces*.
-                        3. Wählen Sie Ihren Workspace aus.
-                        4. Klicken Sie auf *More features*.
-                        5. Aktivieren Sie *Tags*.
-                        6. Navigieren Sie im Workspace-Editor zu *Tags*.
-                        7. Klicken Sie auf *+ Add tag*, um Ihre eigenen zu erstellen.
+                        2. Wählen Sie Ihren Workspace aus.
+                        3. Klicken Sie auf *More features*.
+                        4. Aktivieren Sie *Tags*.
+                        5. Navigieren Sie im Workspace-Editor zu *Tags*.
+                        6. Klicken Sie auf *+ Add tag*, um Ihre eigenen zu erstellen.
 
                         [Zu More features wechseln](${workspaceMoreFeaturesLink}).
 
@@ -3096,6 +3107,7 @@ ${
             ownershipPercentage: 'Bitte gib eine gültige Prozentzahl ein',
             deletePaymentBankAccount:
                 'Dieses Bankkonto kann nicht gelöscht werden, weil es für Expensify Card-Zahlungen verwendet wird. Wenn Sie dieses Konto trotzdem löschen möchten, wenden Sie sich bitte an Concierge.',
+            sameDepositAndWithdrawalAccount: 'Die Einzahlungs- und Auszahlungskonten sind identisch.',
         },
     },
     addPersonalBankAccount: {
@@ -6158,9 +6170,11 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 gambling: 'Glücksspiel',
                 tobacco: 'Tabak',
                 adultEntertainment: 'Unterhaltung für Erwachsene',
+                requireCompanyCard: 'Firmenkarten für alle Einkäufe erforderlich machen',
+                requireCompanyCardDescription: 'Kennzeichnen Sie alle Barausgaben, einschließlich Kilometer- und Tagegeldspesen.',
             },
             expenseReportRules: {
-                title: 'Spesenabrechnungen',
+                title: 'Fortgeschritten',
                 subtitle: 'Automatisieren Sie die Einhaltung von Spesenrichtlinien, Genehmigungen und Zahlungen.',
                 preventSelfApprovalsTitle: 'Selbstgenehmigungen verhindern',
                 preventSelfApprovalsSubtitle: 'Verhindern Sie, dass Workspace-Mitglieder ihre eigenen Spesenberichte genehmigen.',
@@ -6176,8 +6190,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 autoPayApprovedReportsLockedSubtitle: 'Gehen Sie zu „Weitere Funktionen“ und aktivieren Sie „Workflows“, dann fügen Sie „Zahlungen“ hinzu, um diese Funktion freizuschalten.',
                 autoPayReportsUnderTitle: 'Berichte automatisch bezahlen unter',
                 autoPayReportsUnderDescription: 'Vollständig konforme Spesenabrechnungen unter diesem Betrag werden automatisch bezahlt.',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `Gehe zu [weitere Funktionen](${moreFeaturesLink}) und aktiviere Workflows, dann füge ${featureName} hinzu, um diese Funktion freizuschalten.`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `Fügen Sie ${featureName} hinzu, um diese Funktion freizuschalten.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Gehe zu [Weitere Funktionen](${moreFeaturesLink}) und aktiviere ${featureName}, um diese Funktion freizuschalten.`,
             },
@@ -6396,6 +6409,12 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             }
             return `hat einen steuererstattungsfähigen Anteil von „${newValue}“ zum Entfernungssatz „${customUnitRateName}“ hinzugefügt`;
         },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `änderte den Index des ${customUnitName}-Tarifs "${customUnitRateName}" auf "${newValue}" ${oldValue ? `(zuvor "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? 'aktiviert' : 'deaktiviert'} ${customUnitName}-Tarif "${customUnitRateName}"`;
+        },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `hat den Preis „${rateName}“ für „${customUnitName}“ entfernt`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType}-Berichtsfield „${fieldName}“ hinzugefügt`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
@@ -6491,6 +6510,60 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Teilnehmerverfolgung`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `Standardgenehmiger auf ${newApprover} geändert (zuvor ${previousApprover})` : `den Standardgenehmiger auf ${newApprover} geändert`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `hat den Genehmigungsworkflow für ${members} geändert, sodass Berichte an ${approver} eingereicht werden`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(bisheriger Standardgenehmiger ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(früher Standardgenehmiger)';
+            } else if (previousApprover) {
+                text += `(zuvor ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `hat den Genehmigungsworkflow für ${members} so geändert, dass Berichte an den Standardgenehmiger ${approver} eingereicht werden`
+                : `den Genehmigungsworkflow für ${members} geändert, sodass Berichte beim Standardgenehmiger eingereicht werden`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(bisheriger Standardgenehmiger ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(früher Standardgenehmiger)';
+            } else if (previousApprover) {
+                text += `(zuvor ${previousApprover})`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `Genehmigungsworkflow für ${approver} geändert, um genehmigte Berichte an ${forwardsTo} weiterzuleiten (zuvor weitergeleitet an ${previousForwardsTo})`
+                : `Genehmigungs-Workflow für ${approver} geändert, um genehmigte Berichte an ${forwardsTo} weiterzuleiten (zuvor endgültig genehmigte Berichte)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `hat den Genehmigungsworkflow für ${approver} so geändert, dass genehmigte Berichte nicht mehr weitergeleitet werden (zuvor weitergeleitet an ${previousForwardsTo})`
+                : `hat den Genehmigungsworkflow für ${approver} so geändert, dass genehmigte Berichte nicht mehr weitergeleitet werden`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'aktiviert' : 'deaktiviert'} Erstattungen`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `die Steuer „${taxName}“ hinzugefügt`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer „${taxName}“ entfernt`,
@@ -6638,6 +6711,9 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 subtitle: 'Null Spesen. Maximale Entspannung. Gut gemacht!',
             },
         },
+        columns: 'Spalten',
+        resetColumns: 'Spalten zurücksetzen',
+        noColumnsError: 'Bitte wählen Sie vor dem Speichern mindestens eine Spalte aus',
         statements: 'Abrechnungen',
         unapprovedCash: 'Nicht genehmigtes Bargeld',
         unapprovedCard: 'Nicht genehmigte Karte',
@@ -6867,6 +6943,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Sind Sie sicher, dass Sie einen weiteren Bericht in ${workspaceName} erstellen möchten? Sie können auf Ihre leeren Berichte zugreifen in`,
             emptyReportConfirmationPromptLink: 'Berichte',
+            emptyReportConfirmationDontShowAgain: 'Nicht mehr anzeigen',
             genericWorkspaceName: 'dieser Workspace',
         },
         genericCreateReportFailureMessage: 'Unerwarteter Fehler beim Erstellen dieses Chats. Bitte versuche es später erneut.',
@@ -7275,6 +7352,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         confirmDuplicatesInfo: `Die Duplikate, die du nicht behältst, werden für die einreichende Person zurückgehalten, damit sie sie löschen kann.`,
         hold: 'Diese Ausgabe wurde zurückgestellt',
         resolvedDuplicates: 'Duplikat behoben',
+        companyCardRequired: 'Firmenkartenkäufe erforderlich',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} ist erforderlich`,
@@ -7846,11 +7924,12 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             requireError: 'SAML-Anforderungseinstellung konnte nicht aktualisiert werden',
             disableSamlRequired: 'SAML-Anforderung deaktivieren',
             oktaWarningPrompt: 'Bist du sicher? Dadurch wird auch Okta SCIM deaktiviert.',
+            requireWithEmptyMetadataError: 'Bitte fügen Sie unten die Identity-Provider-Metadaten hinzu, um zu aktivieren',
         },
         samlConfigurationDetails: {
             title: 'SAML-Konfigurationsdetails',
             subtitle: 'Verwenden Sie diese Details, um SAML einzurichten.',
-            identityProviderMetaData: 'Identitätsanbieter-Metadaten',
+            identityProviderMetadata: 'Identitätsanbieter-Metadaten',
             entityID: 'Entitäts-ID',
             nameIDFormat: 'Namens-ID-Format',
             loginUrl: 'Login-URL',
@@ -7863,6 +7942,32 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             fetchError: 'SAML-Konfigurationsdetails konnten nicht abgerufen werden',
             setMetadataGenericError: 'SAML-Metadaten konnten nicht festgelegt werden',
         },
+        accessRestricted: {
+            title: 'Zugriff eingeschränkt',
+            subtitle: (domainName: string) =>
+                `Bitte verifizieren Sie sich als autorisierte/r Unternehmensadministrator/in für <strong>${domainName}</strong>, wenn Sie Kontrolle über Folgendes benötigen:`,
+            companyCardManagement: 'Firmenkartenverwaltung',
+            accountCreationAndDeletion: 'Kontoerstellung und -löschung',
+            workspaceCreation: 'Erstellung des Arbeitsbereichs',
+            samlSSO: 'SAML-SSO',
+        },
+        addDomain: {
+            title: 'Domain hinzufügen',
+            subtitle: 'Geben Sie den Namen der privaten Domain ein, auf die Sie zugreifen möchten (z. B. expensify.com).',
+            domainName: 'Domainname',
+            newDomain: 'Neue Domain',
+        },
+        domainAdded: {
+            title: 'Domain hinzugefügt',
+            description: 'Als Nächstes müssen Sie die Inhaberschaft der Domain bestätigen und Ihre Sicherheitseinstellungen anpassen.',
+            configure: 'Konfigurieren',
+        },
+        enhancedSecurity: {
+            title: 'Verbesserte Sicherheit',
+            subtitle: 'Erzwingen Sie für Mitglieder Ihrer Domain die Anmeldung per Single Sign-On, schränken Sie die Erstellung von Workspaces ein und vieles mehr.',
+            enable: 'Aktivieren',
+        },
+        admins: {title: 'Admins', findAdmin: 'Admin finden'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

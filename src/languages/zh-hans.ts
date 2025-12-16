@@ -74,6 +74,7 @@ import type {
     FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
+    HarvestCreatedExpenseReportParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -216,6 +217,8 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateEnabledParams,
+    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -683,6 +686,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: '域名',
         viewReport: '查看报告',
         actionRequired: '需要操作',
+        duplicate: '复制',
+        duplicated: '已重复',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -955,6 +960,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: '只有管理员可以在此房间发送消息。',
     reportAction: {
         asCopilot: '作为副驾驶用于',
+        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+            `创建了此报表以汇总 <a href="${reportUrl}">${reportName}</a> 中无法按您选择的频率提交的所有费用`,
     },
     mentionSuggestions: {
         hereAlternateText: '通知此对话中的所有人',
@@ -1843,6 +1850,10 @@ const translations: TranslationDeepObject<typeof en> = {
             recordTroubleshootData: '记录故障排查数据',
             softKillTheApp: '软关闭应用',
             kill: '终止',
+            sentryDebug: 'Sentry调试',
+            sentryDebugDescription: '将Sentry请求记录到控制台',
+            sentryHighlightedSpanOps: '突出显示的Span名称',
+            sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
         },
         debugConsole: {
             saveLog: '保存日志',
@@ -2567,10 +2578,10 @@ ${amount}，商户：${merchant} - ${date}`,
                         *设置类别*，以便您的团队为报销支出编码，从而轻松生成报表。
 
                         1. 点击 *Workspaces*。
-                        3. 选择您的工作区。
-                        4. 点击 *Categories*。
-                        5. 禁用任何不需要的类别。
-                        6. 在右上角添加您自己的类别。
+                        2. 选择您的工作区。
+                        3. 点击 *Categories*。
+                        4. 禁用任何不需要的类别。
+                        5. 在右上角添加您自己的类别。
 
                         [带我前往工作区类别设置](${workspaceCategoriesLink})。
 
@@ -2640,7 +2651,7 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `连接[您的公司信用卡](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
                         连接您已有的卡片，以自动导入交易、匹配收据和进行对账。
@@ -2659,10 +2670,10 @@ ${
                         *邀请您的团队*加入 Expensify，这样他们今天就可以开始记录费用。
 
                         1. 点击 *Workspaces*。
-                        3. 选择您的 workspace。
-                        4. 点击 *Members* > *Invite member*。
-                        5. 输入邮箱或电话号码。
-                        6. 如有需要，可添加自定义邀请信息！
+                        2. 选择您的 workspace。
+                        3. 点击 *Members* > *Invite member*。
+                        4. 输入邮箱或电话号码。
+                        5. 如有需要，可添加自定义邀请信息！
 
                         [带我前往 Workspace 成员页面](${workspaceMembersLink})。
 
@@ -2683,11 +2694,11 @@ ${
                         使用标签为报销添加更多详细信息，例如项目、客户、地点和部门。如果你需要多级标签，可以升级到 Control 方案。
 
                         1. 点击 *Workspaces*。
-                        3. 选择你的工作区。
-                        4. 点击 *More features*。
-                        5. 启用 *Tags*。
-                        6. 在工作区编辑器中前往 *Tags*。
-                        7. 点击 *+ Add tag* 创建你自己的标签。
+                        2. 选择你的工作区。
+                        3. 点击 *More features*。
+                        4. 启用 *Tags*。
+                        5. 在工作区编辑器中前往 *Tags*。
+                        6. 点击 *+ Add tag* 创建你自己的标签。
 
                         [带我前往更多功能](${workspaceMoreFeaturesLink})。
 
@@ -3038,6 +3049,7 @@ ${
             fullName: '请输入有效的全名',
             ownershipPercentage: '请输入有效的百分比数字',
             deletePaymentBankAccount: '此银行账户无法删除，因为它被用于 Expensify Card 付款。如果你仍然想删除此账户，请联系 Concierge。',
+            sameDepositAndWithdrawalAccount: '存款和取款账户相同。',
         },
     },
     addPersonalBankAccount: {
@@ -6010,9 +6022,11 @@ ${reportName}
                 gambling: '赌博',
                 tobacco: '烟草',
                 adultEntertainment: '成人娱乐',
+                requireCompanyCard: '所有购买均需使用公司卡',
+                requireCompanyCardDescription: '标记所有现金支出，包括里程和日津贴费用。',
             },
             expenseReportRules: {
-                title: '报销报告',
+                title: '高级',
                 subtitle: '自动化处理费用报表的合规性、审批和付款。',
                 preventSelfApprovalsTitle: '防止自我审批',
                 preventSelfApprovalsSubtitle: '防止工作区成员批准自己的报销报告。',
@@ -6028,8 +6042,7 @@ ${reportName}
                 autoPayApprovedReportsLockedSubtitle: '前往“更多功能”并启用“工作流”，然后添加“付款”以解锁此功能。',
                 autoPayReportsUnderTitle: '自动支付报表至',
                 autoPayReportsUnderDescription: '金额低于此数且完全合规的报销单将自动支付。',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
-                    `前往[更多功能](${moreFeaturesLink})并启用工作流，然后添加 ${featureName} 以解锁此功能。`,
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `添加 ${featureName} 以解锁此功能。`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) => `前往[更多功能](${moreFeaturesLink})并启用 ${featureName} 以解锁此功能。`,
             },
             categoryRules: {
@@ -6240,6 +6253,12 @@ ${reportName}
             }
             return `在距离费率“${customUnitRateName}”中添加了可退税部分“${newValue}”`;
         },
+        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
+            return `将 ${customUnitName} 费率 "${customUnitRateName}" 的索引更改为 "${newValue}" ${oldValue ? `(之前为 "${oldValue}")` : ''}`;
+        },
+        updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
+            return `${newValue ? '已启用' : '已禁用'} ${customUnitName} 费率 "${customUnitRateName}"`;
+        },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `已移除“${customUnitName}”费率“${rateName}”`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `已添加 ${fieldType} 报告字段 “${fieldName}”`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `将报表字段“${fieldName}”的默认值设置为“${defaultValue}”`,
@@ -6328,6 +6347,56 @@ ${reportName}
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 与会者跟踪`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `将默认审批人更改为 ${newApprover}（原为 ${previousApprover}）` : `已将默认审批人更改为 ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `已将${members}的审批流程更改为向${approver}提交报销单`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(之前的默认审批人 ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '（之前的默认审批人）';
+            } else if (previousApprover) {
+                text += `（之前为 ${previousApprover}）`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver ? `已更改 ${members} 的审批流程，使其将报销单提交给默认审批人 ${approver}` : `已将${members}的审批流程更改为将报销单提交给默认审批人`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(之前的默认审批人 ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '（之前的默认审批人）';
+            } else if (previousApprover) {
+                text += `（之前为 ${previousApprover}）`;
+            }
+            return text;
+        },
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `将${approver}的审批流程更改为把已批准的报表转发给${forwardsTo}（之前转发给${previousForwardsTo}）`
+                : `将为${approver}的审批流程更改为将已批准的报告转发给${forwardsTo}（之前为最终批准的报告）`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo ? `已将 ${approver} 的审批流程更改为停止转发已批准的报销单（之前转发给 ${previousForwardsTo}）` : `已将 ${approver} 的审批流程更改为不再转发已批准的报销单`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? '已启用' : '已禁用'} 笔报销`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税费“${taxName}”`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已移除税费“${taxName}”`,
@@ -6475,6 +6544,9 @@ ${reportName}
                 subtitle: '报销为零，轻松满分。干得好！',
             },
         },
+        columns: '列',
+        resetColumns: '重置列',
+        noColumnsError: '请在保存前至少选择一列',
         statements: '对账单',
         unapprovedCash: '未批准的现金',
         unapprovedCard: '未批准的卡片',
@@ -6702,6 +6774,7 @@ ${reportName}
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `您确定要在 ${workspaceName} 中创建另一份报表吗？您可以在 中访问您的空报表`,
             emptyReportConfirmationPromptLink: '报表',
             genericWorkspaceName: '此工作区',
+            emptyReportConfirmationDontShowAgain: '不再显示此内容',
         },
         genericCreateReportFailureMessage: '创建此聊天时发生意外错误。请稍后再试。',
         genericAddCommentFailureMessage: '发表评论时发生意外错误。请稍后重试。',
@@ -7100,6 +7173,7 @@ ${reportName}
         confirmDuplicatesInfo: `您不保留的重复项将由提交者自行删除。`,
         hold: '此报销已被搁置',
         resolvedDuplicates: '已解决重复项',
+        companyCardRequired: '需要公司卡消费',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName}为必填项`,
@@ -7653,11 +7727,12 @@ ${reportName}
             requireError: '无法更新 SAML 要求设置',
             disableSamlRequired: '禁用 SAML 要求',
             oktaWarningPrompt: '您确定吗？这也会禁用 Okta SCIM。',
+            requireWithEmptyMetadataError: '请在下方添加身份提供商元数据以启用',
         },
         samlConfigurationDetails: {
             title: 'SAML 配置详情',
             subtitle: '使用以下详细信息来完成 SAML 设置。',
-            identityProviderMetaData: '身份提供商元数据',
+            identityProviderMetadata: '身份提供商元数据',
             entityID: '实体 ID',
             nameIDFormat: '名称 ID 格式',
             loginUrl: '登录 URL',
@@ -7670,6 +7745,18 @@ ${reportName}
             fetchError: '无法获取 SAML 配置详情',
             setMetadataGenericError: '无法设置 SAML MetaData',
         },
+        accessRestricted: {
+            title: '访问受限',
+            subtitle: (domainName: string) => `如果您需要对以下内容进行管理，请验证您是 <strong>${domainName}</strong> 的授权公司管理员：`,
+            companyCardManagement: '公司卡管理',
+            accountCreationAndDeletion: '账户创建和删除',
+            workspaceCreation: '工作区创建',
+            samlSSO: 'SAML 单点登录',
+        },
+        addDomain: {title: '添加域', subtitle: '请输入您想访问的私有域名（例如：expensify.com）。', domainName: '域名', newDomain: '新域名'},
+        domainAdded: {title: '已添加域名', description: '接下来，您需要验证域名的所有权并调整您的安全设置。', configure: '配置'},
+        enhancedSecurity: {title: '增强的安全性', subtitle: '要求您域内的成员使用单点登录登录、限制工作区创建等。', enable: '启用'},
+        admins: {title: '管理员', findAdmin: '查找管理员'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -50,7 +50,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
