@@ -2703,6 +2703,7 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getColumnsToShow(1, [], [], false, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual({
                 [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
@@ -2719,6 +2720,7 @@ describe('SearchUIUtils', () => {
                 // Avatar should always be visible
                 [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
