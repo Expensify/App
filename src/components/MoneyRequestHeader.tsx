@@ -103,7 +103,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
         canBeMissing: false,
     });
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowSplit', 'ArrowCollapse'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowSplit', 'ArrowCollapse']);
     const [transaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${
             isMoneyRequestAction(parentReportAction) ? (getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID
