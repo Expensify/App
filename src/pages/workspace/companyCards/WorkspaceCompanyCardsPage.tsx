@@ -23,8 +23,8 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
-import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
 import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
+import WorkspaceCompanyCardsTable from './WorkspaceCompanyCardsTable';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
@@ -112,7 +112,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     )}
                     {isPending && <WorkspaceCompanyCardsFeedPendingPage />}
                     {isFeedAdded && !isPending && (
-                        <WorkspaceCompanyCardsList
+                        <WorkspaceCompanyCardsTable
                             selectedFeed={selectedFeed}
                             cardsList={cardsList}
                             shouldShowGBDisclaimer={shouldShowGBDisclaimer}
