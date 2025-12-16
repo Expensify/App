@@ -27,7 +27,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew']);
     useEffect(() => {
         openSubscriptionPage();
     }, []);

@@ -20,7 +20,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['Rules'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Rules']);
 
     const fetchRules = useCallback(() => {
         openPolicyRulesPage(policyID);

@@ -1,14 +1,10 @@
 import type {NavigationState} from '@react-navigation/native';
 import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportIDFromLink} from '@libs/ReportUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
-import useOnyx from './useOnyx';
 
 type CurrentReportIDContextValue = {
     updateCurrentReportID: (state: NavigationState) => void;
     currentReportID: string | undefined;
-    currentReportIDFromPath: string | undefined;
 };
 
 type CurrentReportIDContextProviderProps = {
@@ -25,8 +21,6 @@ const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>
 
 function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderProps) {
     const [currentReportID, setCurrentReportID] = useState<string | undefined>('');
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
-    const lastAccessReportFromPath = getReportIDFromLink(lastVisitedPath ?? null);
 
     /**
      * This function is used to update the currentReportID
@@ -70,9 +64,8 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
         (): CurrentReportIDContextValue => ({
             updateCurrentReportID,
             currentReportID,
-            currentReportIDFromPath: lastAccessReportFromPath || undefined,
         }),
-        [updateCurrentReportID, currentReportID, lastAccessReportFromPath],
+        [updateCurrentReportID, currentReportID],
     );
 
     return <CurrentReportIDContext.Provider value={contextValue}>{props.children}</CurrentReportIDContext.Provider>;

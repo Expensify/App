@@ -64,6 +64,9 @@ type ContextMenuItemProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<ContextMenuItemHandle>;
+
+    /** Label for Sentry tracking */
+    sentryLabel?: string;
 };
 
 type ContextMenuItemHandle = {
@@ -89,6 +92,7 @@ function ContextMenuItem({
     disabled = false,
     shouldShowLoadingSpinnerIcon = false,
     ref,
+    sentryLabel,
 }: ContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -120,6 +124,7 @@ function ContextMenuItem({
             onPress={triggerPressAndUpdateSuccess}
             isDelayButtonStateComplete={!isThrottledButtonActive}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPress}
+            sentryLabel={sentryLabel}
         >
             {({hovered, pressed}) => (
                 <Icon
@@ -146,6 +151,7 @@ function ContextMenuItem({
             onBlur={onBlur}
             disabled={disabled}
             shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+            sentryLabel={sentryLabel}
         />
     );
 }

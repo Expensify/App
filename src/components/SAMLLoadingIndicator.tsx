@@ -11,9 +11,9 @@ import Text from './Text';
 function SAMLLoadingIndicator() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['RocketBlue'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['RocketBlue']);
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     return (
         <View style={[StyleSheet.absoluteFillObject, styles.deeplinkWrapperContainer]}>
             <View style={styles.deeplinkWrapperMessage}>

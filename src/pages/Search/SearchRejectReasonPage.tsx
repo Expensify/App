@@ -10,6 +10,7 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {SearchReportActionsParamList} from '@navigation/types';
 import RejectReasonFormView from '@pages/iou/RejectReasonFormView';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
@@ -36,13 +37,16 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
 
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-            rejectMoneyRequestsOnSearch(context.currentSearchHash, selectedTransactionsForReject, comment, allPolicies, allReports);
+            const urlToNavigateBack = rejectMoneyRequestsOnSearch(context.currentSearchHash, selectedTransactionsForReject, comment, allPolicies, allReports);
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 context.clearSelectedTransactions(true);
             } else {
                 context.clearSelectedTransactions();
             }
-            Navigation.goBack();
+            Navigation.dismissModal();
+            if (urlToNavigateBack) {
+                Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack as Route));
+            }
         },
         [context, allPolicies, allReports, route.name, selectedTransactionsForReject],
     );

@@ -37,7 +37,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             const decodedCategoryName = getDecodedCategoryName(category.name);
             return {
                 id: category.id,
-                description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: decodedCategoryName}) as TranslationPaths,
+                description: translate('workspace.xero.mapTrackingCategoryTo', decodedCategoryName) as TranslationPaths,
                 onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.getRoute(policyID, category.id, category.name)),
                 title: translate(
                     `workspace.xero.trackingCategoriesOptions.${
