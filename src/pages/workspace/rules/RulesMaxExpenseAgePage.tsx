@@ -92,6 +92,4 @@ function RulesMaxExpenseAgePage({
     );
 }
 
-RulesMaxExpenseAgePage.displayName = 'RulesMaxExpenseAgePage';
-
 export default RulesMaxExpenseAgePage;

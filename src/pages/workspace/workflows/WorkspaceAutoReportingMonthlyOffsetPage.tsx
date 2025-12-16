@@ -116,5 +116,4 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
     );
 }
 
-WorkspaceAutoReportingMonthlyOffsetPage.displayName = 'WorkspaceAutoReportingMonthlyOffsetPage';
 export default withPolicy(WorkspaceAutoReportingMonthlyOffsetPage);

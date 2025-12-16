@@ -167,6 +167,4 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     );
 }
 
-ConfirmationStep.displayName = 'ConfirmationStep';
-
 export default ConfirmationStep;

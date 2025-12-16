@@ -260,6 +260,4 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     );
 }
 
-MoneyReportView.displayName = 'MoneyReportView';
-
 export default MoneyReportView;

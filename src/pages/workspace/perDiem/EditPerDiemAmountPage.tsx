@@ -113,6 +113,4 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
     );
 }
 
-EditPerDiemAmountPage.displayName = 'EditPerDiemAmountPage';
-
 export default EditPerDiemAmountPage;

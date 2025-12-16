@@ -112,6 +112,4 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
     );
 }
 
-PushRowModal.displayName = 'PushRowModal';
-
 export default PushRowModal;

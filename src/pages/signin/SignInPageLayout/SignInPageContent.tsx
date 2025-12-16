@@ -66,6 +66,4 @@ function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText,
     );
 }
 
-SignInPageContent.displayName = 'SignInPageContent';
-
 export default SignInPageContent;

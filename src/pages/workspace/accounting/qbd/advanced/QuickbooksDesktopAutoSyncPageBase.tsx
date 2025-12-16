@@ -85,6 +85,4 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
     );
 }
 
-QuickbooksDesktopAutoSyncPageBase.displayName = 'QuickbooksDesktopAutoSyncPageBase';
-
 export default QuickbooksDesktopAutoSyncPageBase;

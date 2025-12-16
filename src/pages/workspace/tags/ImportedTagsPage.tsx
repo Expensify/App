@@ -160,6 +160,4 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     );
 }
 
-ImportedTagsPage.displayName = 'ImportedTagsPage';
-
 export default ImportedTagsPage;

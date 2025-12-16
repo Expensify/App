@@ -268,6 +268,4 @@ function WorkspaceCreateReportFieldsPage({
     );
 }
 
-WorkspaceCreateReportFieldsPage.displayName = 'WorkspaceCreateReportFieldsPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceCreateReportFieldsPage);

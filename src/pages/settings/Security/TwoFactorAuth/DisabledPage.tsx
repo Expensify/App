@@ -40,6 +40,4 @@ function DisabledPage() {
     );
 }
 
-DisabledPage.displayName = 'DisabledPage';
-
 export default DisabledPage;

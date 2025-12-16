@@ -333,6 +333,4 @@ function WorkspaceReportFieldsPage({
     );
 }
 
-WorkspaceReportFieldsPage.displayName = 'WorkspaceReportFieldsPage';
-
 export default WorkspaceReportFieldsPage;

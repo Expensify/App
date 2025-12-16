@@ -44,6 +44,4 @@ function QuickbooksDesktopItemsPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksDesktopItemsPage.displayName = 'QuickbooksDesktopItemsPage';
-
 export default withPolicyConnections(QuickbooksDesktopItemsPage);

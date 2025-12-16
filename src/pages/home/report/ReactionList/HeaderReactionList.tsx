@@ -42,6 +42,4 @@ function HeaderReactionList({emojiCodes, emojiCount, emojiName, hasUserReacted =
     );
 }
 
-HeaderReactionList.displayName = 'HeaderReactionList';
-
 export default HeaderReactionList;

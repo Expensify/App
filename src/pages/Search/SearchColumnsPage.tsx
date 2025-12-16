@@ -127,6 +127,4 @@ function SearchColumnsPage() {
     );
 }
 
-SearchColumnsPage.displayName = 'SearchColumnsPage';
-
 export default SearchColumnsPage;

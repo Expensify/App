@@ -176,6 +176,4 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
     );
 }
 
-BaseOnboardingWorkspaceConfirmation.displayName = 'BaseOnboardingWorkspaceConfirmation';
-
 export default BaseOnboardingWorkspaceConfirmation;

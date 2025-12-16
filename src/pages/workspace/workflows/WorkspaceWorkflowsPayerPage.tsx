@@ -212,6 +212,4 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     );
 }
 
-WorkspaceWorkflowsPayerPage.displayName = 'WorkspaceWorkflowsPayerPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsPayerPage);

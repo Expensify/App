@@ -146,6 +146,4 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     );
 }
 
-ReportsDefaultTitlePage.displayName = 'ReportsDefaultTitlePage';
-
 export default ReportsDefaultTitlePage;

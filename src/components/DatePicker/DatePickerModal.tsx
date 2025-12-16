@@ -87,6 +87,4 @@ function DatePickerModal({
     );
 }
 
-DatePickerModal.displayName = 'DatePickerModal';
-
 export default DatePickerModal;

@@ -108,6 +108,4 @@ function SearchFiltersStatusPage() {
     );
 }
 
-SearchFiltersStatusPage.displayName = 'SearchFiltersStatusPage';
-
 export default SearchFiltersStatusPage;

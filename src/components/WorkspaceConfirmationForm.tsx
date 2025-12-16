@@ -204,8 +204,6 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     );
 }
 
-WorkspaceConfirmationForm.displayName = 'WorkspaceConfirmationForm';
-
 export default WorkspaceConfirmationForm;
 
 export type {WorkspaceConfirmationSubmitFunctionParams};

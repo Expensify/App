@@ -90,5 +90,4 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
     );
 }
 
-WorkspaceCardListLabels.displayName = 'WorkspaceCardListLabels';
 export default WorkspaceCardListLabels;

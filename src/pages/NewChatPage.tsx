@@ -426,6 +426,4 @@ function NewChatPage({ref}: NewChatPageProps) {
     );
 }
 
-NewChatPage.displayName = 'NewChatPage';
-
 export default NewChatPage;

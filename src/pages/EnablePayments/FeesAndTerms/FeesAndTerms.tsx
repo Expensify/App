@@ -57,6 +57,4 @@ function FeesAndTerms() {
     );
 }
 
-FeesAndTerms.displayName = 'TermsAndFees';
-
 export default FeesAndTerms;

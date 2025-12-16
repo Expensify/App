@@ -79,6 +79,4 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber, isHovered}:
     );
 }
 
-WorkspaceCompanyCardsListRow.displayName = 'WorkspaceCompanyCardsListRow';
-
 export default WorkspaceCompanyCardsListRow;

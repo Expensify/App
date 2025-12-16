@@ -114,6 +114,4 @@ function VisibilityPage({report}: VisibilityProps) {
     );
 }
 
-VisibilityPage.displayName = 'VisibilityPage';
-
 export default withReportOrNotFound()(VisibilityPage);

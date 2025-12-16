@@ -68,6 +68,4 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
     );
 }
 
-XeroChartOfAccountsPage.displayName = 'XeroChartOfAccountsPage';
-
 export default withPolicyConnections(XeroChartOfAccountsPage);

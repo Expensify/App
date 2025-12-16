@@ -94,6 +94,4 @@ function XeroAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     );
 }
 
-XeroAutoSyncPage.displayName = 'XeroAutoSyncPage';
-
 export default withPolicyConnections(XeroAutoSyncPage);

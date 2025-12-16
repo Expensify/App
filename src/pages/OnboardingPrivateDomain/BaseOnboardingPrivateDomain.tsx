@@ -129,6 +129,4 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     );
 }
 
-BaseOnboardingPrivateDomain.displayName = 'BaseOnboardingPrivateDomain';
-
 export default BaseOnboardingPrivateDomain;

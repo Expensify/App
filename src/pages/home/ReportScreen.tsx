@@ -1040,5 +1040,4 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 }
 
-ReportScreen.displayName = 'ReportScreen';
 export default memo(ReportScreen, (prevProps, nextProps) => deepEqual(prevProps.route, nextProps.route));

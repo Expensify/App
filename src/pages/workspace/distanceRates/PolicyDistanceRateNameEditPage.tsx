@@ -117,6 +117,4 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
     );
 }
 
-PolicyDistanceRateNameEditPage.displayName = 'PolicyDistanceRateNameEditPage';
-
 export default PolicyDistanceRateNameEditPage;

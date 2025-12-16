@@ -91,6 +91,4 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
     );
 }
 
-NetSuiteReimbursementAccountSelectPage.displayName = 'NetSuiteReimbursementAccountSelectPage';
-
 export default withPolicyConnections(NetSuiteReimbursementAccountSelectPage);

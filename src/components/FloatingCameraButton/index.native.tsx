@@ -8,6 +8,4 @@ function FloatingCameraButton() {
     return <BaseFloatingCameraButton icon={expensifyIcons.Camera} />;
 }
 
-FloatingCameraButton.displayName = 'FloatingCameraButton';
-
 export default FloatingCameraButton;

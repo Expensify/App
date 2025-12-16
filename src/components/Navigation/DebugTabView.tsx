@@ -180,6 +180,4 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     );
 }
 
-DebugTabView.displayName = 'DebugTabView';
-
 export default DebugTabView;

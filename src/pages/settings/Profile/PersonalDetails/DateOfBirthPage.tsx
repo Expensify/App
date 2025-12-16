@@ -80,6 +80,4 @@ function DateOfBirthPage() {
     );
 }
 
-DateOfBirthPage.displayName = 'DateOfBirthPage';
-
 export default DateOfBirthPage;

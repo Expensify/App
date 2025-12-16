@@ -25,6 +25,4 @@ function LoadingPage({onBackButtonPress, title}: LoadingPageProps) {
     );
 }
 
-LoadingPage.displayName = 'LoadingPage';
-
 export default LoadingPage;

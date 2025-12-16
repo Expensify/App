@@ -69,6 +69,4 @@ function KeyboardShortcutsPage({route}: KeyboardShortcutsPageProps) {
     );
 }
 
-KeyboardShortcutsPage.displayName = 'KeyboardShortcutsPage';
-
 export default KeyboardShortcutsPage;

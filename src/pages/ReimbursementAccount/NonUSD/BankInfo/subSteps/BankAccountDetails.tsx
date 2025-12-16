@@ -148,6 +148,4 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
     );
 }
 
-BankAccountDetails.displayName = 'BankAccountDetails';
-
 export default BankAccountDetails;

@@ -213,6 +213,4 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     );
 }
 
-BankConnection.displayName = 'BankConnection';
-
 export default BankConnection;

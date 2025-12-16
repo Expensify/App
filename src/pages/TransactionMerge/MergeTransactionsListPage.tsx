@@ -47,6 +47,4 @@ function MergeTransactionsListPage({route}: MergeTransactionsListPageProps) {
     );
 }
 
-MergeTransactionsListPage.displayName = 'MergeTransactionsListPage';
-
 export default MergeTransactionsListPage;

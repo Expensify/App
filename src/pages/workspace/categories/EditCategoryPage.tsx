@@ -100,6 +100,4 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
     );
 }
 
-EditCategoryPage.displayName = 'EditCategoryPage';
-
 export default EditCategoryPage;

@@ -164,6 +164,4 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     );
 }
 
-ReportChangeApproverPage.displayName = 'ReportChangeApproverPage';
-
 export default withReportOrNotFound()(ReportChangeApproverPage);

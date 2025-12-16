@@ -110,6 +110,4 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
     );
 }
 
-CountrySelection.displayName = 'CountrySelection';
-
 export default CountrySelection;

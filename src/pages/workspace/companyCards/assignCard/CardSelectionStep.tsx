@@ -194,6 +194,4 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     );
 }
 
-CardSelectionStep.displayName = 'CardSelectionStep';
-
 export default CardSelectionStep;

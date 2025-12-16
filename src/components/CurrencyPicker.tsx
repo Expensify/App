@@ -104,5 +104,4 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
     );
 }
 
-CurrencyPicker.displayName = 'CurrencyPicker';
 export default CurrencyPicker;

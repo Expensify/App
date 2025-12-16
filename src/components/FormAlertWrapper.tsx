@@ -83,6 +83,4 @@ function FormAlertWrapper({
     );
 }
 
-FormAlertWrapper.displayName = 'FormAlertWrapper';
-
 export default FormAlertWrapper;

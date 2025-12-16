@@ -75,6 +75,4 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     );
 }
 
-BaseAnchorForAttachmentsOnly.displayName = 'BaseAnchorForAttachmentsOnly';
-
 export default BaseAnchorForAttachmentsOnly;

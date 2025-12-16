@@ -904,8 +904,6 @@ function ReportActionsList({
     );
 }
 
-ReportActionsList.displayName = 'ReportActionsList';
-
 export default memo(ReportActionsList);
 
 export type {ReportActionsListProps};

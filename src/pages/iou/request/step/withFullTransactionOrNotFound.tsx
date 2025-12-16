@@ -91,8 +91,6 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
         );
     }
 
-    WithFullTransactionOrNotFound.displayName = `withFullTransactionOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
-
     return WithFullTransactionOrNotFound;
 }
 

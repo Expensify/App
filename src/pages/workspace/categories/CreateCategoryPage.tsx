@@ -89,6 +89,4 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
     );
 }
 
-CreateCategoryPage.displayName = 'CreateCategoryPage';
-
 export default CreateCategoryPage;

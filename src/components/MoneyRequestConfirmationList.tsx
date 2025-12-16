@@ -1206,8 +1206,6 @@ function MoneyRequestConfirmationList({
     );
 }
 
-MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
-
 export default memo(
     MoneyRequestConfirmationList,
     (prevProps, nextProps) =>

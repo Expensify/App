@@ -432,6 +432,5 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         </ScreenWrapper>
     );
 }
-SplitExpensePage.displayName = 'SplitExpensePage';
 
 export default SplitExpensePage;

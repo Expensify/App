@@ -84,6 +84,4 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
     );
 }
 
-SageIntacctNonReimbursableCreditCardAccountPage.displayName = 'SageIntacctNonReimbursableCreditCardAccountPage';
-
 export default withPolicyConnections(SageIntacctNonReimbursableCreditCardAccountPage);

@@ -95,6 +95,4 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
     );
 }
 
-ContactInformation.displayName = 'ContactInformation';
-
 export default ContactInformation;

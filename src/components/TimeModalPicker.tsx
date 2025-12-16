@@ -83,5 +83,4 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref
     );
 }
 
-TimeModalPicker.displayName = 'TimeModalPicker';
 export default TimeModalPicker;

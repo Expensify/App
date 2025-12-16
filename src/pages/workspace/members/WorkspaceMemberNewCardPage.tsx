@@ -225,6 +225,4 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     );
 }
 
-WorkspaceMemberNewCardPage.displayName = 'WorkspaceMemberNewCardPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceMemberNewCardPage);

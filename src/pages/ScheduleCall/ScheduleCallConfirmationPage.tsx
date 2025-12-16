@@ -152,6 +152,4 @@ function ScheduleCallConfirmationPage() {
     );
 }
 
-ScheduleCallConfirmationPage.displayName = 'ScheduleCallConfirmationPage';
-
 export default ScheduleCallConfirmationPage;

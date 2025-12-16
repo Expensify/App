@@ -303,6 +303,4 @@ function RoomInvitePage({
     );
 }
 
-RoomInvitePage.displayName = 'RoomInvitePage';
-
 export default withNavigationTransitionEnd(withReportOrNotFound()(RoomInvitePage));

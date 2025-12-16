@@ -95,6 +95,4 @@ function CategoryDefaultTaxRatePage({
     );
 }
 
-CategoryDefaultTaxRatePage.displayName = 'CategoryDefaultTaxRatePage';
-
 export default CategoryDefaultTaxRatePage;

@@ -95,6 +95,4 @@ function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-QuickbooksDesktopAdvancedPage.displayName = 'QuickbooksDesktopAdvancedPage';
-
 export default withPolicyConnections(QuickbooksDesktopAdvancedPage);

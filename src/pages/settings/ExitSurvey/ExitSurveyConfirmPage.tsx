@@ -107,6 +107,4 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
     );
 }
 
-ExitSurveyConfirmPage.displayName = 'ExitSurveyConfirmPage';
-
 export default ExitSurveyConfirmPage;

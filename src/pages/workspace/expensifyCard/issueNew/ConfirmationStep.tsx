@@ -134,6 +134,4 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     );
 }
 
-ConfirmationStep.displayName = 'ConfirmationStep';
-
 export default ConfirmationStep;

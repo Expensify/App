@@ -118,6 +118,4 @@ function SageIntacctDefaultVendorPage() {
     );
 }
 
-SageIntacctDefaultVendorPage.displayName = 'SageIntacctDefaultVendorPage';
-
 export default SageIntacctDefaultVendorPage;

@@ -332,6 +332,4 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
     );
 }
 
-BaseLoginForm.displayName = 'BaseLoginForm';
-
 export default withToggleVisibilityView(BaseLoginForm);

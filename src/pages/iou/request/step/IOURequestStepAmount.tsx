@@ -400,8 +400,6 @@ function IOURequestStepAmount({
     );
 }
 
-IOURequestStepAmount.displayName = 'IOURequestStepAmount';
-
 /**
  * Check if the participant is a P2P chat
  */

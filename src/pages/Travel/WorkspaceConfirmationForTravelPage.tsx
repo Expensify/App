@@ -54,6 +54,4 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
     );
 }
 
-WorkspaceConfirmationForTravelPage.displayName = 'WorkspaceConfirmationForTravelPage';
-
 export default WorkspaceConfirmationForTravelPage;

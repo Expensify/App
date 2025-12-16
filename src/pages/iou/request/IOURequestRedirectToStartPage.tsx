@@ -55,6 +55,4 @@ function IOURequestRedirectToStartPage({
     return null;
 }
 
-IOURequestRedirectToStartPage.displayName = 'IOURequestRedirectToStartPage';
-
 export default IOURequestRedirectToStartPage;

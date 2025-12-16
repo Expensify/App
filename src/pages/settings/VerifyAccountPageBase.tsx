@@ -92,6 +92,4 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
     );
 }
 
-VerifyAccountPageBase.displayName = 'VerifyAccountPageBase';
-
 export default VerifyAccountPageBase;

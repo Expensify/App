@@ -165,6 +165,4 @@ function IntroSchoolPrincipalPage() {
     );
 }
 
-IntroSchoolPrincipalPage.displayName = 'IntroSchoolPrincipalPage';
-
 export default IntroSchoolPrincipalPage;

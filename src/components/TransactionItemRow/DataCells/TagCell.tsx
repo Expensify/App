@@ -25,5 +25,4 @@ function TagCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: Tr
     );
 }
 
-TagCell.displayName = 'TagCell';
 export default TagCell;

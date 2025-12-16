@@ -38,6 +38,4 @@ function ReceiptDropUI({onDrop, receiptImageTopPosition}: ReceiptDropUIProps) {
     );
 }
 
-ReceiptDropUI.displayName = 'ReceiptDropUI';
-
 export default ReceiptDropUI;

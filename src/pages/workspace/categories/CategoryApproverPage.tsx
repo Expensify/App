@@ -57,6 +57,4 @@ function CategoryApproverPage({
     );
 }
 
-CategoryApproverPage.displayName = 'CategoryApproverPage';
-
 export default CategoryApproverPage;

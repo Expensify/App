@@ -102,6 +102,4 @@ function XeroOrganizationConfigurationPage({
     );
 }
 
-XeroOrganizationConfigurationPage.displayName = 'PolicyXeroOrganizationConfigurationPage';
-
 export default withPolicy(XeroOrganizationConfigurationPage);

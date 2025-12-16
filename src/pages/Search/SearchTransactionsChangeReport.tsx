@@ -182,6 +182,4 @@ function SearchTransactionsChangeReport() {
     );
 }
 
-SearchTransactionsChangeReport.displayName = 'SearchTransactionsChangeReport';
-
 export default SearchTransactionsChangeReport;

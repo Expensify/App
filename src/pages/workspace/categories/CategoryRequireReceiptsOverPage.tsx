@@ -106,6 +106,4 @@ function CategoryRequireReceiptsOverPage({
     );
 }
 
-CategoryRequireReceiptsOverPage.displayName = 'CategoryRequireReceiptsOverPage';
-
 export default CategoryRequireReceiptsOverPage;

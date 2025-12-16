@@ -180,6 +180,4 @@ function WorkspaceEditTaxPage({
     );
 }
 
-WorkspaceEditTaxPage.displayName = 'WorkspaceEditTaxPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceEditTaxPage);

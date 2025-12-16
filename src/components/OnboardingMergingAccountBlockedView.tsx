@@ -61,6 +61,4 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
     );
 }
 
-OnboardingMergingAccountBlockedView.displayName = 'OnboardingMergingAccountBlockedView';
-
 export default OnboardingMergingAccountBlockedView;

@@ -72,6 +72,4 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-SageIntacctPaymentAccountPage.displayName = 'SageIntacctPaymentAccountPage';
-
 export default withPolicyConnections(SageIntacctPaymentAccountPage);

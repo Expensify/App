@@ -98,6 +98,4 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
     );
 }
 
-YearPickerModal.displayName = 'YearPickerModal';
-
 export default YearPickerModal;

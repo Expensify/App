@@ -94,5 +94,4 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
     );
 }
 
-DomainAccessRestrictedPage.displayName = 'DomainAccessRestrictedPage';
 export default DomainAccessRestrictedPage;

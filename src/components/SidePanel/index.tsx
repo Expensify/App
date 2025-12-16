@@ -31,6 +31,4 @@ function SidePanel() {
     );
 }
 
-SidePanel.displayName = 'SidePanel';
-
 export default SidePanel;

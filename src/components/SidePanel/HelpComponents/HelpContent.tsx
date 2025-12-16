@@ -143,6 +143,4 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     );
 }
 
-HelpContent.displayName = 'HelpContent';
-
 export default HelpContent;

@@ -114,6 +114,4 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-RegistrationNumberStep.displayName = 'RegistrationNumberStep';
-
 export default RegistrationNumberStep;

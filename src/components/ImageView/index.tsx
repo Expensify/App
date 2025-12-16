@@ -244,6 +244,5 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         </View>
     );
 }
-ImageView.displayName = 'ImageView';
 
 export default ImageView;

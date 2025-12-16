@@ -209,6 +209,4 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-QuickbooksAdvancedPage.displayName = 'QuickbooksAdvancedPage';
-
 export default withPolicyConnections(QuickbooksAdvancedPage);

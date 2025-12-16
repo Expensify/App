@@ -143,6 +143,4 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
     );
 }
 
-NetSuiteImportAddCustomListContent.displayName = 'NetSuiteImportAddCustomListContent';
-
 export default NetSuiteImportAddCustomListContent;

@@ -166,6 +166,4 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     );
 }
 
-SelectCountryStep.displayName = 'SelectCountryStep';
-
 export default SelectCountryStep;

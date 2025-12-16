@@ -86,6 +86,4 @@ function ReportVirtualCardFraudVerifyAccountPage({
     );
 }
 
-ReportVirtualCardFraudVerifyAccountPage.displayName = 'ReportVirtualCardFraudVerifyAccountPage';
-
 export default ReportVirtualCardFraudVerifyAccountPage;

@@ -81,6 +81,4 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     );
 }
 
-MentionReportRenderer.displayName = 'MentionReportRenderer';
-
 export default MentionReportRenderer;

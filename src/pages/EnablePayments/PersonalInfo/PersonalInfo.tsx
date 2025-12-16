@@ -103,6 +103,4 @@ function PersonalInfoPage() {
     );
 }
 
-PersonalInfoPage.displayName = 'PersonalInfoPage';
-
 export default PersonalInfoPage;

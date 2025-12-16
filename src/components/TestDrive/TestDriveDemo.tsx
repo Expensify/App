@@ -103,6 +103,4 @@ function TestDriveDemo() {
     );
 }
 
-TestDriveDemo.displayName = 'TestDriveDemo';
-
 export default TestDriveDemo;

@@ -38,6 +38,4 @@ function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines 
     );
 }
 
-TextWithTooltip.displayName = 'TextWithTooltip';
-
 export default TextWithTooltip;

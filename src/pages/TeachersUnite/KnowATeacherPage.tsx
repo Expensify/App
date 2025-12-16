@@ -147,6 +147,4 @@ function KnowATeacherPage() {
     );
 }
 
-KnowATeacherPage.displayName = 'KnowATeacherPage';
-
 export default KnowATeacherPage;

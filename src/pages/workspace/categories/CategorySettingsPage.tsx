@@ -391,6 +391,4 @@ function CategorySettingsPage({
     );
 }
 
-CategorySettingsPage.displayName = 'CategorySettingsPage';
-
 export default CategorySettingsPage;

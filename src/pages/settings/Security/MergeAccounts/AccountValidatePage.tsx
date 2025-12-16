@@ -207,6 +207,4 @@ function AccountValidatePage() {
     );
 }
 
-AccountValidatePage.displayName = 'AccountValidatePage';
-
 export default AccountValidatePage;

@@ -63,6 +63,4 @@ function Address({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-Address.displayName = 'Address';
-
 export default Address;

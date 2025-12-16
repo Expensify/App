@@ -126,6 +126,4 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     );
 }
 
-RoomMemberDetailsPage.displayName = 'RoomMemberDetailsPage';
-
 export default withReportOrNotFound()(RoomMemberDetailsPage);

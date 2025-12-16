@@ -200,8 +200,6 @@ function ShareRootPage() {
     );
 }
 
-ShareRootPage.displayName = 'ShareRootPage';
-
 export default ShareRootPage;
 
 export {showErrorAlert};

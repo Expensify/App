@@ -90,6 +90,4 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     );
 }
 
-WorkspaceSettlementFrequencyPage.displayName = 'WorkspaceSettlementFrequencyPage';
-
 export default WorkspaceSettlementFrequencyPage;

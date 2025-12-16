@@ -79,6 +79,4 @@ function ReviewMerchant() {
     );
 }
 
-ReviewMerchant.displayName = 'ReviewMerchant';
-
 export default ReviewMerchant;

@@ -77,6 +77,4 @@ function QuickbooksDesktopClassesPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksDesktopClassesPage.displayName = 'QuickbooksDesktopClassesPage';
-
 export default withPolicyConnections(QuickbooksDesktopClassesPage);

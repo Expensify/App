@@ -73,6 +73,4 @@ function QuickbooksDesktopCustomersDisplayedAsPage({policy}: WithPolicyConnectio
     );
 }
 
-QuickbooksDesktopCustomersDisplayedAsPage.displayName = 'QuickbooksDesktopCustomersDisplayedAsPage';
-
 export default withPolicyConnections(QuickbooksDesktopCustomersDisplayedAsPage);

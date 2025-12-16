@@ -71,5 +71,4 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
     );
 }
 
-CopyableTextField.displayName = 'CopyableTextField';
 export default CopyableTextField;

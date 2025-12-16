@@ -652,7 +652,5 @@ function MoneyRequestReportTransactionList({
     );
 }
 
-MoneyRequestReportTransactionList.displayName = 'MoneyRequestReportTransactionList';
-
 export default memo(MoneyRequestReportTransactionList);
 export type {TransactionWithOptionalHighlight};

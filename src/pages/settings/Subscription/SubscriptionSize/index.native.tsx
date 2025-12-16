@@ -14,6 +14,4 @@ function SubscriptionSizePage() {
     );
 }
 
-SubscriptionSizePage.displayName = 'SubscriptionSizePage';
-
 export default SubscriptionSizePage;

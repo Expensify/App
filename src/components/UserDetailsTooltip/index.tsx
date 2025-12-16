@@ -17,6 +17,4 @@ function UserDetailsTooltip({shouldRender = true, children, ...props}: UserDetai
     );
 }
 
-UserDetailsTooltip.displayName = 'UserDetailsTooltip';
-
 export default UserDetailsTooltip;

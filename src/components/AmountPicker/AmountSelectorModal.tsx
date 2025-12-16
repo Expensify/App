@@ -86,6 +86,4 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
     );
 }
 
-AmountSelectorModal.displayName = 'AmountSelectorModal';
-
 export default AmountSelectorModal;

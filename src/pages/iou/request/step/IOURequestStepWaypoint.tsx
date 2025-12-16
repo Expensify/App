@@ -280,6 +280,4 @@ function IOURequestStepWaypoint({
     );
 }
 
-IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
-
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepWaypoint), true);

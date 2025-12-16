@@ -183,6 +183,4 @@ function CardTypeStep() {
     );
 }
 
-CardTypeStep.displayName = 'CardTypeStep';
-
 export default CardTypeStep;

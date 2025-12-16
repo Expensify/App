@@ -46,6 +46,4 @@ function BaseSidebarScreen() {
     );
 }
 
-BaseSidebarScreen.displayName = 'BaseSidebarScreen';
-
 export default BaseSidebarScreen;

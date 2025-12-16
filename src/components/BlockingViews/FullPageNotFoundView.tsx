@@ -122,7 +122,5 @@ function FullPageNotFoundView({
     return children;
 }
 
-FullPageNotFoundView.displayName = 'FullPageNotFoundView';
-
 export type {FullPageNotFoundViewProps};
 export default FullPageNotFoundView;

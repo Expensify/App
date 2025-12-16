@@ -84,6 +84,4 @@ function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
     );
 }
 
-XeroAccountingMethodPage.displayName = 'XeroAccountingMethodPage';
-
 export default withPolicyConnections(XeroAccountingMethodPage);

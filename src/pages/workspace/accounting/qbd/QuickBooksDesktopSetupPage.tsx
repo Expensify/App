@@ -141,6 +141,4 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     );
 }
 
-RequireQuickBooksDesktopModal.displayName = 'RequireQuickBooksDesktopModal';
-
 export default RequireQuickBooksDesktopModal;

@@ -85,6 +85,4 @@ function RulesReceiptRequiredAmountPage({
     );
 }
 
-RulesReceiptRequiredAmountPage.displayName = 'RulesReceiptRequiredAmountPage';
-
 export default RulesReceiptRequiredAmountPage;

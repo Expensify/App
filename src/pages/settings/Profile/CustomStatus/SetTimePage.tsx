@@ -43,6 +43,4 @@ function SetTimePage() {
     );
 }
 
-SetTimePage.displayName = 'SetTimePage';
-
 export default SetTimePage;

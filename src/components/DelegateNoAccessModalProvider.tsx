@@ -67,7 +67,5 @@ function DelegateNoAccessModalProvider({children}: PropsWithChildren) {
     );
 }
 
-DelegateNoAccessModalProvider.displayName = 'DelegateNoAccessModalProvider';
-
 export default DelegateNoAccessModalProvider;
 export {DelegateNoAccessContext};

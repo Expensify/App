@@ -137,6 +137,4 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhy
     );
 }
 
-ActivatePhysicalCardPageBase.displayName = 'ActivatePhysicalCardPageBase';
-
 export default ActivatePhysicalCardPageBase;

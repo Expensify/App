@@ -109,6 +109,4 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
     );
 }
 
-CardAuthenticationModal.displayName = 'CardAuthenticationModal';
-
 export default CardAuthenticationModal;

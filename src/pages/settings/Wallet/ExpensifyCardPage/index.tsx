@@ -414,6 +414,4 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     );
 }
 
-ExpensifyCardPage.displayName = 'ExpensifyCardPage';
-
 export default ExpensifyCardPage;

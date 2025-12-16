@@ -138,7 +138,5 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     );
 }
 
-ReportDetailsExportPage.displayName = 'ReportDetailsExportPage';
-
 export default ReportDetailsExportPage;
 export type {ExportType};

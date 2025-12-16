@@ -596,6 +596,4 @@ function WalletPage() {
     );
 }
 
-WalletPage.displayName = 'WalletPage';
-
 export default WalletPage;

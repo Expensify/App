@@ -255,6 +255,4 @@ function IOURequestStepSubrate({
     );
 }
 
-IOURequestStepSubrate.displayName = 'IOURequestStepSubrate';
-
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepSubrate));

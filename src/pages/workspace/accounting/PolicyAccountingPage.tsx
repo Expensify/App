@@ -657,6 +657,4 @@ function PolicyAccountingPageWrapper(props: PolicyAccountingPageProps) {
     );
 }
 
-PolicyAccountingPage.displayName = 'PolicyAccountingPage';
-
 export default withPolicyConnections(PolicyAccountingPageWrapper);

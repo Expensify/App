@@ -167,6 +167,4 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     );
 }
 
-CopyCodesPage.displayName = 'CopyCodesPage';
-
 export default CopyCodesPage;

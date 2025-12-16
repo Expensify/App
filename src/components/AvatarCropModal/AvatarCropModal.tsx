@@ -449,6 +449,4 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     );
 }
 
-AvatarCropModal.displayName = 'AvatarCropModal';
-
 export default AvatarCropModal;

@@ -216,6 +216,4 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     );
 }
 
-TaskView.displayName = 'TaskView';
-
 export default TaskView;

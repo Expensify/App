@@ -158,6 +158,4 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
     );
 }
 
-WorkspaceDuplicateForm.displayName = 'WorkspaceDuplicateForm';
-
 export default WorkspaceDuplicateForm;

@@ -105,6 +105,4 @@ function SearchFiltersIsPage() {
     );
 }
 
-SearchFiltersIsPage.displayName = 'SearchFiltersIsPage';
-
 export default SearchFiltersIsPage;

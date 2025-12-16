@@ -256,6 +256,4 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     );
 }
 
-WorkspaceCompanyCardDetailsPage.displayName = 'WorkspaceCompanyCardDetailsPage';
-
 export default WorkspaceCompanyCardDetailsPage;

@@ -209,7 +209,5 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
     );
 }
 
-DatePresetFilterBase.displayName = 'DatePresetFilterBase';
-
 export type {SearchDateValues, DatePresetFilterBaseHandle as SearchDatePresetFilterBaseHandle};
 export default DatePresetFilterBase;

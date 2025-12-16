@@ -64,6 +64,4 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksChartOfAccountsPage.displayName = 'QuickbooksChartOfAccountsPage';
-
 export default withPolicyConnections(QuickbooksChartOfAccountsPage);

@@ -152,6 +152,4 @@ function DebugReportActionCreatePage({
     );
 }
 
-DebugReportActionCreatePage.displayName = 'DebugReportActionCreatePage';
-
 export default DebugReportActionCreatePage;

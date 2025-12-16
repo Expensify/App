@@ -108,6 +108,4 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     );
 }
 
-WorkspaceCreateTagPage.displayName = 'WorkspaceCreateTagPage';
-
 export default WorkspaceCreateTagPage;

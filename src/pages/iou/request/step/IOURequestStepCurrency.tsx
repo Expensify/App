@@ -80,8 +80,6 @@ function IOURequestStepCurrency({
     );
 }
 
-IOURequestStepCurrency.displayName = 'IOURequestStepCurrency';
-
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepCurrencyWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCurrency);
 

@@ -201,6 +201,4 @@ function SearchFiltersCardPage() {
     );
 }
 
-SearchFiltersCardPage.displayName = 'SearchFiltersCardPage';
-
 export default SearchFiltersCardPage;

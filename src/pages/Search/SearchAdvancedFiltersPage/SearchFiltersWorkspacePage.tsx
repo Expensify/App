@@ -134,6 +134,4 @@ function SearchFiltersWorkspacePage() {
     );
 }
 
-SearchFiltersWorkspacePage.displayName = 'SearchFiltersWorkspacePage';
-
 export default SearchFiltersWorkspacePage;

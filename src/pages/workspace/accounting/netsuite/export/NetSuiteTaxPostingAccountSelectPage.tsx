@@ -84,6 +84,4 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
     );
 }
 
-NetSuiteTaxPostingAccountSelectPage.displayName = 'NetSuiteTaxPostingAccountSelectPage';
-
 export default withPolicyConnections(NetSuiteTaxPostingAccountSelectPage);

@@ -207,6 +207,4 @@ function VacationDelegatePage() {
     );
 }
 
-VacationDelegatePage.displayName = 'VacationDelegatePage';
-
 export default VacationDelegatePage;

@@ -111,6 +111,4 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     );
 }
 
-GroupChatNameEditPage.displayName = 'GroupChatNameEditPage';
-
 export default GroupChatNameEditPage;

@@ -163,6 +163,4 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     );
 }
 
-WithdrawalIDListItemHeader.displayName = 'WithdrawalIDListItemHeader';
-
 export default WithdrawalIDListItemHeader;

@@ -109,6 +109,4 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     );
 }
 
-SetDefaultWorkspacePage.displayName = 'SetDefaultWorkspacePage';
-
 export default SetDefaultWorkspacePage;

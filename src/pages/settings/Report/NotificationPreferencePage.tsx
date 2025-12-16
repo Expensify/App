@@ -70,6 +70,4 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     );
 }
 
-NotificationPreferencePage.displayName = 'NotificationPreferencePage';
-
 export default withReportOrNotFound()(NotificationPreferencePage);

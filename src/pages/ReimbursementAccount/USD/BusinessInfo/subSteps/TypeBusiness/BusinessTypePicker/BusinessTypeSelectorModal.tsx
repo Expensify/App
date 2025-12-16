@@ -76,6 +76,4 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
     );
 }
 
-BusinessTypeSelectorModal.displayName = 'BusinessTypeSelectorModal';
-
 export default BusinessTypeSelectorModal;

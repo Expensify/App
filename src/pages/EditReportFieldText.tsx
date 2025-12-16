@@ -83,6 +83,4 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
     );
 }
 
-EditReportFieldTextPage.displayName = 'EditReportFieldTextPage';
-
 export default EditReportFieldTextPage;

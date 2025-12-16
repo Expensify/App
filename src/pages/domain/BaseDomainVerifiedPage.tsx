@@ -71,5 +71,4 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifie
     );
 }
 
-BaseDomainVerifiedPage.displayName = 'BaseDomainVerifiedPage';
 export default BaseDomainVerifiedPage;

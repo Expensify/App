@@ -117,6 +117,4 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     );
 }
 
-WorkspaceEditTagsPage.displayName = 'WorkspaceEditTagsPage';
-
 export default WorkspaceEditTagsPage;

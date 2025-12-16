@@ -98,6 +98,4 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
     );
 }
 
-TripChatNameEditPage.displayName = 'TripChatNameEditPage';
-
 export default TripChatNameEditPage;

@@ -145,6 +145,4 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
     );
 }
 
-NetSuiteImportAddCustomSegmentContent.displayName = 'NetSuiteImportAddCustomSegmentContent';
-
 export default NetSuiteImportAddCustomSegmentContent;

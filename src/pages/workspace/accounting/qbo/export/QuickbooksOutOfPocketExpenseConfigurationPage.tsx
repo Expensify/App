@@ -140,6 +140,4 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
     );
 }
 
-QuickbooksOutOfPocketExpenseConfigurationPage.displayName = 'QuickbooksExportOutOfPocketExpensesPage';
-
 export default withPolicyConnections(QuickbooksOutOfPocketExpenseConfigurationPage);

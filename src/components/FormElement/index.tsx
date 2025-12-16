@@ -50,8 +50,6 @@ function FormElement({ref, ...props}: FormElementProps) {
     );
 }
 
-FormElement.displayName = 'FormElement';
-
 export default FormElement;
 
 export type {FormElementProps};

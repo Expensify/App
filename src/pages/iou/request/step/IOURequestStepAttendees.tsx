@@ -117,6 +117,4 @@ function IOURequestStepAttendees({
     );
 }
 
-IOURequestStepAttendees.displayName = 'IOURequestStepAttendees';
-
 export default withWritableReportOrNotFound(IOURequestStepAttendees);

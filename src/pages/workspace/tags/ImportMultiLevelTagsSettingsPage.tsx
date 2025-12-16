@@ -156,6 +156,4 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     );
 }
 
-ImportMultiLevelTagsSettingsPage.displayName = 'ImportMultiLevelTagsSettingsPage';
-
 export default ImportMultiLevelTagsSettingsPage;

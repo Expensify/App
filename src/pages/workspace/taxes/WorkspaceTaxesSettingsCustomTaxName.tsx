@@ -104,6 +104,4 @@ function WorkspaceTaxesSettingsCustomTaxName({
     );
 }
 
-WorkspaceTaxesSettingsCustomTaxName.displayName = 'WorkspaceTaxesSettingsCustomTaxName';
-
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesSettingsCustomTaxName);

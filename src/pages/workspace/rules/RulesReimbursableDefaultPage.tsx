@@ -71,6 +71,4 @@ function RulesReimbursableDefaultPage({
     );
 }
 
-RulesReimbursableDefaultPage.displayName = 'RulesReimbursableDefaultPage';
-
 export default RulesReimbursableDefaultPage;

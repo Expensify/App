@@ -486,6 +486,4 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     );
 }
 
-SearchPageHeaderInput.displayName = 'SearchPageHeaderInput';
-
 export default SearchPageHeaderInput;

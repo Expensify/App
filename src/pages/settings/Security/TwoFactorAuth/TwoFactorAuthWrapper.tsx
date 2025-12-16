@@ -111,6 +111,4 @@ function TwoFactorAuthWrapper({
     );
 }
 
-TwoFactorAuthWrapper.displayName = 'TwoFactorAuthWrapper';
-
 export default TwoFactorAuthWrapper;

@@ -60,6 +60,4 @@ function PaymentVolume({onNext, onMove, isEditing, currency}: PaymentVolumeProps
     );
 }
 
-PaymentVolume.displayName = 'PaymentVolume';
-
 export default PaymentVolume;

@@ -118,6 +118,4 @@ function RoomNamePage({report}: RoomNamePageProps) {
     );
 }
 
-RoomNamePage.displayName = 'RoomNamePage';
-
 export default RoomNamePage;

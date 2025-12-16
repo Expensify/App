@@ -116,6 +116,4 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-DocusignFullStep.displayName = 'DocusignFullStep';
-
 export default DocusignFullStep;

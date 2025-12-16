@@ -116,6 +116,4 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
     );
 }
 
-WorkspaceOverviewDescriptionPage.displayName = 'WorkspaceOverviewDescriptionPage';
-
 export default withPolicy(WorkspaceOverviewDescriptionPage);

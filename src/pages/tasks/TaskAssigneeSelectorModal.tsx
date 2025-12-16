@@ -247,6 +247,4 @@ function TaskAssigneeSelectorModal() {
     );
 }
 
-TaskAssigneeSelectorModal.displayName = 'TaskAssigneeSelectorModal';
-
 export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModal));

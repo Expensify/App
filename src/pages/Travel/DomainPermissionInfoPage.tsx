@@ -45,6 +45,4 @@ function DomainPermissionInfoPage({route}: DomainPermissionInfoPageProps) {
     );
 }
 
-DomainPermissionInfoPage.displayName = 'DomainPermissionInfoPage';
-
 export default DomainPermissionInfoPage;

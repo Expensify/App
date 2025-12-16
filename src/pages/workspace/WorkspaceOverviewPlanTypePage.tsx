@@ -159,6 +159,4 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     );
 }
 
-WorkspaceOverviewPlanTypePage.displayName = 'WorkspaceOverviewPlanTypePage';
-
 export default withPolicy(WorkspaceOverviewPlanTypePage);

@@ -73,6 +73,4 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
     );
 }
 
-YesNoStep.displayName = 'YesNoStep';
-
 export default YesNoStep;

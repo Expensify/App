@@ -100,6 +100,4 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
     );
 }
 
-WorkspacePerDiemSettingsPage.displayName = 'WorkspacePerDiemSettingsPage';
-
 export default WorkspacePerDiemSettingsPage;

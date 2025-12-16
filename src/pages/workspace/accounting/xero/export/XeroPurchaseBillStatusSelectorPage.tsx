@@ -98,6 +98,4 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
     );
 }
 
-XeroPurchaseBillStatusSelectorPage.displayName = 'XeroPurchaseBillStatusSelectorPage';
-
 export default withPolicyConnections(XeroPurchaseBillStatusSelectorPage);

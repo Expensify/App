@@ -130,6 +130,4 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     );
 }
 
-IOURequestStepCompanyInfo.displayName = 'IOURequestStepCompanyInfo';
-
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepCompanyInfo));

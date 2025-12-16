@@ -60,6 +60,4 @@ function ThemePage() {
     );
 }
 
-ThemePage.displayName = 'ThemePage';
-
 export default ThemePage;

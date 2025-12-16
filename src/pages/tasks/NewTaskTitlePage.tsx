@@ -100,6 +100,4 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
     );
 }
 
-NewTaskTitlePage.displayName = 'NewTaskTitlePage';
-
 export default NewTaskTitlePage;

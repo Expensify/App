@@ -80,6 +80,4 @@ function ReviewCategory() {
     );
 }
 
-ReviewCategory.displayName = 'ReviewCategory';
-
 export default ReviewCategory;

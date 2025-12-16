@@ -68,6 +68,4 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
     );
 }
 
-InitialListValueSelectorModal.displayName = 'InitialListValueSelectorModal';
-
 export default InitialListValueSelectorModal;

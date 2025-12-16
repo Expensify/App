@@ -479,6 +479,4 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     );
 }
 
-WorkspaceMemberDetailsPage.displayName = 'WorkspaceMemberDetailsPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceMemberDetailsPage);

@@ -10,6 +10,4 @@ function Hoverable({children}: HoverableProps) {
     return childrenWithHoverState;
 }
 
-Hoverable.displayName = 'Hoverable';
-
 export default Hoverable;

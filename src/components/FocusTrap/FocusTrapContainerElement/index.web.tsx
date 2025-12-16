@@ -23,6 +23,4 @@ function FocusTrapContainerElement({onContainerElementChanged, ref, ...props}: F
     );
 }
 
-FocusTrapContainerElement.displayName = 'FocusTrapContainerElement';
-
 export default FocusTrapContainerElement;

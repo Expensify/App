@@ -149,6 +149,4 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
     );
 }
 
-GrowlNotification.displayName = 'GrowlNotification';
-
 export default GrowlNotification;

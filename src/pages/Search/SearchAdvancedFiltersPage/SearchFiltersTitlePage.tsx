@@ -13,6 +13,4 @@ function SearchFiltersTitlePage() {
     );
 }
 
-SearchFiltersTitlePage.displayName = 'SearchFiltersTitlePage';
-
 export default SearchFiltersTitlePage;

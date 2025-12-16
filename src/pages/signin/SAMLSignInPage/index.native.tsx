@@ -123,6 +123,4 @@ function SAMLSignInPage() {
     );
 }
 
-SAMLSignInPage.displayName = 'SAMLSignInPage';
-
 export default SAMLSignInPage;

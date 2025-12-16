@@ -181,6 +181,4 @@ function ReportCardLostPage({
     );
 }
 
-ReportCardLostPage.displayName = 'ReportCardLostPage';
-
 export default ReportCardLostPage;

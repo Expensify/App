@@ -65,6 +65,4 @@ function DebugDetailsDateTimePickerPage({
     );
 }
 
-DebugDetailsDateTimePickerPage.displayName = 'DebugDetailsDateTimePickerPage';
-
 export default DebugDetailsDateTimePickerPage;

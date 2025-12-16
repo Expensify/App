@@ -104,8 +104,6 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
     );
 }
 
-PromotedActionsBar.displayName = 'PromotedActionsBar';
-
 export default PromotedActionsBar;
 
 export {PromotedActions};

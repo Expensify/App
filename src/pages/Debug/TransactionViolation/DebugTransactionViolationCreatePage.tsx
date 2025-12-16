@@ -134,6 +134,4 @@ function DebugTransactionViolationCreatePage({
     );
 }
 
-DebugTransactionViolationCreatePage.displayName = 'DebugTransactionViolationCreatePage';
-
 export default DebugTransactionViolationCreatePage;

@@ -185,6 +185,4 @@ function ActionCell({
     );
 }
 
-ActionCell.displayName = 'ActionCell';
-
 export default ActionCell;

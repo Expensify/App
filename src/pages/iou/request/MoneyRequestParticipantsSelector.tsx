@@ -589,8 +589,6 @@ function MoneyRequestParticipantsSelector({
     );
 }
 
-MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
-
 export default memo(
     MoneyRequestParticipantsSelector,
     (prevProps, nextProps) =>

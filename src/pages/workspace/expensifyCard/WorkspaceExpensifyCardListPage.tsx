@@ -279,6 +279,4 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     );
 }
 
-WorkspaceExpensifyCardListPage.displayName = 'WorkspaceExpensifyCardListPage';
-
 export default WorkspaceExpensifyCardListPage;

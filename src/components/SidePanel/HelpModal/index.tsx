@@ -84,6 +84,4 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
     );
 }
 
-Help.displayName = 'Help';
-
 export default Help;

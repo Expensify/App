@@ -28,6 +28,4 @@ function CategoryShortcutBar({onPress, headerEmojis}: CategoryShortcutBarProps) 
     );
 }
 
-CategoryShortcutBar.displayName = 'CategoryShortcutBar';
-
 export default CategoryShortcutBar;

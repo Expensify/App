@@ -143,6 +143,4 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
     );
 }
 
-NetSuiteImportCustomersOrProjectsPage.displayName = 'NetSuiteImportCustomersOrProjectsPage';
-
 export default withPolicyConnections(NetSuiteImportCustomersOrProjectsPage);

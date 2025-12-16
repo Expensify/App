@@ -73,6 +73,4 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
     );
 }
 
-IssueNewCardConfirmMagicCodePage.displayName = 'ExpensifyCardVerifyAccountPage';
-
 export default IssueNewCardConfirmMagicCodePage;

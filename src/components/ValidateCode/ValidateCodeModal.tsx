@@ -87,6 +87,4 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
     );
 }
 
-ValidateCodeModal.displayName = 'ValidateCodeModal';
-
 export default ValidateCodeModal;

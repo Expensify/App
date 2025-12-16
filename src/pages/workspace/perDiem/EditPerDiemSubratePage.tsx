@@ -109,6 +109,4 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
     );
 }
 
-EditPerDiemSubratePage.displayName = 'EditPerDiemSubratePage';
-
 export default EditPerDiemSubratePage;

@@ -148,7 +148,6 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     );
 }
 
-WorkspaceAutoReportingFrequencyPage.displayName = 'WorkspaceAutoReportingFrequencyPage';
 export type {AutoReportingFrequencyDisplayNames, AutoReportingFrequencyKey};
 export {getAutoReportingFrequencyDisplayNames};
 export default withPolicy(WorkspaceAutoReportingFrequencyPage);

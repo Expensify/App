@@ -78,6 +78,4 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
     );
 }
 
-CountryFullStep.displayName = 'Country';
-
 export default CountryFullStep;

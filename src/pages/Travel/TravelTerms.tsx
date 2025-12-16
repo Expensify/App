@@ -175,6 +175,4 @@ function TravelTerms({route}: TravelTermsPageProps) {
     );
 }
 
-TravelTerms.displayName = 'TravelMenu';
-
 export default TravelTerms;

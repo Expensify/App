@@ -79,6 +79,4 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     );
 }
 
-TopLevelNavigationTabBar.displayName = 'TopLevelNavigationTabBar';
-
 export default TopLevelNavigationTabBar;

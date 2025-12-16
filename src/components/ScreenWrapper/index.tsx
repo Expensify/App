@@ -265,7 +265,6 @@ function ScreenWrapper({
         </FocusTrapForScreen>
     );
 }
-ScreenWrapper.displayName = 'ScreenWrapper';
 
 export default withNavigationFallback(ScreenWrapper);
 export type {ScreenWrapperProps, ScreenWrapperChildrenProps};

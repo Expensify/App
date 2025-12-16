@@ -49,6 +49,4 @@ function StatusCell({stateNum, statusNum}: StatusCellProps) {
     );
 }
 
-StatusCell.displayName = 'StatusCell';
-
 export default StatusCell;

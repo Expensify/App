@@ -79,6 +79,4 @@ function SageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-SageIntacctAccountingMethodPage.displayName = 'SageIntacctAccountingMethodPage';
-
 export default withPolicyConnections(SageIntacctAccountingMethodPage);

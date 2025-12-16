@@ -78,6 +78,4 @@ function ReportLayoutPage() {
     );
 }
 
-ReportLayoutPage.displayName = 'ReportLayoutPage';
-
 export default ReportLayoutPage;

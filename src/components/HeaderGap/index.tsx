@@ -5,6 +5,4 @@ function HeaderGap({styles}: HeaderGapProps): HeaderGapReturnType {
     return null;
 }
 
-HeaderGap.displayName = 'HeaderGap';
-
 export default HeaderGap;

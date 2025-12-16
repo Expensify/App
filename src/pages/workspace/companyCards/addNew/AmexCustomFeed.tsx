@@ -121,6 +121,4 @@ function AmexCustomFeed() {
     );
 }
 
-AmexCustomFeed.displayName = 'AmexCustomFeed';
-
 export default AmexCustomFeed;

@@ -122,6 +122,4 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-QuickbooksDesktopExportPage.displayName = 'QuickbooksDesktopExportPage';
-
 export default withPolicyConnections(QuickbooksDesktopExportPage);

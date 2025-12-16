@@ -42,5 +42,4 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
     );
 }
 
-FocusModeNotification.displayName = 'FocusModeNotification';
 export default FocusModeNotification;

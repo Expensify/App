@@ -154,6 +154,4 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
     );
 }
 
-IdologyQuestions.displayName = 'IdologyQuestions';
-
 export default IdologyQuestions;

@@ -48,6 +48,4 @@ function PublicDomainErrorPage({route}: PublicDomainErrorPageProps) {
     );
 }
 
-PublicDomainErrorPage.displayName = 'PublicDomainErrorPage';
-
 export default PublicDomainErrorPage;

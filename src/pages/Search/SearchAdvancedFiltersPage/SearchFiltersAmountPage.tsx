@@ -12,6 +12,4 @@ function SearchFiltersAmountPage() {
     );
 }
 
-SearchFiltersAmountPage.displayName = 'SearchFiltersAmountPage';
-
 export default SearchFiltersAmountPage;

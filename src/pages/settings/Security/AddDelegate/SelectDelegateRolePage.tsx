@@ -78,6 +78,4 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
     );
 }
 
-SelectDelegateRolePage.displayName = 'SelectDelegateRolePage';
-
 export default SelectDelegateRolePage;

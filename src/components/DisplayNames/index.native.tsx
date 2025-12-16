@@ -37,6 +37,4 @@ function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfL
     );
 }
 
-DisplayNames.displayName = 'DisplayNames';
-
 export default DisplayNames;

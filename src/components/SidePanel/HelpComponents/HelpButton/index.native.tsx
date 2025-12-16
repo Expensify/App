@@ -13,6 +13,4 @@ function HelpButton({style}: HelpButtonProps) {
     );
 }
 
-HelpButton.displayName = 'HelpButton';
-
 export default HelpButton;

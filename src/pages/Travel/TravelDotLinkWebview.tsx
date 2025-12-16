@@ -42,6 +42,4 @@ function TravelDotLinkWebview({route}: TravelDotLinkWebviewProps) {
     );
 }
 
-TravelDotLinkWebview.displayName = 'TravelDotLinkWebview';
-
 export default TravelDotLinkWebview;

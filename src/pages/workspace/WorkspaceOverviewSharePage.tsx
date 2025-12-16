@@ -137,6 +137,4 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     );
 }
 
-WorkspaceOverviewSharePage.displayName = 'WorkspaceOverviewSharePage';
-
 export default withPolicy(WorkspaceOverviewSharePage);

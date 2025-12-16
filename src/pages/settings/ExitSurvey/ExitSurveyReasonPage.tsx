@@ -119,6 +119,4 @@ function ExitSurveyReasonPage() {
     );
 }
 
-ExitSurveyReasonPage.displayName = 'ExitSurveyReasonPage';
-
 export default ExitSurveyReasonPage;

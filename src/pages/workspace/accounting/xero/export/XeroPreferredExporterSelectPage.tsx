@@ -116,6 +116,4 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-XeroPreferredExporterSelectPage.displayName = 'XeroPreferredExporterSelectPage';
-
 export default withPolicyConnections(XeroPreferredExporterSelectPage);

@@ -158,5 +158,4 @@ function NetSuiteImportCustomFieldView({
     );
 }
 
-NetSuiteImportCustomFieldView.displayName = 'NetSuiteImportCustomFieldView';
 export default withPolicyConnections(NetSuiteImportCustomFieldView);

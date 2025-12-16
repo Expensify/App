@@ -169,6 +169,4 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     );
 }
 
-ImportedPerDiemPage.displayName = 'ImportedPerDiemPage';
-
 export default ImportedPerDiemPage;

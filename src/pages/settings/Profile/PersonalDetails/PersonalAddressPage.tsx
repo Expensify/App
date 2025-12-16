@@ -49,6 +49,4 @@ function PersonalAddressPage() {
     );
 }
 
-PersonalAddressPage.displayName = 'PersonalAddressPage';
-
 export default PersonalAddressPage;

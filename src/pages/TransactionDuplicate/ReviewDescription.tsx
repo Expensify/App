@@ -80,6 +80,4 @@ function ReviewDescription() {
     );
 }
 
-ReviewDescription.displayName = 'ReviewDescription';
-
 export default ReviewDescription;

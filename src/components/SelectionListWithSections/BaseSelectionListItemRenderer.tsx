@@ -128,6 +128,4 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     );
 }
 
-BaseSelectionListItemRenderer.displayName = 'BaseSelectionListItemRenderer';
-
 export default BaseSelectionListItemRenderer;

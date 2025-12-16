@@ -43,6 +43,4 @@ function TabNavigatorSkeleton() {
     );
 }
 
-TabNavigatorSkeleton.displayName = 'TabNavigatorSkeleton';
-
 export default TabNavigatorSkeleton;

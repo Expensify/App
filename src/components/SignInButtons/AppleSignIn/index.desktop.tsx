@@ -25,6 +25,4 @@ function AppleSignIn() {
     );
 }
 
-AppleSignIn.displayName = 'AppleSignIn';
-
 export default AppleSignIn;

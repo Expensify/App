@@ -208,6 +208,4 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     );
 }
 
-ImportedMembersPage.displayName = 'ImportedMembersPage';
-
 export default ImportedMembersPage;

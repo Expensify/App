@@ -162,6 +162,4 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     );
 }
 
-ChangeReceiptBillingAccountPage.displayName = 'ChangeReceiptBillingAccountPage';
-
 export default ChangeReceiptBillingAccountPage;

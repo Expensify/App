@@ -232,6 +232,4 @@ function Footer({navigateFocus}: FooterProps) {
     );
 }
 
-Footer.displayName = 'Footer';
-
 export default Footer;

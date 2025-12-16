@@ -99,6 +99,4 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
     );
 }
 
-IOURequestStepSendFrom.displayName = 'IOURequestStepSendFrom';
-
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepSendFrom));

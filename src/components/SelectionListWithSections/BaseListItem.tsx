@@ -181,6 +181,4 @@ function BaseListItem<TItem extends ListItem>({
     );
 }
 
-BaseListItem.displayName = 'BaseListItem';
-
 export default BaseListItem;

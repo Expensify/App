@@ -326,6 +326,4 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     );
 }
 
-NewReportWorkspaceSelectionPage.displayName = 'NewReportWorkspaceSelectionPage';
-
 export default NewReportWorkspaceSelectionPage;

@@ -39,6 +39,4 @@ function ColoredLetterAvatar({component, backgroundColor, fillColor, size = CONS
     );
 }
 
-ColoredLetterAvatar.displayName = 'ColoredLetterAvatar';
-
 export default ColoredLetterAvatar;

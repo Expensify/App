@@ -65,5 +65,4 @@ function OnboardingCurrencyPicker({label, value, errorText, style, onInputChange
     );
 }
 
-OnboardingCurrencyPicker.displayName = 'OnboardingCurrencyPicker';
 export default OnboardingCurrencyPicker;

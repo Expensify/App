@@ -258,6 +258,4 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
     );
 }
 
-ImportSpreadsheet.displayName = 'ImportSpreadsheet';
-
 export default ImportSpreadsheet;

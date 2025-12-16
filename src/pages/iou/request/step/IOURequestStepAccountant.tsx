@@ -74,6 +74,4 @@ function IOURequestStepAccountant({
     );
 }
 
-IOURequestStepAccountant.displayName = 'IOURequestStepAccountant';
-
 export default withWritableReportOrNotFound(IOURequestStepAccountant);

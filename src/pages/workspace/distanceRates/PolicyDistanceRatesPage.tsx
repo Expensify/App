@@ -542,6 +542,4 @@ function PolicyDistanceRatesPage({
     );
 }
 
-PolicyDistanceRatesPage.displayName = 'PolicyDistanceRatesPage';
-
 export default PolicyDistanceRatesPage;

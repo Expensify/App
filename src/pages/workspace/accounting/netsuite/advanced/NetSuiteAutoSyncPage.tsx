@@ -94,6 +94,4 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     );
 }
 
-NetSuiteAutoSyncPage.displayName = 'NetSuiteAutoSyncPage';
-
 export default withPolicyConnections(NetSuiteAutoSyncPage);

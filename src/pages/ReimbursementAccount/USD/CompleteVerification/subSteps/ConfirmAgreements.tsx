@@ -114,6 +114,4 @@ function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
     );
 }
 
-ConfirmAgreements.displayName = 'ConfirmAgreements';
-
 export default ConfirmAgreements;

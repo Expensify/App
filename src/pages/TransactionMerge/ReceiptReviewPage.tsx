@@ -102,6 +102,4 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
     );
 }
 
-ReceiptReviewPage.displayName = 'ReceiptReviewPage';
-
 export default ReceiptReviewPage;

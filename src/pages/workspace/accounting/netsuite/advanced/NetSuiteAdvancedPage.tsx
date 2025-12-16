@@ -315,8 +315,6 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-NetSuiteAdvancedPage.displayName = 'NetSuiteAdvancedPage';
-
 export default withPolicyConnections(NetSuiteAdvancedPage);
 
 export {shouldHideReimbursedReportsSection};

@@ -123,6 +123,4 @@ function EditTagPage({route}: EditTagPageProps) {
     );
 }
 
-EditTagPage.displayName = 'EditTagPage';
-
 export default EditTagPage;

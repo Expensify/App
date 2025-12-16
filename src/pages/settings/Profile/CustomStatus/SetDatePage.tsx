@@ -79,6 +79,4 @@ function SetDatePage() {
     );
 }
 
-SetDatePage.displayName = 'SetDatePage';
-
 export default SetDatePage;

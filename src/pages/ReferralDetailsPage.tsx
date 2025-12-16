@@ -105,6 +105,4 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
     );
 }
 
-ReferralDetailsPage.displayName = 'ReferralDetailsPage';
-
 export default ReferralDetailsPage;

@@ -125,6 +125,4 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     );
 }
 
-CardInstructionsStep.displayName = 'CardInstructionsStep';
-
 export default CardInstructionsStep;

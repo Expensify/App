@@ -366,6 +366,4 @@ function IOURequestStartPage({
     );
 }
 
-IOURequestStartPage.displayName = 'IOURequestStartPage';
-
 export default IOURequestStartPage;

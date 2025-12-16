@@ -84,6 +84,4 @@ function CategoryDescriptionHintPage({
     );
 }
 
-CategoryDescriptionHintPage.displayName = 'CategoryDescriptionHintPage';
-
 export default CategoryDescriptionHintPage;

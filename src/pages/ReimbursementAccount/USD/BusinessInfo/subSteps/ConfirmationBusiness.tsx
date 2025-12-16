@@ -160,6 +160,4 @@ function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
     );
 }
 
-ConfirmationBusiness.displayName = 'ConfirmationBusiness';
-
 export default ConfirmationBusiness;

@@ -83,6 +83,4 @@ function CardNameStep() {
     );
 }
 
-CardNameStep.displayName = 'CardNameStep';
-
 export default CardNameStep;

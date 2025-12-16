@@ -94,5 +94,4 @@ function LockAccountPage() {
     );
 }
 
-LockAccountPage.displayName = 'LockAccountPage';
 export default LockAccountPage;

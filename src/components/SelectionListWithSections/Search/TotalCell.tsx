@@ -21,6 +21,4 @@ function TotalCell({total, currency}: TotalCellProps) {
     );
 }
 
-TotalCell.displayName = 'TotalCell';
-
 export default TotalCell;

@@ -82,6 +82,4 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
     );
 }
 
-PolicyDistanceRateTaxRateEditPage.displayName = 'PolicyDistanceRateTaxRateEditPage';
-
 export default withPolicy(PolicyDistanceRateTaxRateEditPage);

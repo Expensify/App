@@ -102,6 +102,4 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksLocationsPage.displayName = 'QuickbooksLocationsPage';
-
 export default withPolicyConnections(QuickbooksLocationsPage);

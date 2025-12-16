@@ -148,6 +148,4 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
     );
 }
 
-QuickbooksDesktopOutOfPocketExpenseConfigurationPage.displayName = 'QuickbooksDesktopOutOfPocketExpenseConfigurationPage';
-
 export default withPolicyConnections(QuickbooksDesktopOutOfPocketExpenseConfigurationPage);

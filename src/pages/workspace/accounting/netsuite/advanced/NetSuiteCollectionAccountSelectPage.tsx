@@ -91,6 +91,4 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
     );
 }
 
-NetSuiteCollectionAccountSelectPage.displayName = 'NetSuiteCollectionAccountSelectPage';
-
 export default withPolicyConnections(NetSuiteCollectionAccountSelectPage);

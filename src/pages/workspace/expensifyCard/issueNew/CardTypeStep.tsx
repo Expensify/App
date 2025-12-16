@@ -100,6 +100,4 @@ function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) 
     );
 }
 
-CardTypeStep.displayName = 'CardTypeStep';
-
 export default CardTypeStep;

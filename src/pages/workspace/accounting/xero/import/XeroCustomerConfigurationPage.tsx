@@ -52,6 +52,4 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
     );
 }
 
-XeroCustomerConfigurationPage.displayName = 'XeroCustomerConfigurationPage';
-
 export default withPolicyConnections(XeroCustomerConfigurationPage);

@@ -401,6 +401,4 @@ function TransactionPreviewContent({
     );
 }
 
-TransactionPreviewContent.displayName = 'TransactionPreviewContent';
-
 export default TransactionPreviewContent;

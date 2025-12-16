@@ -83,6 +83,4 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
     );
 }
 
-DestinationPicker.displayName = 'DestinationPicker';
-
 export default DestinationPicker;

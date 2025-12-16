@@ -51,6 +51,4 @@ function SubmitExpensePage() {
     );
 }
 
-SubmitExpensePage.displayName = 'SubmitExpensePage';
-
 export default SubmitExpensePage;

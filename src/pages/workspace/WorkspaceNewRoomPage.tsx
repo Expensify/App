@@ -320,6 +320,4 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
     );
 }
 
-WorkspaceNewRoomPage.displayName = 'WorkspaceNewRoomPage';
-
 export default WorkspaceNewRoomPage;

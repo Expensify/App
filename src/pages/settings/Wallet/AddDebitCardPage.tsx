@@ -74,6 +74,4 @@ function DebitCardPage() {
     );
 }
 
-DebitCardPage.displayName = 'DebitCardPage';
-
 export default DebitCardPage;

@@ -18,5 +18,4 @@ function SamlDomainVerifiedPage({route}: SamlDomainVerifiedPageProps) {
     );
 }
 
-SamlDomainVerifiedPage.displayName = 'SamlDomainVerifiedPage';
 export default SamlDomainVerifiedPage;

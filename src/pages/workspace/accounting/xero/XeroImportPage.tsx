@@ -90,6 +90,4 @@ function XeroImportPage({policy}: WithPolicyProps) {
     );
 }
 
-XeroImportPage.displayName = 'PolicyXeroImportPage';
-
 export default withPolicy(XeroImportPage);

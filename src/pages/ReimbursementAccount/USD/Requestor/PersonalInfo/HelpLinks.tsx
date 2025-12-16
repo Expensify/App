@@ -47,6 +47,4 @@ function HelpLinks({containerStyles}: HelpLinkProps) {
     );
 }
 
-HelpLinks.displayName = 'HelpLinks';
-
 export default HelpLinks;

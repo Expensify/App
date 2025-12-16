@@ -56,8 +56,6 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     );
 }
 
-SidebarLinksData.displayName = 'SidebarLinksData';
-
 const WrappedSidebarLinksData = Sentry.withProfiler(SidebarLinksData);
-WrappedSidebarLinksData.displayName = 'SidebarLinksData';
+
 export default WrappedSidebarLinksData;

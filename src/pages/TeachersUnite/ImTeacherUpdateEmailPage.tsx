@@ -53,6 +53,4 @@ function ImTeacherUpdateEmailPage() {
     );
 }
 
-ImTeacherUpdateEmailPage.displayName = 'ImTeacherUpdateEmailPage';
-
 export default ImTeacherUpdateEmailPage;

@@ -95,5 +95,4 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     );
 }
 
-XeroTrackingCategoryConfigurationPage.displayName = 'XeroTrackCategoriesPage';
 export default withPolicyConnections(XeroTrackingCategoryConfigurationPage);

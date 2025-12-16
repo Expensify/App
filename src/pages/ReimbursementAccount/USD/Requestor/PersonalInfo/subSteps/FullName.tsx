@@ -44,6 +44,4 @@ function FullName({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-FullName.displayName = 'FullName';
-
 export default FullName;

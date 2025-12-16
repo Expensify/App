@@ -68,6 +68,4 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-PhoneNumberStep.displayName = 'PhoneNumberStep';
-
 export default PhoneNumberStep;

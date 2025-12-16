@@ -274,6 +274,4 @@ function ReportActionsListItemRenderer({
     );
 }
 
-ReportActionsListItemRenderer.displayName = 'ReportActionsListItemRenderer';
-
 export default memo(ReportActionsListItemRenderer);

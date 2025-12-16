@@ -99,6 +99,4 @@ function DisplayNamesWithToolTip({
     );
 }
 
-DisplayNamesWithToolTip.displayName = 'DisplayNamesWithTooltip';
-
 export default DisplayNamesWithToolTip;

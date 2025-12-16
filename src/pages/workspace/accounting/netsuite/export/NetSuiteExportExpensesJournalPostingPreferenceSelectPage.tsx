@@ -86,6 +86,4 @@ function NetSuiteExportExpensesJournalPostingPreferenceSelectPage({policy}: With
     );
 }
 
-NetSuiteExportExpensesJournalPostingPreferenceSelectPage.displayName = 'NetSuiteExportExpensesJournalPostingPreferenceSelectPage';
-
 export default withPolicyConnections(NetSuiteExportExpensesJournalPostingPreferenceSelectPage);

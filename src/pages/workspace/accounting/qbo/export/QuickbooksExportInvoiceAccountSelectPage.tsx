@@ -100,6 +100,4 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
     );
 }
 
-QuickbooksExportInvoiceAccountSelectPage.displayName = 'QuickbooksExportInvoiceAccountSelectPage';
-
 export default withPolicyConnections(QuickbooksExportInvoiceAccountSelectPage);

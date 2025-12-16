@@ -113,6 +113,4 @@ function ReportFieldsAddListValuePage({
     );
 }
 
-ReportFieldsAddListValuePage.displayName = 'ReportFieldsAddListValuePage';
-
 export default withPolicyAndFullscreenLoading(ReportFieldsAddListValuePage);

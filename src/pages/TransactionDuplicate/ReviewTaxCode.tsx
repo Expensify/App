@@ -97,6 +97,4 @@ function ReviewTaxRate() {
     );
 }
 
-ReviewTaxRate.displayName = 'ReviewTaxRate';
-
 export default ReviewTaxRate;

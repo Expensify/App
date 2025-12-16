@@ -66,6 +66,4 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
     );
 }
 
-TimezoneInitialPage.displayName = 'TimezoneInitialPage';
-
 export default withCurrentUserPersonalDetails(TimezoneInitialPage);

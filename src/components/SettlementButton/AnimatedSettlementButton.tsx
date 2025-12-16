@@ -127,6 +127,4 @@ function AnimatedSettlementButton({
     );
 }
 
-AnimatedSettlementButton.displayName = 'AnimatedSettlementButton';
-
 export default AnimatedSettlementButton;

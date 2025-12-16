@@ -140,6 +140,4 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoPr
     );
 }
 
-BankInfo.displayName = 'BankInfo';
-
 export default BankInfo;

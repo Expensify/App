@@ -157,6 +157,4 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
     );
 }
 
-SageIntacctReimbursableExpensesPage.displayName = 'SageIntacctReimbursableExpensesPage';
-
 export default withPolicyConnections(SageIntacctReimbursableExpensesPage);

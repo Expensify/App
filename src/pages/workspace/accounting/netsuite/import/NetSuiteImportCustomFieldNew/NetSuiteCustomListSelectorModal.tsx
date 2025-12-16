@@ -103,6 +103,4 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
     );
 }
 
-NetSuiteCustomListSelectorModal.displayName = 'NetSuiteCustomListSelectorModal';
-
 export default NetSuiteCustomListSelectorModal;

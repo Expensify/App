@@ -147,6 +147,4 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     );
 }
 
-TripDetailsPage.displayName = 'TripDetailsPage';
-
 export default TripDetailsPage;

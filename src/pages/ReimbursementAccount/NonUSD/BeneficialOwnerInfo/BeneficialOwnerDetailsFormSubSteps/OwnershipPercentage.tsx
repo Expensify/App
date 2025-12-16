@@ -69,6 +69,4 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
     );
 }
 
-OwnershipPercentage.displayName = 'OwnershipPercentage';
-
 export default OwnershipPercentage;

@@ -59,6 +59,4 @@ function RenderHTML({html: htmlParam, onLinkPress}: RenderHTMLProps) {
     );
 }
 
-RenderHTML.displayName = 'RenderHTML';
-
 export default RenderHTML;

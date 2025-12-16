@@ -123,6 +123,4 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     );
 }
 
-WorkspacePerDiemDetailsPage.displayName = 'WorkspacePerDiemDetailsPage';
-
 export default WorkspacePerDiemDetailsPage;

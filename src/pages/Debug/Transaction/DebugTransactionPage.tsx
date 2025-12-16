@@ -121,6 +121,4 @@ function DebugTransactionPage({
     );
 }
 
-DebugTransactionPage.displayName = 'DebugTransactionPage';
-
 export default DebugTransactionPage;

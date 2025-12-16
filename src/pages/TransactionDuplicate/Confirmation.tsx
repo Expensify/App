@@ -171,6 +171,4 @@ function Confirmation() {
     );
 }
 
-Confirmation.displayName = 'Confirmation';
-
 export default Confirmation;

@@ -51,5 +51,4 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
     );
 }
 
-DomainAddedPage.displayName = 'DomainAddedPage';
 export default DomainAddedPage;

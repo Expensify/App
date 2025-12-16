@@ -101,6 +101,4 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     );
 }
 
-WorkspaceEditCardNamePage.displayName = 'WorkspaceEditCardNamePage';
-
 export default WorkspaceEditCardNamePage;

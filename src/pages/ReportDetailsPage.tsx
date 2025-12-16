@@ -1046,6 +1046,4 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     );
 }
 
-ReportDetailsPage.displayName = 'ReportDetailsPage';
-
 export default withReportOrNotFound()(ReportDetailsPage);

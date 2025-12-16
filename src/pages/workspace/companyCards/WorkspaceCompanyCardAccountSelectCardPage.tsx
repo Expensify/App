@@ -127,6 +127,4 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     );
 }
 
-WorkspaceCompanyCardAccountSelectCardPage.displayName = 'WorkspaceCompanyCardAccountSelectCardPage';
-
 export default WorkspaceCompanyCardAccountSelectCardPage;

@@ -150,6 +150,4 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     );
 }
 
-IOURequestEditReport.displayName = 'IOURequestEditReport';
-
 export default withWritableReportOrNotFound(IOURequestEditReport);

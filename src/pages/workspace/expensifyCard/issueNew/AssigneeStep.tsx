@@ -236,6 +236,4 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     );
 }
 
-AssigneeStep.displayName = 'AssigneeStep';
-
 export default AssigneeStep;

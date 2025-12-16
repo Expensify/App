@@ -1374,8 +1374,6 @@ function IOURequestStepConfirmation({
     );
 }
 
-IOURequestStepConfirmation.displayName = 'IOURequestStepConfirmation';
-
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmation);
 /* eslint-disable rulesdir/no-negated-variables */

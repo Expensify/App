@@ -87,6 +87,4 @@ function Finish() {
     );
 }
 
-Finish.displayName = 'Finish';
-
 export default Finish;

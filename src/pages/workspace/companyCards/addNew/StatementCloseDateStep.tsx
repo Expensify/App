@@ -59,6 +59,4 @@ function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
     );
 }
 
-StatementCloseDateStep.displayName = 'StatementCloseDateStep';
-
 export default StatementCloseDateStep;

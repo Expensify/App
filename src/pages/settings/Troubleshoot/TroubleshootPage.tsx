@@ -245,6 +245,4 @@ function TroubleshootPage() {
     );
 }
 
-TroubleshootPage.displayName = 'TroubleshootPage';
-
 export default TroubleshootPage;

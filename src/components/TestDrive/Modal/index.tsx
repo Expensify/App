@@ -12,6 +12,4 @@ function TestDriveModal() {
     return isAdminTester ? <AdminTestDriveModal /> : <EmployeeTestDriveModal />;
 }
 
-TestDriveModal.displayName = 'TestDriveModal';
-
 export default TestDriveModal;

@@ -38,6 +38,4 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
     );
 }
 
-QRShareWithDownload.displayName = 'QRShareWithDownload';
-
 export default QRShareWithDownload;

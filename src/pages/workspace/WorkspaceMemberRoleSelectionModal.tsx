@@ -68,8 +68,6 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
     );
 }
 
-WorkspaceMemberDetailsRoleSelectionModal.displayName = 'WorkspaceMemberDetailsRoleSelectionModal';
-
 export type {ListItemType};
 
 export default WorkspaceMemberDetailsRoleSelectionModal;

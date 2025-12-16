@@ -272,6 +272,4 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     );
 }
 
-SearchMoneyRequestReportPage.displayName = 'SearchMoneyRequestReportPage';
-
 export default SearchMoneyRequestReportPage;

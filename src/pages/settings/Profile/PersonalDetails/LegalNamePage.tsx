@@ -143,6 +143,4 @@ function LegalNamePage() {
     );
 }
 
-LegalNamePage.displayName = 'LegalNamePage';
-
 export default LegalNamePage;

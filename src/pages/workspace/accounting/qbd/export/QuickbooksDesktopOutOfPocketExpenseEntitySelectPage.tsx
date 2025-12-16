@@ -121,6 +121,4 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
     );
 }
 
-QuickbooksDesktopOutOfPocketExpenseEntitySelectPage.displayName = 'QuickbooksDesktopOutOfPocketExpenseEntitySelectPage';
-
 export default withPolicyConnections(QuickbooksDesktopOutOfPocketExpenseEntitySelectPage);

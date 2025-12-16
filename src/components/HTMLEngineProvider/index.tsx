@@ -10,6 +10,4 @@ function HTMLEngineProvider({children}: ChildrenProps) {
     return <BaseHTMLEngineProvider textSelectable={!DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout}>{children}</BaseHTMLEngineProvider>;
 }
 
-HTMLEngineProvider.displayName = 'HTMLEngineProvider';
-
 export default HTMLEngineProvider;

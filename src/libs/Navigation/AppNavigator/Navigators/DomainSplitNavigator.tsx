@@ -56,6 +56,4 @@ function DomainSplitNavigator({route, navigation}: PlatformStackScreenProps<Auth
     );
 }
 
-DomainSplitNavigator.displayName = 'DomainSplitNavigator';
-
 export default DomainSplitNavigator;

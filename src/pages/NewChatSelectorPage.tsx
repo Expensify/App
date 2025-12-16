@@ -106,6 +106,4 @@ function NewChatSelectorPage() {
     );
 }
 
-NewChatSelectorPage.displayName = 'NewChatSelectorPage';
-
 export default NewChatSelectorPage;

@@ -115,6 +115,4 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
     );
 }
 
-SageIntacctPrerequisitesPage.displayName = 'SageIntacctPrerequisitesPage';
-
 export default SageIntacctPrerequisitesPage;

@@ -170,6 +170,4 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     );
 }
 
-BaseOnboardingWorkspaceOptional.displayName = 'BaseOnboardingWorkspaceOptional';
-
 export default BaseOnboardingWorkspaceOptional;

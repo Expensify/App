@@ -43,5 +43,4 @@ function UnlockAccountPage() {
     );
 }
 
-UnlockAccountPage.displayName = 'UnlockAccountPage';
 export default UnlockAccountPage;

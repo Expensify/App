@@ -55,6 +55,4 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     );
 }
 
-WorkspaceMemberDetailsRolePage.displayName = 'WorkspaceMemberDetailsRolePage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceMemberDetailsRolePage);

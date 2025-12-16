@@ -13,6 +13,4 @@ function SearchFiltersReportIDPage() {
     );
 }
 
-SearchFiltersReportIDPage.displayName = 'SearchFiltersReportIDPage';
-
 export default SearchFiltersReportIDPage;

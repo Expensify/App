@@ -291,6 +291,4 @@ function SearchPageNarrow({
     );
 }
 
-SearchPageNarrow.displayName = 'SearchPageNarrow';
-
 export default SearchPageNarrow;

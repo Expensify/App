@@ -118,6 +118,4 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     );
 }
 
-WorkspaceTaxCodePage.displayName = 'WorkspaceTaxCodePage';
-
 export default WorkspaceTaxCodePage;

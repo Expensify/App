@@ -87,6 +87,4 @@ function TextPicker({
     );
 }
 
-TextPicker.displayName = 'TextPicker';
-
 export default TextPicker;

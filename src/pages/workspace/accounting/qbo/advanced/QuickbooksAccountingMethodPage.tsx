@@ -84,6 +84,4 @@ function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsPr
     );
 }
 
-QuickbooksAccountingMethodPage.displayName = 'QuickbooksAccountingMethodPage';
-
 export default withPolicyConnections(QuickbooksAccountingMethodPage);

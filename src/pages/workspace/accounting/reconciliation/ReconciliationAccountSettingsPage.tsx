@@ -108,6 +108,4 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     );
 }
 
-ReconciliationAccountSettingsPage.displayName = 'ReconciliationAccountSettingsPage';
-
 export default ReconciliationAccountSettingsPage;

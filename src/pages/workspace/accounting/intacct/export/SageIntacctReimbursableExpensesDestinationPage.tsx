@@ -78,6 +78,4 @@ function SageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConn
     );
 }
 
-SageIntacctReimbursableExpensesDestinationPage.displayName = 'SageIntacctReimbursableExpensesDestinationPage';
-
 export default withPolicyConnections(SageIntacctReimbursableExpensesDestinationPage);

@@ -90,6 +90,4 @@ function EnablePaymentsPage() {
     return null;
 }
 
-EnablePaymentsPage.displayName = 'EnablePaymentsPage';
-
 export default EnablePaymentsPage;

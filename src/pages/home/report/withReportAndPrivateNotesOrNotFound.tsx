@@ -110,8 +110,6 @@ export default function (pageTitle: TranslationPaths) {
             );
         }
 
-        WithReportAndPrivateNotesOrNotFound.displayName = `withReportAndPrivateNotesOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
-
         return withReportOrNotFound()(WithReportAndPrivateNotesOrNotFound);
     };
 }

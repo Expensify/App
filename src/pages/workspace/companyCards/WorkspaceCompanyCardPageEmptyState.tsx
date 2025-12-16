@@ -94,6 +94,4 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
     );
 }
 
-WorkspaceCompanyCardPageEmptyState.displayName = 'WorkspaceCompanyCardPageEmptyState';
-
 export default withPolicyAndFullscreenLoading(WorkspaceCompanyCardPageEmptyState);

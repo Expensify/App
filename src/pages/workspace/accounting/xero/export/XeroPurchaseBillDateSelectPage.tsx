@@ -86,6 +86,4 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-XeroPurchaseBillDateSelectPage.displayName = 'XeroPurchaseBillDateSelectPage';
-
 export default withPolicyConnections(XeroPurchaseBillDateSelectPage);

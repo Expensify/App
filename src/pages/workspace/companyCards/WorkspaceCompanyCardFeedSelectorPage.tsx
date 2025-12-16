@@ -158,6 +158,4 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     );
 }
 
-WorkspaceCompanyCardFeedSelectorPage.displayName = 'WorkspaceCompanyCardFeedSelectorPage';
-
 export default WorkspaceCompanyCardFeedSelectorPage;

@@ -75,6 +75,4 @@ function ReviewReimbursable() {
     );
 }
 
-ReviewReimbursable.displayName = 'ReviewReimbursable';
-
 export default ReviewReimbursable;

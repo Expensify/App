@@ -128,6 +128,4 @@ function PhoneNumberPage() {
     );
 }
 
-PhoneNumberPage.displayName = 'PhoneNumberPage';
-
 export default PhoneNumberPage;

@@ -290,6 +290,4 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     );
 }
 
-WorkspaceInvoiceVBASection.displayName = 'WorkspaceInvoiceVBASection';
-
 export default WorkspaceInvoiceVBASection;

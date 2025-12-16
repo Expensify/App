@@ -76,6 +76,4 @@ function ReviewBillable() {
     );
 }
 
-ReviewBillable.displayName = 'ReviewBillable';
-
 export default ReviewBillable;

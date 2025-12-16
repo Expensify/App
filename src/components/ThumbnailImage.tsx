@@ -180,5 +180,4 @@ function ThumbnailImage({
     );
 }
 
-ThumbnailImage.displayName = 'ThumbnailImage';
 export default React.memo(ThumbnailImage);

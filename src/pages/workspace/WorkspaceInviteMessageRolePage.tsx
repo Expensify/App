@@ -55,5 +55,4 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
     );
 }
 
-WorkspaceInviteMessageRolePage.displayName = 'WorkspaceInviteMessageRolePage';
 export default withPolicyAndFullscreenLoading(WorkspaceInviteMessageRolePage);

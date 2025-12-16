@@ -242,6 +242,4 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
     );
 }
 
-AdditionalDetailsStep.displayName = 'AdditionalDetailsStep';
-
 export default withCurrentUserPersonalDetails(AdditionalDetailsStep);

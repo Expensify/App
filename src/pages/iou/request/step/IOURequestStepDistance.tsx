@@ -624,8 +624,6 @@ function IOURequestStepDistance({
     );
 }
 
-IOURequestStepDistance.displayName = 'IOURequestStepDistance';
-
 const IOURequestStepDistanceWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistance);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceWithCurrentUserPersonalDetails, true);

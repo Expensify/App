@@ -79,6 +79,4 @@ function SageIntacctImportTaxPage({route}: SageIntacctImportTaxPageProps) {
     );
 }
 
-SageIntacctImportTaxPage.displayName = 'SageIntacctImportTaxPage';
-
 export default SageIntacctImportTaxPage;

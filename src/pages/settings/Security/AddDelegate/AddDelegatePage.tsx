@@ -126,6 +126,4 @@ function AddDelegatePage() {
     );
 }
 
-AddDelegatePage.displayName = 'AddDelegatePage';
-
 export default AddDelegatePage;

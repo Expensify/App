@@ -179,6 +179,4 @@ function AboutPage() {
     );
 }
 
-AboutPage.displayName = 'AboutPage';
-
 export default AboutPage;

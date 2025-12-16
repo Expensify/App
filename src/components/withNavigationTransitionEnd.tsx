@@ -30,8 +30,6 @@ export default function <TProps>(WrappedComponent: ComponentType<TProps>): React
         );
     }
 
-    WithNavigationTransitionEnd.displayName = `WithNavigationTransitionEnd(${getComponentDisplayName(WrappedComponent)})`;
-
     return WithNavigationTransitionEnd;
 }
 

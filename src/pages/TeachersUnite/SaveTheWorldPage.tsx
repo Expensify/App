@@ -87,6 +87,4 @@ function SaveTheWorldPage() {
     );
 }
 
-SaveTheWorldPage.displayName = 'SettingSecurityPage';
-
 export default SaveTheWorldPage;

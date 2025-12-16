@@ -100,6 +100,4 @@ function ReportCardLostConfirmMagicCodePage({
     );
 }
 
-ReportCardLostConfirmMagicCodePage.displayName = 'ReportCardLostConfirmMagicCodePage';
-
 export default ReportCardLostConfirmMagicCodePage;

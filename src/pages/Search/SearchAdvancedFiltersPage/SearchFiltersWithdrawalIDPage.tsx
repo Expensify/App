@@ -13,6 +13,4 @@ function SearchFiltersWithdrawalIDPage() {
     );
 }
 
-SearchFiltersWithdrawalIDPage.displayName = 'SearchFiltersWithdrawalIDPage';
-
 export default SearchFiltersWithdrawalIDPage;

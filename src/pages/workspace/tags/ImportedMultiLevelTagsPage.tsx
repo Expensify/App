@@ -77,6 +77,4 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
     );
 }
 
-ImportedMultiLevelTagsPage.displayName = 'ImportedMultiLevelTagsPage';
-
 export default ImportedMultiLevelTagsPage;

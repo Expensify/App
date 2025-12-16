@@ -273,6 +273,4 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     );
 }
 
-ImportTagsOptionsPage.displayName = 'ImportTagsOptionsPage';
-
 export default ImportTagsOptionsPage;

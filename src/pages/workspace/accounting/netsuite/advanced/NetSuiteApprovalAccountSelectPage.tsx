@@ -92,6 +92,4 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
     );
 }
 
-NetSuiteApprovalAccountSelectPage.displayName = 'NetSuiteApprovalAccountSelectPage';
-
 export default withPolicyConnections(NetSuiteApprovalAccountSelectPage);

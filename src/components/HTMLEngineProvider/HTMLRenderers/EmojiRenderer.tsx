@@ -26,6 +26,4 @@ function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TP
     );
 }
 
-EmojiRenderer.displayName = 'EmojiRenderer';
-
 export default EmojiRenderer;

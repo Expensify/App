@@ -105,6 +105,4 @@ function DebugTransactionViolationPage({
     );
 }
 
-DebugTransactionViolationPage.displayName = 'DebugTransactionViolationPage';
-
 export default DebugTransactionViolationPage;

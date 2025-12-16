@@ -262,6 +262,5 @@ function SearchTableHeader({
     );
 }
 
-SearchTableHeader.displayName = 'SearchTableHeader';
 export {getExpenseHeaders};
 export default SearchTableHeader;

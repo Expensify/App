@@ -101,6 +101,4 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-XeroBankAccountSelectPage.displayName = 'XeroBankAccountSelectPage';
-
 export default withPolicyConnections(XeroBankAccountSelectPage);

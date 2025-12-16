@@ -95,6 +95,4 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
     );
 }
 
-SageIntacctMappingsTypePage.displayName = 'SageIntacctMappingsTypePage';
-
 export default SageIntacctMappingsTypePage;

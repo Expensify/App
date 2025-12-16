@@ -74,6 +74,4 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
     );
 }
 
-TravelUpgrade.displayName = 'TravelUpgrade';
-
 export default TravelUpgrade;

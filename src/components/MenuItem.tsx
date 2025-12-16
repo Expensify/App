@@ -1038,7 +1038,5 @@ function MenuItem({
     );
 }
 
-MenuItem.displayName = 'MenuItem';
-
 export type {MenuItemBaseProps, MenuItemProps};
 export default MenuItem;

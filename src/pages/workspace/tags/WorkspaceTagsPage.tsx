@@ -808,6 +808,4 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     );
 }
 
-WorkspaceTagsPage.displayName = 'WorkspaceTagsPage';
-
 export default WorkspaceTagsPage;

@@ -103,6 +103,4 @@ function AppDownloadLinksPage() {
     );
 }
 
-AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';
-
 export default AppDownloadLinksPage;

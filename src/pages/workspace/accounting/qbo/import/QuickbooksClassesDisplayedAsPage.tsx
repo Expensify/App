@@ -80,6 +80,4 @@ function QuickbooksClassesDisplayedAsPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksClassesDisplayedAsPage.displayName = 'QuickbooksClassesDisplayedAsPage';
-
 export default withPolicyConnections(QuickbooksClassesDisplayedAsPage);

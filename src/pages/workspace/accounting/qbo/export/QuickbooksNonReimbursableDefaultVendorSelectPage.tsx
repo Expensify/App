@@ -86,6 +86,4 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
     );
 }
 
-QuickbooksNonReimbursableDefaultVendorSelectPage.displayName = 'QuickbooksNonReimbursableDefaultVendorSelectPage';
-
 export default withPolicyConnections(QuickbooksNonReimbursableDefaultVendorSelectPage);

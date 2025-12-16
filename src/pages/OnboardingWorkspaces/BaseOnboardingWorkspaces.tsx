@@ -181,6 +181,4 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     );
 }
 
-BaseOnboardingWorkspaces.displayName = 'BaseOnboardingWorkspaces';
-
 export default BaseOnboardingWorkspaces;

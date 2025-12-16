@@ -184,6 +184,4 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
     );
 }
 
-WorkspaceCompanyCardStatementCloseDateSelectionList.displayName = 'WorkspaceCompanyCardStatementCloseDateSelectionList';
-
 export default WorkspaceCompanyCardStatementCloseDateSelectionList;

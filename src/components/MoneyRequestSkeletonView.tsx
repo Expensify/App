@@ -39,5 +39,4 @@ function MoneyRequestSkeletonView() {
     );
 }
 
-MoneyRequestSkeletonView.displayName = 'MoneyRequestSkeletonView';
 export default MoneyRequestSkeletonView;

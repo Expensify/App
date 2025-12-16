@@ -182,6 +182,4 @@ function NewChatConfirmPage() {
     );
 }
 
-NewChatConfirmPage.displayName = 'NewChatConfirmPage';
-
 export default NewChatConfirmPage;

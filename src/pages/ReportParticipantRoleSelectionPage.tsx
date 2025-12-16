@@ -76,6 +76,4 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     );
 }
 
-ReportParticipantRoleSelectionPage.displayName = 'ReportParticipantRoleSelectionPage';
-
 export default withReportOrNotFound()(ReportParticipantRoleSelectionPage);

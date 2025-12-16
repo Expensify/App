@@ -279,5 +279,4 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     );
 }
 
-EmojiPicker.displayName = 'EmojiPicker';
 export default withViewportOffsetTop(EmojiPicker);

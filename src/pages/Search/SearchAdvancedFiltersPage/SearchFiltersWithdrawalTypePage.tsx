@@ -85,6 +85,4 @@ function SearchFiltersWithdrawalTypePage() {
     );
 }
 
-SearchFiltersWithdrawalTypePage.displayName = 'SearchFiltersWithdrawalTypePage';
-
 export default SearchFiltersWithdrawalTypePage;

@@ -42,6 +42,4 @@ function TabIcon({icon, activeOpacity = 0, inactiveOpacity = 1}: TabIconProps) {
     );
 }
 
-TabIcon.displayName = 'TabIcon';
-
 export default TabIcon;

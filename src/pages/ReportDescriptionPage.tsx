@@ -22,6 +22,4 @@ function ReportDescriptionPage(props: ReportDescriptionPageProps) {
     return <RoomDescriptionPage {...props} />;
 }
 
-ReportDescriptionPage.displayName = 'ReportDescriptionPage';
-
 export default withReportOrNotFound()(ReportDescriptionPage);

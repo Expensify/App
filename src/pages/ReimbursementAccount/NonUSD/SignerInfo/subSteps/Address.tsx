@@ -95,6 +95,4 @@ function Address({onNext, isEditing, onMove}: NameProps) {
     );
 }
 
-Address.displayName = 'Address';
-
 export default Address;

@@ -100,6 +100,4 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-QuickbooksAccountSelectPage.displayName = 'QuickbooksAccountSelectPage';
-
 export default withPolicyConnections(QuickbooksAccountSelectPage);

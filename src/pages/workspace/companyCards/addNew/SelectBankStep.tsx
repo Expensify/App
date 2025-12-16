@@ -139,6 +139,4 @@ function SelectBankStep() {
     );
 }
 
-SelectBankStep.displayName = 'SelectBankStep';
-
 export default SelectBankStep;

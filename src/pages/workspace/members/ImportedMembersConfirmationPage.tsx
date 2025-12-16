@@ -221,6 +221,4 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     );
 }
 
-ImportedMembersConfirmationPage.displayName = 'ImportedMembersConfirmationPage';
-
 export default ImportedMembersConfirmationPage;

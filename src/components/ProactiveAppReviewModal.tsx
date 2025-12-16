@@ -72,6 +72,4 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
     );
 }
 
-ProactiveAppReviewModal.displayName = 'ProactiveAppReviewModal';
-
 export default ProactiveAppReviewModal;

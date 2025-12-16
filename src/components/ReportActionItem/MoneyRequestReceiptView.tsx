@@ -377,6 +377,4 @@ function MoneyRequestReceiptView({
     );
 }
 
-MoneyRequestReceiptView.displayName = 'MoneyRequestReceiptView';
-
 export default MoneyRequestReceiptView;

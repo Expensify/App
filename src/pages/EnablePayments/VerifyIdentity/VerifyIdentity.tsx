@@ -103,6 +103,4 @@ function VerifyIdentity() {
     );
 }
 
-VerifyIdentity.displayName = 'VerifyIdentity';
-
 export default VerifyIdentity;

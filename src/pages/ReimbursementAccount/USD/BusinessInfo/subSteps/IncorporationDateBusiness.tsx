@@ -78,6 +78,4 @@ function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
     );
 }
 
-IncorporationDateBusiness.displayName = 'IncorporationDateBusiness';
-
 export default IncorporationDateBusiness;

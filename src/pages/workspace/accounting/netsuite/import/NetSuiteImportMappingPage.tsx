@@ -116,6 +116,4 @@ function NetSuiteImportMappingPage({
     );
 }
 
-NetSuiteImportMappingPage.displayName = 'NetSuiteImportMappingPage';
-
 export default withPolicyConnections(NetSuiteImportMappingPage);

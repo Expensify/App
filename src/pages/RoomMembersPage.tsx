@@ -459,6 +459,4 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     );
 }
 
-RoomMembersPage.displayName = 'RoomMembersPage';
-
 export default withReportOrNotFound()(withCurrentUserPersonalDetails(RoomMembersPage));

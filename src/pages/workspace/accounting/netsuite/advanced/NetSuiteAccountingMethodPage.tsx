@@ -84,6 +84,4 @@ function NetSuiteAccountingMethodPage({policy, route}: WithPolicyConnectionsProp
     );
 }
 
-NetSuiteAccountingMethodPage.displayName = 'NetSuiteExpenseReportApprovalLevelSelectPage';
-
 export default withPolicyConnections(NetSuiteAccountingMethodPage);

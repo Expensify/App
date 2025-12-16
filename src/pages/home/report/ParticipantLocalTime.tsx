@@ -65,6 +65,4 @@ function ParticipantLocalTime({participant}: ParticipantLocalTimeProps) {
     );
 }
 
-ParticipantLocalTime.displayName = 'ParticipantLocalTime';
-
 export default ParticipantLocalTime;

@@ -149,5 +149,4 @@ function EmptyStateComponent({
     );
 }
 
-EmptyStateComponent.displayName = 'EmptyStateComponent';
 export default EmptyStateComponent;

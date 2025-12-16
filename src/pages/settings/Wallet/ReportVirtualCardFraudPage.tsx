@@ -74,6 +74,4 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
     );
 }
 
-ReportVirtualCardFraudPage.displayName = 'ReportVirtualCardFraudPage';
-
 export default ReportVirtualCardFraudPage;

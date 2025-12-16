@@ -136,6 +136,4 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
     );
 }
 
-NetSuiteInvoiceItemPreferenceSelectPage.displayName = 'NetSuiteInvoiceItemPreferenceSelectPage';
-
 export default withPolicyConnections(NetSuiteInvoiceItemPreferenceSelectPage);

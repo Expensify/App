@@ -63,6 +63,4 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
     );
 }
 
-ImportedFromAccountingSoftware.displayName = 'ImportedFromAccountingSoftware';
-
 export default ImportedFromAccountingSoftware;

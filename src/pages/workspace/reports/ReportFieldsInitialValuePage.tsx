@@ -158,6 +158,4 @@ function ReportFieldsInitialValuePage({
     );
 }
 
-ReportFieldsInitialValuePage.displayName = 'ReportFieldsInitialValuePage';
-
 export default withPolicyAndFullscreenLoading(ReportFieldsInitialValuePage);

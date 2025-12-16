@@ -257,6 +257,4 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     );
 }
 
-UploadDocuments.displayName = 'UploadDocuments';
-
 export default UploadDocuments;

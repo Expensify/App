@@ -181,6 +181,4 @@ function IOURequestStepMerchant({
     );
 }
 
-IOURequestStepMerchant.displayName = 'IOURequestStepMerchant';
-
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepMerchant));

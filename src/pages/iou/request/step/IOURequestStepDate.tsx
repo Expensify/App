@@ -150,8 +150,6 @@ function IOURequestStepDate({
     );
 }
 
-IOURequestStepDate.displayName = 'IOURequestStepDate';
-
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDate);
 // eslint-disable-next-line rulesdir/no-negated-variables

@@ -64,6 +64,4 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     );
 }
 
-RejectReasonPage.displayName = 'RejectReasonPage';
-
 export default RejectReasonPage;

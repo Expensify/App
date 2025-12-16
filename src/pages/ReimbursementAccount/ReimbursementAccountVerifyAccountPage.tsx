@@ -21,6 +21,4 @@ function ReimbursementAccountVerifyAccountPage({route}: ReimbursementAccountVeri
     );
 }
 
-ReimbursementAccountVerifyAccountPage.displayName = 'ReimbursementAccountVerifyAccountPage';
-
 export default ReimbursementAccountVerifyAccountPage;

@@ -251,6 +251,4 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     );
 }
 
-DetailsReviewPage.displayName = 'DetailsReviewPage';
-
 export default DetailsReviewPage;

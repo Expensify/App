@@ -36,6 +36,4 @@ function SubscriptionBillingBanner({title, subtitle, rightIcon, icon, isError = 
     );
 }
 
-SubscriptionBillingBanner.displayName = 'SubscriptionBillingBanner';
-
 export default SubscriptionBillingBanner;

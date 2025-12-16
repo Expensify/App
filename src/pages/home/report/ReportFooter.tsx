@@ -262,8 +262,6 @@ function ReportFooter({
     );
 }
 
-ReportFooter.displayName = 'ReportFooter';
-
 export default memo(
     ReportFooter,
     (prevProps, nextProps) =>

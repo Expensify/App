@@ -12,6 +12,4 @@ function SearchFiltersPurchaseAmountPage() {
     );
 }
 
-SearchFiltersPurchaseAmountPage.displayName = 'SearchFiltersPurchaseAmountPage';
-
 export default SearchFiltersPurchaseAmountPage;

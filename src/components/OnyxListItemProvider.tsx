@@ -47,8 +47,6 @@ function OnyxListItemProvider(props: OnyxListItemProviderProps) {
     );
 }
 
-OnyxListItemProvider.displayName = 'OnyxListItemProvider';
-
 export default OnyxListItemProvider;
 
 export {

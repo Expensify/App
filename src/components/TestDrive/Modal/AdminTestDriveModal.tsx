@@ -49,6 +49,4 @@ function AdminTestDriveModal() {
     );
 }
 
-AdminTestDriveModal.displayName = 'AdminTestDriveModal';
-
 export default AdminTestDriveModal;

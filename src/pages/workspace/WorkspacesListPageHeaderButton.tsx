@@ -78,6 +78,4 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
     return null;
 }
 
-WorkspacesListPageHeaderButton.displayName = 'WorkspacesListPageHeaderButton';
-
 export default WorkspacesListPageHeaderButton;

@@ -183,6 +183,4 @@ function TextSelectorModal({
     );
 }
 
-TextSelectorModal.displayName = 'TextSelectorModal';
-
 export default TextSelectorModal;

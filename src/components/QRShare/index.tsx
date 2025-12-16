@@ -106,6 +106,4 @@ function QRShare({
     );
 }
 
-QRShare.displayName = 'QRShare';
-
 export default QRShare;

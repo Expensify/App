@@ -38,5 +38,4 @@ function SubscriptionPlanDowngradeBlocked({privateSubscription, formattedSubscri
     );
 }
 
-SubscriptionPlanDowngradeBlocked.displayName = 'SubscriptionPlanDowngradeBlocked';
 export default SubscriptionPlanDowngradeBlocked;

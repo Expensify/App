@@ -79,6 +79,4 @@ function BusinessInfo({onBackButtonPress, onSubmit, currency, country}: Business
     );
 }
 
-BusinessInfo.displayName = 'BusinessInfo';
-
 export default BusinessInfo;

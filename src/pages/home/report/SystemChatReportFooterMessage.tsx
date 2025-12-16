@@ -68,6 +68,4 @@ function SystemChatReportFooterMessage() {
     );
 }
 
-SystemChatReportFooterMessage.displayName = 'SystemChatReportFooterMessage';
-
 export default SystemChatReportFooterMessage;

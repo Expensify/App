@@ -210,6 +210,4 @@ function IOURequestStepTag({
     );
 }
 
-IOURequestStepTag.displayName = 'IOURequestStepTag';
-
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepTag));

@@ -134,6 +134,4 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
     );
 }
 
-BankInfo.displayName = 'BankInfo';
-
 export default BankInfo;

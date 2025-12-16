@@ -228,6 +228,4 @@ function ConsolePage() {
     );
 }
 
-ConsolePage.displayName = 'ConsolePage';
-
 export default ConsolePage;

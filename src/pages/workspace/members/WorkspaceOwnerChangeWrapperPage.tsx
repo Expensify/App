@@ -101,6 +101,4 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
     );
 }
 
-WorkspaceOwnerChangeWrapperPage.displayName = 'WorkspaceOwnerChangeWrapperPage';
-
 export default withPolicy(WorkspaceOwnerChangeWrapperPage);

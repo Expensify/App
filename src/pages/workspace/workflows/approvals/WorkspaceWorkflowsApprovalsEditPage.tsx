@@ -177,6 +177,4 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     );
 }
 
-WorkspaceWorkflowsApprovalsEditPage.displayName = 'WorkspaceWorkflowsApprovalsEditPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsEditPage);

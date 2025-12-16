@@ -18,6 +18,4 @@ function EmojiWithTooltip({emojiCode, style = {}, isMedium = false}: EmojiWithTo
     );
 }
 
-EmojiWithTooltip.displayName = 'EmojiWithTooltip';
-
 export default EmojiWithTooltip;

@@ -83,6 +83,4 @@ function DisablePage() {
     );
 }
 
-DisablePage.displayName = 'DisablePage';
-
 export default DisablePage;

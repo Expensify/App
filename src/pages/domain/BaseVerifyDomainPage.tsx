@@ -166,5 +166,4 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
     );
 }
 
-BaseVerifyDomainPage.displayName = 'BaseVerifyDomainPage';
 export default BaseVerifyDomainPage;

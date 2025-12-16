@@ -95,6 +95,4 @@ function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonS
     );
 }
 
-BaseMiniContextMenuItem.displayName = 'BaseMiniContextMenuItem';
-
 export default BaseMiniContextMenuItem;

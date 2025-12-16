@@ -150,6 +150,4 @@ function WorkspaceCreateTaxPage({
     );
 }
 
-WorkspaceCreateTaxPage.displayName = 'WorkspaceCreateTaxPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceCreateTaxPage);

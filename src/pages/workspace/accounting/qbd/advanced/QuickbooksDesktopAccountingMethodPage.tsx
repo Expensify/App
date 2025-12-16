@@ -83,6 +83,4 @@ function QuickbooksDesktopAccountingMethodPage({policy}: WithPolicyConnectionsPr
     );
 }
 
-QuickbooksDesktopAccountingMethodPage.displayName = 'QuickbooksDesktopAccountingMethodPage';
-
 export default withPolicyConnections(QuickbooksDesktopAccountingMethodPage);

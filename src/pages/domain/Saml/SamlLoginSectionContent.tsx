@@ -116,6 +116,4 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
     );
 }
 
-SamlLoginSectionContent.displayName = 'SamlLoginSectionContent';
-
 export default SamlLoginSectionContent;

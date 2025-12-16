@@ -77,6 +77,4 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
     );
 }
 
-RulesRandomReportAuditPage.displayName = 'RulesRandomReportAuditPage';
-
 export default RulesRandomReportAuditPage;

@@ -113,5 +113,4 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     }
 }
 
-AssignCardFeedPage.displayName = 'AssignCardFeedPage';
 export default withPolicyAndFullscreenLoading(AssignCardFeedPage);

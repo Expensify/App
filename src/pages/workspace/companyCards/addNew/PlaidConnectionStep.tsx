@@ -221,6 +221,4 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
     );
 }
 
-PlaidConnectionStep.displayName = 'PlaidConnectionStep';
-
 export default PlaidConnectionStep;

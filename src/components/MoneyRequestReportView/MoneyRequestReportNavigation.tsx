@@ -143,6 +143,4 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     );
 }
 
-MoneyRequestReportNavigation.displayName = 'MoneyRequestReportNavigation';
-
 export default MoneyRequestReportNavigation;

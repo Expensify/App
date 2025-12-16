@@ -121,6 +121,4 @@ function SubscriptionSettings() {
     );
 }
 
-SubscriptionSettings.displayName = 'SubscriptionSettings';
-
 export default SubscriptionSettings;

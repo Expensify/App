@@ -471,6 +471,4 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     );
 }
 
-ReportParticipantsPage.displayName = 'ReportParticipantsPage';
-
 export default withReportOrNotFound()(ReportParticipantsPage);

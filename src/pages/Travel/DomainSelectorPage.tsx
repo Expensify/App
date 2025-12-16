@@ -106,6 +106,4 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
     );
 }
 
-DomainSelectorPage.displayName = 'DomainSelectorPage';
-
 export default DomainSelectorPage;

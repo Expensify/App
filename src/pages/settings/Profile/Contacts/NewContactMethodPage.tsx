@@ -131,6 +131,4 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     );
 }
 
-NewContactMethodPage.displayName = 'NewContactMethodPage';
-
 export default NewContactMethodPage;

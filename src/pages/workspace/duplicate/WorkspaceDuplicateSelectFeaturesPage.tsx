@@ -28,6 +28,4 @@ function WorkspaceDuplicateSelectFeaturesPage() {
     );
 }
 
-WorkspaceDuplicateSelectFeaturesPage.displayName = 'WorkspaceDuplicateSelectFeaturesPage';
-
 export default WorkspaceDuplicateSelectFeaturesPage;

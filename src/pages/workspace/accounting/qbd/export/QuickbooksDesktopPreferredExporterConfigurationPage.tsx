@@ -115,6 +115,4 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
     );
 }
 
-QuickbooksDesktopPreferredExporterConfigurationPage.displayName = 'QuickbooksDesktopPreferredExporterConfigurationPage';
-
 export default withPolicyConnections(QuickbooksDesktopPreferredExporterConfigurationPage);

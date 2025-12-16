@@ -51,6 +51,4 @@ function SearchAdvancedFiltersPage() {
     );
 }
 
-SearchAdvancedFiltersPage.displayName = 'SearchAdvancedFiltersPage';
-
 export default SearchAdvancedFiltersPage;

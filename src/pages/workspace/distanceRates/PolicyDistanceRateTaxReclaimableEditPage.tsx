@@ -106,6 +106,4 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
     );
 }
 
-PolicyDistanceRateTaxReclaimableEditPage.displayName = 'PolicyDistanceRateTaxReclaimableEditPage';
-
 export default withPolicy(PolicyDistanceRateTaxReclaimableEditPage);

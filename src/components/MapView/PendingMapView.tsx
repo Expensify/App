@@ -39,6 +39,4 @@ function PendingMapView({title = '', subtitle = '', style, isSmallerIcon = false
     );
 }
 
-PendingMapView.displayName = 'PendingMapView';
-
 export default PendingMapView;

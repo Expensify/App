@@ -115,6 +115,4 @@ function CurrencySelectionList({
     );
 }
 
-CurrencySelectionList.displayName = 'CurrencySelectionList';
-
 export default CurrencySelectionList;

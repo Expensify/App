@@ -156,8 +156,6 @@ function IOURequestStepDistanceRate({
     );
 }
 
-IOURequestStepDistanceRate.displayName = 'IOURequestStepDistanceRate';
-
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceRateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceRate);
 // eslint-disable-next-line rulesdir/no-negated-variables

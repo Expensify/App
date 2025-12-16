@@ -44,7 +44,5 @@ function LockedAccountModalProvider({children}: React.PropsWithChildren) {
     );
 }
 
-LockedAccountModalProvider.displayName = 'LockedAccountModal';
-
 export default LockedAccountModalProvider;
 export {LockedAccountContext};

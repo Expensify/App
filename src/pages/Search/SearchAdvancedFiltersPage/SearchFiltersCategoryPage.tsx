@@ -101,6 +101,4 @@ function SearchFiltersCategoryPage() {
     );
 }
 
-SearchFiltersCategoryPage.displayName = 'SearchFiltersCategoryPage';
-
 export default SearchFiltersCategoryPage;

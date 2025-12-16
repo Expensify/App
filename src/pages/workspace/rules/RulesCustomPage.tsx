@@ -85,6 +85,4 @@ function RulesCustomPage({
     );
 }
 
-RulesCustomPage.displayName = 'RulesCustomPage';
-
 export default RulesCustomPage;

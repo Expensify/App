@@ -115,6 +115,4 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
     );
 }
 
-AddressPage.displayName = 'AddressPage';
-
 export default AddressPage;

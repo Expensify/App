@@ -706,8 +706,6 @@ function AuthScreens() {
     );
 }
 
-AuthScreens.displayName = 'AuthScreens';
-
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 
 export default AuthScreensMemoized;

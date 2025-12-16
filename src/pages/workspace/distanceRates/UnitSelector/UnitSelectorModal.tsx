@@ -55,6 +55,4 @@ function UnitSelectorModal({isVisible, currentUnit, onUnitSelected, onClose, lab
     );
 }
 
-UnitSelectorModal.displayName = 'UnitSelectorModal';
-
 export default UnitSelectorModal;

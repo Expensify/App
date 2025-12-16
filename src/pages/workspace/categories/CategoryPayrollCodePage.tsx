@@ -113,6 +113,4 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
     );
 }
 
-CategoryPayrollCodePage.displayName = 'CategoryPayrollCodePage';
-
 export default CategoryPayrollCodePage;

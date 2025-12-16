@@ -57,5 +57,4 @@ function NetSuiteCustomFieldMappingPicker({value, errorText, onInputChange}: Net
     );
 }
 
-NetSuiteCustomFieldMappingPicker.displayName = 'NetSuiteCustomFieldMappingPicker';
 export default NetSuiteCustomFieldMappingPicker;

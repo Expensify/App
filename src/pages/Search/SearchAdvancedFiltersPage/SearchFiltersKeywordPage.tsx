@@ -13,6 +13,4 @@ function SearchFiltersKeywordPage() {
     );
 }
 
-SearchFiltersKeywordPage.displayName = 'SearchFiltersKeywordPage';
-
 export default SearchFiltersKeywordPage;

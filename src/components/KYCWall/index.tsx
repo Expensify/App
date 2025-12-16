@@ -13,6 +13,4 @@ function KYCWall({ref, ...props}: KYCWallProps) {
     );
 }
 
-KYCWall.displayName = 'KYCWall';
-
 export default KYCWall;

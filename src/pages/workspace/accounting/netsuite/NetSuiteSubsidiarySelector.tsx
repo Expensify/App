@@ -103,6 +103,4 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-NetSuiteSubsidiarySelector.displayName = 'NetSuiteSubsidiarySelector';
-
 export default withPolicyConnections(NetSuiteSubsidiarySelector);

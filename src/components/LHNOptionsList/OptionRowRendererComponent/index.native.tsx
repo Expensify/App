@@ -27,6 +27,4 @@ function OptionRowRendererComponent({ref, ...props}: OptionRowRendererComponentP
     );
 }
 
-OptionRowRendererComponent.displayName = 'OptionRowRendererComponent';
-
 export default OptionRowRendererComponent;

@@ -100,8 +100,6 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         );
     }
 
-    WithWritableReportOrNotFound.displayName = `withWritableReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
-
     return WithWritableReportOrNotFound;
 }
 

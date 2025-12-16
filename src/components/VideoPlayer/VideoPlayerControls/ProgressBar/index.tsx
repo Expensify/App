@@ -89,6 +89,4 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
     );
 }
 
-ProgressBar.displayName = 'ProgressBar';
-
 export default ProgressBar;

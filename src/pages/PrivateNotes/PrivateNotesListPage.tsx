@@ -106,6 +106,4 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
     );
 }
 
-PrivateNotesListPage.displayName = 'PrivateNotesListPage';
-
 export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(PrivateNotesListPage);

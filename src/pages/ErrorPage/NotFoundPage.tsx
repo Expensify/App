@@ -51,6 +51,4 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
     );
 }
 
-NotFoundPage.displayName = 'NotFoundPage';
-
 export default NotFoundPage;

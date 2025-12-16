@@ -178,6 +178,4 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     );
 }
 
-WorkspaceSettlementAccountPage.displayName = 'WorkspaceSettlementAccountPage';
-
 export default WorkspaceSettlementAccountPage;

@@ -242,6 +242,4 @@ function ScheduleCallPage() {
     );
 }
 
-ScheduleCallPage.displayName = 'ScheduleCallPage';
-
 export default ScheduleCallPage;

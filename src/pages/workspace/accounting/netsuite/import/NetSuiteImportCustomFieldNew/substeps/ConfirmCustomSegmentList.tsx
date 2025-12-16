@@ -60,5 +60,4 @@ function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFiel
     );
 }
 
-ConfirmCustomSegmentStep.displayName = 'ConfirmCustomSegmentStep';
 export default ConfirmCustomSegmentStep;

@@ -79,6 +79,4 @@ function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectio
     );
 }
 
-NetSuiteVendorBillApprovalLevelSelectPage.displayName = 'NetSuiteVendorBillApprovalLevelSelectPage';
-
 export default withPolicyConnections(NetSuiteVendorBillApprovalLevelSelectPage);

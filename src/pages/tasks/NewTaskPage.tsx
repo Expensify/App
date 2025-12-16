@@ -208,6 +208,4 @@ function NewTaskPage({route}: NewTaskPageProps) {
     );
 }
 
-NewTaskPage.displayName = 'NewTaskPage';
-
 export default NewTaskPage;

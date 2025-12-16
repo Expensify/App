@@ -466,6 +466,4 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     );
 }
 
-WorkspaceViewTagsPage.displayName = 'WorkspaceViewTagsPage';
-
 export default WorkspaceViewTagsPage;

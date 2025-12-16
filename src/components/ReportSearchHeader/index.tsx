@@ -37,6 +37,4 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
     );
 }
 
-ReportSearchHeader.displayName = 'ReportSearchHeader';
-
 export default ReportSearchHeader;

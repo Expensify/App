@@ -92,6 +92,4 @@ function RulesBillableDefaultPage({
     );
 }
 
-RulesBillableDefaultPage.displayName = 'RulesBillableDefaultPage';
-
 export default RulesBillableDefaultPage;

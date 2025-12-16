@@ -351,6 +351,5 @@ function AttachmentModalBaseContent({
         </GestureHandlerRootView>
     );
 }
-AttachmentModalBaseContent.displayName = 'AttachmentModalBaseContent';
 
 export default memo(AttachmentModalBaseContent);

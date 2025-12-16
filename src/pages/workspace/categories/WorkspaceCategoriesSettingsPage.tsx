@@ -162,6 +162,4 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     );
 }
 
-WorkspaceCategoriesSettingsPage.displayName = 'WorkspaceCategoriesSettingsPage';
-
 export default withPolicyConnections(WorkspaceCategoriesSettingsPage);

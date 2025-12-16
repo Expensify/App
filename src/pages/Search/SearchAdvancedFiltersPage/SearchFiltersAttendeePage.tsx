@@ -45,6 +45,4 @@ function SearchFiltersAttendeePage() {
     );
 }
 
-SearchFiltersAttendeePage.displayName = 'SearchFiltersAttendeePage';
-
 export default SearchFiltersAttendeePage;

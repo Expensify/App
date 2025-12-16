@@ -100,6 +100,4 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
     );
 }
 
-WorkspaceInvoicingDetailsWebsite.displayName = 'WorkspaceInvoicingDetailsWebsite';
-
 export default WorkspaceInvoicingDetailsWebsite;

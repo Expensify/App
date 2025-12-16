@@ -125,6 +125,4 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     );
 }
 
-SageIntacctToggleMappingsPage.displayName = 'SageIntacctToggleMappingsPage';
-
 export default SageIntacctToggleMappingsPage;

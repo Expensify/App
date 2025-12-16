@@ -93,6 +93,4 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     );
 }
 
-WorkspaceCardSettingsPage.displayName = 'WorkspaceCardSettingsPage';
-
 export default WorkspaceCardSettingsPage;

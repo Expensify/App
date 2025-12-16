@@ -486,8 +486,6 @@ function AddressSearch({
     );
 }
 
-AddressSearch.displayName = 'AddressSearchWithRef';
-
 export default AddressSearch;
 
 export type {AddressSearchProps};

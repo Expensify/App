@@ -69,6 +69,4 @@ function TrackExpensePage() {
     );
 }
 
-TrackExpensePage.displayName = 'TrackExpensePage';
-
 export default TrackExpensePage;

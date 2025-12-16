@@ -473,6 +473,4 @@ function SecuritySettingsPage() {
     );
 }
 
-SecuritySettingsPage.displayName = 'SettingSecurityPage';
-
 export default SecuritySettingsPage;

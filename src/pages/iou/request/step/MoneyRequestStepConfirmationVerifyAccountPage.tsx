@@ -15,6 +15,4 @@ function MoneyRequestStepConfirmationVerifyAccountPage({route}: MoneyRequestStep
     );
 }
 
-MoneyRequestStepConfirmationVerifyAccountPage.displayName = 'MoneyRequestStepConfirmationVerifyAccountPage';
-
 export default MoneyRequestStepConfirmationVerifyAccountPage;

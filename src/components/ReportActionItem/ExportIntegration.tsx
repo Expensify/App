@@ -43,6 +43,4 @@ function ExportIntegration({action}: ExportIntegrationProps) {
     );
 }
 
-ExportIntegration.displayName = 'ExportIntegration';
-
 export default ExportIntegration;

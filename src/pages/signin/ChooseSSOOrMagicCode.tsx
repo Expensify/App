@@ -84,6 +84,4 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
     );
 }
 
-ChooseSSOOrMagicCode.displayName = 'ChooseSSOOrMagicCode';
-
 export default ChooseSSOOrMagicCode;

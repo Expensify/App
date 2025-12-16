@@ -35,6 +35,4 @@ function SignInHeroImage() {
     );
 }
 
-SignInHeroImage.displayName = 'SignInHeroImage';
-
 export default SignInHeroImage;

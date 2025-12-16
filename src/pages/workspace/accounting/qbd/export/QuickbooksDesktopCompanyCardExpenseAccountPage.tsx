@@ -147,6 +147,4 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     );
 }
 
-QuickbooksDesktopCompanyCardExpenseAccountPage.displayName = 'QuickbooksDesktopCompanyCardExpenseAccountPage';
-
 export default withPolicyConnections(QuickbooksDesktopCompanyCardExpenseAccountPage);

@@ -61,6 +61,4 @@ function CurrencySelectionPage({route}: CurrencySelectionPageProps) {
     );
 }
 
-CurrencySelectionPage.displayName = 'CurrencySelectionPage';
-
 export default CurrencySelectionPage;

@@ -1117,9 +1117,7 @@ function Search({
     );
 }
 
-Search.displayName = 'Search';
-
 export type {SearchProps};
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
-WrappedSearch.displayName = 'Search';
+
 export default WrappedSearch;

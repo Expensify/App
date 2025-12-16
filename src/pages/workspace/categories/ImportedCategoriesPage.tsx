@@ -164,6 +164,4 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     );
 }
 
-ImportedCategoriesPage.displayName = 'ImportedCategoriesPage';
-
 export default ImportedCategoriesPage;

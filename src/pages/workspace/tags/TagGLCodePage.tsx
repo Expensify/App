@@ -114,6 +114,4 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
     );
 }
 
-TagGLCodePage.displayName = 'TagGLCodePage';
-
 export default TagGLCodePage;

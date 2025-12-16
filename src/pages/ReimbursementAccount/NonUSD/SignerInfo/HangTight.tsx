@@ -96,6 +96,4 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
     );
 }
 
-HangTight.displayName = 'HangTight';
-
 export default HangTight;

@@ -314,6 +314,4 @@ function VerifiedBankAccountFlowEntryPoint({
     );
 }
 
-VerifiedBankAccountFlowEntryPoint.displayName = 'VerifiedBankAccountFlowEntryPoint';
-
 export default VerifiedBankAccountFlowEntryPoint;

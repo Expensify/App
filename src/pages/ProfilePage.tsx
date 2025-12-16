@@ -303,6 +303,4 @@ function ProfilePage({route}: ProfilePageProps) {
     );
 }
 
-ProfilePage.displayName = 'ProfilePage';
-
 export default ProfilePage;

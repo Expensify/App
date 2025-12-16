@@ -76,6 +76,4 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
     );
 }
 
-WorkspaceInvoicingDetailsName.displayName = 'WorkspaceInvoicingDetailsName';
-
 export default WorkspaceInvoicingDetailsName;

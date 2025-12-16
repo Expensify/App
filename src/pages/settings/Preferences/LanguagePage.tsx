@@ -60,6 +60,4 @@ function LanguagePage() {
     );
 }
 
-LanguagePage.displayName = 'LanguagePage';
-
 export default LanguagePage;

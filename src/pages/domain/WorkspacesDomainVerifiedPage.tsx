@@ -18,5 +18,4 @@ function WorkspacesDomainVerifiedPage({route}: WorkspacesDomainVerifiedPageProps
     );
 }
 
-WorkspacesDomainVerifiedPage.displayName = 'WorkspacesDomainVerifiedPage';
 export default WorkspacesDomainVerifiedPage;

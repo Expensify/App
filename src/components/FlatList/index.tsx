@@ -255,6 +255,4 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
     );
 }
 
-MVCPFlatList.displayName = 'MVCPFlatList';
-
 export default MVCPFlatList;

@@ -155,6 +155,4 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
     );
 }
 
-SageIntacctAdvancedPage.displayName = 'SageIntacctAdvancedPage';
-
 export default withPolicy(SageIntacctAdvancedPage);

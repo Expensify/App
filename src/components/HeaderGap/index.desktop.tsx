@@ -8,6 +8,4 @@ function HeaderGap({styles}: HeaderGapProps): HeaderGapReturnType {
     return <View style={[themeStyles.headerGap, styles]} />;
 }
 
-HeaderGap.displayName = 'HeaderGap';
-
 export default memo(HeaderGap);

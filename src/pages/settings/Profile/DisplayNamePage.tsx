@@ -126,6 +126,4 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
     );
 }
 
-DisplayNamePage.displayName = 'DisplayNamePage';
-
 export default withCurrentUserPersonalDetails(DisplayNamePage);

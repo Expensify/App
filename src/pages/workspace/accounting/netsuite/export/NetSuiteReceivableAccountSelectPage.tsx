@@ -86,6 +86,4 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
     );
 }
 
-NetSuiteReceivableAccountSelectPage.displayName = 'NetSuiteReceivableAccountSelectPage';
-
 export default withPolicyConnections(NetSuiteReceivableAccountSelectPage);

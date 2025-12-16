@@ -120,6 +120,4 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     );
 }
 
-BaseShareLogList.displayName = 'ShareLogPage';
-
 export default BaseShareLogList;

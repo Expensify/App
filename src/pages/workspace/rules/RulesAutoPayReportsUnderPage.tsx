@@ -93,6 +93,4 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
     );
 }
 
-RulesAutoPayReportsUnderPage.displayName = 'RulesAutoPayReportsUnderPage';
-
 export default RulesAutoPayReportsUnderPage;

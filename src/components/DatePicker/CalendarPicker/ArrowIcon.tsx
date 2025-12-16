@@ -30,6 +30,4 @@ function ArrowIcon({disabled = false, direction = CONST.DIRECTION.RIGHT}: ArrowI
     );
 }
 
-ArrowIcon.displayName = 'ArrowIcon';
-
 export default ArrowIcon;

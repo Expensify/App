@@ -231,6 +231,4 @@ function AccountDetailsPage() {
     );
 }
 
-AccountDetailsPage.displayName = 'AccountDetailsPage';
-
 export default AccountDetailsPage;

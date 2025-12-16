@@ -101,6 +101,4 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
     );
 }
 
-QuickbooksInvoiceAccountSelectPage.displayName = 'QuickbooksInvoiceAccountSelectPage';
-
 export default withPolicyConnections(QuickbooksInvoiceAccountSelectPage);

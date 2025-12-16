@@ -85,6 +85,4 @@ function SearchFiltersActionPage() {
     );
 }
 
-SearchFiltersActionPage.displayName = 'SearchFiltersActionPage';
-
 export default SearchFiltersActionPage;

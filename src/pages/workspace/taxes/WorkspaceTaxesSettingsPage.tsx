@@ -91,6 +91,4 @@ function WorkspaceTaxesSettingsPage({
     );
 }
 
-WorkspaceTaxesSettingsPage.displayName = 'WorkspaceTaxesSettingsPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesSettingsPage);

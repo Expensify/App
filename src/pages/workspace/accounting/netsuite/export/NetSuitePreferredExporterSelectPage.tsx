@@ -114,6 +114,4 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
     );
 }
 
-NetSuitePreferredExporterSelectPage.displayName = 'NetSuitePreferredExporterSelectPage';
-
 export default withPolicyConnections(NetSuitePreferredExporterSelectPage);

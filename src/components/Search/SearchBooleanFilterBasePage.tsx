@@ -97,6 +97,4 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
     );
 }
 
-SearchBooleanFilterBasePage.displayName = 'SearchBooleanFilterBasePage';
-
 export default SearchBooleanFilterBasePage;

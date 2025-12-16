@@ -518,6 +518,4 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
     );
 }
 
-NavigationTabBar.displayName = 'NavigationTabBar';
-
 export default memo(NavigationTabBar);

@@ -61,6 +61,4 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
     );
 }
 
-CategorySelectorModal.displayName = 'CategorySelectorModal';
-
 export default CategorySelectorModal;

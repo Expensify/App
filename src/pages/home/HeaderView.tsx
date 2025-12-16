@@ -432,6 +432,4 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     );
 }
 
-HeaderView.displayName = 'HeaderView';
-
 export default memo(HeaderView);

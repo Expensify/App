@@ -132,6 +132,5 @@ function AddPersonalBankAccountPage() {
         </ScreenWrapper>
     );
 }
-AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
 export default AddPersonalBankAccountPage;

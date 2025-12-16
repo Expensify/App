@@ -132,6 +132,4 @@ function ChooseTransferAccountPage() {
     );
 }
 
-ChooseTransferAccountPage.displayName = 'ChooseTransferAccountPage';
-
 export default ChooseTransferAccountPage;

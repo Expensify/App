@@ -59,6 +59,4 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
     );
 }
 
-TripSummaryPage.displayName = 'TripSummaryPage';
-
 export default TripSummaryPage;

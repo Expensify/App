@@ -360,6 +360,4 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     );
 }
 
-ContactMethodDetailsPage.displayName = 'ContactMethodDetailsPage';
-
 export default ContactMethodDetailsPage;

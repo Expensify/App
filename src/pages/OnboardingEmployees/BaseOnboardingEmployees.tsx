@@ -103,6 +103,4 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     );
 }
 
-BaseOnboardingEmployees.displayName = 'BaseOnboardingEmployees';
-
 export default BaseOnboardingEmployees;

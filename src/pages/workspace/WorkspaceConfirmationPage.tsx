@@ -60,6 +60,4 @@ function WorkspaceConfirmationPage() {
     );
 }
 
-WorkspaceConfirmationPage.displayName = 'WorkspaceConfirmationPage';
-
 export default WorkspaceConfirmationPage;

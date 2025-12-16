@@ -100,6 +100,4 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
     );
 }
 
-SearchMoneyRequestReportEmptyState.displayName = 'SearchMoneyRequestReportEmptyState';
-
 export default SearchMoneyRequestReportEmptyState;

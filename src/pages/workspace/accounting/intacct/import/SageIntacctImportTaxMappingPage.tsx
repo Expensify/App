@@ -73,6 +73,4 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
     );
 }
 
-SageIntacctImportTaxMappingPage.displayName = 'SageIntacctImportTaxMappingPage';
-
 export default SageIntacctImportTaxMappingPage;

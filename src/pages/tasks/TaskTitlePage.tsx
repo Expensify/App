@@ -136,8 +136,6 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
     );
 }
 
-TaskTitlePage.displayName = 'TaskTitlePage';
-
 const ComponentWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(TaskTitlePage);
 
 export default withReportOrNotFound()(ComponentWithCurrentUserPersonalDetails);

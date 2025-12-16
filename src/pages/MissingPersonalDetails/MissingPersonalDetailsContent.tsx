@@ -129,6 +129,4 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     );
 }
 
-MissingPersonalDetailsContent.displayName = 'MissingPersonalDetailsContent';
-
 export default MissingPersonalDetailsContent;

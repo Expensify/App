@@ -125,6 +125,4 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-XeroExportConfigurationPage.displayName = 'XeroExportConfigurationPage';
-
 export default withPolicyConnections(XeroExportConfigurationPage);

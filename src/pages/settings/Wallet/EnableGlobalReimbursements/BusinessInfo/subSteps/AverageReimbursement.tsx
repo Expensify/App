@@ -60,6 +60,4 @@ function AverageReimbursements({onNext, onMove, isEditing, currency}: AverageRei
     );
 }
 
-AverageReimbursements.displayName = 'AverageReimbursements';
-
 export default AverageReimbursements;

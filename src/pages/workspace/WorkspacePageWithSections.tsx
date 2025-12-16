@@ -249,6 +249,4 @@ function WorkspacePageWithSections({
     );
 }
 
-WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
-
 export default withPolicyAndFullscreenLoading(WorkspacePageWithSections);

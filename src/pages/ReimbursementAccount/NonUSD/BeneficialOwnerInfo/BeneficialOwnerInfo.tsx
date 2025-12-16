@@ -345,6 +345,4 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
     );
 }
 
-BeneficialOwnerInfo.displayName = 'BeneficialOwnerInfo';
-
 export default BeneficialOwnerInfo;

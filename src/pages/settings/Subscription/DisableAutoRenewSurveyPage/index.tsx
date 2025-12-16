@@ -43,6 +43,4 @@ function DisableAutoRenewSurveyPage() {
     );
 }
 
-DisableAutoRenewSurveyPage.displayName = 'DisableAutoRenewSurveyPage';
-
 export default DisableAutoRenewSurveyPage;

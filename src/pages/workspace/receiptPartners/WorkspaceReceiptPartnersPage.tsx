@@ -355,6 +355,4 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     );
 }
 
-WorkspaceReceiptPartnersPage.displayName = 'WorkspaceReceiptPartnersPage';
-
 export default WorkspaceReceiptPartnersPage;

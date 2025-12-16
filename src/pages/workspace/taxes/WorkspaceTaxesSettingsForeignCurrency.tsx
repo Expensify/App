@@ -70,6 +70,4 @@ function WorkspaceTaxesSettingsForeignCurrency({
     );
 }
 
-WorkspaceTaxesSettingsForeignCurrency.displayName = 'WorkspaceTaxesSettingsForeignCurrency';
-
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesSettingsForeignCurrency);

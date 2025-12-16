@@ -69,6 +69,4 @@ function SignInModal() {
     );
 }
 
-SignInModal.displayName = 'SignInModal';
-
 export default SignInModal;

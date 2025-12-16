@@ -54,6 +54,4 @@ function ChangeBillingCurrency() {
     );
 }
 
-ChangeBillingCurrency.displayName = 'ChangeBillingCurrency';
-
 export default ChangeBillingCurrency;

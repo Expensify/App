@@ -31,6 +31,4 @@ function RequestEarlyCancellationMenuItem() {
     );
 }
 
-RequestEarlyCancellationMenuItem.displayName = 'RequestEarlyCancellationMenuItem';
-
 export default RequestEarlyCancellationMenuItem;

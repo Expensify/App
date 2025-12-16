@@ -196,6 +196,4 @@ function TransactionListItem<TItem extends ListItem>({
     );
 }
 
-TransactionListItem.displayName = 'TransactionListItem';
-
 export default TransactionListItem;

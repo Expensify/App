@@ -459,6 +459,4 @@ function IOURequestStepParticipants({
     );
 }
 
-IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
-
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipants));

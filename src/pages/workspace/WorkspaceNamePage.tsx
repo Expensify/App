@@ -100,6 +100,4 @@ function WorkspaceNamePage({policy}: Props) {
     );
 }
 
-WorkspaceNamePage.displayName = 'WorkspaceNamePage';
-
 export default withPolicy(WorkspaceNamePage);

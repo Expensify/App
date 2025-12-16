@@ -78,6 +78,4 @@ function SentryDebugToolMenu() {
     );
 }
 
-SentryDebugToolMenu.displayName = 'SentryDebugToolMenu';
-
 export default SentryDebugToolMenu;

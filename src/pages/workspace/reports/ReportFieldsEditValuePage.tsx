@@ -103,6 +103,4 @@ function ReportFieldsEditValuePage({
     );
 }
 
-ReportFieldsEditValuePage.displayName = 'ReportFieldsEditValuePage';
-
 export default withPolicyAndFullscreenLoading(ReportFieldsEditValuePage);

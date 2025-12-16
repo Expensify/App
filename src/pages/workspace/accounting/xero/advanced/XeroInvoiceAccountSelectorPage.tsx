@@ -86,6 +86,4 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-XeroInvoiceAccountSelectorPage.displayName = 'XeroInvoiceAccountSelectorPage';
-
 export default withPolicyConnections(XeroInvoiceAccountSelectorPage);

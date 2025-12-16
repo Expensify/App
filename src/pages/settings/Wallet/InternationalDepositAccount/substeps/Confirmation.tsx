@@ -211,6 +211,4 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     );
 }
 
-Confirmation.displayName = 'Confirmation';
-
 export default Confirmation;

@@ -70,6 +70,4 @@ function ReportVirtualCardFraudConfirmationPage({
     );
 }
 
-ReportVirtualCardFraudConfirmationPage.displayName = 'ReportVirtualCardFraudConfirmationPage';
-
 export default ReportVirtualCardFraudConfirmationPage;

@@ -121,6 +121,4 @@ function ConnectedVerifiedBankAccount({
     );
 }
 
-ConnectedVerifiedBankAccount.displayName = 'ConnectedVerifiedBankAccount';
-
 export default ConnectedVerifiedBankAccount;

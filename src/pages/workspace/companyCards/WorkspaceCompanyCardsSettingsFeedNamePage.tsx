@@ -124,6 +124,4 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     );
 }
 
-WorkspaceCompanyCardsSettingsFeedNamePage.displayName = 'WorkspaceCompanyCardsSettingsFeedNamePage';
-
 export default WorkspaceCompanyCardsSettingsFeedNamePage;

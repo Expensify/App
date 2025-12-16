@@ -148,6 +148,4 @@ function SelectFeedType() {
     );
 }
 
-SelectFeedType.displayName = 'SelectFeedType';
-
 export default SelectFeedType;

@@ -159,6 +159,4 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
     );
 }
 
-BusinessInfo.displayName = 'BusinessInfo';
-
 export default BusinessInfo;

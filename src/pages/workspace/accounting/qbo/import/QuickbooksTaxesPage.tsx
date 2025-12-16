@@ -46,6 +46,4 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksTaxesPage.displayName = 'QuickbooksTaxesPage';
-
 export default withPolicyConnections(QuickbooksTaxesPage);

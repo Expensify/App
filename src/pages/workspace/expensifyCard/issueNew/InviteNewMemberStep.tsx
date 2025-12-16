@@ -97,6 +97,4 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: Invite
     );
 }
 
-InviteNewMemberStep.displayName = 'InviteNewMemberStep';
-
 export default withPolicyAndFullscreenLoading(withCurrentUserPersonalDetails(InviteNewMemberStep));

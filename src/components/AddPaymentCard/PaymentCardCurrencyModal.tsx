@@ -79,6 +79,4 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
     );
 }
 
-PaymentCardCurrencyModal.displayName = 'PaymentCardCurrencyModal';
-
 export default PaymentCardCurrencyModal;

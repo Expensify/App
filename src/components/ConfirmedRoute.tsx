@@ -127,6 +127,4 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
     );
 }
 
-ConfirmedRoute.displayName = 'ConfirmedRoute';
-
 export default ConfirmedRoute;

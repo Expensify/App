@@ -96,5 +96,4 @@ function DuplicateTransactionItem({transaction, index, allReports, policies, onP
     );
 }
 
-DuplicateTransactionItem.displayName = 'DuplicateTransactionItem';
 export default DuplicateTransactionItem;

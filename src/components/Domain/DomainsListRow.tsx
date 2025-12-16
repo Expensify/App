@@ -95,6 +95,4 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
     );
 }
 
-DomainsListRow.displayName = 'DomainsListRow';
-
 export default DomainsListRow;

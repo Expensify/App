@@ -318,6 +318,4 @@ function ProfileAvatar() {
     );
 }
 
-ProfileAvatar.displayName = 'ProfileAvatar';
-
 export default ProfileAvatar;

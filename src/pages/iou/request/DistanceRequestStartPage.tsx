@@ -228,6 +228,4 @@ function DistanceRequestStartPage({
     );
 }
 
-DistanceRequestStartPage.displayName = 'DistanceRequestStartPage';
-
 export default DistanceRequestStartPage;

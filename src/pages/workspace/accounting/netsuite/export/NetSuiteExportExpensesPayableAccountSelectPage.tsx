@@ -99,6 +99,4 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
     );
 }
 
-NetSuiteExportExpensesPayableAccountSelectPage.displayName = 'NetSuiteExportExpensesPayableAccountSelectPage';
-
 export default withPolicyConnections(NetSuiteExportExpensesPayableAccountSelectPage);

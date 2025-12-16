@@ -251,6 +251,4 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
     );
 }
 
-AssigneeStep.displayName = 'AssigneeStep';
-
 export default AssigneeStep;

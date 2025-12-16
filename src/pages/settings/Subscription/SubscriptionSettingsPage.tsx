@@ -77,6 +77,4 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     );
 }
 
-SubscriptionSettingsPage.displayName = 'SubscriptionSettingsPage';
-
 export default SubscriptionSettingsPage;

@@ -273,6 +273,4 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
     );
 }
 
-BeneficialOwnersStep.displayName = 'BeneficialOwnersStep';
-
 export default BeneficialOwnersStep;

@@ -999,8 +999,6 @@ function IOURequestStepScan({
     );
 }
 
-IOURequestStepScan.displayName = 'IOURequestStepScan';
-
 const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScan);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails, true);

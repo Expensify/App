@@ -280,6 +280,4 @@ function SubmitDetailsPage({
     );
 }
 
-SubmitDetailsPage.displayName = 'SubmitDetailsPage';
-
 export default SubmitDetailsPage;

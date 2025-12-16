@@ -46,6 +46,4 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
     );
 }
 
-SearchDatePresetFilterBasePage.displayName = 'SearchDatePresetFilterBasePage';
-
 export default SearchDatePresetFilterBasePage;

@@ -110,5 +110,4 @@ function AddDomainPage() {
     );
 }
 
-AddDomainPage.displayName = 'AddDomainPage';
 export default AddDomainPage;

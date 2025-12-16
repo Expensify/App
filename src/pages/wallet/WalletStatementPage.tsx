@@ -100,6 +100,4 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     );
 }
 
-WalletStatementPage.displayName = 'WalletStatementPage';
-
 export default WalletStatementPage;

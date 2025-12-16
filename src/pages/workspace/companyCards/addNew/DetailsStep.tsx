@@ -225,6 +225,4 @@ function DetailsStep() {
     );
 }
 
-DetailsStep.displayName = 'DetailsStep';
-
 export default DetailsStep;

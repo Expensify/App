@@ -62,6 +62,4 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
     );
 }
 
-SageIntacctEntityPage.displayName = 'SageIntacctEntityPage';
-
 export default withPolicy(SageIntacctEntityPage);

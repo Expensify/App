@@ -80,6 +80,4 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
     );
 }
 
-WorkspaceOwnerChangeErrorPage.displayName = 'WorkspaceOwnerChangeErrorPage';
-
 export default WorkspaceOwnerChangeErrorPage;

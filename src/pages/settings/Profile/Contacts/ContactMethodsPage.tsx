@@ -102,6 +102,4 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     );
 }
 
-ContactMethodsPage.displayName = 'ContactMethodsPage';
-
 export default ContactMethodsPage;

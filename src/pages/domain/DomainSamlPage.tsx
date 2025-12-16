@@ -159,6 +159,4 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     );
 }
 
-DomainSamlPage.displayName = 'DomainSamlPage';
-
 export default DomainSamlPage;

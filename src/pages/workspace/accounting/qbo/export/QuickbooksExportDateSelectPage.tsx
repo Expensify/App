@@ -77,6 +77,4 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-QuickbooksExportDateSelectPage.displayName = 'QuickbooksExportDateSelectPage';
-
 export default withPolicyConnections(QuickbooksExportDateSelectPage);

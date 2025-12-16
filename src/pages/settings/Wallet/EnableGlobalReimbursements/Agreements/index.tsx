@@ -47,6 +47,4 @@ function Agreements({onBackButtonPress, onSubmit, currency}: AgreementsProps) {
     );
 }
 
-Agreements.displayName = 'Agreements';
-
 export default Agreements;

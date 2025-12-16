@@ -39,6 +39,4 @@ function WorkspaceRestrictedActionPage({
     return <NotFoundPage />;
 }
 
-WorkspaceRestrictedActionPage.displayName = 'WorkspaceRestrictedActionPage';
-
 export default WorkspaceRestrictedActionPage;

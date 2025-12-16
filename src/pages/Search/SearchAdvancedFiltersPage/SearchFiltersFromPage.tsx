@@ -45,6 +45,4 @@ function SearchFiltersFromPage() {
     );
 }
 
-SearchFiltersFromPage.displayName = 'SearchFiltersFromPage';
-
 export default SearchFiltersFromPage;

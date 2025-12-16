@@ -48,6 +48,4 @@ function ValueSelectorModal({
     );
 }
 
-ValueSelectorModal.displayName = 'ValueSelectorModal';
-
 export default ValueSelectorModal;

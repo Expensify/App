@@ -305,6 +305,4 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     );
 }
 
-ButtonWithDropdownMenu.displayName = 'ButtonWithDropdownMenu';
-
 export default ButtonWithDropdownMenu;

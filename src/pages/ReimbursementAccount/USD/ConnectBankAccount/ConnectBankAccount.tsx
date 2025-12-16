@@ -91,6 +91,4 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     );
 }
 
-ConnectBankAccount.displayName = 'ConnectBankAccount';
-
 export default ConnectBankAccount;

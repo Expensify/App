@@ -33,6 +33,4 @@ function RedDotCardSection({title, description}: RedDotCardSectionProps) {
     );
 }
 
-RedDotCardSection.displayName = 'RedDotCardSection';
-
 export default RedDotCardSection;

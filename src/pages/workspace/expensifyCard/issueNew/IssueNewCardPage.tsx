@@ -148,5 +148,4 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     );
 }
 
-IssueNewCardPage.displayName = 'IssueNewCardPage';
 export default withPolicyAndFullscreenLoading(IssueNewCardPage);

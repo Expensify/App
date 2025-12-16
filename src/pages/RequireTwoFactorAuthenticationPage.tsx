@@ -79,6 +79,4 @@ function RequireTwoFactorAuthenticationPage() {
     );
 }
 
-RequireTwoFactorAuthenticationPage.displayName = 'RequireTwoFactorAuthenticationPage';
-
 export default RequireTwoFactorAuthenticationPage;

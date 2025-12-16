@@ -56,6 +56,4 @@ function InvertedFlatList<T>({
     );
 }
 
-InvertedFlatList.displayName = 'InvertedFlatListWithRef';
-
 export default InvertedFlatList;

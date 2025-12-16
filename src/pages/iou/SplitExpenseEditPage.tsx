@@ -283,6 +283,5 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         </ScreenWrapper>
     );
 }
-SplitExpenseEditPage.displayName = 'SplitExpenseEditPage';
 
 export default SplitExpenseEditPage;

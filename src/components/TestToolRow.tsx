@@ -23,6 +23,4 @@ function TestToolRow({title, children}: TestToolRowProps) {
     );
 }
 
-TestToolRow.displayName = 'TestToolRow';
-
 export default TestToolRow;

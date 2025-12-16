@@ -97,6 +97,4 @@ function EmojiReactionBubble({
     );
 }
 
-EmojiReactionBubble.displayName = 'EmojiReactionBubble';
-
 export default EmojiReactionBubble;

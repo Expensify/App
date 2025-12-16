@@ -115,6 +115,4 @@ function CreateDistanceRatePage({
     );
 }
 
-CreateDistanceRatePage.displayName = 'CreateDistanceRatePage';
-
 export default CreateDistanceRatePage;

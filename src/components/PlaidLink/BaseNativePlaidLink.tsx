@@ -33,6 +33,4 @@ function BaseNativePlaidLink({token, onSuccess = () => {}, onExit = () => {}, on
     return null;
 }
 
-BaseNativePlaidLink.displayName = 'BaseNativePlaidLink';
-
 export default BaseNativePlaidLink;

@@ -361,8 +361,6 @@ function SignInPageWrapper({ref}: SignInPageProps) {
     );
 }
 
-SignInPageWrapper.displayName = 'SignInPageWrapper';
-
 // WithTheme is a HOC that provides theme-related contexts (e.g. to the SignInPageWrapper component since these contexts are required for variable declarations).
 function WithTheme(Component: React.ComponentType<SignInPageProps>) {
     return ({ref}: SignInPageProps) => (

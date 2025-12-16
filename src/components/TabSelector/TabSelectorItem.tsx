@@ -167,6 +167,4 @@ function TabSelectorItem({
     );
 }
 
-TabSelectorItem.displayName = 'TabSelectorItem';
-
 export default TabSelectorItem;

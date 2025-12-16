@@ -119,6 +119,4 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     );
 }
 
-PerDiemEReceipt.displayName = 'PerDiemEReceipt';
-
 export default PerDiemEReceipt;

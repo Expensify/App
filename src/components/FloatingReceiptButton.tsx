@@ -72,6 +72,4 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role}: FloatingRece
     );
 }
 
-FloatingReceiptButton.displayName = 'FloatingReceiptButton';
-
 export default FloatingReceiptButton;

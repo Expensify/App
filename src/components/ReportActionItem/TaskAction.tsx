@@ -27,6 +27,4 @@ function TaskAction({action}: TaskActionProps) {
     );
 }
 
-TaskAction.displayName = 'TaskAction';
-
 export default TaskAction;

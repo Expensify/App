@@ -152,6 +152,4 @@ function ReportFieldsValueSettingsPage({
     );
 }
 
-ReportFieldsValueSettingsPage.displayName = 'ReportFieldsValueSettingsPage';
-
 export default withPolicyAndFullscreenLoading(ReportFieldsValueSettingsPage);

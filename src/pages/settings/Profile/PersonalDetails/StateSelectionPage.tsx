@@ -115,6 +115,4 @@ function StateSelectionPage() {
     );
 }
 
-StateSelectionPage.displayName = 'StateSelectionPage';
-
 export default StateSelectionPage;

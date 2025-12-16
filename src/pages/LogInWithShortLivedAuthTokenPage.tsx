@@ -69,6 +69,4 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
     return <SessionExpiredPage />;
 }
 
-LogInWithShortLivedAuthTokenPage.displayName = 'LogInWithShortLivedAuthTokenPage';
-
 export default LogInWithShortLivedAuthTokenPage;

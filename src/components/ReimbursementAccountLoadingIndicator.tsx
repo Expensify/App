@@ -46,6 +46,4 @@ function ReimbursementAccountLoadingIndicator({onBackButtonPress}: Reimbursement
     );
 }
 
-ReimbursementAccountLoadingIndicator.displayName = 'ReimbursementAccountLoadingIndicator';
-
 export default ReimbursementAccountLoadingIndicator;

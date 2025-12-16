@@ -145,6 +145,4 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     );
 }
 
-ReportAddApproverPage.displayName = 'ReportAddApproverPage';
-
 export default withReportOrNotFound()(ReportAddApproverPage);

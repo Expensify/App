@@ -58,6 +58,4 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
     );
 }
 
-WorkspaceOwnerChangeSuccessPage.displayName = 'WorkspaceOwnerChangeSuccessPage';
-
 export default WorkspaceOwnerChangeSuccessPage;

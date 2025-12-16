@@ -254,6 +254,4 @@ function MergeResultPage() {
     );
 }
 
-MergeResultPage.displayName = 'MergeResultPage';
-
 export default MergeResultPage;

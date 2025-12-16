@@ -84,6 +84,4 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
     );
 }
 
-WorkspaceWorkflowsConnectExistingBankAccountPage.displayName = 'WorkspaceWorkflowsConnectExistingBankAccountPage';
-
 export default WorkspaceWorkflowsConnectExistingBankAccountPage;

@@ -12,6 +12,4 @@ function SearchFiltersTotalPage() {
     );
 }
 
-SearchFiltersTotalPage.displayName = 'SearchFiltersTotalPage';
-
 export default SearchFiltersTotalPage;

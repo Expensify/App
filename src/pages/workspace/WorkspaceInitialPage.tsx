@@ -570,6 +570,4 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     );
 }
 
-WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceInitialPage);

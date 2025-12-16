@@ -196,6 +196,4 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     );
 }
 
-WorkspaceWorkflowsApprovalsApproverPage.displayName = 'WorkspaceWorkflowsApprovalsApproverPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsApproverPage);

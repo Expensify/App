@@ -142,6 +142,4 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     );
 }
 
-WorkspaceTagsSettingsPage.displayName = 'WorkspaceTagsSettingsPage';
-
 export default WorkspaceTagsSettingsPage;

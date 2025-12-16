@@ -143,8 +143,6 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     );
 }
 
-TaskDescriptionPage.displayName = 'TaskDescriptionPage';
-
 const ComponentWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(TaskDescriptionPage);
 
 export default withReportOrNotFound()(ComponentWithCurrentUserPersonalDetails);

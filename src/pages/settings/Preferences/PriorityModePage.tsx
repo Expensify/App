@@ -65,6 +65,4 @@ function PriorityModePage() {
     );
 }
 
-PriorityModePage.displayName = 'PriorityModePage';
-
 export default PriorityModePage;

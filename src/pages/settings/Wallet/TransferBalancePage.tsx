@@ -226,6 +226,4 @@ function TransferBalancePage() {
     );
 }
 
-TransferBalancePage.displayName = 'TransferBalancePage';
-
 export default TransferBalancePage;

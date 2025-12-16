@@ -562,6 +562,4 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     );
 }
 
-SearchRouter.displayName = 'SearchRouter';
-
 export default SearchRouter;

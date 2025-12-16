@@ -154,6 +154,4 @@ function SearchFiltersReportFieldPage() {
     );
 }
 
-SearchFiltersReportFieldPage.displayName = 'SearchFiltersReportFieldPage';
-
 export default SearchFiltersReportFieldPage;

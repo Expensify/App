@@ -810,6 +810,4 @@ function WorkspacesListPage() {
     );
 }
 
-WorkspacesListPage.displayName = 'WorkspacesListPage';
-
 export default WorkspacesListPage;

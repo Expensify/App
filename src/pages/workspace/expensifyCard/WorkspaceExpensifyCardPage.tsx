@@ -72,6 +72,4 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     );
 }
 
-WorkspaceExpensifyCardPage.displayName = 'WorkspaceExpensifyCardPage';
-
 export default WorkspaceExpensifyCardPage;

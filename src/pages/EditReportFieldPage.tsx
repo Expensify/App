@@ -184,6 +184,4 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     );
 }
 
-EditReportFieldPage.displayName = 'EditReportFieldPage';
-
 export default EditReportFieldPage;

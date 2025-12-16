@@ -290,6 +290,4 @@ function FormWrapper({
     );
 }
 
-FormWrapper.displayName = 'FormWrapper';
-
 export default FormWrapper;

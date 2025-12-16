@@ -107,6 +107,4 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
     );
 }
 
-BigNumberPad.displayName = 'BigNumberPad';
-
 export default BigNumberPad;

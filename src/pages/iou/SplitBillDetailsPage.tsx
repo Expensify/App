@@ -158,6 +158,4 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     );
 }
 
-SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
-
 export default withReportAndReportActionOrNotFound(SplitBillDetailsPage);

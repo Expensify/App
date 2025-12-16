@@ -54,6 +54,4 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps) {
     );
 }
 
-Onfido.displayName = 'Onfido';
-
 export default Onfido;

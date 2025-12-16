@@ -42,6 +42,4 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
     );
 }
 
-XeroTaxesConfigurationPage.displayName = 'XeroTaxesConfigurationPage';
-
 export default withPolicyConnections(XeroTaxesConfigurationPage);

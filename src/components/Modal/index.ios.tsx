@@ -21,5 +21,4 @@ function Modal({children, ...rest}: BaseModalProps) {
     );
 }
 
-Modal.displayName = 'Modal';
 export default Modal;

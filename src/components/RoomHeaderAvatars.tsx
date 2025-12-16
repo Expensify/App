@@ -157,6 +157,4 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
     );
 }
 
-RoomHeaderAvatars.displayName = 'RoomHeaderAvatars';
-
 export default memo(RoomHeaderAvatars);

@@ -104,6 +104,4 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
     );
 }
 
-EnterSignerInfo.displayName = 'EnterSignerInfo';
-
 export default EnterSignerInfo;

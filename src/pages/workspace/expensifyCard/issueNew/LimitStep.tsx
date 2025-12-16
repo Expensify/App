@@ -112,6 +112,4 @@ function LimitStep({policyID, stepNames, startStepIndex}: LimitStepProps) {
     );
 }
 
-LimitStep.displayName = 'LimitStep';
-
 export default LimitStep;

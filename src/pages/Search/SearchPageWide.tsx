@@ -151,6 +151,4 @@ function SearchPageWide({
     );
 }
 
-SearchPageWide.displayName = 'SearchPageWide';
-
 export default SearchPageWide;

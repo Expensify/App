@@ -71,6 +71,4 @@ function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnb
     );
 }
 
-BaseOnboardingWorkspaceCurrency.displayName = 'BaseOnboardingWorkspaceCurrency';
-
 export default BaseOnboardingWorkspaceCurrency;

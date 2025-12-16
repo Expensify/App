@@ -158,6 +158,4 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-NetSuiteExportExpensesPage.displayName = 'NetSuiteExportExpensesPage';
-
 export default withPolicyConnections(NetSuiteExportExpensesPage);

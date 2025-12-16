@@ -130,8 +130,6 @@ function IOURequestStepTaxRatePage({
     );
 }
 
-IOURequestStepTaxRatePage.displayName = 'IOURequestStepTaxRatePage';
-
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePage);
 // eslint-disable-next-line rulesdir/no-negated-variables

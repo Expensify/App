@@ -264,6 +264,4 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     );
 }
 
-InviteReceiptPartnerPolicyPage.displayName = 'InviteReceiptPartnerPolicyPage';
-
 export default InviteReceiptPartnerPolicyPage;

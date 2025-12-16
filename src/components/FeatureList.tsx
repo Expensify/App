@@ -136,7 +136,5 @@ function FeatureList({
     );
 }
 
-FeatureList.displayName = 'FeatureList';
-
 export default FeatureList;
 export type {FeatureListItem};

@@ -79,6 +79,4 @@ function SearchFiltersTagPage() {
     );
 }
 
-SearchFiltersTagPage.displayName = 'SearchFiltersTagPage';
-
 export default SearchFiltersTagPage;

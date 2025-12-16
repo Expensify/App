@@ -41,6 +41,4 @@ function PreTrialBillingBanner() {
     );
 }
 
-PreTrialBillingBanner.displayName = 'PreTrialBillingBanner';
-
 export default PreTrialBillingBanner;

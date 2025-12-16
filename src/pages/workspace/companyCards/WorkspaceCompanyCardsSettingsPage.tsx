@@ -170,6 +170,4 @@ function WorkspaceCompanyCardsSettingsPage({
     );
 }
 
-WorkspaceCompanyCardsSettingsPage.displayName = 'WorkspaceCompanyCardsSettingsPage';
-
 export default WorkspaceCompanyCardsSettingsPage;

@@ -231,6 +231,4 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     );
 }
 
-WorkspaceExpensifyCardBankAccounts.displayName = 'WorkspaceExpensifyCardBankAccounts';
-
 export default WorkspaceExpensifyCardBankAccounts;

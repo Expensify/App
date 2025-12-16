@@ -31,6 +31,4 @@ function WorkspaceDuplicatePage() {
     );
 }
 
-WorkspaceDuplicatePage.displayName = 'WorkspaceDuplicatePage';
-
 export default WorkspaceDuplicatePage;

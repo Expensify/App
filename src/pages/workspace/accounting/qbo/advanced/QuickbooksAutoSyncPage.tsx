@@ -85,6 +85,4 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     );
 }
 
-QuickbooksAutoSyncPage.displayName = 'QuickbooksAutoSyncPage';
-
 export default withPolicyConnections(QuickbooksAutoSyncPage);

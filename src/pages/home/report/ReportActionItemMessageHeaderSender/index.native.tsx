@@ -25,6 +25,4 @@ function ReportActionItemMessageHeaderSender({fragmentText, accountID, delegateA
     );
 }
 
-ReportActionItemMessageHeaderSender.displayName = 'ReportActionItemMessageHeaderSender';
-
 export default ReportActionItemMessageHeaderSender;

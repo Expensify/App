@@ -47,7 +47,6 @@ function PopoverWithMeasuredContent({...props}: PopoverWithMeasuredContentProps)
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <PopoverWithMeasuredContentBase {...props} />;
 }
-PopoverWithMeasuredContent.displayName = 'PopoverWithMeasuredContent';
 
 export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => {
     if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {

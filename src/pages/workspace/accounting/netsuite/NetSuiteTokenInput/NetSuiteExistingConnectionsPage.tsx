@@ -67,6 +67,4 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
     );
 }
 
-NetSuiteExistingConnectionsPage.displayName = 'NetSuiteExistingConnectionsPage';
-
 export default NetSuiteExistingConnectionsPage;

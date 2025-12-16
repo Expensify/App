@@ -93,6 +93,4 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
     );
 }
 
-SearchFiltersCurrencyBase.displayName = 'SearchFiltersCurrencyBase';
-
 export default SearchFiltersCurrencyBase;

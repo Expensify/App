@@ -109,6 +109,4 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     );
 }
 
-NetSuiteExportExpensesDestinationSelectPage.displayName = 'NetSuiteExportExpensesDestinationSelectPage';
-
 export default withPolicyConnections(NetSuiteExportExpensesDestinationSelectPage);

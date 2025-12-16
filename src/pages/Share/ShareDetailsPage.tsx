@@ -249,5 +249,4 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     );
 }
 
-ShareDetailsPage.displayName = 'ShareDetailsPage';
 export default ShareDetailsPage;

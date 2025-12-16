@@ -101,6 +101,4 @@ function NewTaskDescriptionPage({route}: NewTaskDescriptionPageProps) {
     );
 }
 
-NewTaskDescriptionPage.displayName = 'NewTaskDescriptionPage';
-
 export default NewTaskDescriptionPage;

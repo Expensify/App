@@ -76,6 +76,4 @@ function NetSuiteExpenseReportApprovalLevelSelectPage({policy}: WithPolicyConnec
     );
 }
 
-NetSuiteExpenseReportApprovalLevelSelectPage.displayName = 'NetSuiteExpenseReportApprovalLevelSelectPage';
-
 export default withPolicyConnections(NetSuiteExpenseReportApprovalLevelSelectPage);

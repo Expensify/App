@@ -606,7 +606,5 @@ function TransactionItemRow({
     );
 }
 
-TransactionItemRow.displayName = 'TransactionItemRow';
-
 export default TransactionItemRow;
 export type {TransactionWithOptionalSearchFields};

@@ -111,6 +111,4 @@ function NamePage({
     );
 }
 
-NamePage.displayName = 'NamePage';
-
 export default withPolicyAndFullscreenLoading(NamePage);

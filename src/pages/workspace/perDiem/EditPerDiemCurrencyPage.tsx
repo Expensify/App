@@ -75,6 +75,4 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
     );
 }
 
-EditPerDiemCurrencyPage.displayName = 'EditPerDiemCurrencyPage';
-
 export default EditPerDiemCurrencyPage;

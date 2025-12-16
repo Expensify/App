@@ -109,6 +109,4 @@ function BaseAnchorForCommentsOnly({
     );
 }
 
-BaseAnchorForCommentsOnly.displayName = 'BaseAnchorForCommentsOnly';
-
 export default BaseAnchorForCommentsOnly;

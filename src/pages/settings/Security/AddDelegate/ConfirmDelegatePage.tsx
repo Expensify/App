@@ -79,6 +79,4 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     );
 }
 
-ConfirmDelegatePage.displayName = 'ConfirmDelegatePage';
-
 export default ConfirmDelegatePage;

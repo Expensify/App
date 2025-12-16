@@ -50,6 +50,4 @@ function SearchFiltersInPage() {
     );
 }
 
-SearchFiltersInPage.displayName = 'SearchFiltersInPage';
-
 export default SearchFiltersInPage;

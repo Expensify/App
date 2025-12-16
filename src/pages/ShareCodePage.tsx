@@ -180,6 +180,4 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     );
 }
 
-ShareCodePage.displayName = 'ShareCodePage';
-
 export default ShareCodePage;

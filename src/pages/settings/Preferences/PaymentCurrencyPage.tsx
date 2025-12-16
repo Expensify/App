@@ -60,6 +60,4 @@ function PaymentCurrencyPage() {
     );
 }
 
-PaymentCurrencyPage.displayName = 'PaymentCurrencyPage';
-
 export default PaymentCurrencyPage;

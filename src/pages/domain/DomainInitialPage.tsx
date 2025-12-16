@@ -139,6 +139,4 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     );
 }
 
-DomainInitialPage.displayName = 'DomainInitialPage';
-
 export default DomainInitialPage;

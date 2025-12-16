@@ -38,6 +38,4 @@ function SubscriptionPlanDowngradeBlockedPage() {
     );
 }
 
-SubscriptionPlanDowngradeBlockedPage.displayName = 'SubscriptionPlanDowngradeBlockedPage';
-
 export default SubscriptionPlanDowngradeBlockedPage;

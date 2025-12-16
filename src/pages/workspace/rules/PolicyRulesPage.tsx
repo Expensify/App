@@ -55,6 +55,4 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     );
 }
 
-PolicyRulesPage.displayName = 'PolicyRulesPage';
-
 export default PolicyRulesPage;

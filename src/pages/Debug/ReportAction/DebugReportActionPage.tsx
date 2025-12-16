@@ -131,6 +131,4 @@ function DebugReportActionPage({
     );
 }
 
-DebugReportActionPage.displayName = 'DebugReportActionPage';
-
 export default DebugReportActionPage;

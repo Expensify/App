@@ -121,6 +121,4 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-AgreementsFullStep.displayName = 'AgreementsFullStep';
-
 export default AgreementsFullStep;

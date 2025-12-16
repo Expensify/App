@@ -45,5 +45,4 @@ function EnvironmentBadge() {
     );
 }
 
-EnvironmentBadge.displayName = 'EnvironmentBadge';
 export default EnvironmentBadge;

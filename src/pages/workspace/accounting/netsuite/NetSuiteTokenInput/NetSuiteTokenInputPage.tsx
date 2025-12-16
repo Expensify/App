@@ -87,6 +87,4 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-NetSuiteTokenInputPage.displayName = 'NetSuiteTokenInputPage';
-
 export default withPolicyConnections(NetSuiteTokenInputPage);

@@ -97,6 +97,4 @@ function DebugDetailsConstantPickerPage({
     );
 }
 
-DebugDetailsConstantPickerPage.displayName = 'DebugDetailsConstantPickerPage';
-
 export default DebugDetailsConstantPickerPage;

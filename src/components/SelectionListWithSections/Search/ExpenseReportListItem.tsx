@@ -180,6 +180,4 @@ function ExpenseReportListItem<TItem extends ListItem>({
     );
 }
 
-ExpenseReportListItem.displayName = 'ExpenseReportListItem';
-
 export default ExpenseReportListItem;

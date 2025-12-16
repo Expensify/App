@@ -93,6 +93,4 @@ function ValidateCodeActionContent({
     );
 }
 
-ValidateCodeActionContent.displayName = 'ValidateCodeActionContent';
-
 export default ValidateCodeActionContent;

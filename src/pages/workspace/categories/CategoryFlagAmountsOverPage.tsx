@@ -104,6 +104,4 @@ function CategoryFlagAmountsOverPage({
     );
 }
 
-CategoryFlagAmountsOverPage.displayName = 'CategoryFlagAmountsOverPage';
-
 export default CategoryFlagAmountsOverPage;

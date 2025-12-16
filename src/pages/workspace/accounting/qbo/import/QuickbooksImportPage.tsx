@@ -101,6 +101,4 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksImportPage.displayName = 'QuickbooksImportPage';
-
 export default withPolicyConnections(QuickbooksImportPage);

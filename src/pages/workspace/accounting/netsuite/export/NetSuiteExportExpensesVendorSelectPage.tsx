@@ -89,6 +89,4 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
     );
 }
 
-NetSuiteExportExpensesVendorSelectPage.displayName = 'NetSuiteExportExpensesVendorSelectPage';
-
 export default withPolicyConnections(NetSuiteExportExpensesVendorSelectPage);

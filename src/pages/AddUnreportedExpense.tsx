@@ -349,6 +349,4 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     );
 }
 
-AddUnreportedExpense.displayName = 'AddUnreportedExpense';
-
 export default AddUnreportedExpense;

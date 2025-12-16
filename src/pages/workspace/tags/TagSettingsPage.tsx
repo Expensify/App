@@ -259,6 +259,4 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     );
 }
 
-TagSettingsPage.displayName = 'TagSettingsPage';
-
 export default TagSettingsPage;

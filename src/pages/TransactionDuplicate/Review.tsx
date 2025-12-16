@@ -151,5 +151,4 @@ function TransactionDuplicateReview() {
     );
 }
 
-TransactionDuplicateReview.displayName = 'TransactionDuplicateReview';
 export default TransactionDuplicateReview;

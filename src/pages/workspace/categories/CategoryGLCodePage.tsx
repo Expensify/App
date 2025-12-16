@@ -113,6 +113,4 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
     );
 }
 
-CategoryGLCodePage.displayName = 'CategoryGLCodePage';
-
 export default CategoryGLCodePage;

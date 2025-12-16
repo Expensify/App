@@ -80,6 +80,4 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     );
 }
 
-ExistingConnectionsPage.displayName = 'ExistingConnectionsPage';
-
 export default ExistingConnectionsPage;

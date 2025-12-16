@@ -148,6 +148,4 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
     );
 }
 
-SageIntacctImportPage.displayName = 'SageIntacctImportPage';
-
 export default withPolicy(SageIntacctImportPage);

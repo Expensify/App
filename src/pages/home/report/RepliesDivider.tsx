@@ -37,5 +37,4 @@ function RepliesDivider({shouldHideThreadDividerLine}: RepliesDividerProps) {
     );
 }
 
-RepliesDivider.displayName = 'RepliesDivider';
 export default RepliesDivider;

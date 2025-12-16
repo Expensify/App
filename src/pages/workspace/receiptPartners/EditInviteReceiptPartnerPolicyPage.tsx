@@ -333,6 +333,4 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
     );
 }
 
-EditInviteReceiptPartnerPolicyPage.displayName = 'EditInviteReceiptPartnerPolicyPage';
-
 export default EditInviteReceiptPartnerPolicyPage;

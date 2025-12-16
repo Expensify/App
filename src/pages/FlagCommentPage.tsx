@@ -165,6 +165,4 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     );
 }
 
-FlagCommentPage.displayName = 'FlagCommentPage';
-
 export default withReportAndReportActionOrNotFound(FlagCommentPage);

@@ -83,6 +83,4 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
     );
 }
 
-VerifyIdentity.displayName = 'VerifyIdentity';
-
 export default VerifyIdentity;

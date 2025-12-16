@@ -103,6 +103,4 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     );
 }
 
-StateSelectorModal.displayName = 'StateSelectorModal';
-
 export default StateSelectorModal;

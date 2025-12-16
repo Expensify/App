@@ -94,6 +94,4 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     );
 }
 
-TimezoneSelectPage.displayName = 'TimezoneSelectPage';
-
 export default withCurrentUserPersonalDetails(TimezoneSelectPage);

@@ -160,6 +160,4 @@ function CloseAccountPage() {
     );
 }
 
-CloseAccountPage.displayName = 'CloseAccountPage';
-
 export default CloseAccountPage;

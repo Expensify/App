@@ -59,6 +59,4 @@ function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) 
     );
 }
 
-DeletedActionRenderer.displayName = 'DeletedActionRenderer';
-
 export default DeletedActionRenderer;

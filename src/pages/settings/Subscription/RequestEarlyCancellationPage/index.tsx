@@ -126,6 +126,4 @@ function RequestEarlyCancellationPage() {
     );
 }
 
-RequestEarlyCancellationPage.displayName = 'RequestEarlyCancellationPage';
-
 export default RequestEarlyCancellationPage;

@@ -64,6 +64,4 @@ function TypeSelectorModal({isVisible, currentType, label, subtitle, onTypeSelec
     );
 }
 
-TypeSelectorModal.displayName = 'TypeSelectorModal';
-
 export default TypeSelectorModal;

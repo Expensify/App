@@ -107,6 +107,4 @@ function ValuePage({
     );
 }
 
-ValuePage.displayName = 'ValuePage';
-
 export default withPolicyAndFullscreenLoading(ValuePage);

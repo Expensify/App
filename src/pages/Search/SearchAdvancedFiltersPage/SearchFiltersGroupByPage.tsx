@@ -85,6 +85,4 @@ function SearchFiltersGroupByPage() {
     );
 }
 
-SearchFiltersGroupByPage.displayName = 'SearchFiltersGroupByPage';
-
 export default SearchFiltersGroupByPage;

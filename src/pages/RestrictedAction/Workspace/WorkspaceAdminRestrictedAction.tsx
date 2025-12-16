@@ -65,6 +65,4 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
     );
 }
 
-WorkspaceAdminRestrictedAction.displayName = 'WorkspaceAdminRestrictedAction';
-
 export default WorkspaceAdminRestrictedAction;

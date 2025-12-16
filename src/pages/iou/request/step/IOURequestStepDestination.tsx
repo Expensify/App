@@ -205,8 +205,6 @@ function IOURequestStepDestination({
     );
 }
 
-IOURequestStepDestination.displayName = 'IOURequestStepDestination';
-
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepDestinationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDestination);
 /* eslint-disable rulesdir/no-negated-variables */

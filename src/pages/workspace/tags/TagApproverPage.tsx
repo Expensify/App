@@ -64,6 +64,4 @@ function TagApproverPage({route}: TagApproverPageProps) {
     );
 }
 
-TagApproverPage.displayName = 'TagApproverPage';
-
 export default TagApproverPage;

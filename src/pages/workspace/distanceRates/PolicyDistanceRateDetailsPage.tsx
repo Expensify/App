@@ -272,6 +272,4 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     );
 }
 
-PolicyDistanceRateDetailsPage.displayName = 'PolicyDistanceRateDetailsPage';
-
 export default PolicyDistanceRateDetailsPage;

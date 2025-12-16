@@ -72,6 +72,4 @@ function ExpenseLimitTypeSelectorModal({isVisible, currentExpenseLimitType, onEx
     );
 }
 
-ExpenseLimitTypeSelectorModal.displayName = 'ExpenseLimitTypeSelectorModal';
-
 export default ExpenseLimitTypeSelectorModal;

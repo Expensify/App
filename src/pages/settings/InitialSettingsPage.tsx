@@ -536,6 +536,4 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     );
 }
 
-InitialSettingsPage.displayName = 'InitialSettingsPage';
-
 export default withCurrentUserPersonalDetails(InitialSettingsPage);

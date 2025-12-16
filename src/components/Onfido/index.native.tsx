@@ -105,6 +105,4 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
     return <FullscreenLoadingIndicator />;
 }
 
-Onfido.displayName = 'Onfido';
-
 export default Onfido;

@@ -128,6 +128,4 @@ function ReportSettingsPage({report, policy, route}: ReportSettingsPageProps) {
     );
 }
 
-ReportSettingsPage.displayName = 'ReportSettingsPage';
-
 export default withReportOrNotFound()(ReportSettingsPage);

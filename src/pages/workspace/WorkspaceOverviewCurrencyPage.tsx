@@ -89,6 +89,4 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     );
 }
 
-WorkspaceOverviewCurrencyPage.displayName = 'WorkspaceOverviewCurrencyPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceOverviewCurrencyPage);

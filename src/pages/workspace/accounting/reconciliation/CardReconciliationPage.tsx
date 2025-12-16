@@ -176,6 +176,4 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     );
 }
 
-CardReconciliationPage.displayName = 'CardReconciliationPage';
-
 export default withPolicyConnections(CardReconciliationPage);

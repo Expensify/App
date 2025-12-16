@@ -152,6 +152,4 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     );
 }
 
-RoomDescriptionPage.displayName = 'RoomDescriptionPage';
-
 export default RoomDescriptionPage;

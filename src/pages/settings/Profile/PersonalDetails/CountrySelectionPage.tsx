@@ -93,6 +93,4 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
     );
 }
 
-CountrySelectionPage.displayName = 'CountrySelectionPage';
-
 export default CountrySelectionPage;

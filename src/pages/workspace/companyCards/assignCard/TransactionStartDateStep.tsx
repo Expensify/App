@@ -144,6 +144,4 @@ function TransactionStartDateStep() {
     );
 }
 
-TransactionStartDateStep.displayName = 'TransactionStartDateStep';
-
 export default TransactionStartDateStep;

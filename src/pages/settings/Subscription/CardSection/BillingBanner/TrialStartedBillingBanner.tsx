@@ -21,6 +21,4 @@ function TrialStartedBillingBanner() {
     );
 }
 
-TrialStartedBillingBanner.displayName = 'TrialStartedBillingBanner';
-
 export default TrialStartedBillingBanner;

@@ -134,6 +134,4 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     );
 }
 
-DebugReportActions.displayName = 'DebugReportActions';
-
 export default DebugReportActions;

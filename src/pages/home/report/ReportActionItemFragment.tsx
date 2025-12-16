@@ -199,6 +199,4 @@ function ReportActionItemFragment({
     }
 }
 
-ReportActionItemFragment.displayName = 'ReportActionItemFragment';
-
 export default memo(ReportActionItemFragment);

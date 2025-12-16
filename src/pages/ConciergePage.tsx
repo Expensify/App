@@ -57,6 +57,4 @@ function ConciergePage() {
     );
 }
 
-ConciergePage.displayName = 'ConciergePage';
-
 export default ConciergePage;

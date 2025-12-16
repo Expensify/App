@@ -134,6 +134,4 @@ function PreferencesPage() {
     );
 }
 
-PreferencesPage.displayName = 'PreferencesPage';
-
 export default PreferencesPage;

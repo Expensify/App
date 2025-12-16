@@ -262,6 +262,4 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-NetSuiteExportConfigurationPage.displayName = 'NetSuiteExportConfigurationPage';
-
 export default withPolicyConnections(NetSuiteExportConfigurationPage);

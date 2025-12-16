@@ -38,6 +38,4 @@ function ChangeCurrency() {
     );
 }
 
-ChangeCurrency.displayName = 'ChangeCurrency';
-
 export default ChangeCurrency;

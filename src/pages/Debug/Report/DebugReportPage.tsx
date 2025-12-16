@@ -272,6 +272,4 @@ function DebugReportPage({
     );
 }
 
-DebugReportPage.displayName = 'DebugReportPage';
-
 export default DebugReportPage;

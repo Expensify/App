@@ -79,6 +79,4 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     );
 }
 
-UpdateDelegateRolePage.displayName = 'UpdateDelegateRolePage';
-
 export default UpdateDelegateRolePage;

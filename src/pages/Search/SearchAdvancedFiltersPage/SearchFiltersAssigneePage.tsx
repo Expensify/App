@@ -45,6 +45,4 @@ function SearchFiltersAssigneePage() {
     );
 }
 
-SearchFiltersAssigneePage.displayName = 'SearchFiltersAssigneePage';
-
 export default SearchFiltersAssigneePage;

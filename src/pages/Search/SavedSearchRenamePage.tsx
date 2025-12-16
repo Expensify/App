@@ -78,6 +78,4 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
     );
 }
 
-SavedSearchRenamePage.displayName = 'SavedSearchRenamePage';
-
 export default SavedSearchRenamePage;

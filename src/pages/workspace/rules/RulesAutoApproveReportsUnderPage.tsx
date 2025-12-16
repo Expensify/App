@@ -82,6 +82,4 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
     );
 }
 
-RulesAutoApproveReportsUnderPage.displayName = 'RulesAutoApproveReportsUnderPage';
-
 export default RulesAutoApproveReportsUnderPage;

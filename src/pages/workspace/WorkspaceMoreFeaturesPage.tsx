@@ -681,6 +681,4 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     );
 }
 
-WorkspaceMoreFeaturesPage.displayName = 'WorkspaceMoreFeaturesPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceMoreFeaturesPage);

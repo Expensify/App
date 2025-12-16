@@ -78,6 +78,4 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
     );
 }
 
-LoadingBar.displayName = 'ProgressBar';
-
 export default LoadingBar;

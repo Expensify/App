@@ -100,6 +100,4 @@ function SearchFiltersHasPage() {
     );
 }
 
-SearchFiltersHasPage.displayName = 'SearchFiltersHasPage';
-
 export default SearchFiltersHasPage;

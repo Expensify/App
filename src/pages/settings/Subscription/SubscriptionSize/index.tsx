@@ -76,6 +76,4 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
     );
 }
 
-SubscriptionSizePage.displayName = 'SubscriptionSizePage';
-
 export default SubscriptionSizePage;

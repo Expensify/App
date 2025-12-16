@@ -184,8 +184,6 @@ function IOURequestStepTime({
     );
 }
 
-IOURequestStepTime.displayName = 'IOURequestStepTime';
-
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTimeWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTime);
 // eslint-disable-next-line rulesdir/no-negated-variables

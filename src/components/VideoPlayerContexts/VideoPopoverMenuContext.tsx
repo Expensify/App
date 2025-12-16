@@ -83,6 +83,4 @@ function useVideoPopoverMenuContext() {
     return videoPopoverMenuContext;
 }
 
-VideoPopoverMenuContextProvider.displayName = 'VideoPopoverMenuContextProvider';
-
 export {VideoPopoverMenuContextProvider, useVideoPopoverMenuContext};

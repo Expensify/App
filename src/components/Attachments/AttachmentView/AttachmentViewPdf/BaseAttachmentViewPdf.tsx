@@ -81,6 +81,4 @@ function BaseAttachmentViewPdf({
     );
 }
 
-BaseAttachmentViewPdf.displayName = 'BaseAttachmentViewPdf';
-
 export default memo(BaseAttachmentViewPdf);

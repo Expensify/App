@@ -58,6 +58,4 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
     );
 }
 
-SearchButton.displayName = 'SearchButton';
-
 export default SearchButton;

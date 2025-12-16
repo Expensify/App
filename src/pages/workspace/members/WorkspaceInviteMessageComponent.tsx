@@ -297,6 +297,4 @@ function WorkspaceInviteMessageComponent({
     );
 }
 
-WorkspaceInviteMessageComponent.displayName = 'WorkspaceInviteMessageComponent';
-
 export default WorkspaceInviteMessageComponent;

@@ -89,5 +89,4 @@ function CustomSegmentInternalIdStep({customSegmentType, onNext, isEditing, netS
     );
 }
 
-CustomSegmentInternalIdStep.displayName = 'CustomSegmentInternalIdStep';
 export default CustomSegmentInternalIdStep;

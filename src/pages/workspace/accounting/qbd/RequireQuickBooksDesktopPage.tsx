@@ -52,6 +52,4 @@ function RequireQuickBooksDesktopModal() {
     );
 }
 
-RequireQuickBooksDesktopModal.displayName = 'RequireQuickBooksDesktopModal';
-
 export default RequireQuickBooksDesktopModal;

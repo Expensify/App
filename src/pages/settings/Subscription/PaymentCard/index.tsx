@@ -131,6 +131,4 @@ function AddPaymentCard() {
     );
 }
 
-AddPaymentCard.displayName = 'AddPaymentCard';
-
 export default AddPaymentCard;

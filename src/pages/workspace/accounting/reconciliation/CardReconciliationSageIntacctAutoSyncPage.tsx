@@ -15,6 +15,4 @@ function CardReconciliationSageIntacctAutoSyncPage({policy}: WithPolicyConnectio
     );
 }
 
-CardReconciliationSageIntacctAutoSyncPage.displayName = 'CardReconciliationSageIntacctAutoSyncPage';
-
 export default withPolicyConnections(CardReconciliationSageIntacctAutoSyncPage);

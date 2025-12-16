@@ -99,6 +99,4 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     );
 }
 
-WorkspaceWorkflowsApprovalsCreatePage.displayName = 'WorkspaceWorkflowsApprovalsCreatePage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsCreatePage);

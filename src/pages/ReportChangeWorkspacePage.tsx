@@ -183,6 +183,4 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     );
 }
 
-ReportChangeWorkspacePage.displayName = 'ReportChangeWorkspacePage';
-
 export default withReportOrNotFound()(ReportChangeWorkspacePage);

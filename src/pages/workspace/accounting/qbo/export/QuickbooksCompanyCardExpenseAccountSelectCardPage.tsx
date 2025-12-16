@@ -120,6 +120,4 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
     );
 }
 
-QuickbooksCompanyCardExpenseAccountSelectCardPage.displayName = 'QuickbooksCompanyCardExpenseAccountSelectCardPage';
-
 export default withPolicyConnections(QuickbooksCompanyCardExpenseAccountSelectCardPage);

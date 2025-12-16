@@ -25,6 +25,4 @@ function TrialEndedBillingBanner() {
     );
 }
 
-TrialEndedBillingBanner.displayName = 'TrialEndedBillingBanner';
-
 export default TrialEndedBillingBanner;

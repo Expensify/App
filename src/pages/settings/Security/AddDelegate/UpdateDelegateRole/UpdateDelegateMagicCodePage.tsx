@@ -55,6 +55,4 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
     );
 }
 
-UpdateDelegateMagicCodePage.displayName = 'UpdateDelegateMagicCodePage';
-
 export default UpdateDelegateMagicCodePage;

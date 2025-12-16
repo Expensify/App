@@ -1735,6 +1735,4 @@ function MoneyReportHeader({
     );
 }
 
-MoneyReportHeader.displayName = 'MoneyReportHeader';
-
 export default MoneyReportHeader;

@@ -112,6 +112,4 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-NetSuiteCustomFormIDPage.displayName = 'NetSuiteCustomFormIDPage';
-
 export default withPolicyConnections(NetSuiteCustomFormIDPage);

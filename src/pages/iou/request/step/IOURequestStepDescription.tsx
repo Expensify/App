@@ -228,8 +228,6 @@ function IOURequestStepDescription({
     );
 }
 
-IOURequestStepDescription.displayName = 'IOURequestStepDescription';
-
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescription);
 // eslint-disable-next-line rulesdir/no-negated-variables

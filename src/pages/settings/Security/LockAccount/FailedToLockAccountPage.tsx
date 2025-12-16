@@ -39,6 +39,4 @@ function FailedToLockAccountPage() {
     );
 }
 
-FailedToLockAccountPage.displayName = 'FailedToLockAccountPage';
-
 export default FailedToLockAccountPage;

@@ -38,6 +38,4 @@ function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderPr
     return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }
 
-ThemeProvider.displayName = 'ThemeProvider';
-
 export default ThemeProvider;

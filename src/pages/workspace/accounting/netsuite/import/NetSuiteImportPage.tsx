@@ -149,5 +149,4 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-NetSuiteImportPage.displayName = 'NetSuiteImportPage';
 export default withPolicyConnections(NetSuiteImportPage);

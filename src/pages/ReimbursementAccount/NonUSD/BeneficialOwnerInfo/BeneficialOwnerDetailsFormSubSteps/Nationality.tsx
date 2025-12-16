@@ -66,6 +66,4 @@ function Nationality({onNext, isEditing, isUserEnteringHisOwnData, ownerBeingMod
     );
 }
 
-Nationality.displayName = 'Nationality';
-
 export default Nationality;

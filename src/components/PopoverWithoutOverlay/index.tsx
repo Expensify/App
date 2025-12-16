@@ -111,6 +111,4 @@ function PopoverWithoutOverlay({
     );
 }
 
-PopoverWithoutOverlay.displayName = 'PopoverWithoutOverlay';
-
 export default PopoverWithoutOverlay;

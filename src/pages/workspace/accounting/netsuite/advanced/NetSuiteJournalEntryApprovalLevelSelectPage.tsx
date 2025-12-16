@@ -79,6 +79,4 @@ function NetSuiteJournalEntryApprovalLevelSelectPage({policy}: WithPolicyConnect
     );
 }
 
-NetSuiteJournalEntryApprovalLevelSelectPage.displayName = 'NetSuiteJournalEntryApprovalLevelSelectPage';
-
 export default withPolicyConnections(NetSuiteJournalEntryApprovalLevelSelectPage);

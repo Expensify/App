@@ -216,6 +216,4 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     );
 }
 
-BookTravelButton.displayName = 'BookTravelButton';
-
 export default BookTravelButton;

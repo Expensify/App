@@ -85,6 +85,4 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksCustomersPage.displayName = 'QuickbooksCustomersPage';
-
 export default withPolicyConnections(QuickbooksCustomersPage);

@@ -72,6 +72,4 @@ function RulesProhibitedDefaultPage({
     );
 }
 
-RulesProhibitedDefaultPage.displayName = 'RulesProhibitedDefaultPage';
-
 export default RulesProhibitedDefaultPage;

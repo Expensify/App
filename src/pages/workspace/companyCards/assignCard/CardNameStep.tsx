@@ -92,6 +92,4 @@ function CardNameStep({policyID}: CardNameStepProps) {
     );
 }
 
-CardNameStep.displayName = 'CardNameStep';
-
 export default CardNameStep;

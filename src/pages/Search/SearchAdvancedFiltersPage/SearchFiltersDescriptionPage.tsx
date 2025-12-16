@@ -13,6 +13,4 @@ function SearchFiltersDescriptionPage() {
     );
 }
 
-SearchFiltersDescriptionPage.displayName = 'SearchFiltersDescriptionPage';
-
 export default SearchFiltersDescriptionPage;

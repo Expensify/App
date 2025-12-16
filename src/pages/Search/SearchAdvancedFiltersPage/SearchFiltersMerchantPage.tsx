@@ -13,6 +13,4 @@ function SearchFiltersMerchantPage() {
     );
 }
 
-SearchFiltersMerchantPage.displayName = 'SearchFiltersMerchantPage';
-
 export default SearchFiltersMerchantPage;

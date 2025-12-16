@@ -65,5 +65,4 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
     );
 }
 
-WorkspaceJoinUserPage.displayName = 'WorkspaceJoinUserPage';
 export default WorkspaceJoinUserPage;

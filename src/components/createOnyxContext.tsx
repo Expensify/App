@@ -18,8 +18,6 @@ export default <TOnyxKey extends OnyxKey>(onyxKeyName: TOnyxKey): CreateOnyxCont
         return <Context.Provider value={value as OnyxValue<TOnyxKey>}>{props.children}</Context.Provider>;
     }
 
-    Provider.displayName = `${Str.UCFirst(onyxKeyName)}Provider`;
-
     const useOnyxContext = () => {
         const value = useContext(Context);
         if (value === null) {

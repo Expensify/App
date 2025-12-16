@@ -160,6 +160,4 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
     );
 }
 
-InternationalDepositAccountContent.displayName = 'InternationalDepositAccountContent';
-
 export default InternationalDepositAccountContent;

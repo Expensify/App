@@ -233,8 +233,6 @@ function IOURequestStepCategory({
     );
 }
 
-IOURequestStepCategory.displayName = 'IOURequestStepCategory';
-
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepCategoryWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCategory);
 /* eslint-disable rulesdir/no-negated-variables */

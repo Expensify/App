@@ -74,6 +74,4 @@ function GestureHandler({swipeDirection, onSwipeComplete, swipeThreshold = 100, 
     return <GestureDetector gesture={panGesture}>{children}</GestureDetector>;
 }
 
-GestureHandler.displayName = 'GestureHandler';
-
 export default GestureHandler;

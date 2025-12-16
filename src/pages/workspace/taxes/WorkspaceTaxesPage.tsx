@@ -459,6 +459,4 @@ function WorkspaceTaxesPage({
     );
 }
 
-WorkspaceTaxesPage.displayName = 'WorkspaceTaxesPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesPage);

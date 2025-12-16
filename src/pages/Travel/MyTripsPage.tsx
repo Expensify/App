@@ -24,6 +24,4 @@ function MyTripsPage() {
     );
 }
 
-MyTripsPage.displayName = 'MyTripsPage';
-
 export default MyTripsPage;

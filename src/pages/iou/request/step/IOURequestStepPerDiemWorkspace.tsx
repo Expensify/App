@@ -136,6 +136,4 @@ function IOURequestStepPerDiemWorkspace({
     );
 }
 
-IOURequestStepPerDiemWorkspace.displayName = 'IOURequestStepPerDiemWorkspace';
-
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepPerDiemWorkspace));

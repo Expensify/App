@@ -60,6 +60,4 @@ function SearchFiltersSkeleton({shouldAnimate = true}: SearchFiltersSkeletonProp
     );
 }
 
-SearchFiltersSkeleton.displayName = 'SearchStatusSkeleton';
-
 export default SearchFiltersSkeleton;

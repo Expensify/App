@@ -267,6 +267,4 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     );
 }
 
-WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
-
 export default withNavigationTransitionEnd(withPolicyAndFullscreenLoading(WorkspaceInvitePage));

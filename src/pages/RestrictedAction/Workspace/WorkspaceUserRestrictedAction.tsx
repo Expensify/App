@@ -67,6 +67,4 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
     );
 }
 
-WorkspaceUserRestrictedAction.displayName = 'WorkspaceUserRestrictedAction';
-
 export default WorkspaceUserRestrictedAction;

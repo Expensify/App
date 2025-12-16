@@ -69,6 +69,4 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
     );
 }
 
-WriteCapabilityPage.displayName = 'WriteCapabilityPage';
-
 export default withReportOrNotFound()(WriteCapabilityPage);

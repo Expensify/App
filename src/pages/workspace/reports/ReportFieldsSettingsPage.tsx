@@ -133,6 +133,4 @@ function ReportFieldsSettingsPage({
     );
 }
 
-ReportFieldsSettingsPage.displayName = 'ReportFieldsSettingsPage';
-
 export default withPolicyAndFullscreenLoading(ReportFieldsSettingsPage);

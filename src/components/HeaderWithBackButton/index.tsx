@@ -306,6 +306,4 @@ function HeaderWithBackButton({
     );
 }
 
-HeaderWithBackButton.displayName = 'HeaderWithBackButton';
-
 export default HeaderWithBackButton;

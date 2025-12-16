@@ -35,7 +35,5 @@ export default function withViewportOffsetTop<TProps extends ViewportOffsetTopPr
         );
     }
 
-    WithViewportOffsetTop.displayName = `WithViewportOffsetTop(${getComponentDisplayName(WrappedComponent)})`;
-
     return WithViewportOffsetTop;
 }

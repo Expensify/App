@@ -286,6 +286,4 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     );
 }
 
-BaseOnboardingWorkspaceInvite.displayName = 'BaseOnboardingWorkspaceInvite';
-
 export default BaseOnboardingWorkspaceInvite;

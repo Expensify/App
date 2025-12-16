@@ -113,6 +113,4 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     );
 }
 
-PronounsPage.displayName = 'PronounsPage';
-
 export default withCurrentUserPersonalDetails(PronounsPage);

@@ -80,6 +80,4 @@ function ReviewTag() {
     );
 }
 
-ReviewTag.displayName = 'ReviewTag';
-
 export default ReviewTag;

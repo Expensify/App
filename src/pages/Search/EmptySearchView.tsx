@@ -546,7 +546,5 @@ function EmptySearchViewContent({
     );
 }
 
-EmptySearchView.displayName = 'EmptySearchView';
-
 export type {EmptySearchViewItem};
 export default EmptySearchView;

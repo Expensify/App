@@ -26,7 +26,6 @@ export default function withToggleVisibilityView<TProps>(WrappedComponent: Compo
         );
     }
 
-    WithToggleVisibilityView.displayName = `WithToggleVisibilityViewWithRef(${getComponentDisplayName(WrappedComponent)})`;
     return WithToggleVisibilityView;
 }
 

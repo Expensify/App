@@ -75,6 +75,4 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
     );
 }
 
-CompleteVerification.displayName = 'CompleteVerification';
-
 export default CompleteVerification;

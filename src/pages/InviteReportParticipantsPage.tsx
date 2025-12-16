@@ -228,6 +228,4 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     );
 }
 
-InviteReportParticipantsPage.displayName = 'InviteReportParticipantsPage';
-
 export default withNavigationTransitionEnd(withReportOrNotFound()(InviteReportParticipantsPage));

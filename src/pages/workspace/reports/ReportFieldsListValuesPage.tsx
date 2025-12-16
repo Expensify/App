@@ -425,6 +425,4 @@ function ReportFieldsListValuesPage({
     );
 }
 
-ReportFieldsListValuesPage.displayName = 'ReportFieldsListValuesPage';
-
 export default withPolicyAndFullscreenLoading(ReportFieldsListValuesPage);

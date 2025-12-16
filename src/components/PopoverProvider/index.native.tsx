@@ -24,8 +24,6 @@ function PopoverContextProvider(props: PopoverContextProps) {
     return <PopoverContext.Provider value={contextValue}>{props.children}</PopoverContext.Provider>;
 }
 
-PopoverContextProvider.displayName = 'PopoverContextProvider';
-
 export default PopoverContextProvider;
 
 export {PopoverContext};

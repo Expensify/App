@@ -216,6 +216,4 @@ function StatusClearAfterPage() {
     );
 }
 
-StatusClearAfterPage.displayName = 'StatusClearAfterPage';
-
 export default StatusClearAfterPage;

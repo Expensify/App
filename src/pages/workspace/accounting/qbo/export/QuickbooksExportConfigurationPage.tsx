@@ -128,6 +128,4 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
     );
 }
 
-QuickbooksExportConfigurationPage.displayName = 'QuickbooksExportConfigurationPage';
-
 export default withPolicyConnections(QuickbooksExportConfigurationPage);

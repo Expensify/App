@@ -246,6 +246,4 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
     );
 }
 
-SignerInfo.displayName = 'SignerInfo';
-
 export default SignerInfo;

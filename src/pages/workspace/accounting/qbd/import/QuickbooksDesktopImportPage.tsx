@@ -81,6 +81,4 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksDesktopImportPage.displayName = 'PolicyQuickbooksDesktopImportPage';
-
 export default withPolicyConnections(QuickbooksDesktopImportPage);

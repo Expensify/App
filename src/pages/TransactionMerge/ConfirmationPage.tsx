@@ -172,6 +172,4 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     );
 }
 
-ConfirmationPage.displayName = 'ConfirmationPage';
-
 export default ConfirmationPage;

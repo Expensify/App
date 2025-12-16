@@ -71,6 +71,4 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
     );
 }
 
-RejectReasonFormView.displayName = 'RejectReasonFormView';
-
 export default RejectReasonFormView;

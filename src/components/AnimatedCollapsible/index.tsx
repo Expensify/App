@@ -189,6 +189,4 @@ function AnimatedCollapsible({
     );
 }
 
-AnimatedCollapsible.displayName = 'AnimatedCollapsible';
-
 export default AnimatedCollapsible;

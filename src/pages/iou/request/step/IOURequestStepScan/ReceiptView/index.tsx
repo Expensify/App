@@ -141,6 +141,4 @@ function ReceiptView({route}: ReceiptViewProps) {
     );
 }
 
-ReceiptView.displayName = 'ReceiptView';
-
 export default ReceiptView;

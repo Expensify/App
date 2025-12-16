@@ -203,6 +203,4 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     );
 }
 
-WorkspaceEditCardLimitTypePage.displayName = 'WorkspaceEditCardLimitTypePage';
-
 export default WorkspaceEditCardLimitTypePage;

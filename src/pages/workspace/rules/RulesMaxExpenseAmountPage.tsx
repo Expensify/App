@@ -83,6 +83,4 @@ function RulesMaxExpenseAmountPage({
     );
 }
 
-RulesMaxExpenseAmountPage.displayName = 'RulesMaxExpenseAmountPage';
-
 export default RulesMaxExpenseAmountPage;

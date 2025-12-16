@@ -26,6 +26,4 @@ function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: Text
     );
 }
 
-TextInputWithSymbol.displayName = 'TextInputWithSymbol';
-
 export default TextInputWithSymbol;

@@ -59,6 +59,4 @@ function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
     );
 }
 
-TaxIDEINNumber.displayName = 'TaxIDEINNumber';
-
 export default TaxIDEINNumber;

@@ -71,6 +71,4 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1}: Hold
     );
 }
 
-HoldReasonFormView.displayName = 'HoldReasonFormViewProps';
-
 export default HoldReasonFormView;

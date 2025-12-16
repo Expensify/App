@@ -149,5 +149,4 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     );
 }
 
-AddNewCardPage.displayName = 'AddNewCardPage';
 export default withPolicyAndFullscreenLoading(AddNewCardPage);

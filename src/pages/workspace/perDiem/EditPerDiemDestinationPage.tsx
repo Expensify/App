@@ -115,6 +115,4 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
     );
 }
 
-EditPerDiemDestinationPage.displayName = 'EditPerDiemDestinationPage';
-
 export default EditPerDiemDestinationPage;

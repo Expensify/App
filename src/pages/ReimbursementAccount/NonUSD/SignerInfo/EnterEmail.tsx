@@ -104,7 +104,5 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
     );
 }
 
-EnterEmail.displayName = 'EnterEmail';
-
 export type {EmailSubmitParams};
 export default EnterEmail;

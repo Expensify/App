@@ -33,8 +33,6 @@ const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     shouldDisplayContextMenu: true,
 });
 
-ShowContextMenuContext.displayName = 'ShowContextMenuContext';
-
 /**
  * Show the report action context menu.
  *

@@ -64,5 +64,4 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
     );
 }
 
-TransactionPreviewSkeletonView.displayName = 'TransactionPreviewSkeletonView';
 export default TransactionPreviewSkeletonView;

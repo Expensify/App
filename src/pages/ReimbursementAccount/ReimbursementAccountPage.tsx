@@ -565,6 +565,4 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     );
 }
 
-ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
-
 export default withPolicy(ReimbursementAccountPage);

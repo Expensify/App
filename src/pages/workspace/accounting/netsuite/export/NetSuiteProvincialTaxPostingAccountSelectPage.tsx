@@ -82,6 +82,4 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
     );
 }
 
-NetSuiteProvincialTaxPostingAccountSelectPage.displayName = 'NetSuiteProvincialTaxPostingAccountSelectPage';
-
 export default withPolicyConnections(NetSuiteProvincialTaxPostingAccountSelectPage);

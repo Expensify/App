@@ -80,6 +80,4 @@ function SageIntacctAutoSyncPageBase({policy, navigateBackTo}: SageIntacctAutoSy
     );
 }
 
-SageIntacctAutoSyncPageBase.displayName = 'SageIntacctAutoSyncPageBase';
-
 export default SageIntacctAutoSyncPageBase;

@@ -683,6 +683,4 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     );
 }
 
-WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
-
 export default WorkspaceCategoriesPage;

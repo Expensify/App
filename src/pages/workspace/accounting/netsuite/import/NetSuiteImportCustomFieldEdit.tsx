@@ -183,5 +183,4 @@ function NetSuiteImportCustomFieldEdit({
     );
 }
 
-NetSuiteImportCustomFieldEdit.displayName = 'NetSuiteImportCustomFieldEdit';
 export default withPolicyConnections(NetSuiteImportCustomFieldEdit);

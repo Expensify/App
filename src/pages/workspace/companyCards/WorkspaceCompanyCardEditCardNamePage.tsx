@@ -109,6 +109,4 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
     );
 }
 
-WorkspaceCompanyCardEditCardNamePage.displayName = 'WorkspaceCompanyCardEditCardNamePage';
-
 export default WorkspaceCompanyCardEditCardNamePage;

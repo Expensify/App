@@ -16,6 +16,4 @@ function WorkspaceInvoicesVerifyAccountPage({route}: WorkspaceInvoicesVerifyAcco
     );
 }
 
-WorkspaceInvoicesVerifyAccountPage.displayName = 'WorkspaceInvoicesVerifyAccountPage';
-
 export default WorkspaceInvoicesVerifyAccountPage;

@@ -117,5 +117,4 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     );
 }
 
-XeroMapTrackingCategoryConfigurationPage.displayName = 'XeroMapTrackingCategoryConfigurationPage';
 export default withPolicyConnections(XeroMapTrackingCategoryConfigurationPage);

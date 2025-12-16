@@ -100,6 +100,4 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
     );
 }
 
-CountrySelectorModal.displayName = 'CountrySelectorModal';
-
 export default CountrySelectorModal;

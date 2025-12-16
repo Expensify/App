@@ -96,6 +96,4 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
     );
 }
 
-SageIntacctAddUserDimensionPage.displayName = 'SageIntacctAddUserDimensionPage';
-
 export default withPolicy(SageIntacctAddUserDimensionPage);

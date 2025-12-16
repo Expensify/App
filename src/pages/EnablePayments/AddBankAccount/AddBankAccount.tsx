@@ -113,6 +113,4 @@ function AddBankAccount() {
     );
 }
 
-AddBankAccount.displayName = 'AddBankAccountPage';
-
 export default AddBankAccount;

@@ -87,6 +87,4 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-NetSuiteDateSelectPage.displayName = 'NetSuiteDateSelectPage';
-
 export default withPolicyConnections(NetSuiteDateSelectPage);

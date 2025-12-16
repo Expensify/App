@@ -90,6 +90,4 @@ function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
     );
 }
 
-PersonalInfo.displayName = 'PersonalInfo';
-
 export default PersonalInfo;

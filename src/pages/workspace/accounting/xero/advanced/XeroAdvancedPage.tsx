@@ -128,6 +128,4 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-XeroAdvancedPage.displayName = 'XeroAdvancedPage';
-
 export default withPolicyConnections(XeroAdvancedPage);

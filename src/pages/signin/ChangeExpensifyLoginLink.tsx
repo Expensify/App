@@ -32,6 +32,4 @@ function ChangeExpensifyLoginLink({onPress}: ChangeExpensifyLoginLinkProps) {
     );
 }
 
-ChangeExpensifyLoginLink.displayName = 'ChangeExpensifyLoginLink';
-
 export default ChangeExpensifyLoginLink;

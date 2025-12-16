@@ -69,6 +69,4 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     );
 }
 
-SendButton.displayName = 'SendButton';
-
 export default memo(SendButton);

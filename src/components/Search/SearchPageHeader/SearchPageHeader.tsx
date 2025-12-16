@@ -101,7 +101,5 @@ function SearchPageHeader({
     );
 }
 
-SearchPageHeader.displayName = 'SearchPageHeader';
-
 export type {SearchHeaderOptionValue};
 export default SearchPageHeader;
