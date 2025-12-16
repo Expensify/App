@@ -51,6 +51,8 @@ import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate_
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
+import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
+import FolderWithPapersAndWatch from '@assets/images/product-illustrations/folder-with-papers-and-watch.svg';
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
 import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
@@ -58,6 +60,7 @@ import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
+import PlanetWithMobileApp from '@assets/images/product-illustrations/planet-with-mobile-app.svg';
 import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
@@ -81,6 +84,7 @@ import Abacus from '@assets/images/simple-illustrations/simple-illustration__aba
 // Simple Illustrations - Original core ones
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
+import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
@@ -208,6 +212,8 @@ const Illustrations = {
     HoldExpense,
     ReceiptFairy,
     EmptyStateTravel,
+    Fireworks,
+    FolderWithPapersAndWatch,
     FolderWithPapers,
     Hands,
     CardReplacementSuccess,
@@ -215,6 +221,7 @@ const Illustrations = {
     ModalHoldOrReject,
     MushroomTopHat,
     PaymentHands,
+    PlanetWithMobileApp,
     ReceiptsStackedOnPin,
     RocketBlue,
     RocketDude,
@@ -321,6 +328,7 @@ const Illustrations = {
     Mailbox,
     ShieldYellow,
     Clock,
+    Members,
 };
 
 /**

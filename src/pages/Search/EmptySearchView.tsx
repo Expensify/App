@@ -8,11 +8,10 @@ import {Linking, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
-import EmptyStateComponent from '@components/EmptyStateComponent';
-import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
+import type {EmptyStateButton, HeaderMedia, MediaTypes} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';
-import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
@@ -51,6 +50,7 @@ import ROUTES from '@src/ROUTES';
 import type {IntroSelected, PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import useSearchEmptyStateIllustration from './useSearchEmptyStateIllustration';
 
 type EmptySearchViewProps = {
     similarSearchHash: number;
@@ -72,7 +72,8 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
 };
 
 type EmptySearchViewItem = {
-    headerMedia: DotLottieAnimation;
+    headerMediaType: MediaTypes;
+    headerMedia: HeaderMedia;
     title: string;
     subtitle?: string;
     headerContentStyles: Array<Pick<ViewStyle, 'width' | 'height'>>;
@@ -152,7 +153,7 @@ function EmptySearchViewContent({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts']);
 
     const tripsFeatures: FeatureListItem[] = useMemo(
         () => [
@@ -316,14 +317,7 @@ function EmptySearchViewContent({
     }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, activePolicy?.id, tripsFeatures]);
 
     // Default 'Folder' lottie animation, along with its background styles
-    const defaultViewItemHeader = useMemo(
-        () => ({
-            headerMedia: LottieAnimations.GenericEmptyState,
-            headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-            lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
-        }),
-        [StyleUtils, styles.emptyStateFolderWebStyles, theme.emptyFolderBG],
-    );
+    const defaultViewItemHeader = useSearchEmptyStateIllustration();
 
     const content: EmptySearchViewItem = useMemo(() => {
         // Begin by going through all of our To-do searches, and returning their empty state
@@ -331,12 +325,9 @@ function EmptySearchViewContent({
         for (const menuItem of typeMenuItems) {
             if (menuItem.similarSearchHash === similarSearchHash && menuItem.emptyState) {
                 return {
-                    headerMedia: menuItem.emptyState.headerMedia,
+                    ...defaultViewItemHeader.fireworks,
                     title: translate(menuItem.emptyState.title),
                     subtitle: translate(menuItem.emptyState.subtitle),
-                    headerStyles: StyleUtils.getBackgroundColorStyle(theme.todoBG),
-                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.todoBG)],
-                    lottieWebViewStyles: styles.emptyStateFireworksWebStyles,
                     buttons: menuItem.emptyState.buttons?.map((button) => ({
                         ...button,
                         buttonText: translate(button.buttonText),
@@ -353,6 +344,7 @@ function EmptySearchViewContent({
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
+                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
                     headerMedia: LottieAnimations.TripsEmptyState,
                     headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
@@ -363,14 +355,14 @@ function EmptySearchViewContent({
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
                 if (hasResults && (!queryJSON || !isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
                     return {
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyResults.title'),
                         subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     };
                 }
                 if (!hasResults || !hasExpenseReports) {
                     return {
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyReportResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyReportResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyReportResults.subtitle'),
                         buttons: [
@@ -417,14 +409,14 @@ function EmptySearchViewContent({
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 if (hasResults && (!queryJSON || !isDefaultExpensesQuery(queryJSON) || hasTransactions)) {
                     return {
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyResults.title'),
                         subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     };
                 }
                 if (!hasResults || !hasTransactions) {
                     return {
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                         buttons: [
@@ -480,14 +472,14 @@ function EmptySearchViewContent({
                                 success: true,
                             },
                         ],
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                     };
                 }
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.CHAT:
             default:
                 return {
-                    ...defaultViewItemHeader,
+                    ...defaultViewItemHeader.folder,
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
                 };
@@ -498,9 +490,7 @@ function EmptySearchViewContent({
         similarSearchHash,
         translate,
         StyleUtils,
-        theme.todoBG,
         theme.travelBG,
-        styles.emptyStateFireworksWebStyles,
         styles.emptyStateFolderWebStyles,
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
@@ -508,7 +498,8 @@ function EmptySearchViewContent({
         tryNewDot?.hasBeenAddedToNudgeMigration,
         isUserPaidPolicyMember,
         hasResults,
-        defaultViewItemHeader,
+        defaultViewItemHeader.fireworks,
+        defaultViewItemHeader.folder,
         hasSeenTour,
         groupPoliciesWithChatEnabled.length,
         tripViewChildren,
@@ -527,9 +518,9 @@ function EmptySearchViewContent({
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
             >
-                <EmptyStateComponent
+                <GenericEmptyStateComponent
                     SkeletonComponent={SearchRowSkeleton}
-                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                    headerMediaType={content.headerMediaType}
                     headerMedia={content.headerMedia}
                     headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden, content.headerStyles]}
                     title={content.title}
@@ -540,7 +531,7 @@ function EmptySearchViewContent({
                     lottieWebViewStyles={content.lottieWebViewStyles}
                 >
                     {content.children}
-                </EmptyStateComponent>
+                </GenericEmptyStateComponent>
             </ScrollView>
             {CreateReportConfirmationModal}
             <ConfirmModal
@@ -561,4 +552,5 @@ function EmptySearchViewContent({
 
 EmptySearchView.displayName = 'EmptySearchView';
 
+export type {EmptySearchViewItem};
 export default EmptySearchView;

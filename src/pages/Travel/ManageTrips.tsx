@@ -26,7 +26,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
     const {translate} = useLocalize();
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts']);
 
     const tripsFeatures: FeatureListItem[] = useMemo(
         () => [
