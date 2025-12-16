@@ -14,6 +14,14 @@ function BankAccountPurposePage() {
         setShowCountrySelection(true);
     };
 
+    const handleBackButtonPress = () => {
+        if (showCountrySelection) {
+            setShowCountrySelection(false);
+        } else {
+            Navigation.goBack();
+        }
+    };
+
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -22,7 +30,7 @@ function BankAccountPurposePage() {
         >
             <HeaderWithBackButton
                 title={translate('bankAccount.addBankAccount')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={handleBackButtonPress}
                 shouldDisplayHelpButton={false}
             />
             {showCountrySelection ? <CountrySelection /> : <BankAccountPurpose showCountrySelectionStep={showCountrySelectionStep} />}
