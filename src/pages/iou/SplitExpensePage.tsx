@@ -114,6 +114,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
 
     const isPercentageMode = selectedTab === CONST.IOU.SPLIT_TYPE.PERCENTAGE;
+    const isDateMode = selectedTab === CONST.IOU.SPLIT_TYPE.DATE;
     const childTransactions = useMemo(() => getChildTransactions(allTransactions, allReports, transactionID), [allReports, allTransactions, transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
@@ -243,7 +244,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const onSplitExpenseValueChange = useCallback(
         (id: string, value: number, mode: ValueOf<typeof CONST.IOU.SPLIT_TYPE>) => {
-            if (mode === CONST.IOU.SPLIT_TYPE.AMOUNT) {
+            if (mode === CONST.IOU.SPLIT_TYPE.AMOUNT || mode === CONST.IOU.SPLIT_TYPE.DATE) {
                 const amountInCents = convertToBackendAmount(value);
                 updateSplitExpenseAmountField(draftTransaction, id, amountInCents);
             } else {
@@ -406,7 +407,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     description={translate('iou.splitDates')}
                     title={splitDatesTitle}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT_DATES.getRoute(reportID, transactionID, ROUTES.SPLIT_EXPENSE.getRoute(reportID, transactionID)));
+                        Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT_DATES.getRoute(reportID, transactionID, Navigation.getActiveRoute()));
                     }}
                     style={[styles.moneyRequestMenuItem]}
                     titleWrapperStyle={styles.flex1}
@@ -425,8 +426,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (splitExpenseTransactionID) {
             return translate('iou.editSplits');
         }
-        return isPercentageMode ? translate('iou.splitByPercentage') : translate('iou.split');
-    }, [splitExpenseTransactionID, isPercentageMode, translate]);
+        if (isPercentageMode) {
+            return translate('iou.splitByPercentage');
+        }
+        if (isDateMode) {
+            return translate('iou.splitByDate');
+        }
+        return translate('iou.split');
+    }, [splitExpenseTransactionID, isDateMode, isPercentageMode, translate]);
 
     const onSelectRow = useCallback(
         (item: SplitListItemType) => {

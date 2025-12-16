@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DatePicker from '@components/DatePicker';
@@ -53,12 +53,7 @@ function SplitExpenseEditDatesPage({route}: SplitExpenseEditDatesPageProps) {
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
-        const newStartDate = value[INPUT_IDS.START_DATE];
-        const newEndDate = value[INPUT_IDS.END_DATE];
-
-        console.log(draftTransaction, transaction, 'transaction in update date');
-
-        resetSplitExpensesByDateRange(transaction, newStartDate, newEndDate);
+        resetSplitExpensesByDateRange(transaction, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE]);
 
         Navigation.goBack(backTo);
     };
@@ -74,6 +69,18 @@ function SplitExpenseEditDatesPage({route}: SplitExpenseEditDatesPageProps) {
             if (!values[INPUT_IDS.END_DATE]) {
                 errors[INPUT_IDS.END_DATE] = translate('common.error.fieldRequired');
             }
+
+            if (values[INPUT_IDS.START_DATE] && values[INPUT_IDS.END_DATE]) {
+                const startDate = new Date(values[INPUT_IDS.START_DATE]);
+                const endDate = new Date(values[INPUT_IDS.END_DATE]);
+
+                if (endDate < startDate) {
+                    errors[INPUT_IDS.END_DATE] = translate('iou.error.endDateBeforeStartDate');
+                } else if (endDate.getTime() === startDate.getTime()) {
+                    errors[INPUT_IDS.END_DATE] = translate('iou.error.endDateSameAsStartDate');
+                }
+            }
+
             return errors;
         },
         [translate],

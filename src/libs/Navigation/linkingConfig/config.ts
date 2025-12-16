@@ -1461,6 +1461,17 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
                             path: ROUTES.SPLIT_EXPENSE.route,
                             exact: true,
+                            screens: {
+                                [CONST.IOU.SPLIT_TYPE.AMOUNT]: {
+                                    path: CONST.IOU.SPLIT_TYPE.AMOUNT,
+                                },
+                                [CONST.IOU.SPLIT_TYPE.PERCENTAGE]: {
+                                    path: CONST.IOU.SPLIT_TYPE.PERCENTAGE,
+                                },
+                                [CONST.IOU.SPLIT_TYPE.DATE]: {
+                                    path: CONST.IOU.SPLIT_TYPE.DATE,
+                                },
+                            },
                         },
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
                             path: ROUTES.SPLIT_EXPENSE_EDIT.route,
