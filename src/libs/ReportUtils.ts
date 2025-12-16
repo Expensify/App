@@ -6366,11 +6366,21 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
     const rootState = navigationRef.current?.getRootState();
     const lastFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
     if (lastFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+        const searchFullScreenRoutes = rootState?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+        const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
+        if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
+            const lastRouteParams = lastRoute?.params;
+            const newbackRoute = lastRouteParams && 'backTo' in lastRouteParams ? lastRouteParams?.backTo : undefined;
+            if (isFromRHP) {
+                Navigation.dismissModal();
+            }
+            Navigation.isNavigationReady().then(() => {
+                Navigation.goBack(newbackRoute as Route);
+            });
+            return;
+        }
         Navigation.dismissModal();
         return;
-    }
-    if (isFromRHP) {
-        Navigation.dismissModal();
     }
     Navigation.isNavigationReady().then(() => {
         Navigation.goBack(backRoute);
