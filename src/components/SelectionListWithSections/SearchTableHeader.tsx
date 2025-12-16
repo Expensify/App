@@ -162,7 +162,7 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
-        translationKey: 'common.reportName',
+        translationKey: 'common.title',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,

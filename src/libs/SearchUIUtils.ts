@@ -8,6 +8,7 @@ import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSe
 import type {
     SearchAction,
     SearchColumnType,
+    SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchGroupBy,
@@ -57,6 +58,7 @@ import type {
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport, startMoneyRequest} from './actions/IOU';
 import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from './actions/isOpenConfirmNavigateExpensifyClassicModal';
@@ -2134,6 +2136,72 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+function getCustomColumns(type: SearchDataTypes): SearchCustomColumnIds[] {
+    // eslint-disable-next-line default-case
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE);
+        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT);
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.INVOICE);
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.TASK);
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.TRIP);
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.CHAT);
+    }
+}
+
+function getCustomColumnDefault(type: SearchDataTypes): SearchCustomColumnIds[] {
+    // eslint-disable-next-line default-case
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            return CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE;
+        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            return CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT;
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return CONST.SEARCH.DEFAULT_COLUMNS.INVOICE;
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return CONST.SEARCH.DEFAULT_COLUMNS.TASK;
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return CONST.SEARCH.DEFAULT_COLUMNS.TRIP;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return CONST.SEARCH.DEFAULT_COLUMNS.CHAT;
+    }
+}
+
+function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (columnId) {
+        case CONST.SEARCH.TABLE_COLUMNS.DATE:
+            return 'common.date';
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
+            return 'common.submitted';
+        case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
+            return 'search.filters.approved';
+        case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            return 'common.merchant';
+        case CONST.SEARCH.TABLE_COLUMNS.FROM:
+            return 'common.from';
+        case CONST.SEARCH.TABLE_COLUMNS.TO:
+            return 'common.to';
+        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+            return 'common.category';
+        case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
+            return 'common.receipt';
+        case CONST.SEARCH.TABLE_COLUMNS.TAG:
+            return 'common.tag';
+        case CONST.SEARCH.TABLE_COLUMNS.ACTION:
+            return 'common.action';
+        case CONST.SEARCH.TABLE_COLUMNS.TITLE:
+            return 'common.title';
+        case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+            return 'common.status';
+    }
+}
+
 type OverflowMenuIconsType = Record<'Pencil', IconAsset>;
 
 /**
@@ -2503,15 +2571,16 @@ function getActionOptions(translate: LocaleContextProps['translate']) {
 function getColumnsToShow(
     currentAccountID: number | undefined,
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
+    visibleColumns: SearchCustomColumnIds[] = [],
     isExpenseReportView = false,
     type?: SearchDataTypes,
 ): ColumnVisibility {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return {
+        const reportColumns: ColumnVisibility = {
             [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
             [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
             [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
             [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
@@ -2519,6 +2588,26 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
         };
+
+        // If there are no visible columns, everything should be visible
+        if (!visibleColumns.length) {
+            return reportColumns;
+        }
+
+        // If the user has set custom columns, toggle the visible columns on, with all other
+        // columns hidden by default
+        const columns: ColumnVisibility = {};
+        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+
+        for (const columnId of Object.keys(reportColumns) as SearchColumnType[]) {
+            columns[columnId] = requiredColumns.has(columnId);
+        }
+
+        for (const column of visibleColumns) {
+            columns[column as keyof ColumnVisibility] = true;
+        }
+
+        return columns;
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
@@ -2560,8 +2649,8 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
@@ -2575,6 +2664,7 @@ function getColumnsToShow(
           };
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
+
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
         const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
@@ -2619,6 +2709,18 @@ function getColumnsToShow(
             }
         }
     };
+
+    // If the user has set custom columns for the search, we need to respect their preference, and only show
+    // them what they want to see
+    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
+        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
+
+        for (const column of Object.keys(columns) as SearchCustomColumnIds[]) {
+            columns[column] = visibleColumns.includes(column) || requiredColumns.has(column);
+        }
+
+        return columns;
+    }
 
     if (Array.isArray(data)) {
         for (const item of data) {
@@ -2814,6 +2916,9 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getTransactionFromTransactionListItem,
+    getSearchColumnTranslationKey,
     getTableMinWidth,
+    getCustomColumns,
+    getCustomColumnDefault,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
