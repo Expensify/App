@@ -159,7 +159,7 @@ function ExpenseReportListItemRow({
                         size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                         source={getWorkspaceIcon(item).source}
                         avatarID={item.policyID}
-                        name={item.policyName ?? ''}
+                        name={getPolicyName({report: item})}
                         type={CONST.ICON_TYPE_WORKSPACE}
                     />
                     <TextWithTooltip

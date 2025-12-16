@@ -55,6 +55,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canBeMissing: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.WORKSPACE,
+        translationKey: 'workspace.common.workspace',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CARD,
         translationKey: 'common.card',
     },
@@ -86,10 +90,6 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
         isColumnSortable: false,
-    },
-    {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.WORKSPACE,
-        translationKey: 'workspace.common.workspace',
     },
 ];
 
