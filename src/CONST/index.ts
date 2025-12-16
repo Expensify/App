@@ -238,6 +238,7 @@ const CONST = {
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
     TOOLTIP_ANIMATION_DURATION: 500,
+    DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
@@ -1055,6 +1056,7 @@ const CONST = {
         WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/expensify-payments-wallet-terms-of-service`,
         BANCORP_WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
         EXPENSIFY_APPROVED_PROGRAM_URL: `${USE_EXPENSIFY_URL}/accountants-program`,
+        TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
     },
     OLDDOT_URLS: {
         ADMIN_POLICIES_URL: 'admin_policies',
@@ -1173,6 +1175,7 @@ const CONST = {
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             REJECT: 'reject',
+            REJECT_BULK: 'rejectBulk',
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
         },
@@ -1328,6 +1331,9 @@ const CONST = {
                     UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
                     UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
+                    UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
+                    UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
+                    UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
                     UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
@@ -1829,6 +1835,7 @@ const CONST = {
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
         INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
+        BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR: 'The deposit and withdrawal accounts are the same.',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
@@ -3108,6 +3115,7 @@ const CONST = {
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
             IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
+            REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -3901,7 +3909,7 @@ const CONST = {
     // Character Limits
     FORM_CHARACTER_LIMIT: 50,
     STANDARD_LENGTH_LIMIT: 100,
-    STANDARD_LIST_ITEM_LIMIT: 8,
+    STANDARD_LIST_ITEM_LIMIT: 12,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
@@ -5721,6 +5729,7 @@ const CONST = {
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
+        COMPANY_CARD_REQUIRED: 'companyCardRequired',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
@@ -6637,7 +6646,6 @@ const CONST = {
             VIEW: 'view',
             SUBMIT: 'submit',
             APPROVE: 'approve',
-            CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
             DONE: 'done',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
@@ -6653,7 +6661,6 @@ const CONST = {
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
             APPROVE: 'approve',
-            CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
             SUBMIT: 'submit',
             HOLD: 'hold',
@@ -6691,6 +6698,51 @@ const CONST = {
             FROM: 'from',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
+        },
+        get CUSTOM_COLUMNS() {
+            return {
+                EXPENSE: {
+                    RECEIPT: this.TABLE_COLUMNS.RECEIPT,
+                    DATE: this.TABLE_COLUMNS.DATE,
+                    MERCHANT: this.TABLE_COLUMNS.MERCHANT,
+                    FROM: this.TABLE_COLUMNS.FROM,
+                    TO: this.TABLE_COLUMNS.TO,
+                    CATEGORY: this.TABLE_COLUMNS.CATEGORY,
+                    TAG: this.TABLE_COLUMNS.TAG,
+                    ACTION: this.TABLE_COLUMNS.ACTION,
+                },
+                EXPENSE_REPORT: {
+                    DATE: this.TABLE_COLUMNS.DATE,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
+                    TITLE: this.TABLE_COLUMNS.TITLE,
+                    FROM: this.TABLE_COLUMNS.FROM,
+                    TO: this.TABLE_COLUMNS.TO,
+                    ACTION: this.TABLE_COLUMNS.ACTION,
+                },
+                INVOICE: {},
+                TASK: {},
+                TRIP: {},
+                CHAT: {},
+            };
+        },
+        get DEFAULT_COLUMNS() {
+            return {
+                EXPENSE: [
+                    this.TABLE_COLUMNS.RECEIPT,
+                    this.TABLE_COLUMNS.DATE,
+                    this.TABLE_COLUMNS.MERCHANT,
+                    this.TABLE_COLUMNS.FROM,
+                    this.TABLE_COLUMNS.TO,
+                    this.TABLE_COLUMNS.CATEGORY,
+                    this.TABLE_COLUMNS.TAG,
+                    this.TABLE_COLUMNS.ACTION,
+                ],
+                EXPENSE_REPORT: [this.TABLE_COLUMNS.DATE, this.TABLE_COLUMNS.STATUS, this.TABLE_COLUMNS.TITLE, this.TABLE_COLUMNS.FROM, this.TABLE_COLUMNS.TO, this.TABLE_COLUMNS.ACTION],
+                INVOICE: [],
+                TASK: [],
+                TRIP: [],
+                CHAT: [],
+            };
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6774,6 +6826,7 @@ const CONST = {
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             GROUP_BY: 'groupBy',
+            COLUMNS: 'columns',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -6882,6 +6935,7 @@ const CONST = {
             ATTENDEE: 'attendee',
             IS: 'is',
             REPORT_FIELD: 'report-field',
+            COLUMNS: 'columns',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
@@ -7037,6 +7091,30 @@ const CONST = {
                 alias: 'policy-prevent-member-changing-title',
                 name: undefined,
                 icon: undefined,
+            },
+            preventSelfApproval: {
+                id: 'preventSelfApproval' as const,
+                alias: 'prevent-self-approval',
+                name: 'Advanced Approvals' as const,
+                title: `workspace.upgrade.approvals.title` as const,
+                description: `workspace.upgrade.approvals.description` as const,
+                icon: 'AdvancedApprovalsSquare',
+            },
+            autoApproveCompliantReports: {
+                id: 'autoApproveCompliantReports' as const,
+                alias: 'auto-approve-compliant-reports',
+                name: 'Advanced Approvals' as const,
+                title: `workspace.upgrade.approvals.title` as const,
+                description: `workspace.upgrade.approvals.description` as const,
+                icon: 'AdvancedApprovalsSquare',
+            },
+            autoPayApprovedReports: {
+                id: 'autoPayApprovedReports' as const,
+                alias: 'auto-pay-approved-reports',
+                name: 'Advanced Approvals' as const,
+                title: `workspace.upgrade.approvals.title` as const,
+                description: `workspace.upgrade.approvals.description` as const,
+                icon: 'AdvancedApprovalsSquare',
             },
             categories: {
                 id: 'categories' as const,
