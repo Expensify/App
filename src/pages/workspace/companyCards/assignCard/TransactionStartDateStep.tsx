@@ -89,13 +89,10 @@ function TransactionStartDateStep() {
         <InteractiveStepWrapper
             wrapperID={TransactionStartDateStep.displayName}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={2}
-            stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={assigneeDisplayName}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseTransactionStartDate')}</Text>
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
             <View style={styles.flex1}>
                 <SelectionList
