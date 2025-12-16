@@ -311,7 +311,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceMemberDetailsPage.displayName}
+                testID="WorkspaceMemberDetailsPage"
             >
                 <HeaderWithBackButton
                     title={displayName}
@@ -478,7 +478,5 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceMemberDetailsPage.displayName = 'WorkspaceMemberDetailsPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceMemberDetailsPage);

@@ -86,6 +86,9 @@ type SearchTransaction = {
     /** The transaction amount */
     amount: number;
 
+    /** If the transaction can be deleted */
+    canDelete: boolean;
+
     /** The edited transaction amount */
     modifiedAmount: number;
 
@@ -166,6 +169,9 @@ type SearchTransaction = {
 
     /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
     groupCurrency?: string;
+
+    /** The card transaction's posted date */
+    posted?: string;
 };
 
 /** Model of tasks search result */
