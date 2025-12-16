@@ -188,14 +188,17 @@ const webViewStyles = (theme: ThemeColors) =>
 
             ul: {
                 maxWidth: '100%',
+                whiteSpace: 'normal',
             },
 
             ol: {
                 maxWidth: '100%',
+                whiteSpace: 'normal',
             },
 
             li: {
                 flexShrink: 1,
+                whiteSpace: 'pre',
             },
 
             pre: {
@@ -1866,10 +1869,14 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
-        emptyWorkspaceListIllustrationStyle: {
+        emptyWorkspaceListLottieIllustrationStyle: {
             marginTop: 12,
             marginBottom: -20,
             height: '100%',
+        },
+        emptyWorkspaceListStaticIllustrationStyle: {
+            width: 203,
+            height: 166,
         },
 
         appContent: {
@@ -3581,6 +3588,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.sectionIllustrationHeight,
         },
 
+        cardSectionIllustrationContainer: {
+            height: variables.sectionIllustrationHeight,
+        },
+
         twoFAIllustration: {
             width: 'auto',
             height: 140,
@@ -4642,7 +4653,11 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        walletIllustration: {
+        walletStaticIllustration: {
+            width: 262,
+            height: 152,
+        },
+        walletLottieIllustration: {
             height: 180,
         },
 
@@ -5150,11 +5165,21 @@ const staticStyles = (theme: ThemeColors) =>
             ...display.dFlex,
         },
 
+        emptyStateFolderStaticIllustration: {
+            width: 184,
+            height: 112,
+        },
+
         emptyStateFireworksWebStyles: {
             width: 250,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
             ...display.dFlex,
+        },
+
+        emptyStateFireworksStaticIllustration: {
+            width: 164,
+            height: 148,
         },
 
         tripEmptyStateLottieWebView: {
@@ -5535,6 +5560,26 @@ const staticStyles = (theme: ThemeColors) =>
         wordBreakAll: {
             ...wordBreak.breakAll,
         },
+        preferencesStaticIllustration: {
+            width: 280,
+            height: 180,
+        },
+        securitySettingsStaticIllustration: {
+            width: 112,
+            height: 160,
+        },
+        aboutStaticIllustration: {
+            width: 100,
+            height: 106,
+        },
+        troubleshootStaticIllustration: {
+            width: 170,
+            height: 160,
+        },
+        saveTheWorldStaticIllustration: {
+            width: 179,
+            height: 180,
+        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>
@@ -5857,10 +5902,10 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {height};
         },
 
-        getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean) => {
+        getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean, isSearchable = true) => {
             const BUTTON_HEIGHT = 40;
-            const SEARCHBAR_HEIGHT = 50;
-            const SEARCHBAR_MARGIN = 14;
+            const SEARCHBAR_HEIGHT = isSearchable ? 50 : 0;
+            const SEARCHBAR_MARGIN = isSearchable ? 14 : 0;
             const PADDING = 44 - (shouldUseNarrowLayout ? 32 : 0);
             const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_MARGIN + BUTTON_HEIGHT + PADDING;
 

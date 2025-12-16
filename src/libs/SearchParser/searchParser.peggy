@@ -34,16 +34,18 @@
     sortBy: "date",
     sortOrder: "desc",
   };
+  let rawFilterList = [];
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy"
+    "type", "keyword", "groupCurrency", "groupBy", "columns"
   ]);
 
   function applyDefaults(filters) {
     return {
       ...defaultValues,
       filters,
+      rawFilterList,
     };
   }
 
@@ -54,6 +56,26 @@
     }
     defaultValues[field] = value;
   }
+
+  function createRawFilter(filter) {
+    if (!filter || !filter.right) {
+      return null;
+    }
+
+    if (typeof filter.left !== "string") {
+      return null;
+    }
+
+    const key = filter.left;
+    const value = Array.isArray(filter.right) ? [...filter.right] : filter.right;
+
+    return {
+      key,
+      operator: filter.operator,
+      value,
+      isDefault: !!filter.isDefault,
+    };
+  }
 }
 
 query = _ filters:filterList? _ { return applyDefaults(filters); }
@@ -63,15 +85,19 @@ filterList
       const allFilters = [head, ...tail.map(([_, filter]) => filter)]
         .filter(Boolean)
         .filter((filter) => filter.right);
-      if (!allFilters.length) {
+      rawFilterList = allFilters.map(createRawFilter).filter(Boolean);
+
+      const filtersWithoutDefaults = allFilters.filter((filter) => !filter.isDefault);
+
+      if (!filtersWithoutDefaults.length) {
         return null;
       }
 
-      const keywords = allFilters.filter(
+      const keywords = filtersWithoutDefaults.filter(
         (filter) =>
           filter.left === "keyword" || filter.right?.left === "keyword"
       );
-      const nonKeywords = allFilters.filter(
+      const nonKeywords = filtersWithoutDefaults.filter(
         (filter) =>
           filter.left !== "keyword" && filter.right?.left !== "keyword"
       );
@@ -96,6 +122,7 @@ filter = @(standardFilter / defaultFilter / freeTextFilter)
 defaultFilter
   = _ key:defaultKey _ op:operator _ value:identifier {
       updateDefaultValues(key, value);
+      return {...buildFilter(op, key, value), isDefault: true};
     }
 
 freeTextFilter
@@ -183,7 +210,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
+defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

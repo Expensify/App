@@ -1,19 +1,16 @@
 import {addMonths, format, isPast, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportNextStepDeprecated, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
-import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
@@ -21,7 +18,6 @@ import {
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
     getPersonalDetailsForAccountID,
-    hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isInvoiceReport,
     isPayer,
@@ -38,47 +34,15 @@ type BuildNextStepNewParams = {
     shouldFixViolations?: boolean;
     isUnapprove?: boolean;
     isReopen?: boolean;
+    /**
+     * Bypass Next Approver ID is used when an approver is bypassed so that we can show the next approver in the chain.
+     * This is necessary in the case where report actions are not yet updated to determine the bypass action.
+     */
+    bypassNextApproverID?: number;
 };
 
-let currentUserAccountID = -1;
-let currentUserEmail = '';
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        currentUserEmail = value?.email ?? '';
-    },
-});
-
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
-});
-
-let transactionViolations: OnyxCollection<TransactionViolations>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        transactionViolations = value;
-    },
-});
-
-function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate']): string {
+function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
     const actor = getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
-
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
@@ -102,8 +66,19 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
 }
 
 function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
-    const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen} =
-        params;
+    const {
+        report,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        predictedNextStatus,
+        shouldFixViolations,
+        isUnapprove,
+        isReopen,
+        bypassNextApproverID,
+    } = params;
 
     if (!isExpenseReport(report)) {
         return null;
@@ -118,7 +93,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         ((report.total !== 0 && report.total !== undefined) ||
             (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
             (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
-    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
+    const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
 
@@ -285,7 +260,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     return nextStep;
 }
 
-function parseMessage(messages: Message[] | undefined) {
+function parseMessage(messages: Message[] | undefined, currentUserEmail: string) {
     let nextStepHTML = '';
     if (messages) {
         for (const [index, part] of messages.entries()) {
@@ -367,405 +342,24 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
 }
 
 /**
- * Please don't use this function anymore, let's use buildNextStepNew instead
- *
- * @param report
- * @param predictedNextStatus - a next expected status of the report
- * @param shouldFixViolations - whether to show `fix the issue` next step
- * @param isUnapprove - whether a report is being unapproved
- * @param isReopen - whether a report is being reopened
- * @returns nextStep
- */
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function buildNextStep(
-    report: OnyxEntry<Report>,
-    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
-    shouldFixViolations?: boolean,
-    isUnapprove?: boolean,
-    isReopen?: boolean,
-): ReportNextStepDeprecated | null {
-    if (!isExpenseReport(report)) {
-        return null;
-    }
-
-    const {policyID = '', ownerAccountID = -1} = report ?? {};
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
-    const {harvesting, autoReportingOffset} = policy;
-    const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
-    const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
-    const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
-    const [policyOwnerPersonalDetails, ownerPersonalDetails] = getPersonalDetailsByIDs({
-        accountIDs: [policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, ownerAccountID],
-        currentUserAccountID,
-        shouldChangeUserDisplayName: true,
-    });
-    const isReportContainingTransactions =
-        report &&
-        ((report.total !== 0 && report.total !== undefined) ||
-            (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
-            (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
-    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
-
-    const ownerDisplayName =
-        ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
-    const policyOwnerDisplayName =
-        policyOwnerPersonalDetails?.displayName ??
-        policyOwnerPersonalDetails?.login ??
-        getDisplayNameForParticipant({accountID: policy.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
-    const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
-    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
-    const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
-
-    const reimburserAccountID = getReimburserAccountID(policy);
-    const type: ReportNextStepDeprecated['type'] = 'neutral';
-    let optimisticNextStep: ReportNextStepDeprecated | null;
-
-    const nextStepPayExpense = {
-        type,
-        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: 'Waiting for ',
-            },
-            ownerAccountID === -1 || !policy.ownerAccountID
-                ? {
-                      text: 'an admin',
-                  }
-                : {
-                      text: shouldShowFixMessage ? ownerDisplayName : policyOwnerDisplayName,
-                      type: 'strong',
-                  },
-            {
-                text: ' to ',
-            },
-            ...(shouldShowFixMessage ? [{text: 'fix the issues'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
-        ],
-    };
-
-    const noActionRequired = {
-        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-        type,
-        message: [
-            {
-                text: 'No further action required!',
-            },
-        ],
-    };
-
-    switch (predictedNextStatus) {
-        // Generates an optimistic nextStep once a report has been opened
-        case CONST.REPORT.STATUS_NUM.OPEN:
-            if ((isASAPSubmitBetaEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
-                optimisticNextStep = {
-                    type,
-                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    message: [
-                        {
-                            text: 'Waiting for ',
-                        },
-                        {
-                            text: `${ownerDisplayName}`,
-                            type: 'strong',
-                            clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                        },
-                        {
-                            text: ' to ',
-                        },
-                        {
-                            text: 'fix the issues',
-                        },
-                    ],
-                };
-                break;
-            }
-            if (isReopen) {
-                optimisticNextStep = {
-                    type,
-                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    message: [
-                        {
-                            text: 'Waiting for ',
-                        },
-                        {
-                            text: `${ownerDisplayName}`,
-                            type: 'strong',
-                            clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                        },
-                        {
-                            text: ' to ',
-                        },
-                        {
-                            text: 'submit',
-                        },
-                        {
-                            text: ' %expenses.',
-                        },
-                    ],
-                };
-                break;
-            }
-
-            // Self review
-            optimisticNextStep = {
-                type,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${ownerDisplayName}`,
-                        type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'add',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ],
-            };
-
-            // Scheduled submit enabled
-            if (harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL && isReportContainingTransactions) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${ownerDisplayName}`,
-                        type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                    },
-                    {
-                        text: `'s`,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' %expenses to automatically submit',
-                    },
-                ];
-                let harvestingSuffix = '';
-
-                if (autoReportingFrequency) {
-                    const currentDate = new Date();
-                    let autoSubmissionDate = '';
-                    let monthlyText = '';
-
-                    if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
-                        monthlyText = 'on the last day of the month';
-                    } else if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
-                        monthlyText = 'on the last business day of the month';
-                    } else if (autoReportingOffset !== undefined) {
-                        autoSubmissionDate = format(setDate(currentDate, autoReportingOffset), CONST.DATE.ORDINAL_DAY_OF_MONTH);
-                    }
-
-                    const harvestingSuffixes: Record<DeepValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, string> = {
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: 'later today',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: autoSubmissionDate ? `on the ${autoSubmissionDate} of each month` : monthlyText,
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of their trip',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: '',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
-                    };
-
-                    if (harvestingSuffixes[autoReportingFrequency]) {
-                        harvestingSuffix = `${harvestingSuffixes[autoReportingFrequency]}`;
-                    }
-                }
-
-                optimisticNextStep.message.push({
-                    text: ` ${harvestingSuffix}`,
-                });
-            }
-
-            // Manual submission
-            if (report?.total !== 0 && !harvesting?.enabled && autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${ownerDisplayName}`,
-                        type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'submit',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-            }
-
-            break;
-
-        // Generates an optimistic nextStep once a report has been submitted
-        case CONST.REPORT.STATUS_NUM.SUBMITTED: {
-            if (policy.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-                optimisticNextStep = reimbursableSpend === 0 ? noActionRequired : nextStepPayExpense;
-                break;
-            }
-            // Another owner
-            optimisticNextStep = {
-                type,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-            };
-            // We want to show pending approval next step for cases where the policy has approvals enabled
-            const policyApprovalMode = getApprovalWorkflow(policy);
-            if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policyApprovalMode)) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: nextApproverDisplayName,
-                        type: 'strong',
-                        clickToCopyText: approvers.at(0),
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'approve',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-            } else {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    isPayer(
-                        {
-                            accountID: currentUserAccountID,
-                            email: currentUserEmail,
-                        },
-                        report,
-                    )
-                        ? {
-                              text: `you`,
-                              type: 'strong',
-                          }
-                        : {
-                              text: `an admin`,
-                          },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-            }
-
-            break;
-        }
-
-        // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
-        case CONST.REPORT.STATUS_NUM.CLOSED:
-            optimisticNextStep = noActionRequired;
-
-            break;
-
-        // Generates an optimistic nextStep once a report has been paid
-        case CONST.REPORT.STATUS_NUM.REIMBURSED:
-            optimisticNextStep = noActionRequired;
-
-            break;
-
-        // Generates an optimistic nextStep once a report has been approved
-        case CONST.REPORT.STATUS_NUM.APPROVED: {
-            if (
-                isInvoiceReport(report) ||
-                !isPayer(
-                    {
-                        accountID: currentUserAccountID,
-                        email: currentUserEmail,
-                    },
-                    report,
-                ) ||
-                reimbursableSpend === 0
-            ) {
-                optimisticNextStep = noActionRequired;
-
-                break;
-            }
-            // Self review
-            let payerMessage: Message;
-            if (
-                isPayer(
-                    {
-                        accountID: currentUserAccountID,
-                        email: currentUserEmail,
-                    },
-                    report,
-                )
-            ) {
-                payerMessage = {text: 'you', type: 'strong'};
-            } else if (reimburserAccountID === -1) {
-                payerMessage = {text: 'an admin'};
-            } else {
-                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}), type: 'strong'};
-            }
-
-            optimisticNextStep = {
-                type,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    payerMessage,
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ],
-            };
-            break;
-        }
-
-        // Resets a nextStep
-        default:
-            optimisticNextStep = null;
-    }
-
-    return optimisticNextStep;
-}
-
-/**
  * Generates an optimistic nextStep based on a current report status and other properties.
  * Need to rename this function and remove the buildNextStep function above after migrating to this function
  * @deprecated This function will be removed soon. You should still use it though but also use buildOptimisticNextStep in parallel.
  */
 function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDeprecated | null {
-    const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen} =
-        params;
+    const {
+        report,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        predictedNextStatus,
+        shouldFixViolations,
+        isUnapprove,
+        isReopen,
+        bypassNextApproverID,
+    } = params;
 
     if (!isExpenseReport(report)) {
         return null;
@@ -793,8 +387,10 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         policyOwnerPersonalDetails?.displayName ??
         policyOwnerPersonalDetails?.login ??
         getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
-    const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
-    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
+    const nextApproverDisplayName = bypassNextApproverID
+        ? (getDisplayNameForParticipant({accountID: bypassNextApproverID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(bypassNextApproverID).login)
+        : getNextApproverDisplayName(report, isUnapprove);
+    const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
@@ -1138,9 +734,6 @@ export {
     buildNextStepMessage,
     buildOptimisticNextStep,
     parseMessage,
-    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    buildNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
     // eslint-disable-next-line @typescript-eslint/no-deprecated

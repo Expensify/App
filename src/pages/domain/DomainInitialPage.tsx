@@ -45,7 +45,7 @@ type DomainMenuItem = {
 type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.INITIAL>;
 
 function DomainInitialPage({route}: DomainInitialPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['UserLock'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['UserLock']);
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -54,23 +54,23 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const {translate} = useLocalize();
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
-    const accountID = route.params?.accountID;
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
+    const domainAccountID = route.params?.domainAccountID;
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
-    const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
+    const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: false});
 
     const domainMenuItems: DomainMenuItem[] = useMemo(() => {
         const menuItems: DomainMenuItem[] = [
             {
                 translationKey: 'domain.saml',
                 icon: icons.UserLock,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(accountID)))),
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(domainAccountID)))),
                 screenName: SCREENS.DOMAIN.SAML,
             },
         ];
 
         return menuItems;
-    }, [accountID, singleExecution, waitForNavigate, icons.UserLock]);
+    }, [domainAccountID, singleExecution, waitForNavigate, icons.UserLock]);
 
     useEffect(() => {
         if (!domainName) {
@@ -87,7 +87,14 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         <ScreenWrapper
             testID={DomainInitialPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContent={
+                !shouldDisplayLHB && (
+                    <NavigationTabBar
+                        selectedTab={NAVIGATION_TABS.WORKSPACES}
+                        shouldShowFloatingCameraButton={false}
+                    />
+                )
+            }
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.dismissModal()}

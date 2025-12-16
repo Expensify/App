@@ -19,7 +19,7 @@ function JustSignedInModal({is2FARequired}: JustSignedInModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
