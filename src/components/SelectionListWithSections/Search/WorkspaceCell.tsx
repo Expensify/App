@@ -2,25 +2,24 @@ import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import TextWithTooltip from '@components/TextWithTooltip';
-import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type WorkspaceCellProps = {
     policyID?: string;
-    policyName?: string;
-    avatarURL?: string;
 };
 
-function WorkspaceCell({policyName, avatarURL, policyID}: WorkspaceCellProps) {
+function WorkspaceCell({policyID}: WorkspaceCellProps) {
     const styles = useThemeStyles();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const policy = usePolicy(policyID);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const name = policyName || policy?.name;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const avatar = avatarURL || policy?.avatarURL;
+    if (policy?.type === CONST.POLICY.TYPE.PERSONAL || !policy) {
+        return null;
+    }
+
+    const name = policy.name;
+    const avatar = policy.avatarURL;
 
     return (
         <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
