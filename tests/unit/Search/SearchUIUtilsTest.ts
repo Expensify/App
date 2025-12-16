@@ -1081,6 +1081,7 @@ const transactionReportGroupListItems = [
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPosted: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -1186,6 +1187,7 @@ const transactionReportGroupListItems = [
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPosted: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -1303,6 +1305,7 @@ const transactionReportGroupListItems = [
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPosted: false,
                 keyForList: '3',
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1361,6 +1364,7 @@ const transactionReportGroupListItems = [
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPosted: false,
                 keyForList: '4',
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1857,7 +1861,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 49;
+            const expectedPropertyCount = 51;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1890,7 +1894,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 47;
+            const expectedPropertyCount = 48;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
