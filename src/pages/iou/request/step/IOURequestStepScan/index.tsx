@@ -634,7 +634,9 @@ function IOURequestStepScan({
         for (const [index, file] of files.entries()) {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
-                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && (!initialTransaction?.receipt?.source || initialTransaction?.receipt?.isTestReceipt))
+                initialTransaction &&
+                (!shouldAcceptMultipleFiles ||
+                    (index === 0 && (!isMultiScanEnabled || (transactions.length === 1 && (!initialTransaction.receipt?.source || initialTransaction.receipt?.isTestReceipt)))))
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
