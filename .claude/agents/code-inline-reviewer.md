@@ -145,237 +145,60 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 ### [PERF-4] Memoize objects and functions passed as props
 
-- **Search patterns**: Look for objects/functions passed as props:
-  - Inline objects: `prop={{`, `={{`
-  - Inline arrow functions: `prop={() =>`, `onPress={() =>`, `onCallback={() =>`
-  - Hooks returning objects: `return {` inside custom hooks (files starting with `use`)
-  - Object variables passed as props: `prop={someObject}` where `someObject` is not memoized
-  - Manually memoized components: `React.memo`, `memo`
+- **Search patterns**: `prop={{`, `={() =>`, `prop={variable}` (where variable is non-memoized object/function)
 
-- **Condition**: Flag ONLY when ALL of these are true:
+- **Applies ONLY to**: Objects/functions passed directly as JSX props. Does NOT apply to:
+  - Code inside callbacks (`.then()`, event handlers)
+  - Code inside `useEffect`/`useMemo`/`useCallback` bodies
+  - Primitives (strings, numbers, booleans)
+  - Already memoized values (`useMemo`/`useCallback`)
 
-  1. An object literal, arrow function, or non-memoized variable is passed as a prop to a child component
-  2. The child component IS memoized (either via `React.memo`/`memo()` OR React Compiler optimized)
-  3. The parent component is NOT optimized by React Compiler
-  4. The new reference would actually cause the child to re-render
+- **Reasoning**: New object/function references break memoization of child components. Only matters when child IS memoized AND parent is NOT optimized by React Compiler.
 
-  **DO NOT flag if:**
+#### Before flagging: Run optimization check
 
-  - Child component is NOT memoized (it re-renders anyway, memoizing props won't help)
-  - Parent component IS optimized by React Compiler (compiler auto-memoizes)
-  - Props are primitives (strings, numbers, booleans)
-  - The object/function is already wrapped in `useMemo`/`useCallback`
-  - Child uses custom memo comparator that prevents re-render despite new reference
-
-- **Reasoning**: React uses referential equality to determine if props changed. New object/function instances break memoization of child components. However, memoizing props only matters when the child is memoized AND the parent is not handled by React Compiler.
-
-#### MANDATORY: Check React Compiler optimization status
-
-**CRITICAL**: If you spot ANY pattern that MIGHT be a PERF-4 violation (inline object, arrow function, non-memoized variable passed as prop), you MUST run this script BEFORE deciding to flag or skip. Never skip PERF-4 analysis without first running this script on the file.
-
-Run (available in PATH from `.claude/scripts/`):
+**MANDATORY**: Run this script for ANY potential PERF-4 (available in PATH):
 
 ```bash
 checkReactCompilerOptimization.sh <file-path>
 ```
 
-**Note on new files:** If the script returns "File not found", this means the file is NEW in this PR. New files must pass react-compiler healthcheck before merge, so assume all components in new files ARE optimized → **Skip PERF-4**.
-
-This returns optimization status for the parent and all child components:
-
-```json
-{
-  "parentOptimized": ["ParentComponent", "HelperComponent"],
-  "childComponents": {
-    "ChildButton": {
-      "variants": [
-        { "optimized": true, "platform": "default" },
-        { "optimized": false, "platform": "native" }
-      ]
-    },
-    "Pressables.GenericPressable": {
-      "variants": [
-        { "optimized": true, "platform": "default" }
-      ]
-    }
-  }
-}
-```
-
-**Understanding the output:**
-- `parentOptimized`: List of components/hooks in the parent file that are optimized by React Compiler (empty array if none)
-- `childComponents`: Map of child component names to their optimization status
-- `variants`: Platform-specific optimization status (default, native, ios, android, web, desktop)
-- `optimized: true` means the component is optimized by React Compiler
-- Namespace imports (e.g., `import * as Pressables from '...'`) appear as `Pressables.ComponentName`
+**"File not found"** → Assume parent is optimized and skip PERF-4.
 
 #### Decision flow
 
-1. **Is parent component optimized by React Compiler?**
-   - Check if the component you're reviewing is in the `parentOptimized` array
-   - If YES → **Skip PERF-4** (compiler auto-memoizes props)
-   - If NO → go to step 2
+1. **Parent in `parentOptimized`?** → YES = **Skip** (compiler auto-memoizes)
 
-2. **Is child component memoized?**
-   - Check `childComponents[componentName].variants[].optimized`
-   - If `optimized: true` → memoized by React Compiler → go to step 3
-   - If `optimized: false` → check manually for `React.memo` in child's source file
-     - Found `memo(` → memoized manually → go to step 3
-     - Not found → **Skip PERF-4** (child re-renders anyway)
+2. **Child has custom memo comparator that PREVENTS re-render for this prop?**
+   (e.g., uses `deepEqual` on this prop, or ignores this prop entirely)
+   → YES = **Skip**
 
-3. **Does child have custom memo comparator that prevents re-render in analyzed case?**
-   - Look for `memo(Component, comparator)` or `React.memo(Component, comparator)`
-   - Analyze if comparator prevents re-render for the specific prop being analyzed (e.g., uses `deepEqual` on that prop, or ignores it entirely)
-   - If comparator prevents re-render for this prop → **Skip PERF-4**
-   - If no comparator or comparator uses reference equality for this prop → **Flag PERF-4**
-
-4. **Consider platform variants:**
-   - A component may be optimized on some platforms but not others
-   - If flagging PERF-4, mention which platforms are affected
+3. **Child is memoized?** (`optimized: true` OR `React.memo`)
+   - NO → **Skip** (child re-renders anyway)
+   - YES → **Flag PERF-4**
 
 #### Examples
 
-**Example 1: Flag - parent NOT compiled, child IS memoized**
-
-Script output:
-```json
-{
-  "parentOptimized": [],
-  "childComponents": {
-    "MemoizedList": {
-      "variants": [{ "optimized": true, "platform": "default" }]
-    }
-  }
-}
-```
-- `parentOptimized: []` → parent NOT optimized
-- `MemoizedList.variants[0].optimized: true` → child IS optimized
-- → **Flag PERF-4**
-
+**Flag** (parent NOT optimized, child IS memoized, no custom comparator):
 ```tsx
-// ❌ New object every render breaks MemoizedList's memoization
-const options = { showHeader: true, pageSize: 10 };
-return <MemoizedList options={options} />;
+// Script output: parentOptimized: [], child MemoizedList optimized: true
+// No custom comparator found
+return <MemoizedList options={{ showHeader: true }} />;
 ```
 
----
-
-**Example 2: Skip - parent IS compiled by React Compiler**
-
-Script output:
-```json
-{
-  "parentOptimized": ["MyPage"],
-  "childComponents": {
-    "MemoizedList": {
-      "variants": [{ "optimized": true, "platform": "default" }]
-    }
-  }
-}
-```
-- `parentOptimized: ["MyPage"]` → `MyPage` IS optimized
-- → **Skip PERF-4** (compiler auto-memoizes)
-
+**Skip - custom comparator** (child uses deepEqual on this prop):
 ```tsx
-// ✅ React Compiler auto-memoizes - no manual useMemo/useCallback needed
-const options = { showHeader: true, pageSize: 10 };
-return <MemoizedList options={options} />;
+// PopoverMenu has: React.memo(PopoverMenu, (prev, next) =>
+//     deepEqual(prev.anchorPosition, next.anchorPosition) && ...)
+// deepEqual prevents re-render despite new reference
+return <PopoverMenu anchorPosition={{x: 0, y: 0}} />;
 ```
 
----
-
-**Example 3: Skip - child is NOT memoized**
-
-Script output:
-```json
-{
-  "parentOptimized": [],
-  "childComponents": {
-    "RegularList": {
-      "variants": [{ "optimized": false, "platform": "default" }]
-    }
-  }
-}
-```
-- `RegularList.variants[0].optimized: false` → NOT optimized by compiler
-- Check manually for `React.memo` in child source → not found
-- → **Skip PERF-4** (child re-renders anyway)
-
+**Skip - parent optimized**:
 ```tsx
-// ✅ RegularList is not memoized, so it re-renders anyway
-const options = { showHeader: true, pageSize: 10 };
-return <RegularList options={options} />;
-```
-
----
-
-**Example 4: Skip - child uses custom memo comparator that handles the prop**
-
-Script output shows `optimized: false`, but manual check finds `React.memo`:
-```tsx
-// In PopoverMenu.tsx:
-export default React.memo(PopoverMenu, (prevProps, nextProps) =>
-    deepEqual(prevProps.anchorPosition, nextProps.anchorPosition) && ...
-);
-```
-
-The `deepEqual` comparator compares values, not references - so new object won't cause re-render.
-- → **Skip PERF-4**
-
-```tsx
-// ✅ deepEqual compares values, not references
-return <PopoverMenu anchorPosition={{horizontal: 0, vertical: 0}} />;
-```
-
----
-
-**Example 5: Flag only for specific platform**
-
-Script output:
-```json
-{
-  "parentOptimized": [],
-  "childComponents": {
-    "ChildButton": {
-      "variants": [
-        { "optimized": true, "platform": "default" },
-        { "optimized": false, "platform": "native" }
-      ]
-    }
-  }
-}
-```
-- On web (default): `optimized: true` → IS optimized → Skip
-- On native: `optimized: false` → NOT optimized, check for `React.memo`
-- If native version has `React.memo` without custom comparator → **Flag PERF-4 for native only**
-
-```tsx
-// ⚠️ This may cause unnecessary re-renders on native platform
-return <ChildButton onPress={() => handlePress()} />;
-```
-
----
-
-**Example 6: Namespace import**
-
-Script output:
-```json
-{
-  "parentOptimized": [],
-  "childComponents": {
-    "Pressables.GenericPressable": {
-      "variants": [{ "optimized": true, "platform": "default" }]
-    }
-  }
-}
-```
-- Namespace import appears as `Pressables.GenericPressable`
-- `optimized: true` → IS optimized → **Skip PERF-4**
-
-```tsx
-// ✅ GenericPressable is optimized by React Compiler
-import * as Pressables from '@components/Pressable';
-return <Pressables.GenericPressable onPress={handlePress} />;
+// Script output: parentOptimized: ["MyComponent"]
+// React Compiler auto-memoizes - no manual memoization needed
+return <MemoizedList options={{ showHeader: true }} />;
 ```
 
 ---
