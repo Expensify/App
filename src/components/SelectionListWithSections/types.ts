@@ -277,10 +277,10 @@ type TransactionListItemType = ListItem &
         formattedMerchant: string;
 
         /** The original amount of the transaction */
-        originalAmount: number;
+        originalAmount?: number;
 
         /** The original currency of the transaction */
-        originalCurrency: string;
+        originalCurrency?: string;
 
         /** final "date" value used for sorting */
         date: string;

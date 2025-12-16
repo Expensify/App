@@ -158,12 +158,6 @@ type SearchTransaction = {
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
 
-    /** The original amount of the transaction */
-    originalAmount?: number;
-
-    /** The original currency of the transaction */
-    originalCurrency?: string;
-
     /** The CC for this transaction */
     cardID?: number;
 
