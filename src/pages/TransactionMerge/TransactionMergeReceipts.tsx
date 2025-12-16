@@ -77,6 +77,8 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                                     getTransactionThreadReportID(transaction) ?? transaction.reportID ?? getReportIDForExpense(transaction),
                                                     transaction.transactionID,
                                                     true,
+                                                    false,
+                                                    transaction?.transactionID,
                                                 ),
                                             );
                                         }}
