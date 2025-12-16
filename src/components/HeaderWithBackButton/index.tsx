@@ -47,6 +47,7 @@ function HeaderWithBackButton({
     shouldShowDownloadButton = false,
     isDownloading = false,
     shouldShowRotateButton = false,
+    isRotating = false,
     shouldShowPinButton = false,
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
@@ -281,21 +282,24 @@ function HeaderWithBackButton({
                             ) : (
                                 <ActivityIndicator style={[styles.touchableButtonImage]} />
                             ))}
-                        {shouldShowRotateButton && (
-                            <Tooltip text={translate('common.rotate')}>
-                                <PressableWithoutFeedback
-                                    onPress={onRotateButtonPress}
-                                    style={[styles.touchableButtonImage]}
-                                    role="button"
-                                    accessibilityLabel={translate('common.rotate')}
-                                >
-                                    <Icon
-                                        src={icons.Rotate}
-                                        fill={iconFill ?? theme.icon}
-                                    />
-                                </PressableWithoutFeedback>
-                            </Tooltip>
-                        )}
+                        {shouldShowRotateButton &&
+                            (!isRotating ? (
+                                <Tooltip text={translate('common.rotate')}>
+                                    <PressableWithoutFeedback
+                                        onPress={onRotateButtonPress}
+                                        style={[styles.touchableButtonImage]}
+                                        role="button"
+                                        accessibilityLabel={translate('common.rotate')}
+                                    >
+                                        <Icon
+                                            src={icons.Rotate}
+                                            fill={iconFill ?? theme.icon}
+                                        />
+                                    </PressableWithoutFeedback>
+                                </Tooltip>
+                            ) : (
+                                <ActivityIndicator style={[styles.touchableButtonImage]} />
+                            ))}
                         {shouldShowPinButton && !!report && <PinButton report={report} />}
                     </View>
                     {ThreeDotMenuButton}

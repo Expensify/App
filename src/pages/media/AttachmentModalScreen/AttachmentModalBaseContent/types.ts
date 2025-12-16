@@ -96,6 +96,9 @@ type AttachmentModalBaseContentProps = {
     /** Callback triggered when the rotate button is pressed */
     onRotateButtonPress?: () => void;
 
+    /** Whether we should show a loading indicator replacing the rotate button */
+    isRotating?: boolean;
+
     /** Whether to disable send button */
     shouldDisableSendButton?: boolean;
 

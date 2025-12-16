@@ -90,6 +90,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isImage = !!receiptFilename && Str.isImage(receiptFilename);
 
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
+    const [isRotating, setIsRotating] = useState(false);
 
     useEffect(() => {
         if ((!!report && !!transaction) || isDraftTransaction) {
@@ -156,6 +157,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     }, [receiptPath]);
 
     const moneyRequestReportID = isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseReportValue = isTrackExpenseReport(report);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -192,37 +194,45 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
         const receiptType = transaction?.receipt?.type ?? CONST.IMAGE_FILE_FORMAT.JPEG;
 
+        setIsRotating(true);
         cropOrRotateImage(sourceUri as string, [{rotate: -90}], {
             compress: 1,
             name: receiptFilename,
             type: receiptType,
-        }).then((rotatedImage) => {
-            if (!rotatedImage) {
-                return;
-            }
+        })
+            .then((rotatedImage) => {
+                if (!rotatedImage) {
+                    setIsRotating(false);
+                    return;
+                }
 
-            // Both web and native return objects with uri property
-            const imageUriResult = 'uri' in rotatedImage && rotatedImage.uri ? rotatedImage.uri : undefined;
-            if (!imageUriResult) {
-                return;
-            }
+                // Both web and native return objects with uri property
+                const imageUriResult = 'uri' in rotatedImage && rotatedImage.uri ? rotatedImage.uri : undefined;
+                if (!imageUriResult) {
+                    setIsRotating(false);
+                    return;
+                }
 
-            const file = rotatedImage as File;
-            const rotatedFilename = file.name ?? receiptFilename;
+                const file = rotatedImage as File;
+                const rotatedFilename = file.name ?? receiptFilename;
 
-            if (isDraftTransaction) {
-                // Update the transaction immediately so the modal displays the rotated image right away
-                setMoneyRequestReceipt(transaction.transactionID, imageUriResult, rotatedFilename, isDraftTransaction, receiptType);
-            } else {
-                replaceReceipt({
-                    transactionID: transaction.transactionID,
-                    file,
-                    source: imageUriResult,
-                    transactionPolicyCategories: policyCategories,
-                    transactionPolicy: policy,
-                });
-            }
-        });
+                if (isDraftTransaction) {
+                    // Update the transaction immediately so the modal displays the rotated image right away
+                    setMoneyRequestReceipt(transaction.transactionID, imageUriResult, rotatedFilename, isDraftTransaction, receiptType);
+                } else {
+                    replaceReceipt({
+                        transactionID: transaction.transactionID,
+                        file,
+                        source: imageUriResult,
+                        transactionPolicyCategories: policyCategories,
+                        transactionPolicy: policy,
+                    });
+                }
+                setIsRotating(false);
+            })
+            .catch(() => {
+                setIsRotating(false);
+            });
     }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt?.type, policy]);
 
     const shouldShowRotateReceiptButton = useMemo(
@@ -326,6 +336,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             shouldShowCarousel: false,
             shouldShowRotateButton: shouldShowRotateReceiptButton,
             onRotateButtonPress: rotateReceipt,
+            isRotating,
             onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
             transaction,
         }),
@@ -341,6 +352,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             shouldShowNotFoundPage,
             shouldShowRotateReceiptButton,
             rotateReceipt,
+            isRotating,
             source,
             threeDotsMenuItems,
             transaction,

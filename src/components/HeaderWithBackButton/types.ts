@@ -78,6 +78,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should show a rotate button */
     shouldShowRotateButton?: boolean;
 
+    /** Whether we should show a loading indicator replacing the rotate button */
+    isRotating?: boolean;
+
     /** Whether we should show a pin button */
     shouldShowPinButton?: boolean;
 
