@@ -27,7 +27,8 @@ jobs:
           IS_DESKTOP_BUILD: true
 
       - name: Cache ESLint
-        uses: actions/cache@v4
+        # v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: node_modules/.cache/eslint
           key: ${{ runner.os }}-eslint-${{ hashFiles('**/*.js', '**/*.ts', '**/*.tsx', '.eslintrc.js', '.eslintignore', 'eslint.config.*') }}
