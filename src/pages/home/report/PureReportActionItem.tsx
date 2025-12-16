@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-deep-equal-in-memo */
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';

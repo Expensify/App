@@ -64,11 +64,11 @@ function TransactionPreviewContent({
     // TODO: MFA/Release Remove this before the actual release
     displayTestMultifactorAuthenticationButton = false,
 }: TransactionPreviewContentProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag', 'DotIndicator']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const icons = useMemoizedLazyExpensifyIcons(['Tag', 'Folder', 'DotIndicator'] as const);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
