@@ -198,14 +198,14 @@ function WorkspaceReportFieldsPage({
                         <Section
                             isCentralPane
                             renderTitle={() => (
-                                <OfflineWithFeedback pendingAction={reportTitlePendingFields.defaultValue}>
+                                <OfflineWithFeedback pendingAction={policy?.pendingAction}>
                                     <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}>
                                         {translate('workspace.common.reportTitle')}
                                     </Text>
                                 </OfflineWithFeedback>
                             )}
                             renderSubtitle={() => (
-                                <OfflineWithFeedback pendingAction={reportTitlePendingFields.defaultValue}>
+                                <OfflineWithFeedback pendingAction={policy?.pendingAction}>
                                     <View style={[[styles.renderHTML, styles.mt1]]}>
                                         <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
                                     </View>
@@ -214,7 +214,7 @@ function WorkspaceReportFieldsPage({
                             containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                         >
                             <OfflineWithFeedback
-                                pendingAction={reportTitlePendingFields.defaultValue}
+                                pendingAction={reportTitlePendingFields.defaultValue || policy?.pendingAction}
                                 shouldForceOpacity={!!reportTitlePendingFields.defaultValue}
                                 errors={reportTitleErrors}
                                 errorRowStyles={[styles.mh0]}
@@ -230,7 +230,7 @@ function WorkspaceReportFieldsPage({
                                 />
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
-                                pendingAction={reportTitlePendingFields.deletable}
+                                pendingAction={reportTitlePendingFields.deletable || policy?.pendingAction}
                                 title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
