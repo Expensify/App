@@ -53,6 +53,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
+    const reportActionIDRef = useRef<string | undefined>(undefined);
     const originalReportIDRef = useRef<string | undefined>(undefined);
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
@@ -152,9 +153,11 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     }, [measureContextMenuAnchorPosition]);
 
     /** Whether Context Menu is active for the Report Action. */
-    const isActiveReportAction: ReportActionContextMenu['isActiveReportAction'] = (actionID) => !!actionID && reportActionRef.current?.reportActionID === actionID;
+    const isActiveReportAction: ReportActionContextMenu['isActiveReportAction'] = (actionID) =>
+        !!actionID && (reportActionIDRef.current === actionID || reportActionRef.current?.reportActionID === actionID);
 
     const clearActiveReportAction = () => {
+        reportActionIDRef.current = undefined;
         reportActionRef.current = null;
     };
 
@@ -197,7 +200,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         }
 
         const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = currentReport;
-        const {draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
+        const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
         setIsWithoutOverlay(withoutOverlay);
@@ -238,7 +241,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             setDisabledActions(disabledOptions);
             typeRef.current = type;
             reportIDRef.current = reportID;
-            reportActionRef.current = (reportAction as OnyxEntry<ReportAction>) ?? null;
+            reportActionIDRef.current = reportActionID;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             originalReportIDRef.current = originalReportID || undefined;
             selectionRef.current = selection;
@@ -276,7 +279,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     /** After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it */
     const runAndResetOnPopoverHide = () => {
         reportIDRef.current = undefined;
-        reportActionRef.current = null;
+        reportActionIDRef.current = undefined;
         originalReportIDRef.current = undefined;
         instanceIDRef.current = '';
         selectionRef.current = '';
@@ -334,7 +337,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
-    const reportAllTransactions = useReportTransactions(reportActionRef.current?.childReportID);
+    const reportAllTransactions = useReportTransactions(originalReport?.iouReportID);
     useEffect(() => {
         if (!originalReport) {
             return;
@@ -448,7 +451,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isVisible={isPopoverVisible}
                     type={typeRef.current}
                     reportID={reportIDRef.current}
-                    reportActionID={reportActionRef.current?.reportActionID}
+                    reportActionID={reportActionIDRef.current}
                     draftMessage={reportActionDraftMessageRef.current}
                     selection={selectionRef.current}
                     isArchivedRoom={isRoomArchived}
