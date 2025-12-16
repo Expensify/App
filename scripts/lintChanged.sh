@@ -15,10 +15,10 @@ if [[ -z "${npm_lifecycle_event:-}" ]]; then
 fi
 
 # Fetch the commit history to include the merge-base commit
-info "Fetching origin/main"
-git fetch origin main --no-tags
+info "Fetching upstream/main"
+git fetch upstream main --no-tags
 
-MERGE_BASE_SHA_HASH="$(git merge-base origin/main HEAD)"
+MERGE_BASE_SHA_HASH="$(git merge-base upstream/main HEAD)"
 readonly MERGE_BASE_SHA_HASH
 
 # Check if output is empty or malformed

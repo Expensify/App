@@ -58,7 +58,7 @@ function VacationDelegatePage() {
         // because we can't check if they already exist on the server.
         // When online, we rely on the server to know if a user exists.
         // Vacation delegate users must exist on the server before being assigned.
-        includeUserToInvite: isOffline ? true : false,
+        includeUserToInvite: isOffline,
     });
 
     const headerMessage = useMemo(() => {
