@@ -250,11 +250,10 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
 
         // We allow user to select unreported report
         if (field === 'reportID') {
-            const isArchivedSourceReport = sourceValue && sourceTransaction?.reportName === '';
             if (targetValue === sourceValue) {
                 const updatedValues = getMergeFieldUpdatedValues(targetTransaction, field, SafeString(targetValue));
                 Object.assign(mergeableData, updatedValues);
-            } else if (!isArchivedSourceReport) {
+            } else {
                 conflictFields.push(field);
             }
             continue;
@@ -535,7 +534,8 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEn
     }
 
     if (field === 'reportID') {
-        updatedValues.reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction)));
+        const reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction)));
+        updatedValues.reportName = reportName.length ? reportName : undefined;
     }
 
     if (field === 'merchant' && isDistanceRequest(transaction)) {
