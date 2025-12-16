@@ -63,7 +63,7 @@ import {
     isReportApproved,
     isReportInGroupPolicy,
     isSettled as isSettledReportUtils,
-    isTrackExpenseReport,
+    isTrackExpenseReportNew,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -223,7 +223,7 @@ function MoneyRequestView({
     const moneyRequestReport = parentReport;
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
-    const isTrackExpense = isTrackExpenseReport(report);
+    const isTrackExpense = isTrackExpenseReportNew(report, parentReport, parentReportAction);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
