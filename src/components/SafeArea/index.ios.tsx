@@ -15,6 +15,4 @@ function SafeArea({children}: SafeAreaProps) {
     );
 }
 
-SafeArea.displayName = 'SafeArea';
-
 export default SafeArea;
