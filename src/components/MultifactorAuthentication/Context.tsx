@@ -108,6 +108,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         return {
             success: getNotificationRoute(successPath),
             failure: getNotificationRoute(failurePath),
+            successPath,
+            failurePath,
         };
     };
 
@@ -380,9 +382,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const {scenario} = mergedStatus.value;
 
     const {wasRecentStepSuccessful} = mergedStatus.step;
-    const scenarioPrefix = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
-    const successPath = getNotificationPath(overriddenScreens.current.success, scenarioPrefix, 'success');
-    const failurePath = getNotificationPath(overriddenScreens.current.failure, scenarioPrefix, 'failure');
+    const {successPath, failurePath} = getNotificationPaths(scenario);
 
     const pathToUse = wasRecentStepSuccessful ? successPath : failurePath;
     const notificationConfig = pathToUse ? MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP[pathToUse] : undefined;

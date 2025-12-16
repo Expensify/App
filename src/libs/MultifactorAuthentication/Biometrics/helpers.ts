@@ -233,7 +233,7 @@ async function processMultifactorAuthenticationScenario<T extends MultifactorAut
 ): Promise<MultifactorAuthenticationPartialStatus<number | undefined>> {
     const factorsCheckResult = areMultifactorAuthenticationFactorsSufficient(params, factorsCombination, isStoredFactorVerified);
 
-    const currentScenario: MultifactorAuthenticationScenarioConfig = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
+    const currentScenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] as MultifactorAuthenticationScenarioConfig;
 
     if (factorsCheckResult.value !== true) {
         return authorizeMultifactorAuthenticationPostMethod(
