@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -6,16 +6,15 @@ import ErrorMessageRow from '@components/ErrorMessageRow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
-import type {MemberForList} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
@@ -45,7 +44,8 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const admins = useMemo(() => bankAccountList?.[bankAccountID]?.accountData?.sharees, [bankAccountID, bankAccountList]);
+    const admins = bankAccountList?.[bankAccountID]?.accountData?.sharees;
+    const totalAdmins = bankAccountList?.[bankAccountID]?.accountData?.sharees?.length;
     const isExpensifyCardSettlementAccount = bankAccountList?.[bankAccountID]?.isExpensifyCardSettlementAccount ?? false;
 
     const shouldShowTextInput = admins && admins?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
@@ -55,12 +55,12 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         if (!shouldShowSuccess) {
             return;
         }
-        if (!admins?.length) {
+        if (!totalAdmins) {
             Navigation.goBack();
         }
-    }, [admins?.length, shouldShowSuccess]);
+    }, [totalAdmins, shouldShowSuccess]);
 
-    const handleUnshare = useCallback(() => {
+    const handleUnshare = () => {
         if (!bankAccountID || !unshareUser?.login) {
             return;
         }
@@ -71,9 +71,9 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         }
         unshareBankAccount(Number(bankAccountID), unshareUser.login);
         setUnshareUser(undefined);
-    }, [bankAccountID, unshareUser?.login, isExpensifyCardSettlementAccount]);
+    };
 
-    const adminsList = useMemo(() => {
+    const getAdminsList = () => {
         if (admins?.length === 0) {
             return [];
         }
@@ -81,7 +81,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         const adminsWithInfo =
             admins?.map((admin) => {
                 const personalDetails = getPersonalDetailByEmail(admin);
-                return formatMemberForList({
+                const formattedAdmin = formatMemberForList({
                     text: personalDetails?.displayName,
                     alternateText: personalDetails?.login,
                     keyForList: personalDetails?.login,
@@ -90,6 +90,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                     pendingAction: personalDetails?.pendingAction,
                     reportID: '',
                 });
+                return {...formattedAdmin, isInteractive: false};
             }) ?? [];
 
         let adminsToDisplay = [...adminsWithInfo];
@@ -100,49 +101,35 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         }
 
         return adminsToDisplay;
-    }, [admins, countryCode, debouncedSearchTerm]);
+    };
 
-    const hideUnshareErrorModal = useCallback(() => {
+    const hideUnshareErrorModal = () => {
         setShowExpensifyCardErrorModal(false);
-    }, []);
+    };
 
-    const onSelectRow = useCallback((item: MemberForList) => {
-        setUnshareUser({login: item?.login, text: item?.text});
-    }, []);
+    const itemRightSideComponent = (item: ListItem) => {
+        return (
+            <Button
+                isLoading={isLoading && unsharedBankAccountData?.email === item?.login}
+                small
+                isDisabled={isLoading}
+                danger
+                text={translate('common.unshare')}
+                onPress={() => setUnshareUser({login: item?.login, text: item?.text})}
+                pressOnEnter
+            />
+        );
+    };
 
-    const itemRightSideComponent = useCallback(
-        (item: ListItem) => {
-            return (
-                <Button
-                    isLoading={isLoading && unsharedBankAccountData?.email === item?.login}
-                    small
-                    isDisabled={isLoading}
-                    danger
-                    text={translate('common.unshare')}
-                    onPress={() => setUnshareUser({login: item?.login, text: item?.text})}
-                    pressOnEnter
-                />
-            );
-        },
-        [isLoading, unsharedBankAccountData?.email, translate],
-    );
+    const adminsList = getAdminsList();
 
-    const sections = useMemo(
-        () => [
-            {
-                title: undefined,
-                data: adminsList,
-                shouldShow: true,
-            },
-        ],
-        [adminsList],
-    );
-
-    const headerMessage = useMemo(() => {
+    const getHeaderSearchMessage = () => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
 
-        return getHeaderMessage(sections?.at(0)?.data.length !== 0, false, searchValue, countryCode, false);
-    }, [debouncedSearchTerm, sections, countryCode]);
+        return getHeaderMessage(adminsList.length !== 0, false, searchValue, countryCode, false);
+    };
+
+    const headerMessage = getHeaderSearchMessage();
 
     const onButtonPress = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
 
@@ -152,28 +139,30 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                 title={translate('walletPage.unshareBankAccount')}
                 onBackButtonPress={onButtonPress}
             />
-            <SelectionList
-                textInputLabel={textInputLabel}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                sections={sections}
-                headerContent={<Text style={[styles.ph5, styles.pb3]}>{translate('walletPage.unshareBankAccountDescription')}</Text>}
-                shouldShowTextInputAfterHeader
-                shouldShowListEmptyContent={false}
-                rightHandSideComponent={itemRightSideComponent}
-                shouldShowHeaderMessageAfterHeader
-                footerContent={
-                    <ErrorMessageRow
-                        errors={unsharedBankAccountData?.errors}
-                        errorRowStyles={[styles.mv3]}
-                        onClose={clearUnshareBankAccountErrors}
-                        canDismissError
-                    />
-                }
-                onSelectRow={onSelectRow}
-                headerMessage={headerMessage}
-                ListItem={UserListItem}
-            />
+            <>
+                <Text style={[styles.ph5, styles.pb3]}>{translate('walletPage.unshareBankAccountDescription')}</Text>
+                <SelectionList
+                    textInputOptions={{
+                        headerMessage,
+                        value: searchTerm,
+                        label: textInputLabel,
+                        onChangeText: setSearchTerm,
+                    }}
+                    data={adminsList}
+                    showListEmptyContent={false}
+                    rightHandSideComponent={itemRightSideComponent}
+                    footerContent={
+                        <ErrorMessageRow
+                            errors={unsharedBankAccountData?.errors}
+                            errorRowStyles={[styles.mv3]}
+                            onClose={clearUnshareBankAccountErrors}
+                            canDismissError
+                        />
+                    }
+                    onSelectRow={() => {}}
+                    ListItem={UserListItem}
+                />
+            </>
             <ConfirmModal
                 title={translate('walletPage.unshareErrorModalTitle')}
                 isVisible={showExpensifyCardErrorModal}
