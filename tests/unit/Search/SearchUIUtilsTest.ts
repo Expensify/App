@@ -2728,7 +2728,7 @@ describe('SearchUIUtils', () => {
                 [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.WORKSPACE]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
@@ -2747,7 +2747,7 @@ describe('SearchUIUtils', () => {
                 [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.WORKSPACE]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
                 // Total should always be visible
                 [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,

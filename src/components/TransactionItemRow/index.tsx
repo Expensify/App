@@ -408,8 +408,8 @@ function TransactionItemRow({
                     />
                 </View>
             ),
-            [CONST.SEARCH.TABLE_COLUMNS.WORKSPACE]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WORKSPACE)]}>
+            [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}>
                     <WorkspaceCell policyID={transactionItem.report?.policyID} />
                 </View>
             ),

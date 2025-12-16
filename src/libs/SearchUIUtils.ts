@@ -1992,7 +1992,7 @@ function getSortedTransactionData(data: TransactionListItemType[], localeCompare
 
     const sortingProperty = transactionColumnNamesToSortingProperty[sortBy];
 
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.WORKSPACE) {
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
         return data.sort((a, b) => {
             const aValue = a.policy?.name ?? '';
             const bValue = b.policy?.name ?? '';
@@ -2050,7 +2050,7 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
         });
     }
 
-    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.WORKSPACE) {
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
         return data.sort((a, b) => {
             const aValue = a.policyName;
             const bValue = b.policyName;
@@ -2215,7 +2215,7 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.title';
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
             return 'common.status';
-        case CONST.SEARCH.TABLE_COLUMNS.WORKSPACE:
+        case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
             return 'workspace.common.workspace';
     }
 }
@@ -2603,7 +2603,7 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
             [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.WORKSPACE]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
         };
@@ -2675,7 +2675,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.WORKSPACE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
