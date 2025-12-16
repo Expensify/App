@@ -1069,7 +1069,6 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
         transactionID: transaction?.transactionID,
-        includePartiallySetupBankAccounts: true,
     };
 
     // This is a legacy transactions that doesn't have either a transaction thread or a money request preview

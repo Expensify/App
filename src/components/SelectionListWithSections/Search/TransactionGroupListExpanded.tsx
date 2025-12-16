@@ -24,6 +24,7 @@ import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation'
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 
 function TransactionGroupListExpanded<TItem extends ListItem>({
     transactionsQueryJSON,
@@ -51,6 +52,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
+
     const transactionsSnapshotMetadata = useMemo(() => {
         return transactionsSnapshot?.search;
     }, [transactionsSnapshot?.search]);
@@ -76,10 +79,10 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             return [];
         }
-        const columnsToShow = getColumnsToShow(accountID, transactionsSnapshot?.data, false, transactionsSnapshot?.search.type);
+        const columnsToShow = getColumnsToShow(accountID, transactionsSnapshot?.data, visibleColumns, false, transactionsSnapshot?.search.type);
 
         return (Object.keys(columnsToShow) as SearchColumnType[]).filter((col) => columnsToShow[col]);
-    }, [accountID, columns, isExpenseReportType, transactionsSnapshot?.data, transactionsSnapshot?.search.type]);
+    }, [accountID, columns, isExpenseReportType, transactionsSnapshot?.data, transactionsSnapshot?.search.type, visibleColumns]);
 
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayShowMoreButton = isExpenseReportType ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults && !isOffline;
