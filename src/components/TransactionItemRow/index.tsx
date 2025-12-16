@@ -89,6 +89,7 @@ type TransactionItemRowProps = {
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
+    submittedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     onCheckboxPress?: (transactionID: string) => void;
@@ -131,6 +132,7 @@ function TransactionItemRow({
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
+    submittedColumnSize,
     amountColumnSize,
     taxAmountColumnSize,
     onCheckboxPress = () => {},
@@ -162,6 +164,7 @@ function TransactionItemRow({
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
@@ -248,6 +251,18 @@ function TransactionItemRow({
                 >
                     <DateCell
                         date={createdAt}
+                        showTooltip={shouldShowTooltip}
+                        isLargeScreenWidth={!shouldUseNarrowLayout}
+                    />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.SUBMITTED}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, isDateColumnWide, false, false, areAllOptionalColumnsHidden, isSubmittedColumnWide)]}
+                >
+                    <DateCell
+                        date={report?.submitted ?? ''}
                         showTooltip={shouldShowTooltip}
                         isLargeScreenWidth={!shouldUseNarrowLayout}
                     />
@@ -381,9 +396,11 @@ function TransactionItemRow({
         [
             StyleUtils,
             createdAt,
+            report?.submitted,
             isActionLoading,
             isReportItemChild,
             isDateColumnWide,
+            isSubmittedColumnWide,
             isAmountColumnWide,
             isTaxAmountColumnWide,
             isInSingleTransactionReport,

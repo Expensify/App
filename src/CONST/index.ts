@@ -6687,6 +6687,7 @@ const CONST = {
                 EXPENSE: {
                     RECEIPT: this.TABLE_COLUMNS.RECEIPT,
                     DATE: this.TABLE_COLUMNS.DATE,
+                    SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     MERCHANT: this.TABLE_COLUMNS.MERCHANT,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
@@ -6696,6 +6697,7 @@ const CONST = {
                 },
                 EXPENSE_REPORT: {
                     DATE: this.TABLE_COLUMNS.DATE,
+                    SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
@@ -6773,6 +6775,7 @@ const CONST = {
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
+            SUBMITTED: 'submitted',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
