@@ -1783,7 +1783,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             case CONST.SEARCH.TABLE_COLUMNS.IN:
             default:
-                columnWidth = styles.flex1;
+                columnWidth = {...getMinimumWidth(variables.w200), ...styles.flex1};
         }
 
         return columnWidth;
