@@ -1,10 +1,10 @@
 import type {NavigationAction} from '@react-navigation/native';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
-import {InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -18,6 +18,7 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnabled =
     const [isVisible, setIsVisible] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const shouldNavigateBack = useRef(false);
+    const isConfirmed = useRef(false);
 
     useBeforeRemove(
         useCallback(
@@ -73,6 +74,17 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnabled =
         shouldNavigateBack.current = false;
     }, [isFocused, isVisible, isEnabled]);
 
+    const navigateBack = useCallback(() => {
+        if (blockedNavigationAction.current) {
+            navigationRef.current?.dispatch(blockedNavigationAction.current);
+            return;
+        }
+        if (!shouldNavigateBack.current) {
+            return;
+        }
+        navigationRef.current?.goBack();
+    }, []);
+
     return (
         <ConfirmModal
             isVisible={isVisible}
@@ -82,18 +94,8 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnabled =
             confirmText={translate('discardChangesConfirmation.confirmText')}
             cancelText={translate('common.cancel')}
             onConfirm={() => {
+                isConfirmed.current = true;
                 setIsVisible(false);
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    if (blockedNavigationAction.current) {
-                        navigationRef.current?.dispatch(blockedNavigationAction.current);
-                        return;
-                    }
-                    if (!shouldNavigateBack.current) {
-                        return;
-                    }
-                    navigationRef.current?.goBack();
-                });
             }}
             onCancel={() => {
                 setIsVisible(false);
@@ -101,8 +103,13 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnabled =
                 shouldNavigateBack.current = false;
             }}
             onModalHide={() => {
-                shouldNavigateBack.current = false;
-                onCancel?.();
+                if (isConfirmed.current) {
+                    isConfirmed.current = false;
+                    setNavigationActionToMicrotaskQueue(navigateBack);
+                } else {
+                    shouldNavigateBack.current = false;
+                    onCancel?.();
+                }
             }}
             shouldIgnoreBackHandlerDuringTransition
         />
