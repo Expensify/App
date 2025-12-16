@@ -4917,6 +4917,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             chooseCardFeed: 'Choisir le flux de carte',
             ukRegulation:
                 'Expensify Limited est un agent de Plaid Financial Ltd., un établissement de paiement agréé réglementé par la Financial Conduct Authority en vertu des Payment Services Regulations 2017 (numéro de référence de l’entreprise : 804718). Plaid vous fournit des services réglementés d’information sur les comptes par l’intermédiaire de Expensify Limited en tant que son agent.',
+            assign: 'Assigner',
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',

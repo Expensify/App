@@ -4914,6 +4914,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             chooseCardFeed: 'Kartenfeed auswählen',
             ukRegulation:
                 'Expensify Limited ist als Vertreter von Plaid Financial Ltd. tätig, einem zugelassenen Zahlungsinstitut, das von der Financial Conduct Authority gemäß den Payment Services Regulations 2017 reguliert wird (Firm Reference Number: 804718). Plaid stellt Ihnen über Expensify Limited als dessen Vertreter regulierte Kontoinformationsdienste zur Verfügung.',
+            assign: 'Zuweisen',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Cards ausstellen und verwalten',
