@@ -31,9 +31,9 @@ jobs:
         uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: node_modules/.cache/eslint
-          key: ${{ runner.os }}-eslint-${{ hashFiles('**/*.js', '**/*.ts', '**/*.tsx', '.eslintrc.js', '.eslintignore', 'eslint.config.*') }}
+          key: ${{ runner.os }}-eslint
           restore-keys: |
-            ${{ runner.os }}-eslint-
+            ${{ runner.os }}-eslint
 
       - name: Lint JavaScript and Typescript with ESLint
         run: npm run lint
