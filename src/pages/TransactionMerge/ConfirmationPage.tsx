@@ -119,7 +119,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                     // Navigate to the money request report in search results
                     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportIDToDismiss}));
                 });
-                return;
             }
         } else {
             Navigation.dismissToPreviousRHP();
