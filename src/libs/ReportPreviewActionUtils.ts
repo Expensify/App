@@ -162,6 +162,7 @@ function canExport(report: Report, policy?: Policy) {
     return isApproved || isReimbursed || isClosed;
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function getReportPreviewAction(
     isReportArchived: boolean,
     currentUserAccountID: number,
