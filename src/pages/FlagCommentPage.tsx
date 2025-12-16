@@ -55,7 +55,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     const {translate} = useLocalize();
     const isReportArchived = useReportIsArchived(report?.reportID);
     let reportID: string | undefined = getReportID(route);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FlagLevelOne', 'FlagLevelTwo', 'FlagLevelThree'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FlagLevelOne', 'FlagLevelTwo', 'FlagLevelThree']);
     // Handle threads if needed
     if (isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
         reportID = parentReport?.reportID;

@@ -8,7 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationMenuItem() {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);

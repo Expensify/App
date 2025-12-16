@@ -10,7 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 function FailedToLockAccountPage() {
-    const illustrations = useMemoizedLazyIllustrations(['LockOpen'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockOpen']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

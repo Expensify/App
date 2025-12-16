@@ -32,7 +32,7 @@ type UseAvatarMenuParams = {
  * Custom hook to create avatar menu items
  */
 function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAvatarCropModal, clearError, source, originalFileName}: UseAvatarMenuParams) {
-    const icons = useMemoizedLazyExpensifyIcons(['Upload'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const {translate} = useLocalize();
     const attachmentContext = useContext(AttachmentModalContext);
 

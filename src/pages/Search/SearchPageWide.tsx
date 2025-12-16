@@ -80,7 +80,7 @@ function SearchPageWide({
         return [styles.mtAuto];
     }, [shouldShowFooter, styles]);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan']);
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
     return (

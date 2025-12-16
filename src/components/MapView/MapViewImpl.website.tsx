@@ -68,7 +68,7 @@ function MapViewImpl({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair']);
 
     const [mapRef, setMapRef] = useState<MapRef | null>(null);
     const initialLocation = useMemo(() => ({longitude: initialState.location[0], latitude: initialState.location[1]}), [initialState]);

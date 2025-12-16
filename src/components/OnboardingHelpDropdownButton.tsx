@@ -52,8 +52,8 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
 
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Monitor'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['HeadSet'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Monitor']);
+    const illustrations = useMemoizedLazyIllustrations(['HeadSet']);
 
     if (!reportID || !accountID) {
         return null;

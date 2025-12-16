@@ -14,7 +14,7 @@ type InlineSystemMessageProps = {
 function InlineSystemMessage({message = ''}: InlineSystemMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Exclamation'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Exclamation']);
     if (!message) {
         return null;
     }

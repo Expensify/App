@@ -15,10 +15,10 @@ import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 
 function WorkspaceOwnerRestrictedAction() {
-    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock']);
 
     const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
     const goToSubscription = useCallback(() => {

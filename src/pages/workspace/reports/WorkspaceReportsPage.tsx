@@ -80,7 +80,7 @@ function WorkspaceReportFieldsPage({
     }, [policy?.fieldList]);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
-    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnections) {

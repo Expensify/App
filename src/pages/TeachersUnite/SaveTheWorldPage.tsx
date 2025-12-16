@@ -23,7 +23,7 @@ function SaveTheWorldPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-    const illustrations = useMemoizedLazyIllustrations(['TeachersUnite'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['TeachersUnite']);
     const saveTheWorldIllustration = useSaveTheWorldSectionIllustration();
     const menuItems = useMemo(() => {
         const baseMenuItems = [

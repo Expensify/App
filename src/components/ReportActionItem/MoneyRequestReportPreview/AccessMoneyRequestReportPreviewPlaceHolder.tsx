@@ -9,7 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 function AccessMoneyRequestReportPreviewPlaceHolder() {
-    const icons = useMemoizedLazyExpensifyIcons(['EyeDisabled'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['EyeDisabled']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();

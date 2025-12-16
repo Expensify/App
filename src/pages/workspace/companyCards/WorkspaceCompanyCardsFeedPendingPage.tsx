@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 function WorkspaceCompanyCardsFeedPendingPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {CompanyCardsPendingState} = useMemoizedLazyIllustrations(['CompanyCardsPendingState'] as const);
+    const {CompanyCardsPendingState} = useMemoizedLazyIllustrations(['CompanyCardsPendingState']);
 
     return (
         <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>

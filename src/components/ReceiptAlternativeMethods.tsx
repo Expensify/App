@@ -22,7 +22,7 @@ type ReceiptAlternativeMethodsProps = {
 };
 
 function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();

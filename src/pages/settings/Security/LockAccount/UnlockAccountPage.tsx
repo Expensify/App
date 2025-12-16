@@ -13,7 +13,7 @@ import ROUTES from '@src/ROUTES';
 function UnlockAccountPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['EmptyStateSpyPigeon'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['EmptyStateSpyPigeon']);
 
     return (
         <ScreenWrapper

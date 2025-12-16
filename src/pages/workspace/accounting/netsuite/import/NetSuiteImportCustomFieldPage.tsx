@@ -71,7 +71,7 @@ function NetSuiteImportCustomFieldPage({
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
 
     const config = policy?.connections?.netsuite?.options?.config;
     const data = config?.syncOptions?.[importCustomField] ?? [];

@@ -30,7 +30,7 @@ function AttachmentCarouselView({
     const {translate} = useLocalize();
     const canUseTouchScreen = canUseTouchScreenUtil();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource>(attachmentID ?? source);
 
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);

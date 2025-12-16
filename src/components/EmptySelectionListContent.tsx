@@ -24,7 +24,7 @@ function isContentType(contentType: unknown): contentType is ContentType {
 
 function EmptySelectionListContent({contentType}: EmptySelectionListContentProps) {
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
     const {translate} = useLocalize();
 
     if (!isContentType(contentType)) {

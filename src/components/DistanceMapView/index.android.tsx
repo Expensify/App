@@ -18,7 +18,7 @@ function DistanceMapView({overlayStyle, requireRouteToDisplayMap, ...rest}: Dist
     const {translate} = useLocalize();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const icons = useMemoizedLazyExpensifyIcons(['EmptyStateRoutePending'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['EmptyStateRoutePending']);
 
     return (
         <>

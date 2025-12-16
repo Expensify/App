@@ -152,7 +152,7 @@ function EmptySearchViewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'Alert'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'Alert']);
 
     const tripsFeatures: FeatureListItem[] = useMemo(
         () => [

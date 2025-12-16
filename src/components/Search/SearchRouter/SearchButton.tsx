@@ -25,7 +25,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
     const {translate} = useLocalize();
     const {openSearchRouter} = useSearchRouterContext();
     const pressableRef = useRef<View>(null);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     return (
         <Tooltip text={translate('common.search')}>
@@ -35,6 +35,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 shouldUseAutoHitSlop={shouldUseAutoHitSlop}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SEARCH_BUTTON}
                 // eslint-disable-next-line react-compiler/react-compiler
                 onPress={callFunctionIfActionIsAllowed(() => {
                     pressableRef?.current?.blur();

@@ -24,7 +24,7 @@ type WorkspaceCompanyCardsErrorConfirmationProps = {
 function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCompanyCardsErrorConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection']);
     const policy = usePolicy(policyID);
     const isExpensifyCardFeatureEnabled = !!policy?.areExpensifyCardsEnabled;
     const [cardsList] = useCardsList(newFeed);

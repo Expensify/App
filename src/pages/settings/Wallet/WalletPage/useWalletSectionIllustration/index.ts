@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type UseWalletSectionIllustration from './types';
 
 const useWalletSectionIllustration: UseWalletSectionIllustration = () => {
-    const illustrations = useMemoizedLazyIllustrations(['BigVault'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['BigVault']);
     const styles = useThemeStyles();
 
     return {

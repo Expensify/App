@@ -133,7 +133,7 @@ function AttachmentView({
     reportID,
     transaction: transactionProp,
 }: AttachmentViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gallery'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gallery']);
     const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const transaction = transactionProp ?? transactionFromOnyx;
     const {translate} = useLocalize();

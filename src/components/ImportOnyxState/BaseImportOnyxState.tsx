@@ -17,7 +17,7 @@ function BaseImportOnyxState({
     isErrorModalVisible: boolean;
     setIsErrorModalVisible: (value: boolean) => void;
 }) {
-    const icons = useMemoizedLazyExpensifyIcons(['Upload'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

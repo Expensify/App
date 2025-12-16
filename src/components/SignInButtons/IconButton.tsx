@@ -17,7 +17,7 @@ type IconButtonProps = {
 function IconButton({onPress = () => {}, provider}: IconButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['AppleLogo', 'GoogleLogo'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['AppleLogo', 'GoogleLogo']);
 
     const providerData = useMemo(
         () =>

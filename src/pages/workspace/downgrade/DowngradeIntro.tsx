@@ -29,7 +29,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
     const {environmentURL} = useEnvironment();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
 
-    const illustrations = useMemoizedLazyIllustrations(['Mailbox'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox']);
 
     const benefits = [
         translate('workspace.downgrade.commonFeatures.benefits.benefit1'),

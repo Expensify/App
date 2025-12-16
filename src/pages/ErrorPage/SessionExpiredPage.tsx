@@ -14,8 +14,8 @@ function SessionExpiredPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['RocketBlue'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
+    const illustrations = useMemoizedLazyIllustrations(['RocketBlue']);
 
     return (
         <View style={styles.deeplinkWrapperContainer}>

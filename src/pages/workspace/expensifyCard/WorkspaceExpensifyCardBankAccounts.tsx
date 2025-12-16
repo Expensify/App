@@ -45,7 +45,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const policyID = route?.params?.policyID;
     const policy = usePolicy(policyID);
 
-    const illustrations = useMemoizedLazyIllustrations(['Puzzle'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Puzzle']);
 
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 

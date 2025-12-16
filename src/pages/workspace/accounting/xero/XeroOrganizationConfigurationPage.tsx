@@ -36,7 +36,7 @@ function XeroOrganizationConfigurationPage({
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, xeroConfig?.tenantID);
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const sections =
         policy?.connections?.xero?.data?.tenants.map((tenant) => ({
