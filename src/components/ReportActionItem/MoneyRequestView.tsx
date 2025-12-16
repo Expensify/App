@@ -222,7 +222,7 @@ function MoneyRequestView({
     const moneyRequestReport = parentReport;
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
-    const isTrackExpense = isTrackExpenseReportNew(report);
+    const isTrackExpense = isTrackExpenseReportNew(report, parentReport, parentReportAction);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
