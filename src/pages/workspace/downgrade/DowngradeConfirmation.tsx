@@ -19,7 +19,7 @@ type Props = {
 function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['MushroomTopHat'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['MushroomTopHat']);
     const {login} = useCurrentUserPersonalDetails();
     const selector = useCallback(
         (policies: OnyxCollection<Policy>) => {

@@ -613,6 +613,7 @@ type CreateDistanceRequestInformation = {
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -631,6 +632,7 @@ type CreateSplitsAndOnyxDataParams = {
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
 };
 
 type TrackExpenseTransactionParams = {
@@ -764,6 +766,7 @@ type StartSplitBilActionParams = {
     shouldPlaySound?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
 };
 
 type UpdateSplitTransactionsParams = {
@@ -1084,9 +1087,9 @@ function initMoneyRequest({
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
             const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
-            comment.customUnit = {customUnitRateID};
+            comment.customUnit = {customUnitRateID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         } else if (hasOnlyPersonalPolicies) {
-            comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID};
+            comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         }
         if (comment.customUnit) {
             comment.customUnit.quantity = null;
@@ -1246,9 +1249,13 @@ function setMoneyRequestPendingFields(transactionID: string, pendingFields: Onyx
  * @param transactionID - The transaction ID
  * @param category - The category name
  * @param policy - The policy object, or undefined for P2P transactions where tax info should be cleared
+ * @param isMovingFromTrackExpense - If the expense is moved from Track Expense
  */
-function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<OnyxTypes.Policy>) {
+function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<OnyxTypes.Policy>, isMovingFromTrackExpense?: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
+    if (isMovingFromTrackExpense) {
+        return;
+    }
     if (!policy) {
         setMoneyRequestTaxRate(transactionID, '');
         setMoneyRequestTaxAmount(transactionID, null);
@@ -1834,7 +1841,9 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
                 value: {
                     ...iou.report,
-                    ...(!isScanRequest || isTestReceipt ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} : undefined),
+                    ...(!isScanRequest || isTestReceipt
+                        ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}
+                        : undefined),
                     hasOutstandingChildRequest: false,
                     lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
                 },
@@ -3786,7 +3795,6 @@ function mergePolicyRecentlyUsedCategories(category: string | undefined, policyR
     return mergedCategories;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: string[]) {
     let mergedCurrencies: string[];
     if (currency) {
@@ -6147,6 +6155,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     transactionParams.comment = parsedComment;
     const {
         amount,
+        distance,
         currency,
         merchant,
         comment = '',
@@ -6257,7 +6266,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                           category,
                           tag,
                           taxCode,
-                          taxAmount,
+                          taxAmount: Math.abs(taxAmount),
                           billable,
                           policyID: chatReport.policyID,
                           waypoints: sanitizedWaypoints,
@@ -6272,6 +6281,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 },
                 transactionParams: {
                     amount,
+                    distance,
                     currency,
                     comment,
                     merchant,
@@ -6875,6 +6885,91 @@ function trackExpense(params: CreateTrackExpenseParams) {
     notifyNewAction(activeReportID, payeeAccountID);
 }
 
+function duplicateExpenseTransaction(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    optimisticChatReportID: string,
+    optimisticIOUReportID: string,
+    isASAPSubmitBetaEnabled: boolean,
+    targetPolicy?: OnyxEntry<OnyxTypes.Policy>,
+    targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    targetReport?: OnyxTypes.Report,
+) {
+    if (!transaction) {
+        return;
+    }
+
+    const participants = getMoneyRequestParticipantsFromReport(targetReport);
+    const transactionDetails = getTransactionDetails(transaction);
+
+    const params: RequestMoneyInformation = {
+        report: targetReport,
+        optimisticChatReportID,
+        optimisticCreatedReportActionID: NumberUtils.rand64(),
+        optimisticIOUReportID,
+        optimisticReportPreviewActionID: NumberUtils.rand64(),
+        participantParams: {
+            payeeAccountID: userAccountID,
+            payeeEmail: currentUserEmail,
+            participant: participants.at(0) ?? {},
+        },
+        gpsPoint: undefined,
+        action: CONST.IOU.ACTION.CREATE,
+        transactionParams: {
+            ...transaction,
+            ...transactionDetails,
+            attendees: transactionDetails?.attendees as Attendee[] | undefined,
+            comment: transactionDetails?.comment,
+            created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            customUnitRateID: transaction?.comment?.customUnit?.customUnitRateID,
+            isTestDrive: transaction?.receipt?.isTestDriveReceipt,
+            merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
+            modifiedAmount: undefined,
+            originalTransactionID: transaction?.comment?.originalTransactionID,
+            receipt: undefined,
+            source: undefined,
+            waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+        },
+        shouldHandleNavigation: false,
+        shouldGenerateTransactionThreadReport: true,
+        isASAPSubmitBetaEnabled,
+        currentUserAccountIDParam: userAccountID,
+        currentUserEmailParam: currentUserEmail,
+        transactionViolations: {},
+    };
+
+    // If no workspace is provided the expense should be unreported
+    if (!targetPolicy) {
+        const selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`];
+
+        if (!selfDMReport) {
+            return;
+        }
+
+        const trackExpenseParams: CreateTrackExpenseParams = {
+            ...params,
+            participantParams: {
+                ...(params.participantParams ?? {}),
+                participant: {accountID: userAccountID, selected: true},
+            },
+            transactionParams: {
+                ...(params.transactionParams ?? {}),
+                validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+            },
+            report: selfDMReport,
+            isDraftPolicy: false,
+        };
+        return trackExpense(trackExpenseParams);
+    }
+
+    params.policyParams = {
+        policy: targetPolicy,
+        policyTagList: getPolicyTagsData(targetPolicy.id) ?? {},
+        policyCategories: targetPolicyCategories ?? {},
+    };
+
+    return requestMoney(params);
+}
+
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
     const existingChatReportID = existingSplitChatReportID ?? participants.at(0)?.reportID;
@@ -6952,6 +7047,7 @@ function createSplitsAndOnyxData({
     isASAPSubmitBetaEnabled,
     transactionViolations,
     quickAction,
+    policyRecentlyUsedCurrencies,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7319,8 +7415,7 @@ function createSplitsAndOnyxData({
         }
 
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
+        const optimisticRecentlyUsedCurrencies = mergePolicyRecentlyUsedCurrencies(currency, policyRecentlyUsedCurrencies);
 
         // Add tag to optimistic policy recently used tags when a participant is a workspace
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat
@@ -7443,6 +7538,7 @@ type SplitBillActionsParams = {
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
 };
 
 /**
@@ -7471,6 +7567,7 @@ function splitBill({
     isASAPSubmitBetaEnabled,
     transactionViolations,
     quickAction,
+    policyRecentlyUsedCurrencies,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7497,6 +7594,7 @@ function splitBill({
         isASAPSubmitBetaEnabled,
         transactionViolations,
         quickAction,
+        policyRecentlyUsedCurrencies,
     });
 
     const parameters: SplitBillParams = {
@@ -7556,6 +7654,7 @@ function splitBillAndOpenReport({
     isASAPSubmitBetaEnabled,
     transactionViolations,
     quickAction,
+    policyRecentlyUsedCurrencies,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7582,6 +7681,7 @@ function splitBillAndOpenReport({
         policyRecentlyUsedCategories,
         transactionViolations,
         quickAction,
+        policyRecentlyUsedCurrencies,
     });
 
     const parameters: SplitBillParams = {
@@ -7637,6 +7737,7 @@ function startSplitBill({
     shouldPlaySound = true,
     policyRecentlyUsedCategories,
     quickAction,
+    policyRecentlyUsedCurrencies,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7802,6 +7903,7 @@ function startSplitBill({
         taxCode,
         taxAmount,
         quickAction,
+        policyRecentlyUsedCurrencies,
     };
 
     if (existingSplitChatReport) {
@@ -7901,8 +8003,7 @@ function startSplitBill({
             policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(participant.policyID),
             transactionTags: tag,
         });
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
+        const optimisticRecentlyUsedCurrencies = mergePolicyRecentlyUsedCurrencies(currency, policyRecentlyUsedCurrencies);
 
         if (optimisticPolicyRecentlyUsedCategories.length > 0) {
             optimisticData.push({
@@ -8294,6 +8395,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         isASAPSubmitBetaEnabled,
         transactionViolations,
         quickAction,
+        policyRecentlyUsedCurrencies,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -8363,6 +8465,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             isASAPSubmitBetaEnabled,
             transactionViolations,
             quickAction,
+            policyRecentlyUsedCurrencies,
         });
         onyxData = splitOnyxData;
 
@@ -11792,6 +11895,7 @@ function completePaymentOnboarding(
         shouldSkipTestDriveModal: true,
     });
 }
+
 function payMoneyRequest(
     paymentType: PaymentMethodType,
     chatReport: OnyxTypes.Report,
@@ -11826,7 +11930,7 @@ function payMoneyRequest(
 
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    notifyNewAction(Navigation.getTopmostReportId() ?? iouReport?.reportID, userAccountID);
+    notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, userAccountID);
 }
 
 function payInvoice(
@@ -15084,6 +15188,7 @@ export {
     deleteMoneyRequest,
     deleteTrackExpense,
     detachReceipt,
+    duplicateExpenseTransaction,
     getIOURequestPolicyID,
     getReceiverType,
     initMoneyRequest,
