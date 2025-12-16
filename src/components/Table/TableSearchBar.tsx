@@ -1,5 +1,3 @@
-<<<<<<< Current (Your changes)
-=======
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import TextInput from '@components/TextInput';
@@ -43,4 +41,3 @@ function TableSearchBar() {
 TableSearchBar.displayName = 'TableSearchBar';
 
 export default TableSearchBar;
->>>>>>> Incoming (Background Agent changes)

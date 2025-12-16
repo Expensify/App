@@ -1,5 +1,3 @@
-<<<<<<< Current (Your changes)
-=======
 import React, {createContext, useContext} from 'react';
 
 export type FilterConfig = {
@@ -52,4 +50,3 @@ export function useTableContext<T>(): TableContextValue<T> {
 }
 
 export {TableContext};
->>>>>>> Incoming (Background Agent changes)

@@ -1,5 +1,3 @@
-<<<<<<< Current (Your changes)
-=======
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -70,4 +68,3 @@ function TableSortButtons() {
 TableSortButtons.displayName = 'TableSortButtons';
 
 export default TableSortButtons;
->>>>>>> Incoming (Background Agent changes)

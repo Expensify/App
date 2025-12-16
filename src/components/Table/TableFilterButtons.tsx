@@ -1,5 +1,3 @@
-<<<<<<< Current (Your changes)
-=======
 import React, {useCallback, useMemo} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
@@ -8,8 +6,8 @@ import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/Dro
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
-import {useTableContext} from './TableContext';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useTableContext} from './TableContext';
 
 type FilterButtonItem = {
     key: string;
@@ -55,7 +53,7 @@ function TableFilterButtons() {
             };
 
             // Create popover component based on filter type
-            const createPopoverComponent = (): (props: PopoverComponentProps) => ReactNode => {
+            const createPopoverComponent = (): ((props: PopoverComponentProps) => ReactNode) => {
                 if (filterConfig.filterType === 'multi-select') {
                     return ({closeOverlay}: PopoverComponentProps) => {
                         const currentValueArray = Array.isArray(currentFilterValue) ? currentFilterValue : [];
@@ -123,19 +121,16 @@ function TableFilterButtons() {
         });
     }, [filterConfigs, filters, setFilter]);
 
-    const renderFilterItem = useCallback(
-        ({item}: {item: FilterButtonItem}) => {
-            const DropdownButtonWithViewport = withViewportOffsetTop(DropdownButton);
-            return (
-                <DropdownButtonWithViewport
-                    label={item.label}
-                    value={item.value}
-                    PopoverComponent={item.PopoverComponent}
-                />
-            );
-        },
-        [],
-    );
+    const renderFilterItem = useCallback(({item}: {item: FilterButtonItem}) => {
+        const DropdownButtonWithViewport = withViewportOffsetTop(DropdownButton);
+        return (
+            <DropdownButtonWithViewport
+                label={item.label}
+                value={item.value}
+                PopoverComponent={item.PopoverComponent}
+            />
+        );
+    }, []);
 
     if (filterItems.length === 0) {
         return null;
@@ -156,4 +151,3 @@ function TableFilterButtons() {
 TableFilterButtons.displayName = 'TableFilterButtons';
 
 export default TableFilterButtons;
->>>>>>> Incoming (Background Agent changes)

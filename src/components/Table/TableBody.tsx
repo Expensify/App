@@ -1,5 +1,3 @@
-<<<<<<< Current (Your changes)
-=======
 import React from 'react';
 import type {FlatListProps, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
@@ -64,4 +62,3 @@ function TableBody<T>({renderItem, keyExtractor, ListEmptyComponent, contentCont
 TableBody.displayName = 'TableBody';
 
 export default TableBody;
->>>>>>> Incoming (Background Agent changes)

@@ -1,8 +1,7 @@
-<<<<<<< Current (Your changes)
-=======
 import React, {useCallback, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
-import {TableContext, type FilterConfig, type SortByConfig} from './TableContext';
+import {TableContext} from './TableContext';
+import type {FilterConfig, SortByConfig} from './TableContext';
 
 type TableProps<T> = {
     data: T[];
@@ -16,9 +15,9 @@ function Table<T>({data, filters, sortBy, onSearch, children}: TableProps<T>) {
     const [filterValues, setFilterValues] = useState<Record<string, unknown>>(() => {
         const initialFilters: Record<string, unknown> = {};
         if (filters) {
-            Object.keys(filters).forEach((key) => {
+            for (const key of Object.keys(filters)) {
                 initialFilters[key] = filters[key].default;
-            });
+            }
         }
         return initialFilters;
     });
@@ -119,4 +118,3 @@ function Table<T>({data, filters, sortBy, onSearch, children}: TableProps<T>) {
 Table.displayName = 'Table';
 
 export default Table;
->>>>>>> Incoming (Background Agent changes)
