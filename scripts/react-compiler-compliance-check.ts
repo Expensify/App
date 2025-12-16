@@ -714,7 +714,6 @@ function printResults({success, failuresForAddedFiles, failuresForModifiedFiles,
 
     if (isPassed) {
         if (hasModifiedFilesErrors) {
-            // TODO: In Phase 2, remove the warnings and print errors for modified files.
             logWarn(`React Compiler compliance check passed with warnings! The warnings must NOT be fixed and can get ignored.`);
         }
 
