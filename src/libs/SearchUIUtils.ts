@@ -2070,6 +2070,37 @@ function getSortedReportData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL) {
+        return data.sort((a, b) => {
+            const aTotal = a.total;
+            const bTotal = b.total;
+
+            const aNonReimbursableTotal = a.nonReimbursableTotal;
+            const bNonReimbursableTotal = b.nonReimbursableTotal;
+
+            if (aTotal == null || bTotal == null || aNonReimbursableTotal == null || bNonReimbursableTotal == null) {
+                return 0;
+            }
+
+            const aValue = aTotal - aNonReimbursableTotal;
+            const bValue = bTotal - bNonReimbursableTotal;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL) {
+        return data.sort((a, b) => {
+            const aNonReimbursableTotal = a.nonReimbursableTotal;
+            const bNonReimbursableTotal = b.nonReimbursableTotal;
+
+            if (aNonReimbursableTotal == null || bNonReimbursableTotal == null) {
+                return 0;
+            }
+
+            return compareValues(aNonReimbursableTotal, bNonReimbursableTotal, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     const sortingProperty = expenseReportColumnNamesToSortingProperty[sortBy];
 
     if (!sortingProperty) {
@@ -2617,6 +2648,8 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
             [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
         };
