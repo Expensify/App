@@ -32,7 +32,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'LaptopWithSecondScreenSync'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'LaptopWithSecondScreenSync']);
     const policyID: string = route.params.policyID;
     const [hasError, setHasError] = useState(false);
     const [codatSetupLink, setCodatSetupLink] = useState<string>('');
