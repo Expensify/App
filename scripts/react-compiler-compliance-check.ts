@@ -63,8 +63,8 @@ type CompilerResults = {
 
 type CompilerFailure = {
     file: string;
-    line?: number;
-    column?: number;
+    line: number;
+    column: number;
     reason?: string;
 };
 
