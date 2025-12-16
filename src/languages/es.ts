@@ -377,6 +377,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Acción requerida',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
+        exchangeRate: 'Tipo de cambio',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

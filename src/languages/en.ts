@@ -681,6 +681,7 @@ const translations = {
         actionRequired: 'Action required',
         duplicate: 'Duplicate',
         duplicated: 'Duplicated',
+        exchangeRate: 'Exchange rate',
     },
     supportalNoAccess: {
         title: 'Not so fast',
