@@ -1008,6 +1008,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** Whether the list is percentage mode (for scroll offset calculation) */
+    isPercentageMode?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

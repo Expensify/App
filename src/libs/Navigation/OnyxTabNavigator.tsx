@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {IOURequestType} from '@libs/actions/IOU';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SelectedTabRequest} from '@src/types/onyx';
+import type {SelectedTabRequest, SplitSelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
@@ -21,7 +21,7 @@ type OnyxTabNavigatorProps = ChildrenProps & {
     id: string;
 
     /** Name of the selected tab */
-    defaultSelectedTab?: SelectedTabRequest;
+    defaultSelectedTab?: SelectedTabRequest | SplitSelectedTabRequest;
 
     /** A function triggered when a tab has been selected */
     onTabSelected?: (newIouType: IOURequestType) => void;

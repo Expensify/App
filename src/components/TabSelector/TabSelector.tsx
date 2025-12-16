@@ -37,7 +37,7 @@ type IconTitleAndTestID = {
 };
 
 function getIconTitleAndTestID(
-    icons: Record<'CalendarSolid' | 'UploadAlt' | 'User' | 'Car' | 'Hashtag' | 'Map' | 'Pencil' | 'ReceiptScan' | 'Receipt', IconAsset>,
+    icons: Record<'CalendarSolid' | 'UploadAlt' | 'User' | 'Car' | 'Hashtag' | 'Map' | 'Pencil' | 'ReceiptScan' | 'Receipt' | 'MoneyCircle' | 'Percent', IconAsset>,
     route: string,
     translate: LocaleContextProps['translate'],
 ): IconTitleAndTestID {
@@ -68,6 +68,10 @@ function getIconTitleAndTestID(
             return {icon: icons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
         case CONST.TAB_REQUEST.DISTANCE_MANUAL:
             return {icon: icons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
+        case CONST.IOU.SPLIT_TYPE.AMOUNT:
+            return {icon: icons.MoneyCircle, title: translate('iou.amount'), testID: 'split-amount'};
+        case CONST.IOU.SPLIT_TYPE.PERCENTAGE:
+            return {icon: icons.Percent, title: translate('iou.percent'), testID: 'split-percentage'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -84,7 +88,7 @@ function TabSelector({
     renderProductTrainingTooltip,
     equalWidth = false,
 }: TabSelectorProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'UploadAlt', 'User', 'Pencil', 'ReceiptScan', 'Hashtag', 'Car', 'Receipt', 'Map'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'UploadAlt', 'User', 'Pencil', 'ReceiptScan', 'Hashtag', 'Car', 'Receipt', 'Map', 'MoneyCircle', 'Percent'] as const);
     const {translate} = useLocalize();
 
     const tabs: TabSelectorBaseItem[] = useMemo(

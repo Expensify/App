@@ -15,8 +15,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import SplitAmountDisplay from './SplitExpense/SplitAmountDisplay';
-import SplitAmountInput from './SplitExpense/SplitAmountInput';
-import SplitPercentageInput from './SplitExpense/SplitPercentageInput';
+import SplitListItemInput from './SplitListItemInput';
 import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
 
 function SplitListItem<TItem extends ListItem>({
@@ -171,30 +170,18 @@ function SplitListItem<TItem extends ListItem>({
                 </View>
                 <View style={[styles.flexRow]}>
                     <View style={[styles.justifyContentCenter]}>
-                        {/* Amount input is always mounted, just hidden in percentage mode to avoid layout flicker */}
-                        <View style={isPercentageMode ? styles.dNone : undefined}>
-                            <SplitAmountInput
-                                splitItem={splitItem}
-                                contentWidth={contentWidth}
-                                formattedOriginalAmount={formattedOriginalAmount}
-                                onSplitExpenseValueChange={onSplitExpenseValueChange}
-                                focusHandler={focusHandler}
-                                onInputBlur={onInputBlur}
-                                inputCallbackRef={inputCallbackRef}
-                            />
-                        </View>
-                        {/* Percentage input can stay conditional since it doesn't calculate width at mount */}
-                        <View style={!isPercentageMode ? styles.dNone : undefined}>
-                            <SplitPercentageInput
-                                splitItem={splitItem}
-                                contentWidth={contentWidth}
-                                percentageDraft={percentageDraft}
-                                onSplitExpenseValueChange={onSplitExpenseValueChange}
-                                setPercentageDraft={setPercentageDraft}
-                                focusHandler={focusHandler}
-                                onInputBlur={onInputBlur}
-                            />
-                        </View>
+                        <SplitListItemInput
+                            isPercentageMode={isPercentageMode}
+                            splitItem={splitItem}
+                            contentWidth={contentWidth}
+                            formattedOriginalAmount={formattedOriginalAmount}
+                            percentageDraft={percentageDraft}
+                            onSplitExpenseValueChange={onSplitExpenseValueChange}
+                            setPercentageDraft={setPercentageDraft}
+                            focusHandler={focusHandler}
+                            onInputBlur={onInputBlur}
+                            inputCallbackRef={inputCallbackRef}
+                        />
                     </View>
                     <View style={[styles.popoverMenuIcon]}>
                         {!splitItem.isEditable ? null : (

@@ -1,7 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -11,12 +10,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
-import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
+import TabSelector from '@components/TabSelector/TabSelector';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -43,6 +40,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateSplitAmountFromPercentage, calculateSplitPercentagesFromAmounts} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
@@ -51,36 +49,17 @@ import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettl
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SplitAmountList from './SplitAmountList';
+import SplitPercentageList from './SplitPercentageList';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
-
-type TabType = {
-    key: ValueOf<typeof CONST.IOU.SPLIT_TYPE>;
-    testID: string;
-    titleKey: TranslationPaths;
-};
-
-const tabs: TabType[] = [
-    {
-        key: CONST.IOU.SPLIT_TYPE.AMOUNT,
-        testID: `split-expense-tab-${CONST.IOU.SPLIT_TYPE.AMOUNT}`,
-        titleKey: 'iou.amount',
-    },
-    {
-        key: CONST.IOU.SPLIT_TYPE.PERCENTAGE,
-        testID: `split-expense-tab-${CONST.IOU.SPLIT_TYPE.PERCENTAGE}`,
-        titleKey: 'iou.percent',
-    },
-];
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'MoneyCircle', 'Percent', 'Plus'] as const);
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
@@ -90,9 +69,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
 
-    const [isPercentageMode, setIsPercentageMode] = useState(false);
     const searchContext = useSearchContext();
 
+    const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_SELECTED_TAB}${CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}`, {canBeMissing: true});
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -132,6 +111,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
 
+    const isPercentageMode = selectedTab === CONST.IOU.SPLIT_TYPE.PERCENTAGE;
     const childTransactions = useMemo(() => getChildTransactions(allTransactions, allReports, transactionID), [allReports, allTransactions, transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
@@ -274,7 +254,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
 
-    const [sections] = useMemo(() => {
+    const sections = useMemo(() => {
         const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
         const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
         const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
@@ -319,7 +299,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                 currencySymbol,
-                mode: isPercentageMode ? CONST.IOU.SPLIT_TYPE.PERCENTAGE : CONST.IOU.SPLIT_TYPE.AMOUNT,
+                mode: CONST.IOU.SPLIT_TYPE.AMOUNT,
                 percentage,
                 onSplitExpenseValueChange,
                 isSelected: splitExpenseTransactionID === item.transactionID,
@@ -330,7 +310,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
         const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
 
-        return [newSections];
+        return newSections;
     }, [
         transaction,
         draftTransaction?.comment?.splitExpenses,
@@ -338,7 +318,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         allTransactions,
         transactionDetailsAmount,
         currencySymbol,
-        isPercentageMode,
         splitExpenseTransactionID,
         translate,
         getTranslatedText,
@@ -387,7 +366,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency)})
             : '';
         return (
-            <View ref={footerRef}>
+            <View style={[styles.ph5, styles.pb5]}>
                 {(!!errorMessage || !!warningMessage) && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
@@ -407,36 +386,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             </View>
         );
-    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, footerRef]);
+    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, styles.ph5, styles.pb5, onSaveSplitExpense]);
 
     const initiallyFocusedOptionKey = useMemo(
         () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
         [sections, splitExpenseTransactionID],
     );
-
-    const headerContent = useMemo(() => {
-        // Only show split tab selector if we are creating a split (not editing existing splits)
-        if (!isInitialSplit) {
-            return;
-        }
-
-        const activeTabKey = isPercentageMode ? CONST.IOU.SPLIT_TYPE.PERCENTAGE : CONST.IOU.SPLIT_TYPE.AMOUNT;
-
-        return (
-            <TabSelectorBase
-                tabs={tabs.map((tab) => ({
-                    key: tab.key,
-                    title: translate(tab.titleKey),
-                    icon: tab.key === CONST.IOU.SPLIT_TYPE.AMOUNT ? expensifyIcons.MoneyCircle : expensifyIcons.Percent,
-                    testID: tab.testID,
-                }))}
-                activeTabKey={activeTabKey}
-                onTabPress={(key) => setIsPercentageMode(key === CONST.IOU.SPLIT_TYPE.PERCENTAGE)}
-                shouldShowLabelWhenInactive
-                equalWidth
-            />
-        );
-    }, [expensifyIcons.MoneyCircle, expensifyIcons.Percent, isPercentageMode, isInitialSplit, translate]);
 
     const headerTitle = useMemo(() => {
         if (splitExpenseTransactionID) {
@@ -444,6 +399,21 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
         return isPercentageMode ? translate('iou.splitByPercentage') : translate('iou.split');
     }, [splitExpenseTransactionID, isPercentageMode, translate]);
+
+    const onSelectRow = useCallback(
+        (item: SplitListItemType) => {
+            if (!item.isEditable) {
+                setCannotBeEditedModalVisible(true);
+                return;
+            }
+            Keyboard.dismiss();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
+            });
+        },
+        [draftTransaction, reportID],
+    );
 
     return (
         <ScreenWrapper
@@ -453,13 +423,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             shouldDismissKeyboardBeforeClose={false}
         >
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
-                <View
-                    ref={viewRef}
-                    style={styles.flex1}
-                    onLayout={() => {
-                        scrollToFocusedInput();
-                    }}
-                >
+                <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
                         subtitle={translate('iou.splitExpenseSubtitle', {
@@ -469,40 +433,57 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
 
-                    <SelectionList
-                        /* Keeps input fields visible above keyboard on mobile */
-                        renderScrollComponent={(props) => (
-                            <KeyboardAwareScrollView
-                                // eslint-disable-next-line react/jsx-props-no-spreading
-                                {...props}
-                                bottomOffset={bottomOffset.current} /* Bottom offset ensures inputs stay above the "save" button */
+                    {isInitialSplit ? (
+                        <View style={styles.flex1}>
+                            <OnyxTabNavigator
+                                id={CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}
+                                defaultSelectedTab={CONST.IOU.SPLIT_TYPE.AMOUNT}
+                                tabBar={TabSelector}
+                                disableSwipe
+                            >
+                                <TopTab.Screen name={CONST.IOU.SPLIT_TYPE.AMOUNT}>
+                                    {() => (
+                                        <TabScreenWithFocusTrapWrapper>
+                                            <View style={styles.flex1}>
+                                                <SplitAmountList
+                                                    sections={sections}
+                                                    initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
+                                                    onSelectRow={onSelectRow}
+                                                    listFooterContent={listFooterContent}
+                                                />
+                                                {footerContent}
+                                            </View>
+                                        </TabScreenWithFocusTrapWrapper>
+                                    )}
+                                </TopTab.Screen>
+                                <TopTab.Screen name={CONST.IOU.SPLIT_TYPE.PERCENTAGE}>
+                                    {() => (
+                                        <TabScreenWithFocusTrapWrapper>
+                                            <View style={styles.flex1}>
+                                                <SplitPercentageList
+                                                    sections={sections}
+                                                    initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
+                                                    onSelectRow={onSelectRow}
+                                                    listFooterContent={listFooterContent}
+                                                />
+                                                {footerContent}
+                                            </View>
+                                        </TabScreenWithFocusTrapWrapper>
+                                    )}
+                                </TopTab.Screen>
+                            </OnyxTabNavigator>
+                        </View>
+                    ) : (
+                        <View style={styles.flex1}>
+                            <SplitAmountList
+                                sections={sections}
+                                initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
+                                onSelectRow={onSelectRow}
+                                listFooterContent={listFooterContent}
                             />
-                        )}
-                        onSelectRow={(item) => {
-                            if (!item.isEditable) {
-                                setCannotBeEditedModalVisible(true);
-                                return;
-                            }
-                            Keyboard.dismiss();
-                            // eslint-disable-next-line @typescript-eslint/no-deprecated
-                            InteractionManager.runAfterInteractions(() => {
-                                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
-                            });
-                        }}
-                        ref={listRef}
-                        sections={sections}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                        ListItem={SplitListItem}
-                        containerStyle={[styles.flexBasisAuto]}
-                        headerContent={headerContent}
-                        footerContent={footerContent}
-                        listFooterContent={listFooterContent}
-                        disableKeyboardShortcuts
-                        shouldSingleExecuteRowSelect
-                        canSelectMultiple={false}
-                        shouldPreventDefaultFocusOnSelectRow
-                        removeClippedSubviews={false}
-                    />
+                            {footerContent}
+                        </View>
+                    )}
                 </View>
                 <ConfirmModal
                     title={translate('iou.splitExpenseCannotBeEditedModalTitle')}
