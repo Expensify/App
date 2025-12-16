@@ -25,6 +25,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     isLoading,
     isFocused,
     showTooltip,
+    columns,
     canSelectMultiple,
     onSelectRow,
     onFocus,
@@ -161,6 +162,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 <View style={[styles.flex1]}>
                     <ExpenseReportListItemRow
                         item={reportItem}
+                        columns={columns}
                         policy={snapshotPolicy}
                         isActionLoading={isActionLoading ?? isLoading}
                         showTooltip={showTooltip}

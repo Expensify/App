@@ -187,7 +187,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
-    const canJoin = canJoinChat(report, parentReportAction, policy, isReportArchived);
+    const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 
     const joinButton = (
         <Button
