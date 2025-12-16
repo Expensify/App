@@ -1,5 +1,6 @@
 import {adminAccountIDsSelector, technicalContactEmailSelector} from '@selectors/Domain';
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -20,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PersonalDetailsList} from '@src/types/onyx';
 
 type AdminOption = Omit<ListItem, 'accountID' | 'login'> & {
     accountID: number;
@@ -34,7 +36,22 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
+            if (!personalDetailsList) {
+                return undefined;
+            }
+
+            const adminsPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+            for (const accountID of adminAccountIDs ?? []) {
+                adminsPersonalDetails[`${accountID}`] = personalDetailsList[accountID];
+            }
+
+            return adminsPersonalDetails;
+        },
+    });
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [technicalContactEmail] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
