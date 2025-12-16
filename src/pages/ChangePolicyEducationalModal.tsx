@@ -15,7 +15,7 @@ function ChangePolicyEducationalModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['ReceiptFairy'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ReceiptFairy']);
 
     const onConfirm = useCallback(() => {
         dismissChangePolicyModal();
