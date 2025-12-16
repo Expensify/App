@@ -564,11 +564,6 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit) {
-                            initSplitExpense(allTransactions, allReports, transaction);
-                            return;
-                        }
-
                         if (isManualDistanceRequest) {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
@@ -593,11 +588,6 @@ function MoneyRequestView({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         if (!transaction?.transactionID || !report?.reportID) {
-                            return;
-                        }
-
-                        if (isExpenseSplit) {
-                            initSplitExpense(allTransactions, allReports, transaction);
                             return;
                         }
 
