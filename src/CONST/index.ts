@@ -6694,6 +6694,8 @@ const CONST = {
                     TO: this.TABLE_COLUMNS.TO,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                     TAG: this.TABLE_COLUMNS.TAG,
+                    REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
+                    BILLABLE: this.TABLE_COLUMNS.BILLABLE,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 EXPENSE_REPORT: {
@@ -6783,6 +6785,8 @@ const CONST = {
             TO: 'to',
             CATEGORY: 'category',
             TAG: 'tag',
+            REIMBURSABLE: 'reimbursable',
+            BILLABLE: 'billable',
             TOTAL_AMOUNT: 'amount',
             TOTAL: 'total',
             TYPE: 'type',
