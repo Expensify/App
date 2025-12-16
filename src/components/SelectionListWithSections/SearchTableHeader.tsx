@@ -87,6 +87,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.action',
         isColumnSortable: false,
     },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.WORKSPACE,
+        translationKey: 'workspace.common.workspace',
+    },
 ];
 
 const taskHeaders: SearchColumnConfig[] = [
@@ -164,6 +168,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
         isColumnSortable: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.WORKSPACE,
+        translationKey: 'workspace.common.workspace',
     },
 ];
 
