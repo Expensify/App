@@ -6640,10 +6640,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 ? `a modifié le flux d’approbation pour ${approver} afin de ne plus transférer les rapports approuvés (auparavant transférés à ${previousForwardsTo})`
                 : `a modifié le flux d'approbation pour ${approver} afin de ne plus transférer les rapports approuvés`,
         updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `a modifié le nom de la taxe personnalisée en « ${newName} » (auparavant « ${oldName} »)`,
-        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
-            `a modifié la taxe par défaut de la devise de l’espace de travail en « ${newName} » (précédemment « ${oldName} »)`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
-            `a modifié la taxe par défaut pour la devise étrangère en « ${newName} » (auparavant « ${oldName} »)`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',

@@ -6592,10 +6592,6 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             }
         },
         updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `alterou o nome do imposto personalizado para "${newName}" (anteriormente "${oldName}")`,
-        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
-            `alterou o imposto padrão da moeda do workspace para "${newName}" (anteriormente "${oldName}")`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
-            `alterou o imposto padrão para moeda estrangeira para "${newName}" (anteriormente "${oldName}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
