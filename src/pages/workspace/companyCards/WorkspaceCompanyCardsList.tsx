@@ -7,6 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
+import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,6 +15,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useNetwork from '@hooks/useNetwork';
 import {
     filterCardsByPersonalDetails,
     getCardsByCardholderName,
@@ -56,6 +58,7 @@ type WorkspaceCompanyCardsListProps = {
 
 function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer, isLoadingCardsList = false}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const listRef = useRef<FlashListRef<string>>(null);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
