@@ -26,6 +26,7 @@ type SearchTableHeaderProps = {
     shouldShowSorting: boolean;
     dateColumnSize: TableColumnSize;
     submittedColumnSize?: TableColumnSize;
+    approvedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     containerStyles?: StyleProp<ViewStyle>;
@@ -41,6 +42,7 @@ function SortableTableHeader({
     shouldShowColumn,
     dateColumnSize,
     submittedColumnSize,
+    approvedColumnSize,
     containerStyles,
     shouldShowSorting,
     onSortPress,
@@ -80,6 +82,7 @@ function SortableTableHeader({
                                     taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     !!areAllOptionalColumnsHidden,
                                     submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                 ),
                             ]}
                             isSortable={isSortable}
