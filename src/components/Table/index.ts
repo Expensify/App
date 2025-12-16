@@ -1,11 +1,21 @@
-import Table from './Table';
+import TableComponent from './Table';
 import TableBody from './TableBody';
 import TableFilterButtons from './TableFilterButtons';
 import TableHeader from './TableHeader';
 import TableSearchBar from './TableSearchBar';
 import TableSortButtons from './TableSortButtons';
 
+// Define the compound component type
+type TableComponentType = typeof TableComponent & {
+    Header: typeof TableHeader;
+    Body: typeof TableBody;
+    FilterButtons: typeof TableFilterButtons;
+    SearchBar: typeof TableSearchBar;
+    SortButtons: typeof TableSortButtons;
+};
+
 // Attach sub-components to Table for compositional API
+const Table = TableComponent as TableComponentType;
 Table.Header = TableHeader;
 Table.Body = TableBody;
 Table.FilterButtons = TableFilterButtons;
