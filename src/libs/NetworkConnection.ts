@@ -346,7 +346,6 @@ function clearReconnectionCallbacks() {
 }
 
 export default {
-
     clearReconnectionCallbacks,
     setOfflineStatus,
     listenForReconnect,
