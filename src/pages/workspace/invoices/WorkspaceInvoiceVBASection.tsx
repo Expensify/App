@@ -89,7 +89,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         setIsUpdateWorkspaceCurrencyModalOpen(false);
 
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
-    }, [bankAccountList, isBetaEnabled, policy]);
+    }, [policy]);
 
     /**
      * Set position of the payment menu
