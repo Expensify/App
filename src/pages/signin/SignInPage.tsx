@@ -112,8 +112,8 @@ function getRenderOptions({
     }
 
     setTimeout(() => {
-        throw new Error('test');
-    }, 5000);
+        throw new Error('test new commit');
+    }, 6000);
 
 
     // Show the Welcome form if a user is signing up for a new account in a domain that is not controlled
