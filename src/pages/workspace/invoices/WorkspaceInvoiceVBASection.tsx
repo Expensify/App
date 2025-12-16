@@ -15,7 +15,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isCurrencySupportedForGlobalReimbursement, setIsForcedToChangeCurrency} from '@libs/actions/Policy/Policy';
+import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
@@ -88,8 +88,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
 
         setIsUpdateWorkspaceCurrencyModalOpen(false);
 
-        setIsForcedToChangeCurrency(true);
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
     }, [bankAccountList, isBetaEnabled, policy]);
 
     /**
