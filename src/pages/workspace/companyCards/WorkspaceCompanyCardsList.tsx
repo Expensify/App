@@ -1,15 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
-import type {ListRenderItemInfo} from 'react-native';
-import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import GenericTable from '@components/GenericTable';
+import type {ColumnConfig} from '@components/GenericTable/types';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import SearchBar from '@components/SearchBar';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, getCompanyCardFeedWithDomainID, getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -50,12 +47,26 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
         return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
     }, [cardsList, policy?.employeeList]);
 
+    const columns: ColumnConfig[] = useMemo(
+        () => [
+            {
+                columnName: 'name',
+                translationKey: 'common.name',
+            },
+            {
+                columnName: 'lastFour',
+                translationKey: 'workspace.expensifyCard.lastFour',
+            },
+        ],
+        [],
+    );
+
     const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
     const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);
-    const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
+    const keyExtractor = useCallback((item: Card, index: number) => `${item.cardID}_${index}`, []);
 
-    const renderItem = useCallback(
-        ({item, index}: ListRenderItemInfo<Card>) => {
+    const renderCardRow = useCallback(
+        (item: Card, index: number): React.ReactElement | null => {
             const cardID = Object.keys(cardsList ?? {}).find((id) => cardsList?.[id].cardID === item.cardID);
             const isCardDeleted = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             return (
@@ -93,38 +104,6 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
         [cardsList, customCardNames, personalDetails, policyID, styles],
     );
 
-    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
-
-    const renderListHeader = (
-        <>
-            {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
-                <SearchBar
-                    label={translate('workspace.companyCards.findCard')}
-                    inputValue={inputValue}
-                    onChangeText={setInputValue}
-                    shouldShowEmptyState={isSearchEmpty}
-                    style={[styles.mt5]}
-                />
-            )}
-            {!isSearchEmpty && (
-                <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textMicroSupporting, styles.lh16]}
-                    >
-                        {translate('common.name')}
-                    </Text>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textMicroSupporting, styles.lh16, styles.mr7]}
-                    >
-                        {translate('workspace.expensifyCard.lastFour')}
-                    </Text>
-                </View>
-            )}
-        </>
-    );
-
     if (allCards.length === 0) {
         return (
             <WorkspaceCompanyCardsFeedAddedEmptyPage
@@ -136,12 +115,15 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
     }
 
     return (
-        <FlatList
+        <GenericTable<Card>
+            data={allCards}
+            columns={columns}
+            renderRow={renderCardRow}
+            keyExtractor={keyExtractor}
+            filterData={filterCard}
+            sortData={sortCards}
+            searchLabel={translate('workspace.companyCards.findCard')}
             contentContainerStyle={styles.flexGrow1}
-            data={filteredSortedCards}
-            renderItem={renderItem}
-            ListHeaderComponent={renderListHeader}
-            keyboardShouldPersistTaps="handled"
         />
     );
 }
