@@ -157,7 +157,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         }
 
         const iouAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        if (iouAction) {
+        if (iouAction || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             return;
         }
 
