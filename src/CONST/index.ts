@@ -6808,7 +6808,7 @@ const CONST = {
             IN: 'in',
             COMMENTS: 'comments',
             CARD: 'card',
-            WORKSPACE: 'workspace',
+            WORKSPACE: 'policyname',
             WITHDRAWAL_ID: 'withdrawalID',
             AVATAR: 'avatar',
             STATUS: 'status',
