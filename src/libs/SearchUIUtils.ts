@@ -2568,7 +2568,6 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
           };
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
