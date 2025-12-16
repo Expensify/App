@@ -2557,8 +2557,8 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.LONG_REPORT_ID]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.LONG_REPORT_ID]: false,
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
         };
 
