@@ -343,8 +343,9 @@ function BaseSelectionList<TItem extends ListItem>({
                     isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
                     alternateTextNumberOfLines={alternateNumberOfSupportedLines}
                     shouldIgnoreFocus={shouldIgnoreFocus}
-                    wrapperStyle={style?.listItemWrapperStyle}
                     titleStyles={style?.listItemTitleStyles}
+                    wrapperStyle={style?.listItemWrapperStyle}
+                    titleContainerStyles={style?.listItemTitleContainerStyles}
                     singleExecution={singleExecution}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}

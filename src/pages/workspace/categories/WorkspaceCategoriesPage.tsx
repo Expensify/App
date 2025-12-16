@@ -598,22 +598,22 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 )}
                 {hasVisibleCategories && !isLoading && (
                     <SelectionListWithModal
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={isSmallScreenWidth}
-                        onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
-                        sections={[{data: filteredCategoryList, isDisabled: false}]}
-                        shouldUseDefaultRightHandSideCheckmark={false}
-                        selectedItems={selectedCategories}
-                        onCheckboxPress={toggleCategory}
-                        onSelectRow={navigateToCategorySettings}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
+                        data={filteredCategoryList}
                         ListItem={TableListItem}
-                        listHeaderContent={headerContent}
-                        shouldShowListEmptyContent={false}
-                        onDismissError={dismissError}
+                        onCheckboxPress={toggleCategory}
+                        selectedItems={selectedCategories}
+                        onSelectRow={navigateToCategorySettings}
+                        onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
+                        onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
+                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        turnOnSelectionModeOnLongPress={isSmallScreenWidth}
+                        shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeader={getCustomListHeader()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        customListHeaderContent={headerContent}
+                        canSelectMultiple={canSelectMultiple}
+                        showListEmptyContent={false}
+                        onDismissError={dismissError}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
                         shouldShowRightCaret

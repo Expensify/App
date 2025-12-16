@@ -11,10 +11,10 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import ListItemRightCaretWithLabel from '@components/SelectionListWithSections/ListItemRightCaretWithLabel';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
+import ListItemRightCaretWithLabel from '@components/SelectionListWithModal/ListItemRightCaretWithLabel';
 import Switch from '@components/Switch';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
@@ -411,27 +411,25 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 )}
                 {tagList.length > 0 && !isLoading && (
                     <SelectionListWithModal
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={!hasDependentTags}
-                        onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                        sections={[{data: filteredTagList, isDisabled: false}]}
-                        selectedItems={selectedTags}
-                        shouldUseDefaultRightHandSideCheckmark={false}
-                        onCheckboxPress={toggleTag}
-                        onSelectRow={navigateToTagSettings}
-                        onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
-                        showScrollIndicator
+                        data={filteredTagList}
                         ListItem={TableListItem}
+                        selectedItems={selectedTags}
                         customListHeader={getCustomListHeader()}
-                        listHeaderContent={listHeaderContent}
-                        shouldShowListEmptyContent={false}
+                        onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
+                        onDismissError={(item) => clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: orderWeight, policyTags})}
+                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        onTurnOnSelectionMode={(item) => item && toggleTag(item)}
+                        turnOnSelectionModeOnLongPress={!hasDependentTags}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        customListHeaderContent={listHeaderContent}
+                        canSelectMultiple={canSelectMultiple}
+                        onSelectRow={navigateToTagSettings}
+                        showListEmptyContent={false}
+                        onCheckboxPress={toggleTag}
                         addBottomSafeAreaPadding
-                        onDismissError={(item) => {
-                            clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: orderWeight, policyTags});
-                        }}
                         shouldShowRightCaret
+                        showScrollIndicator
                     />
                 )}
                 <ConfirmModal

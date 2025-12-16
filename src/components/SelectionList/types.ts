@@ -75,13 +75,13 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     selectedItems?: string[];
 
     style?: {
-        /** Styles to apply to the list */
+        /** Styles for the list */
         listStyle?: StyleProp<ViewStyle>;
 
-        /** Styles to apply to the list container */
+        /** Styles for the list container */
         containerStyle?: StyleProp<ViewStyle>;
 
-        /** Styles applied for the title of the list item */
+        /** Styles for the title of the list item */
         listItemTitleStyles?: StyleProp<TextStyle>;
 
         /** Styles for the list item wrapper */
@@ -89,6 +89,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
         /** Styles for the list header wrapper */
         listHeaderWrapperStyle?: StyleProp<ViewStyle>;
+
+        /** Styles for the title container of the list item */
+        listItemTitleContainerStyles?: StyleProp<ViewStyle>;
     };
 
     /** Function that determines if an item is selected */
