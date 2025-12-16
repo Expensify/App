@@ -7839,6 +7839,7 @@ const translations = {
         admins: {
             title: 'Admins',
             findAdmin: 'Find admin',
+            revokeAdminAccess: 'Revoke domain access',
         },
     },
 };
