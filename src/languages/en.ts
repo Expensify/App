@@ -6676,6 +6676,7 @@ const translations = {
             selectAllMatchingItems: 'Select all matching items',
             allMatchingItemsSelected: 'All matching items selected',
         },
+        originalAmount: 'Original amount',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',

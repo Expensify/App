@@ -11,6 +11,7 @@ import ActionCell from '@components/SelectionListWithSections/Search/ActionCell'
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
+import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -394,6 +395,17 @@ function TransactionItemRow({
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
                         shouldUseNarrowLayout={shouldUseNarrowLayout}
+                    />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
+                >
+                    <AmountCell
+                        total={transactionItem.originalAmount}
+                        currency={transactionItem.originalCurrency}
                     />
                 </View>
             ),
