@@ -15,7 +15,7 @@ type ExpandCollapseArrowButtonProps = {
 function ExpandCollapseArrowButton({isExpanded, onPress}: ExpandCollapseArrowButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
 
     return (
         <PressableWithFeedback
