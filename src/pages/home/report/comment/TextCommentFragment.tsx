@@ -76,6 +76,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const containsOnlyEmojis = containsOnlyEmojisUtil(text ?? '');
     const containsOnlyCustomEmoji = useMemo(() => containsOnlyCustomEmojiUtil(text), [text]);
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
+
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         // We need to replace the space at the beginning of each line with &nbsp;
@@ -100,6 +101,20 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
         }
 
         htmlWithTag = adjustExpensifyLinksForEnv(getHtmlWithAttachmentID(htmlWithTag, reportActionID));
+
+        const lines = htmlContent.split(/<br\s*\/?>/i);
+        function isSingleEmojiLine(line: string) {
+            const trimmed = line.replace(/<br\s*\/?>/gi, '').trim();
+            return /^<emoji>.*<\/emoji>$/.test(trimmed);
+        }
+        const processedLines = lines.map((line) => {
+            if (isSingleEmojiLine(line)) {
+                return line.replace('<emoji>', '<emoji ismedium oneline >');
+            }
+            return line.replace('<emoji>', '<emoji ismedium>');
+        });
+
+        htmlContent = processedLines.join('<br />');
 
         return (
             <RenderCommentHTML
