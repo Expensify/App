@@ -1209,7 +1209,7 @@ function MoneyRequestConfirmationList({
 export default memo(
     MoneyRequestConfirmationList,
     (prevProps, nextProps) =>
-        deepEqual(prevProps.transaction, nextProps.transaction) &&
+        prevProps.transaction === nextProps.transaction &&
         prevProps.onSendMoney === nextProps.onSendMoney &&
         prevProps.onConfirm === nextProps.onConfirm &&
         prevProps.iouType === nextProps.iouType &&
@@ -1222,8 +1222,9 @@ export default memo(
         prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
         prevProps.iouCurrencyCode === nextProps.iouCurrencyCode &&
         prevProps.iouMerchant === nextProps.iouMerchant &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- selectedParticipants is derived with .map() which creates new array references
         deepEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
-        deepEqual(prevProps.payeePersonalDetails, nextProps.payeePersonalDetails) &&
+        prevProps.payeePersonalDetails === nextProps.payeePersonalDetails &&
         prevProps.isReadOnly === nextProps.isReadOnly &&
         prevProps.policyID === nextProps.policyID &&
         prevProps.reportID === nextProps.reportID &&
@@ -1236,6 +1237,6 @@ export default memo(
         prevProps.onToggleBillable === nextProps.onToggleBillable &&
         prevProps.hasSmartScanFailed === nextProps.hasSmartScanFailed &&
         prevProps.reportActionID === nextProps.reportActionID &&
-        deepEqual(prevProps.action, nextProps.action) &&
+        prevProps.action === nextProps.action &&
         prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt,
 );
