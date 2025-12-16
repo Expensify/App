@@ -50,18 +50,39 @@ const triggerReconnectionCallbacks = throttle(
     {trailing: false},
 );
 
+
+// Only allow one NetInfo.refresh at a time, and respect the interval
+let isCheckPending = false;
+let lastCheckTimestamp = 0;
+
 /**
  * Refresh NetInfo state.
- * Throttle reachability checks to avoid spamming PING requests
  */
-const recheckNetworkConnection = throttle(
-    () => {
-        Log.info('[NetworkConnection] refresh NetInfo');
-        NetInfo.refresh();
-    },
-    CONST.NETWORK.MAX_PENDING_TIME_MS,
-    {leading: true, trailing: false},
-);
+function recheckNetworkConnection() {
+    const now = Date.now();
+
+    if (isCheckPending) {
+        Log.info('[NetworkConnection] NetInfo.refresh already in progress, skipping new check.');
+        return;
+    }
+
+    if (now - lastCheckTimestamp < CONST.NETWORK.MAX_PENDING_TIME_MS) {
+        Log.info('[NetworkConnection] NetInfo.refresh called too soon, skipping to respect interval.');
+        return;
+    }
+
+    isCheckPending = true;
+    lastCheckTimestamp = now;
+    Log.info('[NetworkConnection] refresh NetInfo.');
+    Promise.resolve(NetInfo.refresh())
+        .catch((err) => {
+            Log.info('[NetworkConnection] NetInfo.refresh failed.', false, err);
+        })
+        .finally(() => {
+            isCheckPending = false;
+            Log.info('[NetworkConnection] NetInfo.refresh finished.');
+        });
+}
 
 /**
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
@@ -325,6 +346,7 @@ function clearReconnectionCallbacks() {
 }
 
 export default {
+
     clearReconnectionCallbacks,
     setOfflineStatus,
     listenForReconnect,
