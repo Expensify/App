@@ -23,7 +23,7 @@ function ReportVirtualCardFraudConfirmationPage({
 }: ReportVirtualCardFraudConfirmationPageProps) {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlassSpyMouthClosed'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlassSpyMouthClosed']);
 
     const close = useCallback(() => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));

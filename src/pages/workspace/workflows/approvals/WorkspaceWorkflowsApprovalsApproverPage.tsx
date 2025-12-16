@@ -29,8 +29,8 @@ type WorkspaceWorkflowsApprovalsApproverPageProps = WithPolicyAndFullscreenLoadi
 function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
-    const [currentApprovalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
@@ -39,23 +39,23 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const rhpRoutes = useNavigationState((state) => state.routes);
     const defaultApprover = getDefaultApprover(policy);
-    const firstApprover = currentApprovalWorkflow?.approvers?.[0]?.email ?? '';
+    const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
 
     const isChangeApproverRoute = route.name === SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE;
-    const isInitialCreationFlow = currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && currentApprovalWorkflow?.isInitialFlow;
-    const currentApprover = currentApprovalWorkflow?.approvers[approverIndex];
+    const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
+    const currentApprover = approvalWorkflow?.approvers[approverIndex];
     const selectedApproverEmail = currentApprover?.email;
 
     const employeeList = policy?.employeeList;
-    const approversFromWorkflow = currentApprovalWorkflow?.approvers;
-    const isDefault = currentApprovalWorkflow?.isDefault;
+    const approversFromWorkflow = approvalWorkflow?.approvers;
+    const isDefault = approvalWorkflow?.isDefault;
 
     const allApprovers: SelectionListApprover[] = useMemo(() => {
         if (isApprovalWorkflowLoading || !employeeList) {
             return [];
         }
 
-        const membersEmail = currentApprovalWorkflow?.members?.map((member) => member.email);
+        const membersEmail = approvalWorkflow?.members?.map((member) => member.email);
 
         return Object.values(employeeList)
             .map((employee): SelectionListApprover | null => {
@@ -112,7 +112,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         isDefault,
         policy?.preventSelfApproval,
         policy?.owner,
-        currentApprovalWorkflow?.members,
+        approvalWorkflow?.members,
         approversFromWorkflow,
         selectedApproverEmail,
         approverIndex,
@@ -121,20 +121,20 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         icons.FallbackAvatar,
     ]);
 
-    const shouldShowListEmptyContent = !!currentApprovalWorkflow && !isApprovalWorkflowLoading;
+    const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading;
 
     const goBack = useCallback(() => {
         let backToRoute;
         if (isInitialCreationFlow) {
             backToRoute = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID);
             clearApprovalWorkflowApprovers();
-        } else if (currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
+        } else if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
             backToRoute = rhpRoutes.length > 1 ? undefined : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
         } else {
             backToRoute = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
         }
         Navigation.goBack(backToRoute);
-    }, [isInitialCreationFlow, currentApprovalWorkflow?.action, route.params.policyID, rhpRoutes.length, firstApprover]);
+    }, [isInitialCreationFlow, approvalWorkflow?.action, route.params.policyID, rhpRoutes.length, firstApprover]);
 
     const toggleApprover = useCallback(
         (approvers: SelectionListApprover[]) => {
@@ -142,7 +142,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             const isRemovingApprover = approvers.length === 0;
 
             if (isRemovingApprover) {
-                clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow});
+                clearApprovalWorkflowApprover({approverIndex, approvalWorkflow});
                 goBack();
                 return;
             }
@@ -161,7 +161,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     overLimitForwardsTo: '',
                 },
                 approverIndex,
-                currentApprovalWorkflow,
+                approvalWorkflow,
                 policy,
                 personalDetailsByEmail,
             });
@@ -174,7 +174,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
             }
         },
-        [approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail, isChangeApproverRoute],
+        [approverIndex, approvalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail, isChangeApproverRoute],
     );
 
     const subtitle = useMemo(
