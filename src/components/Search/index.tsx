@@ -399,14 +399,14 @@ function Search({
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        openSearch({includePartiallySetupBankAccounts: true});
+        openSearch();
     }, []);
 
     useEffect(() => {
         if (!prevIsOffline || isOffline) {
             return;
         }
-        openSearch({includePartiallySetupBankAccounts: true});
+        openSearch();
     }, [isOffline, prevIsOffline]);
 
     const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
