@@ -6382,6 +6382,9 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
         Navigation.dismissModal();
         return;
     }
+    if (isFromRHP) {
+        Navigation.dismissModal();
+    }
     Navigation.isNavigationReady().then(() => {
         Navigation.goBack(backRoute);
     });
