@@ -148,9 +148,8 @@ function WalletPage() {
                 showLockedAccountModal();
                 return;
             }
-
-            navigateToBankAccountRoute(accountPolicyID, ROUTES.SETTINGS_WALLET);
         }
+        navigateToBankAccountRoute(accountPolicyID, ROUTES.SETTINGS_WALLET);
     };
 
     const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
