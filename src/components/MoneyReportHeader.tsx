@@ -574,8 +574,8 @@ function MoneyReportHeader({
         if (!iouTransactionID || !reportID) {
             return;
         }
-        markAsCashAction(iouTransactionID, reportID);
-    }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID]);
+        markAsCashAction(iouTransactionID, reportID, transactionViolations);
+    }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID, transactionViolations]);
 
     const duplicateExpenseTransaction = useCallback(
         (transactionList: OnyxTypes.Transaction[]) => {
