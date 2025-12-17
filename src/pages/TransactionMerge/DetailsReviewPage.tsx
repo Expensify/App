@@ -208,7 +208,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     return (
         <ScreenWrapper
-            testID={DetailsReviewPage.displayName}
+            testID="DetailsReviewPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -253,7 +253,5 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         </ScreenWrapper>
     );
 }
-
-DetailsReviewPage.displayName = 'DetailsReviewPage';
 
 export default DetailsReviewPage;

@@ -1,8 +1,10 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
+import ROUTES from '@src/ROUTES';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
@@ -1435,6 +1437,52 @@ describe('ReportActionsUtils', () => {
             const expected = translateLocal('report.actions.type.updatedCustomField1', {email: formatPhoneNumber(email), newValue, previousValue});
             expect(actual).toBe(expected);
         });
+
+        it('should concatenate multiple field changes when fields array is present', () => {
+            const email = 'employee@example.com';
+            const newRole = CONST.POLICY.ROLE.ADMIN;
+            const previousRole = CONST.POLICY.ROLE.USER;
+            const customFieldNewValue = '12';
+            const customFieldOldValue = '10';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    fields: [
+                        {
+                            field: CONST.CUSTOM_FIELD_KEYS.customField1,
+                            newValue: customFieldNewValue,
+                            oldValue: customFieldOldValue,
+                        },
+                        {
+                            field: 'role',
+                            newValue: newRole,
+                            oldValue: previousRole,
+                        },
+                    ],
+                },
+            };
+
+            const formattedEmail = formatPhoneNumber(email);
+            const expectedCustomFieldMessage = translateLocal('report.actions.type.updatedCustomField1', {
+                email: formattedEmail,
+                newValue: customFieldNewValue,
+                previousValue: customFieldOldValue,
+            });
+            const expectedRoleMessage = translateLocal('report.actions.type.updateRole', {
+                email: formattedEmail,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                newRole: translateLocal('workspace.common.roleName', {role: newRole}).toLowerCase(),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                currentRole: translateLocal('workspace.common.roleName', {role: previousRole}).toLowerCase(),
+            });
+
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(action);
+            expect(actual).toBe(`${expectedCustomFieldMessage}, ${expectedRoleMessage}`);
+        });
     });
 
     describe('getPolicyChangeLogDeleteMemberMessage', () => {
@@ -1474,6 +1522,26 @@ describe('ReportActionsUtils', () => {
                 previousMessage: [],
             };
             expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
+        });
+    });
+
+    describe('getHarvestCreatedExpenseReportMessage', () => {
+        let environmentURL: string;
+        beforeAll(async () => {
+            environmentURL = await getEnvironmentURL();
+        });
+
+        it('should return the correct message with a valid report ID and report name', () => {
+            const reportID = '12345';
+            const reportName = 'Test Expense Report';
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', {
+                reportUrl: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`,
+                reportName,
+            });
+
+            const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
+
+            expect(result).toBe(expectedMessage);
         });
     });
 });

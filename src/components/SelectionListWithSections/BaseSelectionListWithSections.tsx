@@ -24,7 +24,6 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
-import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -440,16 +439,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
             }
         },
-        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
+        setHasKeyBeenPressed,
         isFocused,
         onArrowUpDownCallback,
     });
-
-    useEffect(() => {
-        addKeyDownPressListener(setHasKeyBeenPressed);
-
-        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
-    }, [setHasKeyBeenPressed]);
 
     const selectedItemIndex = useMemo(
         () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex(isItemSelected) : -1),
@@ -1119,7 +1112,5 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </View>
     );
 }
-
-BaseSelectionListWithSections.displayName = 'BaseSelectionListWithSections';
 
 export default BaseSelectionListWithSections;
