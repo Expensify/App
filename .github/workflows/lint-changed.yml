@@ -56,7 +56,20 @@ jobs:
         uses: ./.github/actions/composite/setupNode
         with:
           IS_DESKTOP_BUILD: true
- 
+
+      - name: Remove E/App version from package-lock.json (For cache invalidation)
+        shell: bash
+        run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
+
+      - name: Cache ESLint
+        # v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        with:
+          path: node_modules/.cache/eslint-changed
+          key: ${{ runner.os }}-eslint-changed-${{ hashFiles('eslint.changed.config.*', 'normalized-package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-eslint-changed-
+
       - name: Run ESLint to check for deprecation warnings
         run: |
           # shellcheck disable=SC2046
