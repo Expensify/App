@@ -1,5 +1,5 @@
 import {isRHPVisibleSelector} from '@selectors/Modal';
-import React, {useContext, useEffect, useMemo} from 'react';
+import React, {useContext, useEffect} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 // @ts-expect-error This is a workaround to display SidePanel on top of everything,
@@ -25,7 +25,7 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
     const {paddingTop, paddingBottom} = useSafeAreaPaddings();
 
     const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector, canBeMissing: true});
-    const uniqueModalId = useMemo(() => ComposerFocusManager.getId(), []);
+    const uniqueModalId = ComposerFocusManager.getId();
 
     const {wideRHPRouteKeys, isWideRHPFocused} = useContext(WideRHPContext);
     const isWideRHPVisible = !!wideRHPRouteKeys.length;
