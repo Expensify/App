@@ -188,6 +188,12 @@ function getInternalExpensifyPath(href: string) {
     return attrPath;
 }
 
+function getRouteBasePath(route: string) {
+    const routeWithoutParams = route.split('?').at(0) ?? '';
+    const segments = routeWithoutParams.split('/').filter((segment) => segment !== '');
+    return segments.at(0) ?? '';
+}
+
 function openLink(href: string, environmentURL: string, isAttachment = false) {
     const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
@@ -196,10 +202,19 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
 
     const currentState = navigationRef.getRootState();
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-
     const willOpenInRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
     const isNarrowLayout = getIsNarrowLayout();
-    const shouldCloseRHP = isRHPOpen && !willOpenInRHP && !isNarrowLayout;
+
+    let isDifferentRHPRoute = false;
+    if (isRHPOpen && willOpenInRHP) {
+        const currentRoute = Navigation.getActiveRoute();
+        const newRoute = internalNewExpensifyPath;
+        const currentRouteBase = getRouteBasePath(currentRoute);
+        const newRouteBase = getRouteBasePath(newRoute);
+        isDifferentRHPRoute = currentRouteBase !== newRouteBase && currentRouteBase !== '' && newRouteBase !== '';
+    }
+
+    const shouldCloseRHP = !isNarrowLayout && isRHPOpen && (!willOpenInRHP || isDifferentRHPRoute);
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
     // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
