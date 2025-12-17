@@ -3,10 +3,11 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import {accountIDSelector} from '@selectors/Session';
 import {tierNameSelector} from '@selectors/UserWallet';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
-import React, {useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -50,6 +51,9 @@ import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
+
+// Keep a ref to the horizontal scroll offset so we can restore it if users change the search query
+let savedHorizontalScrollOffset = 0;
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem;
@@ -232,6 +236,20 @@ function SearchList({
     const {windowWidth} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columns);
     const shouldScrollHorizontally = !!SearchTableHeader && minTableWidth > windowWidth;
+
+    const horizontalScrollViewRef = useRef<RNScrollView>(null);
+
+    const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
+    }, []);
+
+    // Restore horizontal scroll position synchronously before paint using useLayoutEffect to avoid a visible shift on the table
+    useLayoutEffect(() => {
+        if (!shouldScrollHorizontally || savedHorizontalScrollOffset <= 0) {
+            return;
+        }
+        horizontalScrollViewRef.current?.scrollTo({x: savedHorizontalScrollOffset, animated: false});
+    }, [data, shouldScrollHorizontally]);
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
@@ -452,10 +470,14 @@ function SearchList({
     if (shouldScrollHorizontally) {
         return (
             <ScrollView
+                ref={horizontalScrollViewRef}
                 horizontal
                 showsHorizontalScrollIndicator
                 style={styles.flex1}
                 contentContainerStyle={{width: minTableWidth}}
+                contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
+                onScroll={handleHorizontalScroll}
+                scrollEventThrottle={16}
             >
                 {content}
             </ScrollView>
