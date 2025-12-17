@@ -871,7 +871,7 @@ const translations = {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
-        blockedFromConcierge: 'Communication is barred',
+        blockedFromConcierge: 'Comunication is barred',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}: LocalTimeParams) => `It's ${time} for ${user}`,
         edited: '(edited)',
