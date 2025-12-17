@@ -75,6 +75,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldShowTooltips = true,
     shouldIgnoreFocus = false,
     shouldStopPropagation = false,
+    shouldHeaderBeInsideList = false,
     shouldScrollToFocusedIndex = true,
     shouldDebounceScrolling = false,
     shouldUpdateFocusedIndex = false,
@@ -488,6 +489,18 @@ function BaseSelectionList<TItem extends ListItem>({
         updateFocusedIndex,
     ]);
 
+    const header = (
+        <ListHeader
+            dataDetails={dataDetails}
+            customListHeader={customListHeader}
+            canSelectMultiple={canSelectMultiple}
+            onSelectAll={handleSelectAll}
+            headerStyle={style?.listHeaderWrapperStyle}
+            shouldShowSelectAllButton={!!onSelectAll}
+            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+        />
+    );
+
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
@@ -495,15 +508,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 renderListEmptyContent()
             ) : (
                 <>
-                    <ListHeader
-                        dataDetails={dataDetails}
-                        customListHeader={customListHeader}
-                        canSelectMultiple={canSelectMultiple}
-                        onSelectAll={handleSelectAll}
-                        headerStyle={style?.listHeaderWrapperStyle}
-                        shouldShowSelectAllButton={!!onSelectAll}
-                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    />
+                    {!shouldHeaderBeInsideList && header}
                     <FlashList
                         data={data}
                         renderItem={renderItem}
@@ -524,6 +529,7 @@ function BaseSelectionList<TItem extends ListItem>({
                             <>
                                 {customListHeaderContent}
                                 {textInputComponent({shouldBeInsideList: true})}
+                                {shouldHeaderBeInsideList && header}
                             </>
                         }
                     />

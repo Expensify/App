@@ -226,7 +226,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 }
                 return {
                     value: policyTagList.name,
-                    orderWeight: policyTagList.orderWeight,
+                    orderWeight: 2,
                     text: getCleanedTagName(policyTagList.name),
                     alternateText: !hasDependentTags ? translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length}) : '',
                     keyForList: getCleanedTagName(policyTagList.name),
@@ -721,6 +721,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             showScrollIndicator={false}
                             onCheckboxPress={toggleTag}
                             isSelected={isTagSelected}
+                            shouldHeaderBeInsideList
                             shouldShowRightCaret
                         />
                     )}

@@ -472,6 +472,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         showListEmptyContent={false}
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 )}

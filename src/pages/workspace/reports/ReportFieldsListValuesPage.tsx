@@ -405,6 +405,7 @@ function ReportFieldsListValuesPage({
                         showListEmptyContent={false}
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 )}
