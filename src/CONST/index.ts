@@ -3956,6 +3956,10 @@ const CONST = {
         DELETE: 'delete',
         UPDATE: 'update',
     },
+    EXPENSE_PENDING_ACTION: {
+        SUBMIT: 'SUBMIT',
+        APPROVE: 'APPROVE',
+    },
     BRICK_ROAD_INDICATOR_STATUS: {
         ERROR: 'error',
         INFO: 'info',

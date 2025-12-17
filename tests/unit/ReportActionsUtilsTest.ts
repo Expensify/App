@@ -1879,141 +1879,63 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('hasPendingDEWSubmit', () => {
-        it('should return true when there is a pending SUBMITTED action and isDEWPolicy is true', () => {
-            // Given a SUBMITTED action with pendingAction ADD and isDEWPolicy is true
-            const actionId1 = '1';
-            const reportActions: ReportActions = {
-                [actionId1]: {
-                    ...createRandomReportAction(0),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    created: '2025-11-21 10:00:00',
-                    reportActionID: actionId1,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    originalMessage: {
-                        amount: 10000,
-                        currency: 'USD',
-                    },
-                    message: [],
-                    previousMessage: [],
-                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+        it('should return true when pendingExpenseAction is SUBMIT and isDEWPolicy is true', () => {
+            // Given reportMetadata with pendingExpenseAction SUBMIT and isDEWPolicy is true
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
             };
 
             // When checking if there's a pending DEW submit
-            const result = ReportActionsUtils.hasPendingDEWSubmit(reportActions, true);
+            const result = ReportActionsUtils.hasPendingDEWSubmit(reportMetadata, true);
 
-            // Then it should return true because there's a pending SUBMITTED action and the policy is DEW
+            // Then it should return true
             expect(result).toBe(true);
         });
 
-        it('should return false when there is a pending SUBMITTED action but isDEWPolicy is false', () => {
-            // Given a SUBMITTED action with pendingAction ADD but isDEWPolicy is false
-            const actionId1 = '1';
-            const reportActions: ReportActions = {
-                [actionId1]: {
-                    ...createRandomReportAction(0),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    created: '2025-11-21 10:00:00',
-                    reportActionID: actionId1,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    originalMessage: {
-                        amount: 10000,
-                        currency: 'USD',
-                    },
-                    message: [],
-                    previousMessage: [],
-                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+        it('should return false when pendingExpenseAction is SUBMIT but isDEWPolicy is false', () => {
+            // Given reportMetadata with pendingExpenseAction SUBMIT but isDEWPolicy is false
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
             };
 
             // When checking if there's a pending DEW submit with isDEWPolicy false
-            const result = ReportActionsUtils.hasPendingDEWSubmit(reportActions, false);
+            const result = ReportActionsUtils.hasPendingDEWSubmit(reportMetadata, false);
 
             // Then it should return false because the policy is not DEW
             expect(result).toBe(false);
         });
 
-        it('should return false when there is no pending SUBMITTED action', () => {
-            // Given a SUBMITTED action without pendingAction ADD
-            const actionId1 = '1';
-            const reportActions: ReportActions = {
-                [actionId1]: {
-                    ...createRandomReportAction(0),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    created: '2025-11-21 10:00:00',
-                    reportActionID: actionId1,
-                    originalMessage: {
-                        amount: 10000,
-                        currency: 'USD',
-                    },
-                    message: [],
-                    previousMessage: [],
-                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+        it('should return false when pendingExpenseAction is not SUBMIT', () => {
+            // Given reportMetadata with pendingExpenseAction APPROVE (not SUBMIT)
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
             };
 
             // When checking if there's a pending DEW submit
-            const result = ReportActionsUtils.hasPendingDEWSubmit(reportActions, true);
+            const result = ReportActionsUtils.hasPendingDEWSubmit(reportMetadata, true);
 
-            // Then it should return false because the SUBMITTED action doesn't have pendingAction ADD
+            // Then it should return false because pendingExpenseAction is APPROVE, not SUBMIT
             expect(result).toBe(false);
         });
 
-        it('should return false for empty report actions', () => {
-            // Given empty report actions and isDEWPolicy is true
+        it('should return false when pendingExpenseAction is undefined', () => {
+            // Given reportMetadata without pendingExpenseAction
+            const reportMetadata = {};
 
             // When checking if there's a pending DEW submit
-            const result = ReportActionsUtils.hasPendingDEWSubmit({}, true);
+            const result = ReportActionsUtils.hasPendingDEWSubmit(reportMetadata, true);
 
-            // Then it should return false because there are no actions
+            // Then it should return false
             expect(result).toBe(false);
         });
 
-        it('should handle array input and return true when there is a pending SUBMITTED action', () => {
-            // Given an array of report actions with a pending SUBMITTED action
-            const reportActionsArray: ReportAction[] = [
-                {
-                    ...createRandomReportAction(0),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    created: '2025-11-21 10:00:00',
-                    reportActionID: '1',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    originalMessage: {
-                        amount: 10000,
-                        currency: 'USD',
-                    },
-                    message: [],
-                    previousMessage: [],
-                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
-            ];
+        it('should return false when reportMetadata is undefined', () => {
+            // Given undefined reportMetadata
 
             // When checking if there's a pending DEW submit
-            const result = ReportActionsUtils.hasPendingDEWSubmit(reportActionsArray, true);
+            const result = ReportActionsUtils.hasPendingDEWSubmit(undefined, true);
 
-            // Then it should return true because there's a pending SUBMITTED action
-            expect(result).toBe(true);
-        });
-
-        it('should return false when SUBMITTED action has UPDATE pendingAction instead of ADD', () => {
-            // Given a SUBMITTED action with pendingAction UPDATE (not ADD)
-            const actionId1 = '1';
-            const reportActions: ReportActions = {
-                [actionId1]: {
-                    ...createRandomReportAction(0),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    created: '2025-11-21 10:00:00',
-                    reportActionID: actionId1,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    originalMessage: {
-                        amount: 10000,
-                        currency: 'USD',
-                    },
-                    message: [],
-                    previousMessage: [],
-                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
-            };
-
-            // When checking if there's a pending DEW submit
-            const result = ReportActionsUtils.hasPendingDEWSubmit(reportActions, true);
-
-            // Then it should return false because pendingAction is UPDATE, not ADD
+            // Then it should return false
             expect(result).toBe(false);
         });
     });
