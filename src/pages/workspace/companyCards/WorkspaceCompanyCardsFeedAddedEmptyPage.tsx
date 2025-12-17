@@ -55,6 +55,4 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAs
     );
 }
 
-WorkspaceCompanyCardsFeedAddedEmptyPage.displayName = 'WorkspaceCompanyCardsFeedAddedEmptyPage';
-
 export default WorkspaceCompanyCardsFeedAddedEmptyPage;

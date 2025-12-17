@@ -97,6 +97,4 @@ function AvatarCapture({children, fileName: name, ref}: AvatarCaptureProps) {
     return <div ref={containerRef as unknown as React.RefObject<HTMLDivElement>}>{children}</div>;
 }
 
-AvatarCapture.displayName = 'AvatarCapture';
-
 export default AvatarCapture;

@@ -265,6 +265,4 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     );
 }
 
-MoneyRequestReportView.displayName = 'MoneyRequestReportView';
-
 export default MoneyRequestReportView;
