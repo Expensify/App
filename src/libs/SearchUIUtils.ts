@@ -151,6 +151,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: null,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 'taxAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
 };
 
@@ -2083,6 +2084,14 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TAX_RATE) {
+        return data.sort((a, b) => {
+            const aValue = `${a.policy?.taxRates?.taxes?.[a.taxCode ?? '']?.name ?? ''} (${a.policy?.taxRates?.taxes?.[a.taxCode ?? '']?.value ?? ''})`;
+            const bValue = `${b.policy?.taxRates?.taxes?.[b.taxCode ?? '']?.name ?? ''} (${b.policy?.taxRates?.taxes?.[b.taxCode ?? '']?.value ?? ''})`;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     if (!sortingProperty) {
         return data;
     }
@@ -2327,6 +2336,10 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.status';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
             return 'common.card';
+        case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
+            return 'common.tax';
+        case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
+            return 'iou.taxRate';
         case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
             return 'common.longID';
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
@@ -2794,6 +2807,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
