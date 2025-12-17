@@ -29,6 +29,4 @@ function Concierge({navigation}: Pick<ExtraContentProps, 'navigation'>) {
     );
 }
 
-Concierge.displayName = 'ConciergeSidePanel';
-
 export default Concierge;

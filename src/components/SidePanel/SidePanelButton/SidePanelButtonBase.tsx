@@ -38,6 +38,4 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
     );
 }
 
-SidePanelButtonBase.displayName = 'SidePanelButtonBase';
-
 export default SidePanelButtonBase;

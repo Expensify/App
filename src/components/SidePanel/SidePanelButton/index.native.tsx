@@ -3,6 +3,4 @@ function SidePanelButton() {
     return null;
 }
 
-SidePanelButton.displayName = 'SidePanelButton';
-
 export default SidePanelButton;
