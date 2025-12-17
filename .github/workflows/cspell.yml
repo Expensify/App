@@ -16,8 +16,8 @@ jobs:
         # v8.1.1
         uses: streetsidesoftware/cspell-action@e5a858a18b7e0b56e0342b1dcad796308b7341a2
         with:
-          config: '.'
+          config: "./cspell.json"
           inline: error
           strict: true
-          check_dot_files: false
-          incremental_files_only: true
+          check_dot_files: 'false'
+          incremental_files_only: 'true'
