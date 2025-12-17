@@ -2775,6 +2775,7 @@ describe('SearchUIUtils', () => {
                 [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: false,
             });
         });
 
@@ -2799,6 +2800,7 @@ describe('SearchUIUtils', () => {
                 [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: false,
             });
         });
 
