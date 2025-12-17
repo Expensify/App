@@ -574,7 +574,7 @@ function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; ne
     const oldTagName = policyTag.oldName;
     const newTagName = PolicyUtils.escapeTagName(policyTag.newName);
 
-    const policyTagRule = PolicyUtils.getTagApproverRule(policyID, oldTagName);
+    const policyTagRule = PolicyUtils.getTagApproverRule(policyData.policy, oldTagName);
     const approvalRules = policyData.policy?.rules?.approvalRules ?? [];
     const updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
 
@@ -1169,7 +1169,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = PolicyUtils.getPolicy(policyID);
     const prevApprovalRules = policy?.rules?.approvalRules ?? [];
-    const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);
+    const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policy, tag);
     const filteredApprovalRules = approverRuleToUpdate ? prevApprovalRules.filter((rule) => rule.id !== approverRuleToUpdate.id) : prevApprovalRules;
     const toBeUnselected = approverRuleToUpdate?.approver === approver;
 
