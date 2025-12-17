@@ -110,7 +110,5 @@ function AmountForm({
     );
 }
 
-AmountForm.displayName = 'AmountForm';
-
 export default AmountForm;
 export type {AmountFormProps};

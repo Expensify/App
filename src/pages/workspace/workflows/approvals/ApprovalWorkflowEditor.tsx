@@ -214,6 +214,4 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     );
 }
 
-ApprovalWorkflowEditor.displayName = 'ApprovalWorkflowEditor';
-
 export default ApprovalWorkflowEditor;

@@ -505,6 +505,4 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     );
 }
 
-WorkspaceWorkflowsPage.displayName = 'WorkspaceWorkflowsPage';
-
 export default withPolicy(WorkspaceWorkflowsPage);

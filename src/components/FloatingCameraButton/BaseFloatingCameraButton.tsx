@@ -93,6 +93,4 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     );
 }
 
-BaseFloatingCameraButton.displayName = 'BaseFloatingCameraButton';
-
 export default BaseFloatingCameraButton;

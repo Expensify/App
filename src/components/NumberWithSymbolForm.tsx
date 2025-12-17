@@ -551,7 +551,5 @@ function NumberWithSymbolForm({
     );
 }
 
-NumberWithSymbolForm.displayName = 'NumberWithSymbolForm';
-
 export default NumberWithSymbolForm;
 export type {NumberWithSymbolFormProps, NumberWithSymbolFormRef};

@@ -104,8 +104,6 @@ export default function <TProps extends WithPolicyProps>(WrappedComponent: Compo
         );
     }
 
-    WithPolicy.displayName = `WithPolicy`;
-
     return WithPolicy;
 }
 
