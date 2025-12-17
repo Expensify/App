@@ -155,12 +155,12 @@ function ExpenseReportListItemRow({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
-                <TextCell text={item.reportID} />
+                <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : item.reportID} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}>
-                <TextCell text={getBase62ReportID(Number(item.reportID))} />
+                <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(item.reportID))} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (

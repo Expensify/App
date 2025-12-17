@@ -432,12 +432,12 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
-                    <TextCell text={transactionItem.reportID} />
+                    <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : transactionItem.reportID} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}>
-                    <TextCell text={getBase62ReportID(Number(transactionItem.reportID))} />
+                    <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transactionItem.reportID))} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TAX]: (
