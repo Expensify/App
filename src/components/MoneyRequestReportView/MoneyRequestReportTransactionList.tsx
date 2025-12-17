@@ -193,6 +193,7 @@ function MoneyRequestReportTransactionList({
         [report?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
     );
 
+    // hasPendingAction is used to show the pending action indicator in the header
     const hasPendingAction = useMemo(() => {
         return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
     }, [hasPendingDeletionTransaction, transactions]);
