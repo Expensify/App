@@ -731,6 +731,9 @@ const CONST = {
         CA: 'CA',
         GB: 'GB',
         IT: 'IT',
+        PR: 'PR',
+        GU: 'GU',
+        VI: 'VI',
     },
     SWIPE_DIRECTION: {
         DOWN: 'down',
@@ -1031,7 +1034,7 @@ const CONST = {
     COLLECT_UPGRADE_HELP_URL: 'https://help.expensify.com/Hidden/collect-upgrade',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
-    DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Verify-a-Domain',
+    DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain',
     SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
@@ -2882,6 +2885,7 @@ const CONST = {
             PER_DIEM: 'per-diem',
             DISTANCE_MAP: 'distance-map',
             DISTANCE_MANUAL: 'distance-manual',
+            DISTANCE_GPS: 'distance-gps',
         },
         EXPENSE_TYPE: {
             DISTANCE: 'distance',
@@ -2892,6 +2896,7 @@ const CONST = {
             PENDING_EXPENSIFY_CARD: 'pendingExpensifyCard',
             DISTANCE_MAP: 'distance-map',
             DISTANCE_MANUAL: 'distance-manual',
+            DISTANCE_GPS: 'distance-gps',
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
@@ -5454,6 +5459,7 @@ const CONST = {
         PER_DIEM: 'per-diem',
         DISTANCE_MAP: 'distance-map',
         DISTANCE_MANUAL: 'distance-manual',
+        DISTANCE_GPS: 'distance-gps',
     },
 
     STATUS_TEXT_MAX_LENGTH: 100,
@@ -6696,6 +6702,8 @@ const CONST = {
                     DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
+                    POLICY_NAME: this.TABLE_COLUMNS.POLICY_NAME,
+                    CARD: this.TABLE_COLUMNS.CARD,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                     TAG: this.TABLE_COLUMNS.TAG,
                     ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
@@ -6703,6 +6711,8 @@ const CONST = {
                     BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
                     REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
                     BILLABLE: this.TABLE_COLUMNS.BILLABLE,
+                    TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
+                    TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     ACTION: this.TABLE_COLUMNS.ACTION,
@@ -6715,6 +6725,9 @@ const CONST = {
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
+                    POLICY_NAME: this.TABLE_COLUMNS.POLICY_NAME,
+                    REIMBURSABLE_TOTAL: this.TABLE_COLUMNS.REIMBURSABLE_TOTAL,
+                    NON_REIMBURSABLE_TOTAL: this.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
                     REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
                     BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
                     ACTION: this.TABLE_COLUMNS.ACTION,
@@ -6802,6 +6815,7 @@ const CONST = {
             ORIGINAL_AMOUNT: 'originalamount',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            TAX_RATE: 'taxrate',
             TOTAL_AMOUNT: 'amount',
             TOTAL: 'total',
             TYPE: 'type',
@@ -6812,12 +6826,15 @@ const CONST = {
             IN: 'in',
             COMMENTS: 'comments',
             CARD: 'card',
+            POLICY_NAME: 'policyname',
             WITHDRAWAL_ID: 'withdrawalID',
             AVATAR: 'avatar',
             STATUS: 'status',
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
             TAX: 'tax',
+            REIMBURSABLE_TOTAL: 'reimbursableTotal',
+            NON_REIMBURSABLE_TOTAL: 'nonReimbursableTotal',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7805,6 +7822,8 @@ const FRAUD_PROTECTION_EVENT = {
     NEW_EMAILS_INVITED: 'NewEmailsInvited',
 };
 
+const COUNTRIES_US_BANK_FLOW: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CONST.COUNTRY.GU, CONST.COUNTRY.VI];
+
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
@@ -7818,6 +7837,6 @@ type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW};
 
 export default CONST;

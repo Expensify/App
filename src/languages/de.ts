@@ -691,6 +691,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Aktion erforderlich',
         duplicate: 'Duplizieren',
         duplicated: 'Dupliziert',
+        reimbursableTotal: 'Erstattungsfähiger Gesamtbetrag',
+        nonReimbursableTotal: 'Nicht erstattungsfähiger Gesamtbetrag',
         originalAmount: 'Ursprünglicher Betrag',
     },
     supportalNoAccess: {
@@ -1036,6 +1038,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Manuell',
         scan: 'Scannen',
         map: 'Karte',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Eine Tabellenkalkulation hochladen',

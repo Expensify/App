@@ -13,6 +13,7 @@ import StatusCell from '@components/SelectionListWithSections/Search/StatusCell'
 import TextCell from '@components/SelectionListWithSections/Search/TextCell';
 import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
+import WorkspaceCell from '@components/SelectionListWithSections/Search/WorkspaceCell';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -38,7 +39,7 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {PersonalDetails, Report, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
@@ -86,6 +87,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Report to which the transaction belongs */
     report?: Report;
+
+    /** Policy to which the transaction belongs */
+    policy?: Policy;
 };
 
 type TransactionItemRowProps = {
@@ -189,6 +193,21 @@ function TransactionItemRow({
 
     const merchant = useMemo(() => getMerchantName(transactionItem, translate), [transactionItem, translate]);
     const description = getDescription(transactionItem);
+
+    const formattedTaxRate = useMemo(() => {
+        const taxRateName = transactionItem?.policy?.taxRates?.taxes?.[transactionItem.taxCode ?? '']?.name ?? '';
+        const taxRateValue = transactionItem?.policy?.taxRates?.taxes?.[transactionItem.taxCode ?? '']?.value ?? '';
+
+        if (!taxRateName && !taxRateValue) {
+            return '';
+        }
+
+        if (!taxRateValue) {
+            return taxRateName;
+        }
+
+        return `${taxRateName} (${taxRateValue})`;
+    }, [transactionItem?.policy?.taxRates?.taxes, transactionItem.taxCode]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const merchantOrDescription = merchant || description;
@@ -410,6 +429,14 @@ function TransactionItemRow({
                     )}
                 </View>
             ),
+            [CONST.SEARCH.TABLE_COLUMNS.CARD]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.CARD}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}
+                >
+                    <TextCell text={transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : (transactionItem.cardName ?? '')} />
+                </View>
+            ),
             [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.COMMENTS}
@@ -454,14 +481,30 @@ function TransactionItemRow({
                     <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transactionItem.reportID))} />
                 </View>
             ),
-            [CONST.SEARCH.TABLE_COLUMNS.TAX]: (
+            [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: (
                 <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.TAX}
+                    key={CONST.SEARCH.TABLE_COLUMNS.TAX_RATE}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
+                >
+                    <TextCell text={formattedTaxRate} />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, isTaxAmountColumnWide)]}
                 >
                     <TaxCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
+                    />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}>
+                    <WorkspaceCell
+                        policyID={transactionItem.report?.policyID}
+                        report={transactionItem.report}
                     />
                 </View>
             ),
@@ -508,6 +551,7 @@ function TransactionItemRow({
             isAmountColumnWide,
             isTaxAmountColumnWide,
             isLargeScreenWidth,
+            formattedTaxRate,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
