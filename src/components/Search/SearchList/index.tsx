@@ -241,10 +241,12 @@ function SearchList({
         horizontalScrollOffsetRef.current = event.nativeEvent.contentOffset.x;
     }, []);
 
-    const restoreHorizontalScrollPosition = useCallback(() => {
-        if (horizontalScrollOffsetRef.current > 0) {
-            horizontalScrollViewRef.current?.scrollTo({x: horizontalScrollOffsetRef.current, animated: false});
+    // Restore horizontal scroll position after content size changes
+    const handleContentSizeChange = useCallback(() => {
+        if (horizontalScrollOffsetRef.current <= 0) {
+            return;
         }
+        horizontalScrollViewRef.current?.scrollTo({x: horizontalScrollOffsetRef.current, animated: false});
     }, []);
 
     const handleLongPressRow = useCallback(
@@ -473,7 +475,7 @@ function SearchList({
                 contentContainerStyle={{width: minTableWidth}}
                 onScroll={handleHorizontalScroll}
                 scrollEventThrottle={16}
-                onLayout={restoreHorizontalScrollPosition}
+                onContentSizeChange={handleContentSizeChange}
             >
                 {content}
             </ScrollView>
