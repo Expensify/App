@@ -7820,6 +7820,7 @@ const translations = {
             addAdmin: 'Add admin',
             invite: 'Invite',
             findAdmin: 'Find admin',
+            addAdminError: 'Unable to add this member as an admin. Please try again.',
         },
     },
 };

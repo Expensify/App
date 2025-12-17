@@ -354,7 +354,7 @@ function resetCreateDomainForm() {
 }
 
 function addAdminToDomain(domainAccountID: number, accountID: number, targetEmail: string, domainName: string) {
-    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.DOMAIN_ADMIN_PERMISSIONS}${accountID}`;
+    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -369,7 +369,9 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 admin: {
-                    [accountID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    [accountID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
                 },
             },
         },
@@ -381,6 +383,17 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
             value: {
                 [PERMISSION_KEY]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminErrors: {
+                    [accountID]: {
+                        errors: null,
+                    },
+                },
             },
         },
         {
@@ -397,9 +410,13 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
-                [PERMISSION_KEY]: null,
+                adminErrors: {
+                    [accountID]: {
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.addAdminError'),
+                    },
+                },
             },
         },
         {
@@ -427,7 +444,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
  * Removes an error after trying to add admin
  */
 function clearAddAdminError(domainAccountID: number, accountID: number) {
-    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.DOMAIN_ADMIN_PERMISSIONS}${accountID}`;
+    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         [PERMISSION_KEY]: null,
@@ -457,4 +474,5 @@ export {
     createDomain,
     resetCreateDomainForm,
     addAdminToDomain,
+    clearAddAdminError,
 };

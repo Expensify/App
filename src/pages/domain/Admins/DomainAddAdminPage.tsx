@@ -1,6 +1,6 @@
-import {adminAccountIDsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, domainEmailSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -36,15 +36,21 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [currentlySelectedUser, setCurrentlySelectedUser] = useState<OptionData | null>(null);
-    const [domain, domainMetaData] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
-    const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
+    const [domainEmail, domainMetaData] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: domainEmailSelector,
+    });
     const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
+
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const [currentlySelectedUser, setCurrentlySelectedUser] = useState<OptionData | null>(null);
+
+    const domainName = domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
     const {searchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
@@ -56,13 +62,6 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             setCurrentlySelectedUser(result);
         },
     });
-
-    const handleToggleSelection = useCallback(
-        (option: OptionData) => {
-            toggleSelection(option);
-        },
-        [toggleSelection],
-    );
 
     const sections: Sections[] = [];
     if (areOptionsInitialized) {
@@ -130,7 +129,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={!isLoadingOnyxValue(domainMetaData) && !domain}
+                shouldShow={!isLoadingOnyxValue(domainMetaData) && !domainEmail}
                 shouldForceFullScreen
             >
                 <HeaderWithBackButton
@@ -140,15 +139,12 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                     }}
                 />
                 <SelectionList
-                    canSelectMultiple
                     sections={sections}
                     ListItem={InviteMemberListItem}
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
-                    onChangeText={(value) => {
-                        setSearchTerm(value);
-                    }}
-                    onSelectRow={handleToggleSelection}
+                    onChangeText={(value) => setSearchTerm(value)}
+                    onSelectRow={(option: OptionData) => toggleSelection(option)}
                     onConfirm={inviteUser}
                     showScrollIndicator
                     showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}

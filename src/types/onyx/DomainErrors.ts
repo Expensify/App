@@ -7,7 +7,15 @@ type DomainErrors = {
     /**
      * Errors related to specific domain administrators, keyed by their adminID
      */
-    adminErrors?: Record<number, OnyxCommon.Errors>;
+    adminErrors?: Record<
+        number,
+        {
+            /**
+             *
+             */
+            errors: OnyxCommon.Errors;
+        }
+    >;
 };
 
 export default DomainErrors;

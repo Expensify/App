@@ -7,7 +7,15 @@ type DomainPendingAction = {
     /**
      * Pending actions for specific administrators, keyed by their accountID
      */
-    admin?: Record<number, OnyxCommon.PendingAction>;
+    admin?: Record<
+        number,
+        {
+            /**
+             *
+             */
+            pendingAction: OnyxCommon.PendingAction;
+        }
+    >;
 };
 
 export default DomainPendingAction;

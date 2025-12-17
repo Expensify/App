@@ -17,12 +17,14 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestError} from '@libs/ErrorUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
+import {clearAddAdminError} from '@userActions/Domain';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +45,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Members']);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar, 'Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Plus']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -51,6 +53,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         selector: adminAccountIDsSelector,
     });
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
+    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true});
 
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
@@ -72,6 +76,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     id: accountID,
                 },
             ],
+            errors: getLatestError(domainErrors?.adminErrors?.[accountID]?.errors),
+            pendingAction: domainPendingActions?.admin?.[accountID]?.pendingAction,
         });
     }
 
@@ -146,7 +152,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     onBackButtonPress={Navigation.popToSidebar}
                     icon={illustrations.Members}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                />
+                >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
@@ -164,6 +170,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     showScrollIndicator={false}
                     addBottomSafeAreaPadding
                     customListHeader={getCustomListHeader()}
+                    onDismissError={(item: AdminOption) => clearAddAdminError(domainAccountID, item.accountID)}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
