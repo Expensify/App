@@ -91,6 +91,4 @@ function RadioListItem<TItem extends ListItem>({
     );
 }
 
-RadioListItem.displayName = 'RadioListItem';
-
 export default RadioListItem;
