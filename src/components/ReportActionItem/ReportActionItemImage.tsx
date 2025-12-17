@@ -195,6 +195,7 @@ function ReportActionItemImage({
                         }
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         accessibilityRole={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT.IMAGE}
                     >
                         <ReceiptImage
                             {...propsObj}
