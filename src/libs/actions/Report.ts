@@ -72,6 +72,7 @@ import getEnvironment from '@libs/Environment/getEnvironment';
 import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
@@ -3692,8 +3693,17 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
-        const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-        Navigation.goBack(lastAccessedReportRoute);
+        // Check if route exists for super wide RHP vs regular full screen report
+        const routeWithLastAccessedReportID = Navigation.getReportRouteByID(lastAccessedReportID);
+        const topmostSuperWideRHP = Navigation.getTopmostSuperWideRHPReportID();
+
+        if (lastAccessedReportID === topmostSuperWideRHP && !getIsNarrowLayout()) {
+            const lastAccessedReportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: lastAccessedReportID});
+            Navigation.goBack(lastAccessedReportRoute);
+        } else {
+            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+            Navigation.goBack(lastAccessedReportRoute);
+        }
     } else {
         const isChatThread = isChatThreadReportUtils(currentReport);
 
