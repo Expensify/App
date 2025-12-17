@@ -7965,6 +7965,9 @@ ${amount} para ${merchant} - ${date}`,
         admins: {
             title: 'Administradores',
             findAdmin: 'Encontrar administrador',
+            primaryContact: 'Contacto principal',
+            addPrimaryContact: 'Añadir contacto principal',
+            settings: 'Configuración',
         },
     },
 };
