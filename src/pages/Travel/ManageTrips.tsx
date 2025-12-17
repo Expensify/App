@@ -6,7 +6,6 @@ import BookTravelButton from '@components/BookTravelButton';
 import Button from '@components/Button';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
-import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -21,12 +20,12 @@ function ManageTrips() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
-    const illustrations = useMemoizedLazyIllustrations(['Alert'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Alert', 'PiggyBank']);
 
     const tripsFeatures: FeatureListItem[] = useMemo(
         () => [
             {
-                icon: Illustrations.PiggyBank,
+                icon: illustrations.PiggyBank,
                 translationKey: 'travel.features.saveMoney',
             },
             {
@@ -34,7 +33,7 @@ function ManageTrips() {
                 translationKey: 'travel.features.alerts',
             },
         ],
-        [illustrations.Alert],
+        [illustrations.Alert, illustrations.PiggyBank],
     );
 
     const navigateToBookTravelDemo = () => {
@@ -89,7 +88,5 @@ function ManageTrips() {
         </ScrollView>
     );
 }
-
-ManageTrips.displayName = 'ManageTrips';
 
 export default ManageTrips;

@@ -2,11 +2,13 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,7 +30,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const learnMoreMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute())}`;
-
+    const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
 
@@ -43,7 +45,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
         <View style={[styles.m5, styles.highlightBG, styles.br4, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
             <View style={[styles.mb3]}>
                 <Icon
-                    src={Illustrations.ShieldYellow}
+                    src={ShieldYellow}
                     width={48}
                     height={48}
                 />

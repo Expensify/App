@@ -4,7 +4,6 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -15,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {close} from '@libs/actions/Modal';
 import {cleanPolicyTags, downloadMultiLevelTagsCSV, downloadTagsCSV, setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,7 +50,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isSwitchSingleToMultipleLevelTagWarningModalVisible, setIsSwitchSingleToMultipleLevelTagWarningModalVisible] = useState(false);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MultiTag', 'Tag'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MultiTag', 'Tag']);
 
     const [isOverridingMultiTag, setIsOverridingMultiTag] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
@@ -111,13 +111,17 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                             downloadMultiLevelTagsCSV(
                                 policyID,
                                 () => {
-                                    setIsDownloadFailureModalVisible(true);
+                                    close(() => {
+                                        setIsDownloadFailureModalVisible(true);
+                                    });
                                 },
                                 hasDependentTags,
                             );
                         } else {
                             downloadTagsCSV(policyID, () => {
-                                setIsDownloadFailureModalVisible(true);
+                                close(() => {
+                                    setIsDownloadFailureModalVisible(true);
+                                });
                             });
                         }
                     }}
@@ -139,13 +143,17 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         downloadMultiLevelTagsCSV(
                             policyID,
                             () => {
-                                setIsDownloadFailureModalVisible(true);
+                                close(() => {
+                                    setIsDownloadFailureModalVisible(true);
+                                });
                             },
                             hasDependentTags,
                         );
                     } else {
                         downloadTagsCSV(policyID, () => {
-                            setIsDownloadFailureModalVisible(true);
+                            close(() => {
+                                setIsDownloadFailureModalVisible(true);
+                            });
                         });
                     }
                 }}
@@ -166,7 +174,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
-                testID={ImportSpreadsheet.displayName}
+                testID="ImportSpreadsheet"
                 shouldEnableMaxHeight={canUseTouchScreen()}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -263,7 +271,5 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-ImportTagsOptionsPage.displayName = 'ImportTagsOptionsPage';
 
 export default ImportTagsOptionsPage;

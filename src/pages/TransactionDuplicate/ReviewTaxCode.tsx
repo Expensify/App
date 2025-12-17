@@ -16,7 +16,6 @@ import {calculateTaxAmount, compareDuplicateTransactionFields, getAmount, getDef
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import ReviewDescription from './ReviewDescription';
 import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
@@ -41,7 +40,7 @@ function ReviewTaxRate() {
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reviewDuplicates?.reportID)}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`, {canBeMissing: true});
 
-    const compareResult = compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicates?.reportID, undefined, policyCategories);
+    const compareResult = compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicatesReport, undefined, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
         Object.keys(compareResult.change ?? {}),
@@ -81,7 +80,7 @@ function ReviewTaxRate() {
     );
 
     return (
-        <ScreenWrapper testID={ReviewDescription.displayName}>
+        <ScreenWrapper testID="ReviewDescription">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
@@ -96,7 +95,5 @@ function ReviewTaxRate() {
         </ScreenWrapper>
     );
 }
-
-ReviewTaxRate.displayName = 'ReviewTaxRate';
 
 export default ReviewTaxRate;

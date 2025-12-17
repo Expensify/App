@@ -71,7 +71,7 @@ function IOURequestStepPerDiemWorkspace({
                 ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, currentUserLogin, selectedWorkspace, localeCompare]);
+    }, [allPolicies, currentUserLogin, selectedWorkspace?.policyID, localeCompare]);
 
     const filterWorkspace = useCallback((workspaceOption: WorkspaceListItem, searchInput: string) => {
         const results = tokenizedSearch([workspaceOption], searchInput, (option) => [option.text ?? '']);
@@ -106,7 +106,7 @@ function IOURequestStepPerDiemWorkspace({
             },
         ]);
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '');
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, policyExpenseReportID));
     };
 
@@ -135,7 +135,5 @@ function IOURequestStepPerDiemWorkspace({
         </>
     );
 }
-
-IOURequestStepPerDiemWorkspace.displayName = 'IOURequestStepPerDiemWorkspace';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepPerDiemWorkspace));

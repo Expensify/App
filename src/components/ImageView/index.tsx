@@ -54,8 +54,9 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         setContainerSize(e.nativeEvent.layout);
     };
 
+    const isImageLoaded = imageSize.width > 0 && imageSize.height > 0;
     const imageLoadingStart = () => {
-        if (!isLoading) {
+        if (isImageLoaded) {
             return;
         }
 
@@ -66,6 +67,9 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
 
     const imageLoad = ({nativeEvent: size}: ImageOnLoadEvent) => {
         setImageSize(size);
+    };
+
+    const imageLoadingEnd = () => {
         setIsLoading(false);
     };
 
@@ -189,6 +193,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         isLocalToUserDeviceFile = false;
     }
 
+    const shouldShowOfflineIndicator = isOffline && !isLoading && !isLocalToUserDeviceFile;
     if (canUseTouchScreen) {
         return (
             <Lightbox
@@ -207,7 +212,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         >
             <PressableWithoutFeedback
                 style={{
-                    ...StyleUtils.getZoomSizingStyle({imageSize, containerSize, isZoomed, zoomScale, isLoading}),
+                    ...StyleUtils.getZoomSizingStyle({imageSize, containerSize, isZoomed, zoomScale, isLoading: !isImageLoaded}),
                     ...StyleUtils.getZoomCursorStyle(isZoomed, isDragging),
                     ...(isZoomed && zoomScale >= 1 ? styles.pRelative : styles.pAbsolute),
                     ...styles.flex1,
@@ -224,6 +229,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                     resizeMode={RESIZE_MODES.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
+                    onLoadEnd={imageLoadingEnd}
                     waitForSession={() => {
                         setImageSize({width: 0, height: 0});
                         setIsLoading(true);
@@ -233,11 +239,10 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 />
             </PressableWithoutFeedback>
 
-            {isLoading && (!isOffline || isLocalToUserDeviceFile) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-            {isLoading && !isLocalToUserDeviceFile && <AttachmentOfflineIndicator />}
+            {!isImageLoaded && !shouldShowOfflineIndicator && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}
         </View>
     );
 }
-ImageView.displayName = 'ImageView';
 
 export default ImageView;

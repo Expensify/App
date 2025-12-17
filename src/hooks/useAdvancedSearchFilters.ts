@@ -210,7 +210,6 @@ function useAdvancedSearchFilters() {
     const {localeCompare} = useLocalize();
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const policyID = searchAdvancedFilters.policyID;
-    const groupBy = searchAdvancedFilters.groupBy;
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList, true), [userCardList, workspaceCardFeeds]);
@@ -259,9 +258,8 @@ function useAdvancedSearchFilters() {
     const shouldDisplayTagFilter = shouldDisplayFilter(tagListsUnpacked.length, areTagsEnabled, !!selectedPolicyTagLists);
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
-    const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
-    const shouldDisplayGroupByFilter = !!groupBy;
-    const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter;
+    const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
+    const shouldDisplayGroupCurrencyFilter = !!searchAdvancedFilters.groupBy;
     const shouldDisplayReportFieldFilter = Object.values(policies).some((policy): policy is NonNullable<Policy> => {
         return Object.values(policy?.fieldList ?? {}).some((val) => val.type !== CONST.POLICY.DEFAULT_FIELD_LIST_TYPE);
     });
@@ -291,9 +289,6 @@ function useAdvancedSearchFilters() {
                             return;
                         }
                         if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID && !shouldDisplayWorkspaceFilter) {
-                            return;
-                        }
-                        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY && !shouldDisplayGroupByFilter) {
                             return;
                         }
                         if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY && !shouldDisplayGroupCurrencyFilter) {

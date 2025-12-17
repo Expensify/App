@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import {generateTransactionID} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getLastActorDisplayName} from '@libs/OptionsListUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
-import {formatReportLastMessageText, getAllReportErrors, getReportPreviewMessage} from '@libs/ReportUtils';
+import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -23,6 +24,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import {createSidebarReportsCollection, createSidebarTestData} from '../utils/collections/sidebarReports';
+import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -425,6 +427,99 @@ describe('SidebarUtils', () => {
 
             expect(result).toBeNull();
         });
+
+        it('returns correct reason when copilot with full access approves report but deposit and withdrawal accounts are the same', async () => {
+            await Onyx.clear();
+
+            // Given: Copilot is set up with full access
+            const copilotEmail = 'copilot@example.com';
+            const delegatedAccess = {
+                delegate: copilotEmail,
+                delegates: [{email: copilotEmail, role: CONST.DELEGATE_ROLE.ALL}],
+            };
+
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Given: An expense report (chat report) exists
+            const expenseReportID = '12345';
+            const chatReport: Report = {
+                reportID: expenseReportID,
+                ownerAccountID: 12345,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID: '6',
+            };
+
+            // Given: An APPROVED report action with the deposit/withdrawal account error
+            const approvedReportActionID = '999';
+            const errorTimestamp = DateUtils.getMicroseconds();
+            const approvedReportAction: ReportAction = {
+                reportActionID: approvedReportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                actorAccountID: 12345,
+                created: DateUtils.getDBTime(),
+                message: [
+                    {
+                        type: '',
+                        text: '',
+                    },
+                ],
+                errors: {
+                    depositWithdrawalAccountError: {
+                        [errorTimestamp]: 'The deposit and withdrawal accounts are the same.',
+                    },
+                },
+            };
+
+            const MOCK_REPORTS: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}` as const]: chatReport,
+            };
+
+            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
+                [approvedReportActionID]: approvedReportAction,
+            };
+
+            const MOCK_TRANSACTIONS = {};
+            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    ...MOCK_REPORTS,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}` as const]: chatReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                });
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When: Checking for RBR on the chat report
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(chatReport?.reportID));
+            const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS);
+
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                chatReport,
+                chatReport,
+                MOCK_REPORT_ACTIONS,
+                false,
+                reportErrors,
+                MOCK_TRANSACTIONS,
+                MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived.current,
+            );
+
+            // Then: RBR should appear on the chat for the expense report
+            expect(result).not.toBeNull();
+            expect(result?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
+            expect(result?.reportAction).toMatchObject<ReportAction>(approvedReportAction);
+            expect(Object.values(reportErrors)).toContain('The deposit and withdrawal accounts are the same.');
+
+            await Onyx.clear();
+        });
     });
 
     describe('shouldShowRedBrickRoad', () => {
@@ -571,6 +666,107 @@ describe('SidebarUtils', () => {
             );
 
             expect(result).toBe(true);
+        });
+
+        it('returns true when submitter has held expenses even if outstanding tasks trigger GBR', async () => {
+            const policyID = generateReportID();
+            const expenseChatID = generateReportID();
+            const expenseReportID = generateReportID();
+            const holdReportActionID = generateReportID();
+
+            const policyExpenseChat: Report = {
+                reportID: expenseChatID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                ownerAccountID: 12345,
+                policyID,
+                hasOutstandingChildRequest: true,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const expenseReport: Report = {
+                reportID: expenseReportID,
+                chatReportID: expenseChatID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: 12345,
+                managerID: 12345,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const baseTransaction = createRandomTransaction(700);
+            const transactionID = generateTransactionID();
+            const transaction: Transaction = {
+                ...baseTransaction,
+                transactionID,
+                reportID: expenseReport.reportID,
+                amount: 12345,
+                currency: CONST.CURRENCY.USD,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                comment: {
+                    ...(baseTransaction.comment ?? {}),
+                    hold: holdReportActionID,
+                },
+            };
+
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+            const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
+            const transactionViolations: OnyxCollection<TransactionViolation[]> = {
+                [transactionViolationsKey]: [
+                    {
+                        name: CONST.VIOLATIONS.HOLD,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
+            };
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        accountID: 12345,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: expenseReport,
+                    [transactionKey]: transaction,
+                    [transactionViolationsKey]: transactionViolations[transactionViolationsKey],
+                } as unknown as OnyxMultiSetInput);
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            const requiresAttention = getReasonAndReportActionThatRequiresAttention(policyExpenseChat);
+            expect(requiresAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+
+            const {reason} =
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                    policyExpenseChat,
+                    policyExpenseChat,
+                    {} as OnyxEntry<ReportActions>,
+                    true,
+                    {},
+                    {[transactionKey]: transaction},
+                    transactionViolations,
+                    false,
+                ) ?? {};
+
+            expect(reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyExpenseChat.reportID));
+            const hasRedBrickRoad = SidebarUtils.shouldShowRedBrickRoad(
+                policyExpenseChat,
+                policyExpenseChat,
+                {} as OnyxEntry<ReportActions>,
+                true,
+                {},
+                {[transactionKey]: transaction},
+                transactionViolations as OnyxCollection<TransactionViolations>,
+                isReportArchived.current,
+            );
+
+            expect(hasRedBrickRoad).toBe(true);
         });
 
         it('returns true when report has errors', () => {
@@ -771,9 +967,83 @@ describe('SidebarUtils', () => {
                     )
                     .then(() => {
                         const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
-                        expect(result.messageText).toBe('This chat is with One and Two.');
+                        expect(result.messageHtml).toContain('This chat is with');
+                        expect(result.messageHtml).toContain('<user-details accountid="1">');
+                        expect(result.messageHtml).toContain('<user-details accountid="2">');
+                        expect(result.messageHtml).toContain('</user-details> and');
                     })
             );
+        });
+
+        it('returns correct messageText for a single user DM chat', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: undefined,
+                type: 'chat',
+            };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'} as unknown as PersonalDetails,
+            ];
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+            expect(result.messageText).toBe('This chat is with Email One.');
+            expect(result.messageHtml).toContain('<user-details accountid="1">Email One</user-details>');
+        });
+
+        it('returns correct messageText for two users in a group chat', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: 'group',
+                type: 'chat',
+            };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'} as unknown as PersonalDetails,
+                {accountID: 2, displayName: 'Email Two', avatar: 'https://example.com/two.png', login: 'email2@test.com'} as unknown as PersonalDetails,
+            ];
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+            expect(result.messageText).toMatch(/^This chat is with .+ and .+\.$/);
+            expect(result.messageText).toContain(' and ');
+            expect(result.messageText).not.toContain('<user-details');
+        });
+
+        it('returns correct messageText for three users in a group chat', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: 'group',
+                type: 'chat',
+            };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'} as unknown as PersonalDetails,
+                {accountID: 2, displayName: 'Email Two', avatar: 'https://example.com/two.png', login: 'email2@test.com'} as unknown as PersonalDetails,
+                {accountID: 3, displayName: 'Email Three', avatar: 'https://example.com/three.png', login: 'email3@test.com'} as unknown as PersonalDetails,
+            ];
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+            expect(result.messageText).toMatch(/^This chat is with .+, .+, and .+\.$/);
+            expect(result.messageText).toContain(', and ');
+            expect(result.messageText).not.toContain('<user-details');
         });
 
         it('returns a welcome message for an archived chat room', () => {
@@ -903,6 +1173,66 @@ describe('SidebarUtils', () => {
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
             expect(result?.alternateText).toBe(`${lastAction.person?.[0].text}: ${getReportActionMessageText(lastAction)}`);
+        });
+
+        it('returns the last action message as an alternate text if the action is POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE type', async () => {
+            // When a report has last action of POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE type
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                lastMessageHtml: 'upgraded workspace to Corporate',
+                lastMessageText: 'upgraded workspace to Corporate',
+                lastVisibleActionCreated: '2025-01-20 12:30:03.784',
+                participants: {
+                    '18921695': {
+                        notificationPreference: 'always',
+                    },
+                },
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: `<muted-text>This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.</muted-text>`,
+                        text: `This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.`,
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE,
+                actorAccountID: 18921695,
+                person: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: 'f50',
+                    },
+                ],
+                originalMessage: undefined,
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                parentReportAction: undefined,
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+            });
+
+            // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
+            expect(result?.alternateText).toBe(`${getReportActionMessageText(lastAction)}`);
         });
 
         it('returns @Hidden as an alternate text if the last action mentioned account has no name', async () => {

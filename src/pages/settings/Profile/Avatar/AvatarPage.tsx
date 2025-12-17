@@ -9,11 +9,11 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useAvatarMenu from '@hooks/useAvatarMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,6 +53,7 @@ function ProfileAvatar() {
     const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
     const isSavingRef = useRef(false);
 
+    const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [cropImageData, setCropImageData] = useState<ImageData>({...EMPTY_FILE});
@@ -203,7 +204,7 @@ function ProfileAvatar() {
             includeSafeAreaPaddingBottom
             includePaddingTop
             shouldEnableMaxHeight
-            testID={ProfileAvatar.displayName}
+            testID="ProfileAvatar"
             offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -233,7 +234,7 @@ function ProfileAvatar() {
                         if (menuItems?.length <= 1) {
                             return (
                                 <Button
-                                    icon={Expensicons.Upload}
+                                    icon={icons.Upload}
                                     text={translate('avatarPage.uploadPhoto')}
                                     accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                     isDisabled={isAvatarCropModalOpen}
@@ -316,7 +317,5 @@ function ProfileAvatar() {
         </ScreenWrapper>
     );
 }
-
-ProfileAvatar.displayName = 'ProfileAvatar';
 
 export default ProfileAvatar;

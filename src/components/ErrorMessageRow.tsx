@@ -1,6 +1,6 @@
 import mapValues from 'lodash/mapValues';
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -13,6 +13,9 @@ type ErrorMessageRowProps = {
     /** Additional style object for the error row */
     errorRowStyles?: StyleProp<ViewStyle>;
 
+    /** Additional style object for the error row text */
+    errorRowTextStyles?: StyleProp<TextStyle>;
+
     /** A function to run when the X button next to the error is clicked */
     onClose?: () => void;
 
@@ -23,7 +26,7 @@ type ErrorMessageRowProps = {
     dismissError?: () => void;
 };
 
-function ErrorMessageRow({errors, errorRowStyles, onClose, canDismissError = true, dismissError}: ErrorMessageRowProps) {
+function ErrorMessageRow({errors, errorRowStyles, onClose, canDismissError = true, dismissError, errorRowTextStyles}: ErrorMessageRowProps) {
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
     const errorEntries = Object.entries(errors ?? {});
     const filteredErrorEntries = errorEntries.filter((errorEntry): errorEntry is [string, string | ReceiptError | OnyxCommon.TranslationKeyError] => errorEntry[1] !== null);
@@ -36,12 +39,11 @@ function ErrorMessageRow({errors, errorRowStyles, onClose, canDismissError = tru
             type="error"
             onClose={onClose}
             containerStyles={errorRowStyles}
+            errorTextStyles={errorRowTextStyles}
             canDismiss={canDismissError}
             dismissError={dismissError}
         />
     ) : null;
 }
-
-ErrorMessageRow.displayName = 'ErrorMessageRow';
 
 export default ErrorMessageRow;

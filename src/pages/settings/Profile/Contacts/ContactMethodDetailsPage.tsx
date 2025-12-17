@@ -184,7 +184,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     if (!contactMethod || !loginData) {
         return (
-            <ScreenWrapper testID={ContactMethodDetailsPage.displayName}>
+            <ScreenWrapper testID="ContactMethodDetailsPage">
                 <FullPageNotFoundView
                     shouldShow
                     linkTranslationKey="contacts.goBackContactMethods"
@@ -277,7 +277,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     validateCodeFormRef.current?.focus?.();
                 });
             }}
-            testID={ContactMethodDetailsPage.displayName}
+            testID="ContactMethodDetailsPage"
             focusTrapSettings={{
                 focusTrapOptions: isMobileSafari()
                     ? undefined
@@ -348,7 +348,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                             requestContactMethodValidateCode(contactMethod);
                         }}
                         descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
-                        forwardedRef={validateCodeFormRef}
+                        ref={validateCodeFormRef}
                         shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />
                 )}
@@ -359,7 +359,5 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         </ScreenWrapper>
     );
 }
-
-ContactMethodDetailsPage.displayName = 'ContactMethodDetailsPage';
 
 export default ContactMethodDetailsPage;

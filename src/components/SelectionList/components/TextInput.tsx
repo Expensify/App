@@ -34,7 +34,7 @@ type TextInputProps = {
     onKeyPress?: (event: TextInputKeyPressEvent) => void;
 
     /** Function called when the text input focus changes */
-    onFocusChange?: (focused: boolean) => void;
+    onFocusChange: (focused: boolean) => void;
 
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
@@ -44,9 +44,6 @@ type TextInputProps = {
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
-
-    /** Function to update the focused index in the list */
-    setFocusedIndex: (index: number) => void;
 
     /** Function to focus text input component */
     focusTextInput: () => void;
@@ -64,7 +61,6 @@ function TextInput({
     showLoadingPlaceholder,
     isLoadingNewOptions,
     shouldShowTextInput,
-    setFocusedIndex,
     focusTextInput,
 }: TextInputProps) {
     const styles = useThemeStyles();
@@ -72,7 +68,7 @@ function TextInput({
     const {label, value, onChangeText, errorText, headerMessage, hint, disableAutoFocus, placeholder, maxLength, inputMode, ref: optionsRef} = options ?? {};
     const resultsFound = headerMessage !== translate('common.noResultsFound');
     const noData = dataLength === 0 && !showLoadingPlaceholder;
-    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || !noData);
+    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || noData);
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -80,9 +76,8 @@ function TextInput({
     const handleTextInputChange = useCallback(
         (text: string) => {
             onChangeText?.(text);
-            setFocusedIndex(0);
         },
-        [onChangeText, setFocusedIndex],
+        [onChangeText],
     );
 
     useFocusEffect(
@@ -103,6 +98,14 @@ function TextInput({
         }, [shouldShowTextInput, disableAutoFocus, focusTextInput]),
     );
 
+    const handleFocus = useCallback(() => {
+        onFocusChange(true);
+    }, [onFocusChange]);
+
+    const handleBlur = useCallback(() => {
+        onFocusChange(false);
+    }, [onFocusChange]);
+
     if (!shouldShowTextInput) {
         return null;
     }
@@ -113,8 +116,8 @@ function TextInput({
                 <BaseTextInput
                     ref={mergedRef}
                     onKeyPress={onKeyPress}
-                    onFocus={() => onFocusChange?.(true)}
-                    onBlur={() => onFocusChange?.(false)}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
                     label={label}
                     accessibilityLabel={accessibilityLabel}
                     hint={hint}
@@ -142,7 +145,5 @@ function TextInput({
         </>
     );
 }
-
-TextInput.displayName = 'TextInput';
 
 export default TextInput;

@@ -1,22 +1,15 @@
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import type {ListItem, SectionListDataType} from '@components/SelectionListWithSections/types';
+import type {WorkspaceListItemType as WorkspaceListItem} from '@components/SelectionList/ListItem/types';
+import type {SectionListDataType} from '@components/SelectionListWithSections/types';
 import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-type WorkspaceListItem = {
-    text: string;
-    policyID?: string;
-    isPolicyAdmin?: boolean;
-    brickRoadIndicator?: BrickRoad;
-} & ListItem;
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 
 type UseWorkspaceListParams = {
     policies: OnyxCollection<Policy>;
@@ -29,6 +22,7 @@ type UseWorkspaceListParams = {
 };
 
 function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, searchTerm, shouldShowPendingDeletePolicy, localeCompare, additionalFilter}: UseWorkspaceListParams) {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const usersWorkspaces = useMemo(() => {
         if (!policies || isEmptyObject(policies)) {
             return [];
@@ -48,17 +42,17 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
                 icons: [
                     {
                         source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        fallbackIcon: icons.FallbackWorkspaceAvatar,
                         name: policy?.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
                         id: policy?.id,
                     },
                 ],
-                keyForList: policy?.id,
+                keyForList: `${policy?.id}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
                 isSelected: policy?.id && selectedPolicyIDs ? selectedPolicyIDs.includes(policy.id) : false,
             }));
-    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, selectedPolicyIDs]);
+    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, icons.FallbackWorkspaceAvatar, selectedPolicyIDs]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>
@@ -83,6 +77,7 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
     const shouldShowSearchInput = usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return {
+        data: filteredAndSortedUserWorkspaces,
         sections,
         shouldShowNoResultsFoundMessage,
         shouldShowSearchInput,

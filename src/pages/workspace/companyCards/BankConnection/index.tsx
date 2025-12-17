@@ -18,7 +18,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {checkIfNewFeedConnected, getBankName, isSelectedFeedExpired} from '@libs/CardUtils';
+import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -30,7 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import openBankConnection from './openBankConnection';
 
 let customWindow: Window | null = null;
@@ -40,7 +40,7 @@ type BankConnectionProps = {
     policyID?: string;
 
     /** Selected feed for assign card flow */
-    feed?: CompanyCardFeed;
+    feed?: CompanyCardFeedWithDomainID;
 
     /** Route params for add new card flow */
     route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION>;
@@ -54,14 +54,14 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
     const [cardFeeds] = useCardFeeds(policyID);
-    const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
-    const illustrations = useMemoizedLazyIllustrations(['PendingBank'] as const);
+    const prevFeedsData = usePrevious(cardFeeds);
+    const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
-    const bankName = feed ? getBankName(feed) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
+    const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
     const {isNewFeedConnected, newFeed} = useMemo(
-        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}, addNewCard?.data?.plaidConnectedFeed),
-        [addNewCard?.data?.plaidConnectedFeed, cardFeeds?.settings?.oAuthAccountDetails, prevFeedsData],
+        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
+        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
     );
     const {isOffline} = useNetwork();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
@@ -70,10 +70,10 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const isPlaid = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !!plaidToken;
 
     const url = getCompanyCardBankConnection(policyID, bankName);
-    const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
+    const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
-    const isNewFeedHasError = !!(newFeed && cardFeeds?.settings?.oAuthAccountDetails?.[newFeed]?.errors);
+    const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
 
@@ -121,10 +121,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
 
     const CustomSubtitle = (
         <Text style={[styles.textAlignCenter, styles.textSupporting]}>
-            {bankName &&
-                translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, {
-                    bankName: addNewCard?.data?.plaidConnectedFeedName ?? bankName,
-                })}
+            {bankName && translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, addNewCard?.data?.plaidConnectedFeedName ?? bankName)}
             <TextLink onPress={onOpenBankConnectionFlow}>{translate('workspace.moreFeatures.companyCards.pendingBankLink')}</TextLink>.
         </Text>
     );
@@ -238,7 +235,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
 
     return (
         <ScreenWrapper
-            testID={BankConnection.displayName}
+            testID="BankConnection"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -249,7 +246,5 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         </ScreenWrapper>
     );
 }
-
-BankConnection.displayName = 'BankConnection';
 
 export default BankConnection;

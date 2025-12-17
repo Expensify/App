@@ -2,7 +2,7 @@ import {useEffect, useRef} from 'react';
 import {clearAllFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
+import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
 import ROUTES from '@src/ROUTES';
 
 type UseSuggestedSearchDefaultNavigationParams = {
@@ -10,9 +10,16 @@ type UseSuggestedSearchDefaultNavigationParams = {
     flattenedMenuItems: SearchTypeMenuItem[];
     similarSearchHash?: number;
     clearSelectedTransactions: () => void;
+    shouldSkipNavigation?: boolean;
 };
 
-function useSuggestedSearchDefaultNavigation({shouldShowSkeleton, flattenedMenuItems, similarSearchHash, clearSelectedTransactions}: UseSuggestedSearchDefaultNavigationParams) {
+function useSuggestedSearchDefaultNavigation({
+    shouldShowSkeleton,
+    flattenedMenuItems,
+    similarSearchHash,
+    clearSelectedTransactions,
+    shouldSkipNavigation = false,
+}: UseSuggestedSearchDefaultNavigationParams) {
     const hasShownSkeleton = useRef(false);
 
     useEffect(() => {
@@ -27,17 +34,20 @@ function useSuggestedSearchDefaultNavigation({shouldShowSkeleton, flattenedMenuI
 
         hasShownSkeleton.current = false;
 
-        const defaultMenuItem =
-            flattenedMenuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE) ?? flattenedMenuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+        if (shouldSkipNavigation) {
+            return;
+        }
 
-        if (!defaultMenuItem || similarSearchHash === defaultMenuItem.similarSearchHash) {
+        const defaultMenuItem = getDefaultActionableSearchMenuItem(flattenedMenuItems);
+
+        if (!defaultMenuItem || similarSearchHash !== undefined) {
             return;
         }
 
         clearAllFilters();
         clearSelectedTransactions();
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultMenuItem.searchQuery}));
-    }, [shouldShowSkeleton, flattenedMenuItems, similarSearchHash, clearSelectedTransactions]);
+    }, [shouldShowSkeleton, flattenedMenuItems, similarSearchHash, clearSelectedTransactions, shouldSkipNavigation]);
 }
 
 export default useSuggestedSearchDefaultNavigation;

@@ -16,7 +16,6 @@
     - [ ] iOS: HybridApp
     - [ ] iOS: mWeb Safari
     - [ ] MacOS: Chrome / Safari
-    - [ ] MacOS: Desktop
 - [ ] If there are any errors in the console that are unrelated to this PR, I either fixed them (preferred) or linked to where I reported them in Slack
 - [ ] I verified there are no new alerts related to the `canBeMissing` param for `useOnyx`
 - [ ] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
@@ -91,13 +90,6 @@
 
 <details>
 <summary>MacOS: Chrome / Safari</summary>
-
-<!-- add screenshots or videos here -->
-
-</details>
-
-<details>
-<summary>MacOS: Desktop</summary>
 
 <!-- add screenshots or videos here -->
 

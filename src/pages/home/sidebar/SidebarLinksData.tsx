@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks from './SidebarLinks';
@@ -23,18 +24,24 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
 
-    const {orderedReports, currentReportID} = useSidebarOrderedReports(SidebarLinksData.displayName);
+    const {orderedReports, currentReportID} = useSidebarOrderedReports('SidebarLinksData');
 
     const currentReportIDRef = useRef(currentReportID);
     // eslint-disable-next-line react-compiler/react-compiler
     currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
+
+    const onLayout = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
+    }, []);
+
     return (
         <View
             accessibilityElementsHidden={!isFocused}
             collapsable={false}
             accessibilityLabel={translate('sidebarScreen.listOfChats')}
             style={[styles.flex1, styles.h100]}
+            onLayout={onLayout}
         >
             <SidebarLinks
                 // Forwarded props:
@@ -49,8 +56,6 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     );
 }
 
-SidebarLinksData.displayName = 'SidebarLinksData';
-
 const WrappedSidebarLinksData = Sentry.withProfiler(SidebarLinksData);
-WrappedSidebarLinksData.displayName = 'SidebarLinksData';
+
 export default WrappedSidebarLinksData;

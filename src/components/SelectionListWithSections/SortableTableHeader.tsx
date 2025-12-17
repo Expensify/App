@@ -7,12 +7,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
 import SortableHeaderText from './SortableHeaderText';
 import type {SortableColumnName} from './types';
 
 type ColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths | undefined;
+    icon?: IconAsset;
     isColumnSortable?: boolean;
     canBeMissing?: boolean;
 };
@@ -23,6 +25,9 @@ type SearchTableHeaderProps = {
     sortOrder?: SortOrder;
     shouldShowSorting: boolean;
     dateColumnSize: TableColumnSize;
+    submittedColumnSize?: TableColumnSize;
+    approvedColumnSize?: TableColumnSize;
+    postedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     containerStyles?: StyleProp<ViewStyle>;
@@ -37,6 +42,9 @@ function SortableTableHeader({
     sortOrder,
     shouldShowColumn,
     dateColumnSize,
+    submittedColumnSize,
+    approvedColumnSize,
+    postedColumnSize,
     containerStyles,
     shouldShowSorting,
     onSortPress,
@@ -51,7 +59,7 @@ function SortableTableHeader({
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
-                {columns.map(({columnName, translationKey, isColumnSortable}) => {
+                {columns.map(({columnName, translationKey, icon, isColumnSortable}) => {
                     if (!shouldShowColumn(columnName)) {
                         return null;
                     }
@@ -64,6 +72,7 @@ function SortableTableHeader({
                         <SortableHeaderText
                             key={columnName}
                             text={translationKey ? translate(translationKey) : ''}
+                            icon={icon}
                             textStyle={textStyle}
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
                             isActive={isActive}
@@ -74,6 +83,9 @@ function SortableTableHeader({
                                     amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     !!areAllOptionalColumnsHidden,
+                                    submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                 ),
                             ]}
                             isSortable={isSortable}
@@ -85,7 +97,5 @@ function SortableTableHeader({
         </View>
     );
 }
-
-SortableTableHeader.displayName = 'SortableTableHeader';
 
 export default SortableTableHeader;

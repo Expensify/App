@@ -25,7 +25,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const {localeCompare, formatPhoneNumber} = useLocalize();
+    const {localeCompare, formatPhoneNumber, translate} = useLocalize();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
@@ -39,7 +39,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     let results: Array<string | undefined> = [];
     if (!!type && !!currentSearchResults?.data && !!currentSearchResults?.search) {
-        const searchData = getSections({
+        const [searchData] = getSections({
             type,
             data: currentSearchResults.data,
             currentAccountID: currentUserDetails.accountID,
@@ -51,7 +51,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             archivedReportsIDList: archivedReportsIdSet,
             isActionLoadingSet,
         });
-        results = getSortedSections(type, status ?? '', searchData, localeCompare, sortBy, sortOrder, groupBy).map((value) => value.reportID);
+        results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
     const allReports = results;
 
@@ -61,8 +61,8 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
     const hidePrevButton = currentIndex === 0;
     const styles = useThemeStyles();
-    const isChatSearch = type === CONST.SEARCH.DATA_TYPES.CHAT;
-    const shouldDisplayNavigationArrows = !isChatSearch && allReports && allReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
+    const isExpenseReportSearch = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const shouldDisplayNavigationArrows = isExpenseReportSearch && allReports && allReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
 
     useEffect(() => {
         if (!lastSearchQuery?.queryJSON) {
@@ -111,6 +111,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
                 prevReportsLength: allReports.length,
                 shouldCalculateTotals: false,
                 searchKey: lastSearchQuery.searchKey,
+                isLoading: !!currentSearchResults?.search?.isLoading,
             });
         }
 
@@ -141,7 +142,5 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
         )
     );
 }
-
-MoneyRequestReportNavigation.displayName = 'MoneyRequestReportNavigation';
 
 export default MoneyRequestReportNavigation;

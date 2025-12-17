@@ -101,7 +101,7 @@ function Image({
             return session.creationDate;
         }
         return undefined;
-    }, [session, isAuthTokenRequired, isAcceptedSession]);
+    }, [session?.creationDate, isAuthTokenRequired, isAcceptedSession]);
     useEffect(() => {
         if (!isAuthTokenRequired) {
             return;
@@ -174,8 +174,6 @@ function Image({
         />
     );
 }
-
-Image.displayName = 'Image';
 
 export default React.memo(
     Image,

@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate, Transaction} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -95,6 +95,13 @@ function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollect
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => policy?.arePerDiemRatesEnabled);
 }
 
+function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => {
+        const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+        return policy?.arePerDiemRatesEnabled && !isEmptyObject(perDiemCustomUnit?.rates);
+    });
+}
+
 /**
  * Checks if the current user is an admin of the policy.
  */
@@ -173,6 +180,24 @@ function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | unde
  */
 function getPerDiemCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+}
+
+/**
+ * Finds a policy that contains the customUnitID from the transaction
+ */
+function getPolicyByCustomUnitID(transaction: OnyxEntry<Transaction>, policies: OnyxCollection<Policy>): OnyxEntry<Policy> {
+    const customUnitID = transaction?.comment?.customUnit?.customUnitID;
+
+    if (!customUnitID || !policies) {
+        return undefined;
+    }
+
+    return Object.values(policies).find((policy) => {
+        if (!policy?.customUnits || !policy?.arePerDiemRatesEnabled) {
+            return false;
+        }
+        return customUnitID in policy.customUnits;
+    });
 }
 
 /**
@@ -514,6 +539,16 @@ function escapeTagName(tag: string) {
 }
 
 /**
+ * Checks if a tag list name is the default 'Tag' name
+ */
+function isDefaultTagName(tagName: string | undefined): boolean {
+    if (!tagName) {
+        return false;
+    }
+    return tagName.trim().toLowerCase() === CONST.POLICY.DEFAULT_TAG_NAME.trim().toLowerCase();
+}
+
+/**
  * Gets a count of enabled tags of a policy
  */
 function getCountOfEnabledTagsOfList(policyTags: PolicyTags | undefined): number {
@@ -672,10 +707,12 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
 function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<string, string[]> {
     const allTaxRates: Record<string, string[]> = {};
-    Object.values(policies ?? {})?.forEach((policy) => {
+
+    for (const policy of Object.values(policies ?? {})) {
         if (!policy?.taxRates?.taxes) {
-            return;
+            continue;
         }
+
         for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes)) {
             if (!allTaxRates[taxRate.name]) {
                 allTaxRates[taxRate.name] = [taxRateKey];
@@ -686,7 +723,8 @@ function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<st
             }
             allTaxRates[taxRate.name].push(taxRateKey);
         }
-    });
+    }
+
     return allTaxRates;
 }
 
@@ -855,18 +893,11 @@ function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, cu
 }
 
 /**
- * Checks whether the current user has a policy with admin access
+ * Given a list of admin policies for the current user, checks whether any of them
+ * has a Xero accounting software integration configured.
  */
-function hasActiveAdminWorkspaces(currentUserLogin: string | undefined) {
-    return getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
-}
-
-/**
- *
- * Checks whether the current user has a policy with Xero accounting software integration
- */
-function hasPolicyWithXeroConnection(currentUserLogin: string | undefined) {
-    return getActiveAdminWorkspaces(allPolicies, currentUserLogin)?.some((policy) => !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]);
+function hasPolicyWithXeroConnection(adminPolicies: Policy[] | undefined) {
+    return adminPolicies?.some((policy) => !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]) ?? false;
 }
 
 /** Whether the user can send invoice from the workspace */
@@ -1357,22 +1388,12 @@ function getWorkspaceAccountID(policyID?: string) {
     return policy.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 }
 
-function hasVBBA(policyID: string | undefined) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
-    return !!policy?.achAccount?.bankAccountID;
-}
-
-function getTagApproverRule(policyOrID: string | OnyxEntry<Policy>, tagName: string) {
-    if (!policyOrID) {
+function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
+    if (!policy) {
         return;
     }
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = typeof policyOrID === 'string' ? getPolicy(policyOrID) : policyOrID;
 
-    const approvalRules = policy?.rules?.approvalRules ?? [];
+    const approvalRules = policy.rules?.approvalRules ?? [];
     const approverRule = approvalRules.find((rule) =>
         rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.TAG && value === tagName),
     );
@@ -1447,9 +1468,9 @@ function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInp
     return undefined;
 }
 
-function hasOtherControlWorkspaces(currentPolicyID: string) {
-    const otherControlWorkspaces = Object.values(allPolicies ?? {}).filter((policy) => policy?.id !== currentPolicyID && isPolicyAdmin(policy) && isControlPolicy(policy));
-    return otherControlWorkspaces.length > 0;
+function hasOtherControlWorkspaces(adminPolicies: Policy[] | undefined, currentPolicyID: string) {
+    const otherControlWorkspaces = adminPolicies?.filter((policy) => policy?.id !== currentPolicyID && isControlPolicy(policy));
+    return (otherControlWorkspaces?.length ?? 0) > 0;
 }
 
 // If no policyID is provided, it indicates the workspace upgrade/downgrade URL
@@ -1628,13 +1649,11 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
-    hasActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
     canSendInvoice,
     hasDependentTags,
-    hasVBBA,
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
@@ -1665,6 +1684,7 @@ export {
     getSageIntacctBankAccounts,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
+    getPolicyByCustomUnitID,
     getDistanceRateCustomUnitRate,
     getPerDiemRateCustomUnitRate,
     sortWorkspacesBySelected,
@@ -1725,6 +1745,8 @@ export {
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
+    isDefaultTagName,
 };
 
 export type {MemberEmailsToAccountIDs};

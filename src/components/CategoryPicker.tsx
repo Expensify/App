@@ -85,13 +85,10 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            isRowMultilineSupported
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             contentContainerStyle={contentContainerStyle}
         />
     );
 }
-
-CategoryPicker.displayName = 'CategoryPicker';
 
 export default CategoryPicker;

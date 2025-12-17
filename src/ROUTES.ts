@@ -8,6 +8,7 @@ import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
+import type {ReplacementReason} from './libs/actions/Card';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
@@ -55,8 +56,9 @@ const ROUTES = {
 
     SEARCH_ROOT: {
         route: 'search',
-        getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => {
-            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}` as const;
+        getRoute: ({query, rawQuery, name}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string}) => {
+            const rawQuerySegment = rawQuery ? `&rawQuery=${encodeURIComponent(rawQuery)}` : '';
+            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}` as const;
         },
     },
     SEARCH_ROOT_VERIFY_ACCOUNT: `search/${VERIFY_ACCOUNT}`,
@@ -64,6 +66,7 @@ const ROUTES = {
         route: 'search/saved-search/rename',
         getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${jsonQuery}` as const,
     },
+    SEARCH_COLUMNS: 'search/columns',
     SEARCH_ADVANCED_FILTERS: {
         route: 'search/filters/:filterKey?',
         getRoute: (filterKey?: SearchFilterKey | UserFriendlyKey) => {
@@ -109,7 +112,12 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
+    SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS: {
+        route: 'search/r/:reportID/reject',
+        getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}/reject` as const,
+    },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
+    SEARCH_REJECT_REASON_RHP: 'search/reject',
     MOVE_TRANSACTIONS_SEARCH_RHP: 'search/move-transactions',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
@@ -148,17 +156,23 @@ const ROUTES = {
     REQUIRE_TWO_FACTOR_AUTH: '2fa-required',
 
     BANK_ACCOUNT: 'bank-account',
+    BANK_ACCOUNT_VERIFY_ACCOUNT: {
+        route: `bank-account/${VERIFY_ACCOUNT}`,
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`bank-account/${VERIFY_ACCOUNT}?policyID=${policyID}`, backTo),
+    },
     BANK_ACCOUNT_NEW: 'bank-account/new',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/:stepToOpen?',
-        getRoute: (policyID: string | undefined, stepToOpen: ReimbursementAccountStepToOpen = '', backTo?: string) => {
+        getRoute: (policyID: string | undefined, stepToOpen: ReimbursementAccountStepToOpen = '', backTo?: string, subStepToOpen?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_WITH_STEP_TO_OPEN route');
             }
-
+            // TODO this backTo comes from drilling it through bank account form screens
+            // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo);
+            return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}${subStepToOpen ? `&subStep=${subStepToOpen}` : ''}`, backTo);
         },
     },
     BANK_ACCOUNT_ENTER_SIGNER_INFO: {
@@ -276,6 +290,10 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/missing-details',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/missing-details` as const,
     },
+    SETTINGS_WALLET_CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE: {
+        route: 'settings/wallet/card/:cardID/missing-details/confirm-magic-code',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/missing-details/confirm-magic-code` as const,
+    },
     SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
@@ -311,7 +329,11 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/wallet/add-bank-account', backTo),
     },
-    SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`,
+    SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: {
+        route: `settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`,
+        getRoute: (params: {backTo?: string}) => getUrlWithParams(`settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`, params),
+    },
+
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
     SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/select-country/${VERIFY_ACCOUNT}`,
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
@@ -328,6 +350,10 @@ const ROUTES = {
     SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
         route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged` as const,
+    },
+    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: {
+        route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged/:reason/confirm-magic-code',
+        getRoute: (cardID: string, reason: ReplacementReason) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged/${reason}/confirm-magic-code` as const,
     },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
@@ -380,7 +406,7 @@ const ROUTES = {
         getRoute: (newContactMethod: string, backTo?: string) => {
             const encodedMethod = encodeURIComponent(newContactMethod);
             // TODO this backTo comes from drilling it through settings screens
-            // should be removed once https://github.com/Expensify/App/pull/70980 is resolved
+            // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`settings/profile/contact-methods/new/${encodedMethod}/confirm-magic-code`, backTo);
         },
@@ -485,6 +511,18 @@ const ROUTES = {
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
+        },
+    },
+    REPORT_CARD_ACTIVATE: {
+        route: 'r/:reportID/:reportActionID?/card/:cardID/activate',
+        getRoute: (cardID: number, reportID?: string, reportActionID?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_CARD_ACTIVATE route');
+            }
+            if (!reportActionID) {
+                return `r/${reportID}/card/${cardID}/activate` as const;
+            }
+            return `r/${reportID}/${reportActionID}/card/${cardID}/activate` as const;
         },
     },
     REPORT_ATTACHMENTS: {
@@ -625,6 +663,10 @@ const ROUTES = {
     REPORT_CHANGE_APPROVER_ADD_APPROVER: {
         route: 'r/:reportID/change-approver/add',
         getRoute: (reportID: string) => `r/${reportID}/change-approver/add` as const,
+    },
+    REPORT_SETTINGS_REPORT_LAYOUT: {
+        route: 'r/:reportID/settings/report-layout',
+        getRoute: (reportID: string) => `r/${reportID}/settings/report-layout` as const,
     },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
@@ -1678,7 +1720,12 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
         route: 'workspaces/:policyID/workflows/auto-reporting-frequency',
-        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/auto-reporting-frequency` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY route');
+            }
+            return `workspaces/${policyID}/workflows/auto-reporting-frequency` as const;
+        },
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
         route: 'workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
@@ -1987,6 +2034,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/members/:accountID',
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}` as const,
     },
+    WORKSPACE_MEMBER_DETAILS_ROLE: {
+        route: 'workspaces/:policyID/members/:accountID/role',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/role` as const,
+    },
     WORKSPACE_CUSTOM_FIELDS: {
         route: 'workspaces/:policyID/members/:accountID/:customFieldType',
         getRoute: (policyID: string, accountID: number, customFieldType: CustomFieldType) => `/workspaces/${policyID}/members/${accountID}/${customFieldType}` as const,
@@ -2114,7 +2165,7 @@ const ROUTES = {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${feed}/assign-card`, backTo),
+        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/assign-card`, backTo),
     },
     WORKSPACE_COMPANY_CARD_DETAILS: {
         route: 'workspaces/:policyID/company-cards/:bank/:cardID',
@@ -2195,6 +2246,12 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/issue-new`, backTo),
     },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: {
+        route: 'workspaces/:policyID/expensify-card/issue-new/confirm-magic-code',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/issue-new/confirm-magic-code`, backTo),
+    },
     WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT: {
         route: 'workspaces/:policyID/expensify-card/choose-bank-account',
         getRoute: (policyID: string | undefined) => {
@@ -2258,6 +2315,11 @@ const ROUTES = {
         route: 'workspaces/:policyID/distance-rates/new',
         getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
             `workspaces/${policyID}/distance-rates/new${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
+    },
+    WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE: {
+        route: 'workspaces/:policyID/distance-rates/new/upgrade',
+        getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
+            `workspaces/${policyID}/distance-rates/new/upgrade${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
     },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
         route: 'workspaces/:policyID/distance-rates/settings',
@@ -3353,28 +3415,46 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
     WORKSPACES_VERIFY_DOMAIN: {
-        route: 'workspaces/verify-domain/:accountID',
-        getRoute: (accountID: number) => `workspaces/verify-domain/${accountID}` as const,
+        route: 'workspaces/verify-domain/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/verify-domain/${domainAccountID}` as const,
     },
     WORKSPACES_DOMAIN_VERIFIED: {
-        route: 'workspaces/domain-verified/:accountID',
-        getRoute: (accountID: number) => `workspaces/domain-verified/${accountID}` as const,
+        route: 'workspaces/domain-verified/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-verified/${domainAccountID}` as const,
+    },
+    WORKSPACES_ADD_DOMAIN: 'workspaces/add-domain',
+    WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: `workspaces/add-domain/${VERIFY_ACCOUNT}`,
+    WORKSPACES_DOMAIN_ADDED: {
+        route: 'workspaces/domain-added/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-added/${domainAccountID}` as const,
+    },
+    WORKSPACES_DOMAIN_ACCESS_RESTRICTED: {
+        route: 'workspaces/domain-access-restricted/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-access-restricted/${domainAccountID}` as const,
     },
     DOMAIN_INITIAL: {
-        route: 'domain/:accountID',
-        getRoute: (accountID: number) => `domain/${accountID}` as const,
+        route: 'domain/:domainAccountID',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}` as const,
     },
     DOMAIN_SAML: {
-        route: 'domain/:accountID/saml',
-        getRoute: (accountID: number) => `domain/${accountID}/saml` as const,
+        route: 'domain/:domainAccountID/saml',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml` as const,
     },
     DOMAIN_VERIFY: {
-        route: 'domain/:accountID/verify',
-        getRoute: (accountID: number) => `domain/${accountID}/verify` as const,
+        route: 'domain/:domainAccountID/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verify` as const,
     },
     DOMAIN_VERIFIED: {
-        route: 'domain/:accountID/verified',
-        getRoute: (accountID: number) => `domain/${accountID}/verified` as const,
+        route: 'domain/:domainAccountID/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verified` as const,
+    },
+    DOMAIN_ADMINS: {
+        route: 'domain/:domainAccountID/admins',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins` as const,
+    },
+    DOMAIN_ADMIN_DETAILS: {
+        route: 'domain/:domainAccountID/admins/:accountID',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}` as const,
     },
 } as const;
 

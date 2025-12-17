@@ -42,6 +42,9 @@ type TimePickerProps = {
 
     /** Whether the picker shows hours, minutes, seconds and milliseconds */
     showFullFormat?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<TimePickerRef>;
 };
 
 const AMOUNT_VIEW_ID = 'amountView';
@@ -121,10 +124,7 @@ function clearSelectedValue(
     setSelection({start: newCursorPosition, end: newCursorPosition});
 }
 
-function TimePicker(
-    {defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, shouldValidateFutureTime = true, showFullFormat = false}: TimePickerProps,
-    ref: ForwardedRef<TimePickerRef>,
-) {
+function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, shouldValidateFutureTime = true, showFullFormat = false, ref}: TimePickerProps) {
     const {numberFormat, translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -652,7 +652,7 @@ function TimePicker(
             }
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [selectionHour, selectionMinute],
+        [selectionHour, selectionMinute.start],
     );
     const arrowRightCallback = useCallback(
         (e?: GestureResponderEvent | KeyboardEvent) => {
@@ -673,7 +673,7 @@ function TimePicker(
             }
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [selectionHour, selectionMinute, selectionSecond, selectionMillisecond],
+        [selectionHour.start, selectionMinute.start, selectionSecond.start, selectionMillisecond],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, arrowConfig);
@@ -920,8 +920,6 @@ function TimePicker(
     );
 }
 
-TimePicker.displayName = 'TimePicker';
-
-export default React.forwardRef(TimePicker);
+export default TimePicker;
 
 export type {TimePickerProps, TimePickerRef, TimePickerRefName};

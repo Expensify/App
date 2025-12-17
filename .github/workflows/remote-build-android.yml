@@ -47,7 +47,15 @@ jobs:
           git fetch origin pull/${{ github.event.inputs.mobile_expensify_pr }}/head:pr-${{ github.event.inputs.mobile_expensify_pr }}
           git checkout pr-${{ github.event.inputs.mobile_expensify_pr }}
           echo "Checked out Mobile-Expensify PR #${{ github.event.inputs.mobile_expensify_pr }}"
-          
+
+      - name: Configure AWS Credentials
+        # v4
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
       - name: Rock Remote Build - Android
         # rock v3
         uses: callstackincubator/android@1a7d52dfe3ca195ccbe5ad2f06c15f2fc3835115
@@ -59,29 +67,3 @@ jobs:
           variant: ${{ matrix.variant }}
           rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
           comment-bot: false
-
-      - name: Download Rock artifact
-        env:
-          ARTIFACT_URL: ${{ env.ARTIFACT_URL }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Downloading artifact from: $ARTIFACT_URL"
-          curl -L \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/octet-stream" \
-            "$ARTIFACT_URL" -o artifact.zip
-          unzip artifact.zip -d artifact_contents
-
-      - name: Find APK
-        run: |
-          APK=$(find artifact_contents -type f -name "*.apk" | head -n 1)
-          if [ -z "$APK" ]; then
-            echo "No APK found in artifact"
-            exit 1
-          fi
-          echo "APK_PATH=$APK" >> "$GITHUB_ENV"
-          echo "Using APK: $APK"
-
-      - name: Verify ELF alignment
-        run: |
-          scripts/check-elf-alignment.sh "$APK_PATH"

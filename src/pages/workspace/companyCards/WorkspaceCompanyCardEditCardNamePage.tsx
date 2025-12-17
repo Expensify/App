@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceCompanyCardEditCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_NAME>;
@@ -33,7 +33,7 @@ type WorkspaceCompanyCardEditCardNamePageProps = PlatformStackScreenProps<Settin
 function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditCardNamePageProps) {
     const {policyID, cardID} = route.params;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const bank = decodeURIComponent(route.params.bank);
+    const bank = decodeURIComponent(route.params.bank) as CompanyCardFeedWithDomainID;
     const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const defaultValue = customCardNames?.[cardID];
 
@@ -43,10 +43,10 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[bank as CompanyCardFeed]);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[bank]);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
-        updateCompanyCardName(domainOrWorkspaceAccountID, cardID, values[INPUT_IDS.NAME], bank, defaultValue);
+        updateCompanyCardName(domainOrWorkspaceAccountID, cardID, values[INPUT_IDS.NAME], getCompanyCardFeed(bank), defaultValue);
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank), {compareParams: false});
     };
 
@@ -76,7 +76,7 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceCompanyCardEditCardNamePage.displayName}
+                testID="WorkspaceCompanyCardEditCardNamePage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
@@ -108,7 +108,5 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCompanyCardEditCardNamePage.displayName = 'WorkspaceCompanyCardEditCardNamePage';
 
 export default WorkspaceCompanyCardEditCardNamePage;

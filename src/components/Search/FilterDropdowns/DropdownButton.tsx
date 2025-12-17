@@ -105,9 +105,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
 
     const popoverContent = useMemo(() => {
         return PopoverComponent({closeOverlay: toggleOverlay});
-        // PopoverComponent is stable so we don't need it here as a dep.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [toggleOverlay]);
+    }, [PopoverComponent, toggleOverlay]);
 
     return (
         <View ref={anchorRef}>
@@ -156,6 +154,5 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
     );
 }
 
-DropdownButton.displayName = 'DropdownButton';
 export type {PopoverComponentProps};
 export default withViewportOffsetTop(DropdownButton);

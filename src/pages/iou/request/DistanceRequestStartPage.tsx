@@ -16,7 +16,9 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import Performance from '@libs/Performance';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
 import {initMoneyRequest} from '@userActions/IOU';
@@ -56,6 +58,7 @@ function DistanceRequestStartPage({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
 
+    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const tabTitles = {
@@ -83,6 +86,7 @@ function DistanceRequestStartPage({
     const prevTransactionReportID = usePrevious(transaction?.reportID);
 
     useEffect(() => {
+        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE);
     }, []);
 
@@ -106,6 +110,7 @@ function DistanceRequestStartPage({
             currentDate,
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
         });
         // eslint-disable-next-line
     }, []);
@@ -127,9 +132,21 @@ function DistanceRequestStartPage({
                 currentDate,
                 lastSelectedDistanceRates,
                 currentUserPersonalDetails,
+                hasOnlyPersonalPolicies,
             });
         },
-        [transaction?.iouRequestType, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates, currentUserPersonalDetails],
+        [
+            transaction?.iouRequestType,
+            reportID,
+            policy,
+            isFromGlobalCreate,
+            report,
+            parentReport,
+            currentDate,
+            lastSelectedDistanceRates,
+            currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
+        ],
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
@@ -162,7 +179,7 @@ function DistanceRequestStartPage({
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMinHeight={canUseTouchScreen()}
-                testID={DistanceRequestStartPage.displayName}
+                testID="DistanceRequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
                 <View style={styles.flex1}>
@@ -210,7 +227,5 @@ function DistanceRequestStartPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-DistanceRequestStartPage.displayName = 'DistanceRequestStartPage';
 
 export default DistanceRequestStartPage;

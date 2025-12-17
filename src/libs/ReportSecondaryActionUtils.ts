@@ -58,10 +58,15 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
+    hasSmartScanFailedViolation,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
+    isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned,
+    isScanning as isScanningTransactionUtils,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
 
@@ -75,8 +80,8 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return canAddTransaction(report, isReportArchived);
 }
 
-function isSplitAction(report: Report, reportTransactions: Transaction[], originalTransaction: OnyxEntry<Transaction>, policy?: Policy): boolean {
-    if (Number(reportTransactions?.length) !== 1) {
+function isSplitAction(report: OnyxEntry<Report>, reportTransactions: Array<OnyxEntry<Transaction>>, originalTransaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>): boolean {
+    if (Number(reportTransactions?.length) !== 1 || !report) {
         return false;
     }
 
@@ -137,6 +142,9 @@ function isSubmitAction(
     reportActions?: ReportAction[],
     isChatReportArchived = false,
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
+    violations?: OnyxCollection<TransactionViolation[]>,
+    currentUserEmail?: string,
+    currentUserAccountID?: number,
 ): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -146,6 +154,18 @@ function isSubmitAction(
 
     if (!transactionAreComplete) {
         return false;
+    }
+
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    if (violations && currentUserEmail && currentUserAccountID !== undefined) {
+        if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+            return false;
+        }
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED) {
@@ -226,7 +246,7 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, policy));
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -236,9 +256,7 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
         return false;
     }
 
-    const transactionIDs = reportTransactions.map((t) => t.transactionID);
-
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserLogin, currentUserAccountID, report, policy);
 
     if (hasAllPendingRTERViolations) {
         return true;
@@ -246,7 +264,14 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+        reportTransactions,
+        report,
+        policy,
+        violations,
+        currentUserLogin,
+        currentUserAccountID,
+    );
     const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const userControlsReport = isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
@@ -438,6 +463,10 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
     const isSubmitter = isCurrentUserSubmitter(report);
     const isReportManager = isReportManagerUtils(report);
 
+    if (isIOUReport) {
+        return (isSubmitter || isReportManager) && !isSettled(report);
+    }
+
     if (isOpenReport && (isSubmitter || isReportManager)) {
         return true;
     }
@@ -453,6 +482,13 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
         return false;
     }
 
+    const isSubmitter = isCurrentUserSubmitter(report);
+    const isManager = isReportManagerUtils(report);
+
+    if (isIOUReportUtils(report) && !isSubmitter && !isManager) {
+        return false;
+    }
+
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy));
     let hasAvailablePolicies = availablePolicies.length > 1;
@@ -463,8 +499,8 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions);
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions, policy);
+function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[]): boolean {
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
@@ -560,6 +596,11 @@ function isRemoveHoldAction(
     policy?: Policy,
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
 ): boolean {
+    const isClosedReport = isClosedReportUtils(report);
+    if (isClosedReport) {
+        return false;
+    }
+
     const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
 
     if (!isReportOnHold) {
@@ -586,8 +627,55 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
     return isOnHoldTransactionUtils(reportTransaction) && policy?.role === CONST.POLICY.ROLE.ADMIN && !isHoldCreator(reportTransaction, report.reportID);
 }
 
+/**
+ * Checks if the report should show the "Report layout" option
+ * Only shows for expense reports (not IOU reports) with 2 or more transactions
+ */
+function isReportLayoutAction(report: Report, reportTransactions: Transaction[]): boolean {
+    if (!isExpenseReportUtils(report)) {
+        return false;
+    }
+
+    // Exclude IOU reports - only show for workspace expense reports
+    if (isIOUReportUtils(report)) {
+        return false;
+    }
+
+    // Only show if report has 2 or more transactions
+    return reportTransactions.length >= 2;
+}
+
+function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
+    // Only single transactions are supported for now
+    if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    const reportTransaction = reportTransactions.at(0);
+
+    // Per diem and distance requests will be handled separately in a follow-up
+    if (isPerDiemRequestTransactionUtils(reportTransaction) || isDistanceRequestTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    if (isScanningTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    if (!isCurrentUserSubmitter(report)) {
+        return false;
+    }
+
+    if (isManagedCardTransactionTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    return true;
+}
+
 function getSecondaryReportActions({
     currentUserEmail,
+    currentUserAccountID,
     report,
     chatReport,
     reportTransactions,
@@ -600,6 +688,7 @@ function getSecondaryReportActions({
     isChatReportArchived = false,
 }: {
     currentUserEmail: string;
+    currentUserAccountID: number;
     report: Report;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
@@ -628,6 +717,7 @@ function getSecondaryReportActions({
 
     const primaryAction = getReportPrimaryAction({
         currentUserEmail,
+        currentUserAccountID,
         report,
         chatReport,
         reportTransactions,
@@ -638,7 +728,7 @@ function getSecondaryReportActions({
         isChatReportArchived,
     });
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction, violations, currentUserEmail, currentUserAccountID)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
@@ -682,6 +772,11 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
+    // Disabled for now to fix deploy blockers. Will be re-enabled in https://github.com/Expensify/App/pull/77343
+    if (isDuplicateAction(report, reportTransactions) && false) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
@@ -690,13 +785,18 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
-    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy)) {
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, reportActions ?? [], policy)) {
+    if (isReportLayoutAction(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT);
+    }
+
+    if (isDeleteAction(report, reportTransactions, reportActions ?? [])) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
     return options;
@@ -751,6 +851,11 @@ function getSecondaryTransactionThreadActions(
 
     if (isMergeAction(parentReport, [reportTransaction], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
+    }
+
+    // Disabled for now to fix deploy blockers. Will be re-enabled in https://github.com/Expensify/App/pull/77343
+    if (isDuplicateAction(parentReport, [reportTransaction]) && false) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);

@@ -35,7 +35,7 @@ type DropdownOption<TValueType> = {
     iconFill?: string;
     interactive?: boolean;
     numberOfLinesTitle?: number;
-    titleStyle?: ViewStyle;
+    titleStyle?: StyleProp<TextStyle>;
     shouldCloseModalOnSelect?: boolean;
     description?: string;
     descriptionTextStyle?: StyleProp<TextStyle>;
@@ -49,6 +49,8 @@ type DropdownOption<TValueType> = {
     shouldShow?: boolean;
     /** Whether to show a loading spinner for this option */
     shouldShowLoadingSpinnerIcon?: boolean;
+    /** Label for sentry to identify the dropdown option */
+    sentryLabel?: string;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -157,6 +159,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Reference to the outer element */
     ref?: React.Ref<ButtonWithDropdownMenuRef>;
+
+    /** Label for the sentry to identify the button */
+    sentryLabel?: string;
 };
 
 type ButtonWithDropdownMenuRef = {

@@ -6,13 +6,13 @@ import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -34,6 +34,7 @@ function HeaderWithBackButton({
     onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
+    onRotateButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
     policyAvatar,
@@ -44,6 +45,8 @@ function HeaderWithBackButton({
     shouldShowCloseButton = false,
     shouldShowDownloadButton = false,
     isDownloading = false,
+    shouldShowRotateButton = false,
+    isRotating = false,
     shouldShowPinButton = false,
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
@@ -73,6 +76,7 @@ function HeaderWithBackButton({
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Rotate', 'BackArrow', 'Close']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -220,7 +224,7 @@ function HeaderWithBackButton({
                             id={CONST.BACK_BUTTON_NATIVE_ID}
                         >
                             <Icon
-                                src={Expensicons.BackArrow}
+                                src={icons.BackArrow}
                                 fill={iconFill ?? theme.icon}
                             />
                         </PressableWithoutFeedback>
@@ -269,8 +273,26 @@ function HeaderWithBackButton({
                                         accessibilityLabel={translate('common.download')}
                                     >
                                         <Icon
-                                            src={Expensicons.Download}
+                                            src={icons.Download}
                                             fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+                                        />
+                                    </PressableWithoutFeedback>
+                                </Tooltip>
+                            ) : (
+                                <ActivityIndicator style={[styles.touchableButtonImage]} />
+                            ))}
+                        {shouldShowRotateButton &&
+                            (!isRotating ? (
+                                <Tooltip text={translate('common.rotate')}>
+                                    <PressableWithoutFeedback
+                                        onPress={onRotateButtonPress}
+                                        style={[styles.touchableButtonImage]}
+                                        role="button"
+                                        accessibilityLabel={translate('common.rotate')}
+                                    >
+                                        <Icon
+                                            src={icons.Rotate}
+                                            fill={iconFill ?? theme.icon}
                                         />
                                     </PressableWithoutFeedback>
                                 </Tooltip>
@@ -289,7 +311,7 @@ function HeaderWithBackButton({
                                 accessibilityLabel={translate('common.close')}
                             >
                                 <Icon
-                                    src={Expensicons.Close}
+                                    src={icons.Close}
                                     fill={iconFill ?? theme.icon}
                                 />
                             </PressableWithoutFeedback>
@@ -302,7 +324,5 @@ function HeaderWithBackButton({
         </View>
     );
 }
-
-HeaderWithBackButton.displayName = 'HeaderWithBackButton';
 
 export default HeaderWithBackButton;

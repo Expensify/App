@@ -2,7 +2,7 @@ import {accountIDSelector} from '@selectors/Session';
 import {addMinutes} from 'date-fns';
 import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +17,8 @@ import ROUTES from '@src/ROUTES';
 import type {ReportNameValuePairs} from '@src/types/onyx';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
-import {CalendarSolid, Close, Monitor} from './Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {Close} from './Icon/Expensicons';
 
 type OnboardingHelpButtonProps = {
     /** The ID of onboarding chat report */
@@ -51,7 +52,8 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
 
-    const illustrations = useMemoizedLazyIllustrations(['HeadSet'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Monitor']);
+    const illustrations = useMemoizedLazyIllustrations(['HeadSet']);
 
     if (!reportID || !accountID) {
         return null;
@@ -62,7 +64,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
     if (!hasActiveScheduledCall && shouldShowGuideBooking) {
         options.push({
             text: translate('getAssistancePage.scheduleACall'),
-            icon: CalendarSolid,
+            icon: icons.CalendarSolid,
             value: CONST.ONBOARDING_HELP.SCHEDULE_CALL,
             onSelected: () => {
                 clearBookingDraft();
@@ -98,7 +100,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             text: translate('common.reschedule'),
             value: CONST.ONBOARDING_HELP.RESCHEDULE,
             onSelected: () => rescheduleBooking(latestScheduledCall),
-            icon: CalendarSolid,
+            icon: icons.CalendarSolid,
         });
         options.push({
             text: translate('common.cancel'),
@@ -111,7 +113,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
     if (shouldShowRegisterForWebinar) {
         options.push({
             text: translate('getAssistancePage.registerForWebinar'),
-            icon: Monitor,
+            icon: icons.Monitor,
             shouldShowButtonRightIcon: true,
             value: CONST.ONBOARDING_HELP.REGISTER_FOR_WEBINAR,
             onSelected: () => {

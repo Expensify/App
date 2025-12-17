@@ -3,9 +3,9 @@ import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
@@ -36,7 +36,7 @@ type AssigneeStepProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Selected feed */
-    feed: OnyxTypes.CompanyCardFeed;
+    feed: OnyxTypes.CompanyCardFeedWithDomainID;
 
     /** Route params */
     route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD>;
@@ -50,9 +50,9 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [list] = useCardsList(policyID, feed);
+    const [list] = useCardsList(feed);
     const [cardFeeds] = useCardFeeds(policyID);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
@@ -167,17 +167,10 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         return membersList;
     }, [isOffline, policy?.employeeList, assignCard?.data?.email, formatPhoneNumber, localeCompare]);
 
-    const sections = useMemo(() => {
+    const assignees = useMemo(() => {
         if (!debouncedSearchTerm) {
-            return [
-                {
-                    data: membersDetails,
-                    shouldShow: true,
-                },
-            ];
+            return membersDetails;
         }
-
-        const sectionsArr = [];
 
         if (!areOptionsInitialized) {
             return [];
@@ -186,54 +179,27 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
         const filteredOptions = tokenizedSearch(membersDetails, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-        sectionsArr.push({
-            title: undefined,
-            data: filteredOptions,
-            shouldShow: true,
-        });
+        const options = [
+            ...filteredOptions,
+            ...selectedOptionsForDisplay,
+            ...availableOptions.recentReports,
+            ...availableOptions.personalDetails,
+            ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
+        ];
 
-        // Selected options section
-        if (selectedOptionsForDisplay.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: selectedOptionsForDisplay,
-            });
-        }
-
-        // Recent reports section
-        if (availableOptions.recentReports.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: availableOptions.recentReports,
-            });
-        }
-
-        // Contacts section
-        if (availableOptions.personalDetails.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: availableOptions.personalDetails,
-            });
-        }
-
-        // User to invite section
-        if (availableOptions.userToInvite) {
-            sectionsArr.push({
-                title: undefined,
-                data: [availableOptions.userToInvite],
-            });
-        }
-
-        return sectionsArr;
+        return options.map((option) => ({
+            ...option,
+            keyForList: option.keyForList ?? option.login ?? '',
+        }));
     }, [
-        debouncedSearchTerm,
         areOptionsInitialized,
+        availableOptions.personalDetails,
+        availableOptions.recentReports,
+        availableOptions.userToInvite,
         countryCode,
+        debouncedSearchTerm,
         membersDetails,
         selectedOptionsForDisplay,
-        availableOptions.recentReports,
-        availableOptions.personalDetails,
-        availableOptions.userToInvite,
     ]);
 
     useEffect(() => {
@@ -245,18 +211,22 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        return getHeaderMessage(
-            sections.some((section) => section.data.length > 0),
-            !!availableOptions.userToInvite,
-            searchValue,
-            countryCode,
-            false,
-        );
-    }, [searchTerm, availableOptions.userToInvite, sections, countryCode, translate]);
+        return getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
+    }, [searchTerm, availableOptions.userToInvite, assignees?.length, countryCode, translate]);
+
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('selectionList.nameEmailOrPhoneNumber'),
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage,
+        }),
+        [headerMessage, searchTerm, setSearchTerm, translate],
+    );
 
     return (
         <InteractiveStepWrapper
-            wrapperID={AssigneeStep.displayName}
+            wrapperID="AssigneeStep"
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={0}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
@@ -266,23 +236,19 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
             <SelectionList
-                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                sections={sections}
-                headerMessage={headerMessage}
-                ListItem={UserListItem}
+                data={assignees}
                 onSelectRow={submit}
-                shouldUpdateFocusedIndex
-                initiallyFocusedOptionKey={assignCard?.data?.email}
-                addBottomSafeAreaPadding
+                ListItem={UserListItem}
+                textInputOptions={textInputOptions}
+                initiallyFocusedItemKey={assignCard?.data?.email}
                 showLoadingPlaceholder={!areOptionsInitialized}
                 isLoadingNewOptions={!!isSearchingForReports}
+                disableMaintainingScrollPosition
+                shouldUpdateFocusedIndex
+                addBottomSafeAreaPadding
             />
         </InteractiveStepWrapper>
     );
 }
-
-AssigneeStep.displayName = 'AssigneeStep';
 
 export default AssigneeStep;

@@ -38,11 +38,11 @@ function SageIntacctAutoSyncPageBase({policy, navigateBackTo}: SageIntacctAutoSy
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctAutoSyncPageBase.displayName}
+            displayName="SageIntacctAutoSyncPageBase"
             headerTitle="common.settings"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
@@ -79,7 +79,5 @@ function SageIntacctAutoSyncPageBase({policy, navigateBackTo}: SageIntacctAutoSy
         </ConnectionLayout>
     );
 }
-
-SageIntacctAutoSyncPageBase.displayName = 'SageIntacctAutoSyncPageBase';
 
 export default SageIntacctAutoSyncPageBase;

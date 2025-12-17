@@ -14,7 +14,7 @@ import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';
 import CardSelectionStep from './CardSelectionStep';
@@ -28,7 +28,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const currentStep = assignCard?.currentStep;
 
-    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeedWithDomainID;
     const backTo = route.params?.backTo;
     const policyID = policy?.id;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
@@ -44,7 +44,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
-                testID={AssignCardFeedPage.displayName}
+                testID="AssignCardFeedPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
             >
@@ -113,5 +113,4 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     }
 }
 
-AssignCardFeedPage.displayName = 'AssignCardFeedPage';
 export default withPolicyAndFullscreenLoading(AssignCardFeedPage);

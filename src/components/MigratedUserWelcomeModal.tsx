@@ -1,11 +1,12 @@
 import {useRoute} from '@react-navigation/native';
 import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import React, {lazy, Suspense, useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
+// import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
@@ -25,45 +26,44 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
+import * as Illustrations from './Icon/Illustrations';
 import LottieAnimations from './LottieAnimations';
 import RenderHTML from './RenderHTML';
-
-// Lazy load illustrations
-const MagnifyingGlassReceipt = lazy(() => import('@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg'));
-const ConciergeBot = lazy(() => import('@assets/images/simple-illustrations/simple-illustration__concierge-bot.svg'));
-const ChatBubbles = lazy(() => import('@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg'));
-
-const ExpensifyFeatures: FeatureListItem[] = [
-    {
-        icon: MagnifyingGlassReceipt,
-        translationKey: 'migratedUserWelcomeModal.features.search',
-    },
-    {
-        icon: ConciergeBot,
-        translationKey: 'migratedUserWelcomeModal.features.concierge',
-    },
-    {
-        icon: ChatBubbles,
-        translationKey: 'migratedUserWelcomeModal.features.chat',
-    },
-];
 
 function MigratedUserWelcomeModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {typeMenuSections} = useSearchTypeMenuSections();
     const [isModalDisabled, setIsModalDisabled] = useState(true);
     const route = useRoute<PlatformStackRouteProp<MigratedUserModalNavigatorParamList, typeof SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT>>();
     const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
+    // const illustrations = useMemoizedLazyIllustrations(['MagnifyingGlassReceipt', 'ConciergeBot', 'ChatBubbles']);
+    const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
+
+    const ExpensifyFeatures = useMemo<FeatureListItem[]>(
+        () => [
+            {
+                icon: Illustrations.MagnifyingGlassReceipt,
+                translationKey: 'migratedUserWelcomeModal.features.search',
+            },
+            {
+                icon: Illustrations.ConciergeBot,
+                translationKey: 'migratedUserWelcomeModal.features.concierge',
+            },
+            {
+                icon: Illustrations.ChatBubbles,
+                translationKey: 'migratedUserWelcomeModal.features.chat',
+            },
+        ],
+        [],
+    );
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
         canBeMissing: true,
     });
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     useEffect(() => {
         if (isLoadingOnyxValue(tryNewDotMetadata, dismissedProductTrainingMetadata)) {
@@ -82,9 +82,8 @@ function MigratedUserWelcomeModal() {
 
         Log.hmmm('[MigratedUserWelcomeModal] Enabling modal and navigating to search');
         setIsModalDisabled(false);
-        const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? buildCannedSearchQuery()}));
-    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, shouldOpenSearch, typeMenuSections]);
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
+    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, shouldOpenSearch]);
 
     return (
         <FeatureTrainingModal
@@ -96,10 +95,9 @@ function MigratedUserWelcomeModal() {
             helpText={translate('migratedUserWelcomeModal.helpText')}
             onHelp={() => {
                 Log.info('[MigratedUserWelcomeModal] onHelp called, opening help URL based on admin status and device type');
-                const isAdmin = !!account?.adminsRoomReportID;
                 const adminUrl = shouldUseNarrowLayout ? CONST.STORYLANE.ADMIN_MIGRATED_MOBILE : CONST.STORYLANE.ADMIN_MIGRATED;
                 const employeeUrl = shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_MIGRATED_MOBILE : CONST.STORYLANE.EMPLOYEE_MIGRATED;
-                const helpUrl = isAdmin ? adminUrl : employeeUrl;
+                const helpUrl = isCurrentUserPolicyAdmin ? adminUrl : employeeUrl;
                 openExternalLink(helpUrl);
                 dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
             }}
@@ -120,27 +118,24 @@ function MigratedUserWelcomeModal() {
                 style={[styles.gap3, styles.pt1, styles.pl1]}
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
-                <Suspense fallback={null}>
-                    {ExpensifyFeatures.map(({translationKey, icon}) => (
-                        <View
-                            key={translationKey}
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto]}
-                        >
-                            <Icon
-                                src={icon}
-                                height={variables.menuIconSize}
-                                width={variables.menuIconSize}
-                            />
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto, styles.flex1, styles.ml6]}>
-                                <RenderHTML html={`<comment>${convertToLTR(translate(translationKey))}</comment>`} />
-                            </View>
+                {ExpensifyFeatures.map(({translationKey, icon}) => (
+                    <View
+                        key={translationKey}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto]}
+                    >
+                        <Icon
+                            src={icon}
+                            height={variables.menuIconSize}
+                            width={variables.menuIconSize}
+                        />
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto, styles.flex1, styles.ml6]}>
+                            <RenderHTML html={`<comment>${convertToLTR(translate(translationKey))}</comment>`} />
                         </View>
-                    ))}
-                </Suspense>
+                    </View>
+                ))}
             </View>
         </FeatureTrainingModal>
     );
 }
 
-MigratedUserWelcomeModal.displayName = 'MigratedUserWelcomeModal';
 export default MigratedUserWelcomeModal;

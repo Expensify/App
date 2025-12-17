@@ -64,7 +64,7 @@ function BillingBanner({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     const rightIconComponent = useMemo(() => {
         if (rightIcon) {
@@ -96,7 +96,7 @@ function BillingBanner({
                 />
             )
         );
-    }, [brickRoadIndicator, onRightIconPress, rightIcon, rightIconAccessibilityLabel, styles.touchableButtonImage, theme.danger, theme.icon, theme.success]);
+    }, [brickRoadIndicator, onRightIconPress, rightIcon, rightIconAccessibilityLabel, styles.touchableButtonImage, theme.danger, theme.icon, theme.success, expensifyIcons.DotIndicator]);
 
     return (
         <View style={[styles.pv4, styles.ph5, styles.flexRow, styles.flexWrap, styles.gap3, styles.w100, styles.alignItemsCenter, styles.trialBannerBackgroundColor, style]}>
@@ -124,8 +124,6 @@ function BillingBanner({
         </View>
     );
 }
-
-BillingBanner.displayName = 'BillingBanner';
 
 export default BillingBanner;
 export type {BillingBannerProps};

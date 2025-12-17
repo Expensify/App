@@ -2,6 +2,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Log from './Log';
 import Navigation from './Navigation/Navigation';
 
@@ -79,23 +80,26 @@ const handleUnvalidatedUserNavigation = (chatReportID: string, reportID?: string
 /**
  * Retrieves SettlementButton payment methods.
  */
-const getSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translate: LocaleContextProps['translate']) => {
+const getSettlementButtonPaymentMethods = (icons: Record<'Building' | 'User', IconAsset>, hasActivatedWallet: boolean, translate: LocaleContextProps['translate']) => {
     return {
         [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
             text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
-            icon: Expensicons.User,
+            icon: icons.User,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         },
         [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
             text: translate('iou.settleBusiness', {formattedAmount: ''}),
-            icon: Expensicons.Building,
+            icon: icons.Building,
             value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
         },
         [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
             text: translate('iou.payElsewhere', {formattedAmount: ''}),
             icon: Expensicons.CheckCircle,
-            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             shouldUpdateSelectedIndex: false,
+            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
         },
     };
 };

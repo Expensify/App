@@ -43,6 +43,7 @@ type SearchTypeMenuProps = {
 
 function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {hash, similarSearchHash} = queryJSON ?? {};
+    const shouldSkipSuggestedSearchNavigation = !!queryJSON?.rawFilterList;
 
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -58,7 +59,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
         !!typeMenuSections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle') && isFocused,
     );
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil']);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -78,9 +79,13 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         flattenedMenuItems,
         similarSearchHash,
         clearSelectedTransactions,
+        shouldSkipNavigation: shouldSkipSuggestedSearchNavigation,
     });
 
-    const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
+    const getOverflowMenu = useCallback(
+        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, showDeleteModal),
+        [showDeleteModal, expensifyIcons],
+    );
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, index: number) => {
             let title = item.name;
@@ -95,7 +100,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             return {
                 ...baseMenuItem,
                 onPress: () => {
-                    clearAllFilters();
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
                 },
                 rightComponent: (
@@ -271,7 +275,5 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         </>
     );
 }
-
-SearchTypeMenu.displayName = 'SearchTypeMenu';
 
 export default SearchTypeMenu;
