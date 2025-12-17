@@ -17,6 +17,7 @@ import {
     isCardClosed,
     isCardHiddenFromSearch,
 } from './CardUtils';
+import type {CompanyCardFeedIcons} from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
@@ -78,10 +79,16 @@ function getWorkspaceCardFeedKey(cardFeedKey: string) {
     return cardFeedKey;
 }
 
-function createCardFilterItem(card: Card, personalDetailsList: PersonalDetailsList, selectedCards: string[], illustrations: IllustrationsType): CardFilterItem {
+function createCardFilterItem(
+    card: Card,
+    personalDetailsList: PersonalDetailsList,
+    selectedCards: string[],
+    illustrations: IllustrationsType,
+    companyCardIcons: CompanyCardFeedIcons,
+): CardFilterItem {
     const personalDetails = personalDetailsList[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isSelected = selectedCards.includes(card.cardID.toString());
-    const icon = getCardFeedIcon(card?.bank as CompanyCardFeed, illustrations);
+    const icon = getCardFeedIcon(card?.bank as CompanyCardFeed, illustrations, companyCardIcons);
     const cardName = card?.nameValuePairs?.cardTitle;
     const text = personalDetails?.displayName ?? cardName;
     const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
@@ -110,13 +117,14 @@ function buildCardsData(
     personalDetailsList: PersonalDetailsList,
     selectedCards: string[],
     illustrations: IllustrationsType,
+    companyCardIcons: CompanyCardFeedIcons,
     isClosedCards = false,
 ): ItemsGroupedBySelection {
     // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag, we don't want to show closed cards in the individual cards section
     const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card) && !isCardClosed(card) && isCard(card));
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
         .filter((card) => filterCondition(card))
-        .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations));
+        .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
     const allWorkspaceCards: CardFilterItem[] = Object.values(workspaceCardFeeds)
@@ -124,7 +132,7 @@ function buildCardsData(
         .flatMap((cardFeed) => {
             return Object.values(cardFeed as Record<string, Card>)
                 .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && filterCondition(card))
-                .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations));
+                .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons));
         });
 
     const allCardItems = [...userAssignedCards, ...allWorkspaceCards];
@@ -281,6 +289,7 @@ function createCardFeedItem({
     correspondingCardIDs,
     selectedCards,
     illustrations,
+    companyCardIcons,
 }: {
     cardName: string;
     bank: string;
@@ -289,11 +298,12 @@ function createCardFeedItem({
     correspondingCardIDs: string[];
     selectedCards: string[];
     illustrations: IllustrationsType;
+    companyCardIcons: CompanyCardFeedIcons;
 }): CardFilterItem {
     const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
     const plaidUrl = getPlaidInstitutionIconUrl(bank);
 
-    const icon = getCardFeedIcon(bank as CompanyCardFeed, illustrations);
+    const icon = getCardFeedIcon(bank as CompanyCardFeed, illustrations, companyCardIcons);
     return {
         text: cardName,
         keyForList,
@@ -315,6 +325,7 @@ function buildCardFeedsData(
     selectedCards: string[],
     translate: LocaleContextProps['translate'],
     illustrations: IllustrationsType,
+    companyCardIcons: CompanyCardFeedIcons,
 ): ItemsGroupedBySelection {
     const selectedFeeds: CardFilterItem[] = [];
     const unselectedFeeds: CardFilterItem[] = [];
@@ -334,6 +345,7 @@ function buildCardFeedsData(
             cardFeedKey,
             selectedCards,
             illustrations,
+            companyCardIcons,
         });
         if (feedItem.isSelected) {
             selectedFeeds.push(feedItem);
@@ -362,6 +374,7 @@ function buildCardFeedsData(
             keyForList: workspaceFeedKey,
             selectedCards,
             illustrations,
+            companyCardIcons,
         });
         if (feedItem.isSelected) {
             selectedFeeds.push(feedItem);

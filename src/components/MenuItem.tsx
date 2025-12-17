@@ -394,6 +394,9 @@ type MenuItemBaseProps = ForwardedFSClassProps & {
 
     /** Whether the screen containing the item is focused */
     isFocused?: boolean;
+
+    /** Label for Sentry tracking */
+    sentryLabel?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -522,6 +525,7 @@ function MenuItem({
     forwardedFSClass,
     ref,
     isFocused,
+    sentryLabel,
 }: MenuItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -611,6 +615,7 @@ function MenuItem({
             return (
                 <DisplayNames
                     fullTitle={title}
+                    shouldParseFullTitle={!shouldRenderAsHTML}
                     displayNamesWithTooltips={titleWithTooltips}
                     tooltipEnabled
                     numberOfLines={1}
@@ -721,6 +726,7 @@ function MenuItem({
                                 accessibilityLabel={title ? title.toString() : ''}
                                 accessible
                                 onFocus={onFocus}
+                                sentryLabel={sentryLabel}
                             >
                                 {({pressed}) => (
                                     <View style={[styles.flex1]}>
@@ -1036,8 +1042,6 @@ function MenuItem({
         </View>
     );
 }
-
-MenuItem.displayName = 'MenuItem';
 
 export type {MenuItemBaseProps, MenuItemProps};
 export default MenuItem;

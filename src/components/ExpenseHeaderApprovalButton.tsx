@@ -1,6 +1,7 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -134,6 +135,7 @@ function ExpenseHeaderApprovalButton({
             success
             onPress={() => onApprove(true)}
             text={translate('iou.approve')}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
         />
     );
 }
