@@ -6712,7 +6712,7 @@ const CONST = {
                     TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
-                    EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_ICON,
+                    EXPORTED_TO: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 EXPENSE_REPORT: {
@@ -6725,7 +6725,7 @@ const CONST = {
                     TO: this.TABLE_COLUMNS.TO,
                     REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
                     BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
-                    EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_ICON,
+                    EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 INVOICE: {},
@@ -6828,7 +6828,7 @@ const CONST = {
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
             TAX: 'tax',
-            EXPORTED_ICON: 'exportedIcon',
+            EXPORTED_TO: 'exportedto',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',

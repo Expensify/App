@@ -164,8 +164,8 @@ function ExpenseReportListItemRow({
                 <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(item.reportID))} />
             </View>
         ),
-        [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON)]}>
+        [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
                 <ExportedIconCell reportID={item.reportID} />
             </View>
         ),

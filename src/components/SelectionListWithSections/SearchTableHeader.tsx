@@ -131,7 +131,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canBeMissing: false,
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
         isColumnSortable: false,
     },
@@ -175,7 +175,7 @@ const taskHeaders: SearchColumnConfig[] = [
         canBeMissing: false,
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
         isColumnSortable: false,
     },
@@ -235,7 +235,7 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'common.longID',
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
         isColumnSortable: false,
     },

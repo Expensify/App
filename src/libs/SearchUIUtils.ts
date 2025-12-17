@@ -2334,7 +2334,7 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.longID';
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             return 'common.reportID';
-        case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON:
+        case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
             return 'search.exportedTo';
     }
 }
@@ -2725,7 +2725,7 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
             [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
             [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: false,
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
         };
 
@@ -2807,7 +2807,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: false,
               [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
           };

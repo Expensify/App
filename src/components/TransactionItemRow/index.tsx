@@ -508,8 +508,8 @@ function TransactionItemRow({
                     />
                 </View>
             ),
-            [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON)]}>
+            [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
                     <ExportedIconCell reportID={transactionItem.reportID} />
                 </View>
             ),
