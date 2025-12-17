@@ -144,8 +144,6 @@ function SearchFiltersBar({
         return policies.some((policy) => policy.outputCurrency !== outputCurrency);
     }, [allPolicies]);
 
-    const filterFormValues = useSearchFilterFormValues();
-
     // Get selected workspace options from filterFormValues or queryJSON
     const selectedWorkspaceOptions = useMemo(() => {
         const policyIDs = filterFormValues.policyID ?? queryJSON.policyID;
@@ -323,19 +321,9 @@ function SearchFiltersBar({
         Navigation.navigate(ROUTES.SEARCH_COLUMNS);
     };
 
-    const isFormInitializedRef = useRef(false);
-
     useEffect(() => {
-        if (isFormInitializedRef.current) {
-            return;
-        }
-        if (filterFormValues && Object.keys(filterFormValues).length > 0) {
-            if (isFocused) {
-                updateAdvancedFilters(filterFormValues, true);
-            }
-            isFormInitializedRef.current = true;
-        }
-    }, [queryJSON, filterFormValues, isFocused]);
+        updateAdvancedFilters(filterFormValues, true);
+    }, [filterFormValues]);
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
