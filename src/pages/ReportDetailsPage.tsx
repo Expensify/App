@@ -150,7 +150,7 @@ const CASES = {
 type CaseID = ValueOf<typeof CASES>;
 
 function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetailsPageProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const styles = useThemeStyles();
