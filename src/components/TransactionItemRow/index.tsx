@@ -13,6 +13,7 @@ import StatusCell from '@components/SelectionListWithSections/Search/StatusCell'
 import TextCell from '@components/SelectionListWithSections/Search/TextCell';
 import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
+import WorkspaceCell from '@components/SelectionListWithSections/Search/WorkspaceCell';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -496,6 +497,14 @@ function TransactionItemRow({
                     <TaxCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
+                    />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}>
+                    <WorkspaceCell
+                        policyID={transactionItem.report?.policyID}
+                        report={transactionItem.report}
                     />
                 </View>
             ),

@@ -67,6 +67,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canBeMissing: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME,
+        translationKey: 'workspace.common.workspace',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CARD,
         translationKey: 'common.card',
     },
@@ -211,6 +215,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TO,
         translationKey: 'common.to',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME,
+        translationKey: 'workspace.common.workspace',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL,

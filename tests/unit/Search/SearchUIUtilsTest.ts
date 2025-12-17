@@ -2758,7 +2758,7 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getColumnsToShow', () => {
-        test('Should show all columns when no custom columns are saved & viewing expense reports', () => {
+        test('Should show all default columns when no custom columns are saved & viewing expense reports', () => {
             expect(SearchUIUtils.getColumnsToShow(1, [], [], false, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual({
                 [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
@@ -2767,6 +2767,7 @@ describe('SearchUIUtils', () => {
                 [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
@@ -2789,6 +2790,7 @@ describe('SearchUIUtils', () => {
                 [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
                 // Total should always be visible
                 [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
