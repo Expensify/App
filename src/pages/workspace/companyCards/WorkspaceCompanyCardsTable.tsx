@@ -197,10 +197,16 @@ function WorkspaceCompanyCardsTable({
     ];
 
     const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
-    const isNarrowLayoutRef = useRef(shouldUseNarrowLayout);
+    const isNarrowLayoutRef = useRef(shouldUseNarrowTableRowLayout);
 
+    // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
+    // When switching back to wide layout, we want to restore the previous sorting.
     useEffect(() => {
-        if (shouldUseNarrowLayout && !isNarrowLayoutRef.current) {
+        if (shouldUseNarrowTableRowLayout) {
+            if (isNarrowLayoutRef.current) {
+                return;
+            }
+
             isNarrowLayoutRef.current = true;
             const activeSorting = tableRef.current?.getActiveSorting();
             setActiveSortingInWideLayout(activeSorting);
@@ -214,7 +220,7 @@ function WorkspaceCompanyCardsTable({
 
         isNarrowLayoutRef.current = false;
         tableRef.current?.updateSorting(activeSortingInWideLayout);
-    }, [activeSortingInWideLayout, shouldUseNarrowLayout]);
+    }, [activeSortingInWideLayout, shouldUseNarrowTableRowLayout]);
 
     // Show empty state when there are no cards
     if (!data.length) {
