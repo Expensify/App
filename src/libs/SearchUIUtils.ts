@@ -2073,6 +2073,14 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.CARD) {
+        return data.sort((a, b) => {
+            const aValue = a.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : (a.cardName ?? '');
+            const bValue = b.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : (b.cardName ?? '');
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.STATUS) {
         return data.sort((a, b) => {
             const aReport = a.report;
@@ -2374,6 +2382,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.status';
         case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
             return 'workspace.common.workspace';
+        case CONST.SEARCH.TABLE_COLUMNS.CARD:
+            return 'common.card';
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
             return 'common.reimbursableTotal';
         case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
@@ -2821,7 +2831,6 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
             [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: false,
             [CONST.SEARCH.TABLE_COLUMNS.TYPE]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
             [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: false,
         };
     }
@@ -2850,9 +2859,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
               [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,

@@ -6702,6 +6702,7 @@ const CONST = {
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
                     POLICY_NAME: this.TABLE_COLUMNS.POLICY_NAME,
+                    CARD: this.TABLE_COLUMNS.CARD,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                     TAG: this.TABLE_COLUMNS.TAG,
                     ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
