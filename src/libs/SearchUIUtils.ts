@@ -968,7 +968,6 @@ function shouldShowYear(
     for (const key of Object.keys(data)) {
         if (!checkOnlyReports && isTransactionEntry(key)) {
             const item = data[key];
-
             if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
                 result.shouldShowYearCreated = true;
             }
@@ -1011,7 +1010,7 @@ function shouldShowYear(
                 result.shouldShowYearApproved = true;
             }
 
-            const exportedAction = lastExportedActionByReportID.get(item.reportID ?? '');
+            const exportedAction = lastExportedActionByReportID.get(item.reportID);
             if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
                 result.shouldShowYearExported = true;
             }

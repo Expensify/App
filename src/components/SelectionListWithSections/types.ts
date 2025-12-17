@@ -249,6 +249,9 @@ type TransactionListItemType = ListItem &
         /** The date the report was approved */
         approved?: string;
 
+        /** The date the report was posted */
+        posted?: string;
+
         /** The date the report was exported */
         exported?: string;
 
