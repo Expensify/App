@@ -691,6 +691,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: '対応が必要',
         duplicate: '複製',
         duplicated: '重複',
+        originalAmount: '元の金額',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -6138,6 +6139,10 @@ ${reportName}
                 title: 'カテゴリルール',
                 approver: '承認者',
                 requireDescription: '説明を必須にする',
+                requireFields: 'フィールドを必須にする',
+                requiredFieldsTitle: '必須項目',
+                requiredFieldsDescription: (categoryName: string) => `これは<strong>${categoryName}</strong>として分類されたすべての経費に適用されます。`,
+                requireAttendees: '参加者の入力を必須にする',
                 descriptionHint: '説明のヒント',
                 descriptionHintDescription: (categoryName: string) => `従業員に「${categoryName}」での支出について追加情報を提供するよう促します。このヒントは経費の説明欄に表示されます。`,
                 descriptionHintLabel: 'ヒント',
@@ -7175,6 +7180,7 @@ ${reportName}
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `${maxAge}日より前の日付`,
         missingCategory: 'カテゴリ未設定',
         missingComment: '選択したカテゴリーには説明が必要です',
+        missingAttendees: 'このカテゴリには複数の参加者が必要です',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `${tagName ?? 'タグ'} が見つかりません`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7888,7 +7894,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須化し、ワークスペースの作成を制限するなど、さらに多くのことができます。',
             enable: '有効にする',
         },
-        admins: {title: '管理者', findAdmin: '管理者を検索'},
+        admins: {title: '管理者', findAdmin: '管理者を検索', primaryContact: '主要連絡先', addPrimaryContact: '主要連絡先を追加', settings: '設定'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -11,6 +11,7 @@ import ActionCell from '@components/SelectionListWithSections/Search/ActionCell'
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
 import TextCell from '@components/SelectionListWithSections/Search/TextCell';
+import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -21,11 +22,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {isSettled} from '@libs/ReportUtils';
+import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
     getMerchant,
+    getOriginalAmount,
+    getOriginalCurrency,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
@@ -427,6 +430,17 @@ function TransactionItemRow({
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
                         shouldUseNarrowLayout={shouldUseNarrowLayout}
+                    />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
+                >
+                    <AmountCell
+                        total={isExpenseReport(transactionItem.report) ? -(transactionItem.originalAmount ?? 0) : getOriginalAmount(transactionItem)}
+                        currency={getOriginalCurrency(transactionItem)}
                     />
                 </View>
             ),

@@ -145,6 +145,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'originalAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable' as const,
     [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: 'billable' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: null,
@@ -1999,8 +2000,10 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
     }
 
     if (typeof a === 'number' && typeof b === 'number') {
-        const aValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT && !shouldCompareOriginalValue ? Math.abs(a) : a;
-        const bValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT && !shouldCompareOriginalValue ? Math.abs(b) : b;
+        const aValue =
+            (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || sortBy.toLowerCase() === CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT) && !shouldCompareOriginalValue ? Math.abs(a) : a;
+        const bValue =
+            (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || sortBy.toLowerCase() === CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT) && !shouldCompareOriginalValue ? Math.abs(b) : b;
         return isAsc ? aValue - bValue : bValue - aValue;
     }
 
@@ -2293,6 +2296,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'search.filters.posted';
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return 'common.merchant';
+        case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+            return 'common.description';
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
             return 'common.from';
         case CONST.SEARCH.TABLE_COLUMNS.TO:
@@ -2303,6 +2308,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.receipt';
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return 'common.tag';
+        case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
+            return 'common.originalAmount';
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             return 'common.reimbursable';
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
@@ -2710,7 +2717,10 @@ function getColumnsToShow(
         };
 
         // If there are no visible columns, everything should be visible
-        if (!visibleColumns.length) {
+        const filteredVisibleColumns = visibleColumns.filter((column) =>
+            Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT>),
+        );
+        if (!filteredVisibleColumns.length) {
             return reportColumns;
         }
 
@@ -2781,6 +2791,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
@@ -2838,7 +2849,10 @@ function getColumnsToShow(
 
     // If the user has set custom columns for the search, we need to respect their preference, and only show
     // them what they want to see
-    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
+    const filteredVisibleColumns = visibleColumns.filter((column) =>
+        Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE).includes(column as ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE>),
+    );
+    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
         const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
 
         for (const column of Object.keys(columns) as SearchCustomColumnIds[]) {
