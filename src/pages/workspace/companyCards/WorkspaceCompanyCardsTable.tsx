@@ -1,5 +1,5 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Table from '@components/Table';
@@ -138,7 +138,7 @@ function WorkspaceCompanyCardsTable({
         return 0;
     };
 
-    const isItemInSearch: IsItemInSearchCallback<WorkspaceCompanyCardTableItemData> = useCallback((item, searchString) => {
+    const isItemInSearch: IsItemInSearchCallback<WorkspaceCompanyCardTableItemData> = (item, searchString) => {
         const searchLower = searchString.toLowerCase();
         return (
             item.cardName.toLowerCase().includes(searchLower) ||
@@ -146,9 +146,9 @@ function WorkspaceCompanyCardsTable({
             (item.cardholder?.displayName?.toLowerCase().includes(searchLower) ?? false) ||
             (item.cardholder?.login?.toLowerCase().includes(searchLower) ?? false)
         );
-    }, []);
+    };
 
-    const isItemInFilter: IsItemInFilterCallback<WorkspaceCompanyCardTableItemData> = useCallback((item, filterValues) => {
+    const isItemInFilter: IsItemInFilterCallback<WorkspaceCompanyCardTableItemData> = (item, filterValues) => {
         if (!filterValues || filterValues.length === 0) {
             return true;
         }
@@ -162,22 +162,19 @@ function WorkspaceCompanyCardsTable({
             return true;
         }
         return false;
-    }, []);
+    };
 
-    const filterConfig: FilterConfig = useMemo(
-        () => ({
-            status: {
-                filterType: 'single-select',
-                options: [
-                    {label: translate('workspace.moreFeatures.companyCards.allCards'), value: 'all'},
-                    {label: translate('workspace.moreFeatures.companyCards.assignedCards'), value: 'assigned'},
-                    {label: translate('workspace.moreFeatures.companyCards.unassignedCards'), value: 'unassigned'},
-                ],
-                default: 'all',
-            },
-        }),
-        [translate],
-    );
+    const filterConfig: FilterConfig = {
+        status: {
+            filterType: 'single-select',
+            options: [
+                {label: translate('workspace.moreFeatures.companyCards.allCards'), value: 'all'},
+                {label: translate('workspace.moreFeatures.companyCards.assignedCards'), value: 'assigned'},
+                {label: translate('workspace.moreFeatures.companyCards.unassignedCards'), value: 'unassigned'},
+            ],
+            default: 'all',
+        },
+    };
 
     const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
         {

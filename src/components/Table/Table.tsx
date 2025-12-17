@@ -1,5 +1,5 @@
 import type {FlashListRef} from '@shopify/flash-list';
-import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 import TableContext from './TableContext';
 import type {TableContextValue, UpdateFilterCallback, UpdateSortingCallback} from './TableContext';
 import type {ActiveSorting, GetActiveFiltersCallback, GetActiveSearchStringCallback, GetActiveSortingCallback, TableHandle, TableMethods, TableProps, ToggleSortingCallback} from './types';
@@ -33,12 +33,12 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         return initialFilters;
     });
 
-    const updateFilter: UpdateFilterCallback = useCallback(({key, value}) => {
+    const updateFilter: UpdateFilterCallback = ({key, value}) => {
         setCurrentFilters((prev) => ({
             ...prev,
             [key]: value,
         }));
-    }, []);
+    };
 
     // Apply filters using predicate functions
     let filteredData = data;
@@ -83,45 +83,42 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
     const sortToggleCountRef = useRef(0);
     const [activeSorting, setActiveSorting] = useState<ActiveSorting<ColumnKey>>({columnKey: undefined, order: 'asc'});
 
-    const updateSorting: UpdateSortingCallback<ColumnKey> = useCallback(({columnKey, order}) => {
+    const updateSorting: UpdateSortingCallback<ColumnKey> = ({columnKey, order}) => {
         if (columnKey) {
             setActiveSorting({columnKey, order: order ?? 'asc'});
             return;
         }
 
         setActiveSorting({columnKey: undefined, order: 'asc'});
-    }, []);
+    };
 
-    const toggleSorting: ToggleSortingCallback<ColumnKey> = useCallback(
-        (columnKey) => {
-            if (!columnKey) {
-                updateSorting({columnKey: undefined});
+    const toggleSorting: ToggleSortingCallback<ColumnKey> = (columnKey) => {
+        if (!columnKey) {
+            updateSorting({columnKey: undefined});
+            sortToggleCountRef.current = 0;
+            return;
+        }
+
+        setActiveSorting((currentSorting) => {
+            if (columnKey !== currentSorting.columnKey) {
                 sortToggleCountRef.current = 0;
-                return;
+                return {columnKey, order: 'asc'};
             }
 
-            setActiveSorting((currentSorting) => {
-                if (columnKey !== currentSorting.columnKey) {
-                    sortToggleCountRef.current = 0;
-                    return {columnKey, order: 'asc'};
-                }
+            // Check current toggle count to decide if we should reset
+            if (sortToggleCountRef.current >= MAX_SORT_TOGGLE_COUNT) {
+                // Reset sorting when max toggle count is reached
+                sortToggleCountRef.current = 0;
+                updateSorting({columnKey: undefined});
+                return {columnKey: undefined, order: 'asc'};
+            }
 
-                // Check current toggle count to decide if we should reset
-                if (sortToggleCountRef.current >= MAX_SORT_TOGGLE_COUNT) {
-                    // Reset sorting when max toggle count is reached
-                    sortToggleCountRef.current = 0;
-                    updateSorting({columnKey: undefined});
-                    return {columnKey: undefined, order: 'asc'};
-                }
-
-                // Toggle the sort order
-                sortToggleCountRef.current += 1;
-                const newSortOrder = currentSorting.order === 'asc' ? 'desc' : 'asc';
-                return {columnKey: currentSorting.columnKey, order: newSortOrder};
-            });
-        },
-        [updateSorting],
-    );
+            // Toggle the sort order
+            sortToggleCountRef.current += 1;
+            const newSortOrder = currentSorting.order === 'asc' ? 'desc' : 'asc';
+            return {columnKey: currentSorting.columnKey, order: newSortOrder};
+        });
+    };
 
     // Apply sorting using comparator function
     let processedData = filteredAndSearchedData;

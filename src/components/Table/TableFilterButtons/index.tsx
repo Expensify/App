@@ -1,12 +1,12 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import {useTableContext} from '@components/Table/TableContext';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {useTableContext} from '..';
 import buildFilterItems from './buildFilterItems';
 import type {FilterButtonItem} from './buildFilterItems';
 
@@ -18,12 +18,9 @@ function TableFilterButtons(props: TableFilterButtonsProps) {
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {filterConfig: filterConfigs, activeFilters: filters, updateFilter} = useTableContext();
 
-    const setFilter = useCallback(
-        (key: string, value: unknown) => {
-            updateFilter({key, value});
-        },
-        [updateFilter],
-    );
+    const setFilter = (key: string, value: unknown) => {
+        updateFilter({key, value});
+    };
 
     const filterItems = buildFilterItems(filterConfigs, filters, setFilter, translate('search.filtersHeader'));
 
