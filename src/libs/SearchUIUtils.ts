@@ -882,13 +882,22 @@ function buildLastExportedActionByReportIDMap(data: OnyxTypes.SearchResults['dat
         if (isReportActionEntry(key)) {
             const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
             const actions = data[key];
-            const exportedAction = Object.values(actions)
-                .filter(
-                    (action): action is OnyxTypes.ReportAction =>
-                        action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
-                )
-                .sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
-                .at(0);
+            const exportedActions = Object.values(actions).filter(
+                (action): action is OnyxTypes.ReportAction =>
+                    action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            );
+
+            let exportedAction: OnyxTypes.ReportAction | undefined;
+            let latestTime = -Infinity;
+
+            for (const action of exportedActions) {
+                const currentTime = new Date(action.created).getTime();
+                if (currentTime > latestTime) {
+                    latestTime = currentTime;
+                    exportedAction = action;
+                }
+            }
+
             if (exportedAction) {
                 lastExportedActionByReportID.set(reportID, exportedAction);
             }
