@@ -6,7 +6,8 @@ import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list'
 import React, {useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -233,6 +234,19 @@ function SearchList({
     const minTableWidth = getTableMinWidth(columns);
     const shouldScrollHorizontally = !!SearchTableHeader && minTableWidth > windowWidth;
 
+    const horizontalScrollViewRef = useRef<RNScrollView>(null);
+    const horizontalScrollOffsetRef = useRef<number>(0);
+
+    const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        horizontalScrollOffsetRef.current = event.nativeEvent.contentOffset.x;
+    }, []);
+
+    const restoreHorizontalScrollPosition = useCallback(() => {
+        if (horizontalScrollOffsetRef.current > 0) {
+            horizontalScrollViewRef.current?.scrollTo({x: horizontalScrollOffsetRef.current, animated: false});
+        }
+    }, []);
+
     const handleLongPressRow = useCallback(
         (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
             const currentRoute = navigationRef.current?.getCurrentRoute();
@@ -452,10 +466,14 @@ function SearchList({
     if (shouldScrollHorizontally) {
         return (
             <ScrollView
+                ref={horizontalScrollViewRef}
                 horizontal
                 showsHorizontalScrollIndicator
                 style={styles.flex1}
                 contentContainerStyle={{width: minTableWidth}}
+                onScroll={handleHorizontalScroll}
+                scrollEventThrottle={16}
+                onLayout={restoreHorizontalScrollPosition}
             >
                 {content}
             </ScrollView>
