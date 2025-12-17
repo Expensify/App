@@ -126,14 +126,23 @@ function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssign
         return 0;
     };
 
+    const assignedKeyword = translate('workspace.moreFeatures.companyCards.assignedCards').toLowerCase();
+    const unassignedKeyword = translate('workspace.moreFeatures.companyCards.unassignedCards').toLowerCase();
+
     const isItemInSearch: IsItemInSearchCallback<WorkspaceCompanyCardTableItemData> = (item, searchString) => {
         const searchLower = searchString.toLowerCase();
-        return (
+
+        // Include assigned/unassigned cards if the user is typing "Unassigned" or "Assigned" (localized)
+        const isAssignedCardMatch = assignedKeyword.startsWith(searchLower) && item.isAssigned;
+        const isUnassignedCardMatch = unassignedKeyword.startsWith(searchLower) && !item.isAssigned;
+
+        const isMatch =
             item.cardName.toLowerCase().includes(searchLower) ||
             (item.customCardName?.toLowerCase().includes(searchLower) ?? false) ||
             (item.cardholder?.displayName?.toLowerCase().includes(searchLower) ?? false) ||
-            (item.cardholder?.login?.toLowerCase().includes(searchLower) ?? false)
-        );
+            (item.cardholder?.login?.toLowerCase().includes(searchLower) ?? false);
+
+        return isMatch || isAssignedCardMatch || isUnassignedCardMatch;
     };
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceCompanyCardTableItemData> = (item, filterValues) => {
