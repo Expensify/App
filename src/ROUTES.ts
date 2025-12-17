@@ -66,6 +66,7 @@ const ROUTES = {
         route: 'search/saved-search/rename',
         getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${jsonQuery}` as const,
     },
+    SEARCH_COLUMNS: 'search/columns',
     SEARCH_ADVANCED_FILTERS: {
         route: 'search/filters/:filterKey?',
         getRoute: (filterKey?: SearchFilterKey | UserFriendlyKey) => {
@@ -85,17 +86,6 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
-
-    EXPENSE_REPORT_RHP: {
-        route: 'e/:reportID',
-        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
-            const baseRoute = `e/${reportID}` as const;
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(baseRoute, backTo);
-        },
-    },
-
     SEARCH_REPORT_VERIFY_ACCOUNT: {
         route: `search/view/:reportID/${VERIFY_ACCOUNT}`,
         getRoute: (reportID: string) => `search/view/${reportID}/${VERIFY_ACCOUNT}` as const,
@@ -193,10 +183,6 @@ const ROUTES = {
             }
             return `bank-account/enter-signer-info?policyID=${policyID}&bankAccountID=${bankAccountID}&isCompleted=${isCompleted}` as const;
         },
-    },
-    BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
-        route: 'bank-account/connect-existing-business-bank-account',
-        getRoute: (policyID: string) => `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const,
     },
     PUBLIC_CONSOLE_DEBUG: {
         route: 'troubleshoot/console',
@@ -1704,6 +1690,10 @@ const ROUTES = {
             return `workspaces/${policyID}/workflows` as const;
         },
     },
+    WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: {
+        route: 'workspaces/:policyID/workflows/connect-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/connect-account` as const,
+    },
     WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
         route: 'workspaces/:policyID/workflows/approvals/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/workflows/approvals/new` as const,
@@ -1932,6 +1922,10 @@ const ROUTES = {
     WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
         route: 'workspaces/:policyID/category/:categoryName/require-receipts-over',
         getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
+    },
+    WORKSPACE_CATEGORY_REQUIRED_FIELDS: {
+        route: 'workspaces/:policyID/category/:categoryName/required-fields',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/required-fields` as const,
     },
     WORKSPACE_CATEGORY_APPROVER: {
         route: 'workspaces/:policyID/category/:categoryName/approver',
@@ -3461,6 +3455,18 @@ const ROUTES = {
     DOMAIN_ADMINS: {
         route: 'domain/:domainAccountID/admins',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins` as const,
+    },
+    DOMAIN_ADMIN_DETAILS: {
+        route: 'domain/:domainAccountID/admins/:accountID',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}` as const,
+    },
+    DOMAIN_ADMINS_SETTINGS: {
+        route: 'domain/:domainAccountID/admins/settings',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings` as const,
+    },
+    DOMAIN_ADD_PRIMARY_CONTACT: {
+        route: 'domain/:domainAccountID/admins/settings/primary-contact',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings/primary-contact` as const,
     },
 } as const;
 
