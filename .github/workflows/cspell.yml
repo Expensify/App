@@ -11,6 +11,15 @@ jobs:
     name: 🔍 spellcheck
     steps:
       - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+
+      - name: Cache cspell
+        uses: actions/cache@v4
+        with:
+          path: .cspellcache
+          key: ${{ runner.os }}-cspell-${{ hashFiles('cspell.json') }}
+          restore-keys: |
+            ${{ runner.os }}-cspell-
+
       - uses: streetsidesoftware/cspell-action@72ae91e90fa38f2335a60e233a847a6d00a9f221
         with:
           files: "**/*"
