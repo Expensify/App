@@ -83,8 +83,6 @@ function WorkspaceCompanyCardsListRow({
 
     const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
 
-    console.log('lastCardNumbers', lastCardNumbers);
-
     const alternateLoginText = shouldUseNarrowTableRowLayout ? `${customCardNameWithFallback}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : (cardholder?.login ?? '');
 
     return (
