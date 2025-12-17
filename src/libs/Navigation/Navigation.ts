@@ -864,6 +864,7 @@ export default {
     isValidateLoginFlow,
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
+    getTopmostSuperWideRHPReportID,
 };
 
 export {navigationRef};
