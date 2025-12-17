@@ -102,6 +102,4 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
     );
 }
 
-SidebarLinks.displayName = 'SidebarLinks';
-
 export default memo(SidebarLinks);

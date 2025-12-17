@@ -40,7 +40,7 @@ type MergeTransactionsListContentProps = {
 type MergeTransactionListItemType = Transaction & ListItem;
 
 function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
-    const illustrations = useMemoizedLazyIllustrations(['EmptyShelves'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
 
@@ -185,7 +185,5 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         />
     );
 }
-
-MergeTransactionsListContent.displayName = 'MergeTransactionsListContent';
 
 export default MergeTransactionsListContent;
