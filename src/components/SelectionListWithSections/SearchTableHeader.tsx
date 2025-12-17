@@ -81,6 +81,16 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canBeMissing: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
+        translationKey: 'common.reimbursable',
+        canBeMissing: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
+        translationKey: 'common.billable',
+        canBeMissing: true,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
         translationKey: 'common.withdrawalID',
     },
