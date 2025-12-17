@@ -23,7 +23,6 @@ jobs:
 
       - uses: streetsidesoftware/cspell-action@72ae91e90fa38f2335a60e233a847a6d00a9f221
         with:
-          files: "**/*"
           root: "."
           config: "./cspell.json"
           inline: error
