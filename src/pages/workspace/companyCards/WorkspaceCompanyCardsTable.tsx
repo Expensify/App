@@ -2,7 +2,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Table from '@components/Table';
-import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, SortOrder, TableColumn, TableHandle} from '@components/Table';
+import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -102,8 +102,8 @@ function WorkspaceCompanyCardsTable({
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
 
-    const compareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey> = (a, b, sortColumn, order) => {
-        const orderMultiplier = order === 'asc' ? 1 : -1;
+    const compareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey> = (a, b, activeSorting) => {
+        const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
 
         if (a.isAssigned && !b.isAssigned) {
             return 1 * orderMultiplier;
@@ -119,18 +119,18 @@ function WorkspaceCompanyCardsTable({
             return cardNameSortingResult;
         }
 
-        if (sortColumn === 'member') {
+        if (activeSorting.columnKey === 'member') {
             const aMemberString = a.cardholder?.displayName ?? a.cardholder?.login ?? '';
             const bMemberString = b.cardholder?.displayName ?? b.cardholder?.login ?? '';
 
             return localeCompare(aMemberString, bMemberString) * orderMultiplier;
         }
 
-        if (sortColumn === 'card') {
+        if (activeSorting.columnKey === 'card') {
             return cardNameSortingResult;
         }
 
-        if (sortColumn === 'customCardName') {
+        if (activeSorting.columnKey === 'customCardName') {
             return localeCompare(a.customCardName ?? '', b.customCardName ?? '') * orderMultiplier;
         }
 
@@ -196,16 +196,21 @@ function WorkspaceCompanyCardsTable({
         },
     ];
 
-    const [sortingConfigInWideLayout, setSortingInWideLayout] = useState<{columnKey: CompanyCardsTableColumnKey; order: SortOrder} | undefined>(undefined);
+    const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
     useEffect(() => {
         if (shouldUseNarrowLayout) {
-            setSortingInWideLayout({columnKey: 'member', order: 'asc'});
+            const activeSorting = tableRef.current?.getActiveSorting();
+            setActiveSortingInWideLayout(activeSorting);
             tableRef.current?.updateSorting({columnKey: 'member'});
             return;
         }
 
-        table;
-    }, []);
+        if (!activeSortingInWideLayout) {
+            return;
+        }
+
+        tableRef.current?.updateSorting(activeSortingInWideLayout);
+    }, [activeSortingInWideLayout, shouldUseNarrowLayout]);
 
     // Show empty state when there are no cards
     if (!data.length) {
