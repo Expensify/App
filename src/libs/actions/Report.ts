@@ -1083,7 +1083,7 @@ function openReport(
         const submitterPersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(submitterEmail);
 
         const optimisticIOUAction = buildOptimisticIOUReportAction({
-            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            type: isSelfDM(parentReport) ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount: Math.abs(transaction.amount),
             currency: transaction.currency,
             comment: transaction.comment?.comment ?? '',
@@ -1407,8 +1407,8 @@ function createTransactionThreadReport(
     const selfDMReportID = isTrackExpense || isUnreportedTransaction ? findSelfDMReportID() : undefined;
 
     let reportToUse = iouReport;
-    // For track expenses without iouReport, get the selfDM report
-    if (isTrackExpense && selfDMReportID) {
+    // For track expenses or unreported transactions, get the selfDM report
+    if (selfDMReportID) {
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     }
 
