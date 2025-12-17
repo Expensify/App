@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {domainSettingsPrimaryContactSelector} from '@src/selectors/Domain';
+import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@src/selectors/Domain';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
@@ -37,14 +37,14 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info', 'ClosedSign'] as const);
 
-    const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
-        selector: adminAccountIDsSelector,
-    });
-
     const [primaryContact] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         selector: domainSettingsPrimaryContactSelector,
         canBeMissing: false,
+    });
+
+    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminAccountIDsSelector,
     });
 
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
@@ -59,6 +59,23 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(adminPersonalDetails);
     const fallbackIcon = adminPersonalDetails?.fallbackIcon ?? '';
+
+    const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
+    const {showConfirmModal} = useConfirmModal();
+
+    const handleRevokeAdminAccess = async () => {
+        const confirmResult = await showConfirmModal({
+            title: translate('domain.admins.revokeAdminAccess'),
+            prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+        if (confirmResult.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        revokeDomainAdminAccess(route.params.domainAccountID, route.params.accountID);
+        Navigation.dismissModal();
+    };
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>

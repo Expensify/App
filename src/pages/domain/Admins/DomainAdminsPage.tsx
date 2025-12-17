@@ -86,6 +86,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             ],
             rightElement: technicalContactEmail === details?.login && <Badge text={translate('domain.admins.primaryContact')} />,
             errors: getLatestError(domainErrors?.adminErrors?.[accountID]?.errors),
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         });
     }
 

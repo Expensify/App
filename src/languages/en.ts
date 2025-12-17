@@ -7821,7 +7821,7 @@ const translations = {
             primaryContact: 'Primary contact',
             addPrimaryContact: 'Add primary contact',
             settings: 'Settings',
-            revokeAdminAccess: 'Revoke domain access',
+            revokeAdminAccess: 'Revoke admin access',
         },
     },
 };
