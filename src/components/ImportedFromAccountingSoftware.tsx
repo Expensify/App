@@ -34,7 +34,7 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare']);
     const icon = getIntegrationIcon(connectedIntegration, expensifyIcons);
 
     return (
@@ -62,7 +62,5 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
         </View>
     );
 }
-
-ImportedFromAccountingSoftware.displayName = 'ImportedFromAccountingSoftware';
 
 export default ImportedFromAccountingSoftware;
