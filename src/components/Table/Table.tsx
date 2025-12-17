@@ -4,6 +4,10 @@ import TableContext from './TableContext';
 import type {TableContextValue, UpdateFilterCallback, UpdateSortingCallback} from './TableContext';
 import type {ActiveSorting, GetActiveFiltersCallback, GetActiveSearchStringCallback, GetActiveSortingCallback, TableHandle, TableMethods, TableProps, ToggleSortingCallback} from './types';
 
+// We want to allow the user to switch once between ascending and descending order.
+// After that, sorting for a specific column will be reset.
+const MAX_SORT_TOGGLE_COUNT = 1;
+
 function Table<T, ColumnKey extends string = string, FilterKey extends string = string>({
     ref,
     data = [],
@@ -101,7 +105,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
             return;
         }
 
-        if (sortToggleCount >= 2) {
+        if (sortToggleCount >= MAX_SORT_TOGGLE_COUNT) {
             updateSorting({columnKey: undefined});
             setSortToggleCount(0);
             return;
