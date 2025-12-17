@@ -14,7 +14,7 @@ type ExportedIconCellProps = {
 function ExportedIconCell({reportID}: ExportedIconCellProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Table', 'NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare']);
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare']);
 
     if (!reportID) {
         return null;
@@ -23,29 +23,29 @@ function ExportedIconCell({reportID}: ExportedIconCellProps) {
     return (
         <View style={[styles.flexRow, styles.gap2]}>
             <Icon
-                src={icons.Table}
+                src={icons.Document}
                 fill={theme.icon}
-                height={16}
+                small
             />
             <Avatar
                 source={icons.NetSuiteSquare}
                 type={CONST.ICON_TYPE_AVATAR}
-                size={CONST.AVATAR_SIZE.SMALLER}
+                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
             />
             <Avatar
                 source={icons.XeroSquare}
                 type={CONST.ICON_TYPE_AVATAR}
-                size={CONST.AVATAR_SIZE.SMALLER}
+                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
             />
             <Avatar
                 source={icons.IntacctSquare}
                 type={CONST.ICON_TYPE_AVATAR}
-                size={CONST.AVATAR_SIZE.SMALLER}
+                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
             />
             <Avatar
                 source={icons.QBOSquare}
                 type={CONST.ICON_TYPE_AVATAR}
-                size={CONST.AVATAR_SIZE.SMALLER}
+                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
             />
         </View>
     );
