@@ -2056,8 +2056,11 @@ function getSortedTransactionData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
         return data.sort((a, b) => {
-            const aValue = getPolicyName({report: a.report});
-            const bValue = getPolicyName({report: b.report});
+            const aIsReported = a.report?.type !== CONST.REPORT.TYPE.EXPENSE && a.report?.type !== CONST.REPORT.TYPE.INVOICE;
+            const bIsReported = b.report?.type !== CONST.REPORT.TYPE.EXPENSE && b.report?.type !== CONST.REPORT.TYPE.INVOICE;
+
+            const aValue = aIsReported ? getPolicyName({report: a.report}) : '';
+            const bValue = bIsReported ? getPolicyName({report: b.report}) : '';
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
