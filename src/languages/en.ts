@@ -7038,6 +7038,36 @@ const translations = {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
         },
     },
+    gps: {
+        tooltip: "Don't worry, you can safely do other things. Stop tracking when you've arrived.",
+        disclaimer: 'Use GPS to create an expense from your journey. Tap Start below to begin tracking.',
+        error: {
+            failedToStart: 'Failed to start location tracking.',
+            failedToGetPermissions: 'Failed to get required location permissions.',
+        },
+        trackingDistance: 'Tracking distance...',
+        stopped: 'Stopped',
+        start: 'Start',
+        stop: 'Stop',
+        discard: 'Discard',
+        stopGpsTracking: 'Stop GPS tracking',
+        resumeTracking: 'Resume tracking',
+        stopGpsTrackingModal: {
+            title: 'Stop GPS tracking?',
+            prompt: 'Are you sure you want to stop recording your GPS location?',
+            cancel: 'Resume tracking',
+            confirm: 'Stop GPS tracking',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Discard distance tracking?',
+            prompt: 'Are you sure you want to discard this distance tracking? This action cannot be undone.',
+            confirm: 'Discard distance tracking',
+        },
+        zeroDistanceTripModal: {
+            title: "Can't create expense",
+            prompt: "You can't create an expense with the same start and stop location.",
+        },
+    },
     reportCardLostOrDamaged: {
         screenTitle: 'Report card lost or damaged',
         nextButtonLabel: 'Next',
