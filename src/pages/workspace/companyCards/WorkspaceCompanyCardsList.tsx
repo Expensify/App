@@ -71,7 +71,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
     const hasPlaidCompanyCards = !!companyFeeds?.[selectedFeed]?.accountList;
 
     if (hasCommercialCompanyCards && hasPlaidCompanyCards) {
-        Log.warn('Both commercial and company cards found');
+        Log.warn('Both commercial and Plaidcards found');
     }
 
     if (!hasCommercialCompanyCards && !hasPlaidCompanyCards) {
