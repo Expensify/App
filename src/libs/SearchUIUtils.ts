@@ -883,7 +883,10 @@ function buildLastExportedActionByReportIDMap(data: OnyxTypes.SearchResults['dat
             const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
             const actions = data[key];
             const exportedAction = Object.values(actions)
-                .filter((action): action is OnyxTypes.ReportAction => action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)
+                .filter(
+                    (action): action is OnyxTypes.ReportAction =>
+                        action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                )
                 .sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
                 .at(0);
             if (exportedAction) {

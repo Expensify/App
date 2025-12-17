@@ -63,6 +63,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** The personal details of the user paying the request */
     to?: PersonalDetails;
 
+    /** The date the report was exported */
+    exported?: string;
+
     /** formatted "to" value used for displaying and sorting on Reports page */
     formattedTo?: string;
 
