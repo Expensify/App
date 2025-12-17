@@ -693,6 +693,8 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicate: 'Dupliceren',
         duplicated: 'Gedupliceerd',
         exchangeRate: 'Wisselkoers',
+        reimbursableTotal: 'Totaal te vergoeden',
+        nonReimbursableTotal: 'Niet-vergoedbaar totaal',
         originalAmount: 'Oorspronkelijk bedrag',
     },
     supportalNoAccess: {

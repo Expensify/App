@@ -379,6 +379,8 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
         exchangeRate: 'Tipo de cambio',
+        reimbursableTotal: 'Total reembolsable',
+        nonReimbursableTotal: 'Total no reembolsable',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

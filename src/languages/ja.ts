@@ -692,6 +692,8 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicate: '複製',
         duplicated: '重複',
         exchangeRate: '為替レート',
+        reimbursableTotal: '経費精算対象の合計',
+        nonReimbursableTotal: '非払い戻し合計',
         originalAmount: '元の金額',
     },
     supportalNoAccess: {

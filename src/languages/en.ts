@@ -683,6 +683,8 @@ const translations = {
         duplicate: 'Duplicate',
         duplicated: 'Duplicated',
         exchangeRate: 'Exchange rate',
+        reimbursableTotal: 'Reimbursable total',
+        nonReimbursableTotal: 'Non-reimbursable total',
     },
     supportalNoAccess: {
         title: 'Not so fast',
