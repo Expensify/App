@@ -1033,6 +1033,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Manual',
         scan: 'Escanear',
         map: 'Mapa',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Enviar uma planilha',

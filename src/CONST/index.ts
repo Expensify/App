@@ -2885,6 +2885,7 @@ const CONST = {
             PER_DIEM: 'per-diem',
             DISTANCE_MAP: 'distance-map',
             DISTANCE_MANUAL: 'distance-manual',
+            DISTANCE_GPS: 'distance-gps',
         },
         EXPENSE_TYPE: {
             DISTANCE: 'distance',
@@ -2895,6 +2896,7 @@ const CONST = {
             PENDING_EXPENSIFY_CARD: 'pendingExpensifyCard',
             DISTANCE_MAP: 'distance-map',
             DISTANCE_MANUAL: 'distance-manual',
+            DISTANCE_GPS: 'distance-gps',
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
@@ -5457,6 +5459,7 @@ const CONST = {
         PER_DIEM: 'per-diem',
         DISTANCE_MAP: 'distance-map',
         DISTANCE_MANUAL: 'distance-manual',
+        DISTANCE_GPS: 'distance-gps',
     },
 
     STATUS_TEXT_MAX_LENGTH: 100,
