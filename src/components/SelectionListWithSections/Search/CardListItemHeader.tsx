@@ -156,6 +156,4 @@ function CardListItemHeader<TItem extends ListItem>({
     );
 }
 
-CardListItemHeader.displayName = 'CardListItemHeader';
-
 export default CardListItemHeader;

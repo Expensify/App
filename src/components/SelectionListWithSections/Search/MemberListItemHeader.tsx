@@ -153,6 +153,4 @@ function MemberListItemHeader<TItem extends ListItem>({
     );
 }
 
-MemberListItemHeader.displayName = 'MemberListItemHeader';
-
 export default MemberListItemHeader;

@@ -74,7 +74,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteApprovalAccountSelectPage.displayName}
+            displayName="NetSuiteApprovalAccountSelectPage"
             headerContent={headerContent}
             sections={netsuiteApprovalAccountOptions.length ? [{data: netsuiteApprovalAccountOptions}] : []}
             listItem={RadioListItem}
@@ -91,7 +91,5 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
         />
     );
 }
-
-NetSuiteApprovalAccountSelectPage.displayName = 'NetSuiteApprovalAccountSelectPage';
 
 export default withPolicyConnections(NetSuiteApprovalAccountSelectPage);

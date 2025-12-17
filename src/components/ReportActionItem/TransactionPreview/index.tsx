@@ -158,6 +158,4 @@ function TransactionPreview(props: TransactionPreviewProps) {
     );
 }
 
-TransactionPreview.displayName = 'TransactionPreview';
-
 export default TransactionPreview;
