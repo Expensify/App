@@ -82,6 +82,4 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
     );
 }
 
-VideoPlayerThumbnail.displayName = 'VideoPlayerThumbnail';
-
 export default VideoPlayerThumbnail;

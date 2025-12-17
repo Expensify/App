@@ -114,6 +114,4 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
     );
 }
 
-VolumeButton.displayName = 'VolumeButton';
-
 export default memo(VolumeButton);

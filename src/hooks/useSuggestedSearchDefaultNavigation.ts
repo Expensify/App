@@ -40,7 +40,7 @@ function useSuggestedSearchDefaultNavigation({
 
         const defaultMenuItem = getDefaultActionableSearchMenuItem(flattenedMenuItems);
 
-        if (!defaultMenuItem || similarSearchHash === defaultMenuItem.similarSearchHash) {
+        if (!defaultMenuItem || similarSearchHash !== undefined) {
             return;
         }
 

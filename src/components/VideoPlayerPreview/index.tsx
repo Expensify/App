@@ -154,6 +154,4 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     );
 }
 
-VideoPlayerPreview.displayName = 'VideoPlayerPreview';
-
 export default VideoPlayerPreview;

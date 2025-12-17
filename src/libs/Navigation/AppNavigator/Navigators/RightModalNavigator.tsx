@@ -372,6 +372,4 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     );
 }
 
-RightModalNavigator.displayName = 'RightModalNavigator';
-
 export default RightModalNavigator;

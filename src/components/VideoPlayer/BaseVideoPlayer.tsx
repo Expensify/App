@@ -552,6 +552,4 @@ function BaseVideoPlayer({
     );
 }
 
-BaseVideoPlayer.displayName = 'BaseVideoPlayer';
-
 export default BaseVideoPlayer;

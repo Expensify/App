@@ -44,6 +44,4 @@ function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipTex
     );
 }
 
-IconButton.displayName = 'IconButton';
-
 export default IconButton;

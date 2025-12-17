@@ -359,5 +359,4 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
     );
 }
 
-EmojiPickerMenu.displayName = 'EmojiPickerMenu';
 export default EmojiPickerMenu;

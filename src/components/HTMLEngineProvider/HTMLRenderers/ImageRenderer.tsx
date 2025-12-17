@@ -140,6 +140,4 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     );
 }
 
-ImageRenderer.displayName = 'ImageRenderer';
-
 export default memo(ImageRenderer, (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes);

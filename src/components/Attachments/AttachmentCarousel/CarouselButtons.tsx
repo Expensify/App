@@ -79,6 +79,4 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
     ) : null;
 }
 
-CarouselButtons.displayName = 'CarouselButtons';
-
 export default CarouselButtons;

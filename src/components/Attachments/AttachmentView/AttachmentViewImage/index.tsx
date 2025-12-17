@@ -47,6 +47,4 @@ function AttachmentViewImage({attachmentID, url, file, isAuthTokenRequired, load
     );
 }
 
-AttachmentViewImage.displayName = 'AttachmentViewImage';
-
 export default memo(AttachmentViewImage);
