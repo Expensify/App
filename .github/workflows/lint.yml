@@ -26,19 +26,14 @@ jobs:
         with:
           IS_DESKTOP_BUILD: true
 
-      - name: Remove E/App version from package-lock.json (For cache invalidation)
-        shell: bash
-        # Remove App version from package-lock.json to avoid cache invalidation when the App version changes
-        run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
-
       - name: Restore ESLint cache
         # v4
         uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: node_modules/.cache/eslint
-          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'package-lock.json') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'normalized-package-lock.json') }}-
+            ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'package-lock.json') }}-
             ${{ runner.os }}-eslint-
 
       - name: Lint JavaScript and Typescript with ESLint
@@ -52,4 +47,4 @@ jobs:
         if: always()
         with:
           path: node_modules/.cache/eslint
-          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'package-lock.json') }}-${{ github.sha }}
