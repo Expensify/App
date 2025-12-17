@@ -1,6 +1,15 @@
 import type {FlashListRef} from '@shopify/flash-list';
 import React, {createContext, useContext} from 'react';
-import type {ActiveSorting, FilterConfig, SharedListProps, TableColumn, ToggleSortingCallback, UpdateFilterCallback, UpdateSearchStringCallback, UpdateSortingCallback} from './types';
+import type {
+    ActiveSorting,
+    FilterConfig,
+    SharedListProps,
+    TableColumn,
+    ToggleSortingCallback as ToggleColumnSortingCallback,
+    UpdateFilterCallback,
+    UpdateSearchStringCallback,
+    UpdateSortingCallback,
+} from './types';
 
 type TableContextValue<T, ColumnKey extends string = string> = {
     listRef: React.RefObject<FlashListRef<T> | null>;
@@ -15,7 +24,7 @@ type TableContextValue<T, ColumnKey extends string = string> = {
 
     updateFilter: UpdateFilterCallback;
     updateSorting: UpdateSortingCallback<ColumnKey>;
-    toggleSorting: ToggleSortingCallback<ColumnKey>;
+    toggleColumnSorting: ToggleColumnSortingCallback<ColumnKey>;
     updateSearchString: UpdateSearchStringCallback;
 };
 
@@ -32,7 +41,7 @@ const defaultTableContextValue: TableContextValue<unknown, string> = {
     activeSearchString: '',
     updateFilter: () => {},
     updateSorting: () => {},
-    toggleSorting: () => {},
+    toggleColumnSorting: () => {},
     updateSearchString: () => {},
     filterConfig: undefined,
     listProps: {} as SharedListProps<unknown>,

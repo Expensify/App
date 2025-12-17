@@ -205,7 +205,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssign
             isNarrowLayoutRef.current = true;
             const activeSorting = tableRef.current?.getActiveSorting();
             setActiveSortingInWideLayout(activeSorting);
-            tableRef.current?.updateSorting({columnKey: 'member'});
+            tableRef.current?.updateSorting({columnKey: 'member', order: 'asc'});
             return;
         }
 

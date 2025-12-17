@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {ViewProps} from 'react-native';
 import Icon from '@components/Icon';
@@ -11,11 +11,15 @@ import variables from '@styles/variables';
 import {useTableContext} from './TableContext';
 import type {TableColumn} from './types';
 
+// We want to allow the user to switch once between ascending and descending order.
+// After that, sorting for a specific column will be reset.
+const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
+
 type TableHeaderProps = ViewProps;
 
-function TableHeader({style, ...props}: TableHeaderProps) {
+function TableHeader<T, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
     const styles = useThemeStyles();
-    const {columns} = useTableContext();
+    const {columns} = useTableContext<T, ColumnKey>();
 
     return (
         <View
@@ -35,14 +39,26 @@ function TableHeader({style, ...props}: TableHeaderProps) {
     );
 }
 
-function TableHeaderColumn({column}: {column: TableColumn}) {
+function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {column: TableColumn<ColumnKey>}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong'] as const);
 
-    const {activeSorting, toggleSorting} = useTableContext();
+    const {activeSorting, updateSorting, toggleColumnSorting} = useTableContext<T, ColumnKey>();
     const isSortingByColumn = column.key === activeSorting.columnKey;
     const sortIcon = activeSorting.order === 'asc' ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
+
+    const toggleCount = useRef(0);
+    const toggleSorting = (columnKey: ColumnKey) => {
+        if (toggleCount.current >= NUMBER_OF_TOGGLES_BEFORE_RESET) {
+            toggleCount.current = 0;
+            updateSorting({columnKey: undefined, order: 'asc'});
+            return;
+        }
+
+        toggleCount.current++;
+        toggleColumnSorting(columnKey);
+    };
 
     return (
         <PressableWithFeedback

@@ -1,12 +1,8 @@
 import type {FlashListRef} from '@shopify/flash-list';
 import React, {useImperativeHandle, useRef, useState} from 'react';
 import TableContext from './TableContext';
-import type {TableContextValue, UpdateFilterCallback, UpdateSortingCallback} from './TableContext';
+import type {TableContextValue, UpdateFilterCallback} from './TableContext';
 import type {ActiveSorting, GetActiveFiltersCallback, GetActiveSearchStringCallback, GetActiveSortingCallback, TableHandle, TableMethods, TableProps, ToggleSortingCallback} from './types';
-
-// We want to allow the user to switch once between ascending and descending order.
-// After that, sorting for a specific column will be reset.
-const MAX_SORT_TOGGLE_COUNT = 1;
 
 function Table<T, ColumnKey extends string = string, FilterKey extends string = string>({
     ref,
@@ -40,7 +36,6 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         }));
     };
 
-    // Apply filters using predicate functions
     let filteredData = data;
     if (filters) {
         filteredData = data.filter((item) => {
@@ -74,50 +69,15 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
 
     const [activeSearchString, updateSearchString] = useState('');
 
-    // Apply search using onSearch callback
     let filteredAndSearchedData = filteredData;
     if (isItemInSearch && activeSearchString.trim()) {
         filteredAndSearchedData = filteredData.filter((item) => isItemInSearch(item, activeSearchString));
     }
 
-    const sortToggleCountRef = useRef(0);
-    const [activeSorting, setActiveSorting] = useState<ActiveSorting<ColumnKey>>({columnKey: undefined, order: 'asc'});
+    const [activeSorting, updateSorting] = useState<ActiveSorting<ColumnKey>>({columnKey: undefined, order: 'asc'});
 
-    const updateSorting: UpdateSortingCallback<ColumnKey> = ({columnKey, order}) => {
-        if (columnKey) {
-            setActiveSorting({columnKey, order: order ?? 'asc'});
-            return;
-        }
-
-        setActiveSorting({columnKey: undefined, order: 'asc'});
-    };
-
-    const toggleSorting: ToggleSortingCallback<ColumnKey> = (columnKey) => {
-        if (!columnKey) {
-            updateSorting({columnKey: undefined});
-            sortToggleCountRef.current = 0;
-            return;
-        }
-
-        setActiveSorting((currentSorting) => {
-            if (columnKey !== currentSorting.columnKey) {
-                sortToggleCountRef.current = 0;
-                return {columnKey, order: 'asc'};
-            }
-
-            // Check current toggle count to decide if we should reset
-            if (sortToggleCountRef.current >= MAX_SORT_TOGGLE_COUNT) {
-                // Reset sorting when max toggle count is reached
-                sortToggleCountRef.current = 0;
-                updateSorting({columnKey: undefined});
-                return {columnKey: undefined, order: 'asc'};
-            }
-
-            // Toggle the sort order
-            sortToggleCountRef.current += 1;
-            const newSortOrder = currentSorting.order === 'asc' ? 'desc' : 'asc';
-            return {columnKey: currentSorting.columnKey, order: newSortOrder};
-        });
+    const toggleColumnSorting: ToggleSortingCallback<ColumnKey> = (columnKey) => {
+        updateSorting((prevSorting) => ({columnKey: columnKey ?? prevSorting.columnKey, order: prevSorting.order === 'asc' ? 'desc' : 'asc'}));
     };
 
     // Apply sorting using comparator function
@@ -144,7 +104,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
     useImperativeHandle(ref, () => {
         const customMethods: TableMethods<ColumnKey, FilterKey> = {
             updateSorting,
-            toggleSorting,
+            toggleColumnSorting,
             updateFilter,
             updateSearchString,
             getActiveSorting,
@@ -176,7 +136,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         activeSearchString,
         updateFilter,
         updateSorting,
-        toggleSorting,
+        toggleColumnSorting,
         updateSearchString,
     };
 

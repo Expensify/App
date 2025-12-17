@@ -1,5 +1,5 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
-import type {PropsWithChildren} from 'react';
+import type {PropsWithChildren, SetStateAction} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 type TableColumnStyling = {
@@ -35,7 +35,7 @@ type IsItemInFilterCallback<T> = (item: T, filters: string[]) => boolean;
 
 type IsItemInSearchCallback<T> = (item: T, searchString: string) => boolean;
 
-type UpdateSortingCallback<ColumnKey extends string = string> = (params: {columnKey?: ColumnKey; order?: SortOrder}) => void;
+type UpdateSortingCallback<ColumnKey extends string = string> = (value: SetStateAction<ActiveSorting<ColumnKey>>) => void;
 
 type ToggleSortingCallback<ColumnKey extends string = string> = (columnKey?: ColumnKey) => void;
 
@@ -52,7 +52,7 @@ type GetActiveSearchStringCallback = () => string;
 
 type TableMethods<ColumnKey extends string = string, FilterKey extends string = string> = {
     updateSorting: UpdateSortingCallback<ColumnKey>;
-    toggleSorting: ToggleSortingCallback<ColumnKey>;
+    toggleColumnSorting: ToggleSortingCallback<ColumnKey>;
     updateFilter: UpdateFilterCallback<FilterKey>;
     updateSearchString: UpdateSearchStringCallback;
 
