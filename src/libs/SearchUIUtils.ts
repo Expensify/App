@@ -2764,7 +2764,6 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
             [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: false,
             [CONST.SEARCH.TABLE_COLUMNS.TYPE]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
             [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: false,
         };
     }
