@@ -1862,6 +1862,10 @@ function getCardSections(
                 transactionsQueryJSON = buildSearchQueryJSON(newQuery);
             }
 
+            if (!cardGroup.cardID) {
+                continue;
+            }
+
             // Find the custom feed name from all card feeds
             let customFeedName: string | undefined;
             if (cardFeeds) {
