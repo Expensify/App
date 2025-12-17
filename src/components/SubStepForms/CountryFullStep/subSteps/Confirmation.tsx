@@ -140,6 +140,4 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
     );
 }
 
-Confirmation.displayName = 'Confirmation';
-
 export default Confirmation;

@@ -45,6 +45,4 @@ function InternationalDepositAccount({
     );
 }
 
-InternationalDepositAccount.displayName = 'InternationalDepositAccount';
-
 export default InternationalDepositAccount;

@@ -5,7 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {fetchCorpayFields} from '@userActions/BankAccounts';
-import CONST from '@src/CONST';
+import CONST, {COUNTRIES_US_BANK_FLOW} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -15,7 +15,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
 
     const onCountrySelected = useCallback(
         (country: string) => {
-            if (country === CONST.COUNTRY.US) {
+            if (COUNTRIES_US_BANK_FLOW.includes(country)) {
                 if (isUserValidated) {
                     Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
                 } else {
