@@ -131,7 +131,6 @@ type SortedTransactions = {
 
 const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key);
 
-// Get the value to use for sorting a transaction by a given property
 const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableColumnName, reportToSort: OnyxTypes.Report) => {
     switch (key) {
         case CONST.SEARCH.TABLE_COLUMNS.DATE:
