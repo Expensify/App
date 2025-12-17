@@ -40,9 +40,6 @@ import type {CardList, PersonalDetailsList, Policy, Report, WorkspaceCardsList} 
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-// Test comment to trigger lint-changed
-const test = 'test';
-
 type SectionType = {
     titleTranslationKey: TranslationPaths;
     items: Array<{
