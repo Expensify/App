@@ -90,7 +90,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     let subscriptionPlanCardActionButtonWrapStyles;
 
     if (shouldHideSubscriptionSettingsButton) {
-        subscriptionPlanCardActionButtonWrapStyles = [];
+        subscriptionPlanCardActionButtonWrapStyles = shouldUseNarrowLayout ? [] : styles.pb2;
     } else if (shouldUseNarrowLayout) {
         subscriptionPlanCardActionButtonWrapStyles = styles.pb5;
     } else {
