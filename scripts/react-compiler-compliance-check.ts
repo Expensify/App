@@ -425,7 +425,7 @@ class ManualMemoizationChecker {
             }
         }
 
-        const manualMemoFailures = this.findViolations([...enforcedAutoMemoFiles]);
+        const manualMemoFailures = this.findViolations(enforcedAutoMemoFiles);
 
         return {
             manualMemoFailures,
@@ -465,7 +465,7 @@ class ManualMemoizationChecker {
         return {addedFiles, enforcedAutoMemoFiles};
     }
 
-    private static findViolations(files: string[]): Map<string, ManualMemoizationError[]> {
+    private static findViolations(files: Set<string>): Map<string, ManualMemoizationError[]> {
         const manualMemoFailures = new Map<string, ManualMemoizationError[]>();
 
         for (const file of files) {
