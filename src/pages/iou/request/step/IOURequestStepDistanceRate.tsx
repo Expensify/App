@@ -143,7 +143,7 @@ function IOURequestStepDistanceRate({
             headerTitle={translate('common.rate')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepDistanceRate.displayName}
+            testID="IOURequestStepDistanceRate"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
@@ -158,8 +158,6 @@ function IOURequestStepDistanceRate({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepDistanceRate.displayName = 'IOURequestStepDistanceRate';
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceRateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceRate);

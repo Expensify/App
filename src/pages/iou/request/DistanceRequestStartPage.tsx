@@ -185,7 +185,7 @@ function DistanceRequestStartPage({
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMinHeight={canUseTouchScreen()}
-                testID={DistanceRequestStartPage.displayName}
+                testID="DistanceRequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
                 <View style={styles.flex1}>
@@ -233,7 +233,5 @@ function DistanceRequestStartPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-DistanceRequestStartPage.displayName = 'DistanceRequestStartPage';
 
 export default DistanceRequestStartPage;
