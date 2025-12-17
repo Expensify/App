@@ -217,6 +217,4 @@ function ReportActionItemParentAction({
     );
 }
 
-ReportActionItemParentAction.displayName = 'ReportActionItemParentAction';
-
 export default ReportActionItemParentAction;
