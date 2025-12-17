@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -72,12 +72,7 @@ function ProcessMoneyReportHoldMenu({
         onClose();
     };
 
-    const promptText = useMemo(() => {
-        if (nonHeldAmount) {
-            return translate('iou.confirmPayAmount');
-        }
-        return translate('iou.confirmPayAllHoldAmount', {count: transactionCount});
-    }, [nonHeldAmount, transactionCount, translate]);
+    const promptText = nonHeldAmount ? translate('iou.confirmPayAmount') : translate('iou.confirmPayAllHoldAmount', {count: transactionCount});
 
     return (
         <DecisionModal
