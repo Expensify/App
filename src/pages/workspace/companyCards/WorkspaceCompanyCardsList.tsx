@@ -19,7 +19,9 @@ import {
     getCardsByCardholderName,
     getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
+    getPlaidInstitutionId,
     getPlaidInstitutionIconUrl,
+    isCustomFeed,
     sortCardsByCardholderName,
 } from '@libs/CardUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -42,7 +44,7 @@ type WorkspaceCompanyCardsListProps = {
     policyID: string;
 
     /** On assign card callback */
-    onAssignCard: () => void;
+    onAssignCard: (cardID?: string) => void;
 
     /** Whether to disable assign card button */
     isAssigningCardDisabled?: boolean;
@@ -146,6 +148,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
         },
         [
             assignedCards,
+            cardList,
             customCardNames,
             isAssigningCardDisabled,
             onAssignCard,
