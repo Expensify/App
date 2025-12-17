@@ -95,6 +95,28 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
             const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID];
 
             const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            
+            let cardIdentifier: string | undefined;
+            if (!assignedCard) {
+                const isPlaid = !!getPlaidInstitutionId(selectedFeed);
+                const isCommercial = isCustomFeed(selectedFeed);
+                
+                if (isPlaid) {
+                    cardIdentifier = cardName;
+                } else if (isCommercial) {
+                    const cardValue = cardList?.[cardName] ?? cardName;
+                    const digitsOnly = cardValue.replace(/\D/g, '');
+                    if (digitsOnly.length >= 10) {
+                        const first6 = digitsOnly.substring(0, 6);
+                        const last4 = digitsOnly.substring(digitsOnly.length - 4);
+                        cardIdentifier = `${first6}${last4}`;
+                    } else {
+                        cardIdentifier = cardValue;
+                    }
+                } else {
+                    cardIdentifier = cardList?.[cardName] ?? cardName;
+                }
+            }
 
             return (
                 <OfflineWithFeedback
@@ -111,7 +133,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
                         disabled={isCardDeleted}
                         onPress={() => {
                             if (!assignedCard) {
-                                onAssignCard();
+                                onAssignCard(cardIdentifier);
                                 return;
                             }
 
@@ -137,7 +159,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
                                 customCardName={customCardName}
                                 isHovered={hovered}
                                 isAssigned={!!assignedCard}
-                                onAssignCard={onAssignCard}
+                                onAssignCard={() => onAssignCard(cardIdentifier)}
                                 isAssigningCardDisabled={isAssigningCardDisabled}
                                 shouldUseNarrowTableRowLayout={shouldUseNarrowTableRowLayout}
                             />
