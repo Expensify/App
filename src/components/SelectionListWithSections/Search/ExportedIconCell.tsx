@@ -24,11 +24,11 @@ function ExportedIconCell({reportID}: ExportedIconCellProps) {
     const actionNames = actions.map((action) => action.actionName);
 
     const isExportedToCsv = actionNames.includes(CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV);
-    const isExportedToXero = actions.find((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.XERO);
-    const isExportedToIntacct = actions.find((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.INTACCT);
-    const isExportedToNetsuite = actions.find((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.NETSUITE);
-    const isExportedToQuickbooksOnline = actions.find((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.QBO);
-    const isExportedToQuickbooksDesktop = actions.find((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.QBD);
+    const isExportedToXero = actions.some((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.XERO);
+    const isExportedToIntacct = actions.some((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.INTACCT);
+    const isExportedToNetsuite = actions.some((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.NETSUITE);
+    const isExportedToQuickbooksOnline = actions.some((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.QBO);
+    const isExportedToQuickbooksDesktop = actions.some((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.QBD);
 
     if (!reportID) {
         return null;
