@@ -26,6 +26,7 @@ function TableSearchBar() {
                 value={searchString}
                 onChangeText={handleChangeText}
                 icon={searchString.length === 0 ? expensifyIcons.MagnifyingGlass : undefined}
+                includeIconPadding={false}
                 shouldShowClearButton
                 shouldHideClearButton={searchString.length === 0}
                 onClearInput={handleClearInput}

@@ -45,6 +45,7 @@ function BaseTextInput({
     errorText = '',
     icon = null,
     iconLeft = null,
+    includeIconPadding = true,
     textInputContainerStyles,
     shouldApplyPaddingToContainer = true,
     touchableInputWrapperStyle,
@@ -503,7 +504,7 @@ function BaseTextInput({
                             {!inputProps.secureTextEntry && !!icon && (
                                 <View
                                     style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff),
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, includeIconPadding, verticalPaddingDiff),
                                         !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone,
                                         iconContainerStyle,
                                     ]}
