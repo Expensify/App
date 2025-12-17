@@ -1,12 +1,12 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useMemo, useState} from 'react';
-import {CheckSquare} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle, SelectionListProps} from '@components/SelectionList/types';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -39,6 +39,7 @@ function SelectionListWithModal<TItem extends ListItem>({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
+    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
@@ -105,7 +106,7 @@ function SelectionListWithModal<TItem extends ListItem>({
             >
                 <MenuItem
                     title={translate('common.select')}
-                    icon={CheckSquare}
+                    icon={icons.CheckSquare}
                     onPress={turnOnSelectionMode}
                     pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
                 />

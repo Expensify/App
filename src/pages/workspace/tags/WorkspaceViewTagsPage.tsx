@@ -6,7 +6,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,6 +16,7 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import ListItemRightCaretWithLabel from '@components/SelectionListWithModal/ListItemRightCaretWithLabel';
 import Switch from '@components/Switch';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -63,6 +63,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Checkmark', 'Trashcan']);
     const {translate, localeCompare} = useLocalize();
     const dropdownButtonRef = useRef<View>(null);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
@@ -244,7 +245,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
         if (!isThereAnyAccountingConnection && !isMultiLevelTags && selectedTags.length > 0) {
             options.push({
-                icon: Expensicons.Trashcan,
+                icon: icons.Trashcan,
                 text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setIsDeleteTagsConfirmModalVisible(true),
@@ -274,7 +275,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         if (enabledTagCount > 0) {
             const selectedTagsObject = selectedTags.map((key) => currentPolicyTag?.tags[key]);
             options.push({
-                icon: Expensicons.Close,
+                icon: icons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
@@ -291,7 +292,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
         if (disabledTagCount > 0) {
             options.push({
-                icon: Expensicons.Checkmark,
+                icon: icons.Checkmark,
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
