@@ -38,6 +38,4 @@ function SilentCommentUpdater({commentRef, reportID, value, updateComment, isCom
     return null;
 }
 
-SilentCommentUpdater.displayName = 'SilentCommentUpdater';
-
 export default SilentCommentUpdater;

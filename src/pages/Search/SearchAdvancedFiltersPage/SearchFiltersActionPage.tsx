@@ -46,7 +46,7 @@ function SearchFiltersActionPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersActionPage.displayName}
+            testID="SearchFiltersActionPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -84,7 +84,5 @@ function SearchFiltersActionPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersActionPage.displayName = 'SearchFiltersActionPage';
 
 export default SearchFiltersActionPage;
