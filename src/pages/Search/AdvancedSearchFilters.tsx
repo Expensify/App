@@ -27,7 +27,7 @@ import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
-import {getReportName} from '@libs/ReportUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery, isSearchDatePreset, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import {getExpenseTypeTranslationKey, getStatusOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -534,7 +534,7 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
 
 function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
     return filters.in
-        ?.map((id) => getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]))
+        ?.map((id) => computeReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reports))
         ?.filter(Boolean)
         ?.join(', ');
 }
