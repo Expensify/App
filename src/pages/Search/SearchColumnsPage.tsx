@@ -10,6 +10,7 @@ import SelectionList from '@components/SelectionListWithSections';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import type {SectionListDataType} from '@components/SelectionListWithSections/types';
 import TextLink from '@components/TextLink';
+import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,11 +27,11 @@ function SearchColumnsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const {currentSearchQueryJSON} = useSearchContext();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-
-    const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-    const allCustomColumns = getCustomColumns(queryType);
-    const defaultCustomColumns = getCustomColumnDefault(queryType);
+    const searchType = currentSearchQueryJSON?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const allCustomColumns = getCustomColumns(searchType);
+    const defaultCustomColumns = getCustomColumnDefault(searchType);
 
     const [selectedColumnIds, setSelectedColumnIds] = useState<SearchCustomColumnIds[]>(() => {
         const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
