@@ -5064,6 +5064,9 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 cardNumber: 'カード番号',
                 cardholder: 'カード保有者',
                 cardName: 'カード名',
+                allCards: 'すべてのカード',
+                assignedCards: '割り当て済み',
+                unassignedCards: '未割り当て',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `${integration} ${type.toLowerCase()} エクスポート` : `${integration} エクスポート`,
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `取引をエクスポートする先の ${integration} アカウントを選択してください。`,

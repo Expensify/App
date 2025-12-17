@@ -7,6 +7,7 @@ type UpdateFilterCallback = (params: {key: string; value: unknown}) => void;
 
 type TableContextValue<T, ColumnKey extends string = string> = {
     filteredAndSortedData: T[];
+    originalDataLength: number;
     columns: TableColumn[];
     currentFilters: Record<string, unknown>;
     sortColumn: ColumnKey | undefined;
@@ -21,6 +22,7 @@ type TableContextValue<T, ColumnKey extends string = string> = {
 
 const defaultTableContextValue: TableContextValue<unknown, string> = {
     filteredAndSortedData: [],
+    originalDataLength: 0,
     columns: [],
     currentFilters: {},
     sortColumn: undefined,

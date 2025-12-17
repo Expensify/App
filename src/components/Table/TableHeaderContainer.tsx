@@ -10,7 +10,7 @@ type TableHeaderProps = {
 function TableHeaderContainer({children}: TableHeaderProps) {
     const styles = useThemeStyles();
 
-    return <View style={styles.flexRow}>{children}</View>;
+    return <View style={[styles.flexRow, styles.alignItemsCenter]}>{children}</View>;
 }
 
 export default TableHeaderContainer;

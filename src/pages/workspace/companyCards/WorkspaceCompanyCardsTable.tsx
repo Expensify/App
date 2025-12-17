@@ -1,22 +1,18 @@
-import type {FlashListRef} from '@shopify/flash-list';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Table from '@components/Table';
-import type {CompareItemsCallback, TableColumn} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardDefaultName} from '@libs/actions/Card';
-import {filterCardsByPersonalDetails, getCardsByCardholderName, getCompanyFeeds, getPlaidInstitutionIconUrl, sortCardsByCardholderName} from '@libs/CardUtils';
-import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {getCompanyFeeds, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CompanyCardFeedWithDomainID, WorkspaceCardsList} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID, WorkspaceCardsList} from '@src/types/onyx';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableItem';
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableItem';
@@ -41,17 +37,26 @@ type WorkspaceCompanyCardsTableProps = {
 
     /** Whether to show GB disclaimer */
     shouldShowGBDisclaimer?: boolean;
+
+    /** Render prop for header buttons - receives SearchBar and FilterButtons as children */
+    renderHeaderButtons?: (searchBar: React.ReactNode, filterButtons: React.ReactNode) => React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer}: WorkspaceCompanyCardsTableProps) {
+function WorkspaceCompanyCardsTable({
+    selectedFeed,
+    cardsList,
+    policyID,
+    onAssignCard,
+    isAssigningCardDisabled,
+    shouldShowGBDisclaimer,
+    renderHeaderButtons,
+}: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const listRef = useRef<FlashListRef<string>>(null);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const policy = usePolicy(policyID);
 
     const {cardList, ...assignedCards} = cardsList ?? {};
     const [cardFeeds] = useCardFeeds(policyID);
@@ -60,19 +65,6 @@ function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssign
     const cards = companyFeeds?.[selectedFeed]?.accountList;
 
     const plaidIconUrl = getPlaidInstitutionIconUrl(selectedFeed);
-
-    // Get all cards sorted by cardholder name
-    const allCards = useMemo(() => {
-        const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
-        return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
-    }, [cardsList, policy?.employeeList]);
-
-    // Filter and sort cards based on search input
-    const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
-    const sortCards = useCallback((cardsToSort: Card[]) => sortCardsByCardholderName(cardsToSort, personalDetails, localeCompare), [personalDetails, localeCompare]);
-    const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
-
-    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
@@ -106,7 +98,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssign
         />
     );
 
-    const keyExtractor = (item: string, index: number) => `${item}_${index}`;
+    const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
 
     const compareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey> = (a, b, sortColumn, order) => {
         const orderMultiplier = order === 'asc' ? 1 : -1;
@@ -143,6 +135,47 @@ function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssign
         return 0;
     };
 
+    const isItemInSearch: IsItemInSearchCallback<WorkspaceCompanyCardTableItemData> = useCallback((item, searchString) => {
+        const searchLower = searchString.toLowerCase();
+        return (
+            item.cardName.toLowerCase().includes(searchLower) ||
+            (item.customCardName?.toLowerCase().includes(searchLower) ?? false) ||
+            (item.cardholder?.displayName?.toLowerCase().includes(searchLower) ?? false) ||
+            (item.cardholder?.login?.toLowerCase().includes(searchLower) ?? false)
+        );
+    }, []);
+
+    const isItemInFilter: IsItemInFilterCallback<WorkspaceCompanyCardTableItemData> = useCallback((item, filterValues) => {
+        if (!filterValues || filterValues.length === 0) {
+            return true;
+        }
+        if (filterValues.includes('all')) {
+            return true;
+        }
+        if (filterValues.includes('assigned') && item.isAssigned) {
+            return true;
+        }
+        if (filterValues.includes('unassigned') && !item.isAssigned) {
+            return true;
+        }
+        return false;
+    }, []);
+
+    const filterConfig: FilterConfig = useMemo(
+        () => ({
+            status: {
+                filterType: 'single-select',
+                options: [
+                    {label: translate('workspace.moreFeatures.companyCards.allCards'), value: 'all'},
+                    {label: translate('workspace.moreFeatures.companyCards.assignedCards'), value: 'assigned'},
+                    {label: translate('workspace.moreFeatures.companyCards.unassignedCards'), value: 'unassigned'},
+                ],
+                default: 'all',
+            },
+        }),
+        [translate],
+    );
+
     const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
         {
             key: 'member',
@@ -160,23 +193,6 @@ function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssign
             },
         },
     ];
-
-    // TODO: Implement search bar
-    // const ListHeaderComponent = shouldUseNarrowTableRowLayout ? (
-    //     <View style={styles.h7} />
-    // ) : (
-    //     <>
-    //         {(cards?.length ?? 0) > CONST.SEARCH_ITEM_LIMIT && (
-    //             <SearchBar
-    //                 label={translate('workspace.companyCards.findCard')}
-    //                 inputValue={inputValue}
-    //                 onChangeText={setInputValue}
-    //                 shouldShowEmptyState={isSearchEmpty}
-    //                 style={[styles.mt5]}
-    //             />
-    //         )}
-    //     </>
-    // );
 
     // Show empty state when there are no cards
     if (!data.length) {
@@ -196,31 +212,15 @@ function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssign
             renderItem={renderItem}
             keyExtractor={keyExtractor}
             compareItems={compareItems}
-            // isItemInFilter={isItemInFilter}
-            // isItemInSearch={isItemInSearch}
+            isItemInSearch={isItemInSearch}
+            isItemInFilter={isItemInFilter}
+            filters={filterConfig}
         >
-            {/* <Table.SearchBar /> */}
-            {/* <Table.FilterButtons /> */}
-            {/* <Table.SortButtons /> */}
+            {renderHeaderButtons?.(<Table.SearchBar />, <Table.FilterButtons />)}
             <Table.Header />
             <Table.Body />
         </Table>
     );
-
-    // return (
-    //     <View style={styles.flex1}>
-    //         <FlashList
-    //             ref={listRef}
-    //             data={cards}
-    //             renderItem={renderItem}
-    //             keyExtractor={keyExtractor}
-    //             ListHeaderComponent={ListHeaderComponent}
-    //             showsVerticalScrollIndicator={false}
-    //             keyboardShouldPersistTaps="handled"
-    //             contentContainerStyle={styles.flexGrow1}
-    //         />
-    //     </View>
-    // );
 }
 
 export default WorkspaceCompanyCardsTable;

@@ -98,7 +98,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     showLoadingAsFirstRender={false}
                     addBottomSafeAreaPadding
                 >
-                    {(isFeedAdded || isPending) && !!selectedFeed && (
+                    {isPending && !!selectedFeed && (
                         <WorkspaceCompanyCardsListHeaderButtons
                             policyID={policyID}
                             selectedFeed={selectedFeed}
@@ -119,6 +119,14 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                             policyID={policyID}
                             onAssignCard={assignCard}
                             isAssigningCardDisabled={isAssigningCardDisabled}
+                            renderHeaderButtons={(searchBar, filterButtons) => (
+                                <WorkspaceCompanyCardsListHeaderButtons
+                                    policyID={policyID}
+                                    selectedFeed={selectedFeed}
+                                    searchBar={searchBar}
+                                    filterButtons={filterButtons}
+                                />
+                            )}
                         />
                     )}
                 </WorkspacePageWithSections>

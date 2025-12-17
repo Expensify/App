@@ -10,9 +10,11 @@ import * as Expensicons from './Icon/Expensicons';
 
 type CaretWrapperProps = ChildrenProps & {
     style?: StyleProp<ViewStyle>;
+    carretWidth?: number;
+    carretHeight?: number;
 };
 
-function CaretWrapper({children, style}: CaretWrapperProps) {
+function CaretWrapper({children, style, carretWidth, carretHeight}: CaretWrapperProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -22,8 +24,8 @@ function CaretWrapper({children, style}: CaretWrapperProps) {
             <Icon
                 src={Expensicons.DownArrow}
                 fill={theme.icon}
-                width={variables.iconSizeExtraSmall}
-                height={variables.iconSizeExtraSmall}
+                width={carretWidth ?? variables.iconSizeExtraSmall}
+                height={carretHeight ?? variables.iconSizeExtraSmall}
             />
         </View>
     );

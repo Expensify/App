@@ -9,15 +9,13 @@ function Table<T, ColumnKey extends string = string>({data = [], columns, filter
     }
 
     const [currentFilters, setCurrentFilters] = useState<Record<string, unknown>>(() => {
-        return {};
-
-        // const initialFilters: Record<string, unknown> = {};
-        // if (filters) {
-        //     for (const key of Object.keys(filters)) {
-        //         initialFilters[key] = filters[key].default;
-        //     }
-        // }
-        // return initialFilters;
+        const initialFilters: Record<string, unknown> = {};
+        if (filters) {
+            for (const key of Object.keys(filters)) {
+                initialFilters[key] = filters[key].default;
+            }
+        }
+        return initialFilters;
     });
 
     const [sortColumn, setSortColumn] = useState<ColumnKey | undefined>();
@@ -48,8 +46,7 @@ function Table<T, ColumnKey extends string = string>({data = [], columns, filter
         filteredData = data.filter((item) => {
             return Object.keys(filters).every((filterKey) => {
                 const filterConfig = filters[filterKey];
-                // const filterValue = filterValues[filterKey];
-                const filterValue = undefined;
+                const filterValue = currentFilters[filterKey];
 
                 // If filter value is empty/undefined, include the item
                 if (filterValue === undefined || filterValue === null) {
@@ -58,16 +55,17 @@ function Table<T, ColumnKey extends string = string>({data = [], columns, filter
 
                 // Handle multi-select filters (array values)
                 if (filterConfig.filterType === 'multi-select') {
-                    const filterValueArray = Array.isArray(filterValue) ? filterValue : [];
+                    const filterValueArray = Array.isArray(filterValue) ? filterValue.filter((v): v is string => typeof v === 'string') : [];
                     if (filterValueArray.length === 0) {
                         return true;
                     }
-                    // For multi-select, item passes if it matches any selected value
-                    return filterValueArray.some((value) => isItemInFilter?.(item, value) ?? true);
+                    // For multi-select, pass the array of selected values
+                    return isItemInFilter?.(item, filterValueArray) ?? true;
                 }
 
                 // Handle single-select filters
-                return isItemInFilter?.(item, filterValue) ?? true;
+                const singleValue = typeof filterValue === 'string' ? filterValue : '';
+                return singleValue === '' || (isItemInFilter?.(item, [singleValue]) ?? true);
             });
         });
     }
@@ -91,6 +89,7 @@ function Table<T, ColumnKey extends string = string>({data = [], columns, filter
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<T, ColumnKey> = {
         filteredAndSortedData,
+        originalDataLength: data?.length ?? 0,
         columns,
         currentFilters,
         sortColumn,

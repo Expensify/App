@@ -46,32 +46,31 @@ function SortButton({option, isActive, sortOrder, onPress}: SortButtonProps) {
 
 function TableSortButtons() {
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong'] as const);
-    const {sortByConfig, sortColumn: sortBy, sortOrder, updateSorting: setSortBy} = useTableContext();
+    const {columns, sortColumn: sortBy, sortOrder, updateSorting} = useTableContext();
 
     const handleSortPress = (sortKey: string) => {
         // If clicking the same sort key, toggle order; otherwise set new sort key with ascending order
         if (sortBy === sortKey) {
             const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-            setSortBy(sortKey, newOrder);
+            updateSorting({columnKey: sortKey, order: newOrder});
             return;
         }
 
-        setSortBy(sortKey, 'asc');
+        updateSorting({columnKey: sortKey, order: 'asc'});
     };
 
-    if (!sortByConfig || sortByConfig.options.length === 0) {
+    if (!columns || columns.length === 0) {
         return null;
     }
 
     return (
         <View style={[styles.flexRow, styles.gap2]}>
-            {sortByConfig.options.map((option) => {
-                const isActive = sortBy === option.value;
+            {columns.map((column) => {
+                const isActive = sortBy === column.key;
                 return (
                     <SortButton
-                        key={option.value}
-                        option={option}
+                        key={column.key}
+                        option={{label: column.label, value: column.key}}
                         isActive={isActive}
                         sortOrder={sortOrder}
                         onPress={handleSortPress}

@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -35,13 +34,12 @@ type Props = {
 function FeedSelector({onFeedSelect, cardIcon, feedName, supportingText, shouldShowRBR = false, plaidUrl = null}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const Expensicons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
     return (
         <PressableWithFeedback
             onPress={onFeedSelect}
             wrapperStyle={styles.flex1}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldUseNarrowLayout && styles.mb3]}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
             accessibilityLabel={feedName ?? ''}
         >
             {plaidUrl ? (

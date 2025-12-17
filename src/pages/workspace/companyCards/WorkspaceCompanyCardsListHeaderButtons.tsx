@@ -50,11 +50,17 @@ type WorkspaceCompanyCardsListHeaderButtonsProps = {
 
     /** Currently selected feed */
     selectedFeed: CompanyCardFeedWithDomainID;
+
+    /** Search bar component to render */
+    searchBar?: React.ReactNode;
+
+    /** Filter buttons component to render */
+    filterButtons?: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: WorkspaceCompanyCardsListHeaderButtonsProps) {
+function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, searchBar, filterButtons}: WorkspaceCompanyCardsListHeaderButtonsProps) {
     const styles = useThemeStyles();
-    const {isExtraSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const theme = useTheme();
     const illustrations = useThemeIllustrations();
@@ -123,7 +129,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
         return `${firstPart}${secondPart}`;
     }, [domain?.email, isCommercialFeed, policy?.name, translate]);
 
-    const shouldUseNarrowHeaderButtonsLayout = isExtraSmallScreenWidth && shouldUseNarrowLayout;
+    const shouldShowResponsiveLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     return (
         <View>
@@ -131,9 +137,9 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 style={[
                     styles.w100,
                     styles.ph5,
-                    styles.gap2,
+                    styles.gap5,
                     styles.pb2,
-                    !shouldUseNarrowHeaderButtonsLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
+                    !shouldShowResponsiveLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
                 ]}
             >
                 <FeedSelector
@@ -144,16 +150,26 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                     supportingText={supportingText}
                     shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed)}
                 />
-                <View style={shouldUseNarrowHeaderButtonsLayout && styles.flex1}>
-                    <ButtonWithDropdownMenu
-                        success={false}
-                        onPress={() => {}}
-                        shouldUseOptionIcon
-                        customText={translate('common.more')}
-                        options={secondaryActions}
-                        isSplitButton={false}
-                        wrapperStyle={styles.flexGrow0}
-                    />
+                <View
+                    style={[
+                        styles.alignItemsCenter,
+                        styles.gap3,
+                        shouldShowResponsiveLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow,
+                    ]}
+                >
+                    {searchBar}
+                    <View style={[styles.flexRow, styles.gap3, shouldShowResponsiveLayout && [styles.w100]]}>
+                        <View style={shouldShowResponsiveLayout && styles.flex1}>{filterButtons}</View>
+                        <ButtonWithDropdownMenu
+                            success={false}
+                            onPress={() => {}}
+                            shouldUseOptionIcon
+                            customText={translate('common.more')}
+                            options={secondaryActions}
+                            isSplitButton={false}
+                            wrapperStyle={shouldShowResponsiveLayout ? styles.flex1 : styles.flexGrow0}
+                        />
+                    </View>
                 </View>
             </View>
             {isSelectedFeedConnectionBroken && !!bankName && (

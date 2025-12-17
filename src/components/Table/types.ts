@@ -13,14 +13,13 @@ type TableColumn<ColumnKey extends string = string> = {
     styling?: TableColumnStyling;
 };
 
-type FilterConfig = Record<
-    string,
-    {
-        filterType?: 'multi-select' | 'single-select';
-        options?: string[];
-        default?: string;
-    }
->;
+type FilterConfigEntry = {
+    filterType?: 'multi-select' | 'single-select';
+    options: Array<{label: string; value: string}>;
+    default?: string;
+};
+
+type FilterConfig = Record<string, FilterConfigEntry>;
 
 type TableSortOrder = 'asc' | 'desc';
 
@@ -45,4 +44,4 @@ type TableProps<T, ColumnKey extends string = string> = SharedFlatListProps<T> &
         isItemInSearch?: IsItemInSearchCallback<T>;
     }>;
 
-export type {TableColumn, FilterConfig, SharedFlatListProps, TableProps, TableSortOrder, CompareItemsCallback, IsItemInFilterCallback, IsItemInSearchCallback};
+export type {TableColumn, FilterConfig, FilterConfigEntry, SharedFlatListProps, TableProps, TableSortOrder, CompareItemsCallback, IsItemInFilterCallback, IsItemInSearchCallback};

@@ -1,14 +1,17 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native-web';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {useTableContext} from './TableContext';
-import type {FilterConfig} from './types';
+import type {FilterConfig, FilterConfigEntry} from './types';
 
 type FilterButtonItem = {
     key: string;
@@ -19,7 +22,7 @@ type FilterButtonItem = {
 
 type MultiSelectPopoverFactoryProps = {
     filterKey: string;
-    filterConfig: FilterConfig;
+    filterConfig: FilterConfigEntry;
     currentFilterValue: unknown;
     setFilter: (key: string, value: unknown) => void;
 };
@@ -31,7 +34,7 @@ function createMultiSelectPopover({filterKey, filterConfig, currentFilterValue, 
             .filter((option) => currentValueArray.includes(option.value))
             .map((option) => ({
                 text: option.label,
-                value: option.value as string,
+                value: option.value,
             }));
 
         const handleChange = (items: Array<{text: string; value: string}>) => {
@@ -44,7 +47,7 @@ function createMultiSelectPopover({filterKey, filterConfig, currentFilterValue, 
                 label={filterKey}
                 items={filterConfig.options.map((option) => ({
                     text: option.label,
-                    value: option.value as string,
+                    value: option.value,
                 }))}
                 value={selectedItems}
                 closeOverlay={closeOverlay}
@@ -56,16 +59,17 @@ function createMultiSelectPopover({filterKey, filterConfig, currentFilterValue, 
 
 type SingleSelectPopoverFactoryProps = {
     filterKey: string;
-    filterConfig: FilterConfig;
+    filterConfig: FilterConfigEntry;
     currentFilterValue: unknown;
     setFilter: (key: string, value: unknown) => void;
 };
 
 function createSingleSelectPopover({filterKey, filterConfig, currentFilterValue, setFilter}: SingleSelectPopoverFactoryProps) {
     return ({closeOverlay}: PopoverComponentProps) => {
-        const selectedItem = filterConfig.options.find((option) => option.value === currentFilterValue)
+        const foundOption = filterConfig.options.find((option) => option.value === currentFilterValue);
+        const selectedItem = foundOption
             ? {
-                  text: filterConfig.options.find((option) => option.value === currentFilterValue)?.label,
+                  text: foundOption.label,
                   value: currentFilterValue as string,
               }
             : null;
@@ -79,7 +83,7 @@ function createSingleSelectPopover({filterKey, filterConfig, currentFilterValue,
                 label={filterKey}
                 items={filterConfig.options.map((option) => ({
                     text: option.label,
-                    value: option.value as string,
+                    value: option.value,
                 }))}
                 value={selectedItem}
                 closeOverlay={closeOverlay}
@@ -94,17 +98,24 @@ type FilterItemRendererProps = {
 };
 
 function FilterItemRenderer({item}: FilterItemRendererProps) {
-    const DropdownButtonWithViewport = withViewportOffsetTop(DropdownButton);
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const shouldShowResponsiveLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     return (
-        <DropdownButtonWithViewport
+        <DropdownButton
             label={item.label}
             value={item.value}
             PopoverComponent={item.PopoverComponent}
+            innerStyles={[styles.gap2, shouldShowResponsiveLayout && styles.mw100]}
+            wrapperStyle={shouldShowResponsiveLayout && styles.w100}
+            labelStyle={styles.fontSizeLabel}
+            carretWrapperStyle={styles.gap2}
+            medium
         />
     );
 }
 
-function getDisplayValue(filterConfig: FilterConfig, currentFilterValue: unknown): string | string[] | null {
+function getDisplayValue(filterConfig: FilterConfigEntry, currentFilterValue: unknown): string | string[] | null {
     if (currentFilterValue === undefined || currentFilterValue === null) {
         return null;
     }
@@ -127,7 +138,7 @@ function getDisplayValue(filterConfig: FilterConfig, currentFilterValue: unknown
 
 function createPopoverComponent(
     filterKey: string,
-    filterConfig: FilterConfig,
+    filterConfig: FilterConfigEntry,
     currentFilterValue: unknown,
     setFilter: (key: string, value: unknown) => void,
 ): (props: PopoverComponentProps) => ReactNode {
@@ -138,7 +149,12 @@ function createPopoverComponent(
     return createSingleSelectPopover({filterKey, filterConfig, currentFilterValue, setFilter});
 }
 
-function buildFilterItems(filterConfigs: Record<string, FilterConfig> | undefined, filters: Record<string, unknown>, setFilter: (key: string, value: unknown) => void): FilterButtonItem[] {
+function buildFilterItems(
+    filterConfigs: FilterConfig | undefined,
+    filters: Record<string, unknown>,
+    setFilter: (key: string, value: unknown) => void,
+    filtersLabel: string,
+): FilterButtonItem[] {
     if (!filterConfigs) {
         return [];
     }
@@ -146,11 +162,34 @@ function buildFilterItems(filterConfigs: Record<string, FilterConfig> | undefine
     return Object.keys(filterConfigs).map((filterKey) => {
         const filterConfig = filterConfigs[filterKey];
         const currentFilterValue = filters[filterKey];
+        const displayValue = getDisplayValue(filterConfig, currentFilterValue);
+
+        // Determine the label to display
+        let label: string;
+        if (filterConfig.filterType === 'multi-select') {
+            // For multi-select: show selected values joined, or translated "Filters" if nothing selected
+            if (Array.isArray(displayValue) && displayValue.length > 0) {
+                label = displayValue.join(', ');
+            } else {
+                label = filtersLabel;
+            }
+        } else {
+            // For single-select: show display value, or default option label, or filterKey
+            if (displayValue && !Array.isArray(displayValue)) {
+                label = displayValue;
+            } else if (filterConfig.default) {
+                // Find the default option label
+                const defaultOption = filterConfig.options.find((opt) => opt.value === filterConfig.default);
+                label = defaultOption?.label ?? filterKey;
+            }
+
+            label = filterKey;
+        }
 
         return {
             key: filterKey,
-            label: filterKey,
-            value: getDisplayValue(filterConfig, currentFilterValue),
+            label,
+            value: null,
             PopoverComponent: createPopoverComponent(filterKey, filterConfig, currentFilterValue, setFilter),
         };
     });
@@ -160,15 +199,41 @@ function renderFilterItem({item}: {item: FilterButtonItem}) {
     return <FilterItemRenderer item={item} />;
 }
 
+function CellRendererComponent({children, style, ...props}: {children: ReactNode; style: StyleProp<ViewStyle>}) {
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const shouldShowResponsiveLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    return (
+        <View
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            style={[style, shouldShowResponsiveLayout && styles.flex1]}
+        >
+            {children}
+        </View>
+    );
+}
+
 function TableFilterButtons() {
     const styles = useThemeStyles();
-    const {currentFilters: filterConfigs, currentFilters: filters, updateFilter: setFilter} = useTableContext();
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {filterConfig: filterConfigs, currentFilters: filters, updateFilter} = useTableContext();
 
-    const filterItems = buildFilterItems(filterConfigs, filters, setFilter);
+    const setFilter = useCallback(
+        (key: string, value: unknown) => {
+            updateFilter({key, value});
+        },
+        [updateFilter],
+    );
+
+    const filterItems = buildFilterItems(filterConfigs, filters, setFilter, translate('search.filtersHeader'));
 
     if (filterItems.length === 0) {
         return null;
     }
+
+    const shouldShowResponsiveLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     return (
         <FlatList
@@ -176,8 +241,10 @@ function TableFilterButtons() {
             data={filterItems}
             keyExtractor={(item) => item.key}
             renderItem={renderFilterItem}
-            contentContainerStyle={[styles.flexRow, styles.gap2]}
+            style={shouldShowResponsiveLayout && [styles.flexGrow0, styles.flexShrink0]}
+            contentContainerStyle={[styles.flexRow, styles.gap2, styles.w100]}
             showsHorizontalScrollIndicator={false}
+            CellRendererComponent={CellRendererComponent}
         />
     );
 }

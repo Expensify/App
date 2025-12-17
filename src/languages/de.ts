@@ -5111,6 +5111,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 cardNumber: 'Kartennummer',
                 cardholder: 'Karteninhaber',
                 cardName: 'Kartenname',
+                allCards: 'Alle Karten',
+                assignedCards: 'Zugewiesen',
+                unassignedCards: 'Nicht zugewiesen',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} Export` : `${integration}-Export`),
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Wählen Sie das ${integration}-Konto, in das die Transaktionen exportiert werden sollen.`,
                 integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>

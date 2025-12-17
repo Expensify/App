@@ -5092,6 +5092,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 cardNumber: 'Numero carta',
                 cardholder: 'Titolare della carta',
                 cardName: 'Nome carta',
+                allCards: 'Tutte le carte',
+                assignedCards: 'Assegnato',
+                unassignedCards: 'Non assegnato',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `esportazione ${integration} ${type.toLowerCase()}` : `Esportazione ${integration}`,
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Scegli l'account ${integration} in cui esportare le transazioni.`,

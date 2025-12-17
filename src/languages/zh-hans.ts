@@ -4992,6 +4992,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 cardNumber: '卡号',
                 cardholder: '持卡人',
                 cardName: '卡片名称',
+                allCards: '所有卡片',
+                assignedCards: '已分配',
+                unassignedCards: '未分配',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} 导出` : `${integration} 导出`),
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `选择要导出交易记录的 ${integration} 账户。`,
                 integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
