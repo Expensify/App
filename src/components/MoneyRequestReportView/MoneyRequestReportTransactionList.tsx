@@ -74,6 +74,8 @@ import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
 import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionItem';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
+const test = 'test';
+
 type MoneyRequestReportTransactionListProps = {
     /** The money request report containing the transactions */
     report: OnyxTypes.Report;
@@ -193,7 +195,6 @@ function MoneyRequestReportTransactionList({
         [report?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
     );
 
-    // hasPendingAction is used to show the pending action indicator in the header
     const hasPendingAction = useMemo(() => {
         return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
     }, [hasPendingDeletionTransaction, transactions]);
