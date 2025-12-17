@@ -456,7 +456,7 @@ jobs:
 
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
-        uses: LukasMod/ios@75aeadfcb0ae8407cfa654cd9c840976683a9c24
+        uses: callstackincubator/ios@8dcef6cc275e0cf3299f5a97cde5ebd635c887d7
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
