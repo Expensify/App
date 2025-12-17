@@ -50,4 +50,12 @@ const technicalContactEmailSelector = (domainMemberSharedNVP: OnyxEntry<CardFeed
 
 const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
 
-export {domainMemberSamlSettingsSelector, domainSamlSettingsStateSelector, domainNameSelector, metaIdentitySelector, adminAccountIDsSelector, technicalContactEmailSelector, domainEmailSelector};
+export {
+    domainMemberSamlSettingsSelector,
+    domainSamlSettingsStateSelector,
+    domainNameSelector,
+    metaIdentitySelector,
+    adminAccountIDsSelector,
+    technicalContactEmailSelector,
+    domainEmailSelector,
+};

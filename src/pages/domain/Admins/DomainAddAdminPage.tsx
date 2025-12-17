@@ -2,7 +2,6 @@ import {adminAccountIDsSelector, domainEmailSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import type {SectionListData} from 'react-native';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,12 +19,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import {addAdminToDomain} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type Sections = SectionListData<OptionData, Section<OptionData>>;
 
@@ -38,7 +37,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const {translate} = useLocalize();
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [domainEmail, domainMetaData] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    const [domainEmail] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: domainEmailSelector,
     });
@@ -120,23 +119,17 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     }, [searchTerm]);
 
     return (
-        <ScreenWrapper
-            shouldEnableMaxHeight
-            shouldUseCachedViewportHeight
-            testID={DomainAddAdminPage.displayName}
-            enableEdgeToEdgeBottomSafeAreaPadding
-            onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
-        >
-            <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={!isLoadingOnyxValue(domainMetaData) && !domainEmail}
-                shouldForceFullScreen
+        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+            <ScreenWrapper
+                shouldEnableMaxHeight
+                shouldUseCachedViewportHeight
+                testID={DomainAddAdminPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <HeaderWithBackButton
                     title={translate('domain.admins.addAdmin')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID));
-                    }}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID))}
                 />
                 <SelectionList
                     sections={sections}
@@ -154,8 +147,8 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                     addBottomSafeAreaPadding
                     onEndReached={onListEndReached}
                 />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </DomainNotFoundPageWrapper>
     );
 }
 

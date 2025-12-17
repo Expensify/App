@@ -61,7 +61,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true});
 
-
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
