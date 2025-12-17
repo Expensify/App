@@ -12,7 +12,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Card, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails, ReportMetadata} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -276,15 +276,14 @@ function getMostRecentActiveDEWSubmitFailedAction(reportActions: OnyxEntry<Repor
 }
 
 /**
- * Checks if there's a pending SUBMITTED action (submission in progress).
- * This is used to detect when a DEW submission is in progress (offline submission).
+ * Checks if there's a pending DEW submission in progress.
+ * Uses reportMetadata.pendingExpenseAction which is set during submit and cleared on success/failure.
  */
-function hasPendingDEWSubmit(reportActions: OnyxEntry<ReportActions> | ReportAction[], isDEWPolicy: boolean): boolean {
+function hasPendingDEWSubmit(reportMetadata: OnyxEntry<ReportMetadata>, isDEWPolicy: boolean): boolean {
     if (!isDEWPolicy) {
         return false;
     }
-    const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
-    return actionsArray.some((action): action is ReportAction => isSubmittedAction(action) && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    return reportMetadata?.pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.SUBMIT;
 }
 
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {

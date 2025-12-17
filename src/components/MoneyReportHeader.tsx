@@ -249,6 +249,7 @@ function MoneyReportHeader({
         'ReceiptMultiple',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const {translate} = useLocalize();
 
     const exportTemplates = useMemo(
@@ -483,7 +484,7 @@ function MoneyReportHeader({
         const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
         if (errors?.dewSubmitFailed) {
             optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowError(theme.danger);
-        } else if (hasPendingDEWSubmit(reportActions, hasDynamicExternalWorkflow(policy))) {
+        } else if (isOffline && hasPendingDEWSubmit(reportMetadata, hasDynamicExternalWorkflow(policy))) {
             optimisticNextStep = buildOptimisticNextStepForDEWOfflineSubmission();
         }
     }
@@ -731,6 +732,7 @@ function MoneyReportHeader({
             policy,
             reportNameValuePairs,
             reportActions,
+            reportMetadata,
             isChatReportArchived,
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
@@ -748,6 +750,7 @@ function MoneyReportHeader({
         policy,
         reportNameValuePairs,
         reportActions,
+        reportMetadata,
         isChatReportArchived,
         invoiceReceiverPolicy,
         currentUserLogin,
@@ -1025,6 +1028,7 @@ function MoneyReportHeader({
             policy,
             reportNameValuePairs,
             reportActions,
+            reportMetadata,
             policies,
             isChatReportArchived,
         });
@@ -1039,6 +1043,7 @@ function MoneyReportHeader({
         policy,
         reportNameValuePairs,
         reportActions,
+        reportMetadata,
         policies,
         isChatReportArchived,
     ]);
