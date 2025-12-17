@@ -4849,6 +4849,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             feedName: ({feedName}: CompanyCardFeedNameParams) => `${feedName} カード`,
             directFeed: 'ダイレクトフィード',
             whoNeedsCardAssigned: '誰にカードを割り当てる必要がありますか？',
+            chooseTheCardholder: 'カード所有者を選択',
             chooseCard: 'カードを選択',
             chooseCardFor: ({assignee}: AssigneeParams) =>
                 `<strong>${assignee}</strong> に使うカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,
