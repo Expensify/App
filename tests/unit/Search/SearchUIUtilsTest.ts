@@ -2770,6 +2770,8 @@ describe('SearchUIUtils', () => {
                 [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
             });
         });
 
@@ -2789,6 +2791,8 @@ describe('SearchUIUtils', () => {
                 // Total should always be visible
                 [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
             });
         });
 
