@@ -143,7 +143,7 @@ function MoneyRequestReportPreviewContent({
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow', 'Location'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow', 'Location']);
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -501,6 +501,7 @@ function MoneyRequestReportPreviewContent({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
+            {currentUserEmail: currentUserDetails.email ?? '', violations: transactionViolations},
         );
     }, [
         isPaidAnimationRunning,
@@ -513,6 +514,8 @@ function MoneyRequestReportPreviewContent({
         invoiceReceiverPolicy,
         isChatReportArchived,
         currentUserDetails.accountID,
+        currentUserDetails.email,
+        transactionViolations,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
@@ -851,7 +854,5 @@ function MoneyRequestReportPreviewContent({
         </View>
     );
 }
-
-MoneyRequestReportPreviewContent.displayName = 'MoneyRequestReportPreviewContent';
 
 export default MoneyRequestReportPreviewContent;

@@ -199,7 +199,5 @@ function BaseRecordTroubleshootDataToolMenu({
     );
 }
 
-BaseRecordTroubleshootDataToolMenu.displayName = 'BaseRecordTroubleshootDataToolMenu';
-
 export type {File};
 export default BaseRecordTroubleshootDataToolMenu;

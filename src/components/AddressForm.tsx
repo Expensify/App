@@ -174,7 +174,7 @@ function AddressForm({
                 <InputWrapper
                     InputComponent={AddressSearch}
                     inputID={INPUT_IDS.ADDRESS_LINE_1}
-                    label={translate('common.addressLine', {lineNumber: 1})}
+                    label={translate('common.addressLine', 1)}
                     onValueChange={(data: unknown, key: unknown) => {
                         onAddressChanged(data, key);
                     }}
@@ -194,8 +194,8 @@ function AddressForm({
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={INPUT_IDS.ADDRESS_LINE_2}
-                label={translate('common.addressLine', {lineNumber: 2})}
-                aria-label={translate('common.addressLine', {lineNumber: 2})}
+                label={translate('common.addressLine', 2)}
+                aria-label={translate('common.addressLine', 2)}
                 role={CONST.ROLE.PRESENTATION}
                 defaultValue={street2}
                 spellCheck={false}
@@ -263,7 +263,5 @@ function AddressForm({
         </FormProvider>
     );
 }
-
-AddressForm.displayName = 'AddressForm';
 
 export default AddressForm;
