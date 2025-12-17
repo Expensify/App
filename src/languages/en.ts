@@ -2371,15 +2371,15 @@ const translations = {
                     }
                     switch (key) {
                         case 'billable':
-                            return rule.billable === 'true' ? 'Billable' : 'Non-billable';
+                            return `Update expense ${rule.billable === 'true' ? 'billable' : 'non-billable'}`;
                         case 'category':
                             return `Update category to "${rule.category}"`;
                         case 'comment':
                             return `Change description to "${rule.comment}"`;
                         case 'merchant':
-                            return `Rename merchant to "${rule.merchant}"`;
+                            return `Update merchant to "${rule.merchant}"`;
                         case 'reimbursable':
-                            return rule.reimbursable === 'true' ? 'Reimbursable' : 'Non-reimbursable';
+                            return `Update expense ${rule.reimbursable === 'true' ? 'reimbursable' : 'non-reimbursable'}`;
                         case 'report':
                             return `Add a report named "${rule.report}"`;
                         case 'tag':
