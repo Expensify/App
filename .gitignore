@@ -157,6 +157,3 @@ modules/*/lib/
 
 # Claude local settings
 .claude/settings.local.json
-
-# cspell cache
-.cspellcache

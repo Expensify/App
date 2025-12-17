@@ -1,10 +1,4 @@
 {
-    "cache": {
-        "useCache": true,
-        "cacheLocation": ".cspellcache",
-        "cacheStrategy": "metadata",
-        "cacheFormat": "universal"
-    },
     "language": "en",
     "words": [
         "--longpress",
