@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -33,6 +34,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const [shouldShowConfirmModal, setShouldShowConfirmModal] = useState(true);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const isFocused = useIsFocused();
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -79,18 +81,12 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         const columns = Object.values(spreadsheet?.columns ?? {});
 
-        const containsAdvanceApprovalColumns = columns.includes(CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO) || columns.includes(CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
         const hasAuditorRole =
             membersRolesColumn !== -1 &&
             spreadsheet?.data
                 ?.at(membersRolesColumn)
                 ?.some((role, index) => (containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '')) === CONST.POLICY.ROLE.AUDITOR);
-
-        if (containsAdvanceApprovalColumns && !isControlPolicy(policy)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
-            return;
-        }
 
         if (hasAuditorRole && !isControlPolicy(policy)) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.auditor.alias, Navigation.getActiveRoute()));
@@ -183,7 +179,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedMembersPage.displayName}
+            testID="ImportedMembersPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -201,7 +197,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
             />
             <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal}
+                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal && isFocused}
                 closeImportPageAndModal={closeImportPageAndModal}
                 onModalHide={() => {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -211,7 +207,5 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         </ScreenWrapper>
     );
 }
-
-ImportedMembersPage.displayName = 'ImportedMembersPage';
 
 export default ImportedMembersPage;

@@ -15,6 +15,4 @@ function RenderCommentHTML({html, source, containsOnlyEmojis}: RenderCommentHTML
     return <RenderHTML html={commentHtml} />;
 }
 
-RenderCommentHTML.displayName = 'RenderCommentHTML';
-
 export default RenderCommentHTML;

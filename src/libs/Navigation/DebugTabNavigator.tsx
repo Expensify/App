@@ -20,10 +20,10 @@ type IconAndTitle = {
     title: string;
 };
 
-function getIconAndTitle(icons: Record<'Document', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconAndTitle {
+function getIconAndTitle(icons: Record<'Document' | 'Exclamation' | 'Info', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconAndTitle {
     switch (route) {
         case CONST.DEBUG.DETAILS:
-            return {icon: Expensicons.Info, title: translate('debug.details')};
+            return {icon: icons.Info, title: translate('debug.details')};
         case CONST.DEBUG.JSON:
             return {icon: Expensicons.Eye, title: translate('debug.JSON')};
         case CONST.DEBUG.REPORT_ACTIONS:
@@ -31,7 +31,7 @@ function getIconAndTitle(icons: Record<'Document', IconAsset>, route: string, tr
         case CONST.DEBUG.REPORT_ACTION_PREVIEW:
             return {icon: icons.Document, title: translate('debug.reportActionPreview')};
         case CONST.DEBUG.TRANSACTION_VIOLATIONS:
-            return {icon: Expensicons.Exclamation, title: translate('debug.violations')};
+            return {icon: icons.Exclamation, title: translate('debug.violations')};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -52,7 +52,7 @@ type DebugTabNavigatorProps = {
 };
 
 function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Document'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Exclamation', 'Info']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const navigation = useNavigation<NavigationProp<Record<string, unknown>>>();

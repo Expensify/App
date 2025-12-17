@@ -87,7 +87,7 @@ function TransactionStartDateStep() {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={TransactionStartDateStep.displayName}
+            wrapperID="TransactionStartDateStep"
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={2}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
@@ -124,7 +124,11 @@ function TransactionStartDateStep() {
                                     value={startDate}
                                     label={translate('iou.startDate')}
                                     onInputChange={(value) => {
-                                        setErrorText('');
+                                        if (!isRequiredFulfilled(value)) {
+                                            setErrorText(translate('common.error.fieldRequired'));
+                                        } else {
+                                            setErrorText('');
+                                        }
                                         setStartDate(value);
                                     }}
                                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
@@ -139,7 +143,5 @@ function TransactionStartDateStep() {
         </InteractiveStepWrapper>
     );
 }
-
-TransactionStartDateStep.displayName = 'TransactionStartDateStep';
 
 export default TransactionStartDateStep;

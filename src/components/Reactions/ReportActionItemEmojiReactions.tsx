@@ -7,11 +7,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEmojiReactionDetails, getLocalizedEmojiName} from '@libs/EmojiUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import type {ReactionListAnchor, ReactionListEvent} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import AddReactionBubble from './AddReactionBubble';
@@ -33,7 +35,7 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
      * This can also be an emoji the user already reacted with,
      * hence this function asks to toggle the reaction by emoji.
      */
-    toggleReaction: (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => void;
+    toggleReaction: (emoji: Emoji, preferredSkinTone: number, ignoreSkinToneOnCompare?: boolean) => void;
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
@@ -87,6 +89,7 @@ function ReportActionItemEmojiReactions({
     const styles = useThemeStyles();
     const reactionListRef = useContext(ReactionListContext);
     const popoverReactionListAnchors = useRef<PopoverReactionListAnchors>({});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
 
     const reportActionID = reportAction.reportActionID;
 
@@ -104,7 +107,7 @@ function ReportActionItemEmojiReactions({
             }
 
             const onPress = () => {
-                toggleReaction(emoji, true);
+                toggleReaction(emoji, preferredSkinTone, true);
             };
 
             const onReactionListOpen = (event: ReactionListEvent) => {
@@ -180,7 +183,5 @@ function ReportActionItemEmojiReactions({
         )
     );
 }
-
-ReportActionItemEmojiReactions.displayName = 'ReportActionItemReactions';
 
 export default withCurrentUserPersonalDetails(ReportActionItemEmojiReactions);

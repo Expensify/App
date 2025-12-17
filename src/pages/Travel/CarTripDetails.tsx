@@ -98,6 +98,4 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
     );
 }
 
-CarTripDetails.displayName = 'CarTripDetails';
-
 export default CarTripDetails;

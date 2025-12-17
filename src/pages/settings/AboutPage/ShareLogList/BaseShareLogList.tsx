@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+import KeyboardUtils from '@src/utils/keyboard';
 import type {BaseShareLogListProps} from './types';
 
 type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
@@ -80,7 +81,9 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         }
         const filename = appendTimeToFileName('logs.txt');
 
-        onAttachLogToReport(option.reportID, filename);
+        KeyboardUtils.dismiss().then(() => {
+            onAttachLogToReport(option.reportID, filename);
+        });
     };
 
     useEffect(() => {
@@ -89,7 +92,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
 
     return (
         <ScreenWrapper
-            testID={BaseShareLogList.displayName}
+            testID="BaseShareLogList"
             includeSafeAreaPaddingBottom={false}
         >
             {({didScreenTransitionEnd}) => (
@@ -116,7 +119,5 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         </ScreenWrapper>
     );
 }
-
-BaseShareLogList.displayName = 'ShareLogPage';
 
 export default BaseShareLogList;
