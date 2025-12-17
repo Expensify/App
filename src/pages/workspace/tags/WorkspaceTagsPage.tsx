@@ -597,7 +597,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedTags.length}
-                testID={`${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`}
+                testID="WorkspaceTagsPage-header-dropdown-menu-button"
             />
         );
     };
@@ -620,11 +620,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         {hasDependentTags && (
                             <View style={[styles.renderHTML]}>
                                 <RenderHTML
-                                    html={translate('workspace.tags.dependentMultiLevelTagsSubtitle', {
-                                        importSpreadsheetLink: isQuickSettingsFlow
+                                    html={translate(
+                                        'workspace.tags.dependentMultiLevelTagsSubtitle',
+                                        isQuickSettingsFlow
                                             ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
                                             : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`,
-                                    })}
+                                    )}
                                 />
                             </View>
                         )}
@@ -665,7 +666,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding
                     style={[styles.defaultModalContainer]}
-                    testID={WorkspaceTagsPage.displayName}
+                    testID="WorkspaceTagsPage"
                     shouldShowOfflineIndicatorInWideScreen
                     offlineIndicatorStyle={styles.mtAuto}
                 >
@@ -807,7 +808,5 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         </>
     );
 }
-
-WorkspaceTagsPage.displayName = 'WorkspaceTagsPage';
 
 export default WorkspaceTagsPage;

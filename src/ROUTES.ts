@@ -1929,6 +1929,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/category/:categoryName/require-receipts-over',
         getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
     },
+    WORKSPACE_CATEGORY_REQUIRED_FIELDS: {
+        route: 'workspaces/:policyID/category/:categoryName/required-fields',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/required-fields` as const,
+    },
     WORKSPACE_CATEGORY_APPROVER: {
         route: 'workspaces/:policyID/category/:categoryName/approver',
         getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/approver` as const,
@@ -3457,6 +3461,18 @@ const ROUTES = {
     DOMAIN_ADMINS: {
         route: 'domain/:domainAccountID/admins',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins` as const,
+    },
+    DOMAIN_ADMIN_DETAILS: {
+        route: 'domain/:domainAccountID/admins/:accountID',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}` as const,
+    },
+    DOMAIN_ADMINS_SETTINGS: {
+        route: 'domain/:domainAccountID/admins/settings',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings` as const,
+    },
+    DOMAIN_ADD_PRIMARY_CONTACT: {
+        route: 'domain/:domainAccountID/admins/settings/primary-contact',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings/primary-contact` as const,
     },
 
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `${MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES.FACTOR}/magic-code`,

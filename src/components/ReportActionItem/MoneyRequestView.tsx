@@ -31,6 +31,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
+import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -49,13 +50,13 @@ import {
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
-    canUserPerformWriteAction as canUserPerformWriteActionReportUtils, // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportName,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,
@@ -159,6 +160,7 @@ function MoneyRequestView({
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
 
     const parentReportID = report?.parentReportID;
@@ -345,7 +347,7 @@ function MoneyRequestView({
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
@@ -462,6 +464,13 @@ function MoneyRequestView({
     const hasErrors = hasMissingSmartscanFields(transaction);
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
+    const isMissingAttendeesViolation = getIsMissingAttendeesViolation(
+        policyCategories,
+        updatedTransaction?.category ?? categoryForDisplay,
+        actualAttendees,
+        currentUserPersonalDetails,
+        policy?.isAttendeeTrackingEnabled,
+    );
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
@@ -491,6 +500,10 @@ function MoneyRequestView({
             // Return form errors if there are any
             if (hasErrors && isError && translationPath) {
                 return translate(translationPath);
+            }
+
+            if (field === 'attendees' && isMissingAttendeesViolation) {
+                return translate('violations.missingAttendees');
             }
 
             if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
@@ -523,6 +536,7 @@ function MoneyRequestView({
             canEdit,
             isCustomUnitOutOfPolicy,
             companyCardPageURL,
+            isMissingAttendeesViolation,
         ],
     );
 
@@ -718,8 +732,9 @@ function MoneyRequestView({
         );
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportNameToDisplay = isFromMergeTransaction ? updatedTransaction?.reportName : getReportName(parentReport) || parentReport?.reportName;
+    const reportNameToDisplay = isFromMergeTransaction
+        ? updatedTransaction?.reportName
+        : computeReportName(parentReport, allReports, allPolicies, allTransactions) || parentReport?.reportName;
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport ? reportNameToDisplay : undefined;
 
@@ -965,6 +980,8 @@ function MoneyRequestView({
                             onPress={() => {
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID));
                             }}
+                            brickRoadIndicator={getErrorForField('attendees') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('attendees')}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             shouldRenderAsHTML
@@ -1082,7 +1099,5 @@ function MoneyRequestView({
         </View>
     );
 }
-
-MoneyRequestView.displayName = 'MoneyRequestView';
 
 export default MoneyRequestView;

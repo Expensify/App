@@ -193,6 +193,4 @@ function MoneyRequestAction({
     );
 }
 
-MoneyRequestAction.displayName = 'MoneyRequestAction';
-
 export default MoneyRequestAction;

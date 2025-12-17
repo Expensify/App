@@ -170,6 +170,4 @@ function MoneyRequestReportPreview({
     );
 }
 
-MoneyRequestReportPreview.displayName = 'MoneyRequestReportPreview';
-
 export default MoneyRequestReportPreview;

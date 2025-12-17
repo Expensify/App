@@ -86,7 +86,7 @@ function SearchPageWide({
     return (
         <View style={styles.searchSplitContainer}>
             <ScreenWrapper
-                testID={Search.displayName}
+                testID="Search"
                 shouldEnableMaxHeight
                 headerGapStyles={[styles.searchHeaderGap, styles.h0]}
                 shouldShowOfflineIndicatorInWideScreen={!!searchResults}
@@ -150,7 +150,5 @@ function SearchPageWide({
         </View>
     );
 }
-
-SearchPageWide.displayName = 'SearchPageWide';
 
 export default SearchPageWide;

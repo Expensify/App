@@ -67,7 +67,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={XeroInvoiceAccountSelectorPage.displayName}
+            displayName="XeroInvoiceAccountSelectorPage"
             sections={xeroSelectorOptions.length ? [{data: xeroSelectorOptions}] : []}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
@@ -85,7 +85,5 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-XeroInvoiceAccountSelectorPage.displayName = 'XeroInvoiceAccountSelectorPage';
 
 export default withPolicyConnections(XeroInvoiceAccountSelectorPage);

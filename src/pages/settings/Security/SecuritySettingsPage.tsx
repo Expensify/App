@@ -365,7 +365,7 @@ function SecuritySettingsPage() {
 
     return (
         <ScreenWrapper
-            testID={SecuritySettingsPage.displayName}
+            testID="SecuritySettingsPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
@@ -494,7 +494,5 @@ function SecuritySettingsPage() {
         </ScreenWrapper>
     );
 }
-
-SecuritySettingsPage.displayName = 'SettingSecurityPage';
 
 export default SecuritySettingsPage;
