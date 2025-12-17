@@ -62,7 +62,7 @@ function WorkspaceTravelPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceTravelPage.displayName}
+                testID="WorkspaceTravelPage"
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
@@ -80,7 +80,5 @@ function WorkspaceTravelPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTravelPage.displayName = 'WorkspaceTravelPage';
 
 export default WorkspaceTravelPage;

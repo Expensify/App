@@ -39,5 +39,4 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     );
 }
 
-GetStartedTravel.displayName = 'GetStartedTravel';
 export default GetStartedTravel;

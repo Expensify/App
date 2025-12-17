@@ -33,5 +33,4 @@ function ReviewingRequest() {
     );
 }
 
-ReviewingRequest.displayName = 'ReviewingRequest';
 export default ReviewingRequest;

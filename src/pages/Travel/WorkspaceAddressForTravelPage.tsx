@@ -51,7 +51,7 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
 
     return (
         <AccessOrNotFoundWrapper policyID={policyID}>
-            <ScreenWrapper testID={WorkspaceAddressForTravelPage.displayName}>
+            <ScreenWrapper testID="WorkspaceAddressForTravelPage">
                 <AddressPage
                     isLoadingApp={false}
                     updateAddress={updatePolicyAddress}
