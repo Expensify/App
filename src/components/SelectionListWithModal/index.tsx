@@ -16,7 +16,6 @@ import CONST from '@src/CONST';
 type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
     onTurnOnSelectionMode?: (item: TItem | null) => void;
-    isScreenFocused?: boolean;
     ref?: ForwardedRef<SelectionListHandle>;
 };
 
@@ -24,7 +23,6 @@ function SelectionListWithModal<TItem extends ListItem>({
     turnOnSelectionModeOnLongPress,
     onTurnOnSelectionMode,
     onLongPressRow,
-    isScreenFocused = false,
     data,
     isSelected,
     selectedItems: selectedItemsProp,
@@ -60,7 +58,7 @@ function SelectionListWithModal<TItem extends ListItem>({
 
     const handleLongPressRow = (item: TItem) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || (!isFocused && !isScreenFocused)) {
+        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
             return;
         }
         if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
@@ -93,7 +91,6 @@ function SelectionListWithModal<TItem extends ListItem>({
                 addBottomSafeAreaPadding
                 selectedItems={selectedItemsProp}
                 onLongPressRow={handleLongPressRow}
-                // isScreenFocused={isScreenFocused}
                 isSmallScreenWidth={isSmallScreenWidth}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
