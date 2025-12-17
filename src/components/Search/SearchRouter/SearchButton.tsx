@@ -25,7 +25,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
     const {translate} = useLocalize();
     const {openSearchRouter} = useSearchRouterContext();
     const pressableRef = useRef<View>(null);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     return (
         <Tooltip text={translate('common.search')}>

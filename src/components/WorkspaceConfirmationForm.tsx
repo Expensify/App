@@ -55,7 +55,7 @@ type WorkspaceConfirmationFormProps = {
 };
 
 function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButtonPress = () => Navigation.goBack(), addBottomSafeAreaPadding = true}: WorkspaceConfirmationFormProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();

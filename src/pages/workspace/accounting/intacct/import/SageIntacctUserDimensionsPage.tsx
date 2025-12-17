@@ -23,7 +23,7 @@ import ROUTES from '@src/ROUTES';
 function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const policyID = policy?.id ?? '-1';

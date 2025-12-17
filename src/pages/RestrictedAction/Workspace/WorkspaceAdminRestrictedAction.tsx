@@ -19,7 +19,7 @@ type WorkspaceAdminRestrictedActionProps = {
 };
 
 function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActionProps) {
-    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
@@ -49,9 +49,7 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
                         width={variables.restrictedActionIllustrationHeight}
                         height={variables.restrictedActionIllustrationHeight}
                     />
-                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter]}>
-                        {translate('workspace.restrictedAction.actionsAreCurrentlyRestricted', {workspaceName: policy?.name ?? ''})}
-                    </Text>
+                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter]}>{translate('workspace.restrictedAction.actionsAreCurrentlyRestricted', policy?.name ?? '')}</Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.textAlignCenter, styles.lh20, styles.mt2]}>
                         {translate('workspace.restrictedAction.workspaceOwnerWillNeedToAddOrUpdatePaymentCard', {workspaceOwnerName: policy?.owner ?? ''})}
                     </Text>

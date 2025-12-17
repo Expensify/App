@@ -38,7 +38,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
     const nonReimbursableAccount = qbdConfig?.export?.nonReimbursableAccount;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT>>();
     const backTo = route.params?.backTo;
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const data: CardListItem[] = useMemo(() => {
         const accounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable);
         return accounts.map((card) => ({

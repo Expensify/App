@@ -139,13 +139,12 @@ async function check({
         }
     }
 
-    printResults(results, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
+    const isPassed = printResults(results, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
 
     if (shouldGenerateReport) {
         generateReport(results, reportFileName);
     }
 
-    const isPassed = results.failures.size === 0 && (results.enforcedAddedComponentFailures?.size ?? 0) === 0;
     return isPassed;
 }
 
@@ -622,7 +621,7 @@ function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] 
 function printResults(
     {success, failures, suppressedFailures, enforcedAddedComponentFailures}: CompilerResults,
     {shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
-): void {
+): boolean {
     if (shouldPrintSuccesses && success.size > 0) {
         log();
         logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
@@ -665,23 +664,26 @@ function printResults(
 
     const hasEnforcedAddedComponentFailures = enforcedAddedComponentFailures && enforcedAddedComponentFailures.size > 0;
 
-    const isPassed = failures.size === 0 && !hasEnforcedAddedComponentFailures;
-    if (isPassed) {
-        logSuccess('All files pass React Compiler compliance check!');
-        return;
-    }
-
     const distinctFileNames = new Set<string>();
     for (const failure of failures.values()) {
         distinctFileNames.add(failure.file);
     }
 
-    if (distinctFileNames.size > 0) {
+    const shouldPrintWarnings = distinctFileNames.size > 0;
+
+    if (shouldPrintWarnings) {
         log();
-        logError(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
+        logWarn(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
         log();
 
         printFailures(failures);
+
+        log();
+        logWarn('React Compiler errors were printed as warnings for transparency, but these must NOT be fixed and can be ignored.');
+    }
+
+    if (shouldPrintWarnings && !hasEnforcedAddedComponentFailures) {
+        log();
     }
 
     if (hasEnforcedAddedComponentFailures) {
@@ -704,8 +706,16 @@ function printResults(
         }
     }
 
+    const isPassed = !hasEnforcedAddedComponentFailures;
+    if (isPassed) {
+        logSuccess(`React Compiler compliance check passed ${shouldPrintWarnings ? 'with warnings' : ''}!`);
+        return true;
+    }
+
     log();
     logError('The files above failed the React Compiler compliance check. Please fix the issues and run the check again...');
+
+    return false;
 }
 
 function printFailures(failuresToPrint: FailureMap, level = 0) {

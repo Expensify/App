@@ -18,7 +18,7 @@ function PatriotActLink({containerStyles}: PatriotActLinkProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>

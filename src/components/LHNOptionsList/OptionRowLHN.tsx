@@ -60,7 +60,7 @@ function OptionRowLHN({
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
 
     const session = useSession();
     const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');

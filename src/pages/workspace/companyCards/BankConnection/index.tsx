@@ -55,7 +55,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const policyID = policyIDFromProps ?? policyIDFromRoute;
     const [cardFeeds] = useCardFeeds(policyID);
     const prevFeedsData = usePrevious(cardFeeds);
-    const illustrations = useMemoizedLazyIllustrations(['PendingBank'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
     const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);

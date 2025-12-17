@@ -112,7 +112,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
-import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser, translateLocal} from '../utils/TestHelper';
+import {getGlobalFetchMock, getOnyxData, localeCompare, setPersonalDetails, signInWithTestUser, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
@@ -121,8 +121,6 @@ const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
-    dismissToPreviousRHP: jest.fn(),
-    dismissToSuperWideRHP: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => topMostReportID),
@@ -2200,6 +2198,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2220,6 +2219,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
@@ -2242,6 +2242,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
@@ -2261,12 +2262,44 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
+                policyRecentlyUsedCurrencies: [],
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toMatchObject({
                 action: CONST.QUICK_ACTIONS.SPLIT_DISTANCE,
                 isFirstQuickAction: false,
             });
+        });
+
+        it('merges policyRecentlyUsedCurrencies into recently used currencies', async () => {
+            const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.EUR];
+            await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
+
+            createDistanceRequest({
+                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
+                iouType: CONST.IOU.TYPE.SPLIT,
+                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionParams: {
+                    amount: 1,
+                    attendees: [],
+                    currency: CONST.CURRENCY.GBP,
+                    created: '',
+                    merchant: '',
+                    comment: '',
+                    validWaypoints: {},
+                },
+                isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: initialCurrencies,
+            });
+
+            await waitForBatchedUpdates();
+
+            const recentlyUsedCurrencies = await getOnyxValue(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+            expect(recentlyUsedCurrencies).toEqual([CONST.CURRENCY.GBP, ...initialCurrencies]);
         });
     });
     describe('split expense', () => {
@@ -2439,6 +2472,7 @@ describe('actions/IOU', () => {
                             isASAPSubmitBetaEnabled: false,
                             transactionViolations: {},
                             quickAction: undefined,
+                            policyRecentlyUsedCurrencies: [],
                         },
                     );
                     return waitForBatchedUpdates();
@@ -2774,6 +2808,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -2819,6 +2854,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -2838,6 +2874,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
+                policyRecentlyUsedCurrencies: [],
             });
             await waitForBatchedUpdates();
 
@@ -2845,6 +2882,32 @@ describe('actions/IOU', () => {
                 action: CONST.QUICK_ACTIONS.SPLIT_MANUAL,
                 isFirstQuickAction: false,
             });
+        });
+
+        it('merges policyRecentlyUsedCurrencies when splitting a bill', async () => {
+            const initialCurrencies = [CONST.CURRENCY.USD];
+            await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
+
+            splitBill({
+                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                comment: '',
+                amount: 100,
+                currency: CONST.CURRENCY.EUR,
+                merchant: 'test',
+                created: '',
+                existingSplitChatReportID: '',
+                isASAPSubmitBetaEnabled: false,
+                transactionViolations: {},
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: initialCurrencies,
+            });
+
+            await waitForBatchedUpdates();
+
+            const recentlyUsedCurrencies = await getOnyxValue(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+            expect(recentlyUsedCurrencies).toEqual([CONST.CURRENCY.EUR, ...initialCurrencies]);
         });
 
         it('should update split chat report lastVisibleActionCreated to the latest IOU action when split bill in a DM', async () => {
@@ -2870,6 +2933,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -2887,6 +2951,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -2943,6 +3008,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -2989,6 +3055,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -3032,6 +3099,7 @@ describe('actions/IOU', () => {
                 taxCode: '',
                 taxAmount: 0,
                 quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -5513,6 +5581,7 @@ describe('actions/IOU', () => {
                             reimbursementAccountError: undefined,
                             bankAccountList: {},
                             lastUsedPaymentMethods: undefined,
+                            localeCompare,
                         });
                     }
                     return waitForBatchedUpdates();

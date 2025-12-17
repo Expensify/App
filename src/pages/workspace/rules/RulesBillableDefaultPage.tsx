@@ -74,7 +74,7 @@ function RulesBillableDefaultPage({
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flexRow, styles.renderHTML, styles.mt3, styles.mh5, styles.mb5]}>
-                    <RenderHTML html={translate('workspace.rules.individualExpenseRules.billableDefaultDescription', {tagsPageLink})} />
+                    <RenderHTML html={translate('workspace.rules.individualExpenseRules.billableDefaultDescription', tagsPageLink)} />
                 </View>
                 <SelectionList
                     data={billableModes}

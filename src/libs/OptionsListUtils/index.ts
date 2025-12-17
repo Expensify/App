@@ -357,17 +357,13 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
 
 /**
  * Get the participant option for a report.
- *
- * @param shouldAddCurrentUserPostfix - Whether to add the current user postfix (e.g., "(You)") when the participant is the current user
  */
-function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>, shouldAddCurrentUserPostfix?: boolean): Participant {
+function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
     const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
-    const displayName =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        participant?.displayName ||
-        formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login || participant.text, true, shouldAddCurrentUserPostfix && currentUserAccountID === participant.accountID));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const displayName = participant?.displayName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login || participant.text));
 
     return {
         keyForList: String(detail?.accountID ?? login),
@@ -1994,14 +1990,10 @@ function getValidOptions(
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
     if (!includeSelectedOptions) {
         for (const option of selectedOptions) {
-            if (option.login) {
-                loginsToExclude[option.login] = true;
+            if (!option.login) {
                 continue;
             }
-
-            if (option.reportID) {
-                loginsToExclude[option.reportID] = true;
-            }
+            loginsToExclude[option.login] = true;
         }
     }
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, shouldShowGBR = false, ...getValidReportsConfig} = config;
@@ -2413,8 +2405,6 @@ function shouldOptionShowTooltip(option: SearchOptionData): boolean {
 
 /**
  * Handles the logic for displaying selected participants from the search term
- *
- * @param shouldAddCurrentUserPostfix - Whether to add the current user postfix (e.g., "(You)") when the participant is the current user
  */
 function formatSectionsFromSearchTerm(
     searchTerm: string,
@@ -2425,7 +2415,6 @@ function formatSectionsFromSearchTerm(
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    shouldAddCurrentUserPostfix?: boolean,
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
@@ -2437,9 +2426,7 @@ function formatSectionsFromSearchTerm(
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          return isReportPolicyExpenseChat
-                              ? getPolicyExpenseReportOption(participant, reportAttributesDerived)
-                              : getParticipantsOption(participant, personalDetails, shouldAddCurrentUserPostfix);
+                          return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
@@ -2452,10 +2439,7 @@ function formatSectionsFromSearchTerm(
     // This will add them to the list of options, deduping them if they already exist in the other lists
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
-        const isPartOfSearchTerm = getPersonalDetailSearchTerms({...participant, login: participant.login ?? personalDetails[participant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login})
-            .join(' ')
-            .toLowerCase()
-            .includes(cleanSearchTerm);
+        const isPartOfSearchTerm = getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm);
         const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID) || filteredWorkspaceChats.some((report) => report.accountID === accountID);
         const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
 
@@ -2468,9 +2452,7 @@ function formatSectionsFromSearchTerm(
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      return isReportPolicyExpenseChat
-                          ? getPolicyExpenseReportOption(participant, reportAttributesDerived)
-                          : getParticipantsOption(participant, personalDetails, shouldAddCurrentUserPostfix);
+                      return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
@@ -2495,7 +2477,7 @@ function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>) {
     if (item.accountID === currentUserAccountID) {
         return getCurrentUserSearchTerms(item);
     }
-    return [item.participantsList?.[0]?.displayName ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', item.text ?? ''];
+    return [item.participantsList?.[0]?.displayName ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
 }
 
 function getCurrentUserSearchTerms(item: Partial<SearchOptionData>) {

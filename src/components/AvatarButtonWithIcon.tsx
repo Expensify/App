@@ -90,7 +90,7 @@ function AvatarButtonWithIcon({
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
 
     return (
         <Tooltip
