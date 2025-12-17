@@ -164,6 +164,8 @@ function buildFilterItems(
         const currentFilterValue = filters[filterKey];
         const displayValue = getDisplayValue(filterConfig, currentFilterValue);
 
+        const PopoverComponent = createPopoverComponent(filterKey, filterConfig, currentFilterValue, setFilter);
+
         // Determine the label to display
         let label: string;
         if (filterConfig.filterType === 'multi-select') {
@@ -173,24 +175,31 @@ function buildFilterItems(
             } else {
                 label = filtersLabel;
             }
+
+            return {
+                key: filterKey,
+                label,
+                value: null,
+                PopoverComponent,
+            };
+        }
+
+        // For single-select: show display value, or default option label, or filterKey
+        if (displayValue && !Array.isArray(displayValue)) {
+            label = displayValue;
+        } else if (filterConfig.default) {
+            // Find the default option label
+            const defaultOption = filterConfig.options.find((opt) => opt.value === filterConfig.default);
+            label = defaultOption?.label ?? filterKey;
         } else {
-            // For single-select: show display value, or default option label, or filterKey
-            if (displayValue && !Array.isArray(displayValue)) {
-                label = displayValue;
-            } else if (filterConfig.default) {
-                // Find the default option label
-                const defaultOption = filterConfig.options.find((opt) => opt.value === filterConfig.default);
-                label = defaultOption?.label ?? filterKey;
-            } else {
-                label = filterKey;
-            }
+            label = filterKey;
         }
 
         return {
             key: filterKey,
             label,
             value: null,
-            PopoverComponent: createPopoverComponent(filterKey, filterConfig, currentFilterValue, setFilter),
+            PopoverComponent,
         };
     });
 }
