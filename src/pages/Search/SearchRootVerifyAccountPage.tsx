@@ -6,6 +6,4 @@ function SearchRootVerifyAccountPage() {
     return <VerifyAccountPageBase navigateBackTo={ROUTES.SEARCH_ROOT.getRoute({query: ''})} />;
 }
 
-SearchRootVerifyAccountPage.displayName = 'SearchRootVerifyAccountPage';
-
 export default SearchRootVerifyAccountPage;
