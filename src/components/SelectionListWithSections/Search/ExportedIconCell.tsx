@@ -18,7 +18,7 @@ function ExportedIconCell({reportID}: ExportedIconCellProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const reportActions = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare']);
+    const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table']);
 
     const actions = Object.values(reportActions[0] ?? {});
     const actionNames = actions.map((action) => action.actionName);
@@ -30,15 +30,11 @@ function ExportedIconCell({reportID}: ExportedIconCellProps) {
     const isExportedToQuickbooksOnline = actions.some((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.QBO);
     const isExportedToQuickbooksDesktop = actions.some((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.QBD);
 
-    if (!reportID) {
-        return null;
-    }
-
     return (
         <View style={[styles.flexRow, styles.gap2]}>
             {isExportedToCsv && (
                 <Icon
-                    src={icons.Document}
+                    src={icons.Table}
                     fill={theme.icon}
                     small
                 />
