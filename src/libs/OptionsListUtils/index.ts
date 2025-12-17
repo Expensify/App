@@ -57,6 +57,7 @@ import {
     getSortedReportActions,
     getTravelUpdateMessage,
     getUpdateRoomDescriptionMessage,
+    hasPendingDEWSubmit,
     isActionableAddPaymentCard,
     isActionableJoinRequest,
     isActionableMentionWhisper,
@@ -159,6 +160,7 @@ import type {
     ReportAction,
     ReportActions,
     ReportAttributesDerivedValue,
+    ReportMetadata,
     ReportNameValuePairs,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -603,6 +605,8 @@ function getLastMessageTextForReport({
     policy,
     isReportArchived = false,
     policyForMovingExpensesID,
+    reportMetadata,
+    isOffline,
 }: {
     report: OnyxEntry<Report>;
     lastActorDetails: Partial<PersonalDetails> | null;
@@ -611,6 +615,8 @@ function getLastMessageTextForReport({
     policy?: OnyxEntry<Policy>;
     isReportArchived?: boolean;
     policyForMovingExpensesID?: string;
+    reportMetadata?: OnyxEntry<ReportMetadata>;
+    isOffline?: boolean;
 }): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
@@ -710,13 +716,12 @@ function getLastMessageTextForReport({
         isMarkAsClosedAction(lastReportAction)
     ) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? (getOriginalMessage(lastReportAction)?.harvesting ?? false) : false;
-        const isPendingAdd = lastReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
         const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
         if (wasSubmittedViaHarvesting) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = Parser.htmlToText(translateLocal('iou.automaticallySubmitted'));
-        } else if (isPendingAdd && isDEWPolicy) {
+        } else if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.queuedToSubmitViaDEW');
         } else {
