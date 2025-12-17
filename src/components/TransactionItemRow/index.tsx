@@ -428,6 +428,14 @@ function TransactionItemRow({
                     )}
                 </View>
             ),
+            [CONST.SEARCH.TABLE_COLUMNS.CARD]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.CARD}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}
+                >
+                    <TextCell text={transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : (transactionItem.cardName ?? '')} />
+                </View>
+            ),
             [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.COMMENTS}
