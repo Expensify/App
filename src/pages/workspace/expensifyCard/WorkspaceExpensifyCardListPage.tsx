@@ -217,7 +217,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             shouldEnableMaxHeight
-            testID={WorkspaceExpensifyCardListPage.displayName}
+            testID="WorkspaceExpensifyCardListPage"
         >
             <HeaderWithBackButton
                 icon={illustrations.HandCard}
@@ -278,7 +278,5 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         </ScreenWrapper>
     );
 }
-
-WorkspaceExpensifyCardListPage.displayName = 'WorkspaceExpensifyCardListPage';
 
 export default WorkspaceExpensifyCardListPage;

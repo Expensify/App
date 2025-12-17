@@ -24,7 +24,7 @@ function TravelDotLinkWebview({route}: TravelDotLinkWebviewProps) {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={TravelDotLinkWebview.displayName}
+            testID="TravelDotLinkWebview"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -41,7 +41,5 @@ function TravelDotLinkWebview({route}: TravelDotLinkWebviewProps) {
         </ScreenWrapper>
     );
 }
-
-TravelDotLinkWebview.displayName = 'TravelDotLinkWebview';
 
 export default TravelDotLinkWebview;

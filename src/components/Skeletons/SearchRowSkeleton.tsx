@@ -178,6 +178,4 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
     );
 }
 
-SearchRowSkeleton.displayName = 'SearchRowSkeleton';
-
 export default SearchRowSkeleton;

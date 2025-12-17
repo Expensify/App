@@ -129,6 +129,4 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     );
 }
 
-DotIndicatorMessage.displayName = 'DotIndicatorMessage';
-
 export default DotIndicatorMessage;

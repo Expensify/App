@@ -853,6 +853,7 @@ const SCREENS = {
         INITIAL: 'Domain_Initial',
         SAML: 'Domain_SAML',
         ADMINS: 'Domain_Admins',
+        ADMIN_DETAILS: 'Domain_Admin_Details',
         ADD_ADMIN: 'Domain_Add_Admin',
     },
 } as const;

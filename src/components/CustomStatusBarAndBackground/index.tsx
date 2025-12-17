@@ -188,6 +188,4 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     return <StatusBar />;
 }
 
-CustomStatusBarAndBackground.displayName = 'CustomStatusBarAndBackground';
-
 export default CustomStatusBarAndBackground;
