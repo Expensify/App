@@ -60,6 +60,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldUseShortForm = false,
         shouldUseOptionIcon = false,
         shouldStayNormalOnDisable = false,
+        sentryLabel,
     } = props;
 
     const theme = useTheme();
@@ -187,6 +188,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         textStyles={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}]}
                         secondLineText={secondLineText}
                         icon={icon}
+                        sentryLabel={sentryLabel}
                     />
 
                     {isSplitButton && (
@@ -204,6 +206,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                             innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton, isButtonSizeSmall && styles.dropDownButtonCartIcon]}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                            sentryLabel={sentryLabel}
                         >
                             <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
                                 <View style={[success ? styles.buttonSuccessDivider : styles.buttonDivider]} />
@@ -253,6 +256,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     iconRight={shouldShowButtonRightIcon ? options.at(0)?.icon : undefined}
                     shouldShowRightIcon={shouldShowButtonRightIcon}
                     testID={testID}
+                    sentryLabel={sentryLabel}
                 />
             )}
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
@@ -304,7 +308,5 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         </View>
     );
 }
-
-ButtonWithDropdownMenu.displayName = 'ButtonWithDropdownMenu';
 
 export default ButtonWithDropdownMenu;

@@ -61,7 +61,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, currency, country}: Business
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BusinessInfo.displayName}
+            wrapperID="BusinessInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('businessInfoStep.businessInfoTitle')}
             stepNames={CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP_NAMES}
@@ -78,7 +78,5 @@ function BusinessInfo({onBackButtonPress, onSubmit, currency, country}: Business
         </InteractiveStepWrapper>
     );
 }
-
-BusinessInfo.displayName = 'BusinessInfo';
 
 export default BusinessInfo;

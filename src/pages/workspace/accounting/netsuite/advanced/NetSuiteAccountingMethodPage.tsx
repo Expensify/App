@@ -67,7 +67,7 @@ function NetSuiteAccountingMethodPage({policy, route}: WithPolicyConnectionsProp
 
     return (
         <SelectionScreen
-            displayName={NetSuiteAccountingMethodPage.displayName}
+            displayName="NetSuiteAccountingMethodPage"
             title="workspace.netsuite.advancedConfig.accountingMethods.label"
             headerContent={headerContent}
             sections={[{data}]}
@@ -83,7 +83,5 @@ function NetSuiteAccountingMethodPage({policy, route}: WithPolicyConnectionsProp
         />
     );
 }
-
-NetSuiteAccountingMethodPage.displayName = 'NetSuiteExpenseReportApprovalLevelSelectPage';
 
 export default withPolicyConnections(NetSuiteAccountingMethodPage);
