@@ -60,7 +60,7 @@ function OptionRowLHN({
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
 
     const session = useSession();
     const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
@@ -251,6 +251,7 @@ function OptionRowLHN({
                                 }`}
                                 onLayout={onLayout}
                                 needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
+                                sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
                             >
                                 <View style={sidebarInnerRowStyle}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -386,7 +387,5 @@ function OptionRowLHN({
         </OfflineWithFeedback>
     );
 }
-
-OptionRowLHN.displayName = 'OptionRowLHN';
 
 export default React.memo(OptionRowLHN);

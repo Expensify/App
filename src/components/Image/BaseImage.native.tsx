@@ -47,6 +47,4 @@ function BaseImage({onLoad, source, ...props}: BaseImageProps) {
     );
 }
 
-BaseImage.displayName = 'BaseImage';
-
 export default BaseImage;
