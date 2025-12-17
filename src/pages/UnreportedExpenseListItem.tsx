@@ -92,6 +92,4 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
     );
 }
 
-UnreportedExpenseListItem.displayName = 'UnreportedExpenseListItem';
-
 export default UnreportedExpenseListItem;

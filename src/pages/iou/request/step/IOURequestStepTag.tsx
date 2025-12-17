@@ -59,7 +59,7 @@ function IOURequestStepTag({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {currentSearchHash} = useSearchContext();
     const {translate} = useLocalize();
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
@@ -159,7 +159,7 @@ function IOURequestStepTag({
             headerTitle={policyTagListName}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepTag.displayName}
+            testID="IOURequestStepTag"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             {!shouldShowTag && (
@@ -209,7 +209,5 @@ function IOURequestStepTag({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepTag.displayName = 'IOURequestStepTag';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepTag));
