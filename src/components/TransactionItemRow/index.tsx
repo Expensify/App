@@ -477,7 +477,7 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.TAX_RATE}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                 >
-                    <Text>{formattedTaxRate}</Text>
+                    <TextCell text={formattedTaxRate} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (
