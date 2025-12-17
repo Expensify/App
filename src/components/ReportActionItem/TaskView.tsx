@@ -15,7 +15,9 @@ import RenderHTML from '@components/RenderHTML';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,8 +65,10 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const isOpen = isOpenTaskReport(report);
     const isCompleted = isCompletedTaskReport(report);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
-    const isTaskActionable = canActionTask(report, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
+    const parentReportAction = useParentReportAction(report);
+    const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
     const disableState = !isTaskModifiable;
     const isDisableInteractive = disableState || !isOpen;
@@ -92,7 +96,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                 <OfflineWithFeedback
                     shouldShowErrorMessages
                     errors={report?.errorFields?.editTask ?? report?.errorFields?.createTask}
-                    onClose={() => clearTaskErrors(report?.reportID)}
+                    onClose={() => clearTaskErrors(report)}
                     errorRowStyles={styles.ph5}
                 >
                     <Hoverable>
@@ -116,6 +120,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 ]}
                                 accessibilityLabel={taskTitle || translate('task.task')}
                                 disabled={isDisableInteractive}
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                             >
                                 {({pressed}) => (
                                     <OfflineWithFeedback pendingAction={report?.pendingFields?.reportName}>
@@ -128,9 +133,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         return;
                                                     }
                                                     if (isCompleted) {
-                                                        reopenTask(report, currentUserPersonalDetails.accountID);
+                                                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID);
                                                     } else {
-                                                        completeTask(report);
+                                                        completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction);
                                                     }
                                                 })}
                                                 isChecked={isCompleted}
@@ -140,6 +145,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                 caretSize={16}
                                                 accessibilityLabel={taskTitle || translate('task.task')}
                                                 disabled={!isTaskActionable}
+                                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                             />
                                             <View style={[styles.flexRow, styles.flex1]}>
                                                 <RenderHTML html={taskTitle} />
@@ -172,6 +178,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             numberOfLinesTitle={0}
                             interactive={!isDisableInteractive}
                             shouldUseDefaultCursorWhenDisabled
+                            sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_DESCRIPTION}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={report?.pendingFields?.managerID}>
@@ -192,6 +199,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 interactive={!isDisableInteractive}
                                 titleWithTooltips={assigneeTooltipDetails}
                                 shouldUseDefaultCursorWhenDisabled
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE}
                             />
                         ) : (
                             <MenuItemWithTopDescription
@@ -203,6 +211,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 shouldGreyOutWhenDisabled={false}
                                 interactive={!isDisableInteractive}
                                 shouldUseDefaultCursorWhenDisabled
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE}
                             />
                         )}
                     </OfflineWithFeedback>
@@ -211,7 +220,5 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
         </ShowContextMenuContext.Provider>
     );
 }
-
-TaskView.displayName = 'TaskView';
 
 export default TaskView;

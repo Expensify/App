@@ -3,6 +3,7 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import FormHelpMessage from './FormHelpMessage';
 import RadioButtonWithLabel from './RadioButtonWithLabel';
 
@@ -12,7 +13,7 @@ type Choice = {
     style?: StyleProp<ViewStyle>;
 };
 
-type RadioButtonsProps = {
+type RadioButtonsProps = ForwardedFSClassProps & {
     /** List of choices to display via radio buttons */
     items: Choice[];
 
@@ -38,7 +39,7 @@ type RadioButtonsProps = {
     ref?: ForwardedRef<View>;
 };
 
-function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyle, errorText, onInputChange = () => {}, value, ref}: RadioButtonsProps) {
+function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyle, errorText, onInputChange = () => {}, value, forwardedFSClass, ref}: RadioButtonsProps) {
     const styles = useThemeStyles();
     const [checkedValue, setCheckedValue] = useState(defaultCheckedValue);
 
@@ -66,6 +67,7 @@ function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyl
                             return onPress(item.value);
                         }}
                         label={item.label}
+                        forwardedFSClass={forwardedFSClass}
                     />
                 ))}
             </View>
@@ -73,8 +75,6 @@ function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyl
         </>
     );
 }
-
-RadioButtons.displayName = 'RadioButtons';
 
 export type {Choice};
 export default RadioButtons;

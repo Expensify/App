@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -26,7 +25,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const [searchValue, setSearchValue] = useState('');
     const [currentCountry, setCurrentCountry] = useState(formValues.bankCountry);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: false});
 
@@ -68,16 +67,16 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
         [translate, currentCountry],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countries);
+    const searchResults = searchOptions(searchValue, countries);
 
     const textInputOptions = useMemo(
         () => ({
             label: translate('common.search'),
             value: searchValue,
             onChangeText: setSearchValue,
-            headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+            headerMessage: searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
         }),
-        [translate, searchValue, setSearchValue, debouncedSearchValue, searchResults.length],
+        [translate, searchValue, setSearchValue, searchResults.length],
     );
 
     const confirmButtonOptions = useMemo(
@@ -102,15 +101,13 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
                 textInputOptions={textInputOptions}
                 confirmButtonOptions={confirmButtonOptions}
                 initiallyFocusedItemKey={currentCountry}
+                disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
                 shouldStopPropagation
-                disableMaintainingScrollPosition
             />
         </FullPageOfflineBlockingView>
     );
 }
-
-CountrySelection.displayName = 'CountrySelection';
 
 export default CountrySelection;

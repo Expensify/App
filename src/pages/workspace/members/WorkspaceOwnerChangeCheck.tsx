@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
@@ -28,6 +29,7 @@ type WorkspaceOwnerChangeCheckProps = {
 function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerChangeCheckProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [displayTexts, setDisplayTexts] = useState({
         title: '',
         text: '',
@@ -64,8 +66,8 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             return;
         }
 
-        requestWorkspaceOwnerChange(policyID, accountID, userPersonalDetails?.login ?? '');
-    }, [accountID, error, policyID, userPersonalDetails?.login]);
+        requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+    }, [accountID, error, policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login]);
 
     return (
         <>
@@ -82,7 +84,5 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
         </>
     );
 }
-
-WorkspaceOwnerChangeCheck.displayName = 'WorkspaceOwnerChangeCheckPage';
 
 export default WorkspaceOwnerChangeCheck;

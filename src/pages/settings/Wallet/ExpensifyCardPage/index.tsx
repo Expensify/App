@@ -95,7 +95,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const expensifyCardTitle = isTravelCard ? translate('cardPage.expensifyTravelCard') : translate('cardPage.expensifyCard');
     const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : (cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle);
     const {displayName} = useCurrentUserPersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch']);
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
@@ -118,10 +118,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     useEffect(() => {
         setIsNotFound(!currentCard);
     }, [cardList, cardsToShow, currentCard]);
-
-    useEffect(() => {
-        resetValidateActionCodeSent();
-    }, []);
 
     const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !card?.nameValuePairs?.isTravelCard), [cardsToShow]);
     const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.isTravelCard), [cardsToShow]);
@@ -162,7 +158,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     }
 
     return (
-        <ScreenWrapper testID={ExpensifyCardPage.displayName}>
+        <ScreenWrapper testID="ExpensifyCardPage">
             <HeaderWithBackButton
                 title={pageTitle}
                 onBackButtonPress={() => Navigation.closeRHPFlow()}
@@ -251,7 +247,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                 Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS.getRoute(String(card.cardID)));
                                                                 return;
                                                             }
-
+                                                            resetValidateActionCodeSent();
                                                             if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
                                                                 Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
                                                                 return;
@@ -421,7 +417,5 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         </ScreenWrapper>
     );
 }
-
-ExpensifyCardPage.displayName = 'ExpensifyCardPage';
 
 export default ExpensifyCardPage;

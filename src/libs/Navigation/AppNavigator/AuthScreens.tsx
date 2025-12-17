@@ -2,6 +2,7 @@ import type {RouteProp} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {memo, useContext, useEffect, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
+import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
@@ -251,7 +252,7 @@ function AuthScreens() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected);
+        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID);
 
         App.redirectThirdPartyDesktopSignIn();
 
@@ -377,6 +378,7 @@ function AuthScreens() {
         return {
             ...rootNavigatorScreenOptions.splitNavigator,
             animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            gestureEnabled: true,
             web: {
                 ...rootNavigatorScreenOptions.splitNavigator.web,
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
@@ -699,11 +701,10 @@ function AuthScreens() {
             <SearchRouterModal />
             <OpenAppFailureModal />
             <PriorityModeController />
+            <OpenConfirmNavigateExpensifyClassicModal />
         </ComposeProviders>
     );
 }
-
-AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 

@@ -101,6 +101,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Additional text styles when the button is hovered */
     textHoverStyles?: StyleProp<TextStyle>;
 
+    /** The number of lines to display for the primary text */
+    primaryTextNumberOfLines?: number;
+
     /** Whether we should use the default hover style */
     shouldUseDefaultHover?: boolean;
 
@@ -176,6 +179,9 @@ type ButtonProps = Partial<ChildrenProps> & {
      * Whether the button should stay visually normal even when disabled.
      */
     shouldStayNormalOnDisable?: boolean;
+
+    /** Label for Sentry tracking. On web, this will be added as data-sentry-label attribute. */
+    sentryLabel?: string;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -222,8 +228,6 @@ function KeyboardShortcutComponent({
     return null;
 }
 
-KeyboardShortcutComponent.displayName = 'KeyboardShortcutComponent';
-
 function Button({
     allowBubble = false,
 
@@ -259,6 +263,7 @@ function Button({
     innerStyles = [],
     textStyles = [],
     textHoverStyles = [],
+    primaryTextNumberOfLines = 1,
 
     shouldUseDefaultHover = true,
     hoverStyles = undefined,
@@ -282,6 +287,7 @@ function Button({
     secondLineText = '',
     shouldBlendOpacity = false,
     shouldStayNormalOnDisable = false,
+    sentryLabel,
     ref,
     ...rest
 }: ButtonProps) {
@@ -297,8 +303,9 @@ function Button({
 
         const primaryText = (
             <Text
-                numberOfLines={1}
+                numberOfLines={primaryTextNumberOfLines}
                 style={[
+                    primaryTextNumberOfLines !== 1 && styles.breakAll,
                     isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
@@ -527,6 +534,7 @@ function Button({
                 hoverDimmingValue={1}
                 onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}
                 onHoverOut={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(false) : undefined}
+                sentryLabel={sentryLabel}
             >
                 {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 {renderContent()}
@@ -541,8 +549,6 @@ function Button({
         </>
     );
 }
-
-Button.displayName = 'Button';
 
 export default withNavigationFallback(Button);
 

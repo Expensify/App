@@ -58,6 +58,4 @@ function Name({onNext, onMove, isEditing}: NameProps) {
     );
 }
 
-Name.displayName = 'Name';
-
 export default Name;

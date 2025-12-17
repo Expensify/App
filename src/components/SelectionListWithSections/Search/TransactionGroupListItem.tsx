@@ -74,11 +74,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportID}`, {canBeMissing: true});
-    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.transactionThreadReportID}`, {canBeMissing: true});
+    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
     const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionItem?.transactionID}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
-        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.moneyRequestReportActionID}`],
-        [oneTransactionItem?.moneyRequestReportActionID],
+        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
+        [oneTransactionItem?.reportAction?.reportActionID],
     );
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionItem?.reportID}`, {selector: parentReportActionSelector, canBeMissing: true}, [
         oneTransactionItem,
@@ -147,10 +147,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 searchKey: undefined,
                 offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
                 shouldCalculateTotals: false,
-                isLoading: !!transactionsSnapshot?.search.isLoading,
+                isLoading: !!transactionsSnapshot?.search?.isLoading,
             });
         },
-        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset, transactionsSnapshot?.search.isLoading],
+        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset, transactionsSnapshot?.search?.isLoading],
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -196,6 +196,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
         onLongPressRow?.(item, isExpenseReportType ? undefined : transactions);
     }, [isEmpty, isExpenseReportType, item, onLongPressRow, transactions]);
+
+    const onExpandedRowLongPress = useCallback(
+        (transaction: TransactionListItemType) => {
+            onLongPressRow?.(transaction as unknown as TItem);
+        },
+        [onLongPressRow],
+    );
 
     const onCheckboxPress = useCallback(
         (val: TItem) => {
@@ -356,6 +363,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 transactionsQueryJSON={groupItem.transactionsQueryJSON}
                                 searchTransactions={searchTransactions}
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                onLongPress={onExpandedRowLongPress}
                             />
                         </AnimatedCollapsible>
                     </View>
@@ -364,7 +372,5 @@ function TransactionGroupListItem<TItem extends ListItem>({
         </OfflineWithFeedback>
     );
 }
-
-TransactionGroupListItem.displayName = 'TransactionGroupListItem';
 
 export default TransactionGroupListItem;

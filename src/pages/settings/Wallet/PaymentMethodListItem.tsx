@@ -88,13 +88,13 @@ function isAccountInSetupState(account: PaymentMethodItem) {
 }
 
 function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle}: PaymentMethodListItemProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (isAccountInSetupState(item) || !threeDotsMenuItems) {
+        if (isAccountInSetupState(item) || !threeDotsMenuItems || (item.cardID && item.onThreeDotsMenuPress)) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
             threeDotsMenuRef.current.onThreeDotsPress();
@@ -161,8 +161,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         </OfflineWithFeedback>
     );
 }
-
-PaymentMethodListItem.displayName = 'PaymentMethodListItem';
 
 export type {PaymentMethodItem};
 export default PaymentMethodListItem;

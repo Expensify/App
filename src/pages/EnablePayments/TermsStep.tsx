@@ -110,6 +110,4 @@ function TermsStep(props: TermsStepProps) {
     );
 }
 
-TermsStep.displayName = 'TermsPage';
-
 export default TermsStep;

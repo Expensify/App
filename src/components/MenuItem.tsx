@@ -12,6 +12,7 @@ import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
@@ -64,7 +65,7 @@ type NoIcon = {
     icon?: undefined;
 };
 
-type MenuItemBaseProps = {
+type MenuItemBaseProps = ForwardedFSClassProps & {
     /** Reference to the outer element */
     ref?: PressableRef | Ref<View>;
 
@@ -390,6 +391,12 @@ type MenuItemBaseProps = {
 
     /** Whether the menu item contains nested submenu items. */
     hasSubMenuItems?: boolean;
+
+    /** Whether the screen containing the item is focused */
+    isFocused?: boolean;
+
+    /** Label for Sentry tracking */
+    sentryLabel?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -515,7 +522,10 @@ function MenuItem({
     copyValue = title,
     copyable = false,
     hasSubMenuItems = false,
+    forwardedFSClass,
     ref,
+    isFocused,
+    sentryLabel,
 }: MenuItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -605,6 +615,7 @@ function MenuItem({
             return (
                 <DisplayNames
                     fullTitle={title}
+                    shouldParseFullTitle={!shouldRenderAsHTML}
                     displayNamesWithTooltips={titleWithTooltips}
                     tooltipEnabled
                     numberOfLines={1}
@@ -683,7 +694,7 @@ function MenuItem({
                 shouldHideOnScroll={shouldHideOnScroll}
             >
                 <View>
-                    <Hoverable>
+                    <Hoverable isFocused={isFocused}>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
@@ -715,6 +726,7 @@ function MenuItem({
                                 accessibilityLabel={title ? title.toString() : ''}
                                 accessible
                                 onFocus={onFocus}
+                                sentryLabel={sentryLabel}
                             >
                                 {({pressed}) => (
                                     <View style={[styles.flex1]}>
@@ -844,7 +856,10 @@ function MenuItem({
                                                             </Text>
                                                         )}
                                                         {(!!title || !!shouldShowTitleIcon) && (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}>
+                                                            <View
+                                                                style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}
+                                                                fsClass={forwardedFSClass}
+                                                            >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
                                                                         <RenderHTML html={processedTitle} />
@@ -1027,8 +1042,6 @@ function MenuItem({
         </View>
     );
 }
-
-MenuItem.displayName = 'MenuItem';
 
 export type {MenuItemBaseProps, MenuItemProps};
 export default MenuItem;

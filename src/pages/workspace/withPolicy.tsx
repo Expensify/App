@@ -32,6 +32,7 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY
     | typeof SCREENS.WORKSPACE.MEMBER_DETAILS
+    | typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE
     | typeof SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD
     | typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD
     | typeof SCREENS.WORKSPACE.INVOICES
@@ -99,8 +100,6 @@ export default function <TProps extends WithPolicyProps>(WrappedComponent: Compo
             />
         );
     }
-
-    WithPolicy.displayName = `WithPolicy`;
 
     return WithPolicy;
 }

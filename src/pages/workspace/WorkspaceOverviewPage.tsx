@@ -67,12 +67,12 @@ type WorkspaceOverviewPageProps = WithPolicyProps & PlatformStackScreenProps<Wor
 
 function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: WorkspaceOverviewPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const illustrations = useThemeIllustrations();
-    const illustrationIcons = useMemoizedLazyIllustrations(['Building'] as const);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'UserPlus'] as const);
+    const illustrationIcons = useMemoizedLazyIllustrations(['Building']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'UserPlus']);
 
     const backTo = route.params.backTo;
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
@@ -232,6 +232,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             reimbursementAccountError,
             bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
+            localeCompare,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
@@ -246,6 +247,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         transactionViolations,
         reimbursementAccountError,
         lastPaymentMethod,
+        localeCompare,
         isOffline,
         activePolicyID,
         bankAccountList,
@@ -277,7 +279,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
             return;
         }
-        setIsDeleteModalOpen(false);
+
         if (!policyLastErrorMessage) {
             goBackFromInvalidPolicy();
             return;
@@ -468,6 +470,52 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         return renderDropdownMenu(secondaryActions);
     };
 
+    const modals = (
+        <>
+            <ConfirmModal
+                title={translate('workspace.common.delete')}
+                isVisible={isDeleteModalOpen}
+                onConfirm={confirmDelete}
+                onCancel={() => setIsDeleteModalOpen(false)}
+                prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                isConfirmLoading={isPendingDeletePolicy(policy)}
+                danger
+            />
+            <ConfirmModal
+                title={translate('common.leaveWorkspace')}
+                isVisible={isLeaveModalOpen}
+                onConfirm={handleLeaveWorkspace}
+                onCancel={() => setIsLeaveModalOpen(false)}
+                prompt={confirmModalPrompt()}
+                confirmText={translate('common.leave')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
+            <ConfirmModal
+                title={translate('common.leaveWorkspace')}
+                isVisible={isCannotLeaveWorkspaceModalOpen}
+                onConfirm={() => {
+                    setIsCannotLeaveWorkspaceModalOpen(false);
+                }}
+                prompt={confirmModalPrompt()}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+                success
+            />
+            <ConfirmModal
+                title={translate('workspace.common.delete')}
+                isVisible={isDeleteWorkspaceErrorModalOpen}
+                onConfirm={hideDeleteWorkspaceErrorModal}
+                onCancel={hideDeleteWorkspaceErrorModal}
+                prompt={policyLastErrorMessage}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+                success={false}
+            />
+        </>
+    );
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -482,6 +530,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
             headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
+            modals={modals}
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -605,7 +654,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     hintText={
                                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                         hasVBA || isBankAccountVerified
-                                            ? translate('workspace.editor.currencyInputDisabledText', {currency: policyCurrency})
+                                            ? translate('workspace.editor.currencyInputDisabledText', policyCurrency)
                                             : translate('workspace.editor.currencyInputHelpText')
                                     }
                                 />
@@ -665,54 +714,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             </OfflineWithFeedback>
                         </Section>
                     ) : null}
-                    <ConfirmModal
-                        title={translate('workspace.common.delete')}
-                        isVisible={isDeleteModalOpen}
-                        onConfirm={confirmDelete}
-                        onCancel={() => setIsDeleteModalOpen(false)}
-                        prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        isConfirmLoading={isPendingDeletePolicy(policy)}
-                        danger
-                    />
-                    <ConfirmModal
-                        title={translate('common.leaveWorkspace')}
-                        isVisible={isLeaveModalOpen}
-                        onConfirm={handleLeaveWorkspace}
-                        onCancel={() => setIsLeaveModalOpen(false)}
-                        prompt={confirmModalPrompt()}
-                        confirmText={translate('common.leave')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                    <ConfirmModal
-                        title={translate('common.leaveWorkspace')}
-                        isVisible={isCannotLeaveWorkspaceModalOpen}
-                        onConfirm={() => {
-                            setIsCannotLeaveWorkspaceModalOpen(false);
-                        }}
-                        prompt={confirmModalPrompt()}
-                        confirmText={translate('common.buttonConfirm')}
-                        shouldShowCancelButton={false}
-                        success
-                    />
-                    <ConfirmModal
-                        title={translate('workspace.common.delete')}
-                        isVisible={isDeleteWorkspaceErrorModalOpen}
-                        onConfirm={hideDeleteWorkspaceErrorModal}
-                        onCancel={hideDeleteWorkspaceErrorModal}
-                        prompt={policyLastErrorMessage}
-                        confirmText={translate('common.buttonConfirm')}
-                        shouldShowCancelButton={false}
-                        success={false}
-                    />
                 </View>
             )}
         </WorkspacePageWithSections>
     );
 }
-
-WorkspaceOverviewPage.displayName = 'WorkspaceOverviewPage';
 
 export default withPolicy(WorkspaceOverviewPage);
