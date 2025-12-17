@@ -257,7 +257,5 @@ function SearchAutocompleteInput({
     );
 }
 
-SearchAutocompleteInput.displayName = 'SearchAutocompleteInput';
-
 export type {SearchAutocompleteInputProps};
 export default SearchAutocompleteInput;
