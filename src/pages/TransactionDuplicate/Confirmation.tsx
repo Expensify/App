@@ -102,7 +102,7 @@ function Confirmation() {
         [report, reportAction],
     );
 
-    const reportTransactionID = report?.reportID ? getTransactionID(report) : undefined;
+    const reportTransactionID = getTransactionID(report);
     const doesTransactionBelongToReport = reviewDuplicates?.transactionID === reportTransactionID || (reportTransactionID && reviewDuplicates?.duplicates.includes(reportTransactionID));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
