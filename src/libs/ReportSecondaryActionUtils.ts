@@ -134,6 +134,7 @@ function isSplitAction(report: OnyxEntry<Report>, reportTransactions: Array<Onyx
     return (isSubmitter && isAwaitingFirstLevelApproval(report)) || isAdmin || isManager;
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function isSubmitAction(
     report: Report,
     reportTransactions: Transaction[],
