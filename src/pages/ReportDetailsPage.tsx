@@ -691,7 +691,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             reportID={report?.reportID}
                             parentReportID={report?.parentReportID}
                             parentReportActionID={report?.parentReportActionID}
-                            subtitleNumberOfLines={2}
                             shouldShowFrom={false}
                         />
                     }
@@ -745,7 +744,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             parentReportID={report?.parentReportID}
             parentReportActionID={report?.parentReportActionID}
             pressableStyles={[styles.mt1, styles.mw100]}
-            subtitleNumberOfLines={2}
             shouldShowFrom={false}
         />
     );
