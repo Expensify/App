@@ -121,18 +121,18 @@ function SearchTransactionsChangeReport() {
         if (!policyForMovingExpensesID && !shouldSelectPolicy && selectedTransactionsKeys.length > 0) {
             const firstTransactionID = selectedTransactionsKeys.at(0);
             if (firstTransactionID) {
-                setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.goBack();
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.EDIT,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            transactionID: firstTransactionID,
-                            reportID: selectedTransactions[firstTransactionID]?.reportID,
-                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                        }),
-                    );
-                });
+                // setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.EDIT,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: firstTransactionID,
+                        reportID: selectedTransactions[firstTransactionID]?.reportID,
+                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                    }),
+                    {forceReplace: true},
+                );
+                // });
             }
             return;
         }
