@@ -54,7 +54,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={ExistingConnectionsPage.displayName}
+            testID="ExistingConnectionsPage"
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.connectTo', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT})}
@@ -79,7 +79,5 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
         </ScreenWrapper>
     );
 }
-
-ExistingConnectionsPage.displayName = 'ExistingConnectionsPage';
 
 export default ExistingConnectionsPage;

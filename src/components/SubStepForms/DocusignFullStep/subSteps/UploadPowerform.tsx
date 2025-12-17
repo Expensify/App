@@ -125,6 +125,4 @@ function UploadPowerform<TFormID extends keyof OnyxFormValuesMapping>({defaultVa
     );
 }
 
-UploadPowerform.displayName = 'UploadPowerform';
-
 export default UploadPowerform;
