@@ -1,6 +1,6 @@
 import type JSZip from 'jszip';
 import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Alert} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import Button from '@components/Button';
@@ -85,7 +85,7 @@ function BaseRecordTroubleshootDataToolMenu({
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
     const [profileTracePath, setProfileTracePath] = useState<string>();
 
-    const getAppInfo = useCallback(async (profilingData: ProfilingData) => {
+    const getAppInfo = async (profilingData: ProfilingData) => {
         const [totalMemory, usedMemory] = await Promise.all([DeviceInfo.getTotalMemory(), DeviceInfo.getUsedMemory()]);
         return JSON.stringify({
             appVersion: pkg.version,
@@ -96,7 +96,7 @@ function BaseRecordTroubleshootDataToolMenu({
             memoizeStats: profilingData.memoizeStats,
             performance: profilingData.performanceMeasures,
         });
-    }, []);
+    };
 
     const onToggle = async () => {
         if (!shouldRecordTroubleshootData) {
