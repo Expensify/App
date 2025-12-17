@@ -80,7 +80,7 @@ function WorkspaceReportFieldsPage({
     }, [policy?.fieldList]);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
-    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnections) {
@@ -176,7 +176,7 @@ function WorkspaceReportFieldsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceReportFieldsPage.displayName}
+                testID="WorkspaceReportFieldsPage"
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
@@ -332,7 +332,5 @@ function WorkspaceReportFieldsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceReportFieldsPage.displayName = 'WorkspaceReportFieldsPage';
 
 export default WorkspaceReportFieldsPage;

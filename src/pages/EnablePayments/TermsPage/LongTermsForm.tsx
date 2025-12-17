@@ -12,7 +12,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 
 function LongTermsForm() {
-    const icons = useMemoizedLazyExpensifyIcons(['Printer'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Printer']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, numberFormat} = useLocalize();
@@ -115,5 +115,4 @@ function LongTermsForm() {
     );
 }
 
-LongTermsForm.displayName = 'LongTermsForm';
 export default LongTermsForm;

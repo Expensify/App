@@ -151,7 +151,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
 
     return (
         <ScreenWrapper
-            testID={ReportChangeWorkspacePage.displayName}
+            testID="ReportChangeWorkspacePage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -182,7 +182,5 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         </ScreenWrapper>
     );
 }
-
-ReportChangeWorkspacePage.displayName = 'ReportChangeWorkspacePage';
 
 export default withReportOrNotFound()(ReportChangeWorkspacePage);

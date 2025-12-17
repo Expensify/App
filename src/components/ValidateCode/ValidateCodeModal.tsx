@@ -27,7 +27,7 @@ type ValidateCodeModalProps = {
 function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['MagicCode'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['MagicCode']);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const signInHere = useCallback(() => signInWithValidateCode(accountID, code, preferredLocale), [accountID, code, preferredLocale]);
@@ -86,7 +86,5 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
         </FullPageNotFoundView>
     );
 }
-
-ValidateCodeModal.displayName = 'ValidateCodeModal';
 
 export default ValidateCodeModal;

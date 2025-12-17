@@ -88,7 +88,7 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'Heart', 'Info', 'QuestionMark', 'ExpensifyLogoNew', 'TreasureChest', 'Exit', 'Lightbulb', 'Lock'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'Heart', 'Info', 'QuestionMark', 'ExpensifyLogoNew', 'TreasureChest', 'Exit', 'Lightbulb', 'Lock']);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -497,7 +497,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={InitialSettingsPage.displayName}
+            testID="InitialSettingsPage"
             bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
         >
@@ -535,7 +535,5 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         </ScreenWrapper>
     );
 }
-
-InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default withCurrentUserPersonalDetails(InitialSettingsPage);

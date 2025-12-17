@@ -170,7 +170,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
 
     return (
         <ScreenWrapper
-            testID={BankConnection.displayName}
+            testID="BankConnection"
             shouldShowOfflineIndicator={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -212,7 +212,5 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         </ScreenWrapper>
     );
 }
-
-BankConnection.displayName = 'BankConnection';
 
 export default BankConnection;

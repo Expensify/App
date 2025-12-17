@@ -59,11 +59,10 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
     );
 
     return (
-        <ScreenWrapper testID={WorkspaceJoinUserPage.displayName}>
+        <ScreenWrapper testID="WorkspaceJoinUserPage">
             <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
         </ScreenWrapper>
     );
 }
 
-WorkspaceJoinUserPage.displayName = 'WorkspaceJoinUserPage';
 export default WorkspaceJoinUserPage;

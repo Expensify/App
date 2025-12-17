@@ -154,6 +154,5 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
     );
 }
 
-DropdownButton.displayName = 'DropdownButton';
 export type {PopoverComponentProps};
 export default withViewportOffsetTop(DropdownButton);

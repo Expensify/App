@@ -73,7 +73,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksImportPage.displayName}
+            displayName="QuickbooksImportPage"
             headerTitle="workspace.accounting.import"
             title="workspace.qbo.importDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -100,7 +100,5 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-QuickbooksImportPage.displayName = 'QuickbooksImportPage';
 
 export default withPolicyConnections(QuickbooksImportPage);

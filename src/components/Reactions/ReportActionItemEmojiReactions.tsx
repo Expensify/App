@@ -184,6 +184,4 @@ function ReportActionItemEmojiReactions({
     );
 }
 
-ReportActionItemEmojiReactions.displayName = 'ReportActionItemReactions';
-
 export default withCurrentUserPersonalDetails(ReportActionItemEmojiReactions);

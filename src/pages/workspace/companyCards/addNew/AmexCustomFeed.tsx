@@ -79,7 +79,7 @@ function AmexCustomFeed() {
 
     return (
         <ScreenWrapper
-            testID={AmexCustomFeed.displayName}
+            testID="AmexCustomFeed"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -120,7 +120,5 @@ function AmexCustomFeed() {
         </ScreenWrapper>
     );
 }
-
-AmexCustomFeed.displayName = 'AmexCustomFeed';
 
 export default AmexCustomFeed;

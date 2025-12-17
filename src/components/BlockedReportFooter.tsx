@@ -19,6 +19,4 @@ function BlockedReportFooter() {
     );
 }
 
-BlockedReportFooter.displayName = 'ArchivedReportFooter';
-
 export default BlockedReportFooter;

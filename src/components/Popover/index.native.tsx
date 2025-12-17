@@ -22,6 +22,4 @@ function Popover({animationIn, animationOut, popoverAnchorPosition, disableAnima
     );
 }
 
-Popover.displayName = 'Popover';
-
 export default Popover;

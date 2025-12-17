@@ -94,6 +94,4 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
     );
 }
 
-Agreements.displayName = 'Agreements';
-
 export default Agreements;

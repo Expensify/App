@@ -79,6 +79,4 @@ function MissingPersonalDetailsMagicCodePage() {
     );
 }
 
-MissingPersonalDetailsMagicCodePage.displayName = 'MissingPersonalDetailsMagicCodePage';
-
 export default MissingPersonalDetailsMagicCodePage;

@@ -379,8 +379,6 @@ function BaseValidateCodeForm({
     );
 }
 
-BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
-
 export type {ValidateCodeFormProps, ValidateCodeFormHandle};
 
 export default BaseValidateCodeForm;

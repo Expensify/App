@@ -65,6 +65,4 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     );
 }
 
-VideoRenderer.displayName = 'VideoRenderer';
-
 export default VideoRenderer;

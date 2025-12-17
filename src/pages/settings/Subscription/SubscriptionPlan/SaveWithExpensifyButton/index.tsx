@@ -20,6 +20,4 @@ function SaveWithExpensifyButton() {
     );
 }
 
-SaveWithExpensifyButton.displayName = 'SaveWithExpensifyButton';
-
 export default SaveWithExpensifyButton;

@@ -37,7 +37,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['RocketDude'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
@@ -98,7 +98,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
         <>
             <ScreenWrapper
                 shouldEnableMaxHeight
-                testID={TravelTerms.displayName}
+                testID="TravelTerms"
             >
                 <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel}>
                     <HeaderWithBackButton
@@ -174,7 +174,5 @@ function TravelTerms({route}: TravelTermsPageProps) {
         </>
     );
 }
-
-TravelTerms.displayName = 'TravelMenu';
 
 export default TravelTerms;

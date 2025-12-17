@@ -103,7 +103,7 @@ function AvatarWithImagePicker({
     editIcon,
     name = '',
 }: AvatarWithImagePickerProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Upload'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Upload']);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
@@ -319,7 +319,5 @@ function AvatarWithImagePicker({
         </View>
     );
 }
-
-AvatarWithImagePicker.displayName = 'AvatarWithImagePicker';
 
 export default AvatarWithImagePicker;

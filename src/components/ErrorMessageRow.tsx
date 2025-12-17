@@ -46,6 +46,4 @@ function ErrorMessageRow({errors, errorRowStyles, onClose, canDismissError = tru
     ) : null;
 }
 
-ErrorMessageRow.displayName = 'ErrorMessageRow';
-
 export default ErrorMessageRow;

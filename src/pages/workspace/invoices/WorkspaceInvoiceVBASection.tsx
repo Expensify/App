@@ -42,7 +42,7 @@ type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 // TODO: can be refactored to use ThreeDotsMenu component instead handling the popover and positioning
 function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
@@ -289,7 +289,5 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         </Section>
     );
 }
-
-WorkspaceInvoiceVBASection.displayName = 'WorkspaceInvoiceVBASection';
 
 export default WorkspaceInvoiceVBASection;

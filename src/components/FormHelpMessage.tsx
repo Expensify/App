@@ -36,7 +36,7 @@ type FormHelpMessageProps = {
 function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true, shouldRenderMessageAsHTML = false, isInfo = false}: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
 
     const HTMLMessage = useMemo(() => {
         if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
@@ -78,7 +78,5 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
         </View>
     );
 }
-
-FormHelpMessage.displayName = 'FormHelpMessage';
 
 export default FormHelpMessage;

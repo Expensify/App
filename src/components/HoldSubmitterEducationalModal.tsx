@@ -19,7 +19,7 @@ type HoldSubmitterEducationalModalProps = {
 function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['HoldExpense'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['HoldExpense']);
 
     useBeforeRemove(onClose);
 
@@ -44,7 +44,5 @@ function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducat
         </FeatureTrainingModal>
     );
 }
-
-HoldSubmitterEducationalModal.displayName = 'HoldSubmitterEducationalModal';
 
 export default HoldSubmitterEducationalModal;

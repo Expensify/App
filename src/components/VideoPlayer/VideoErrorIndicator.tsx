@@ -17,7 +17,7 @@ function VideoErrorIndicator({isPreview = false}: VideoErrorIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['VideoSlash'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['VideoSlash']);
 
     return (
         <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter, styles.pAbsolute, styles.h100, styles.w100]}>
@@ -35,7 +35,5 @@ function VideoErrorIndicator({isPreview = false}: VideoErrorIndicatorProps) {
         </View>
     );
 }
-
-VideoErrorIndicator.displayName = 'VideoErrorIndicator';
 
 export default VideoErrorIndicator;

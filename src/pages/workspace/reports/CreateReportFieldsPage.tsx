@@ -161,7 +161,7 @@ function WorkspaceCreateReportFieldsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={WorkspaceCreateReportFieldsPage.displayName}
+                testID="WorkspaceCreateReportFieldsPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -267,7 +267,5 @@ function WorkspaceCreateReportFieldsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCreateReportFieldsPage.displayName = 'WorkspaceCreateReportFieldsPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceCreateReportFieldsPage);

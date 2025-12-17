@@ -37,7 +37,7 @@ function UserSelectionListItem<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {formatPhoneNumber} = useLocalize();
 
     const handleCheckboxPress = useCallback(() => {
@@ -140,7 +140,5 @@ function UserSelectionListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-UserSelectionListItem.displayName = 'UserSelectionListItem';
 
 export default UserSelectionListItem;

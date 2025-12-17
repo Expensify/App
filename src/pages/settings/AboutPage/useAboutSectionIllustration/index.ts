@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type UseAboutSectionIllustration from './types';
 
 const useAboutSectionIllustration: UseAboutSectionIllustration = () => {
-    const illustrations = useMemoizedLazyIllustrations(['TiltedCoinExpensify'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['TiltedCoinExpensify']);
     const styles = useThemeStyles();
 
     return {

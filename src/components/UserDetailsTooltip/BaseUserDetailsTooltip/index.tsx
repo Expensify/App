@@ -108,6 +108,4 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     );
 }
 
-BaseUserDetailsTooltip.displayName = 'BaseUserDetailsTooltip';
-
 export default BaseUserDetailsTooltip;

@@ -74,7 +74,5 @@ function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<A
     );
 }
 
-WorkspaceSplitNavigator.displayName = 'WorkspaceSplitNavigator';
-
 export {CENTRAL_PANE_WORKSPACE_SCREENS};
 export default WorkspaceSplitNavigator;

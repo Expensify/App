@@ -49,7 +49,7 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
 function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, setShouldScrollToBottom}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['RocketDude'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const phoneErrorMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`;
@@ -215,7 +215,5 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         </>
     );
 }
-
-BookTravelButton.displayName = 'BookTravelButton';
 
 export default BookTravelButton;

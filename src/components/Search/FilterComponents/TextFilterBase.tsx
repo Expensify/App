@@ -67,6 +67,4 @@ function TextFilterBase({filterKey, title, onSubmit, characterLimit = CONST.MERC
     );
 }
 
-TextFilterBase.displayName = 'TextFilterBase';
-
 export default TextFilterBase;

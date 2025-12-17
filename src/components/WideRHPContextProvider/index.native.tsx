@@ -30,8 +30,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     return <WideRHPContext.Provider value={defaultWideRHPContextValue}>{children}</WideRHPContext.Provider>;
 }
 
-WideRHPContextProvider.displayName = 'WideRHPContextProvider';
-
 export default WideRHPContextProvider;
 export type {WideRHPContextType};
 export {

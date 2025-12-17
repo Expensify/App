@@ -88,6 +88,4 @@ function DirectStatementCloseDateStep({policyID}: DirectStatementCloseDateStepPr
     );
 }
 
-DirectStatementCloseDateStep.displayName = 'DirectStatementCloseDateStep';
-
 export default DirectStatementCloseDateStep;

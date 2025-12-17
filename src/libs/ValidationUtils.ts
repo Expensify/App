@@ -230,10 +230,10 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
+        return translateLocal('privatePersonalDetails.error.dateShouldBeBefore', format(maximalDate, CONST.DATE.FNS_FORMAT_STRING));
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
+    return translateLocal('privatePersonalDetails.error.dateShouldBeAfter', format(minimalDate, CONST.DATE.FNS_FORMAT_STRING));
 }
 
 /**

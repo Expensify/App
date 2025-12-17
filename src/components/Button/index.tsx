@@ -228,8 +228,6 @@ function KeyboardShortcutComponent({
     return null;
 }
 
-KeyboardShortcutComponent.displayName = 'KeyboardShortcutComponent';
-
 function Button({
     allowBubble = false,
 
@@ -551,8 +549,6 @@ function Button({
         </>
     );
 }
-
-Button.displayName = 'Button';
 
 export default withNavigationFallback(Button);
 

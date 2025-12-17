@@ -164,6 +164,4 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     );
 }
 
-ReportWelcomeText.displayName = 'ReportWelcomeText';
-
 export default ReportWelcomeText;

@@ -129,6 +129,4 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
     );
 }
 
-AddReactionBubble.displayName = 'AddReactionBubble';
-
 export default AddReactionBubble;

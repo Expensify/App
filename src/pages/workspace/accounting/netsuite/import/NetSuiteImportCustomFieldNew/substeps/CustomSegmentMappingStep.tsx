@@ -71,5 +71,4 @@ function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext,
     );
 }
 
-CustomSegmentMappingStep.displayName = 'CustomSegmentMappingStep';
 export default CustomSegmentMappingStep;

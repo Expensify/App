@@ -52,6 +52,4 @@ function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, te
     );
 }
 
-SymbolButton.displayName = 'SymbolButton';
-
 export default SymbolButton;

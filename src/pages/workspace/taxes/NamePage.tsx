@@ -76,7 +76,7 @@ function NamePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={NamePage.displayName}
+                testID="NamePage"
             >
                 <HeaderWithBackButton
                     title={translate('common.name')}
@@ -110,7 +110,5 @@ function NamePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-NamePage.displayName = 'NamePage';
 
 export default withPolicyAndFullscreenLoading(NamePage);

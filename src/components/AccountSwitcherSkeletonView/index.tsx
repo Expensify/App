@@ -55,5 +55,4 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
     );
 }
 
-AccountSwitcherSkeletonView.displayName = 'AccountSwitcherSkeletonView';
 export default AccountSwitcherSkeletonView;

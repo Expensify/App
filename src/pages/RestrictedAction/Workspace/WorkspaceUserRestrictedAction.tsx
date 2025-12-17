@@ -20,7 +20,7 @@ type WorkspaceUserRestrictedActionProps = {
 };
 
 function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedActionProps) {
-    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
@@ -35,7 +35,7 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={WorkspaceUserRestrictedAction.displayName}
+            testID="WorkspaceUserRestrictedAction"
         >
             <HeaderWithBackButton
                 title={translate('workspace.restrictedAction.restricted')}
@@ -66,7 +66,5 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
         </ScreenWrapper>
     );
 }
-
-WorkspaceUserRestrictedAction.displayName = 'WorkspaceUserRestrictedAction';
 
 export default WorkspaceUserRestrictedAction;

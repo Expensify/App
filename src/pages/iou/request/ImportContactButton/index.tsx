@@ -13,6 +13,4 @@ function ImportContactButton(props: ImportContactButtonProps) {
     return null;
 }
 
-ImportContactButton.displayName = 'ImportContactButton';
-
 export default ImportContactButton;

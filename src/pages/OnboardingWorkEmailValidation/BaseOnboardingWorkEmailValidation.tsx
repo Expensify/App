@@ -126,6 +126,4 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     );
 }
 
-BaseOnboardingWorkEmailValidation.displayName = 'BaseOnboardingWorkEmailValidation';
-
 export default BaseOnboardingWorkEmailValidation;

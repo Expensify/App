@@ -162,6 +162,4 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
     );
 }
 
-AccountHolderDetails.displayName = 'AccountHolderDetails';
-
 export default AccountHolderDetails;

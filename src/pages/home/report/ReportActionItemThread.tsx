@@ -59,6 +59,7 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}
                 onSecondaryInteraction={onSecondaryInteraction}
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_THREAD}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                     <ReportActionAvatars
@@ -91,7 +92,5 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
         </View>
     );
 }
-
-ReportActionItemThread.displayName = 'ReportActionItemThread';
 
 export default ReportActionItemThread;

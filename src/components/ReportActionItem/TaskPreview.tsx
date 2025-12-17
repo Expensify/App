@@ -191,6 +191,4 @@ function TaskPreview({
     );
 }
 
-TaskPreview.displayName = 'TaskPreview';
-
 export default withCurrentUserPersonalDetails(TaskPreview);

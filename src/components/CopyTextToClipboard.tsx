@@ -58,6 +58,4 @@ function CopyTextToClipboard({
     );
 }
 
-CopyTextToClipboard.displayName = 'CopyTextToClipboard';
-
 export default CopyTextToClipboard;

@@ -382,6 +382,4 @@ function BaseModal({
     );
 }
 
-BaseModal.displayName = 'BaseModalWithRef';
-
 export default BaseModal;

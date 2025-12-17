@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type UseSecuritySettingsSectionIllustration from './types';
 
 const useSecuritySettingsSectionIllustration: UseSecuritySettingsSectionIllustration = () => {
-    const illustrations = useMemoizedLazyIllustrations(['Safe'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Safe']);
     const styles = useThemeStyles();
 
     return {

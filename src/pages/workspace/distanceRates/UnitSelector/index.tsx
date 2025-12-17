@@ -63,6 +63,4 @@ function UnitSelector({defaultValue, wrapperStyle, label, setNewUnit}: UnitSelec
     );
 }
 
-UnitSelector.displayName = 'UnitSelector';
-
 export default UnitSelector;

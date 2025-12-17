@@ -51,7 +51,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
         <HeaderPageLayout
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role))}
             title={translate('delegate.addCopilot')}
-            testID={ConfirmDelegatePage.displayName}
+            testID="ConfirmDelegatePage"
             footer={submitButton}
             childrenContainerStyles={[styles.pt3, styles.gap6]}
             keyboardShouldPersistTaps="handled"
@@ -78,7 +78,5 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
         </HeaderPageLayout>
     );
 }
-
-ConfirmDelegatePage.displayName = 'ConfirmDelegatePage';
 
 export default ConfirmDelegatePage;

@@ -102,6 +102,4 @@ function Manual({onNext}: ManualProps) {
     );
 }
 
-Manual.displayName = 'Manual';
-
 export default Manual;

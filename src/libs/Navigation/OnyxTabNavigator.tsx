@@ -242,8 +242,6 @@ function TabScreenWithFocusTrapWrapper({children}: {children?: React.ReactNode})
     );
 }
 
-OnyxTabNavigator.displayName = 'OnyxTabNavigator';
-
 export default OnyxTabNavigator;
 
 export {TabScreenWithFocusTrapWrapper, TopTab};

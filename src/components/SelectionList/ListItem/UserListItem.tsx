@@ -194,6 +194,4 @@ function UserListItem<TItem extends ListItem>({
     );
 }
 
-UserListItem.displayName = 'UserListItem';
-
 export default UserListItem;

@@ -23,7 +23,7 @@ function SaveTheWorldPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-    const illustrations = useMemoizedLazyIllustrations(['TeachersUnite'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['TeachersUnite']);
     const saveTheWorldIllustration = useSaveTheWorldSectionIllustration();
     const menuItems = useMemo(() => {
         const baseMenuItems = [
@@ -49,7 +49,7 @@ function SaveTheWorldPage() {
 
     return (
         <ScreenWrapper
-            testID={SaveTheWorldPage.displayName}
+            testID="SaveTheWorldPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
@@ -86,7 +86,5 @@ function SaveTheWorldPage() {
         </ScreenWrapper>
     );
 }
-
-SaveTheWorldPage.displayName = 'SettingSecurityPage';
 
 export default SaveTheWorldPage;

@@ -23,6 +23,4 @@ function TextInputLabel({label, labelScale, labelTranslateY, isMultiline}: TextI
     );
 }
 
-TextInputLabel.displayName = 'TextInputLabel';
-
 export default TextInputLabel;

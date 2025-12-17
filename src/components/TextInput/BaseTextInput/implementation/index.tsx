@@ -543,6 +543,4 @@ function BaseTextInput({
     );
 }
 
-BaseTextInput.displayName = 'BaseTextInput';
-
 export default BaseTextInput;

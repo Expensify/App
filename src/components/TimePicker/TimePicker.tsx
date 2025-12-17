@@ -920,8 +920,6 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     );
 }
 
-TimePicker.displayName = 'TimePicker';
-
 export default TimePicker;
 
 export type {TimePickerProps, TimePickerRef, TimePickerRefName};

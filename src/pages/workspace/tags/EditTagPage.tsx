@@ -85,7 +85,7 @@ function EditTagPage({route}: EditTagPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={EditTagPage.displayName}
+                testID="EditTagPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -122,7 +122,5 @@ function EditTagPage({route}: EditTagPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-EditTagPage.displayName = 'EditTagPage';
 
 export default EditTagPage;

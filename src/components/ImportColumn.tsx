@@ -219,7 +219,5 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
     );
 }
 
-ImportColumn.displayName = 'ImportColumn';
-
 export type {ColumnRole};
 export default ImportColumn;

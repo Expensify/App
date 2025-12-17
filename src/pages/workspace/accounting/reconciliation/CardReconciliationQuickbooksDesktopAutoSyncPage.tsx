@@ -15,6 +15,4 @@ function CardReconciliationQuickbooksDesktopAutoSyncPage({policy}: WithPolicyCon
     );
 }
 
-CardReconciliationQuickbooksDesktopAutoSyncPage.displayName = 'CardReconciliationQuickbooksDesktopAutoSyncPage';
-
 export default withPolicyConnections(CardReconciliationQuickbooksDesktopAutoSyncPage);

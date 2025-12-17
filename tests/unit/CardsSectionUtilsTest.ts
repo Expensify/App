@@ -80,7 +80,7 @@ describe('CardSectionUtils', () => {
 
     beforeAll(() => {
         // Get illustrations using renderHook BEFORE fake timers to avoid timing issues
-        const {result} = renderHook(() => useMemoizedLazyIllustrations(['CreditCardEyes'] as const));
+        const {result} = renderHook(() => useMemoizedLazyIllustrations(['CreditCardEyes']));
         creditCardEyesIcon = result.current.CreditCardEyes;
 
         mockGetSubscriptionStatus.mockReturnValue('');

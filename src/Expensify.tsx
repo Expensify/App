@@ -402,6 +402,4 @@ function Expensify() {
     );
 }
 
-Expensify.displayName = 'Expensify';
-
 export default Expensify;

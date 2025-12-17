@@ -69,6 +69,4 @@ function OnfidoStep() {
     );
 }
 
-OnfidoStep.displayName = 'OnfidoStep';
-
 export default OnfidoStep;

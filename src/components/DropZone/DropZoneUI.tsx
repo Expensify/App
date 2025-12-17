@@ -48,6 +48,4 @@ function DropZoneUI({icon, dropTitle, dropStyles, dropTextStyles, dropWrapperSty
     );
 }
 
-DropZoneUI.displayName = 'DropZoneUI';
-
 export default DropZoneUI;

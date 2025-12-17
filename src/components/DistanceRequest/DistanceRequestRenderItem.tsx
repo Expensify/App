@@ -32,7 +32,7 @@ type DistanceRequestProps = {
 
 function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction, getIndex, isActive = false, onPress = () => {}, disabled = false}: DistanceRequestProps) {
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
     const {translate} = useLocalize();
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
@@ -72,7 +72,5 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
         />
     );
 }
-
-DistanceRequestRenderItem.displayName = 'DistanceRequestRenderItem';
 
 export default DistanceRequestRenderItem;

@@ -80,6 +80,4 @@ function EmojiSkinToneList() {
     );
 }
 
-EmojiSkinToneList.displayName = 'EmojiSkinToneList';
-
 export default EmojiSkinToneList;

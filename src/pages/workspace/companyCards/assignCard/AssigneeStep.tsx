@@ -226,7 +226,7 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={AssigneeStep.displayName}
+            wrapperID="AssigneeStep"
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={0}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
@@ -250,7 +250,5 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-AssigneeStep.displayName = 'AssigneeStep';
 
 export default AssigneeStep;

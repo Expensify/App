@@ -41,7 +41,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const privateSubscription = usePrivateSubscription();
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
-    const lazyIllustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow'] as const);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
     const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(
         translate,
         subscriptionPlan,
@@ -115,8 +115,6 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
         </View>
     );
 }
-
-SubscriptionPlanCard.displayName = 'SubscriptionPlanCard';
 
 export default SubscriptionPlanCard;
 export type {PersonalPolicyTypeExcludedProps};

@@ -56,5 +56,4 @@ function ChangeWorkspaceMenuSectionList() {
     );
 }
 
-ChangeWorkspaceMenuSectionList.displayName = 'ChangeWorkspaceMenuSectionList';
 export default ChangeWorkspaceMenuSectionList;

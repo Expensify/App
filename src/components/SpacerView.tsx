@@ -44,6 +44,4 @@ function SpacerView({shouldShow, style}: SpacerViewProps) {
     return <Animated.View style={[animatedStyles, style]} />;
 }
 
-SpacerView.displayName = 'SpacerView';
-
 export default SpacerView;

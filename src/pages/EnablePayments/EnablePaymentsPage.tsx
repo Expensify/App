@@ -52,7 +52,7 @@ function EnablePaymentsPage() {
         <ScreenWrapper
             shouldShowOfflineIndicator={userWallet?.currentStep !== CONST.WALLET.STEP.ONFIDO}
             includeSafeAreaPaddingBottom
-            testID={EnablePaymentsPage.displayName}
+            testID="EnablePaymentsPage"
         >
             {() => {
                 if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {
@@ -86,7 +86,5 @@ function EnablePaymentsPage() {
         </ScreenWrapper>
     );
 }
-
-EnablePaymentsPage.displayName = 'EnablePaymentsPage';
 
 export default EnablePaymentsPage;

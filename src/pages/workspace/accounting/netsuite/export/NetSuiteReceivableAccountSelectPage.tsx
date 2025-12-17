@@ -24,7 +24,7 @@ import type SCREENS from '@src/SCREENS';
 function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_RECEIVABLE_ACCOUNT_SELECT>>();
@@ -69,7 +69,7 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteReceivableAccountSelectPage.displayName}
+            displayName="NetSuiteReceivableAccountSelectPage"
             sections={netsuiteReceivableAccountOptions.length ? [{data: netsuiteReceivableAccountOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateReceivableAccount}
@@ -85,7 +85,5 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
         />
     );
 }
-
-NetSuiteReceivableAccountSelectPage.displayName = 'NetSuiteReceivableAccountSelectPage';
 
 export default withPolicyConnections(NetSuiteReceivableAccountSelectPage);

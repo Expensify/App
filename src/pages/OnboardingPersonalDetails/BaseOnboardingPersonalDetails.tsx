@@ -228,6 +228,4 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     );
 }
 
-BaseOnboardingPersonalDetails.displayName = 'BaseOnboardingPersonalDetails';
-
 export default withCurrentUserPersonalDetails(BaseOnboardingPersonalDetails);

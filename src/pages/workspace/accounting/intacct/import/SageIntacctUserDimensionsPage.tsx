@@ -23,7 +23,7 @@ import ROUTES from '@src/ROUTES';
 function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const policyID = policy?.id ?? '-1';
@@ -32,7 +32,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctUserDimensionsPage.displayName}
+            displayName="SageIntacctUserDimensionsPage"
             headerTitle="workspace.intacct.userDefinedDimension"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -123,7 +123,5 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-SageIntacctUserDimensionsPage.displayName = 'SageIntacctUserDimensionsPage';
 
 export default withPolicy(SageIntacctUserDimensionsPage);

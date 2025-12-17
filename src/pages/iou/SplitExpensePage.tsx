@@ -363,7 +363,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     return (
         <ScreenWrapper
-            testID={SplitExpensePage.displayName}
+            testID="SplitExpensePage"
             shouldEnableMaxHeight={canUseTouchScreen()}
             keyboardAvoidingViewBehavior="height"
             shouldDismissKeyboardBeforeClose={false}
@@ -432,6 +432,5 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         </ScreenWrapper>
     );
 }
-SplitExpensePage.displayName = 'SplitExpensePage';
 
 export default SplitExpensePage;

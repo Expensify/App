@@ -28,6 +28,4 @@ function BaseUpdateAppModal({onSubmit}: UpdateAppModalProps) {
     );
 }
 
-BaseUpdateAppModal.displayName = 'BaseUpdateAppModal';
-
 export default React.memo(BaseUpdateAppModal);

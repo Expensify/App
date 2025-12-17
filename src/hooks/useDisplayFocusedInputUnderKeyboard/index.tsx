@@ -52,7 +52,6 @@ const useDisplayFocusedInputUnderKeyboard = (): UseDisplayFocusedInputUnderKeybo
         )) as typeof SplitListItemFocus,
         [],
     );
-    SplitListItemFocus.displayName = 'SplitListItemWithFocus';
 
     return {
         viewRef,

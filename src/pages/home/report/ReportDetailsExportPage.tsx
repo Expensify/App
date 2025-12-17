@@ -39,7 +39,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenAndHourglass']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare']);
 
     const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
     const canBeExported = canBeExportedUtil(report);
@@ -85,7 +85,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
 
     if (!canBeExported) {
         return (
-            <ScreenWrapper testID={ReportDetailsExportPage.displayName}>
+            <ScreenWrapper testID="ReportDetailsExportPage">
                 <HeaderWithBackButton
                     title={translate('common.export')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
@@ -110,7 +110,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 policyID={policyID}
                 accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-                displayName={ReportDetailsExportPage.displayName}
+                displayName="ReportDetailsExportPage"
                 sections={[{data: exportSelectorOptions}]}
                 listItem={UserListItem}
                 shouldBeBlocked={false}
@@ -137,8 +137,6 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
         </>
     );
 }
-
-ReportDetailsExportPage.displayName = 'ReportDetailsExportPage';
 
 export default ReportDetailsExportPage;
 export type {ExportType};

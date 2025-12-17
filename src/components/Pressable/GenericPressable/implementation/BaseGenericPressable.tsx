@@ -206,6 +206,4 @@ function GenericPressable({
     );
 }
 
-GenericPressable.displayName = 'GenericPressable';
-
 export default GenericPressable;
