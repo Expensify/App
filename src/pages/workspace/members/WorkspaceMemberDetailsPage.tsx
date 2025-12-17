@@ -55,7 +55,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
-import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, openPolicyMemberProfilePage, removeMembers, requestWorkspaceOwnerChange} from '@userActions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -75,7 +75,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -291,9 +291,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const startChangeOwnershipFlow = useCallback(() => {
         clearWorkspaceOwnerChangeFlow(policyID);
-        requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
         Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
-    }, [accountID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, policyID]);
+    }, [accountID, policyID]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
@@ -312,7 +311,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceMemberDetailsPage.displayName}
+                testID="WorkspaceMemberDetailsPage"
             >
                 <HeaderWithBackButton
                     title={displayName}
@@ -424,11 +423,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             />
                             {shouldShowCardsSection && (
                                 <>
-                                    <View style={[styles.ph5, styles.pv3]}>
-                                        <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
-                                            {translate('walletPage.assignedCards')}
-                                        </Text>
-                                    </View>
+                                    {memberCards.length > 0 && (
+                                        <View style={[styles.ph5, styles.pv3]}>
+                                            <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                                {translate('walletPage.assignedCards')}
+                                            </Text>
+                                        </View>
+                                    )}
                                     {memberCards.map((memberCard) => {
                                         const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                                         const plaidUrl = getPlaidInstitutionIconUrl(memberCard?.bank);
@@ -465,11 +466,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             </OfflineWithFeedback>
                                         );
                                     })}
-                                    <MenuItem
-                                        title={translate('workspace.expensifyCard.newCard')}
-                                        icon={Expensicons.Plus}
-                                        onPress={handleIssueNewCard}
-                                    />
                                 </>
                             )}
                         </View>
@@ -479,7 +475,5 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceMemberDetailsPage.displayName = 'WorkspaceMemberDetailsPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceMemberDetailsPage);

@@ -94,7 +94,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
             setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             return;
         }
-        assignWorkspaceCompanyCard(policyID, {...data, bankName});
+        assignWorkspaceCompanyCard(policy, {...data, bankName});
     };
 
     const editStep = (step: AssignCardStep) => {
@@ -107,7 +107,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={ConfirmationStep.displayName}
+            wrapperID="ConfirmationStep"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('workspace.companyCards.assignCard')}
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -170,7 +170,5 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default ConfirmationStep;

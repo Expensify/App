@@ -85,7 +85,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             enableEdgeToEdgeBottomSafeAreaPadding
-            testID={WalletStatementPage.displayName}
+            testID="WalletStatementPage"
         >
             <HeaderWithBackButton
                 title={Str.recapitalize(title)}
@@ -99,7 +99,5 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         </ScreenWrapper>
     );
 }
-
-WalletStatementPage.displayName = 'WalletStatementPage';
 
 export default WalletStatementPage;

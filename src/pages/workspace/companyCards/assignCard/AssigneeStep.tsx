@@ -230,7 +230,7 @@ function AssigneeStep({policy, route}: AssigneeStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={AssigneeStep.displayName}
+            wrapperID="AssigneeStep"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('workspace.companyCards.assignCard')}
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -252,7 +252,5 @@ function AssigneeStep({policy, route}: AssigneeStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-AssigneeStep.displayName = 'AssigneeStep';
 
 export default AssigneeStep;

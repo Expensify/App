@@ -94,7 +94,7 @@ function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<Settin
 
     return (
         <InteractiveStepWrapper
-            wrapperID={TransactionStartDateStep.displayName}
+            wrapperID="TransactionStartDateStep"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={assigneeDisplayName}
@@ -147,7 +147,5 @@ function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<Settin
         </InteractiveStepWrapper>
     );
 }
-
-TransactionStartDateStep.displayName = 'TransactionStartDateStep';
 
 export default TransactionStartDateStep;
