@@ -309,7 +309,7 @@ function BasePopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
-        } else if (!selectedItem.shouldCloseModalOnSelect) {
+        } else if (selectedItem.shouldCloseModalOnSelect === false) {
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
             setFocusedIndex(-1);
