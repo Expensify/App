@@ -151,7 +151,6 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: null,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
 };
 
@@ -2062,10 +2061,9 @@ function getSortedTransactionData(
     }
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.CARD) {
-        // TODO##
         return data.sort((a, b) => {
-            const aValue = "A";
-            const bValue = 'B';
+            const aValue = a.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : a.cardName ?? '';
+            const bValue = b.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : b.cardName ?? '';
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
