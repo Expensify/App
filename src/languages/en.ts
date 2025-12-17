@@ -1199,6 +1199,7 @@ const translations = {
         fieldPending: 'Pending...',
         defaultRate: 'Default rate',
         receiptMissingDetails: 'Receipt missing details',
+        noRoute: 'No route was found',
         missingAmount: 'Missing amount',
         missingMerchant: 'Missing merchant',
         receiptStatusTitle: 'Scanning…',
