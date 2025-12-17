@@ -97,11 +97,6 @@ function createMultiSelectPopover({filterKey, filterConfig, currentFilterValue, 
                 value: option.value,
             }));
 
-        const handleChange = (items: Array<{text: string; value: string}>) => {
-            const values = items.map((item) => item.value);
-            setFilter(filterKey, values);
-        };
-
         return (
             <MultiSelectPopup
                 label={filterKey}
@@ -111,7 +106,10 @@ function createMultiSelectPopover({filterKey, filterConfig, currentFilterValue, 
                 }))}
                 value={selectedItems}
                 closeOverlay={closeOverlay}
-                onChange={handleChange}
+                onChange={(items) => {
+                    const values = items.map((item) => item.value);
+                    setFilter(filterKey, values);
+                }}
             />
         );
     };
@@ -134,10 +132,6 @@ function createSingleSelectPopover({filterKey, filterConfig, currentFilterValue,
               }
             : null;
 
-        const handleChange = (item: {text: string; value: string} | null) => {
-            setFilter(filterKey, item?.value ?? null);
-        };
-
         return (
             <SingleSelectPopup
                 label={filterKey}
@@ -147,7 +141,7 @@ function createSingleSelectPopover({filterKey, filterConfig, currentFilterValue,
                 }))}
                 value={selectedItem}
                 closeOverlay={closeOverlay}
-                onChange={handleChange}
+                onChange={(item) => setFilter(filterKey, item?.value ?? null)}
             />
         );
     };
