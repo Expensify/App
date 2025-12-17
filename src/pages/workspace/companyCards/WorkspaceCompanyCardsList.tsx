@@ -164,25 +164,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
                     </PressableWithFeedback>
                 </OfflineWithFeedback>
             );
-        },
-        [
-            assignedCards,
-            cardList,
-            customCardNames,
-            isAssigningCardDisabled,
-            onAssignCard,
-            personalDetails,
-            plaidIconUrl,
-            policyID,
-            selectedFeed,
-            shouldUseNarrowTableRowLayout,
-            styles.br3,
-            styles.highlightBG,
-            styles.hoveredComponentBG,
-            styles.mb3,
-            styles.mh5,
-            styles.ph5,
-    );
+    };
 
     const keyExtractor = (item: string, index: number) => `${item}_${index}`;
 
