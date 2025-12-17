@@ -1,4 +1,7 @@
 import {format, subDays} from 'date-fns';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type SCREENS from '@src/SCREENS';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -12,11 +15,12 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function TransactionStartDateStep() {
+function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD>}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -37,7 +41,13 @@ function TransactionStartDateStep() {
             });
             return;
         }
-        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CARD});
+        const backTo = route?.params?.backTo;
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        const nextStep = data?.encryptedCardNumber ? CONST.COMPANY_CARD.STEP.ASSIGNEE : CONST.COMPANY_CARD.STEP.CARD;
+        setAssignCardStepAndData({currentStep: nextStep});
     };
 
     const handleSelectDateOption = (dateOption: string) => {
