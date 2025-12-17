@@ -8,14 +8,14 @@ import {useTableContext} from './TableContext';
 function TableSearchBar() {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
-    const {searchString, updateSearchString: setSearchString} = useTableContext();
+    const {searchString, updateSearchString} = useTableContext();
 
     const handleChangeText = (text: string) => {
-        setSearchString(text);
+        updateSearchString(text);
     };
 
     const handleClearInput = () => {
-        setSearchString('');
+        updateSearchString('');
     };
 
     return (
