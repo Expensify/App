@@ -1,13 +1,14 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -49,10 +50,9 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const isQuickSettingsFlow = !!backTo;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isSwitchSingleToMultipleLevelTagWarningModalVisible, setIsSwitchSingleToMultipleLevelTagWarningModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MultiTag', 'Tag']);
 
-    const [isOverridingMultiTag, setIsOverridingMultiTag] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [shouldRunPostUpgradeFlow, setShouldRunPostUpgradeFlow] = useState(false);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -70,41 +70,47 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         return Object.values(singleLevelTags).some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [isMultiLevelTags, policyTagLists]);
 
-    const startMultiLevelTagImportFlow = useCallback(() => {
-        setImportedSpreadsheetIsImportingMultiLevelTags(true);
-        if (hasVisibleTags) {
-            if (isMultiLevelTags) {
-                setIsOverridingMultiTag(true);
-            } else {
-                setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
-            }
-        } else {
-            Navigation.navigate(
-                isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-            );
-        }
-    }, [hasVisibleTags, policyID, isQuickSettingsFlow, backTo, isMultiLevelTags]);
-
-    useFocusEffect(
-        useCallback(() => {
-            if (!shouldRunPostUpgradeFlow || !isControlPolicy(policy)) {
-                return;
-            }
-
-            startMultiLevelTagImportFlow();
-            setShouldRunPostUpgradeFlow(false);
-        }, [shouldRunPostUpgradeFlow, policy, startMultiLevelTagImportFlow]),
+    const overrideMultiTagPrompt = useMemo(
+        () => (
+            <Text>
+                {translate('workspace.tags.overrideMultiTagWarning.prompt1')}
+                <>
+                    {translate('workspace.tags.overrideMultiTagWarning.prompt2')}
+                    <TextLink
+                        onPress={() => {
+                            if (isMultiLevelTags) {
+                                downloadMultiLevelTagsCSV(
+                                    policyID,
+                                    () => {
+                                        close(() => {
+                                            setIsDownloadFailureModalVisible(true);
+                                        });
+                                    },
+                                    hasDependentTags,
+                                );
+                            } else {
+                                downloadTagsCSV(policyID, () => {
+                                    close(() => {
+                                        setIsDownloadFailureModalVisible(true);
+                                    });
+                                });
+                            }
+                        }}
+                    >
+                        {translate('workspace.tags.overrideMultiTagWarning.prompt3')}
+                    </TextLink>
+                    {translate('workspace.tags.overrideMultiTagWarning.prompt4')}
+                </>
+            </Text>
+        ),
+        [translate, isMultiLevelTags, policyID, hasDependentTags],
     );
 
-    if (hasAccountingConnections) {
-        return <NotFoundPage />;
-    }
-
-    const overrideMultiTagPrompt = (
-        <Text>
-            {translate('workspace.tags.overrideMultiTagWarning.prompt1')}
-            <>
-                {translate('workspace.tags.overrideMultiTagWarning.prompt2')}
+    const switchSingleToMultiLevelTagPrompt = useMemo(
+        () => (
+            <Text>
+                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
+                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
                 <TextLink
                     onPress={() => {
                         if (isMultiLevelTags) {
@@ -126,45 +132,86 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         }
                     }}
                 >
-                    {translate('workspace.tags.overrideMultiTagWarning.prompt3')}
+                    {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
                 </TextLink>
-                {translate('workspace.tags.overrideMultiTagWarning.prompt4')}
-            </>
-        </Text>
+                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
+                <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
+                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
+            </Text>
+        ),
+        [translate, isMultiLevelTags, policyID, hasDependentTags],
     );
 
-    const switchSingleToMultiLevelTagPrompt = (
-        <Text>
-            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
-            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
-            <TextLink
-                onPress={() => {
-                    if (isMultiLevelTags) {
-                        downloadMultiLevelTagsCSV(
-                            policyID,
-                            () => {
-                                close(() => {
-                                    setIsDownloadFailureModalVisible(true);
-                                });
-                            },
-                            hasDependentTags,
-                        );
-                    } else {
-                        downloadTagsCSV(policyID, () => {
-                            close(() => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
-                        });
-                    }
-                }}
-            >
-                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
-            </TextLink>
-            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
-            <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
-            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
-        </Text>
+    const showSwitchSingleToMultiLevelTagWarningModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('workspace.tags.switchSingleToMultiLevelTagWarning.title'),
+            prompt: switchSingleToMultiLevelTagPrompt,
+            confirmText: translate('workspace.tags.switchSingleToMultiLevelTagWarning.title'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action === ModalActions.CONFIRM) {
+                cleanPolicyTags(policyID);
+                Navigation.navigate(
+                    isQuickSettingsFlow
+                        ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                        : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                );
+            } else {
+                setImportedSpreadsheetIsImportingMultiLevelTags(false);
+            }
+        });
+    }, [showConfirmModal, translate, switchSingleToMultiLevelTagPrompt, policyID, isQuickSettingsFlow, backTo]);
+
+    const showOverrideMultiTagModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('workspace.tags.overrideMultiTagWarning.title'),
+            prompt: overrideMultiTagPrompt,
+            confirmText: translate('workspace.tags.overrideMultiTagWarning.title'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action === ModalActions.CONFIRM) {
+                Navigation.navigate(
+                    isQuickSettingsFlow
+                        ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                        : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                );
+            } else {
+                setImportedSpreadsheetIsImportingMultiLevelTags(false);
+            }
+        });
+    }, [showConfirmModal, translate, overrideMultiTagPrompt, policyID, isQuickSettingsFlow, backTo]);
+
+    const startMultiLevelTagImportFlow = useCallback(() => {
+        setImportedSpreadsheetIsImportingMultiLevelTags(true);
+        if (hasVisibleTags) {
+            if (isMultiLevelTags) {
+                showOverrideMultiTagModal();
+            } else {
+                showSwitchSingleToMultiLevelTagWarningModal();
+            }
+        } else {
+            Navigation.navigate(
+                isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+            );
+        }
+    }, [hasVisibleTags, policyID, isQuickSettingsFlow, backTo, isMultiLevelTags, showOverrideMultiTagModal, showSwitchSingleToMultiLevelTagWarningModal]);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!shouldRunPostUpgradeFlow || !isControlPolicy(policy)) {
+                return;
+            }
+
+            startMultiLevelTagImportFlow();
+            setShouldRunPostUpgradeFlow(false);
+        }, [shouldRunPostUpgradeFlow, policy, startMultiLevelTagImportFlow]),
     );
+
+    if (hasAccountingConnections) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -192,7 +239,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         onPress={() => {
                             setImportedSpreadsheetIsImportingMultiLevelTags(false);
                             if (hasVisibleTags) {
-                                setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
+                                showSwitchSingleToMultiLevelTagWarningModal();
                             } else {
                                 Navigation.navigate(
                                     isQuickSettingsFlow
@@ -226,47 +273,6 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadFailureModalVisible}
                 onClose={() => setIsDownloadFailureModalVisible(false)}
-            />
-            <ConfirmModal
-                isVisible={isSwitchSingleToMultipleLevelTagWarningModalVisible}
-                onConfirm={() => {
-                    cleanPolicyTags(policyID);
-                    setIsSwitchSingleToMultipleLevelTagWarningModalVisible(false);
-                    Navigation.navigate(
-                        isQuickSettingsFlow
-                            ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                            : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                    );
-                }}
-                title={translate('workspace.tags.switchSingleToMultiLevelTagWarning.title')}
-                prompt={switchSingleToMultiLevelTagPrompt}
-                confirmText={translate('workspace.tags.switchSingleToMultiLevelTagWarning.title')}
-                danger
-                cancelText={translate('common.cancel')}
-                onCancel={() => {
-                    setIsSwitchSingleToMultipleLevelTagWarningModalVisible(false);
-                    setImportedSpreadsheetIsImportingMultiLevelTags(false);
-                }}
-            />
-            <ConfirmModal
-                isVisible={isOverridingMultiTag}
-                onConfirm={() => {
-                    setIsOverridingMultiTag(false);
-                    Navigation.navigate(
-                        isQuickSettingsFlow
-                            ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                            : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                    );
-                }}
-                title={translate('workspace.tags.overrideMultiTagWarning.title')}
-                prompt={overrideMultiTagPrompt}
-                confirmText={translate('workspace.tags.overrideMultiTagWarning.title')}
-                danger
-                cancelText={translate('common.cancel')}
-                onCancel={() => {
-                    setIsOverridingMultiTag(false);
-                    setImportedSpreadsheetIsImportingMultiLevelTags(false);
-                }}
             />
         </AccessOrNotFoundWrapper>
     );
