@@ -1394,7 +1394,8 @@ function getActions(
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
-    if (report && policy && isPolicyAdmin(policy) && isExpenseReportUtil(report) && isProcessingReport(report) && !isMoneyRequestReportPendingDeletion(report)) {
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (report && policy && isPolicyAdmin(policy) && isExpenseReportUtil(report) && isProcessingReport(report) && !isMoneyRequestReportPendingDeletion(report) && isApprovalEnabled) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
     }
 
