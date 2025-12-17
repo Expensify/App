@@ -396,7 +396,20 @@ function IOURequestStepParticipants({
                 });
             }
         });
-    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo, introSelected]);
+    }, [
+        action,
+        participants,
+        iouType,
+        initialTransaction,
+        iouRequestType,
+        initialTransactionID,
+        reportID,
+        waitForKeyboardDismiss,
+        transactions,
+        isMovingTransactionFromTrackExpense,
+        introSelected,
+        backTo,
+    ]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
