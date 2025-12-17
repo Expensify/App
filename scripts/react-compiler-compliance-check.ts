@@ -450,14 +450,15 @@ class ManualMemoizationChecker {
 
             filesWithFailures.add(filePath);
 
-            if (file.diffType === 'added') {
+            const isAddedFile = file.diffType === 'added';
+            if (isAddedFile) {
                 addedFiles.add(filePath);
             }
 
             const isReactComponentSourceFile = this.FILE_EXTENSIONS.some((extension) => filePath.endsWith(extension));
-
             const isSuccessfullyCompiled = successFiles.has(filePath);
-            if (isReactComponentSourceFile && isSuccessfullyCompiled) {
+
+            if (isReactComponentSourceFile && isSuccessfullyCompiled && isAddedFile) {
                 enforcedAutoMemoFiles.add(filePath);
             }
         }
