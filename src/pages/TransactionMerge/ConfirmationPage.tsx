@@ -23,6 +23,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {ReportActions, Transaction} from '@src/types/onyx';
@@ -111,6 +112,10 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
         } else {
             Navigation.dismissModal();
+        }
+
+        if (reportID) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
         }
     }, [
         targetTransaction,
