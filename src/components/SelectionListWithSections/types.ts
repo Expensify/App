@@ -431,6 +431,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Final and formatted "to" value used for displaying and sorting */
         formattedTo?: string;
 
+        /** The date the report was exported */
+        exported?: string;
+
         /**
          * Whether we should show the report year.
          * This is true if at least one report in the dataset was created in past years

@@ -110,8 +110,7 @@ function ExpenseReportListItemRow({
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, item.shouldShowYearExported)]}>
                 <DateCell
-                    // TODO##
-                    date={'2025-01-01'}
+                    date={item.exported ?? ''}
                     showTooltip
                     isLargeScreenWidth
                 />
