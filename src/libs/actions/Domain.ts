@@ -458,13 +458,6 @@ function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: {
-                [PERMISSION_KEY]: accountID,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 admin: {
@@ -480,14 +473,14 @@ function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 adminErrors: {
-                    [accountID]: {errors: {[Date.now()]: 'Unable to add/remove this user as an Admin. Please try again.'}},
+                    [accountID]: {errors: {[Date.now()]: 'Unable to remove this user as an Admin. Please try again.'}},
                 },
             },
         },
     ];
 
-    applyUpdatesWithDelay(optimisticData, successData);
-    // applyUpdatesWithDelay(optimisticData, failureData);
+    // applyUpdatesWithDelay(optimisticData, successData);
+    applyUpdatesWithDelay(optimisticData, failureData);
 }
 
 /**

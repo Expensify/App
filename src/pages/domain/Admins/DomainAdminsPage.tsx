@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, technicalContactEmailSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactEmailSelector} from '@selectors/Domain';
 import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
@@ -58,6 +58,11 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         canBeMissing: true,
     });
 
+    const [domainPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminPendingActionSelector,
+    });
+
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [technicalContactEmail] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
@@ -86,7 +91,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             ],
             rightElement: technicalContactEmail === details?.login && <Badge text={translate('domain.admins.primaryContact')} />,
             errors: getLatestError(domainErrors?.adminErrors?.[accountID]?.errors),
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            pendingAction: domainPendingAction?.[accountID]?.pendingAction,
         });
     }
 
