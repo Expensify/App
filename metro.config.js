@@ -5,7 +5,12 @@ const {mergeConfig} = require('@react-native/metro-config');
 const {wrapWithReanimatedMetroConfig} = require('react-native-reanimated/metro-config');
 const {withSentryConfig} = require('@sentry/react-native/metro');
 const {createSentryMetroSerializer} = require('@sentry/react-native/dist/js/tools/sentryMetroSerializer');
-require('dotenv').config();
+
+const path = require('path');
+
+// Prefer explicit ENVFILE (Fastlane/GHA set this), else fall back to local .env
+const envPath = process.env.ENVFILE ? (path.isAbsolute(process.env.ENVFILE) ? process.env.ENVFILE : path.join(__dirname, process.env.ENVFILE)) : path.join(__dirname, '.env');
+require('dotenv').config({path: envPath});
 
 const defaultConfig = getReactNativeDefaultConfig(__dirname);
 const expoConfig = getExpoDefaultConfig(__dirname);
@@ -14,6 +19,7 @@ const isE2ETesting = process.env.E2E_TESTING === 'true';
 const e2eSourceExts = ['e2e.js', 'e2e.ts', 'e2e.tsx'];
 
 const isDev = process.env.ENVIRONMENT === undefined || process.env.ENVIRONMENT === 'development';
+
 /**
  * Metro configuration
  * https://reactnative.dev/docs/metro

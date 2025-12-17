@@ -79,6 +79,9 @@ type NumberWithSymbolFormProps = {
     /** Whether to allow flipping amount */
     allowFlippingAmount?: boolean;
 
+    /** Whether the input is disabled or not */
+    disabled?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
@@ -141,6 +144,7 @@ function NumberWithSymbolForm({
     toggleNegative,
     clearNegative,
     ref,
+    disabled,
     ...props
 }: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
@@ -369,6 +373,7 @@ function NumberWithSymbolForm({
                         ref.current = newRef;
                     }
                 }}
+                disabled={disabled}
                 prefixCharacter={symbol}
                 prefixStyle={styles.colorMuted}
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -400,6 +405,7 @@ function NumberWithSymbolForm({
                 }
                 textInput.current = newRef;
             }}
+            disabled={disabled}
             symbol={symbol}
             hideSymbol={hideSymbol}
             symbolPosition={symbolPosition}
@@ -530,8 +536,6 @@ function NumberWithSymbolForm({
         </ScrollView>
     );
 }
-
-NumberWithSymbolForm.displayName = 'NumberWithSymbolForm';
 
 export default NumberWithSymbolForm;
 export type {NumberWithSymbolFormProps, NumberWithSymbolFormRef};

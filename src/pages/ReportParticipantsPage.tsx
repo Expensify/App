@@ -37,8 +37,8 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
-    getReportName,
     getReportPersonalDetailsParticipants,
     isArchivedNonExpenseReport,
     isChatRoom,
@@ -64,7 +64,7 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
 function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const backTo = route.params.backTo;
-    const icons = useMemoizedLazyExpensifyIcons(['User', 'MakeAdmin', 'RemoveMembers'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['User', 'MakeAdmin', 'RemoveMembers']);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -124,7 +124,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         return !pendingMember || isOffline || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     });
 
-    // Include the search bar when there are 8 or more active members in the selection list
+    // Include the search bar when there are STANDARD_LIST_ITEM_LIMIT or more active members in the selection list
     const shouldShowTextInput = activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     useEffect(() => {
@@ -316,7 +316,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
         if (isAtLeastOneAdminSelected) {
             options.push({
-                text: translate('workspace.people.makeMember'),
+                text: translate('workspace.people.makeMember', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
                 icon: icons.User,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
@@ -327,7 +327,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
         if (isAtLeastOneMemberSelected) {
             options.push({
-                text: translate('workspace.people.makeAdmin'),
+                text: translate('workspace.people.makeAdmin', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
                 icon: icons.MakeAdmin,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
@@ -400,7 +400,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
-            testID={ReportParticipantsPage.displayName}
+            testID="ReportParticipantsPage"
         >
             <FullPageNotFoundView shouldShow={!report || isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report)}>
                 <HeaderWithBackButton
@@ -417,7 +417,8 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, undefined, undefined, undefined, undefined, reportAttributes))}
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal
@@ -469,7 +470,5 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         </ScreenWrapper>
     );
 }
-
-ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
 export default withReportOrNotFound()(ReportParticipantsPage);

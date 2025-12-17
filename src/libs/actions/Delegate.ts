@@ -6,6 +6,7 @@ import type {AddDelegateParams as APIAddDelegateParams, RemoveDelegateParams as 
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {clearPreservedSearchNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONFIG from '@src/CONFIG';
@@ -187,6 +188,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 Onyx.update(failureData);
                 return;
             }
+            clearPreservedSearchNavigatorStates();
             const restrictedToken = response.restrictedToken;
             const policyID = activePolicyID;
 
@@ -271,6 +273,8 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                 restoreDelegateSession(stashedSession ?? {});
                 return;
             }
+
+            clearPreservedSearchNavigatorStates();
 
             const requesterEmail = response.requesterEmail;
             const authToken = response.authToken;

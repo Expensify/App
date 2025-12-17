@@ -261,7 +261,6 @@ function SearchAutocompleteInput({
                         shouldShowClearButton={!!value && !isSearchingForReports}
                         shouldHideClearButton={false}
                         onClearInput={clearFilters}
-                        forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
                     />
                 </View>
             </Animated.View>
@@ -273,8 +272,6 @@ function SearchAutocompleteInput({
         </View>
     );
 }
-
-SearchAutocompleteInput.displayName = 'SearchAutocompleteInput';
 
 export type {SearchAutocompleteInputProps};
 export default SearchAutocompleteInput;

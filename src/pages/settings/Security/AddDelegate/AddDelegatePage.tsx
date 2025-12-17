@@ -91,7 +91,7 @@ function AddDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, translate]);
+    }, [availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
@@ -100,7 +100,7 @@ function AddDelegatePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={AddDelegatePage.displayName}
+            testID="AddDelegatePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -125,7 +125,5 @@ function AddDelegatePage() {
         </ScreenWrapper>
     );
 }
-
-AddDelegatePage.displayName = 'AddDelegatePage';
 
 export default AddDelegatePage;

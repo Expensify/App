@@ -1,18 +1,24 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
+import RenderHTML from '@components/RenderHTML';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
+import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import {getSettlementStatus, getSettlementStatusBadgeProps} from '@libs/SearchUIUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import TotalCell from './TotalCell';
 
 type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
@@ -55,12 +61,25 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow', 'DotIndicator']);
+
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
     const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
     );
+    const badgeProps = useMemo(() => getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme), [withdrawalIDItem.state, translate, theme]);
+    const settlementStatus = useMemo(() => getSettlementStatus(withdrawalIDItem.state), [withdrawalIDItem.state]);
+    const withdrawalInfoText = translate('settlement.withdrawalInfo', {date: formattedWithdrawalDate, withdrawalID: withdrawalIDItem.entryID});
+    const failedErrorHTML = useMemo(() => {
+        if (settlementStatus !== CONST.SEARCH.SETTLEMENT_STATUS.FAILED) {
+            return '';
+        }
+        const walletLink = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
+        return translate('settlement.failedError', {link: walletLink});
+    }, [settlementStatus, environmentURL, translate]);
 
     return (
         <View>
@@ -87,10 +106,17 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                 text={`${formattedBankName} xx${withdrawalIDItem.accountNumber.slice(-4)}`}
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
                             />
-                            <TextWithTooltip
-                                text={`${formattedWithdrawalDate}  ${translate('common.withdrawalID')}: ${withdrawalIDItem.entryID}`}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            />
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                                {!!badgeProps && (
+                                    <View style={[styles.reportStatusContainer, badgeProps.badgeStyles]}>
+                                        <Text style={[styles.reportStatusText, badgeProps.textStyles]}>{badgeProps.text}</Text>
+                                    </View>
+                                )}
+                                <TextWithTooltip
+                                    text={withdrawalInfoText}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                />
+                            </View>
                         </View>
                     </View>
                 </View>
@@ -109,7 +135,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                             >
                                 {({hovered}) => (
                                     <Icon
-                                        src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                        src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
                                         fill={theme.icon}
                                         additionalStyles={!hovered && styles.opacitySemiTransparent}
                                         small
@@ -120,10 +146,21 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                     )}
                 </View>
             </View>
+            {settlementStatus === CONST.SEARCH.SETTLEMENT_STATUS.FAILED && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph3, styles.pb1]}>
+                    <Icon
+                        src={expensifyIcons.DotIndicator}
+                        fill={theme.danger}
+                        height={variables.iconSizeExtraSmall}
+                        width={variables.iconSizeExtraSmall}
+                    />
+                    <View style={[styles.pre, styles.flexShrink1]}>
+                        <RenderHTML html={`<rbr shouldShowEllipsis="1" issmall >${failedErrorHTML}</rbr>`} />
+                    </View>
+                </View>
+            )}
         </View>
     );
 }
-
-WithdrawalIDListItemHeader.displayName = 'WithdrawalIDListItemHeader';
 
 export default WithdrawalIDListItemHeader;

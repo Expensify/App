@@ -11,6 +11,4 @@ function SearchFiltersPaidPage() {
     );
 }
 
-SearchFiltersPaidPage.displayName = 'SearchFiltersPaidPage';
-
 export default SearchFiltersPaidPage;
