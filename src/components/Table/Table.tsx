@@ -2,7 +2,7 @@ import type {FlashListRef} from '@shopify/flash-list';
 import React, {useImperativeHandle, useRef, useState} from 'react';
 import TableContext from './TableContext';
 import type {TableContextValue, UpdateFilterCallback, UpdateSortingCallback} from './TableContext';
-import type {ActiveSorting, TableHandle, TableMethods, TableProps, ToggleSortingCallback} from './types';
+import type {ActiveSorting, GetActiveFiltersCallback, GetActiveSearchStringCallback, GetActiveSortingCallback, TableHandle, TableMethods, TableProps, ToggleSortingCallback} from './types';
 
 function Table<T, ColumnKey extends string = string, FilterKey extends string = string>({
     ref,
@@ -122,6 +122,16 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         processedData = sortedData;
     }
 
+    const getActiveSorting: GetActiveSortingCallback<ColumnKey> = () => {
+        return activeSorting;
+    };
+    const getActiveFilters: GetActiveFiltersCallback<FilterKey> = () => {
+        return currentFilters;
+    };
+    const getActiveSearchString: GetActiveSearchStringCallback = () => {
+        return activeSearchString;
+    };
+
     const listRef = useRef<FlashListRef<T>>(null);
     useImperativeHandle(ref, () => {
         return new Proxy(
@@ -141,6 +151,16 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
                     }
                     if (prop === 'updateSearchString') {
                         return updateSearchString;
+                    }
+
+                    if (property === 'getActiveSorting') {
+                        return getActiveSorting;
+                    }
+                    if (property === 'getActiveFilters') {
+                        return getActiveFilters;
+                    }
+                    if (property === 'getActiveSearchString') {
+                        return getActiveSearchString;
                     }
 
                     return listRef.current?.[prop as keyof FlashListRef<T>];

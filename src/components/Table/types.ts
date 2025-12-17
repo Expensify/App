@@ -43,17 +43,22 @@ type UpdateFilterCallback<FilterKey extends string = string> = (params: {key: Fi
 
 type UpdateSearchStringCallback = (value: string) => void;
 
+type GetActiveSortingCallback<ColumnKey extends string = string> = () => {
+    columnKey: ColumnKey | undefined;
+    order: SortOrder;
+};
+type GetActiveFiltersCallback<FilterKey extends string = string> = () => Record<FilterKey, unknown>;
+type GetActiveSearchStringCallback = () => string;
+
 type TableMethods<ColumnKey extends string = string, FilterKey extends string = string> = {
-    getCurrentSorting: () => {
-        columnKey: ColumnKey | undefined;
-        order: SortOrder;
-    };
-    getCurrentFilters: () => Record<FilterKey, unknown>;
-    getCurrentSearchString: () => string;
     updateSorting: UpdateSortingCallback<ColumnKey>;
     toggleSorting: ToggleSortingCallback<ColumnKey>;
     updateFilter: UpdateFilterCallback<FilterKey>;
     updateSearchString: UpdateSearchStringCallback;
+
+    getActiveSorting: GetActiveSortingCallback<ColumnKey>;
+    getActiveFilters: GetActiveFiltersCallback<FilterKey>;
+    getActiveSearchString: GetActiveSearchStringCallback;
 };
 
 type TableHandle<T, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<T> & TableMethods<ColumnKey, FilterKey>;
@@ -91,4 +96,7 @@ export type {
     ToggleSortingCallback,
     UpdateSearchStringCallback,
     UpdateFilterCallback,
+    GetActiveSortingCallback,
+    GetActiveFiltersCallback,
+    GetActiveSearchStringCallback,
 };
