@@ -370,7 +370,9 @@ function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 admin: {
-                    [accountID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    [accountID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
                 },
             },
         },
@@ -381,7 +383,9 @@ function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 admin: {
-                    [accountID]: null,
+                    [accountID]: {
+                        pendingAction: null,
+                    },
                 },
             },
         },
@@ -399,7 +403,9 @@ function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 admin: {
-                    [accountID]: null,
+                    [accountID]: {
+                        pendingAction: null,
+                    },
                 },
             },
         },
@@ -430,7 +436,9 @@ function clearRemoveAdminError(domainAccountID: number, accountID: number) {
     });
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         admin: {
-            [accountID]: null,
+            [accountID]: {
+                pendingAction: null,
+            },
         },
     });
 }
