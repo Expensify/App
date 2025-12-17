@@ -705,6 +705,7 @@ function changeTransactionsReport(
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
     const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
+
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};
@@ -847,7 +848,6 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
-                pendingAction: null,
             },
         });
 
@@ -971,6 +971,9 @@ function changeTransactionsReport(
             const targetReport =
                 allReports?.[targetReportKey] ?? (targetReportID === newReport?.reportID ? newReport : undefined) ?? (targetReportID === selfDMReport?.reportID ? selfDMReport : undefined);
 
+            // Only use convertedAmount if the old and target report currencies match (same workspace)
+            const canUseConvertedAmount = transaction.convertedAmount && oldReport?.currency === targetReport?.currency;
+
             if (transactionCurrency === targetReport?.currency) {
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
                 updatedReportTotals[targetReportID] = currentTotal - transactionAmount;
@@ -980,9 +983,8 @@ function changeTransactionsReport(
 
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
                 updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
-            } else if (transaction.convertedAmount) {
-                // When transaction currency differs from report currency, use convertedAmount for the total
-                // convertedAmount is stored as negative for expense reports, so we use it directly
+            } else if (canUseConvertedAmount) {
+                // Use convertedAmount when transaction currency differs but workspace currency is the same
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
                 updatedReportTotals[targetReportID] = currentTotal + transaction.convertedAmount;
 
