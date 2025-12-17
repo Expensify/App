@@ -12,7 +12,7 @@ import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -93,6 +93,10 @@ function AttachmentModalBaseContent({
     const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const transaction = transactionProp ?? transactionFromOnyx;
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+    });
 
     const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
     const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>(() => filesProp ?? fallbackFile);
@@ -332,26 +336,22 @@ function AttachmentModalBaseContent({
             {!!onConfirm && !isConfirmButtonDisabled && (
                 <LayoutAnimationConfig skipEntering>
                     {!!onConfirm && !isConfirmButtonDisabled && (
-                        <SafeAreaConsumer>
-                            {({safeAreaPaddingBottomStyle}) => (
-                                <Animated.View
-                                    style={safeAreaPaddingBottomStyle}
-                                    entering={FadeIn}
-                                >
-                                    <Button
-                                        ref={submitRef ? viewRef(submitRef) : undefined}
-                                        success
-                                        large
-                                        style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
-                                        textStyles={[styles.buttonConfirmText]}
-                                        text={translate('common.send')}
-                                        onPress={submitAndClose}
-                                        isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
-                                        pressOnEnter
-                                    />
-                                </Animated.View>
-                            )}
-                        </SafeAreaConsumer>
+                        <Animated.View
+                            style={bottomSafeAreaPaddingStyle}
+                            entering={FadeIn}
+                        >
+                            <Button
+                                ref={submitRef ? viewRef(submitRef) : undefined}
+                                success
+                                large
+                                style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
+                                textStyles={[styles.buttonConfirmText]}
+                                text={translate('common.send')}
+                                onPress={submitAndClose}
+                                isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
+                                pressOnEnter
+                            />
+                        </Animated.View>
                     )}
                 </LayoutAnimationConfig>
             )}
