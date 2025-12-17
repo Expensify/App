@@ -63,7 +63,10 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         if (!ownerPolicies.length) {
             return;
         }
-        if (planType === CONST.POLICY.TYPE.TEAM && privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && !account?.canDowngrade) {
+        if (
+            (planType === CONST.POLICY.TYPE.TEAM && privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && !account?.canDowngrade) ||
+            isSubscriptionTypeOfInvoicing(privateSubscription?.type)
+        ) {
             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
             return;
         }
