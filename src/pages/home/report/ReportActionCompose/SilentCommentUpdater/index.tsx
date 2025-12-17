@@ -68,6 +68,4 @@ function SilentCommentUpdater({
     return null;
 }
 
-SilentCommentUpdater.displayName = 'SilentCommentUpdater';
-
 export default SilentCommentUpdater;

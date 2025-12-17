@@ -691,6 +691,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Aktion erforderlich',
         duplicate: 'Duplizieren',
         duplicated: 'Dupliziert',
+        originalAmount: 'Ursprünglicher Betrag',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -2240,16 +2241,16 @@ ${amount} für ${merchant} – ${date}`,
     workflowsPage: {
         workflowTitle: 'Ausgabe',
         workflowDescription: 'Konfigurieren Sie einen Workflow ab dem Zeitpunkt, an dem Ausgaben entstehen, einschließlich Genehmigung und Zahlung.',
-        submissionFrequency: 'Übermittlungshäufigkeit',
+        submissionFrequency: 'Einreichungen',
         submissionFrequencyDescription: 'Wählen Sie einen benutzerdefinierten Zeitplan zum Einreichen von Ausgaben.',
         submissionFrequencyDateOfMonth: 'Tag des Monats',
         disableApprovalPromptDescription: 'Das Deaktivieren von Genehmigungen löscht alle vorhandenen Genehmigungs-Workflows.',
-        addApprovalsTitle: 'Genehmigungen hinzufügen',
+        addApprovalsTitle: 'Genehmigungen',
         addApprovalButton: 'Genehmigungs-Workflow hinzufügen',
         addApprovalTip: 'Dieser Standard-Workflow gilt für alle Mitglieder, sofern kein spezifischerer Workflow vorhanden ist.',
         approver: 'Genehmiger',
         addApprovalsDescription: 'Zusätzliche Genehmigung anfordern, bevor eine Zahlung autorisiert wird.',
-        makeOrTrackPaymentsTitle: 'Zahlungen erstellen oder verfolgen',
+        makeOrTrackPaymentsTitle: 'Zahlungen',
         makeOrTrackPaymentsDescription:
             'Fügen Sie eine autorisierte zahlende Person für Zahlungen hinzu, die in Expensify getätigt werden, oder verfolgen Sie Zahlungen, die andernorts vorgenommen wurden.',
         customApprovalWorkflowEnabled:

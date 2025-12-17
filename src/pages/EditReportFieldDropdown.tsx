@@ -88,6 +88,4 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
     );
 }
 
-EditReportFieldDropdownPage.displayName = 'EditReportFieldDropdownPage';
-
 export default EditReportFieldDropdownPage;

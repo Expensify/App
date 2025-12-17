@@ -109,6 +109,4 @@ function BaseMiniContextMenuItem({
     );
 }
 
-BaseMiniContextMenuItem.displayName = 'BaseMiniContextMenuItem';
-
 export default BaseMiniContextMenuItem;

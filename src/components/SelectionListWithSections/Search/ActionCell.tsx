@@ -127,7 +127,7 @@ function ActionCell({
 
         return isLargeScreenWidth ? (
             <Button
-                testID={ActionCell.displayName}
+                testID="ActionCell"
                 text={text}
                 onPress={goToItem}
                 small={!extraSmall}
@@ -184,7 +184,5 @@ function ActionCell({
         />
     );
 }
-
-ActionCell.displayName = 'ActionCell';
 
 export default ActionCell;

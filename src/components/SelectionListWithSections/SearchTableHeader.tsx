@@ -81,6 +81,20 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canBeMissing: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+        translationKey: 'common.originalAmount',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
+        translationKey: 'common.reimbursable',
+        canBeMissing: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
+        translationKey: 'common.billable',
+        canBeMissing: true,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
         translationKey: 'common.withdrawalID',
     },
@@ -93,6 +107,19 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
         translationKey: groupBy ? 'common.total' : 'iou.amount',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
+        translationKey: 'common.reportID',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
+        translationKey: 'common.longID',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
+        translationKey: 'common.title',
+        canBeMissing: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
@@ -184,6 +211,14 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
         translationKey: 'common.total',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
+        translationKey: 'common.reportID',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
+        translationKey: 'common.longID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -296,6 +331,5 @@ function SearchTableHeader({
     );
 }
 
-SearchTableHeader.displayName = 'SearchTableHeader';
 export {getExpenseHeaders};
 export default SearchTableHeader;
