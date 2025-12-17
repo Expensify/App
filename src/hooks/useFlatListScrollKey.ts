@@ -4,10 +4,10 @@ import type {ForwardedRef} from 'react';
 import type {ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollView} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {View} from 'react-native';
-import RenderTaskQueue from '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue';
+import getInitialPaginationSize from '@components/InvertedFlatList/getInitialPaginationSize';
+import RenderTaskQueue from '@components/InvertedFlatList/RenderTaskQueue';
 import type {ScrollViewProps} from '@components/ScrollView';
 import getPlatform from '@libs/getPlatform';
-import getInitialPaginationSize from '@src/components/InvertedFlatList/BaseInvertedFlatList/getInitialPaginationSize';
 import CONST from '@src/CONST';
 import usePrevious from './usePrevious';
 

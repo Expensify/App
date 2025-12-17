@@ -82,8 +82,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
     }, [chatReportID]);
 
     const navigateToReviewFields = useCallback(() => {
-        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policyCategories));
-    }, [route.params?.threadReportID, transaction, duplicates, policyCategories]);
+        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policyCategories, transactionReport));
+    }, [route.params?.threadReportID, transaction, duplicates, policyCategories, transactionReport]);
 
     const transactionPreview = transaction;
 
@@ -157,7 +157,5 @@ function TransactionPreview(props: TransactionPreviewProps) {
         />
     );
 }
-
-TransactionPreview.displayName = 'TransactionPreview';
 
 export default TransactionPreview;

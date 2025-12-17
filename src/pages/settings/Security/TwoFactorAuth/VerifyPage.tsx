@@ -105,7 +105,10 @@ function VerifyPage({route}: VerifyPageProps) {
                         {translate('twoFactorAuth.scanCode')}
                         <TextLink href={TROUBLESHOOTING_LINK}> {translate('twoFactorAuth.authenticatorApp')}</TextLink>.
                     </Text>
-                    <View style={[styles.alignItemsCenter, styles.mt5]}>
+                    <View
+                        style={[styles.alignItemsCenter, styles.mt5]}
+                        fsClass={CONST.FULLSTORY.CLASS.EXCLUDE}
+                    >
                         <QRCode
                             url={buildAuthenticatorUrl()}
                             logo={expensifyLogo}
@@ -115,7 +118,7 @@ function VerifyPage({route}: VerifyPageProps) {
                     </View>
                     <Text style={styles.mt5}>{translate('twoFactorAuth.addKey')}</Text>
                     <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        {!!account?.twoFactorAuthSecretKey && <Text>{splitSecretInChunks(account?.twoFactorAuthSecretKey ?? '')}</Text>}
+                        {!!account?.twoFactorAuthSecretKey && <Text fsClass={CONST.FULLSTORY.CLASS.MASK}>{splitSecretInChunks(account?.twoFactorAuthSecretKey ?? '')}</Text>}
                         <PressableWithDelayToggle
                             text={translate('twoFactorAuth.copy')}
                             textChecked={translate('common.copied')}
@@ -156,7 +159,5 @@ function VerifyPage({route}: VerifyPageProps) {
         </TwoFactorAuthWrapper>
     );
 }
-
-VerifyPage.displayName = 'VerifyPage';
 
 export default VerifyPage;

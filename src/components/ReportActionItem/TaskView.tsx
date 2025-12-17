@@ -96,7 +96,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                 <OfflineWithFeedback
                     shouldShowErrorMessages
                     errors={report?.errorFields?.editTask ?? report?.errorFields?.createTask}
-                    onClose={() => clearTaskErrors(report?.reportID)}
+                    onClose={() => clearTaskErrors(report)}
                     errorRowStyles={styles.ph5}
                 >
                     <Hoverable>
@@ -132,9 +132,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         return;
                                                     }
                                                     if (isCompleted) {
-                                                        reopenTask(report, currentUserPersonalDetails.accountID);
+                                                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID);
                                                     } else {
-                                                        completeTask(report, hasOutstandingChildTask, parentReportAction);
+                                                        completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction);
                                                     }
                                                 })}
                                                 isChecked={isCompleted}
@@ -215,7 +215,5 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
         </ShowContextMenuContext.Provider>
     );
 }
-
-TaskView.displayName = 'TaskView';
 
 export default TaskView;

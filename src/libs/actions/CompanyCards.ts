@@ -22,7 +22,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card} from '@src/types/onyx';
+import type {Card, Policy} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
 import type {
     AddNewCardFeedData,
@@ -308,8 +308,8 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, domainOrWorkspaceAccou
     API.write(WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED, parameters, {optimisticData, successData, failureData});
 }
 
-function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardData>) {
-    if (!data) {
+function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, data?: Partial<AssignCardData>) {
+    if (!data || !policy?.id) {
         return;
     }
     const {bankName = '', email = '', encryptedCardNumber = '', startDate = '', cardName = ''} = data;
@@ -317,7 +317,7 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
     const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID);
 
     const parameters: AssignCompanyCardParams = {
-        policyID,
+        policyID: policy.id,
         bankName,
         encryptedCardNumber,
         cardName,
@@ -325,10 +325,7 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
         startDate,
         reportActionID: optimisticCardAssignedReportAction.reportActionID,
     };
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = PolicyUtils.getPolicy(policyID);
-    const policyExpenseChat = ReportUtils.getPolicyExpenseChat(policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, policyID);
+    const policyExpenseChat = ReportUtils.getPolicyExpenseChat(policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, policy.id);
 
     const onyxData: OnyxData = {
         optimisticData: [

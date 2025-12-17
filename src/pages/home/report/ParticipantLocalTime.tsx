@@ -8,41 +8,40 @@ import Timers from '@libs/Timers';
 import type {LocaleContextProps} from '@src/components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
-import type Locale from '@src/types/onyx/Locale';
 
 type ParticipantLocalTimeProps = {
     /** Personal details of the participant */
     participant: PersonalDetails;
 };
 
-function getParticipantLocalTime(participant: PersonalDetails, getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'], locale?: Locale) {
+function getParticipantLocalTime(participant: PersonalDetails, getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime']) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     const reportRecipientTimezone = participant.timezone || CONST.DEFAULT_TIME_ZONE;
     const reportTimezone = getLocalDateFromDatetime(undefined, reportRecipientTimezone.selected);
     const currentTimezone = getLocalDateFromDatetime();
-    const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone, locale);
-    const currentUserDay = DateUtils.formatToDayOfWeek(currentTimezone, locale);
+    const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone);
+    const currentUserDay = DateUtils.formatToDayOfWeek(currentTimezone);
     if (reportRecipientDay !== currentUserDay) {
-        return `${DateUtils.formatToLocalTime(reportTimezone, locale)} ${reportRecipientDay}`;
+        return `${DateUtils.formatToLocalTime(reportTimezone)} ${reportRecipientDay}`;
     }
-    return `${DateUtils.formatToLocalTime(reportTimezone, locale)}`;
+    return `${DateUtils.formatToLocalTime(reportTimezone)}`;
 }
 
 function ParticipantLocalTime({participant}: ParticipantLocalTimeProps) {
-    const {translate, getLocalDateFromDatetime, preferredLocale} = useLocalize();
+    const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
 
-    const [localTime, setLocalTime] = useState(() => getParticipantLocalTime(participant, getLocalDateFromDatetime, preferredLocale));
+    const [localTime, setLocalTime] = useState(() => getParticipantLocalTime(participant, getLocalDateFromDatetime));
     useEffect(() => {
         const timer = Timers.register(
             setInterval(() => {
-                setLocalTime(getParticipantLocalTime(participant, getLocalDateFromDatetime, preferredLocale));
+                setLocalTime(getParticipantLocalTime(participant, getLocalDateFromDatetime));
             }, 1000),
         );
         return () => {
             clearInterval(timer);
         };
-    }, [participant, getLocalDateFromDatetime, preferredLocale]);
+    }, [participant, getLocalDateFromDatetime]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     const reportRecipientDisplayName = participant.firstName || participant.displayName;
@@ -65,7 +64,5 @@ function ParticipantLocalTime({participant}: ParticipantLocalTimeProps) {
         </View>
     );
 }
-
-ParticipantLocalTime.displayName = 'ParticipantLocalTime';
 
 export default ParticipantLocalTime;

@@ -28,6 +28,7 @@ function TextInputClearButton({style, onPressButton}: TextInputClearButtonProps)
                     e.preventDefault();
                 }}
                 onPress={onPressButton}
+                shouldUseAutoHitSlop
             >
                 <Icon
                     src={Expensicons.Clear}
@@ -39,7 +40,5 @@ function TextInputClearButton({style, onPressButton}: TextInputClearButtonProps)
         </Tooltip>
     );
 }
-
-TextInputClearButton.displayName = 'TextInputClearButton';
 
 export default TextInputClearButton;
