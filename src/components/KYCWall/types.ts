@@ -77,9 +77,6 @@ type KYCWallProps = {
 
     /** Reference to the KYCWall component */
     ref: ForwardedRef<KYCWallRef>;
-
-    /** Currency associated with the payment */
-    currency?: string;
 };
 
 type KYCWallRef = {

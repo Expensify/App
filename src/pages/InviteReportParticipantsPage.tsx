@@ -199,7 +199,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={InviteReportParticipantsPage.displayName}
+            testID="InviteReportParticipantsPage"
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
             <HeaderWithBackButton
@@ -227,7 +227,5 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
         </ScreenWrapper>
     );
 }
-
-InviteReportParticipantsPage.displayName = 'InviteReportParticipantsPage';
 
 export default withNavigationTransitionEnd(withReportOrNotFound()(InviteReportParticipantsPage));

@@ -7,6 +7,4 @@ function HelpButton({style}: HelpButtonProps) {
     return null;
 }
 
-HelpButton.displayName = 'HelpButtonBase';
-
 export default HelpButton;
