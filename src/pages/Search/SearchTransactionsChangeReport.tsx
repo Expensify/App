@@ -121,7 +121,6 @@ function SearchTransactionsChangeReport() {
         if (!policyForMovingExpensesID && !shouldSelectPolicy && selectedTransactionsKeys.length > 0) {
             const firstTransactionID = selectedTransactionsKeys.at(0);
             if (firstTransactionID) {
-                // setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(
                     ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                         action: CONST.IOU.ACTION.EDIT,
@@ -132,7 +131,6 @@ function SearchTransactionsChangeReport() {
                     }),
                     {forceReplace: true},
                 );
-                // });
             }
             return;
         }
