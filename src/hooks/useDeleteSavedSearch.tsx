@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {clearAllFilters, deleteSavedSearch} from '@libs/actions/Search';
+import {deleteSavedSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
@@ -20,7 +20,6 @@ export default function useDeleteSavedSearch() {
 
     const handleDelete = () => {
         deleteSavedSearch(hashToDelete);
-        clearAllFilters();
         setIsDeleteModalVisible(false);
 
         if (hashToDelete === currentSearchHash) {
