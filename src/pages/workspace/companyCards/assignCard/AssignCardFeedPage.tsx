@@ -90,7 +90,6 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             return (
                 <AssigneeStep
                     policy={policy}
-                    feed={feed}
                     route={route}
                 />
             );
@@ -124,7 +123,6 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             return (
                 <AssigneeStep
                     policy={policy}
-                    feed={feed}
                     route={route}
                 />
             );

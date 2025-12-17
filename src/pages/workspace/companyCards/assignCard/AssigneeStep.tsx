@@ -34,9 +34,6 @@ type AssigneeStepProps = {
     /** The policy that the card will be issued under */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Selected feed */
-    feed: OnyxTypes.CompanyCardFeedWithDomainID;
-
     /** Route params */
     route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD>;
 };
