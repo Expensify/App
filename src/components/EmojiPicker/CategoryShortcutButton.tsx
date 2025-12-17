@@ -55,5 +55,4 @@ function CategoryShortcutButton({code, icon, onPress}: CategoryShortcutButtonPro
     );
 }
 
-CategoryShortcutButton.displayName = 'CategoryShortcutButton';
 export default React.memo(CategoryShortcutButton);

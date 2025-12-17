@@ -640,6 +640,4 @@ function SettlementButton({
     );
 }
 
-SettlementButton.displayName = 'SettlementButton';
-
 export default SettlementButton;
