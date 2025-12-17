@@ -45,17 +45,18 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     }, []);
 
     useEffect(() => {
-        if (cardID && !currentStep) {
-            const companyCardFeed = getCompanyCardFeed(feed);
-
-            setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                data: {
-                    bankName: companyCardFeed,
-                    encryptedCardNumber: cardID,
-                },
-            });
+        if (!cardID || currentStep) {
+            return;
         }
+        const companyCardFeed = getCompanyCardFeed(feed);
+
+        setAssignCardStepAndData({
+            currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+            data: {
+                bankName: companyCardFeed,
+                encryptedCardNumber: cardID,
+            },
+        });
     }, [cardID, currentStep, feed]);
 
     if (isActingAsDelegate) {

@@ -102,7 +102,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
                     cardIdentifier = cardName;
                 } else if (isCommercial) {
                     const cardValue = cardList?.[cardName] ?? cardName;
-                    const digitsOnly = cardValue.replace(/\D/g, '');
+                    const digitsOnly = cardValue.replaceAll(/\D/g, '');
                     if (digitsOnly.length >= 10) {
                         const first6 = digitsOnly.substring(0, 6);
                         const last4 = digitsOnly.substring(digitsOnly.length - 4);

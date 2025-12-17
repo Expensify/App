@@ -129,7 +129,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                     label={translate('workspace.companyCards.cardholder')}
                     labelStyle={styles.mb3}
                     title={cardholderName && cardholderName !== cardholderEmail ? cardholderName : cardholderEmail}
-                    {...(cardholderName && cardholderName !== cardholderEmail ? {description: cardholderEmail} : {})}
+                    description={cardholderName && cardholderName !== cardholderEmail ? cardholderEmail : undefined}
                     icon={cardholderDetails?.avatar ?? getDefaultAvatarURL(cardholderAccountID)}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     shouldShowRightIcon
