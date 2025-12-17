@@ -191,6 +191,49 @@ function SearchList({
 
     const selectedItemsLength = useMemo(() => Object.values(selectedTransactions).filter((t) => t?.isSelected).length, [selectedTransactions]);
 
+    const itemsWithSelection = useMemo(() => {
+        return data.map((item) => {
+            let isSelected = false;
+            let itemWithSelection: SearchListItem = item;
+
+            if ('transactions' in item && item.transactions) {
+                if (!canSelectMultiple) {
+                    itemWithSelection = {...item, isSelected: false};
+                } else {
+                    const hasAnySelected = item.transactions.some((t) => t.keyForList && selectedTransactions[t.keyForList]?.isSelected);
+
+                    if (!hasAnySelected) {
+                        itemWithSelection = {...item, isSelected: false};
+                    } else {
+                        let allNonDeletedSelected = true;
+                        let hasNonDeletedTransactions = false;
+
+                        const mappedTransactions = item.transactions.map((transaction) => {
+                            const isTransactionSelected = !!(transaction.keyForList && selectedTransactions[transaction.keyForList]?.isSelected);
+
+                            if (transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                                hasNonDeletedTransactions = true;
+                                if (!isTransactionSelected) {
+                                    allNonDeletedSelected = false;
+                                }
+                            }
+
+                            return {...transaction, isSelected: isTransactionSelected};
+                        });
+
+                        isSelected = hasNonDeletedTransactions && allNonDeletedSelected;
+                        itemWithSelection = {...item, isSelected, transactions: mappedTransactions};
+                    }
+                }
+            } else {
+                isSelected = !!(canSelectMultiple && item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
+                itemWithSelection = {...item, isSelected};
+            }
+
+            return {originalItem: item, itemWithSelection, isSelected};
+        });
+    }, [data, canSelectMultiple, selectedTransactions]);
+
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
@@ -300,42 +343,8 @@ function SearchList({
 
             const newTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
 
-            let isSelected = false;
-            let itemWithSelection: SearchListItem = item;
-
-            if ('transactions' in item && item.transactions) {
-                if (!canSelectMultiple) {
-                    itemWithSelection = {...item, isSelected: false};
-                } else {
-                    const hasAnySelected = item.transactions.some((t) => t.keyForList && selectedTransactions[t.keyForList]?.isSelected);
-
-                    if (!hasAnySelected) {
-                        itemWithSelection = {...item, isSelected: false};
-                    } else {
-                        let allNonDeletedSelected = true;
-                        let hasNonDeletedTransactions = false;
-
-                        const mappedTransactions = item.transactions.map((transaction) => {
-                            const isTransactionSelected = !!(transaction.keyForList && selectedTransactions[transaction.keyForList]?.isSelected);
-
-                            if (transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                                hasNonDeletedTransactions = true;
-                                if (!isTransactionSelected) {
-                                    allNonDeletedSelected = false;
-                                }
-                            }
-
-                            return {...transaction, isSelected: isTransactionSelected};
-                        });
-
-                        isSelected = hasNonDeletedTransactions && allNonDeletedSelected;
-                        itemWithSelection = {...item, isSelected, transactions: mappedTransactions};
-                    }
-                }
-            } else {
-                isSelected = !!(canSelectMultiple && item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
-                itemWithSelection = {...item, isSelected};
-            }
+            const itemData = itemsWithSelection.at(index);
+            const itemWithSelection = itemData?.itemWithSelection ?? item;
 
             return (
                 <Animated.View
@@ -382,6 +391,7 @@ function SearchList({
             shouldAnimate,
             isFocused,
             data.length,
+            itemsWithSelection,
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
@@ -389,7 +399,6 @@ function SearchList({
             handleLongPressRow,
             onCheckboxPress,
             canSelectMultiple,
-            selectedTransactions,
             shouldPreventDefaultFocusOnSelectRow,
             hash,
             columns,
