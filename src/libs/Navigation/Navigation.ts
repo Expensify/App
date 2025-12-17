@@ -884,6 +884,7 @@ export default {
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
     getTopmostReportIDInSearchRHP,
+    getTopmostSuperWideRHPReportID,
 };
 
 export {navigationRef};

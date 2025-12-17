@@ -1,4 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList} from 'react-native';
 import {View} from 'react-native';
@@ -34,11 +35,12 @@ import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
 import {createTransactionThreadReport, openReport} from '@userActions/Report';
+import {updateLastVisitTime} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
 import {ActionListContext} from '@src/pages/home/ReportScreenContext';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -64,6 +66,17 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
+
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        // Update last visit time when the expense super wide RHP report is focused
+        if (!reportIDFromRoute || !isFocused || route.name !== SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
+            return;
+        }
+
+        updateLastVisitTime(reportIDFromRoute);
+    }, [reportIDFromRoute, isFocused]);
 
     const snapshotReport = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
