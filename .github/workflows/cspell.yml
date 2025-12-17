@@ -14,14 +14,28 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      - name: Restore cspell cache
+        uses: actions/cache@v4
+        with:
+          path: .cspellcache
+          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json') }}
+          restore-keys: |
+            cspell-${{ runner.os }}-
+
       - name: Get changed files
         id: changed-files
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          FILES=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files --jq '.[].filename' | grep -v '^\.' | tr '\n' ' ')
+          FILES=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files --jq '.[].filename' | tr '\n' ' ')
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+
+      - name: Filter out dot files
+        id: filtered-files
+        run: |
+          FILES=$(echo "${{ steps.changed-files.outputs.files }}" | tr ' ' '\n' | grep -v '^\.' | tr '\n' ' ')
           echo "files=$FILES" >> "$GITHUB_OUTPUT"
 
       - name: Spell check
-        if: steps.changed-files.outputs.files != ''
-        run: npm run spell -- --no-progress --no-must-find-files --dot false ${{ steps.changed-files.outputs.files }}
+        if: steps.filtered-files.outputs.files != ''
+        run: npm run spell-changed -- ${{ steps.filtered-files.outputs.files }}
