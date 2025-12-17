@@ -6134,6 +6134,35 @@ describe('actions/IOU', () => {
                 });
             });
         });
+
+        it('should handle policyRecentlyUsedCategories when provided', () => {
+            // Given a basic transaction and policyRecentlyUsedCategories
+            const transaction = createRandomTransaction(1) as unknown as OnyxEntry<Transaction>;
+            const currentUserAccountID = 1;
+            const policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories> = [];
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // When sending an invoice
+            sendInvoice({
+                currentUserAccountID,
+                transaction,
+                policyRecentlyUsedCurrencies: [],
+                policyRecentlyUsedCategories,
+            });
+
+            // Then onyxData should be passed to API.write
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SEND_INVOICE,
+                expect.anything(),
+                expect.objectContaining({
+                    optimisticData: expect.any(Array),
+                }),
+            );
+
+            writeSpy.mockRestore();
+        });
     });
 
     describe('canIOUBePaid', () => {
@@ -9579,6 +9608,58 @@ describe('actions/IOU', () => {
     });
 
     describe('getPerDiemExpenseInformation', () => {
+        it('should include policyRecentlyUsedCurrencies when provided', () => {
+            // Given: Minimal per diem data with policyRecentlyUsedCurrencies
+            const mockTransactionParams: PerDiemExpenseTransactionParams = {
+                comment: '',
+                currency: 'USD',
+                created: '2024-02-02',
+                category: 'Meals',
+                tag: 'PerDiem',
+                customUnit: {
+                    customUnitID: 'per_diem_unit',
+                    customUnitRateID: 'rate_1',
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    attributes: {
+                        dates: {
+                            start: '2024-02-02',
+                            end: '2024-02-02',
+                        },
+                    },
+                    subRates: [],
+                    quantity: 1,
+                },
+                billable: true,
+                attendees: [],
+                reimbursable: true,
+            };
+
+            const mockParticipantParams = {
+                payeeAccountID: 123,
+                payeeEmail: 'payee@example.com',
+                participant: {
+                    accountID: 123,
+                    login: 'payee@example.com',
+                },
+            };
+
+            const result = getPerDiemExpenseInformation({
+                parentChatReport: {} as OnyxEntry<Report>,
+                transactionParams: mockTransactionParams,
+                participantParams: mockParticipantParams as unknown as RequestMoneyParticipantParams,
+                recentlyUsedParams: {},
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'payee@example.com',
+                hasViolations: false,
+                policyRecentlyUsedCurrencies: ['USD', 'EUR'],
+            });
+
+            // Then: Verify onyxData is generated when policyRecentlyUsedCurrencies are provided
+            expect(result.onyxData).toBeDefined();
+            expect(result.onyxData.optimisticData).toBeDefined();
+        });
+
         it('should return correct per diem expense information with new chat report', () => {
             // Given: Mock data for per diem expense
             const mockCustomUnit = {
@@ -9653,6 +9734,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 hasViolations: false,
+                policyRecentlyUsedCurrencies: [],
             });
 
             // Then: Verify the result structure and key values
@@ -9783,6 +9865,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 hasViolations: false,
+                policyRecentlyUsedCurrencies: [],
             });
 
             // Then: Verify the result uses existing chat report
@@ -9867,6 +9950,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 hasViolations: false,
+                policyRecentlyUsedCurrencies: [],
             });
 
             // Then: Verify policy expense chat handling
@@ -9880,6 +9964,54 @@ describe('actions/IOU', () => {
     });
 
     describe('getSendInvoiceInformation', () => {
+        it('should merge policyRecentlyUsedCategories when provided', () => {
+            // Given: Transaction with a category and existing recently used categories
+            const mockTransaction = {
+                transactionID: 'transaction_categories',
+                reportID: 'report_categories',
+                amount: 200,
+                currency: 'USD',
+                created: '2024-02-01',
+                merchant: 'Category Test',
+                category: 'Meals',
+                comment: {
+                    comment: 'Invoice with categories',
+                },
+                participants: [
+                    {
+                        accountID: 123,
+                        isSender: true,
+                        policyID: 'workspace_categories',
+                    },
+                    {
+                        accountID: 456,
+                        isSender: false,
+                    },
+                ],
+            };
+
+            const currentUserAccountID = 123;
+            const existingRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories> = [];
+
+            // When: Call getSendInvoiceInformation with policyRecentlyUsedCategories
+            const result = getSendInvoiceInformation({
+                transaction: mockTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: undefined,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: existingRecentlyUsedCategories,
+            });
+
+            // Then: Verify optimistic data is generated when policyRecentlyUsedCategories are provided
+            expect(result.onyxData.optimisticData).toBeDefined();
+        });
+
         it('should return correct invoice information with new chat report', () => {
             // Given: Mock transaction data
             const mockTransaction = {
@@ -9946,7 +10078,7 @@ describe('actions/IOU', () => {
                 policyCategories: mockPolicyCategories,
                 companyName: 'Test Company Inc.',
                 companyWebsite: 'https://testcompany.com',
-                policyRecentlyUsedCategories: undefined,
+                policyRecentlyUsedCategories: [],
             });
 
             // Then: Verify the result structure and key values
@@ -10047,7 +10179,7 @@ describe('actions/IOU', () => {
                 policyCategories: undefined,
                 companyName: 'Client Company Ltd.',
                 companyWebsite: 'https://clientcompany.com',
-                policyRecentlyUsedCategories: undefined,
+                policyRecentlyUsedCategories: [],
             });
 
             // Then: Verify the result uses existing chat report
@@ -10103,13 +10235,13 @@ describe('actions/IOU', () => {
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
-                receiptFile: mockReceipt as unknown as Receipt,
+                receiptFile: mockReceipt as never,
                 policy: undefined,
                 policyTagList: undefined,
                 policyCategories: undefined,
                 companyName: undefined,
                 companyWebsite: undefined,
-                policyRecentlyUsedCategories: undefined,
+                policyRecentlyUsedCategories: [],
             });
 
             // Then: Verify receipt handling
@@ -10157,7 +10289,7 @@ describe('actions/IOU', () => {
                 policyCategories: undefined,
                 companyName: undefined,
                 companyWebsite: undefined,
-                policyRecentlyUsedCategories: undefined,
+                policyRecentlyUsedCategories: [],
             });
 
             // Then: Verify function handles missing data gracefully
@@ -10886,7 +11018,7 @@ describe('actions/IOU', () => {
             // Step 4: Call getSendInvoiceInformation with stale User A report
             // This simulates the bug scenario where the report from route params is stale
             const invoiceInfo = getSendInvoiceInformation({
-                transaction: updatedTransaction as OnyxEntry<Transaction>,
+                transaction: updatedTransaction,
                 currentUserAccountID: senderAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: userAInvoiceReport,
