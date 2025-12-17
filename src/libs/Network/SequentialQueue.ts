@@ -17,6 +17,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
+import sendHTTPSpanToSentry from '@libs/telemetry/sendHTTPSpanToSentry';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
@@ -145,8 +146,17 @@ function process(): Promise<void> {
     }
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
+    const startTime = Date.now();
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
         .then((response) => {
+            sendHTTPSpanToSentry({
+                command: requestToProcess.command,
+                response,
+                success: true,
+                startTime,
+                method: 'POST',
+            });
+
             // A response might indicate that the queue should be paused. This happens when a gap in onyx updates is detected between the client and the server and
             // that gap needs resolved before the queue can continue.
             if (response?.shouldPauseQueue) {
@@ -166,6 +176,15 @@ function process(): Promise<void> {
             return process();
         })
         .catch((error: RequestError) => {
+            sendHTTPSpanToSentry({
+                command: requestToProcess.command,
+                response: undefined,
+                success: false,
+                startTime,
+                method: 'POST',
+                statusCode: error.status ? Number(error.status) : undefined,
+            });
+
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD || shouldFailAllRequests) {
