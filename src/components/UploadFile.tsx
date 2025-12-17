@@ -164,6 +164,4 @@ function UploadFile({
     );
 }
 
-UploadFile.displayName = 'UploadFile';
-
 export default UploadFile;

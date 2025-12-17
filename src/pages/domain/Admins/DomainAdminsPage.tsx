@@ -45,6 +45,4 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     );
 }
 
-DomainAdminsPage.displayName = 'DomainAdminsPage';
-
 export default DomainAdminsPage;
