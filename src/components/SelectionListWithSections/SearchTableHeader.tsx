@@ -35,20 +35,20 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.date',
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
-        translationKey: 'common.submitted',
-    },
-    {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.APPROVED,
-        translationKey: 'search.filters.approved',
-    },
-    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.POSTED,
         translationKey: 'search.filters.posted',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
         translationKey: 'search.filters.exported',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
+        translationKey: 'common.submitted',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.APPROVED,
+        translationKey: 'search.filters.approved',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
