@@ -6723,6 +6723,8 @@ const CONST = {
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
+                    REIMBURSABLE_TOTAL: this.TABLE_COLUMNS.REIMBURSABLE_TOTAL,
+                    NON_REIMBURSABLE_TOTAL: this.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
                     REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
                     BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
                     ACTION: this.TABLE_COLUMNS.ACTION,
@@ -6827,6 +6829,8 @@ const CONST = {
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
             TAX: 'tax',
+            REIMBURSABLE_TOTAL: 'reimbursableTotal',
+            NON_REIMBURSABLE_TOTAL: 'nonReimbursableTotal',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
