@@ -2812,20 +2812,12 @@ function getColumnsToShow(
 
         const category = getCategory(transaction);
         if (category !== '' && category !== CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
-<<<<<<< HEAD
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = !isExpenseReportViewFromIOUReport;
-=======
-            columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = true;
->>>>>>> main
+            columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = !isExpenseReportViewFromIOUReport;
         }
 
         const tag = getTag(transaction);
         if (tag !== '' && tag !== CONST.SEARCH.TAG_EMPTY_VALUE) {
-<<<<<<< HEAD
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
-=======
-            columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = true;
->>>>>>> main
+            columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
         }
 
         if (isExpenseReportView) {
@@ -2844,8 +2836,8 @@ function getColumnsToShow(
                 columns[CONST.SEARCH.TABLE_COLUMNS.FROM] = true;
             }
 
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] && !isIOUReportReportUtil(report);
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] && !isIOUReportReportUtil(report);
+            columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] && !isIOUReportReportUtil(report);
+            columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = columns[CONST.SEARCH.TABLE_COLUMNS.TAG] && !isIOUReportReportUtil(report);
 
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const toFieldValue = getToFieldValueForTransaction(transaction as SearchTransaction, report, data.personalDetailsList, reportAction);
