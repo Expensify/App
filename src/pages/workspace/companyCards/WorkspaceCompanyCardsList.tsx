@@ -19,8 +19,8 @@ import {
     getCardsByCardholderName,
     getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
-    getPlaidInstitutionId,
     getPlaidInstitutionIconUrl,
+    getPlaidInstitutionId,
     isCustomFeed,
     sortCardsByCardholderName,
 } from '@libs/CardUtils';
@@ -87,83 +87,83 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
     const shouldUseNarrowTableRowLayout = isMediumScreenWidth || shouldUseNarrowLayout;
 
     const renderItem = ({item: cardName, index}: ListRenderItemInfo<string>) => {
-            const assignedCard = Object.values(assignedCards ?? {}).find((card) => card.cardName === cardName);
+        const assignedCard = Object.values(assignedCards ?? {}).find((card) => card.cardName === cardName);
 
-            const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID];
+        const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID];
 
-            const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            
-            let cardIdentifier: string | undefined;
-            if (!assignedCard) {
-                const isPlaid = !!getPlaidInstitutionId(selectedFeed);
-                const isCommercial = isCustomFeed(selectedFeed);
-                
-                if (isPlaid) {
-                    cardIdentifier = cardName;
-                } else if (isCommercial) {
-                    const cardValue = cardList?.[cardName] ?? cardName;
-                    const digitsOnly = cardValue.replaceAll(/\D/g, '');
-                    if (digitsOnly.length >= 10) {
-                        const first6 = digitsOnly.substring(0, 6);
-                        const last4 = digitsOnly.substring(digitsOnly.length - 4);
-                        cardIdentifier = `${first6}${last4}`;
-                    } else {
-                        cardIdentifier = cardValue;
-                    }
+        const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+        let cardIdentifier: string | undefined;
+        if (!assignedCard) {
+            const isPlaid = !!getPlaidInstitutionId(selectedFeed);
+            const isCommercial = isCustomFeed(selectedFeed);
+
+            if (isPlaid) {
+                cardIdentifier = cardName;
+            } else if (isCommercial) {
+                const cardValue = cardList?.[cardName] ?? cardName;
+                const digitsOnly = cardValue.replaceAll(/\D/g, '');
+                if (digitsOnly.length >= 10) {
+                    const first6 = digitsOnly.substring(0, 6);
+                    const last4 = digitsOnly.substring(digitsOnly.length - 4);
+                    cardIdentifier = `${first6}${last4}`;
                 } else {
-                    cardIdentifier = cardList?.[cardName] ?? cardName;
+                    cardIdentifier = cardValue;
                 }
+            } else {
+                cardIdentifier = cardList?.[cardName] ?? cardName;
             }
+        }
 
-            return (
-                <OfflineWithFeedback
-                    key={`${cardName}_${index}`}
-                    errorRowStyles={styles.ph5}
-                    errors={assignedCard?.errors}
-                    pendingAction={assignedCard?.pendingAction}
+        return (
+            <OfflineWithFeedback
+                key={`${cardName}_${index}`}
+                errorRowStyles={styles.ph5}
+                errors={assignedCard?.errors}
+                pendingAction={assignedCard?.pendingAction}
+            >
+                <PressableWithFeedback
+                    role={CONST.ROLE.BUTTON}
+                    style={[styles.mh5, styles.br3, styles.mb3, styles.highlightBG]}
+                    accessibilityLabel="row"
+                    hoverStyle={styles.hoveredComponentBG}
+                    disabled={isCardDeleted}
+                    onPress={() => {
+                        if (!assignedCard) {
+                            onAssignCard(cardIdentifier);
+                            return;
+                        }
+
+                        if (!assignedCard?.accountID || !assignedCard?.fundID) {
+                            return;
+                        }
+
+                        return Navigation.navigate(
+                            ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
+                                policyID,
+                                assignedCard.cardID.toString(),
+                                getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID),
+                            ),
+                        );
+                    }}
                 >
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        style={[styles.mh5, styles.br3, styles.mb3, styles.highlightBG]}
-                        accessibilityLabel="row"
-                        hoverStyle={styles.hoveredComponentBG}
-                        disabled={isCardDeleted}
-                        onPress={() => {
-                            if (!assignedCard) {
-                                onAssignCard(cardIdentifier);
-                                return;
-                            }
-
-                            if (!assignedCard?.accountID || !assignedCard?.fundID) {
-                                return;
-                            }
-
-                            return Navigation.navigate(
-                                ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
-                                    policyID,
-                                    assignedCard.cardID.toString(),
-                                    getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID),
-                                ),
-                            );
-                        }}
-                    >
-                        {({hovered}) => (
-                            <WorkspaceCompanyCardsListRow
-                                cardholder={personalDetails?.[assignedCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]}
-                                cardName={cardName}
-                                selectedFeed={selectedFeed}
-                                plaidIconUrl={plaidIconUrl}
-                                customCardName={customCardName}
-                                isHovered={hovered}
-                                isAssigned={!!assignedCard}
-                                onAssignCard={() => onAssignCard(cardIdentifier)}
-                                isAssigningCardDisabled={isAssigningCardDisabled}
-                                shouldUseNarrowTableRowLayout={shouldUseNarrowTableRowLayout}
-                            />
-                        )}
-                    </PressableWithFeedback>
-                </OfflineWithFeedback>
-            );
+                    {({hovered}) => (
+                        <WorkspaceCompanyCardsListRow
+                            cardholder={personalDetails?.[assignedCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]}
+                            cardName={cardName}
+                            selectedFeed={selectedFeed}
+                            plaidIconUrl={plaidIconUrl}
+                            customCardName={customCardName}
+                            isHovered={hovered}
+                            isAssigned={!!assignedCard}
+                            onAssignCard={() => onAssignCard(cardIdentifier)}
+                            isAssigningCardDisabled={isAssigningCardDisabled}
+                            shouldUseNarrowTableRowLayout={shouldUseNarrowTableRowLayout}
+                        />
+                    )}
+                </PressableWithFeedback>
+            </OfflineWithFeedback>
+        );
     };
 
     const keyExtractor = (item: string, index: number) => `${item}_${index}`;

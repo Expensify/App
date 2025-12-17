@@ -125,7 +125,9 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                 isEditing: false,
             });
             Navigation.setNavigationActionToMicrotaskQueue(() =>
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed: selectedFeed, cardID: undefined}, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID))),
+                Navigation.navigate(
+                    ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed: selectedFeed, cardID: undefined}, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)),
+                ),
             );
         }
     };
