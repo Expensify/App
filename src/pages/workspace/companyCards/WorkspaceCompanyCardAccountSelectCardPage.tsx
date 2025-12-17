@@ -50,7 +50,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
@@ -67,7 +67,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.moreFeatures.companyCards.noAccountsFound')}
-                subtitle={currentConnectionName ? translate('workspace.moreFeatures.companyCards.noAccountsFoundDescription', {connection: currentConnectionName}) : undefined}
+                subtitle={currentConnectionName ? translate('workspace.moreFeatures.companyCards.noAccountsFoundDescription', currentConnectionName) : undefined}
                 containerStyle={styles.pb10}
             />
         ),
@@ -110,7 +110,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                 </View>
             }
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
-            displayName={WorkspaceCompanyCardAccountSelectCardPage.displayName}
+            displayName="WorkspaceCompanyCardAccountSelectCardPage"
             sections={[{data: searchedListOptions ?? []}]}
             listItem={RadioListItem}
             textInputLabel={translate('common.search')}
@@ -126,7 +126,5 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
         />
     );
 }
-
-WorkspaceCompanyCardAccountSelectCardPage.displayName = 'WorkspaceCompanyCardAccountSelectCardPage';
 
 export default WorkspaceCompanyCardAccountSelectCardPage;

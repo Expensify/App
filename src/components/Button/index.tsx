@@ -101,6 +101,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Additional text styles when the button is hovered */
     textHoverStyles?: StyleProp<TextStyle>;
 
+    /** The number of lines to display for the primary text */
+    primaryTextNumberOfLines?: number;
+
     /** Whether we should use the default hover style */
     shouldUseDefaultHover?: boolean;
 
@@ -225,8 +228,6 @@ function KeyboardShortcutComponent({
     return null;
 }
 
-KeyboardShortcutComponent.displayName = 'KeyboardShortcutComponent';
-
 function Button({
     allowBubble = false,
 
@@ -262,6 +263,7 @@ function Button({
     innerStyles = [],
     textStyles = [],
     textHoverStyles = [],
+    primaryTextNumberOfLines = 1,
 
     shouldUseDefaultHover = true,
     hoverStyles = undefined,
@@ -301,8 +303,9 @@ function Button({
 
         const primaryText = (
             <Text
-                numberOfLines={1}
+                numberOfLines={primaryTextNumberOfLines}
                 style={[
+                    primaryTextNumberOfLines !== 1 && styles.breakAll,
                     isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
@@ -546,8 +549,6 @@ function Button({
         </>
     );
 }
-
-Button.displayName = 'Button';
 
 export default withNavigationFallback(Button);
 

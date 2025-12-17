@@ -82,6 +82,4 @@ function MergeExpensesSkeleton({fixedNumItems, speed}: MergeExpensesSkeletonProp
     );
 }
 
-MergeExpensesSkeleton.displayName = 'MergeExpensesSkeleton';
-
 export default MergeExpensesSkeleton;

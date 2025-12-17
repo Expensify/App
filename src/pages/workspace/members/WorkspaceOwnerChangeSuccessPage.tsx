@@ -44,7 +44,7 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
             policyID={policyID}
             shouldBeBlocked={!shouldShowRef.current}
         >
-            <ScreenWrapper testID={WorkspaceOwnerChangeSuccessPage.displayName}>
+            <ScreenWrapper testID="WorkspaceOwnerChangeSuccessPage">
                 <HeaderWithBackButton
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={closePage}
@@ -62,7 +62,5 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceOwnerChangeSuccessPage.displayName = 'WorkspaceOwnerChangeSuccessPage';
 
 export default WorkspaceOwnerChangeSuccessPage;

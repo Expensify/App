@@ -75,7 +75,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -310,7 +310,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceMemberDetailsPage.displayName}
+                testID="WorkspaceMemberDetailsPage"
             >
                 <HeaderWithBackButton
                     title={displayName}
@@ -477,7 +477,5 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceMemberDetailsPage.displayName = 'WorkspaceMemberDetailsPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceMemberDetailsPage);
