@@ -139,6 +139,4 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
     );
 }
 
-AnimatedSubmitButton.displayName = 'AnimatedSubmitButton';
-
 export default AnimatedSubmitButton;

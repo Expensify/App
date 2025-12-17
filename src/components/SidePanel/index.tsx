@@ -35,6 +35,4 @@ function SidePanel({navigation}: Pick<ExtraContentProps, 'navigation'>) {
     );
 }
 
-SidePanel.displayName = 'SidePanel';
-
 export default SidePanel;

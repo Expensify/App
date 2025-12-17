@@ -17,5 +17,4 @@ function SidePanelModal({shouldHideSidePanel, closeSidePanel, children}: SidePan
     );
 }
 
-SidePanelModal.displayName = 'SidePanelModal';
 export default SidePanelModal;

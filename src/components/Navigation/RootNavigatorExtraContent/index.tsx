@@ -13,6 +13,4 @@ function RootNavigatorExtraContent({state, navigation}: ExtraContentProps) {
     );
 }
 
-RootNavigatorExtraContent.displayName = 'RootNavigatorExtraContent';
-
 export default RootNavigatorExtraContent;

@@ -87,6 +87,4 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
     );
 }
 
-SidePanelModal.displayName = 'SidePanelModal';
-
 export default SidePanelModal;

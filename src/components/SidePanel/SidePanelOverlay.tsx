@@ -38,6 +38,4 @@ function SidePanelOverlay({shouldBeVisible, onBackdropPress}: SidePanelOverlayPr
     );
 }
 
-SidePanelOverlay.displayName = 'SidePanelOverlay';
-
 export default SidePanelOverlay;

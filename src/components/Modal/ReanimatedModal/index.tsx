@@ -253,6 +253,4 @@ function ReanimatedModal({
     );
 }
 
-ReanimatedModal.displayName = 'ReanimatedModal';
-
 export default ReanimatedModal;

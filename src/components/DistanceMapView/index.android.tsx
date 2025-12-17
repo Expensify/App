@@ -54,6 +54,4 @@ function DistanceMapView({overlayStyle, requireRouteToDisplayMap, ...rest}: Dist
     );
 }
 
-DistanceMapView.displayName = 'DistanceMapView';
-
 export default DistanceMapView;

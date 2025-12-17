@@ -31,5 +31,4 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
     );
 }
 
-SuccessReportCardLost.displayName = 'SuccessReportCardLost';
 export default SuccessReportCardLost;
