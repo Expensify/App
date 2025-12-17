@@ -211,7 +211,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BeneficialOwnersStep.displayName}
+            wrapperID="BeneficialOwnersStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('beneficialOwnerInfoStep.companyOwner')}
@@ -272,7 +272,5 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-BeneficialOwnersStep.displayName = 'BeneficialOwnersStep';
 
 export default BeneficialOwnersStep;

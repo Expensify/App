@@ -109,6 +109,4 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
     );
 }
 
-ReceiptAlternativeMethods.displayName = 'ReceiptAlternativeMethods';
-
 export default ReceiptAlternativeMethods;

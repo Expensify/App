@@ -370,7 +370,7 @@ function IOURequestStepAmount({
         <StepScreenWrapper
             headerTitle={translate('iou.amount')}
             onBackButtonPress={navigateBack}
-            testID={IOURequestStepAmount.displayName}
+            testID="IOURequestStepAmount"
             shouldShowWrapper={!!backTo || isEditing}
             includeSafeAreaPaddingBottom
             shouldShowNotFoundPage={shouldShowNotFoundPage}
@@ -396,8 +396,6 @@ function IOURequestStepAmount({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
 /**
  * Check if the participant is a P2P chat

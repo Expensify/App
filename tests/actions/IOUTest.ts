@@ -16,7 +16,6 @@ import {
     approveMoneyRequest,
     calculateDiffAmount,
     canApproveIOU,
-    canCancelPayment,
     cancelPayment,
     canIOUBePaid,
     canUnapproveIOU,
@@ -6998,21 +6997,6 @@ describe('actions/IOU', () => {
                 managerID: RORY_ACCOUNT_ID,
             };
             expect(canUnapproveIOU(fakeReport, undefined)).toBeFalsy();
-        });
-    });
-
-    describe('canCancelPayment', () => {
-        it('should return true if the report is waiting for a bank account', () => {
-            const fakeReport: Report = {
-                ...createRandomReport(1, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: 'A',
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                isWaitingOnBankAccount: true,
-                managerID: RORY_ACCOUNT_ID,
-            };
-            expect(canCancelPayment(fakeReport, {accountID: RORY_ACCOUNT_ID})).toBeTruthy();
         });
     });
 
