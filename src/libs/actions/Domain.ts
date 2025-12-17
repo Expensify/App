@@ -353,7 +353,7 @@ function resetCreateDomainForm() {
     Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
 }
 
-function choosePrimaryContact(domainAccountID: number, newTechnicalContactAccountID: number, newTechnicalContactEmail: string | null, currentTechnicalContactEmail?: string) {
+function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -410,7 +410,7 @@ function choosePrimaryContact(domainAccountID: number, newTechnicalContactAccoun
     API.write(WRITE_COMMANDS.SET_TECHNICAL_CONTACT_EMAIL, params, {optimisticData, successData, failureData});
 }
 
-function clearChoosePrimaryContactError(domainAccountID: number) {
+function clearSetPrimaryContactError(domainAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         technicalContactEmailErrors: null,
     });
@@ -501,8 +501,8 @@ export {
     getScimToken,
     createDomain,
     resetCreateDomainForm,
-    choosePrimaryContact,
-    clearChoosePrimaryContactError,
+    setPrimaryContact,
+    clearSetPrimaryContactError,
     toggleConsolidatedDomainBilling,
     clearToggleConsolidatedDomainBillingErrors,
 };

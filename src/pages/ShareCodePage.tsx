@@ -69,7 +69,7 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -123,7 +123,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     }
 
     return (
-        <ScreenWrapper testID={ShareCodePage.displayName}>
+        <ScreenWrapper testID="ShareCodePage">
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
                 onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo) : undefined)}
@@ -179,7 +179,5 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         </ScreenWrapper>
     );
 }
-
-ShareCodePage.displayName = 'ShareCodePage';
 
 export default ShareCodePage;

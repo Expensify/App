@@ -1,6 +1,6 @@
-import { adminAccountIDsSelector } from '@selectors/Domain';
+import {adminAccountIDsSelector, technicalContactEmailSelector} from '@selectors/Domain';
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -10,27 +10,26 @@ import SearchBar from '@components/SearchBar';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import SelectionList from '@components/SelectionListWithSections';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type { ListItem } from '@components/SelectionListWithSections/types';
-import { useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
+import type {ListItem} from '@components/SelectionListWithSections/types';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { sortAlphabetically } from '@libs/OptionsListUtils';
-import { getDisplayNameOrDefault } from '@libs/PersonalDetailsUtils';
+import {sortAlphabetically} from '@libs/OptionsListUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
-import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigation/types';
-import type { DomainSplitNavigatorParamList } from '@navigation/types';
+import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import { getCurrentUserAccountID } from '@userActions/Report';
+import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-
 
 type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS>;
 
@@ -44,8 +43,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Members'] as const);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Gear'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Members']);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Gear']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -53,13 +52,13 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         selector: adminAccountIDsSelector,
     });
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+    const [technicalContactEmail] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
+        selector: technicalContactEmailSelector,
     });
 
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
-    const primaryContact = domainSettings?.settings?.technicalContactEmail;
 
     const data: AdminOption[] = [];
     for (const accountID of adminAccountIDs ?? []) {
@@ -78,7 +77,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     id: accountID,
                 },
             ],
-            rightElement: primaryContact === details?.login && <Badge text={translate('domain.admins.primaryContact')} />,
+            rightElement: technicalContactEmail === details?.login && <Badge text={translate('domain.admins.primaryContact')} />,
         });
     }
 
@@ -159,7 +158,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     listHeaderContent={listHeaderContent}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     ListItem={TableListItem}
-                    onSelectRow={() => {}}
+                    shouldShowRightCaret
+                    onSelectRow={(item: AdminOption) => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
                     shouldShowListEmptyContent={false}
                     listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
                     showScrollIndicator={false}

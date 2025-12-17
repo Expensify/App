@@ -1,3 +1,4 @@
+import {technicalContactEmailSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,7 +14,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {clearChoosePrimaryContactError, clearToggleConsolidatedDomainBillingErrors, toggleConsolidatedDomainBilling} from '@userActions/Domain';
+import {clearSetPrimaryContactError, clearToggleConsolidatedDomainBillingErrors, toggleConsolidatedDomainBilling} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -32,11 +33,11 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         canBeMissing: true,
     });
-    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+    const [technicalContactEmail] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
+        selector: technicalContactEmailSelector,
     });
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
-    const currentlySelectedUser = domainSettings?.settings?.technicalContactEmail;
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -55,11 +56,11 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 <OfflineWithFeedback
                     pendingAction={domainPendingActions?.technicalContactEmail}
                     errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
-                    onClose={() => clearChoosePrimaryContactError(domainAccountID)}
+                    onClose={() => clearSetPrimaryContactError(domainAccountID)}
                 >
                     <MenuItemWithTopDescription
                         description={translate('domain.admins.primaryContact')}
-                        title={currentlySelectedUser}
+                        title={technicalContactEmail}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
                     />
@@ -67,8 +68,8 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 <ToggleSettingOptionRow
                     wrapperStyle={[styles.mv3, styles.ph5]}
                     switchAccessibilityLabel={translate('domain.admins.consolidatedDomainBilling')}
-                    isActive={!!domainSettings?.settings?.technicalContactEmail && !!domainSettings?.settings?.useTechnicalContactBillingCard}
-                    disabled={!domainSettings?.settings?.technicalContactEmail}
+                    isActive={!!technicalContactEmail && !!domainSettings?.settings?.useTechnicalContactBillingCard}
+                    disabled={!technicalContactEmail}
                     showLockIcon={!domainSettings?.settings?.technicalContactEmail}
                     onToggle={(value) => {
                         if (!domain?.email) {
