@@ -371,6 +371,13 @@ function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID
                 technicalContactEmail: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                technicalContactEmailErrors: null,
+            },
+        },
     ];
     const successData: OnyxUpdate[] = [
         {
@@ -448,6 +455,17 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
                 admin: {
                     [accountID]: {
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminErrors: {
+                    [accountID]: {
+                        errors: null,
                     },
                 },
             },

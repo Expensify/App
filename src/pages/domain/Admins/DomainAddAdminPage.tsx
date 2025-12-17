@@ -8,7 +8,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {Section} from '@components/SelectionListWithSections/types';
-import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -28,7 +27,7 @@ import type SCREENS from '@src/SCREENS';
 
 type Sections = SectionListData<OptionData, Section<OptionData>>;
 
-type DomainAddAdminProps = WithNavigationTransitionEndProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_ADMIN>;
+type DomainAddAdminProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_ADMIN>;
 
 function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const {domainAccountID} = route.params;
@@ -53,7 +52,6 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const {searchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
-        includeUserToInvite: true,
         includeRecentReports: false,
         shouldInitialize: didScreenTransitionEnd,
         onSingleSelect: (option) => {
@@ -80,17 +78,6 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                 title: translate('common.contacts'),
                 data: filteredPersonalDetails,
             });
-        }
-
-        if (availableOptions.userToInvite) {
-            const isSelected = currentlySelectedUser?.login === availableOptions.userToInvite.login;
-
-            if (!isSelected) {
-                sections.push({
-                    title: undefined,
-                    data: [availableOptions.userToInvite],
-                });
-            }
         }
     }
 
