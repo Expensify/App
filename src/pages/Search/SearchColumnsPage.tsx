@@ -4,7 +4,6 @@ import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchCustomColumnIds} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionList from '@components/SelectionListWithSections';
@@ -27,11 +26,11 @@ function SearchColumnsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const {currentSearchQueryJSON} = useSearchContext();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const searchType = currentSearchQueryJSON?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-    const allCustomColumns = getCustomColumns(searchType);
-    const defaultCustomColumns = getCustomColumnDefault(searchType);
+
+    const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const allCustomColumns = getCustomColumns(queryType);
+    const defaultCustomColumns = getCustomColumnDefault(queryType);
 
     const [selectedColumnIds, setSelectedColumnIds] = useState<SearchCustomColumnIds[]>(() => {
         const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
