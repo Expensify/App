@@ -12,13 +12,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getBase62ReportID from '@libs/getBase62ReportID';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import StatusCell from './StatusCell';
-import TitleCell from './TitleCell';
+import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 import UserInfoCell from './UserInfoCell';
@@ -117,7 +118,7 @@ function ExpenseReportListItemRow({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
-                <TitleCell
+                <TextCell
                     text={item.reportName ?? ''}
                     isLargeScreenWidth={isLargeScreenWidth}
                 />
@@ -151,6 +152,16 @@ function ExpenseReportListItemRow({
                     total={total}
                     currency={currency}
                 />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
+                <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : item.reportID} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}>
+                <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(item.reportID))} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
