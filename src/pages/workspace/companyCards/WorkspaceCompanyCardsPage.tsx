@@ -23,7 +23,7 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
-import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
+import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
 import WorkspaceCompanyCardsTable from './WorkspaceCompanyCardsTable';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
@@ -98,7 +98,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     addBottomSafeAreaPadding
                 >
                     {isPending && !!selectedFeed && (
-                        <WorkspaceCompanyCardsListHeaderButtons
+                        <WorkspaceCompanyCardsTableHeaderButtons
                             policyID={policyID}
                             selectedFeed={selectedFeed}
                         />
@@ -119,7 +119,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                             onAssignCard={assignCard}
                             isAssigningCardDisabled={isAssigningCardDisabled}
                             renderHeaderButtons={(searchBar, filterButtons) => (
-                                <WorkspaceCompanyCardsListHeaderButtons
+                                <WorkspaceCompanyCardsTableHeaderButtons
                                     policyID={policyID}
                                     selectedFeed={selectedFeed}
                                     searchBar={searchBar}

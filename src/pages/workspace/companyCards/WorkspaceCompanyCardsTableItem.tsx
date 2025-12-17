@@ -79,7 +79,7 @@ function WorkspaceCompanyCardTableItem({
     const {translate} = useLocalize();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
+    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     let cardFeedIcon = null;
     if (!plaidIconUrl) {

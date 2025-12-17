@@ -44,7 +44,7 @@ import type {CurrencyList} from '@src/types/onyx';
 import type {AssignCardData} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WorkspaceCompanyCardsListHeaderButtonsProps = {
+type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Current policy id */
     policyID: string;
 
@@ -58,7 +58,7 @@ type WorkspaceCompanyCardsListHeaderButtonsProps = {
     filterButtons?: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, searchBar, filterButtons}: WorkspaceCompanyCardsListHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, searchBar, filterButtons}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -187,4 +187,4 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, searchB
     );
 }
 
-export default WorkspaceCompanyCardsListHeaderButtons;
+export default WorkspaceCompanyCardsTableHeaderButtons;
