@@ -1231,10 +1231,10 @@ function clearUnshareBankAccountErrors() {
     Onyx.merge(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {errors: null});
 }
 
-function unshareBankAccount(bankAccountID: number, email: string) {
+function unshareBankAccount(bankAccountID: number, ownerEmail: string) {
     const parameters: UnshareBankAccountParams = {
         bankAccountID,
-        email,
+        ownerEmail,
     };
 
     const onyxData: OnyxData = {
@@ -1245,7 +1245,7 @@ function unshareBankAccount(bankAccountID: number, email: string) {
                 value: {
                     isLoading: true,
                     errors: null,
-                    email,
+                    email: ownerEmail,
                 },
             },
         ],

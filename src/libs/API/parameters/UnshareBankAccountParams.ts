@@ -1,6 +1,6 @@
 type UnshareBankAccountParams = {
     bankAccountID: number;
-    email: string;
+    ownerEmail: string;
 };
 
 export default UnshareBankAccountParams;

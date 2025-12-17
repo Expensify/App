@@ -10,6 +10,7 @@ import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,6 +34,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const styles = useThemeStyles();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [showExpensifyCardErrorModal, setShowExpensifyCardErrorModal] = useState(false);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
@@ -79,19 +81,21 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         }
 
         const adminsWithInfo =
-            admins?.map((admin) => {
-                const personalDetails = getPersonalDetailByEmail(admin);
-                const formattedAdmin = formatMemberForList({
-                    text: personalDetails?.displayName,
-                    alternateText: personalDetails?.login,
-                    keyForList: personalDetails?.login,
-                    accountID: personalDetails?.accountID,
-                    login: personalDetails?.login,
-                    pendingAction: personalDetails?.pendingAction,
-                    reportID: '',
-                });
-                return {...formattedAdmin, isInteractive: false};
-            }) ?? [];
+            admins
+                ?.filter((admin) => admin !== currentUserPersonalDetails?.email)
+                .map((admin) => {
+                    const personalDetails = getPersonalDetailByEmail(admin);
+                    const formattedAdmin = formatMemberForList({
+                        text: personalDetails?.displayName,
+                        alternateText: personalDetails?.login,
+                        keyForList: personalDetails?.login,
+                        accountID: personalDetails?.accountID,
+                        login: personalDetails?.login,
+                        pendingAction: personalDetails?.pendingAction,
+                        reportID: '',
+                    });
+                    return {...formattedAdmin, isInteractive: false};
+                }) ?? [];
 
         let adminsToDisplay = [...adminsWithInfo];
 
