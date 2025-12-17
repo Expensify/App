@@ -140,7 +140,7 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={InternationalDepositAccountContent.displayName}
+            testID="InternationalDepositAccountContent"
             shouldShowOfflineIndicatorInWideScreen={screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
             <HeaderWithBackButton
@@ -159,7 +159,5 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         </ScreenWrapper>
     );
 }
-
-InternationalDepositAccountContent.displayName = 'InternationalDepositAccountContent';
 
 export default InternationalDepositAccountContent;

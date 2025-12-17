@@ -92,6 +92,4 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
     );
 }
 
-CategoryPicker.displayName = 'CategoryPicker';
-
 export default CategoryPicker;

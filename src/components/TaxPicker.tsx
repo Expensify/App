@@ -125,6 +125,4 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
     );
 }
 
-TaxPicker.displayName = 'TaxPicker';
-
 export default TaxPicker;

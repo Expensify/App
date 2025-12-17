@@ -168,7 +168,7 @@ function VacationDelegatePage() {
         <>
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                testID={VacationDelegatePage.displayName}
+                testID="VacationDelegatePage"
             >
                 <HeaderWithBackButton
                     title={translate('statusPage.vacationDelegate')}
@@ -208,7 +208,5 @@ function VacationDelegatePage() {
         </>
     );
 }
-
-VacationDelegatePage.displayName = 'VacationDelegatePage';
 
 export default VacationDelegatePage;

@@ -203,5 +203,4 @@ function SelectionScreen<T = string>({
 
 export type {SelectorType};
 
-SelectionScreen.displayName = 'SelectionScreen';
 export default SelectionScreen;

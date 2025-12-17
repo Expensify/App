@@ -198,7 +198,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             >
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding
-                    testID={WorkspaceWorkflowsPayerPage.displayName}
+                    testID="WorkspaceWorkflowsPayerPage"
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsPayerPage.title')}
@@ -222,7 +222,5 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceWorkflowsPayerPage.displayName = 'WorkspaceWorkflowsPayerPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsPayerPage);

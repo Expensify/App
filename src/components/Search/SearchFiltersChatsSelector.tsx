@@ -198,6 +198,4 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     );
 }
 
-SearchFiltersChatsSelector.displayName = 'SearchFiltersChatsSelector';
-
 export default SearchFiltersChatsSelector;

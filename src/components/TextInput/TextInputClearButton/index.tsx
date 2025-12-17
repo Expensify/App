@@ -41,6 +41,4 @@ function TextInputClearButton({style, onPressButton}: TextInputClearButtonProps)
     );
 }
 
-TextInputClearButton.displayName = 'TextInputClearButton';
-
 export default TextInputClearButton;

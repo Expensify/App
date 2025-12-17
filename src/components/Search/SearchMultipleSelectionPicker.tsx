@@ -125,7 +125,5 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     );
 }
 
-SearchMultipleSelectionPicker.displayName = 'SearchMultipleSelectionPicker';
-
 export default SearchMultipleSelectionPicker;
 export type {SearchMultipleSelectionPickerItem};

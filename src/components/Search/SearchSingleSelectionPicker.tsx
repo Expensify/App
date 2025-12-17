@@ -119,7 +119,5 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
     );
 }
 
-SearchSingleSelectionPicker.displayName = 'SearchSingleSelectionPicker';
-
 export default SearchSingleSelectionPicker;
 export type {SearchSingleSelectionPickerItem};

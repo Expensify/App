@@ -41,8 +41,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Members'] as const);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Members']);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -113,7 +113,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
-            testID={DomainAdminsPage.displayName}
+            testID="DomainAdminsPage"
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
@@ -132,7 +132,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     listHeaderContent={listHeaderContent}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     ListItem={TableListItem}
-                    onSelectRow={() => {}}
+                    shouldShowRightCaret
+                    onSelectRow={(item: AdminOption) => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
                     shouldShowListEmptyContent={false}
                     listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
                     showScrollIndicator={false}
@@ -143,7 +144,5 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         </ScreenWrapper>
     );
 }
-
-DomainAdminsPage.displayName = 'DomainAdminsPage';
 
 export default DomainAdminsPage;

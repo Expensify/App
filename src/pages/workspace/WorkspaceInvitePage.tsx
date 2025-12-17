@@ -231,7 +231,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             <ScreenWrapper
                 shouldEnableMaxHeight
                 shouldUseCachedViewportHeight
-                testID={WorkspaceInvitePage.displayName}
+                testID="WorkspaceInvitePage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
@@ -267,7 +267,5 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 
 export default withNavigationTransitionEnd(withPolicyAndFullscreenLoading(WorkspaceInvitePage));

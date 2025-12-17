@@ -159,7 +159,7 @@ function ScheduleCallPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID={ScheduleCallPage.displayName}
+            testID="ScheduleCallPage"
         >
             <HeaderWithBackButton
                 title={translate('scheduledCall.book.title')}
@@ -241,7 +241,5 @@ function ScheduleCallPage() {
         </ScreenWrapper>
     );
 }
-
-ScheduleCallPage.displayName = 'ScheduleCallPage';
 
 export default ScheduleCallPage;

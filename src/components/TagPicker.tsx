@@ -151,8 +151,6 @@ function TagPicker({
     );
 }
 
-TagPicker.displayName = 'TagPicker';
-
 export default TagPicker;
 
 export type {SelectedTagOption};
