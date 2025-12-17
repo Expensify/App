@@ -51,6 +51,66 @@ if [ ! -f "onyxrefs.txt" ]; then
     exit 1
 fi
 
+# Configuration for GitHub Projects (v2)
+PROJECT_V2_OWNER="Expensify"
+PROJECT_V2_TITLE="Deprecate Onyx.connect"
+PROJECT_V2_ID=""
+
+# Resolve and cache the Projects (v2) ID by title
+get_project_v2_id() {
+    if [[ -n "$PROJECT_V2_ID" ]]; then
+        echo "$PROJECT_V2_ID"
+        return 0
+    fi
+
+    local pid
+    if pid=$(gh api graphql -f query='
+        query($org:String!) {
+          organization(login: $org) {
+            projectsV2(first: 100) {
+              nodes { id title number }
+            }
+          }
+        }
+    ' -f org="$PROJECT_V2_OWNER" --jq '.data.organization.projectsV2.nodes[] | select(.title == "'$PROJECT_V2_TITLE'") | .id' 2>/dev/null | head -n1); then
+        if [[ -n "$pid" ]]; then
+            PROJECT_V2_ID="$pid"
+            echo "$PROJECT_V2_ID"
+            return 0
+        fi
+    fi
+
+    echo ""  # not found
+    return 1
+}
+
+# Add an issue (by GraphQL node ID) to the configured Projects (v2) board
+add_issue_to_project_v2() {
+    local issue_node_id="$1"
+
+    # Ensure we have a project id
+    local project_id
+    project_id=$(get_project_v2_id || true)
+    if [[ -z "$project_id" ]]; then
+        echo "Warning: Projects (v2) board '$PROJECT_V2_TITLE' not found for owner '$PROJECT_V2_OWNER'" >&2
+        return 1
+    fi
+
+    # Rate limiting
+    sleep 0.3
+
+    # Use addProjectV2ItemById to add the issue to the v2 project
+    if ! gh api graphql \
+        -f query='mutation($projectId:ID!, $contentId:ID!) { addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) { item { id } } }' \
+        -f projectId="$project_id" \
+        -f contentId="$issue_node_id" > /dev/null 2>&1; then
+        echo "Warning: Failed to add issue to Projects (v2). It may already be on the board." >&2
+        return 1
+    fi
+
+    return 0
+}
+
 # Function to get repository owner and name
 get_repo_info() {
     echo "Expensify/App"
@@ -163,8 +223,7 @@ create_issue() {
         --title "$title" \
         --body "$body" \
         --assignee "$assignee" \
-        --label "$labels" \
-        --project "Deprecate Onyx.connect" 2>&1); then
+        --label "$labels" 2>&1); then
         echo "Error creating issue: $issue_url" >&2
         return 1
     fi
@@ -321,6 +380,10 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                         # For duplicates, we still need to set the assignee for sub-issues
                         # We'll use the current assignee rotation for consistency
                         current_parent_assignee="$assignee"
+                        # Try to add duplicate parent issue to Projects (v2)
+                        if ! add_issue_to_project_v2 "$actual_parent_id"; then
+                            echo "Note: Could not add existing parent issue #$parent_id to Projects (v2)" >&2
+                        fi
                     else
                         current_parent_id=""
                         current_parent_assignee=""
@@ -330,6 +393,11 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                     echo "Created parent issue #$parent_number with ID: $parent_id"
                     ((parent_issues_created++))
                     ((total_issues_created++))
+
+                    # Add parent issue to Projects (v2)
+                    if ! add_issue_to_project_v2 "$parent_id"; then
+                        echo "Note: Could not add parent issue #$parent_number to Projects (v2)" >&2
+                    fi
 
                     # Link this parent issue to the main deprecation issue
                     echo "Linking parent issue to main deprecation issue #522215..."
@@ -393,19 +461,21 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                 else
                     echo "    Status: WOULD CREATE (with Bug label and Bug-Zero comment)"
                     ((sub_issues_created++))
-                    ((links_created++))  # In dry-run, assume all sub-issues would be linked
+                    # In dry-run, assume all sub-issues would be linked
+                    ((links_created++))
                 fi
             else
                 echo "    Status: WOULD CREATE (with Bug label and Bug-Zero comment - duplicate check skipped - GitHub CLI not authenticated)"
                 ((sub_issues_created++))
-                ((links_created++))  # In dry-run, assume all sub-issues would be linked
+                # In dry-run, assume all sub-issues would be linked
+                ((links_created++))
             fi
             echo ""
         else
             # Use the same assignee as the parent issue
             assignee="$current_parent_assignee"
             echo "Creating sub-issue: $sub_title (assigned to $assignee)"
-            if sub_id=$(create_issue "$sub_title" "$sub_body" "Engineering,Improvement,Bug,Weekly" "$assignee"); then
+            if sub_id=$(create_issue "$sub_title" "$sub_body" "Engineering,Improvement,Weekly" "$assignee"); then
                 sub_number=$(echo "$sub_id" | cut -d'|' -f1)
                 sub_issue_id=$(echo "$sub_id" | cut -d'|' -f2)
 
@@ -416,6 +486,10 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                     if [[ -n "$current_parent_id" ]]; then
                         if actual_sub_id=$(gh issue view "$sub_issue_id" --json id --jq ".id" 2>/dev/null); then
                             duplicate_sub_data="$sub_issue_id|$actual_sub_id"
+                            # Try to add duplicate sub-issue to Projects (v2)
+                            if ! add_issue_to_project_v2 "$actual_sub_id"; then
+                                echo "Note: Could not add existing sub-issue #$sub_issue_id to Projects (v2)" >&2
+                            fi
                             echo "Checking if duplicate sub-issue is already linked to parent..."
                             if link_sub_issue "$current_parent_id" "$duplicate_sub_data" 2>/dev/null; then
                                 echo "Linked existing sub-issue to parent issue"
@@ -429,6 +503,11 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                     echo "Created sub-issue #$sub_number with ID: $sub_issue_id"
                     ((sub_issues_created++))
                     ((total_issues_created++))
+
+                    # Add sub-issue to Projects (v2)
+                    if ! add_issue_to_project_v2 "$sub_issue_id"; then
+                        echo "Note: Could not add sub-issue #$sub_number to Projects (v2)" >&2
+                    fi
 
                     # Add Bug-Zero comment to sub-issue
                     bug_zero_comment="> [!WARNING]
