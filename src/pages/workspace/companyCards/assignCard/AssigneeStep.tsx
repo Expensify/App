@@ -41,7 +41,7 @@ type AssigneeStepProps = {
     route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD>;
 };
 
-function AssigneeStep({policy, feed: _feed, route}: AssigneeStepProps) {
+function AssigneeStep({policy, route}: AssigneeStepProps) {
     const policyID = route.params.policyID;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();

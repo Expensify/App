@@ -15,7 +15,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyCardFeed, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
-import {getDefaultAvatarURL} from '@libs/UserUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
@@ -130,7 +130,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                     labelStyle={styles.mb3}
                     title={cardholderName && cardholderName !== cardholderEmail ? cardholderName : cardholderEmail}
                     description={cardholderName && cardholderName !== cardholderEmail ? cardholderEmail : undefined}
-                    icon={cardholderDetails?.avatar ?? getDefaultAvatarURL(cardholderAccountID)}
+                    icon={cardholderDetails?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
