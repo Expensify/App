@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -191,9 +191,9 @@ function NumberWithSymbolForm({
         setMouseUp();
     };
 
-    const clearSelection = useCallback(() => {
+    const clearSelection = () => {
         setSelection({start: selection.end, end: selection.end});
-    }, [selection.end]);
+    };
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -219,39 +219,36 @@ function NumberWithSymbolForm({
      * Sets the selection and the number accordingly to the number passed to the input
      * @param newNumber - Changed number from user input
      */
-    const setNewNumber = useCallback(
-        (newNumber: string) => {
-            // Remove spaces from the newNumber number because Safari on iOS adds spaces when pasting a copied number
-            // More info: https://github.com/Expensify/App/issues/16974
-            const newNumberWithoutSpaces = stripSpacesFromAmount(newNumber);
-            const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
+    const setNewNumber = (newNumber: string) => {
+        // Remove spaces from the newNumber number because Safari on iOS adds spaces when pasting a copied number
+        // More info: https://github.com/Expensify/App/issues/16974
+        const newNumberWithoutSpaces = stripSpacesFromAmount(newNumber);
+        const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
 
-            const finalNumber = handleNegativeAmountFlipping(rawFinalNumber, allowFlippingAmount, toggleNegative);
+        const finalNumber = handleNegativeAmountFlipping(rawFinalNumber, allowFlippingAmount, toggleNegative);
 
-            // Use a shallow copy of selection to trigger setSelection
-            // More info: https://github.com/Expensify/App/issues/16385
-            if (!validateAmount(finalNumber, decimals, maxLength)) {
-                setSelection((prevSelection) => ({...prevSelection}));
-                return;
+        // Use a shallow copy of selection to trigger setSelection
+        // More info: https://github.com/Expensify/App/issues/16385
+        if (!validateAmount(finalNumber, decimals, maxLength)) {
+            setSelection((prevSelection) => ({...prevSelection}));
+            return;
+        }
+
+        willSelectionBeUpdatedManually.current = true;
+        let hasSelectionBeenSet = false;
+        const strippedNumber = stripCommaFromAmount(finalNumber);
+        numberRef.current = strippedNumber;
+        setCurrentNumber((prevNumber) => {
+            const isForwardDelete = prevNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
+            if (!hasSelectionBeenSet) {
+                hasSelectionBeenSet = true;
+                setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedNumber.length : prevNumber.length, strippedNumber.length));
+                willSelectionBeUpdatedManually.current = false;
             }
-
-            willSelectionBeUpdatedManually.current = true;
-            let hasSelectionBeenSet = false;
-            const strippedNumber = stripCommaFromAmount(finalNumber);
-            numberRef.current = strippedNumber;
-            setCurrentNumber((prevNumber) => {
-                const isForwardDelete = prevNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
-                if (!hasSelectionBeenSet) {
-                    hasSelectionBeenSet = true;
-                    setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedNumber.length : prevNumber.length, strippedNumber.length));
-                    willSelectionBeUpdatedManually.current = false;
-                }
-                return strippedNumber;
-            });
-            onInputChange?.(strippedNumber);
-        },
-        [decimals, maxLength, onInputChange, allowFlippingAmount, toggleNegative],
-    );
+            return strippedNumber;
+        });
+        onInputChange?.(strippedNumber);
+    };
 
     /**
      * Set a new number number properly formatted, used for the TextInput
@@ -303,37 +300,34 @@ function NumberWithSymbolForm({
      * Update number with number or Backspace pressed for BigNumberPad.
      * Validate new number with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
      */
-    const updateValueNumberPad = useCallback(
-        (key: string) => {
-            if (shouldUpdateSelection && !isTextInputFocused(textInput)) {
-                textInput.current?.focus();
+    const updateValueNumberPad = (key: string) => {
+        if (shouldUpdateSelection && !isTextInputFocused(textInput)) {
+            textInput.current?.focus();
+        }
+        // Backspace button is pressed
+        if (key === '<' || key === 'Backspace') {
+            if (currentNumber.length > 0) {
+                const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
+                const newNumber = `${currentNumber.substring(0, selectionStart)}${currentNumber.substring(selection.end)}`;
+                setNewNumber(addLeadingZero(newNumber));
             }
-            // Backspace button is pressed
-            if (key === '<' || key === 'Backspace') {
-                if (currentNumber.length > 0) {
-                    const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
-                    const newNumber = `${currentNumber.substring(0, selectionStart)}${currentNumber.substring(selection.end)}`;
-                    setNewNumber(addLeadingZero(newNumber));
-                }
-                return;
-            }
-            const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`);
-            setNewNumber(newNumber);
-        },
-        [currentNumber, selection.start, selection.end, shouldUpdateSelection, setNewNumber],
-    );
+            return;
+        }
+        const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`);
+        setNewNumber(newNumber);
+    };
 
     /**
      * Update long press number, to remove items pressing on <
      *
      * @param value - Changed text from user input
      */
-    const updateLongPressHandlerState = useCallback((value: boolean) => {
+    const updateLongPressHandlerState = (value: boolean) => {
         setShouldUpdateSelection(!value);
         if (!value && !isTextInputFocused(textInput)) {
             textInput.current?.focus();
         }
-    }, []);
+    };
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.

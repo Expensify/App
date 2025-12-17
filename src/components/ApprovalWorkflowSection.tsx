@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,21 +40,14 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
         selector: personalDetailsByEmailSelector,
     });
 
-    const approverTitle = useCallback(
-        (index: number) =>
-            approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
-        [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
-    );
+    const approverTitle = (index: number) =>
+        approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
 
-    const members = useMemo(() => {
-        if (approvalWorkflow.isDefault) {
-            return translate('workspace.common.everyone');
-        }
-
-        return sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
-            .map((m) => Str.removeSMSDomain(m.displayName))
-            .join(', ');
-    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate, localeCompare]);
+    const members = approvalWorkflow.isDefault
+        ? translate('workspace.common.everyone')
+        : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
+              .map((m) => Str.removeSMSDomain(m.displayName))
+              .join(', ');
 
     return (
         <PressableWithoutFeedback
