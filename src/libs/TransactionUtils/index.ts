@@ -1045,7 +1045,16 @@ function getTagArrayFromName(tagName: string): string[] {
 function getExchangeRate(transaction: TransactionWithOptionalSearchFields) {
     const fromCurrency = getCurrency(transaction);
     const toCurrency = transaction.groupCurrency ?? fromCurrency;
-    return transaction.groupExchangeRate ? `${transactionWithOptionalSearchFields.groupExchangeRate} ${fromCurrency}/${toCurrency}` : '';
+
+    if (!transaction.groupExchangeRate) {
+        return '';
+    }
+
+    if (Number(transaction.groupExchangeRate) === 1) {
+        return '';
+    }
+
+    return transaction.groupExchangeRate ? `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}` : '';
 }
 
 /**
