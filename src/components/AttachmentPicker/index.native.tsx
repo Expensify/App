@@ -520,6 +520,4 @@ function AttachmentPicker({
     );
 }
 
-AttachmentPicker.displayName = 'AttachmentPicker';
-
 export default AttachmentPicker;

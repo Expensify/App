@@ -204,7 +204,7 @@ function ProfileAvatar() {
             includeSafeAreaPaddingBottom
             includePaddingTop
             shouldEnableMaxHeight
-            testID={ProfileAvatar.displayName}
+            testID="ProfileAvatar"
             offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -317,7 +317,5 @@ function ProfileAvatar() {
         </ScreenWrapper>
     );
 }
-
-ProfileAvatar.displayName = 'ProfileAvatar';
 
 export default ProfileAvatar;
