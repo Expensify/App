@@ -3,11 +3,10 @@ import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+// import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
@@ -36,11 +35,10 @@ function MigratedUserWelcomeModal() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {typeMenuSections} = useSearchTypeMenuSections();
     const [isModalDisabled, setIsModalDisabled] = useState(true);
     const route = useRoute<PlatformStackRouteProp<MigratedUserModalNavigatorParamList, typeof SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT>>();
     const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
-    const illustrations = useMemoizedLazyIllustrations(['ExpensifyMobileApp'] as const);
+    // const illustrations = useMemoizedLazyIllustrations(['MagnifyingGlassReceipt', 'ConciergeBot', 'ChatBubbles']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
     const ExpensifyFeatures = useMemo<FeatureListItem[]>(
@@ -58,7 +56,7 @@ function MigratedUserWelcomeModal() {
                 translationKey: 'migratedUserWelcomeModal.features.chat',
             },
         ],
-        [illustrations.ExpensifyMobileApp],
+        [],
     );
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
@@ -84,9 +82,8 @@ function MigratedUserWelcomeModal() {
 
         Log.hmmm('[MigratedUserWelcomeModal] Enabling modal and navigating to search');
         setIsModalDisabled(false);
-        const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? buildCannedSearchQuery()}));
-    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, shouldOpenSearch, typeMenuSections]);
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
+    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, shouldOpenSearch]);
 
     return (
         <FeatureTrainingModal
@@ -141,5 +138,4 @@ function MigratedUserWelcomeModal() {
     );
 }
 
-MigratedUserWelcomeModal.displayName = 'MigratedUserWelcomeModal';
 export default MigratedUserWelcomeModal;

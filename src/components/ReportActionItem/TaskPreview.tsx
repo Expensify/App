@@ -13,8 +13,10 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
 import useParentReport from '@hooks/useParentReport';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -93,10 +95,12 @@ function TaskPreview({
     const isTaskCompleted = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-    const taskAssigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const parentReportAction = useParentReportAction(taskReport);
+    const taskAssigneeAccountID = getTaskAssigneeAccountID(taskReport, parentReportAction) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const parentReport = useParentReport(taskReport?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const isTaskActionable = canActionTask(taskReport, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(taskReport);
+    const isTaskActionable = canActionTask(taskReport, parentReportAction, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
     const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? Expensicons.FallbackAvatar;
@@ -135,6 +139,7 @@ function TaskPreview({
                 style={[styles.flexRow, styles.justifyContentBetween, style]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
+                sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mr2]}>
                     <View style={iconWrapperStyle}>
@@ -144,12 +149,13 @@ function TaskPreview({
                             disabled={!isTaskActionable}
                             onPress={callFunctionIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
-                                    reopenTask(taskReport, currentUserPersonalDetails.accountID, taskReportID);
+                                    reopenTask(taskReport, parentReport, currentUserPersonalDetails.accountID, taskReportID);
                                 } else {
-                                    completeTask(taskReport, taskReportID);
+                                    completeTask(taskReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, taskReportID);
                                 }
                             })}
                             accessibilityLabel={translate('task.task')}
+                            sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
                         />
                     </View>
                     {hasAssignee && (
@@ -186,7 +192,5 @@ function TaskPreview({
         </View>
     );
 }
-
-TaskPreview.displayName = 'TaskPreview';
 
 export default withCurrentUserPersonalDetails(TaskPreview);

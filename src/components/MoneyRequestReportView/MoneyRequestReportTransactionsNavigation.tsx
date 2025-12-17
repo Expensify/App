@@ -138,7 +138,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
         // The transaction thread doesn't exist yet, so we should create it
         if (!nextThreadReportID) {
-            const transactionThreadReport = createTransactionThreadReport(parentReport, nextParentReportAction);
+            const transactionThreadReport = createTransactionThreadReport(parentReport, nextParentReportAction, nextTransaction);
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
@@ -166,7 +166,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
         // The transaction thread doesn't exist yet, so we should create it
         if (!prevThreadReportID) {
-            const transactionThreadReport = createTransactionThreadReport(parentReport, prevParentReportAction);
+            const transactionThreadReport = createTransactionThreadReport(parentReport, prevParentReportAction, prevTransaction);
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
@@ -182,7 +182,5 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         />
     );
 }
-
-MoneyRequestReportTransactionsNavigation.displayName = 'MoneyRequestReportTransactionsNavigation';
 
 export default MoneyRequestReportTransactionsNavigation;

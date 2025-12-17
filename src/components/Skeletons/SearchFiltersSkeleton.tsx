@@ -4,6 +4,7 @@ import {Rect} from 'react-native-svg';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 
 type SearchFiltersSkeletonProps = {
     shouldAnimate?: boolean;
@@ -12,6 +13,7 @@ type SearchFiltersSkeletonProps = {
 function SearchFiltersSkeleton({shouldAnimate = true}: SearchFiltersSkeletonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    useSkeletonSpan('SearchFiltersSkeleton');
 
     const skeletonCount = new Array(5).fill(0);
 
@@ -27,8 +29,7 @@ function SearchFiltersSkeleton({shouldAnimate = true}: SearchFiltersSkeletonProp
                     <Rect
                         // eslint-disable-next-line react/no-array-index-key
                         key={index}
-                        x={index * 90}
-                        y={0}
+                        transform={[{translateX: index * 90}]}
                         rx={14}
                         ry={14}
                         width={84}
@@ -48,8 +49,7 @@ function SearchFiltersSkeleton({shouldAnimate = true}: SearchFiltersSkeletonProp
                         <Rect
                             // eslint-disable-next-line react/no-array-index-key
                             key={index}
-                            x={12 + index * 90}
-                            y={10}
+                            transform={[{translateX: 12 + index * 90}, {translateY: 10}]}
                             width={60}
                             height={8}
                         />
@@ -59,7 +59,5 @@ function SearchFiltersSkeleton({shouldAnimate = true}: SearchFiltersSkeletonProp
         </View>
     );
 }
-
-SearchFiltersSkeleton.displayName = 'SearchStatusSkeleton';
 
 export default SearchFiltersSkeleton;

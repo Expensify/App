@@ -69,10 +69,10 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
 
@@ -89,7 +89,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
             if (isMoneyRequestReport(report)) {
                 // generate subtitle from participants
                 return getParticipantsAccountIDsForDisplay(report, true)
-                    .map((accountID) => getDisplayNameForParticipant({accountID}))
+                    .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber}))
                     .join(' & ');
             }
 
@@ -97,7 +97,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         }
 
         return currentUserPersonalDetails.login;
-    }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived]);
+    }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber]);
 
     const title = isReport ? getReportName(report) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
@@ -123,7 +123,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     }
 
     return (
-        <ScreenWrapper testID={ShareCodePage.displayName}>
+        <ScreenWrapper testID="ShareCodePage">
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
                 onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo) : undefined)}
@@ -179,7 +179,5 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         </ScreenWrapper>
     );
 }
-
-ShareCodePage.displayName = 'ShareCodePage';
 
 export default ShareCodePage;

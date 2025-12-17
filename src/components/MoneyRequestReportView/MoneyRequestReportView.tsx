@@ -99,7 +99,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const {transactions: reportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportID);
     const hasPendingDeletionTransaction = Object.values(reportTransactions ?? {}).some((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions), [reportTransactions, reportActions]);
+    const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions, isOffline, true), [reportTransactions, reportActions, isOffline]);
 
     const visibleTransactions = transactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
@@ -230,6 +230,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
                             showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
+                            reportPendingAction={reportPendingAction}
                         />
                     ) : (
                         <ReportActionsView
@@ -263,7 +264,5 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         </View>
     );
 }
-
-MoneyRequestReportView.displayName = 'MoneyRequestReportView';
 
 export default MoneyRequestReportView;

@@ -13,6 +13,7 @@ import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -90,7 +91,11 @@ function TaskAssigneeSelectorModal() {
             });
         }
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
-    }, [reports, route]);
+    }, [reports, route.params?.reportID]);
+
+    const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -133,10 +138,10 @@ function TaskAssigneeSelectorModal() {
                 isDisabled: option.isDisabled ?? undefined,
                 login: option.login ?? undefined,
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
-                isSelected: task?.assigneeAccountID === option.accountID,
+                isSelected: task?.assigneeAccountID === option.accountID || task?.report?.managerID === option.accountID,
             })),
         }));
-    }, [optionsWithoutCurrentUser, task?.assigneeAccountID, translate]);
+    }, [optionsWithoutCurrentUser, task?.assigneeAccountID, translate, task?.report?.managerID]);
 
     const initiallyFocusedOptionKey = useMemo(() => {
         return sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
@@ -158,7 +163,7 @@ function TaskAssigneeSelectorModal() {
             // Check to see if we're editing a task and if so, update the assignee
             if (report) {
                 if (option.accountID !== report.managerID) {
-                    const assigneeChatReport = setAssigneeValue(
+                    const {report: assigneeChatReport, isOptimisticReport} = setAssigneeValue(
                         currentUserPersonalDetails.accountID,
                         assigneePersonalDetails,
                         report.reportID,
@@ -168,11 +173,14 @@ function TaskAssigneeSelectorModal() {
                     // Pass through the selected assignee
                     editTaskAssignee(
                         report,
+                        parentReport,
                         currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         option?.login ?? '',
                         currentUserPersonalDetails.accountID,
+                        hasOutstandingChildTask,
                         option?.accountID,
                         assigneeChatReport,
+                        isOptimisticReport,
                     );
                 }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -194,7 +202,7 @@ function TaskAssigneeSelectorModal() {
                 });
             }
         },
-        [report, currentUserPersonalDetails.accountID, allPersonalDetails, task?.shareDestination, backTo],
+        [report, currentUserPersonalDetails.accountID, task?.shareDestination, backTo, hasOutstandingChildTask, allPersonalDetails, parentReport],
     );
 
     const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);
@@ -211,7 +219,7 @@ function TaskAssigneeSelectorModal() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={TaskAssigneeSelectorModal.displayName}
+            testID="TaskAssigneeSelectorModal"
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                 <HeaderWithBackButton
@@ -238,7 +246,5 @@ function TaskAssigneeSelectorModal() {
         </ScreenWrapper>
     );
 }
-
-TaskAssigneeSelectorModal.displayName = 'TaskAssigneeSelectorModal';
 
 export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModal));

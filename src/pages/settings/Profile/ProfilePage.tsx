@@ -1,11 +1,11 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useContext, useMemo} from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/Button';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -154,7 +154,7 @@ function ProfilePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={ProfilePage.displayName}
+            testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -235,7 +235,9 @@ function ProfilePage() {
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
                             {isLoadingApp ? (
-                                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
+                                <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
+                                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                                </View>
                             ) : (
                                 <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
                                     {privateOptions.map((detail, index) => (
@@ -259,7 +261,5 @@ function ProfilePage() {
         </ScreenWrapper>
     );
 }
-
-ProfilePage.displayName = 'ProfilePage';
 
 export default ProfilePage;

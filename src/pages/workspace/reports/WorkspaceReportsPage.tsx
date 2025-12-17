@@ -77,10 +77,10 @@ function WorkspaceReportFieldsPage({
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
-    }, [policy]);
+    }, [policy?.fieldList]);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
-    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnections) {
@@ -176,7 +176,7 @@ function WorkspaceReportFieldsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceReportFieldsPage.displayName}
+                testID="WorkspaceReportFieldsPage"
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
@@ -208,16 +208,17 @@ function WorkspaceReportFieldsPage({
                         >
                             <OfflineWithFeedback
                                 pendingAction={reportTitlePendingFields.defaultValue}
-                                shouldForceOpacity={!!reportTitlePendingFields.defaultValue}
+                                shouldForceOpacity={reportTitlePendingFields.defaultValue === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}
                                 errors={reportTitleErrors}
-                                errorRowStyles={styles.mh0}
+                                errorRowStyles={[styles.mh0]}
+                                errorRowTextStyles={[styles.mv2]}
                                 onClose={clearTitleFieldError}
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
                                     title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
                                     shouldShowRightIcon
-                                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                                    style={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                     onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
                                 />
                             </OfflineWithFeedback>
@@ -225,7 +226,7 @@ function WorkspaceReportFieldsPage({
                                 pendingAction={reportTitlePendingFields.deletable}
                                 title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                                 titleStyle={toggleTitleStyle}
                                 isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
                                 onToggle={(isEnabled) => {
@@ -331,7 +332,5 @@ function WorkspaceReportFieldsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceReportFieldsPage.displayName = 'WorkspaceReportFieldsPage';
 
 export default WorkspaceReportFieldsPage;

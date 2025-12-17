@@ -89,6 +89,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
          */
         addBottomSafeAreaPadding?: boolean;
+
+        /** Content to be added as modal */
+        modals?: ReactNode;
     };
 
 function fetchData(policyID: string | undefined, skipVBBACal?: boolean) {
@@ -124,6 +127,7 @@ function WorkspacePageWithSections({
     threeDotsMenuItems,
     shouldUseHeadlineHeader = true,
     addBottomSafeAreaPadding = false,
+    modals,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
@@ -172,6 +176,11 @@ function WorkspacePageWithSections({
     }, [policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
+        if (shouldShow) {
+            goBackFromWorkspaceSettingPages();
+            return true;
+        }
+
         if (onBackButtonPress) {
             onBackButtonPress();
             return true;
@@ -193,7 +202,7 @@ function WorkspacePageWithSections({
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={testID ?? WorkspacePageWithSections.displayName}
+            testID={testID ?? 'WorkspacePageWithSections'}
             shouldShowOfflineIndicator={!shouldShow}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
@@ -235,10 +244,9 @@ function WorkspacePageWithSections({
                     </>
                 )}
             </FullPageNotFoundView>
+            {modals}
         </ScreenWrapper>
     );
 }
-
-WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
 
 export default withPolicyAndFullscreenLoading(WorkspacePageWithSections);

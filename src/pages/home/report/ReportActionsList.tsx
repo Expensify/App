@@ -3,16 +3,16 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {accountIDSelector} from '@selectors/Session';
 import {tierNameSelector} from '@selectors/UserWallet';
-import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
-import {PersonalDetailsContext, usePersonalDetails} from '@components/OnyxListItemProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -182,7 +182,6 @@ function ReportActionsList({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
-    const participantsContext = useContext(PersonalDetailsContext);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector, canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -194,6 +193,7 @@ function ReportActionsList({
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {canBeMissing: true});
 
     const backTo = route?.params?.backTo as string;
     // Display the new message indicator when comment linking and not close to the newest message.
@@ -386,7 +386,7 @@ function ReportActionsList({
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
-    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
+    }, [lastActionIndex, sortedVisibleReportActions.length, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
 
     useEffect(() => {
         const shouldTriggerScroll = shouldFocusToTopOnMount && prevHasCreatedActionAdded && !hasCreatedActionAdded;
@@ -516,7 +516,7 @@ function ReportActionsList({
                 reportScrollManager.scrollToBottom();
             });
         }
-    }, [lastAction, prevSortedVisibleReportActionsObjects, reportScrollManager]);
+    }, [lastAction?.reportActionID, lastAction?.actionName, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
     useEffect(() => {
         sortedVisibleReportActionsRef.current = sortedVisibleReportActions;
@@ -607,7 +607,7 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
-    const reportActionsListFSClass = FS.getChatFSClass(participantsContext, report);
+    const reportActionsListFSClass = FS.getChatFSClass(report);
     const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
     const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
@@ -733,6 +733,8 @@ function ReportActionsList({
                     linkedTransactionRouteError={actionLinkedTransactionRouteError}
                     userBillingFundID={userBillingFundID}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
+                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
                 />
             );
         },
@@ -760,6 +762,8 @@ function ReportActionsList({
             userBillingFundID,
             isTryNewDotNVPDismissed,
             isReportArchived,
+            reportNameValuePairs?.origin,
+            reportNameValuePairs?.originalID,
         ],
     );
 
@@ -899,8 +903,6 @@ function ReportActionsList({
         </>
     );
 }
-
-ReportActionsList.displayName = 'ReportActionsList';
 
 export default memo(ReportActionsList);
 
