@@ -509,6 +509,7 @@ function TransactionItemRow({
             isAmountColumnWide,
             isTaxAmountColumnWide,
             isLargeScreenWidth,
+            formattedTaxRate,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
