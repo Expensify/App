@@ -163,7 +163,7 @@ function useSearchSelectorBase({
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const onListEndReached = useDebounce(
         useCallback(() => {
             setMaxResults((previous) => previous + maxResultsPerPage);
@@ -193,7 +193,7 @@ function useSearchSelectorBase({
                     maxResults,
                     includeUserToInvite,
                     countryCode,
-                    policyTags: undefined,
+                    policyTags,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, undefined, {
@@ -257,7 +257,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, CONST.POLICY.DEFAULT_TAG_LIST, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, undefined, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     includeP2P: true,
@@ -285,6 +285,7 @@ function useSearchSelectorBase({
         maxResults,
         includeUserToInvite,
         countryCode,
+        policyTags,
         excludeLogins,
         includeRecentReports,
         maxRecentReportsToShow,

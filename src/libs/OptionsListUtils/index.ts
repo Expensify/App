@@ -1849,7 +1849,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
  * @param config - Configuration object specifying display preferences and filtering criteria
  * @returns Array of enriched and filtered report options ready for UI display
  */
-function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, config: GetValidReportsConfig, policyTags: OnyxEntry<PolicyTagLists>): Array<SearchOption<Report>> {
+function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, config: GetValidReportsConfig, policyTags: OnyxCollection<PolicyTagLists>): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
         forcePolicyNamePreview = false,
@@ -1873,12 +1873,13 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, co
             continue;
         }
         const report = option.item;
+        const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`];
 
         /**
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
          */
-        const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview}, policyTags, !!option.private_isArchived);
+        const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview}, reportPolicyTags, !!option.private_isArchived);
         const isSelected = isReportSelected(option, selectedOptions);
 
         let isOptionUnread = option.isUnread;
@@ -1993,7 +1994,7 @@ function getValidOptions(
     options: OptionList,
     draftComments: OnyxCollection<string> | undefined,
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
-    policyTags: OnyxEntry<PolicyTagLists>,
+    policyTags: OnyxCollection<PolicyTagLists>,
     {
         excludeLogins = {},
         includeSelectedOptions = false,
@@ -2237,7 +2238,7 @@ type SearchOptionsConfig = {
     includeCurrentUser?: boolean;
     countryCode?: number;
     shouldShowGBR?: boolean;
-    policyTags: OnyxEntry<PolicyTagLists>;
+    policyTags: OnyxCollection<PolicyTagLists>;
     shouldUnreadBeBold?: boolean;
 };
 
@@ -2383,7 +2384,6 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
-    policyTags: OnyxEntry<PolicyTagLists>,
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
@@ -2393,7 +2393,7 @@ function getMemberInviteOptions(
         {personalDetails, reports: []},
         undefined,
         nvpDismissedProductTraining,
-        policyTags,
+        {},
         {
             betas,
             includeP2P: true,

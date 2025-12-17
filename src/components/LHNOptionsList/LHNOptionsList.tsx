@@ -300,6 +300,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             reportActions,
             isOffline,
             reportAttributes,
+            policyForMovingExpensesID,
+            policyTags,
             policy,
             transactions,
             draftComments,
@@ -317,7 +319,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isReportsSplitNavigatorLast,
             isScreenFocused,
             localeCompare,
-            policyTags,
         ],
     );
 

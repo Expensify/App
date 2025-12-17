@@ -190,6 +190,7 @@ function SearchAutocompleteList({
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass'] as const);
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -211,10 +212,10 @@ function SearchAutocompleteList({
             includeCurrentUser: true,
             countryCode,
             shouldShowGBR: false,
-            policyTags: undefined,
+            policyTags,
             shouldUnreadBeBold: true,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, policyTags]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -422,7 +423,7 @@ function SearchAutocompleteList({
                     includeCurrentUser: true,
                     countryCode,
                     shouldShowGBR: true,
-                    policyTags: undefined,
+                    policyTags,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
                 return participants.map((participant) => ({
@@ -447,7 +448,7 @@ function SearchAutocompleteList({
                     includeCurrentUser: false,
                     countryCode,
                     shouldShowGBR: true,
-                    policyTags: undefined,
+                    policyTags,
                 }).recentReports;
 
                 return filteredReports.map((chat) => ({
@@ -611,6 +612,7 @@ function SearchAutocompleteList({
         nvpDismissedProductTraining,
         betas,
         countryCode,
+        policyTags,
         currentUserLogin,
         groupByAutocompleteList,
         statusAutocompleteList,

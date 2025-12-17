@@ -75,8 +75,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return getSearchOptions({options, draftComments, nvpDismissedProductTraining, betas: undefined, policyTags: undefined, isUsedInChatFinder: false, countryCode});
-    }, [areOptionsInitialized, draftComments, nvpDismissedProductTraining, isScreenTransitionEnd, options, countryCode]);
+        return getSearchOptions({options, draftComments, nvpDismissedProductTraining, betas: undefined, policyTags, isUsedInChatFinder: false, countryCode});
+    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, policyTags, countryCode]);
 
     const chatOptions = useMemo(() => {
         return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, undefined, {
