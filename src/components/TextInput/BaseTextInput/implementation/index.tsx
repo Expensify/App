@@ -27,7 +27,8 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileChrome} from '@libs/Browser';
+import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
+import DomUtils from '@libs/DomUtils';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
@@ -168,6 +169,23 @@ function BaseTextInput({
         animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE);
         isLabelActive.current = false;
     }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
+
+    const handleTextInputHeightChange = useCallback(
+        (height: number) => {
+            setTextInputHeight(height);
+
+            // Safari-specific: Force text layout recalculation when height changes
+            if ((isSafari() || isMobileSafari()) && height !== textInputHeight) {
+                requestAnimationFrame(() => {
+                    if (!input.current) {
+                        return;
+                    }
+                    DomUtils.forceSafariTextReflow(input.current);
+                });
+            }
+        },
+        [textInputHeight],
+    );
 
     const onFocus = (event: FocusEvent) => {
         inputProps.onFocus?.(event);
@@ -536,7 +554,7 @@ function BaseTextInput({
                 autoGrow={autoGrow}
                 isAutoGrowHeightMarkdown={isAutoGrowHeightMarkdown}
                 onSetTextInputWidth={setTextInputWidth}
-                onSetTextInputHeight={setTextInputHeight}
+                onSetTextInputHeight={handleTextInputHeightChange}
                 isPrefixCharacterPaddingCalculated={isPrefixCharacterPaddingCalculated}
                 // Since the hidden input is absolutely positioned, container styles don't automatically apply.
                 // We pass the container styles directly to match the visible input's dimensions.
