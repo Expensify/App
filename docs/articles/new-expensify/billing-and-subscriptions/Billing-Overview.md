@@ -25,75 +25,79 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 <br><br>
 
 <div class="currency-block" data-currency="usd">
-  
-  ## 💵 USD pricing
-
-  **Collect**
-  - $5 per unique member/month
-  - Month-to-month — no annual contract
-  - 1% cash back with the Expensify Card
-
-  **Control**
-  - $9 per active member/month with Annual Subscription + Card usage (50%+ US spend)
-  - $18 per active member/month without Card
-  - $36 per active member/month for pay-per-use (no commitment)
-  - Earn up to 2% cash back (applied to your bill or bank account)
-
+  <h2>💵 USD pricing</h2>
+  <strong>Collect</strong>
+  <ul>
+    <li>$5 per unique member/month</li>
+    <li>Month-to-month — no annual contract</li>
+    <li>1% cash back with the Expensify Card</li>
+  </ul>
+  <strong>Control</strong>
+  <ul>
+    <li>$9 per active member/month with Annual Subscription + Card usage (50%+ US spend)</li>
+    <li>$18 per active member/month without Card</li>
+    <li>$36 per active member/month for pay-per-use (no commitment)</li>
+    <li>Earn up to 2% cash back (applied to your bill or bank account)</li>
+  </ul>
 </div>
 
 <div class="currency-block" data-currency="gbp" style="display:none;">
-  
-  ## 💵 GBP pricing
-
-  **Collect**
-  - £5 per unique member/month
-  - Fully flexible — add/remove members anytime
-  - Optional Expensify Card with 1% cash back (USD only)
-
-  **Control**
-  - £14 per active member/month with Annual Subscription + Card
-  - £28 without Card or for pay-per-use
-  - Earn up to 2% cash back
+  <h2>💵 GBP pricing</h2>
+  <strong>Collect</strong>
+  <ul>
+    <li>£5 per unique member/month</li>
+    <li>Fully flexible — add/remove members anytime</li>
+    <li>Optional Expensify Card with 1% cash back (USD only)</li>
+  </ul>
+  <strong>Control</strong>
+  <ul>
+    <li>£14 per active member/month with Annual Subscription + Card</li>
+    <li>£28 without Card or for pay-per-use</li>
+    <li>Earn up to 2% cash back</li>
+  </ul>
 </div>
 
 <div class="currency-block" data-currency="eur" style="display:none;">
-  
-  ## 💵 EUR pricing
-
-  **Collect**
-  - €5 per unique member/month
-  - Month-to-month — no contract
-  - Optional Expensify Card
-
-  **Control**
-  - €16 per active member/month with Annual Subscription + Card
-  - €32 without Card or for pay-per-use
+  <h2>💵 EUR pricing</h2>
+  <strong>Collect</strong>
+  <ul>
+    <li>€5 per unique member/month</li>
+    <li>Month-to-month — no contract</li>
+    <li>Optional Expensify Card</li>
+  </ul>
+  <strong>Control</strong>
+  <ul>
+    <li>€16 per active member/month with Annual Subscription + Card</li>
+    <li>€32 without Card or for pay-per-use</li>
+  </ul>
 </div>
 
 <div class="currency-block" data-currency="aud" style="display:none;">
-  
-  ## 💵 AUD pricing
-
-  **Collect**
-  - AU$8 per unique member/month
-  - Month-to-month, no annual contract required
-
-  **Control**
-  - AU$30 per active member/month with Annual Subscription + Card
-  - AU$60 without Card or for pay-per-use
+  <h2>💵 AUD pricing</h2>
+  <strong>Collect</strong>
+  <ul>
+    <li>AU$8 per unique member/month</li>
+    <li>Month-to-month, no annual contract required</li>
+  </ul>
+  <strong>Control</strong>
+  <ul>
+    <li>AU$30 per active member/month with Annual Subscription + Card</li>
+    <li>AU$60 without Card or for pay-per-use</li>
+  </ul>
 </div>
 
 <div class="currency-block" data-currency="nzd" style="display:none;">
-  
-  ## 💵 NZD pricing
-
-  **Collect**
-  - NZ$9 per unique member/month
-  - Fully month-to-month
-
-  **Control**
-  - NZ$32 per active member/month with Annual Subscription + Card
-  - NZ$64 without Card or for pay-per-use
+  <h2>💵 NZD pricing</h2>
+  <strong>Collect</strong>
+  <ul>
+    <li>NZ$9 per unique member/month</li>
+    <li>Fully month-to-month</li>
+  </ul>
+  <strong>Control</strong>
+  <ul>
+    <li>NZ$32 per active member/month with Annual Subscription + Card</li>
+    <li>NZ$64 without Card or for pay-per-use</li>
+  </ul>
 </div>
 
 <script>
@@ -188,4 +192,3 @@ Yes! To change your plan:
 - Choose between **Collect** and **Control** based on your team's needs
 
 </div>
-
