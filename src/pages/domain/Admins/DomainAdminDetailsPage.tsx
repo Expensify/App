@@ -2,6 +2,7 @@ import {adminAccountIDsSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -29,7 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {domainSettingsPrimaryContactSelector} from '@src/selectors/Domain';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
@@ -49,15 +50,19 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         selector: domainSettingsPrimaryContactSelector,
         canBeMissing: false,
     });
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
-    const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
-    const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
+    });
+
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails));
+    const memberLogin = personalDetails?.login ?? '';
     const isCurrentUserPrimaryContact = primaryContact === memberLogin;
     const isSMSLogin = Str.isSMSLogin(memberLogin);
-    const phoneNumber = getPhoneNumber(details);
-    const fallbackIcon = details.fallbackIcon ?? '';
+    const phoneNumber = getPhoneNumber(personalDetails);
+    const fallbackIcon = personalDetails?.fallbackIcon ?? '';
 
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
@@ -97,11 +102,11 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                 <ScrollView addBottomSafeAreaPadding>
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                            <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
+                            <OfflineWithFeedback pendingAction={personalDetails?.pendingFields?.avatar}>
                                 <Avatar
                                     containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
                                     imageStyles={[styles.avatarXLarge]}
-                                    source={details.avatar}
+                                    source={personalDetails?.avatar}
                                     avatarID={accountID}
                                     type={CONST.ICON_TYPE_AVATAR}
                                     size={CONST.AVATAR_SIZE.X_LARGE}

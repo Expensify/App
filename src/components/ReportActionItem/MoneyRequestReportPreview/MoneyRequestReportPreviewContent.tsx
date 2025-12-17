@@ -855,6 +855,4 @@ function MoneyRequestReportPreviewContent({
     );
 }
 
-MoneyRequestReportPreviewContent.displayName = 'MoneyRequestReportPreviewContent';
-
 export default MoneyRequestReportPreviewContent;

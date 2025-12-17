@@ -65,6 +65,4 @@ function BackgroundImage({width}: BackgroundImageProps) {
     );
 }
 
-BackgroundImage.displayName = 'BackgroundImage';
-
 export default BackgroundImage;

@@ -88,6 +88,24 @@ function ExpenseReportListItemRow({
                 />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, false, false, false, false, item.shouldShowYearSubmitted)]}>
+                <DateCell
+                    date={item.submitted ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, false, item.shouldShowYearApproved)]}>
+                <DateCell
+                    date={item.approved ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.STATUS]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
                 <StatusCell
@@ -244,7 +262,5 @@ function ExpenseReportListItemRow({
         </View>
     );
 }
-
-ExpenseReportListItemRow.displayName = 'ExpenseReportListItemRow';
 
 export default ExpenseReportListItemRow;

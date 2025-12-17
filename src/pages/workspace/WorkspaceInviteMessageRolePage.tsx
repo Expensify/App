@@ -33,7 +33,7 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
-                testID={WorkspaceInviteMessageRolePage.displayName}
+                testID="WorkspaceInviteMessageRolePage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 style={{marginTop: viewportOffsetTop}}
@@ -55,5 +55,4 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
     );
 }
 
-WorkspaceInviteMessageRolePage.displayName = 'WorkspaceInviteMessageRolePage';
 export default withPolicyAndFullscreenLoading(WorkspaceInviteMessageRolePage);

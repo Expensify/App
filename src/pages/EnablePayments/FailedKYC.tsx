@@ -21,6 +21,4 @@ function FailedKYC() {
     );
 }
 
-FailedKYC.displayName = 'FailedKYC';
-
 export default FailedKYC;

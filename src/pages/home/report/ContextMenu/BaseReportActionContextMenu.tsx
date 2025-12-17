@@ -445,6 +445,7 @@ function BaseReportActionContextMenu({
                                 onBlur={() => (index === filteredContextMenuActions.length - 1 || index === 1) && setFocusedIndex(-1)}
                                 disabled={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
                                 shouldShowLoadingSpinnerIcon={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
+                                sentryLabel={contextAction.sentryLabel}
                             />
                         );
                     })}

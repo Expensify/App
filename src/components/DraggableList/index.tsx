@@ -99,6 +99,4 @@ function DraggableList<T>({
     );
 }
 
-DraggableList.displayName = 'DraggableList';
-
 export default DraggableList;
