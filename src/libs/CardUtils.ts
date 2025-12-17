@@ -814,6 +814,46 @@ function getCompanyCardFeed(feedWithDomainID: string): CompanyCardFeed {
     return feed as CompanyCardFeed;
 }
 
+/**
+ * Check if two masked card numbers (PAN) are equal.
+ * This function compares the first and last digits of the masked card numbers.
+ * If the number of revealed digits do not match, it will compare the the number of revealed digits.
+ *
+ * @param a the first masked card number
+ * @param b the second masked card number
+ * @param maskChar the character used to mask the card number
+ * @returns true if the two masked card numbers are equal, false otherwise
+ */
+function isMaskedCardNumberEqual(a: string | undefined, b: string | undefined, maskChar: string = CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR, compareIfPatternDoesNotMatch = true) {
+    if (!a || !b) {
+        return false;
+    }
+
+    const aParts = a.split(maskChar);
+    const bParts = b.split(maskChar);
+
+    const aFirstDigits = aParts.at(0);
+    const bFirstDigits = bParts.at(0);
+    const aLastDigits = aParts.at(-1);
+    const bLastDigits = bParts.at(-1);
+
+    const aFirstDigitsCount = aFirstDigits?.length ?? 0;
+    const bFirstDigitsCount = bFirstDigits?.length ?? 0;
+    const aLastDigitsCount = aLastDigits?.length ?? 0;
+    const bLastDigitsCount = bLastDigits?.length ?? 0;
+
+    if (!compareIfPatternDoesNotMatch) {
+        return aFirstDigitsCount === bFirstDigitsCount && aLastDigitsCount === bLastDigitsCount;
+    }
+
+    const firstDigitsCount = Math.min(aFirstDigitsCount, bFirstDigitsCount);
+    const lastDigitsCount = Math.min(aLastDigitsCount, bLastDigitsCount);
+
+    const areFirstDigitsEqual = aFirstDigits?.slice(0, firstDigitsCount) === bFirstDigits?.slice(0, firstDigitsCount);
+    const areLastDigitsEqual = aLastDigits?.slice(-lastDigitsCount) === bLastDigits?.slice(-lastDigitsCount);
+    return areFirstDigitsEqual && areLastDigitsEqual;
+}
+
 export {
     getAssignedCardSortKey,
     isExpensifyCard,
@@ -878,6 +918,7 @@ export {
     getEligibleBankAccountsForUkEuCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
+    isMaskedCardNumberEqual,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};
