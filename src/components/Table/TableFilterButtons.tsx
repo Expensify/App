@@ -181,9 +181,9 @@ function buildFilterItems(
                 // Find the default option label
                 const defaultOption = filterConfig.options.find((opt) => opt.value === filterConfig.default);
                 label = defaultOption?.label ?? filterKey;
+            } else {
+                label = filterKey;
             }
-
-            label = filterKey;
         }
 
         return {
