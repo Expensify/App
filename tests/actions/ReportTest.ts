@@ -2243,6 +2243,131 @@ describe('actions/Report', () => {
             expect(expenseReport2?.chatReportID).toBe(MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID);
             expect(expenseReport2?.parentReportID).toBe(MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID);
         });
+
+        it('should reset report totals to 0 when changing to workspace with different currency', async () => {
+            // Given an expense report with AUD currency and a transaction in USD
+            const oldPolicy = {
+                ...createRandomPolicy(1),
+                outputCurrency: 'AUD',
+            };
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: oldPolicy.id,
+                currency: 'AUD',
+                total: -1503, // USD transaction converted to AUD
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+            };
+            const transaction: OnyxTypes.Transaction = {
+                transactionID: '1',
+                reportID: expenseReport.reportID,
+                currency: 'USD',
+                amount: -1000,
+                convertedAmount: -1503, // Converted to AUD
+                reimbursable: true,
+                comment: {},
+                created: '',
+                merchant: '',
+            };
+
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${oldPolicy.id}`, oldPolicy),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
+            ]);
+
+            // When moving to a workspace with AED currency (different from AUD)
+            const newPolicy = {
+                ...createRandomPolicy(2),
+                outputCurrency: 'AED',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false, false);
+            await waitForBatchedUpdates();
+
+            // Then the report total should be 0 (USD transaction doesn't match AED destination)
+            const updatedReport = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(updatedReport?.total).toBe(0);
+
+            // And the transaction's convertedAmount should be cleared
+            const updatedTransaction = await new Promise<OnyxEntry<OnyxTypes.Transaction>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    callback: (txn) => {
+                        Onyx.disconnect(connection);
+                        resolve(txn);
+                    },
+                });
+            });
+            expect(updatedTransaction?.convertedAmount).toBeFalsy();
+        });
+
+        it('should include matching currency transactions in total when changing workspace', async () => {
+            // Given an expense report with AUD currency and a transaction in AED (matching destination)
+            const oldPolicy = {
+                ...createRandomPolicy(1),
+                outputCurrency: 'AUD',
+            };
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: oldPolicy.id,
+                currency: 'AUD',
+                total: -500,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+            };
+            // Transaction in AED which matches the destination workspace currency
+            const transaction: OnyxTypes.Transaction = {
+                transactionID: '1',
+                reportID: expenseReport.reportID,
+                currency: 'AED',
+                amount: -500,
+                convertedAmount: -500,
+                reimbursable: true,
+                comment: {},
+                created: '',
+                merchant: '',
+            };
+
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${oldPolicy.id}`, oldPolicy),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
+            ]);
+
+            // When moving to a workspace with AED currency (matching transaction currency)
+            const newPolicy = {
+                ...createRandomPolicy(2),
+                outputCurrency: 'AED',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false, false);
+            await waitForBatchedUpdates();
+
+            // Then the report total should include the AED transaction amount
+            const updatedReport = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(updatedReport?.total).toBe(-500); // Transaction amount directly used
+        });
     });
 
     describe('changeReportPolicyAndInviteSubmitter', () => {
