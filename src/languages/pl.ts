@@ -692,6 +692,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Wymagane działanie',
         duplicate: 'Duplikat',
         duplicated: 'Zduplikowano',
+        originalAmount: 'Kwota pierwotna',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -6163,6 +6164,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 title: 'Zasady kategorii',
                 approver: 'Akceptujący',
                 requireDescription: 'Wymagaj opisu',
+                requireFields: 'Wymagaj pól',
+                requiredFieldsTitle: 'Wymagane pola',
+                requiredFieldsDescription: (categoryName: string) => `To będzie miało zastosowanie do wszystkich wydatków skategoryzowanych jako <strong>${categoryName}</strong>.`,
+                requireAttendees: 'Wymagaj uczestników',
                 descriptionHint: 'Podpowiedź opisu',
                 descriptionHintDescription: (categoryName: string) =>
                     `Przypominaj pracownikom o podaniu dodatkowych informacji dotyczących wydatków w kategorii „${categoryName}”. Ta podpowiedź pojawia się w polu opisu przy wydatkach.`,
@@ -7221,6 +7226,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data starsza niż ${maxAge} dni`,
         missingCategory: 'Brak kategorii',
         missingComment: 'Opis jest wymagany dla wybranej kategorii',
+        missingAttendees: 'Wymaganych jest wielu uczestników dla tej kategorii',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Brakujące ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7936,7 +7942,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             subtitle: 'Wymagaj, aby członkowie Twojej domeny logowali się przez Single Sign-On (SSO), ograniczaj tworzenie obszarów roboczych i nie tylko.',
             enable: 'Włącz',
         },
-        admins: {title: 'Administratorzy', findAdmin: 'Znajdź administratora'},
+        admins: {title: 'Administratorzy', findAdmin: 'Znajdź administratora', primaryContact: 'Główny kontakt', addPrimaryContact: 'Dodaj główny kontakt', settings: 'Ustawienia'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

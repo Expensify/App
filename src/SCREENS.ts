@@ -674,6 +674,7 @@ const SCREENS = {
         CATEGORY_APPROVER: 'Category_Approver',
         CATEGORY_REQUIRE_RECEIPTS_OVER: 'Category_Require_Receipts_Over',
         CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER: 'Category_Require_Itemized_Receipts_Over',
+        CATEGORY_REQUIRED_FIELDS: 'Category_Required_Fields',
         CATEGORIES_SETTINGS: 'Categories_Settings',
         CATEGORIES_IMPORT: 'Categories_Import',
         CATEGORIES_IMPORTED: 'Categories_Imported',
@@ -856,6 +857,8 @@ const SCREENS = {
         SAML: 'Domain_SAML',
         ADMINS: 'Domain_Admins',
         ADMIN_DETAILS: 'Domain_Admin_Details',
+        ADMINS_SETTINGS: 'Admins_Settings',
+        ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
     },
 } as const;
 

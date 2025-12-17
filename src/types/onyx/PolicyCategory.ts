@@ -51,6 +51,9 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Max expense amount with no itemized receipt violation */
     maxAmountNoItemizedReceipt?: number | null;
+
+    /** If true, not providing attendees for a transaction with this category will trigger a violation */
+    areAttendeesRequired?: boolean;
 }>;
 
 /** Record of policy categories, indexed by their name */

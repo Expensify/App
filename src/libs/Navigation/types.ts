@@ -322,6 +322,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.CATEGORY_REQUIRED_FIELDS]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
@@ -1338,6 +1342,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.DOMAIN.ADMIN_DETAILS]: {
         domainAccountID: number;
         accountID: number;
+    };
+    [SCREENS.DOMAIN.ADMINS_SETTINGS]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
+        domainAccountID: number;
     };
 } & ReimbursementAccountNavigatorParamList;
 
