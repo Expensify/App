@@ -48,6 +48,7 @@ const SCREENS = {
         MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
         MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS: 'Search_Money_Request_Report_Reject_Transactions',
         REPORT_RHP: 'Search_Report_RHP',
+        COLUMNS_RHP: 'Search_Columns_RHP',
         REPORT_VERIFY_ACCOUNT: 'Search_Report_Verify_Account',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
@@ -94,10 +95,6 @@ const SCREENS = {
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
-        CHANGE_APPROVER: {
-            ROOT: 'Search_Change_Approver_Root',
-            ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
-        },
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
@@ -257,6 +254,7 @@ const SCREENS = {
         EXPENSE_REPORT: 'ExpenseReport',
         SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
 
+        SEARCH_COLUMNS: 'SearchColumns',
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',
@@ -680,6 +678,7 @@ const SCREENS = {
         CATEGORIES_IMPORTED: 'Categories_Imported',
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
+        MEMBER_DETAILS_ROLE: 'Workspace_Member_Details_Role',
         MEMBER_CUSTOM_FIELD: 'Workspace_Member_Custom_Field',
         MEMBER_NEW_CARD: 'Workspace_Member_NewCard',
         OWNER_CHANGE_CHECK: 'Workspace_Owner_Change_Check',
@@ -853,6 +852,10 @@ const SCREENS = {
         VERIFIED: 'Domain_Verified',
         INITIAL: 'Domain_Initial',
         SAML: 'Domain_SAML',
+        ADMINS: 'Domain_Admins',
+        ADMIN_DETAILS: 'Domain_Admin_Details',
+        ADMINS_SETTINGS: 'Admins_Settings',
+        ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
     },
 } as const;
 

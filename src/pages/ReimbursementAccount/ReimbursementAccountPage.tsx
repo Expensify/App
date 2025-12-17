@@ -453,7 +453,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     if ((!isLoading && (isEmptyObject(policy) || !isPolicyAdmin(policy))) || isPendingDeletePolicy(policy)) {
         return (
-            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+            <ScreenWrapper testID="ReimbursementAccountPage">
                 <FullPageNotFoundView
                     shouldShow
                     onBackButtonPress={goBackFromInvalidPolicy}
@@ -469,7 +469,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
 
     if (userHasPhonePrimaryEmail) {
-        errorText = <RenderHTML html={translate('bankAccount.hasPhoneLoginError', {contactMethodRoute})} />;
+        errorText = <RenderHTML html={translate('bankAccount.hasPhoneLoginError', contactMethodRoute)} />;
     } else if (throttledDate) {
         errorText = <Text>{translate('bankAccount.hasBeenThrottledError')}</Text>;
     } else if (hasUnsupportedCurrency) {
@@ -478,7 +478,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     if (errorText) {
         return (
-            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+            <ScreenWrapper testID="ReimbursementAccountPage">
                 <HeaderWithBackButton
                     title={translate('bankAccount.addBankAccount')}
                     subtitle={policyNameToDisplay}
@@ -492,7 +492,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     if (shouldShowConnectedVerifiedBankAccount) {
         if (topmostFullScreenRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
             return (
-                <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+                <ScreenWrapper testID="ReimbursementAccountPage">
                     <HeaderWithBackButton
                         title={translate('bankAccount.addBankAccount')}
                         onBackButtonPress={() => Navigation.dismissModal()}
@@ -564,7 +564,5 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         />
     );
 }
-
-ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
 
 export default withPolicy(ReimbursementAccountPage);

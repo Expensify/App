@@ -52,7 +52,7 @@ function IOURequestStepCategory({
 }: IOURequestStepCategoryProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
 
     const isUnreportedExpense = isExpenseUnreported(transaction);
     const {policyForMovingExpenses, policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -169,7 +169,7 @@ function IOURequestStepCategory({
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowOfflineIndicator={policyCategories !== undefined}
-            testID={IOURequestStepCategory.displayName}
+            testID="IOURequestStepCategory"
             shouldEnableKeyboardAvoidingView={false}
         >
             {isLoading && (
@@ -232,8 +232,6 @@ function IOURequestStepCategory({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepCategory.displayName = 'IOURequestStepCategory';
 
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepCategoryWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCategory);
