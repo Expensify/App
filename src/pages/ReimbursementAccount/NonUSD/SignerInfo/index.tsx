@@ -205,7 +205,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={SignerInfo.displayName}
+            wrapperID="SignerInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('signerInfoStep.signerInfo')}
             stepNames={stepNames}
@@ -213,7 +213,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         >
             {currentSubStep === SUBSTEP.IS_DIRECTOR && (
                 <YesNoStep
-                    title={translate('signerInfoStep.areYouDirector', {companyName})}
+                    title={translate('signerInfoStep.areYouDirector', companyName)}
                     description={translate('signerInfoStep.regulationRequiresUs')}
                     defaultValue={isUserDirector}
                     onSelectedValue={handleNextSubStep}
@@ -245,7 +245,5 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         </InteractiveStepWrapper>
     );
 }
-
-SignerInfo.displayName = 'SignerInfo';
 
 export default SignerInfo;

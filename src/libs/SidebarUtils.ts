@@ -32,7 +32,9 @@ import {
     getAddedConnectionMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
+    getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
@@ -54,6 +56,7 @@ import {
     getReportActionMessageText,
     getRetractedMessage,
     getRoomAvatarUpdatedMessage,
+    getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
@@ -891,6 +894,12 @@ function getOptionData({
             result.alternateText = getWorkspaceFeatureEnabledMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {
             result.alternateText = getWorkspaceAttendeeTrackingUpdateMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER) {
+            result.alternateText = getDefaultApproverUpdateMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO) {
+            result.alternateText = getSubmitsToUpdateMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
+            result.alternateText = getForwardsToUpdateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
             result.alternateText = getWorkspaceReimbursementUpdateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
@@ -1112,13 +1121,13 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
         welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfArchivedRoom', {reportName, reportDetailsLink});
     } else if (isDomainRoom(report)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryDomainRoom', {domainRoom: report?.reportName ?? ''});
+        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryDomainRoom', report?.reportName ?? '');
     } else if (isAdminRoom(report)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoom', {workspaceName});
+        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoom', workspaceName);
     } else if (isAnnounceRoom(report)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoom', {workspaceName});
+        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoom', workspaceName);
     } else if (isInvoiceRoom(report)) {
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL

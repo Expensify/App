@@ -117,7 +117,7 @@ const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => a
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref}: FloatingActionButtonAndPopoverProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Document', 'NewWorkspace', 'NewWindow', 'Binoculars', 'Car', 'Location', 'Suitcase'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Document', 'NewWorkspace', 'NewWindow', 'Binoculars', 'Car', 'Location', 'Suitcase', 'Task']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -321,14 +321,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
-            startMoneyRequest(
-                policyChatForActivePolicy?.reportID ? CONST.IOU.TYPE.SUBMIT : CONST.IOU.TYPE.CREATE,
-                quickActionReportID,
-                CONST.IOU.REQUEST_TYPE.SCAN,
-                !!policyChatForActivePolicy?.reportID,
-                undefined,
-                allTransactionDrafts,
-            );
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts);
         });
     }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, allTransactionDrafts]);
 
@@ -431,7 +424,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             shouldTeleportPortalToModalLayer: true,
         };
 
-        if (quickAction?.action) {
+        if (quickAction?.action && quickActionReport) {
             if (!isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, isRestrictedToPreferredPolicy)) {
                 return [];
             }
@@ -715,8 +708,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         </View>
     );
 }
-
-FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 
 export default FloatingActionButtonAndPopover;
 

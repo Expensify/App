@@ -128,8 +128,8 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const illustrations = useMemoizedLazyIllustrations(['PerDiem'] as const);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PerDiem']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan']);
 
     const [customUnit, allRatesArray, allSubRates] = useMemo(() => {
         const customUnits = getPerDiemCustomUnit(policy);
@@ -410,7 +410,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspacePerDiemPage.displayName}
+                testID="WorkspacePerDiemPage"
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
@@ -527,7 +527,5 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspacePerDiemPage.displayName = 'WorkspacePerDiemPage';
 
 export default WorkspacePerDiemPage;
