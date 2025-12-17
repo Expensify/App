@@ -256,7 +256,7 @@ function getReportsToDisplayInLHN(
     const reportsToDisplay: ReportsToDisplayInLHN = {};
 
     for (const [reportID, report] of Object.entries(allReportsDictValues)) {
-        if (!report?.reportID && report?.pendingFields?.reportID !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!report) {
             continue;
         }
 
@@ -310,7 +310,8 @@ function updateReportsToDisplayInLHN({
     const displayedReportsCopy = {...displayedReports};
     for (const reportID of updatedReportsKeys) {
         const report = reports?.[reportID];
-        if (!report?.reportID && report?.pendingFields?.reportID !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!report) {
+            delete displayedReportsCopy[reportID];
             continue;
         }
 
