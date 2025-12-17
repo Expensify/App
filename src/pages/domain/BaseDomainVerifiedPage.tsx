@@ -50,7 +50,7 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifie
 
     return (
         <ScreenWrapper
-            testID={BaseDomainVerifiedPage.displayName}
+            testID="BaseDomainVerifiedPage"
             shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButton title={translate('domain.domainVerified.title')} />
@@ -71,5 +71,4 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifie
     );
 }
 
-BaseDomainVerifiedPage.displayName = 'BaseDomainVerifiedPage';
 export default BaseDomainVerifiedPage;
