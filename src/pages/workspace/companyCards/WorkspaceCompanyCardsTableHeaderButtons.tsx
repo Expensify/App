@@ -147,8 +147,8 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, should
                     style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
                 >
                     {shouldDisplayTableComponents && <Table.SearchBar />}
-                    <View style={[styles.flexRow, styles.gap3, shouldShowNarrowLayout && [styles.w100]]}>
-                        {shouldDisplayTableComponents && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1, styles.flexGrow0, styles.flexShrink0]} />}
+                    <View style={[styles.flexRow, styles.gap3]}>
+                        {shouldDisplayTableComponents && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />}
                         <ButtonWithDropdownMenu
                             success={false}
                             onPress={() => {}}
