@@ -325,15 +325,15 @@ function getFilterDisplayTitle(
         const dateValue = [];
 
         if (dateOn) {
-            dateValue.push(isSearchDatePreset(dateOn) ? translate(`search.filters.date.presets.${dateOn}`) : translate('search.filters.date.on', {date: dateOn}));
+            dateValue.push(isSearchDatePreset(dateOn) ? translate(`search.filters.date.presets.${dateOn}`) : translate('search.filters.date.on', dateOn));
         }
 
         if (dateAfter) {
-            dateValue.push(translate('search.filters.date.after', {date: dateAfter}));
+            dateValue.push(translate('search.filters.date.after', dateAfter));
         }
 
         if (dateBefore) {
-            dateValue.push(translate('search.filters.date.before', {date: dateBefore}));
+            dateValue.push(translate('search.filters.date.before', dateBefore));
         }
 
         return dateValue.join(', ');
@@ -391,18 +391,18 @@ function getFilterDisplayTitle(
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.ON_PREFIX)) {
                 const dateString = isSearchDatePreset(fieldValue as string)
                     ? translate(`search.filters.date.presets.${fieldValue as SearchDatePreset}`)
-                    : translate('search.filters.date.on', {date: fieldValue as string});
+                    : translate('search.filters.date.on', fieldValue as string);
 
                 values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX)) {
-                const dateString = translate('search.filters.date.after', {date: fieldValue as string}).toLowerCase();
+                const dateString = translate('search.filters.date.after', fieldValue as string).toLowerCase();
                 values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
             }
 
             if (fieldKey.startsWith(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX)) {
-                const dateString = translate('search.filters.date.before', {date: fieldValue as string}).toLowerCase();
+                const dateString = translate('search.filters.date.before', fieldValue as string).toLowerCase();
                 values.push(translate('search.filters.reportField', {name: fieldName, value: dateString.toLowerCase()}));
             }
 
@@ -716,7 +716,5 @@ function AdvancedSearchFilters() {
         </>
     );
 }
-
-AdvancedSearchFilters.displayName = 'AdvancedSearchFilters';
 
 export default AdvancedSearchFilters;

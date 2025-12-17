@@ -21,6 +21,4 @@ function EmojiWithTooltip({emojiCode, style = {}, isMedium = false, oneLine = fa
     );
 }
 
-EmojiWithTooltip.displayName = 'EmojiWithTooltip';
-
 export default EmojiWithTooltip;

@@ -171,6 +171,4 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     );
 }
 
-TextCommentFragment.displayName = 'TextCommentFragment';
-
 export default memo(TextCommentFragment);

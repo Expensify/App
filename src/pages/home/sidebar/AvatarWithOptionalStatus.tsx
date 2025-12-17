@@ -37,6 +37,4 @@ function AvatarWithOptionalStatus({emojiStatus = '', isSelected = false, contain
     );
 }
 
-AvatarWithOptionalStatus.displayName = 'AvatarWithOptionalStatus';
-
 export default AvatarWithOptionalStatus;

@@ -150,6 +150,4 @@ function VideoPlayerControls({
     );
 }
 
-VideoPlayerControls.displayName = 'VideoPlayerControls';
-
 export default VideoPlayerControls;
