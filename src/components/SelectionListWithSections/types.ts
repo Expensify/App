@@ -243,6 +243,15 @@ type TransactionListItemType = ListItem &
         /** Report to which the transaction belongs */
         report: Report | undefined;
 
+        /** The date the report was submitted */
+        submitted?: string;
+
+        /** The date the report was approved */
+        approved?: string;
+
+        /** The date the report was posted */
+        posted?: string;
+
         /** Policy to which the transaction belongs */
         policy: Policy | undefined;
 
@@ -270,6 +279,12 @@ type TransactionListItemType = ListItem &
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
 
+        /** The original amount of the transaction */
+        originalAmount?: number;
+
+        /** The original currency of the transaction */
+        originalCurrency?: string;
+
         /** final "date" value used for sorting */
         date: string;
 
@@ -280,6 +295,21 @@ type TransactionListItemType = ListItem &
          * This is true if at least one transaction in the dataset was created in past years
          */
         shouldShowYear: boolean;
+
+        /** Whether we should show the year for the submitted date.
+         * This is true if at least one transaction in the dataset was submitted in past years
+         */
+        shouldShowYearSubmitted: boolean;
+
+        /** Whether we should show the year for the approved date.
+         * This is true if at least one transaction in the dataset was approved in past years
+         */
+        shouldShowYearApproved: boolean;
+
+        /** Whether we should show the year for the posted date.
+         * This is true if at least one transaction in the dataset was posted in past years
+         */
+        shouldShowYearPosted: boolean;
 
         isAmountColumnWide: boolean;
 
@@ -308,6 +338,9 @@ type TransactionListItemType = ListItem &
 
         /** The main action that can be performed for the transaction */
         action: SearchTransactionAction;
+
+        /** The tax code of the transaction */
+        taxCode?: string;
     };
 
 type ReportActionListItemType = ListItem &
@@ -398,6 +431,18 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
          * This is true if at least one report in the dataset was created in past years
          */
         shouldShowYear: boolean;
+
+        /**
+         * Whether we should show the year for the submitted date.
+         * This is true if at least one report in the dataset was submitted in past years
+         */
+        shouldShowYearSubmitted: boolean;
+
+        /**
+         * Whether we should show the year for the approved date.
+         * This is true if at least one report in the dataset was approved in past years
+         */
+        shouldShowYearApproved: boolean;
 
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;
@@ -1051,7 +1096,7 @@ type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWit
 
 type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
-type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
+type SortableColumnName = SearchColumnType;
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
 

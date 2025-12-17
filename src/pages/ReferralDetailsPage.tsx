@@ -59,7 +59,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
             }
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.REFERRAL_DETAILS].backgroundColor}
-            testID={ReferralDetailsPage.displayName}
+            testID="ReferralDetailsPage"
             onBackButtonPress={() => {
                 if (backTo) {
                     Navigation.goBack(backTo as Route);
@@ -104,7 +104,5 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
         </HeaderPageLayout>
     );
 }
-
-ReferralDetailsPage.displayName = 'ReferralDetailsPage';
 
 export default ReferralDetailsPage;

@@ -208,6 +208,4 @@ function SplitListItem<TItem extends ListItem>({
     );
 }
 
-SplitListItem.displayName = 'SplitListItem';
-
 export default SplitListItem;

@@ -283,6 +283,4 @@ function ReportListItemHeader<TItem extends ListItem>({
     );
 }
 
-ReportListItemHeader.displayName = 'ReportListItemHeader';
-
 export default ReportListItemHeader;
