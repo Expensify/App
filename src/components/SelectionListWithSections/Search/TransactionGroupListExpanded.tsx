@@ -13,11 +13,11 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
@@ -278,20 +278,18 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             )}
         </View>
     );
-    
-    return (
-        shouldScrollHorizontally ? (
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator
-                style={styles.flex1}
-                contentContainerStyle={{width: minTableWidth}}
-            >
-                {content}
-            </ScrollView>
-        ) : (
-            content
-        )
+
+    return shouldScrollHorizontally ? (
+        <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator
+            style={styles.flex1}
+            contentContainerStyle={{width: minTableWidth}}
+        >
+            {content}
+        </ScrollView>
+    ) : (
+        content
     );
 }
 
