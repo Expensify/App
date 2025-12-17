@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -33,22 +33,9 @@ function TableHeaderColumn({column}: {column: TableColumn}) {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong'] as const);
 
-    const {sortColumn, sortOrder, updateSorting} = useTableContext();
-    const isSortingByColumn = column.key === sortColumn;
-    const [sortToggleCount, setSortToggleCount] = useState(0);
-    const sortIcon = sortOrder === 'asc' ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
-
-    const toggleSorting = () => {
-        if (sortToggleCount >= 2) {
-            updateSorting({columnKey: undefined});
-            setSortToggleCount(0);
-            return;
-        }
-
-        const newSortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-        setSortToggleCount((prev) => prev + 1);
-        updateSorting({columnKey: column.key, order: newSortOrder});
-    };
+    const {activeSorting, toggleSorting} = useTableContext();
+    const isSortingByColumn = column.key === activeSorting.columnKey;
+    const sortIcon = activeSorting.order === 'asc' ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
 
     return (
         <PressableWithFeedback
@@ -56,7 +43,7 @@ function TableHeaderColumn({column}: {column: TableColumn}) {
             accessibilityLabel={column.label}
             accessibilityRole="button"
             style={[styles.flexRow, styles.alignItemsCenter, column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
-            onPress={toggleSorting}
+            onPress={() => toggleSorting(column.key)}
         >
             <Text
                 numberOfLines={1}

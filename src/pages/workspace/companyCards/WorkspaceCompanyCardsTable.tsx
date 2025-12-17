@@ -1,8 +1,8 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Table from '@components/Table';
-import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, SortOrder, TableColumn, TableHandle} from '@components/Table';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -69,6 +69,8 @@ function WorkspaceCompanyCardsTable({
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
     const shouldUseNarrowTableRowLayout = isMediumScreenWidth || shouldUseNarrowLayout;
+
+    const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
     const data: WorkspaceCompanyCardTableItemData[] =
         cards?.map((cardName) => {
@@ -194,6 +196,17 @@ function WorkspaceCompanyCardsTable({
         },
     ];
 
+    const [sortingConfigInWideLayout, setSortingInWideLayout] = useState<{columnKey: CompanyCardsTableColumnKey; order: SortOrder} | undefined>(undefined);
+    useEffect(() => {
+        if (shouldUseNarrowLayout) {
+            setSortingInWideLayout({columnKey: 'member', order: 'asc'});
+            tableRef.current?.updateSorting({columnKey: 'member'});
+            return;
+        }
+
+        table;
+    }, []);
+
     // Show empty state when there are no cards
     if (!data.length) {
         return (
@@ -207,6 +220,7 @@ function WorkspaceCompanyCardsTable({
 
     return (
         <Table
+            ref={tableRef}
             data={data}
             columns={columns}
             renderItem={renderItem}

@@ -6,19 +6,46 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {useTableContext} from './TableContext';
+import type {ActiveSorting} from './types';
 
-type SortButtonProps = {
-    option: {label: string; value: string};
+type SortButtonProps<ColumnKey extends string = string> = {
+    option: {label: string; value: ColumnKey};
     isActive: boolean;
-    sortOrder: 'asc' | 'desc';
-    onPress: (sortKey: string) => void;
+    sortingConfig: ActiveSorting<ColumnKey>;
+    onPress: (columnKey: ColumnKey) => void;
 };
 
-function SortButton({option, isActive, sortOrder, onPress}: SortButtonProps) {
+function TableSortButtons<T, ColumnKey extends string = string>() {
+    const styles = useThemeStyles();
+    const {columns, activeSorting, toggleSorting} = useTableContext<T, ColumnKey>();
+
+    if (!columns || columns.length === 0) {
+        return null;
+    }
+
+    return (
+        <View style={[styles.flexRow, styles.gap2]}>
+            {columns.map((column) => {
+                const isActive = activeSorting.columnKey === column.key;
+                return (
+                    <SortButton
+                        key={column.key}
+                        option={{label: column.label, value: column.key}}
+                        isActive={isActive}
+                        sortingConfig={activeSorting}
+                        onPress={() => toggleSorting(column.key)}
+                    />
+                );
+            })}
+        </View>
+    );
+}
+
+function SortButton<ColumnKey extends string = string>({option, isActive, sortingConfig, onPress}: SortButtonProps<ColumnKey>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong'] as const);
-    const sortIcon = sortOrder === 'asc' ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
+    const sortIcon = sortingConfig.order === 'asc' ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
 
     const handlePress = () => {
         onPress(option.value);
@@ -41,43 +68,6 @@ function SortButton({option, isActive, sortOrder, onPress}: SortButtonProps) {
                 {option.label}
             </View>
         </Button>
-    );
-}
-
-function TableSortButtons() {
-    const styles = useThemeStyles();
-    const {columns, sortColumn: sortBy, sortOrder, updateSorting} = useTableContext();
-
-    const handleSortPress = (sortKey: string) => {
-        // If clicking the same sort key, toggle order; otherwise set new sort key with ascending order
-        if (sortBy === sortKey) {
-            const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-            updateSorting({columnKey: sortKey, order: newOrder});
-            return;
-        }
-
-        updateSorting({columnKey: sortKey, order: 'asc'});
-    };
-
-    if (!columns || columns.length === 0) {
-        return null;
-    }
-
-    return (
-        <View style={[styles.flexRow, styles.gap2]}>
-            {columns.map((column) => {
-                const isActive = sortBy === column.key;
-                return (
-                    <SortButton
-                        key={column.key}
-                        option={{label: column.label, value: column.key}}
-                        isActive={isActive}
-                        sortOrder={sortOrder}
-                        onPress={handleSortPress}
-                    />
-                );
-            })}
-        </View>
     );
 }
 

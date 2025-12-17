@@ -227,7 +227,7 @@ function TableFilterButtons() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const {filterConfig: filterConfigs, currentFilters: filters, updateFilter} = useTableContext();
+    const {filterConfig: filterConfigs, activeFilters: filters, updateFilter} = useTableContext();
 
     const setFilter = useCallback(
         (key: string, value: unknown) => {

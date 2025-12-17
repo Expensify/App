@@ -9,7 +9,7 @@ import {useTableContext} from './TableContext';
 function TableBody<T>() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {filteredAndSortedData, originalDataLength, searchString, listProps} = useTableContext<T>();
+    const {processedData: filteredAndSortedData, originalDataLength, activeSearchString, listProps} = useTableContext<T>();
     const {keyExtractor, ListEmptyComponent, contentContainerStyle, onScroll, onEndReached, onEndReachedThreshold} = listProps ?? {};
 
     const defaultKeyExtractor = (item: T, index: number): string => {
@@ -32,11 +32,11 @@ function TableBody<T>() {
     };
 
     // Show "no results found" when search returns empty but original data exists
-    const isEmptySearchResult = filteredAndSortedData.length === 0 && searchString.trim().length > 0 && originalDataLength > 0;
+    const isEmptySearchResult = filteredAndSortedData.length === 0 && activeSearchString.trim().length > 0 && originalDataLength > 0;
 
     const EmptySearchComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
-            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', searchString)}</Text>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', activeSearchString)}</Text>
         </View>
     );
 

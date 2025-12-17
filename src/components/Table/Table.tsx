@@ -1,9 +1,20 @@
-import React, {useState} from 'react';
+import type {FlashListRef} from '@shopify/flash-list';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 import TableContext from './TableContext';
 import type {TableContextValue, UpdateFilterCallback, UpdateSortingCallback} from './TableContext';
-import type {TableProps} from './types';
+import type {ActiveSorting, TableHandle, TableMethods, TableProps, ToggleSortingCallback} from './types';
 
-function Table<T, ColumnKey extends string = string>({data = [], columns, filters, compareItems, isItemInFilter, isItemInSearch, children, ...listProps}: TableProps<T, ColumnKey>) {
+function Table<T, ColumnKey extends string = string, FilterKey extends string = string>({
+    ref,
+    data = [],
+    columns,
+    filters,
+    compareItems,
+    isItemInFilter,
+    isItemInSearch,
+    children,
+    ...listProps
+}: TableProps<T, ColumnKey, FilterKey>) {
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
     }
@@ -11,16 +22,12 @@ function Table<T, ColumnKey extends string = string>({data = [], columns, filter
     const [currentFilters, setCurrentFilters] = useState<Record<string, unknown>>(() => {
         const initialFilters: Record<string, unknown> = {};
         if (filters) {
-            for (const key of Object.keys(filters)) {
+            for (const key of Object.keys(filters) as FilterKey[]) {
                 initialFilters[key] = filters[key].default;
             }
         }
         return initialFilters;
     });
-
-    const [sortColumn, setSortColumn] = useState<ColumnKey | undefined>();
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-    const [searchString, setSearchString] = useState('');
 
     const updateFilter: UpdateFilterCallback = ({key, value}) => {
         setCurrentFilters((prev) => ({
@@ -29,22 +36,13 @@ function Table<T, ColumnKey extends string = string>({data = [], columns, filter
         }));
     };
 
-    const updateSorting: UpdateSortingCallback<ColumnKey> = ({columnKey, order}) => {
-        if (columnKey) {
-            setSortColumn(columnKey);
-            setSortOrder(order ?? 'asc');
-            return;
-        }
-
-        setSortColumn(undefined);
-        setSortOrder('asc');
-    };
-
     // Apply filters using predicate functions
     let filteredData = data;
     if (filters) {
         filteredData = data.filter((item) => {
-            return Object.keys(filters).every((filterKey) => {
+            const filterKeys = Object.keys(filters) as FilterKey[];
+
+            return filterKeys.every((filterKey) => {
                 const filterConfig = filters[filterKey];
                 const filterValue = currentFilters[filterKey];
 
@@ -70,36 +68,102 @@ function Table<T, ColumnKey extends string = string>({data = [], columns, filter
         });
     }
 
+    const [activeSearchString, updateSearchString] = useState('');
+
     // Apply search using onSearch callback
-    let searchedData = filteredData;
-    if (isItemInSearch && searchString.trim()) {
-        searchedData = filteredData.filter((item) => isItemInSearch(item, searchString));
+    let filteredAndSearchedData = filteredData;
+    if (isItemInSearch && activeSearchString.trim()) {
+        filteredAndSearchedData = filteredData.filter((item) => isItemInSearch(item, activeSearchString));
     }
 
+    const [sortToggleCount, setSortToggleCount] = useState(0);
+    const [activeSorting, setActiveSorting] = useState<ActiveSorting<ColumnKey>>({columnKey: undefined, order: 'asc'});
+
+    const updateSorting: UpdateSortingCallback<ColumnKey> = ({columnKey, order}) => {
+        if (columnKey) {
+            setActiveSorting({columnKey, order: order ?? 'asc'});
+            return;
+        }
+
+        setActiveSorting({columnKey: undefined, order: 'asc'});
+    };
+
+    const toggleSorting: ToggleSortingCallback<ColumnKey> = (columnKey) => {
+        if (!columnKey) {
+            updateSorting({columnKey: undefined});
+            setSortToggleCount(0);
+            return;
+        }
+
+        if (columnKey !== activeSorting.columnKey) {
+            updateSorting({columnKey, order: 'asc'});
+            setSortToggleCount(0);
+            return;
+        }
+
+        if (sortToggleCount >= 2) {
+            updateSorting({columnKey: undefined});
+            setSortToggleCount(0);
+            return;
+        }
+
+        const newSortOrder = activeSorting.order === 'asc' ? 'desc' : 'asc';
+        setSortToggleCount((prev) => prev + 1);
+        updateSorting({columnKey: activeSorting.columnKey, order: newSortOrder});
+    };
+
     // Apply sorting using comparator function
-    let filteredAndSortedData = searchedData;
-    if (sortColumn) {
-        const sortedData = [...searchedData];
+    let processedData = filteredAndSearchedData;
+    if (activeSorting.columnKey && compareItems) {
+        const sortedData = [...filteredAndSearchedData];
         sortedData.sort((a, b) => {
-            return compareItems?.(a, b, sortColumn, sortOrder) ?? 0;
+            return compareItems?.(a, b, activeSorting) ?? 0;
         });
-        filteredAndSortedData = sortedData;
+        processedData = sortedData;
     }
+
+    const listRef = useRef<FlashListRef<T>>(null);
+    useImperativeHandle(ref, () => {
+        return new Proxy(
+            {},
+            {
+                get: (_target, prop) => {
+                    const property = prop as keyof TableMethods<ColumnKey, FilterKey>;
+
+                    if (property === 'updateSorting') {
+                        return updateSorting;
+                    }
+                    if (property === 'toggleSorting') {
+                        return toggleSorting;
+                    }
+                    if (property === 'updateFilter') {
+                        return updateFilter;
+                    }
+                    if (prop === 'updateSearchString') {
+                        return updateSearchString;
+                    }
+
+                    return listRef.current?.[prop as keyof FlashListRef<T>];
+                },
+            },
+        ) as TableHandle<T, ColumnKey, FilterKey>;
+    });
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<T, ColumnKey> = {
-        filteredAndSortedData,
+        listRef,
+        listProps,
+        processedData,
         originalDataLength: data?.length ?? 0,
         columns,
-        currentFilters,
-        sortColumn,
-        sortOrder,
-        searchString,
+        filterConfig: filters,
+        activeFilters: currentFilters,
+        activeSorting,
+        activeSearchString,
         updateFilter,
         updateSorting,
-        updateSearchString: setSearchString,
-        filterConfig: filters,
-        listProps,
+        toggleSorting,
+        updateSearchString,
     };
 
     return <TableContext.Provider value={contextValue as unknown as TableContextValue<unknown, string>}>{children}</TableContext.Provider>;
