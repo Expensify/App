@@ -328,7 +328,19 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.EXPORTED}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, areAllOptionalColumnsHidden, false, false, false, isExportedColumnWide)]}
+                    style={[
+                        StyleUtils.getReportTableColumnStyles(
+                            CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+                            false,
+                            false,
+                            false,
+                            areAllOptionalColumnsHidden,
+                            false,
+                            false,
+                            false,
+                            isExportedColumnWide,
+                        ),
+                    ]}
                 >
                     <DateCell
                         date={transactionItem.exported ?? ''}
