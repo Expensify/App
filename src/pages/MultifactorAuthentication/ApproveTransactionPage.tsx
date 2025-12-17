@@ -42,7 +42,7 @@ function MultifactorAuthenticationScenarioApproveTransactionPage({route}: Multif
         if (isConfirmModalVisible) {
             hideConfirmModal();
         }
-        trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE);
+        trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE, 'authorize-transaction-failure');
     };
 
     return (

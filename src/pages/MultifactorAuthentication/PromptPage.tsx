@@ -1,13 +1,15 @@
 import React, {useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthentication/config';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthentication/Context';
-import MultifactorAuthenticationPromptActions from '@components/MultifactorAuthentication/PromptActions';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
 import MultifactorAuthenticationTriggerCancelConfirmModal from '@components/MultifactorAuthentication/TriggerCancelConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -18,6 +20,7 @@ type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<Multifa
 
 function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const {update, trigger, info} = useMultifactorAuthenticationContext();
 
     const contentData = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType];
@@ -26,10 +29,6 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
 
     const onConfirm = () => {
         update({softPromptDecision: true});
-    };
-
-    const onGoBackPress = () => {
-        update({softPromptDecision: false});
     };
 
     const showConfirmModal = () => {
@@ -53,7 +52,6 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationPromptPage.displayName}>
-            {/* TODO: MFA/Dev Change the behavior of back button */}
             <HeaderWithBackButton
                 title={translate('multifactorAuthentication.biometrics.additionalFactorPageTitle')}
                 onBackButtonPress={showConfirmModal}
@@ -65,10 +63,13 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                     title={contentData.title}
                     subtitle={contentData.subtitle}
                 />
-                <MultifactorAuthenticationPromptActions
-                    onGoBackPress={onGoBackPress}
-                    onConfirm={onConfirm}
-                />
+                <FixedFooter style={[styles.flexColumn, styles.gap3]}>
+                    <Button
+                        success
+                        onPress={onConfirm}
+                        text={translate('common.buttonConfirm')}
+                    />
+                </FixedFooter>
                 <MultifactorAuthenticationTriggerCancelConfirmModal
                     scenario={info.scenario}
                     isVisible={isConfirmModalVisible}
