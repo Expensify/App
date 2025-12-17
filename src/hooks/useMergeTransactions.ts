@@ -54,8 +54,8 @@ function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): Us
     });
 
     return {
-        targetTransaction,
-        sourceTransaction,
+        targetTransaction: targetTransaction ?? onyxTargetTransaction,
+        sourceTransaction: sourceTransaction ?? onyxSourceTransaction,
         targetTransactionReport: targetTransactionReport ?? onyxTargetTransactionReport,
         sourceTransactionReport: sourceTransactionReport ?? onyxSourceTransactionReport,
     };
