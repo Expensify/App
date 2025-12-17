@@ -9,7 +9,7 @@ import type {ValueOf} from 'type-fest';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/SelectionListWithSections/types';
-import {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
+import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
@@ -51,7 +51,6 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {transactionWithOptionalSearchFields} from '@src/stories/objects/Transaction';
 import type {
     CardList,
     OnyxInputOrEntry,
