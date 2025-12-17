@@ -620,10 +620,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
                 }
             }
-            if (
-                (filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID || filterKey === FILTER_KEYS.REIMBURSABLE || filterKey === FILTER_KEYS.BILLABLE) &&
-                filterValue
-            ) {
+            if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
                 const reportIDs = (filterValue as string)
                     .split(',')
                     .map((id) => sanitizeSearchValue(id.trim()))
@@ -688,6 +685,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.IS ||
                     filterKey === FILTER_KEYS.EXPORTER ||
                     filterKey === FILTER_KEYS.ATTENDEE ||
+                    filterKey === FILTER_KEYS.REIMBURSABLE ||
+                    filterKey === FILTER_KEYS.BILLABLE ||
                     filterKey === FILTER_KEYS.COLUMNS) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
