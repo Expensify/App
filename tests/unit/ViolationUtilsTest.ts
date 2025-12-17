@@ -271,11 +271,10 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual([]);
         });
 
-        it('should add itemizedReceiptRequired violation if the transaction exceeds itemized receipt threshold', () => {
+        it('should add itemizedReceiptRequired violation if the transaction exceeds itemized receipt threshold and has no receipt', () => {
             policy.type = CONST.POLICY.TYPE.CORPORATE;
             policy.outputCurrency = CONST.CURRENCY.USD;
             transaction.amount = -10000;
-            transaction.receipt = {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://example.com/receipt.jpg'};
             policy.maxExpenseAmountNoItemizedReceipt = 7500;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             const violations = result.value as TransactionViolation[];
@@ -284,15 +283,16 @@ describe('getViolationsOnyxData', () => {
             expect(itemizedReceiptViolation?.type).toBe(CONST.VIOLATION_TYPES.VIOLATION);
         });
 
-        it('should add itemizedReceiptRequired violation even if the transaction does not have a receipt', () => {
+        it('should not add itemizedReceiptRequired violation if the transaction has a receipt attached', () => {
             policy.type = CONST.POLICY.TYPE.CORPORATE;
             policy.outputCurrency = CONST.CURRENCY.USD;
             transaction.amount = -10000;
+            transaction.receipt = {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://example.com/receipt.jpg'};
             policy.maxExpenseAmountNoItemizedReceipt = 7500;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             const violations = result.value as TransactionViolation[];
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
-            expect(itemizedReceiptViolation).toBeDefined();
+            expect(itemizedReceiptViolation).toBeUndefined();
         });
 
         it('should not show regular receiptRequired violation when itemizedReceiptRequired applies', () => {

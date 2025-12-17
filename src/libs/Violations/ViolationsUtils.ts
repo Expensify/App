@@ -380,6 +380,7 @@ const ViolationsUtils = {
             typeof categoryMaxAmountNoItemizedReceipt !== 'number' &&
             typeof maxAmountNoItemizedReceipt === 'number' &&
             expenseAmount > maxAmountNoItemizedReceipt &&
+            !TransactionUtils.hasReceipt(updatedTransaction) &&
             isControlPolicy;
 
         // Check for itemized receipt requirement - category level override
@@ -388,6 +389,7 @@ const ViolationsUtils = {
             !isInvoiceTransaction &&
             typeof categoryMaxAmountNoItemizedReceipt === 'number' &&
             expenseAmount > categoryMaxAmountNoItemizedReceipt &&
+            !TransactionUtils.hasReceipt(updatedTransaction) &&
             isControlPolicy;
 
         const overLimitAmount = policy.maxExpenseAmount;
