@@ -7,14 +7,12 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
 import {isMobileSafari as isMobileSafariBrowser} from '@libs/Browser';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getPlatform from '@libs/getPlatform';
-import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import HttpUtils from '@libs/HttpUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -79,7 +77,6 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
@@ -153,11 +150,20 @@ function IOURequestStepParticipants({
         if (isMovingTransactionFromTrackExpense) {
             return;
         }
-        const firstReceiptFilename = getReceiptFilenameFromTransaction(initialTransaction) ?? '';
+        const firstReceiptFilename = initialTransaction?.receipt?.filename ?? '';
         const firstReceiptPath = initialTransaction?.receipt?.source ?? '';
         const firstReceiptType = initialTransaction?.receipt?.type ?? '';
         navigateToStartStepIfScanFileCannotBeRead(firstReceiptFilename, firstReceiptPath, () => {}, iouRequestType, iouType, initialTransactionID, reportID, firstReceiptType);
-    }, [iouRequestType, iouType, initialTransaction, initialTransactionID, reportID, isMovingTransactionFromTrackExpense]);
+    }, [
+        iouRequestType,
+        iouType,
+        initialTransaction?.receipt?.filename,
+        initialTransaction?.receipt?.source,
+        initialTransaction?.receipt?.type,
+        initialTransactionID,
+        reportID,
+        isMovingTransactionFromTrackExpense,
+    ]);
 
     // When the step opens, reset the draft transaction's custom unit if moved from Track Expense.
     // This resets the custom unit to the p2p rate when the destination workspace changes,
@@ -321,7 +327,7 @@ function IOURequestStepParticipants({
             const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
             setMoneyRequestTag(transaction.transactionID, tag);
             const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
-            setMoneyRequestCategory(transaction.transactionID, category, isMovingTransactionFromTrackExpense ? policyForMovingExpensesID : '', isMovingTransactionFromTrackExpense);
+            setMoneyRequestCategory(transaction.transactionID, category, undefined);
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
             }
@@ -376,20 +382,7 @@ function IOURequestStepParticipants({
                 });
             }
         });
-    }, [
-        action,
-        participants,
-        iouType,
-        initialTransaction,
-        transactions,
-        initialTransactionID,
-        reportID,
-        waitForKeyboardDismiss,
-        isMovingTransactionFromTrackExpense,
-        policyForMovingExpensesID,
-        introSelected,
-        backTo,
-    ]);
+    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo, introSelected]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
@@ -427,7 +420,7 @@ function IOURequestStepParticipants({
             headerTitle={headerTitle}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepParticipants.displayName}
+            testID="IOURequestStepParticipants"
         >
             {!!skipConfirmation && (
                 <FormHelpMessage
@@ -450,7 +443,5 @@ function IOURequestStepParticipants({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipants));

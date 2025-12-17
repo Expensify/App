@@ -62,6 +62,4 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
     );
 }
 
-FocusTrapForScreen.displayName = 'FocusTrapForScreen';
-
 export default FocusTrapForScreen;

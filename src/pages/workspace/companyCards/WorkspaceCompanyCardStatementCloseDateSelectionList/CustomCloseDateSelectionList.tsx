@@ -89,6 +89,7 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
             confirmButtonOptions={confirmButtonOptions}
             textInputOptions={textInputOptions}
             showListEmptyContent={false}
+            disableMaintainingScrollPosition
             shouldSingleExecuteRowSelect
             shouldUpdateFocusedIndex
             addBottomSafeAreaPadding
@@ -103,7 +104,5 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
         </SelectionList>
     );
 }
-
-CustomCloseDateSelectionList.displayName = 'CustomCloseDateSelectionList';
 
 export default CustomCloseDateSelectionList;

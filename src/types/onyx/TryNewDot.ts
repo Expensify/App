@@ -24,6 +24,17 @@ type TryNewDot = {
          * Indicates whether the user has access to the OldDot transition.
          */
         isLockedToNewDot?: boolean;
+
+        /**
+         * Array of dismissed reasons with timestamps.
+         */
+        dismissedReasons?: Array<{
+            /** The reason for dismissal */
+            reason: string;
+
+            /** Timestamp when the dismissal occurred */
+            timestamp: Date;
+        }>;
     };
     /**
      * This key is added when user is migrated from OldDot to NewDot with nudge migration as part of a cohort.

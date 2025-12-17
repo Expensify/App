@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
@@ -28,12 +29,14 @@ type WorkspaceOwnerChangeCheckProps = {
 function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerChangeCheckProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [displayTexts, setDisplayTexts] = useState({
         title: '',
         text: '',
         buttonText: '',
     });
     const personalDetails = usePersonalDetails();
+    const userPersonalDetails = personalDetails?.[accountID];
 
     const policyID = policy?.id;
 
@@ -43,9 +46,9 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             return;
         }
 
-        const texts = getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
+        const texts = getOwnershipChecksDisplayText(error, translate, policy, userPersonalDetails?.login);
         setDisplayTexts(texts);
-    }, [accountID, error, personalDetails, policy, translate]);
+    }, [error, userPersonalDetails?.login, policy, translate]);
 
     useEffect(() => {
         updateDisplayTexts();
@@ -63,8 +66,8 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             return;
         }
 
-        requestWorkspaceOwnerChange(policyID);
-    }, [accountID, error, policyID]);
+        requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+    }, [accountID, error, policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login]);
 
     return (
         <>
@@ -81,7 +84,5 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
         </>
     );
 }
-
-WorkspaceOwnerChangeCheck.displayName = 'WorkspaceOwnerChangeCheckPage';
 
 export default WorkspaceOwnerChangeCheck;

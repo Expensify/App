@@ -23,6 +23,24 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_DESKTOP_BUILD: true
+
+      - name: Remove E/App version from package-lock.json (For cache invalidation)
+        shell: bash
+        # Remove App version from package-lock.json to avoid cache invalidation when the App version changes
+        run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
+
+      - name: Cache ESLint
+        # v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        with:
+          path: node_modules/.cache/eslint
+          # Only invalidate the cache if the eslint ruleset change (from eslint.config.mjs or the normalized-package-lock.json), we use --cache-strategy content to handle cache invalidation
+          # See https://eslint.org/docs/latest/use/command-line-interface#--cache-strategy for more information
+          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'normalized-package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-eslint-
 
       - name: Lint JavaScript and Typescript with ESLint
         run: npm run lint

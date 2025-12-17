@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -10,6 +11,7 @@ import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {GroupedTransactions} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 // Height constants
 const DESKTOP_HEIGHT = 28;
@@ -43,6 +45,9 @@ type MoneyRequestReportGroupHeaderProps = {
 
     /** Callback when group checkbox is toggled - receives groupKey */
     onToggleSelection?: (groupKey: string) => void;
+
+    /** Pending action for offline feedback styling (Pattern B - Optimistic WITH Feedback) */
+    pendingAction?: PendingAction;
 };
 
 function MoneyRequestReportGroupHeader({
@@ -55,6 +60,7 @@ function MoneyRequestReportGroupHeader({
     isIndeterminate = false,
     isDisabled = false,
     onToggleSelection,
+    pendingAction,
 }: MoneyRequestReportGroupHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -84,31 +90,31 @@ function MoneyRequestReportGroupHeader({
     }, [onToggleSelection, groupKey]);
 
     return (
-        <View style={[styles.reportLayoutGroupHeader, conditionalHeight]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                {shouldShowCheckbox && (
-                    <Checkbox
-                        isChecked={isSelected}
-                        isIndeterminate={isIndeterminate}
-                        disabled={isDisabled}
-                        onPress={handleToggleSelection}
-                        accessibilityLabel={translate('reportLayout.selectGroup', {groupName: displayName})}
-                        style={styles.mr2}
-                    />
-                )}
-                <Text
-                    style={[styles.textBold, textStyle, styles.flexShrink1, shouldShowCheckbox && styles.ml2]}
-                    numberOfLines={1}
-                >
-                    {displayName}
-                </Text>
-                <Text style={[styles.textBold, textStyle, styles.mh1]}>{CONST.DOT_SEPARATOR}</Text>
-                <Text style={[styles.textBold, textStyle]}>{formattedAmount}</Text>
+        <OfflineWithFeedback pendingAction={pendingAction}>
+            <View style={[styles.reportLayoutGroupHeader, conditionalHeight]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                    {shouldShowCheckbox && (
+                        <Checkbox
+                            isChecked={isSelected}
+                            isIndeterminate={isIndeterminate}
+                            disabled={isDisabled}
+                            onPress={handleToggleSelection}
+                            accessibilityLabel={translate('reportLayout.selectGroup', {groupName: displayName})}
+                            style={styles.mr2}
+                        />
+                    )}
+                    <Text
+                        style={[styles.textBold, textStyle, styles.flexShrink1, shouldShowCheckbox && styles.ml2]}
+                        numberOfLines={1}
+                    >
+                        {displayName}
+                    </Text>
+                    <Text style={[styles.textBold, textStyle, styles.mh1]}>{CONST.DOT_SEPARATOR}</Text>
+                    <Text style={[styles.textBold, textStyle]}>{formattedAmount}</Text>
+                </View>
             </View>
-        </View>
+        </OfflineWithFeedback>
     );
 }
-
-MoneyRequestReportGroupHeader.displayName = 'MoneyRequestReportGroupHeader';
 
 export default MoneyRequestReportGroupHeader;

@@ -20,9 +20,11 @@ import {
     filterSelfDMChat,
     filterWorkspaceChats,
     formatMemberForList,
+    getCurrentUserSearchTerms,
     getLastActorDisplayName,
     getLastMessageTextForReport,
     getMemberInviteOptions,
+    getPersonalDetailSearchTerms,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
     getValidOptions,
@@ -52,7 +54,7 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
-import {createRandomReport} from '../utils/collections/reports';
+import {createRandomReport, createRegularChat} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
 import {getNvpDismissedProductTraining, localeCompare} from '../utils/TestHelper';
@@ -65,10 +67,6 @@ jest.mock('@rnmapbox/maps', () => {
         setAccessToken: jest.fn(),
     };
 });
-
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -1041,6 +1039,56 @@ describe('OptionsListUtils', () => {
                 showRBR: false,
             });
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(null);
+        });
+
+        it('should mark unread report as bold when shouldUnreadBeBold is true', async () => {
+            const reportID = '99999';
+            const report: Report = {
+                ...createRegularChat(Number(reportID), [1]),
+                reportID,
+                reportName: 'Unread Report',
+                lastReadTime: DateUtils.getDBTime(Date.now() - 10000),
+                lastVisibleActionCreated: DateUtils.getDBTime(Date.now()),
+                lastActorAccountID: 1,
+                lastMessageText: 'Test message',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const inputOption: SearchOption<Report> = {
+                item: report,
+                reportID,
+                text: 'Unread Report',
+                isUnread: false, // Intentionally false initially to prove it gets recalculated
+                participantsList: [],
+                keyForList: reportID,
+                isChatRoom: true,
+                policyID: '123',
+                lastMessageText: '',
+                lastVisibleActionCreated: report.lastVisibleActionCreated,
+                notificationPreference: 'always',
+                accountID: 0,
+                login: '',
+                alternateText: '',
+                subtitle: '',
+                firstName: '',
+                lastName: '',
+                icons: [],
+                isSelected: false,
+                isDisabled: false,
+                brickRoadIndicator: null,
+                isBold: false,
+            };
+
+            const results = getValidOptions({reports: [inputOption], personalDetails: []}, {}, nvpDismissedProductTraining, {
+                includeRecentReports: true,
+                shouldUnreadBeBold: true,
+                includeMultipleParticipantReports: true,
+            });
+
+            expect(results.recentReports.at(0)?.isBold).toBe(true);
+            expect(results.recentReports.at(0)?.isUnread).toBe(true);
         });
     });
 
@@ -2612,6 +2660,7 @@ describe('OptionsListUtils', () => {
                 message: [{type: 'COMMENT', text: ''}],
                 originalMessage: {
                     toReportID: report2.reportID,
+                    fromReportID: report.reportID,
                 },
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`, report2);
@@ -2619,7 +2668,7 @@ describe('OptionsListUtils', () => {
                 [movedTransactionAction.reportActionID]: movedTransactionAction,
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
-            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(report2)));
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(movedTransactionAction)));
         });
         describe('SUBMITTED action', () => {
             it('should return automatic submitted message if submitted via harvesting', async () => {
@@ -2735,6 +2784,48 @@ describe('OptionsListUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
+        });
+        it('should return last visible message text when last action is hidden (e.g. whisper)', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                lastMessageText: 'joined the chat',
+            };
+            const whisperAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [whisperAction.reportActionID]: whisperAction,
+            });
+            await waitForBatchedUpdates();
+
+            const expectedVisibleText = '';
+            const result = getLastMessageTextForReport({
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(result).toBe(expectedVisibleText);
+        });
+    });
+
+    describe('getPersonalDetailSearchTerms', () => {
+        it('should include display name', () => {
+            const displayName = 'test';
+            const searchTerms = getPersonalDetailSearchTerms({displayName});
+            expect(searchTerms.includes(displayName)).toBe(true);
+            const searchTerms2 = getPersonalDetailSearchTerms({participantsList: [{displayName, accountID: 123}]});
+            expect(searchTerms2.includes(displayName)).toBe(true);
+        });
+    });
+
+    describe('getCurrentUserSearchTerms', () => {
+        it('should include display name', () => {
+            const displayName = 'test';
+            const searchTerms = getCurrentUserSearchTerms({displayName});
+            expect(searchTerms.includes(displayName)).toBe(true);
+            const searchTerms2 = getCurrentUserSearchTerms({text: displayName});
+            expect(searchTerms2.includes(displayName)).toBe(true);
         });
     });
 });
