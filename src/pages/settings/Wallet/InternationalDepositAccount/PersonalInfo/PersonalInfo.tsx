@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import Navigation from '@navigation/Navigation';
 import {addPersonalBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -26,6 +27,7 @@ function PersonalInfoPage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [personalBankAccount] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const isManual = personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
 
@@ -39,10 +41,12 @@ function PersonalInfoPage() {
                   ...selectedPlaidBankAccount,
                   plaidAccessToken: plaidData?.plaidAccessToken ?? '',
               };
+        const finalPhoneNumber = personalBankAccount?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '';
         const accountData = {
             ...privatePersonalDetails,
             ...personalBankAccount,
             ...bankAccountWithToken,
+            phoneNumber: formatE164PhoneNumber(finalPhoneNumber, countryCode),
         };
         addPersonalBankAccount(accountData);
     };
