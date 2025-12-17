@@ -37,7 +37,7 @@ function pickTravelerPersonalDetails(personalDetails: OnyxEntry<PersonalDetailsL
 type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
 
 function TripDetailsPage({route}: TripDetailsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage', 'Pencil', 'Phone'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage', 'Pencil', 'Phone']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -70,7 +70,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
             includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={TripDetailsPage.displayName}
+            testID="TripDetailsPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
@@ -146,7 +146,5 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
         </ScreenWrapper>
     );
 }
-
-TripDetailsPage.displayName = 'TripDetailsPage';
 
 export default TripDetailsPage;

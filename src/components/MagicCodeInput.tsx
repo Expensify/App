@@ -539,7 +539,5 @@ function MagicCodeInput({
     );
 }
 
-MagicCodeInput.displayName = 'MagicCodeInput';
-
 export default MagicCodeInput;
 export type {AutoCompleteVariant, MagicCodeInputHandle, MagicCodeInputProps};

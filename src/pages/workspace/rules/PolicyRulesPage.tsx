@@ -20,7 +20,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['Rules'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Rules']);
 
     const fetchRules = useCallback(() => {
         openPolicyRulesPage(policyID);
@@ -37,7 +37,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
             <WorkspacePageWithSections
-                testID={PolicyRulesPage.displayName}
+                testID="PolicyRulesPage"
                 shouldUseScrollView
                 headerText={translate('workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
@@ -54,7 +54,5 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-PolicyRulesPage.displayName = 'PolicyRulesPage';
 
 export default PolicyRulesPage;
