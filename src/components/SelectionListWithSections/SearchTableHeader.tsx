@@ -109,6 +109,14 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: groupBy ? 'common.total' : 'iou.amount',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
+        translationKey: 'common.reportID',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
+        translationKey: 'common.longID',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
         translationKey: 'common.title',
         canBeMissing: false,
@@ -203,6 +211,14 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
         translationKey: 'common.total',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
+        translationKey: 'common.reportID',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
+        translationKey: 'common.longID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
