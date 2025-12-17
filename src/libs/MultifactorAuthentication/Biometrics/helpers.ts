@@ -63,16 +63,10 @@ function createUnsuccessfulStep(requiredFactor: MultifactorAuthenticationFactor)
 function areMultifactorAuthenticationFactorsSufficient(
     factors: Partial<AllMultifactorAuthenticationFactors>,
     factorsCombination: ValueOf<typeof VALUES.FACTOR_COMBINATIONS>,
-    isStoredFactorVerified = true,
 ): MultifactorAuthenticationPartialStatus<true | string> {
     const requiredFactors = factorsCombination.map((id) => VALUES.FACTORS_REQUIREMENTS[id]);
 
     for (const {id, parameter, name, length} of requiredFactors) {
-        // Skip validation if factor is not VALIDATE_CODE and stored factor is not verified
-        if (id !== VALUES.FACTORS.VALIDATE_CODE && !isStoredFactorVerified) {
-            continue;
-        }
-
         const value = factors[parameter];
 
         // Check if factor is missing
@@ -187,7 +181,7 @@ function createKeyInfoObject({accountID, publicKey}: {accountID: number; publicK
 async function processMultifactorAuthenticationRegistration(
     params: Partial<AllMultifactorAuthenticationFactors> & {accountID: number; publicKey: string},
 ): Promise<MultifactorAuthenticationPartialStatus<boolean>> {
-    const factorsCheckResult = areMultifactorAuthenticationFactorsSufficient(params, VALUES.FACTOR_COMBINATIONS.REGISTRATION, true);
+    const factorsCheckResult = areMultifactorAuthenticationFactorsSufficient(params, VALUES.FACTOR_COMBINATIONS.REGISTRATION);
 
     if (factorsCheckResult.value !== true) {
         return registerMultifactorAuthenticationPostMethod(
@@ -229,9 +223,8 @@ async function processMultifactorAuthenticationScenario<T extends MultifactorAut
     scenario: T,
     params: MultifactorAuthenticationProcessScenarioParameters<T>,
     factorsCombination: ValueOf<typeof VALUES.FACTOR_COMBINATIONS>,
-    isStoredFactorVerified?: boolean,
 ): Promise<MultifactorAuthenticationPartialStatus<number | undefined>> {
-    const factorsCheckResult = areMultifactorAuthenticationFactorsSufficient(params, factorsCombination, isStoredFactorVerified);
+    const factorsCheckResult = areMultifactorAuthenticationFactorsSufficient(params, factorsCombination);
 
     const currentScenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] as MultifactorAuthenticationScenarioConfig;
 
@@ -293,16 +286,10 @@ function isChallengeSigned(challenge: MultifactorAuthenticationChallengeObject |
     return 'rawId' in challenge;
 }
 
-function toLowerCase<T extends string>(str: T) {
-    return str.toLowerCase() as Lowercase<T>;
-}
-
 export {
     processMultifactorAuthenticationScenario as processScenario,
-    areMultifactorAuthenticationFactorsSufficient as areFactorsSufficient,
     decodeMultifactorAuthenticationExpoMessage as decodeExpoMessage,
     isChallengeSigned,
     processMultifactorAuthenticationRegistration as processRegistration,
     parseHttpCode,
-    toLowerCase,
 };

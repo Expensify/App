@@ -13,7 +13,7 @@ import type {
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioParams,
 } from './config/types';
-import type {AuthTypeName, BiometricsStatus, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType} from './types';
+import type {AuthTypeName, BiometricsStatus, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType, NotificationPaths} from './types';
 
 const failedStep = {
     wasRecentStepSuccessful: false,
@@ -203,6 +203,7 @@ const createBiometricsNotAllowedStatus = <T extends MultifactorAuthenticationSce
     scenario: T,
     params: MultifactorAuthenticationScenarioParams<T> & Record<string, unknown>,
     authorization?: boolean,
+    notificationPaths?: NotificationPaths,
 ): [MultifactorAuthenticationPartialStatus<MultifactorAuthenticationScenarioStatus>, MultifactorAuthenticationStatusKeyType] => {
     return [
         {
@@ -210,6 +211,7 @@ const createBiometricsNotAllowedStatus = <T extends MultifactorAuthenticationSce
                 ...failedStep,
             },
             value: {
+                ...notificationPaths,
                 scenario,
                 payload: extractAdditionalParameters<T>(params),
             },
@@ -273,22 +275,26 @@ function convertResultIntoMultifactorAuthenticationStatus<T extends MultifactorA
     scenario: T | undefined,
     type: MultifactorAuthenticationStatusKeyType,
     params: MultifactorAuthenticationScenarioParams<T> | false,
+    notificationPaths?: NotificationPaths,
 ): MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>;
 function convertResultIntoMultifactorAuthenticationStatus<T extends MultifactorAuthenticationScenario>(
     status: MultifactorAuthenticationPartialStatus<unknown>,
     scenario: T | undefined,
     type: MultifactorAuthenticationStatusKeyType,
     params: MultifactorAuthenticationScenarioParams<T> | false,
+    notificationPaths?: NotificationPaths,
 ): MultifactorAuthenticationPartialStatus<MultifactorAuthenticationScenarioStatus>;
 function convertResultIntoMultifactorAuthenticationStatus<T extends MultifactorAuthenticationScenario>(
     status: MultifactorAuthenticationStatus<unknown> | MultifactorAuthenticationPartialStatus<unknown>,
     scenario: T | undefined,
     type: MultifactorAuthenticationStatusKeyType,
     params: MultifactorAuthenticationScenarioParams<T> | false,
+    notificationPaths?: NotificationPaths,
 ): MultifactorAuthenticationPartialStatus<MultifactorAuthenticationScenarioStatus> | MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus> {
     return {
         ...status,
         value: {
+            ...notificationPaths,
             scenario,
             payload: params ? extractAdditionalParameters<T>(params) : undefined,
             type,
@@ -298,9 +304,14 @@ function convertResultIntoMultifactorAuthenticationStatus<T extends MultifactorA
 
 const badRequestStatus = (
     currentStatus: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>,
+    notificationPaths?: NotificationPaths,
 ): MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus> => {
     return {
         ...currentStatus,
+        value: {
+            ...currentStatus.value,
+            ...notificationPaths,
+        },
         reason: 'multifactorAuthentication.reason.error.badRequest',
         step: {
             ...failedStep,

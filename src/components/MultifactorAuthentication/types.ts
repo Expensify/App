@@ -102,10 +102,7 @@ type UseMultifactorAuthentication = {
         };
     process: <T extends MultifactorAuthenticationScenario>(
         scenario: T,
-        params?: MultifactorAuthenticationScenarioParams<T> & {
-            successNotification?: AllMultifactorAuthenticationNotificationType;
-            failureNotification?: AllMultifactorAuthenticationNotificationType;
-        },
+        params?: MultifactorAuthenticationScenarioParams<T> & NotificationPaths,
     ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
     update: (
         params: Partial<AllMultifactorAuthenticationFactors> & {
@@ -122,7 +119,7 @@ type MultifactorAuthenticationScenarioStatus = {
     scenario: MultifactorAuthenticationScenario | undefined;
     payload?: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario>;
     type?: MultifactorAuthenticationStatusKeyType;
-};
+} & NotificationPaths;
 
 /** Valid multifactorial authentication scenario types as defined in constants */
 type MultifactorAuthenticationStatusKeyType = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE>;
@@ -143,6 +140,11 @@ type SetMultifactorAuthenticationStatus<T> = (
 /** Valid type for the useMultifactorAuthenticationStatus hook */
 type UseMultifactorAuthenticationStatus<T> = [MultifactorAuthenticationStatus<T>, SetMultifactorAuthenticationStatus<T>];
 
+type NotificationPaths = {
+    successNotification?: AllMultifactorAuthenticationNotificationType;
+    failureNotification?: AllMultifactorAuthenticationNotificationType;
+};
+
 export type {
     MultifactorAuthenticationStep,
     SetMultifactorAuthenticationStatus,
@@ -157,4 +159,5 @@ export type {
     MultifactorAuthenticationStatusMessage,
     BiometricsStatus,
     MultifactorTriggerArgument,
+    NotificationPaths,
 };
