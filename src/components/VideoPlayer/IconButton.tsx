@@ -6,8 +6,9 @@ import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type IconButtonProps = {
+type IconButtonProps = WithSentryLabel & {
     src: IconAsset;
     onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
     fill?: string;
@@ -16,7 +17,6 @@ type IconButtonProps = {
     hoverStyle?: StyleProp<ViewStyle>;
     small?: boolean;
     shouldForceRenderingTooltipBelow?: boolean;
-    sentryLabel?: string;
 };
 
 function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipText = '', small = false, shouldForceRenderingTooltipBelow = false, sentryLabel}: IconButtonProps) {

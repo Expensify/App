@@ -7,12 +7,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Icon from './Icon';
 import {ReceiptPlus} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
 import Tooltip from './Tooltip';
 
-type FloatingReceiptButtonProps = {
+type FloatingReceiptButtonProps = WithSentryLabel & {
     /* Callback to fire on request to toggle the FloatingReceiptButton */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
@@ -21,9 +22,6 @@ type FloatingReceiptButtonProps = {
 
     /* An accessibility role for the button */
     role: Role;
-
-    /** Label for Sentry INP tracking */
-    sentryLabel?: string;
 };
 
 function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}: FloatingReceiptButtonProps) {

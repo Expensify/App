@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Icon from './Icon';
 import {PlusCircle} from './Icon/Expensicons';
 import {PressableWithFeedback, PressableWithoutFeedback} from './Pressable';
@@ -24,7 +25,7 @@ const SMALL_FAB_PATH =
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-type FloatingActionButtonProps = {
+type FloatingActionButtonProps = WithSentryLabel & {
     /* Callback to fire on request to toggle the FloatingActionButton */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
@@ -42,9 +43,6 @@ type FloatingActionButtonProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<HTMLDivElement | ViewType | TextType>;
-
-    /** Label for Sentry INP tracking */
-    sentryLabel?: string;
 };
 
 function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref, sentryLabel}: FloatingActionButtonProps) {

@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import ActivityIndicator from './ActivityIndicator';
 import Avatar from './Avatar';
 import Badge from './Badge';
@@ -65,7 +66,7 @@ type NoIcon = {
     icon?: undefined;
 };
 
-type MenuItemBaseProps = ForwardedFSClassProps & {
+type MenuItemBaseProps = ForwardedFSClassProps & WithSentryLabel & {
     /** Reference to the outer element */
     ref?: PressableRef | Ref<View>;
 
@@ -394,9 +395,6 @@ type MenuItemBaseProps = ForwardedFSClassProps & {
 
     /** Whether the screen containing the item is focused */
     isFocused?: boolean;
-
-    /** Label for Sentry tracking */
-    sentryLabel?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;

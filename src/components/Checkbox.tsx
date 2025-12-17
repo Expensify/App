@@ -7,12 +7,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
-type CheckboxProps = Partial<ChildrenProps> & {
+type CheckboxProps = Partial<ChildrenProps> & WithSentryLabel & {
     /** Whether checkbox is checked */
     isChecked?: boolean;
 
@@ -63,9 +64,6 @@ type CheckboxProps = Partial<ChildrenProps> & {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
-
-    /** Label for Sentry tracking. On web, this will be added as data-sentry-label attribute. */
-    sentryLabel?: string;
 };
 
 function Checkbox({

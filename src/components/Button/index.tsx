@@ -19,10 +19,11 @@ import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import {getButtonRole} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
-type ButtonProps = Partial<ChildrenProps> & {
+type ButtonProps = Partial<ChildrenProps> & WithSentryLabel & {
     /** Should the press event bubble across multiple instances when Enter key triggers it. */
     allowBubble?: boolean;
 
@@ -179,9 +180,6 @@ type ButtonProps = Partial<ChildrenProps> & {
      * Whether the button should stay visually normal even when disabled.
      */
     shouldStayNormalOnDisable?: boolean;
-
-    /** Label for Sentry tracking. On web, this will be added as data-sentry-label attribute. */
-    sentryLabel?: string;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
