@@ -311,6 +311,7 @@ function BaseSelectionList<TItem extends ListItem>({
         const isItemDisabled = isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
         const isItemFocused = (!isDisabled || selected) && focusedIndex === index;
+        const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList);
 
         return (
             <View
@@ -326,7 +327,11 @@ function BaseSelectionList<TItem extends ListItem>({
                     selectRow={selectRow}
                     keyForList={item.keyForList}
                     showTooltip={shouldShowTooltips}
-                    item={item}
+                    item={{
+                        shouldAnimateInHighlight: isItemHighlighted,
+                        isSelected: selected,
+                        ...item,
+                    }}
                     setFocusedIndex={setFocusedIndex}
                     index={index}
                     normalizedIndex={index}
@@ -335,6 +340,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                     onDismissError={onDismissError}
                     onLongPressRow={onLongPressRow}
+                    onCheckboxPress={onCheckboxPress}
                     shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
