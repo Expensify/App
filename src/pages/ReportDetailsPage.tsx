@@ -14,7 +14,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {PromotedAction} from '@components/PromotedActionsBar';
 import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
 import ReportActionAvatars from '@components/ReportActionAvatars';
@@ -186,7 +185,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtil(report), [report]);
-    const shouldUseFullTitle = useMemo(() => shouldUseFullTitleToDisplay(report), [report]);
+
     const isChatRoom = useMemo(() => isChatRoomUtil(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => isUserCreatedPolicyRoomUtil(report), [report]);
     const isDefaultRoom = useMemo(() => isDefaultRoomUtil(report), [report]);
@@ -586,22 +585,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         parentReport,
     ]);
 
-    const displayNamesWithTooltips = useMemo(() => {
-        const hasMultipleParticipants = participants.length > 1;
-        return getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participants, personalDetails), hasMultipleParticipants, localeCompare);
-    }, [participants, personalDetails, localeCompare]);
-
     const icons = useMemo(() => getIcons(report, personalDetails, null, '', -1, policy, undefined, isReportArchived), [report, personalDetails, policy, isReportArchived]);
-
-    const chatRoomSubtitleText = chatRoomSubtitle ? (
-        <DisplayNames
-            fullTitle={chatRoomSubtitle}
-            tooltipEnabled
-            numberOfLines={1}
-            textStyles={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1, styles.textAlignCenter]}
-            shouldUseFullTitle
-        />
-    ) : null;
 
     const renderedAvatar = useMemo(() => {
         if (isChatRoom && !isThread) {
