@@ -55,7 +55,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction);
-    const [originalSourceTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
+    const [originalSourceTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(sourceTransaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const currentUserLogin = session?.email;
 
     useEffect(() => {
