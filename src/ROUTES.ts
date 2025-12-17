@@ -3457,8 +3457,8 @@ const ROUTES = {
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}` as const,
     },
     DOMAIN_MEMBERS: {
-        route: 'domain/:accountID/members',
-        getRoute: (accountID: number) => `domain/${accountID}/members` as const,
+        route: 'domain/:domainAccountID/members',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members` as const,
     },
 } as const;
 

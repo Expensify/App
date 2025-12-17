@@ -2420,7 +2420,7 @@ type DomainSplitNavigatorParamList = {
         domainAccountID: number;
     };
     [SCREENS.DOMAIN.MEMBERS]: {
-        accountID: number;
+        domainAccountID: number;
     };
 };
 

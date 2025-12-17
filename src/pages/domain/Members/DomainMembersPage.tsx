@@ -1,40 +1,36 @@
 import React from 'react';
+import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import selectMemberIDs from '@src/libs/DomainUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage'
 
 type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS>;
 
 function DomainMembersPage({route}: DomainMembersPageProps) {
-    const domainID = route.params.accountID;
+    const {domainAccountID} = route.params;
     const {translate} = useLocalize();
 
-    const [domain, fetchStatus] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {canBeMissing: false});
+    const [domain, fetchStatus] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false});
 
-    const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, {
+    const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: selectMemberIDs,
     });
 
-    const shouldShowLoading = fetchStatus.status !== 'loading' && !domain;
-
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundView = fetchStatus.status !== 'loading' && !domain;
 
     return (
         <BaseDomainMembersPage
-            domainID={domainID}
-            domain={domain}
             accountIDs={memberIDs ?? []}
             headerTitle={translate('domain.members.title')}
             searchPlaceholder={translate('domain.members.findMember')}
             onSelectRow={()=>{}}
-            shouldShowLoading={shouldShowLoading}
+            shouldShowNotFoundView={shouldShowNotFoundView}
         />
     );
 }
