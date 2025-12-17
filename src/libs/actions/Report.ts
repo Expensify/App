@@ -2971,6 +2971,20 @@ function buildNewReportOptimisticData(
             },
         });
     }
+    if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.CHAT) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`]: {[reportPreviewReportActionID]: {...optimisticReportPreview, reportID: parentReport?.reportID}},
+                    [`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`]: parentReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData,
+                },
+            },
+        });
+    }
 
     const failureData: OnyxUpdate[] = [
         {
