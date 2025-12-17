@@ -345,6 +345,7 @@ function deleteSavedSearch(hash: number) {
     ];
 
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
+    clearAllFilters();
 }
 
 function openSearchPage() {
