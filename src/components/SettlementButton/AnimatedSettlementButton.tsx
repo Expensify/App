@@ -16,6 +16,7 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isApprovedAnimationRunning: boolean;
     shouldAddTopMargin?: boolean;
     canIOUBePaid: boolean;
+    sentryLabel?: string;
 };
 
 function AnimatedSettlementButton({
@@ -26,6 +27,7 @@ function AnimatedSettlementButton({
     isDisabled,
     canIOUBePaid,
     wrapperStyle,
+    sentryLabel,
     ...settlementButtonProps
 }: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
@@ -121,6 +123,7 @@ function AnimatedSettlementButton({
                     {...settlementButtonProps}
                     wrapperStyle={wrapperStyle}
                     isDisabled={isAnimationRunning || isDisabled}
+                    sentryLabel={sentryLabel}
                 />
             )}
         </Animated.View>

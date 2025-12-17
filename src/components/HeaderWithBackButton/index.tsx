@@ -149,6 +149,7 @@ function HeaderWithBackButton({
                         style={[styles.touchableButtonImage]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={threeDotsMenuItems.at(0)?.text ?? ''}
+                        sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
                     >
                         <Icon
                             src={threeDotsMenuItems.at(0)?.icon as React.FC<SvgProps>}
@@ -167,6 +168,7 @@ function HeaderWithBackButton({
                     shouldOverlay={shouldOverlayDots}
                     anchorAlignment={threeDotsAnchorAlignment}
                     shouldSetModalVisibility={shouldSetModalVisibility}
+                    sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                 />
             );
         }
@@ -222,6 +224,7 @@ function HeaderWithBackButton({
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
                             id={CONST.BACK_BUTTON_NATIVE_ID}
+                            sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
                         >
                             <Icon
                                 src={icons.BackArrow}
@@ -271,6 +274,7 @@ function HeaderWithBackButton({
                                         style={[styles.touchableButtonImage]}
                                         role="button"
                                         accessibilityLabel={translate('common.download')}
+                                        sentryLabel={CONST.SENTRY_LABEL.HEADER.DOWNLOAD_BUTTON}
                                     >
                                         <Icon
                                             src={icons.Download}
@@ -309,6 +313,7 @@ function HeaderWithBackButton({
                                 style={[styles.touchableButtonImage]}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.CLOSE_BUTTON}
                             >
                                 <Icon
                                     src={icons.Close}

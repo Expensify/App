@@ -1,11 +1,8 @@
-import {adminAccountIDsSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -21,13 +18,12 @@ import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtil
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import {getCurrentUserAccountID} from '@userActions/Report';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
 
@@ -37,49 +33,33 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info'] as const);
 
-    const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
-        selector: adminAccountIDsSelector,
-    });
-
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    const [adminPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
     });
 
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails));
-    const memberLogin = personalDetails?.login ?? '';
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(adminPersonalDetails));
+    const memberLogin = adminPersonalDetails?.login ?? '';
     const isSMSLogin = Str.isSMSLogin(memberLogin);
-    const phoneNumber = getPhoneNumber(personalDetails);
-    const fallbackIcon = personalDetails?.fallbackIcon ?? '';
-
-    const currentUserAccountID = getCurrentUserAccountID();
-    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
-
-    if (isLoadingOnyxValue(domainMetadata)) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
-    }
+    const phoneNumber = getPhoneNumber(adminPersonalDetails);
+    const fallbackIcon = adminPersonalDetails?.fallbackIcon ?? '';
 
     return (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            testID={DomainAdminDetailsPage.displayName}
-        >
-            <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={!isAdmin}
-                shouldForceFullScreen
+        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                testID={DomainAdminDetailsPage.displayName}
             >
                 <HeaderWithBackButton title={displayName} />
                 <ScrollView addBottomSafeAreaPadding>
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                            <OfflineWithFeedback pendingAction={personalDetails?.pendingFields?.avatar}>
+                            <OfflineWithFeedback pendingAction={adminPersonalDetails?.pendingFields?.avatar}>
                                 <Avatar
                                     containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
                                     imageStyles={[styles.avatarXLarge]}
-                                    source={personalDetails?.avatar}
+                                    source={adminPersonalDetails?.avatar}
                                     avatarID={accountID}
                                     type={CONST.ICON_TYPE_AVATAR}
                                     size={CONST.AVATAR_SIZE.X_LARGE}
@@ -113,8 +93,8 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                         </View>
                     </View>
                 </ScrollView>
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </DomainNotFoundPageWrapper>
     );
 }
 
