@@ -12,7 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyCardFeed, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCompanyCardFeed, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getDefaultAvatarURL} from '@libs/UserUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -121,10 +121,8 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
-                    hintText={lastFourNumbersFromCardName(data?.cardNumber)}
-                    shouldShowRightIcon
-                    onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD)}
+                    title={data?.encryptedCardNumber ?? maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
+                    interactive={false}
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.cardholder')}
