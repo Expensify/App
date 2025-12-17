@@ -85,6 +85,6 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
             </FocusTrapForModal>
         </ModalPortal>
     );
-}s
+}
 
 export default SidePanelModal;
