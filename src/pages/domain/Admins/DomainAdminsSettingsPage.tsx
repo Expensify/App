@@ -18,6 +18,7 @@ import {clearSetPrimaryContactError, clearToggleConsolidatedDomainBillingErrors,
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import RenderHTML from '@components/RenderHTML';
 
 type DomainAdminsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS_SETTINGS>;
 
@@ -77,7 +78,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                         }
                         toggleConsolidatedDomainBilling(domainAccountID, Str.extractEmailDomain(domain.email), value);
                     }}
-                    subtitle={translate('domain.admins.consolidatedDomainBillingDescription')}
+                    subtitle={<RenderHTML html={translate('domain.admins.consolidatedDomainBillingDescription', domain?.email ? Str.extractEmailDomain(domain.email) : '')} />}
                     title={translate('domain.admins.consolidatedDomainBilling')}
                     shouldPlaceSubtitleBelowSwitch
                     pendingAction={domainPendingActions?.useTechnicalContactBillingCard}
