@@ -887,7 +887,7 @@ function shouldShowYear(
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
     };
-    console.log('over here item')
+
     const currentYear = new Date().getFullYear();
 
     if (Array.isArray(data)) {
@@ -910,7 +910,6 @@ function shouldShowYear(
                 }
             }
             if (isTransactionListItemType(item)) {
-                console.log('over here item 1', item);
                 const transactionCreated = getTransactionCreatedDate(item);
                 if (transactionCreated && DateUtils.doesDateBelongToAPastYear(transactionCreated)) {
                     result.shouldShowYearCreated = true;
@@ -940,7 +939,7 @@ function shouldShowYear(
     for (const key of Object.keys(data)) {
         if (!checkOnlyReports && isTransactionEntry(key)) {
             const item = data[key];
-            console.log('over here item 2', item);
+
             if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
                 result.shouldShowYearCreated = true;
             }
@@ -957,6 +956,16 @@ function shouldShowYear(
                 const postedYear = parseInt(item.posted.slice(0, 4), 10);
                 result.shouldShowYearPosted = postedYear !== currentYear;
             }
+
+            const reportActions = data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item.reportID}`];
+            const exportedAction = Object.values(reportActions)
+                .filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)
+                .sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
+                .at(0);
+
+            if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
+                result.shouldShowYearExported = true;
+            }
         } else if (!checkOnlyReports && isReportActionEntry(key)) {
             const item = data[key];
             for (const action of Object.values(item)) {
@@ -967,7 +976,6 @@ function shouldShowYear(
             }
         } else if (isReportEntry(key)) {
             const item = data[key];
-            console.log('over here item 3', item);
 
             if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
                 result.shouldShowYearCreated = true;
@@ -978,10 +986,22 @@ function shouldShowYear(
             if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
                 result.shouldShowYearApproved = true;
             }
+
+            const reportActions = data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item.reportID}`];
+            if (reportActions) {
+                const exportedAction = Object.values(reportActions)
+                    .filter((action): action is OnyxTypes.ReportAction => action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)
+                    .sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
+                    .at(0);
+
+                if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
+                    result.shouldShowYearExported = true;
+                }
+            }
         }
 
         // Early exit if all flags are true
-        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted) {
+        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted && result.shouldShowYearExported) {
             return result;
         }
     }
