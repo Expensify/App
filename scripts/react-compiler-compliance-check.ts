@@ -650,7 +650,7 @@ class ResultsPrinter {
         }
 
         log();
-        logError(`The following newly added components should be auto memoized by the React Compiler (manual memoization is not allowed):`);
+        logError(`The following components should be auto memoized by the React Compiler and therefore manual memoization should be removed:`);
 
         for (const [filePath, manualMemoizationMatches] of manualMemoFailures) {
             log();
