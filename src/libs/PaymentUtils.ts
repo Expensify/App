@@ -239,6 +239,7 @@ function getActivePaymentType(paymentMethod: string | undefined, activeAdminPoli
     return {
         paymentType,
         selectedPolicy,
+        shouldSelectPaymentMethod: 12,
     };
 }
 
