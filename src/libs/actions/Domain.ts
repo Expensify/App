@@ -463,6 +463,13 @@ function toggleConsolidatedDomainBilling(domainAccountID: number, domainName: st
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                useTechnicalContactBillingCardErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.consolidatedDomainBillingError'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 useTechnicalContactBillingCard: null,
