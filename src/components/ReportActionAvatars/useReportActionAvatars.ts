@@ -124,13 +124,12 @@ function useReportActionAvatars({
 
     const avatarsForAccountIDs: IconType[] = accountIDsToMap.map((id) => {
         const invitedEmail = invitedEmailsToAccountIDs ? Object.keys(invitedEmailsToAccountIDs).find((email) => invitedEmailsToAccountIDs[email] === id) : undefined;
-        const formattedInvitedLogin = invitedEmail ? addSMSDomainIfPhoneNumber(invitedEmail) : undefined;
         return {
             id,
             type: CONST.ICON_TYPE_AVATAR,
             source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
             name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
-            fallbackIcon: shouldUseCustomFallbackAvatar ? getDefaultAvatar({accountID: id, accountEmail: formattedInvitedLogin}) : undefined,
+            fallbackIcon: shouldUseCustomFallbackAvatar ? getDefaultAvatar({accountID: id, accountEmail: addSMSDomainIfPhoneNumber(invitedEmail ?? '')}) : undefined,
         };
     });
 
