@@ -48,7 +48,10 @@ type AmountFormProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'onSubmitEditing'>;
+
+    /** Callback when the user presses the submit key (Enter) */
+    onSubmitEditing?: () => void;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
 
 /**
  * Wrapper around NumberWithSymbolForm with currency handling.
