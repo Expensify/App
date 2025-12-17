@@ -93,9 +93,6 @@ describe('getReportPreviewAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const transaction = {
             reportID: `${REPORT_ID}`,
-            amount: 100,
-            merchant: 'Test Merchant',
-            created: '2025-01-01',
         } as unknown as Transaction;
 
         // Simulate how components use a hook to pass the isReportArchived parameter
@@ -129,9 +126,6 @@ describe('getReportPreviewAction', () => {
 
         const transaction = {
             reportID: `${REPORT_ID}`,
-            amount: 100,
-            merchant: 'Test Merchant',
-            created: '2025-01-01',
         } as unknown as Transaction;
 
         // Simulate how components use a hook to pass the isReportArchived parameter
@@ -172,6 +166,53 @@ describe('getReportPreviewAction', () => {
         expect(getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
+    it('canSubmit should return false for expense preview report with smartscan failed violation', async () => {
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const report: Report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [
+                {
+                    name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    showInReview: true,
+                },
+            ],
+        };
+
+        // Simulate how components use a hook to pass the isReportArchived parameter
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(
+            getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, undefined, undefined, undefined, {
+                currentUserEmail: CURRENT_USER_EMAIL,
+                violations,
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+    });
+
     describe('canApprove', () => {
         it('should return true for report being processed', async () => {
             const report = {
@@ -193,9 +234,6 @@ describe('getReportPreviewAction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
             const transaction = {
                 reportID: `${REPORT_ID}`,
-                amount: 100,
-                merchant: 'Test Merchant',
-                created: '2025-01-01',
             } as unknown as Transaction;
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
@@ -281,9 +319,6 @@ describe('getReportPreviewAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const transaction = {
             reportID: `${REPORT_ID}`,
-            amount: 100,
-            merchant: 'Test Merchant',
-            created: '2025-01-01',
         } as unknown as Transaction;
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));

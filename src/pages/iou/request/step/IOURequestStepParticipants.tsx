@@ -327,7 +327,7 @@ function IOURequestStepParticipants({
             const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
             setMoneyRequestTag(transaction.transactionID, tag);
             const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
-            setMoneyRequestCategory(transaction.transactionID, category);
+            setMoneyRequestCategory(transaction.transactionID, category, undefined);
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
             }
@@ -420,7 +420,7 @@ function IOURequestStepParticipants({
             headerTitle={headerTitle}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepParticipants.displayName}
+            testID="IOURequestStepParticipants"
         >
             {!!skipConfirmation && (
                 <FormHelpMessage
@@ -443,7 +443,5 @@ function IOURequestStepParticipants({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipants));

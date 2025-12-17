@@ -27,15 +27,14 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
             isSelected: entityID === '',
         },
     ];
-    // eslint-disable-next-line unicorn/no-array-for-each
-    policy?.connections?.intacct?.data?.entities.forEach((entity) => {
+    for (const entity of policy?.connections?.intacct?.data?.entities ?? []) {
         sections.push({
             text: entity.name,
             value: entity.name,
             keyForList: entity.id,
             isSelected: entity.id === entityID,
         });
-    });
+    }
 
     const saveSelection = ({keyForList}: ListItem) => {
         updateSageIntacctEntity(policyID, keyForList ?? '', entityID);
@@ -46,7 +45,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
         <SelectionScreen
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctEntityPage.displayName}
+            displayName="SageIntacctEntityPage"
             sections={sections ? [{data: sections}] : []}
             listItem={RadioListItem}
             onSelectRow={saveSelection}
@@ -62,7 +61,5 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
         />
     );
 }
-
-SageIntacctEntityPage.displayName = 'SageIntacctEntityPage';
 
 export default withPolicy(SageIntacctEntityPage);

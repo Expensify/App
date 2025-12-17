@@ -39,10 +39,11 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`, {canBeMissing: true});
 
     const employeeList = policy?.employeeList;
     const allApprovers = useMemo(() => {
@@ -97,9 +98,10 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             policy,
             hasViolations,
             isASAPSubmitBetaEnabled,
+            reportNextStep,
         );
         Navigation.dismissModal();
-    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled]);
+    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep]);
 
     const button = useMemo(() => {
         return (
@@ -123,7 +125,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
 
     return (
         <ApproverSelectionList
-            testID={ReportAddApproverPage.displayName}
+            testID="ReportAddApproverPage"
             headerTitle={translate('iou.changeApprover.actions.addApprover')}
             onBackButtonPress={() => {
                 Navigation.goBack(ROUTES.REPORT_CHANGE_APPROVER.getRoute(report.reportID), {compareParams: false});
@@ -142,7 +144,5 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         />
     );
 }
-
-ReportAddApproverPage.displayName = 'ReportAddApproverPage';
 
 export default withReportOrNotFound()(ReportAddApproverPage);

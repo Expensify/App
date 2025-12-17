@@ -114,6 +114,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                             city: 'bankCity',
                             country: '',
                         }}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                 </View>
             );
@@ -146,7 +147,5 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
         </FormProvider>
     );
 }
-
-BankAccountDetails.displayName = 'BankAccountDetails';
 
 export default BankAccountDetails;

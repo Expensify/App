@@ -8,7 +8,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -33,12 +33,12 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['LaptopOnDeskWithCoffeeAndKey', 'LockClosed', 'OpenSafe', 'ShieldYellow'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LaptopOnDeskWithCoffeeAndKey', 'LockClosed', 'OpenSafe', 'ShieldYellow']);
 
-    const accountID = route.params.accountID;
-    const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
-    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
-    const [domainSettings, domainSettingsResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {
+    const domainAccountID = route.params?.domainAccountID;
+    const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
+    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: false});
+    const [domainSettings, domainSettingsResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
         selector: domainMemberSamlSettingsSelector,
     });
@@ -75,7 +75,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
-            testID={DomainSamlPage.displayName}
+            testID="DomainSamlPage"
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
@@ -90,7 +90,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollViewWithContext
+                <ScrollView
                     keyboardShouldPersistTaps="handled"
                     addBottomSafeAreaPadding
                     style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
@@ -106,7 +106,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                     childrenStyles={[styles.gap6, styles.pt6]}
                                 >
                                     <SamlLoginSectionContent
-                                        accountID={accountID}
+                                        accountID={domainAccountID}
                                         domainName={domainName}
                                         isSamlEnabled={isSamlEnabled}
                                         isSamlRequired={isSamlRequired}
@@ -124,7 +124,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                         childrenStyles={[styles.gap6, styles.pt6]}
                                     >
                                         <SamlConfigurationDetailsSectionContent
-                                            accountID={accountID}
+                                            accountID={domainAccountID}
                                             domainName={domainName}
                                             shouldShowScimToken={isSamlRequired && !!domainSettings.oktaSCIM}
                                         />
@@ -143,7 +143,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                 ctaText={translate('domain.verifyDomain.title')}
                                 ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
                                 onCtaPress={() => {
-                                    Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(accountID));
+                                    Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID));
                                 }}
                                 illustrationBackgroundColor={colors.blue700}
                                 illustration={illustrations.LaptopOnDeskWithCoffeeAndKey}
@@ -153,12 +153,10 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                             />
                         )}
                     </View>
-                </ScrollViewWithContext>
+                </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
-
-DomainSamlPage.displayName = 'DomainSamlPage';
 
 export default DomainSamlPage;
