@@ -1,4 +1,4 @@
-import {technicalContactEmailSelector} from '@selectors/Domain';
+import {technicalContactSettingsSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -33,9 +33,9 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         canBeMissing: true,
     });
-    const [technicalContactEmail] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+    const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
-        selector: technicalContactEmailSelector,
+        selector: technicalContactSettingsSelector,
     });
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
 
@@ -60,7 +60,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 >
                     <MenuItemWithTopDescription
                         description={translate('domain.admins.primaryContact')}
-                        title={technicalContactEmail}
+                        title={technicalContactSettings?.technicalContactEmail}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
                     />
@@ -68,9 +68,9 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 <ToggleSettingOptionRow
                     wrapperStyle={[styles.mv3, styles.ph5]}
                     switchAccessibilityLabel={translate('domain.admins.consolidatedDomainBilling')}
-                    isActive={!!technicalContactEmail && !!domainSettings?.settings?.useTechnicalContactBillingCard}
-                    disabled={!technicalContactEmail}
-                    showLockIcon={!domainSettings?.settings?.technicalContactEmail}
+                    isActive={!!technicalContactSettings?.technicalContactEmail && !!technicalContactSettings?.useTechnicalContactBillingCard}
+                    disabled={!technicalContactSettings?.technicalContactEmail}
+                    showLockIcon={!technicalContactSettings?.technicalContactEmail}
                     onToggle={(value) => {
                         if (!domain?.email) {
                             return;
