@@ -91,5 +91,4 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
     );
 }
 
-EmojiPickerButton.displayName = 'EmojiPickerButton';
 export default memo(EmojiPickerButton);
