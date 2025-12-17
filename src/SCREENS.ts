@@ -95,6 +95,10 @@ const SCREENS = {
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
+        CHANGE_APPROVER: {
+            ROOT: 'Search_Change_Approver_Root',
+            ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
+        },
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
