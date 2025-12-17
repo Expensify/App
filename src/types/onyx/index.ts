@@ -32,6 +32,8 @@ import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
 import type {SamlMetadata} from './Domain';
+import type DomainErrors from './DomainErrors';
+import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
@@ -40,6 +42,7 @@ import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
@@ -165,6 +168,7 @@ export type {
     Fund,
     FundID,
     FundList,
+    GpsDraftDetails,
     IntroSelected,
     IssueNewCard,
     AddNewCompanyCardFeed,
@@ -296,4 +300,6 @@ export type {
     HybridApp,
     AppReview,
     SamlMetadata,
+    DomainErrors,
+    DomainPendingActions,
 };

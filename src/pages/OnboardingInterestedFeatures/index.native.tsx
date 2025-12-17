@@ -12,6 +12,4 @@ function OnboardingInterestedFeatures(props: OnboardingInterestedFeaturesProps) 
     );
 }
 
-OnboardingInterestedFeatures.displayName = 'OnboardingInterestedFeatures';
-
 export default OnboardingInterestedFeatures;
