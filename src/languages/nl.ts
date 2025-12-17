@@ -1035,6 +1035,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Handmatig',
         scan: 'Scannen',
         map: 'Kaart',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Een spreadsheet uploaden',

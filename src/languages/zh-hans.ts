@@ -1023,6 +1023,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: '手动',
         scan: '扫描',
         map: '地图',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: '上传电子表格',
