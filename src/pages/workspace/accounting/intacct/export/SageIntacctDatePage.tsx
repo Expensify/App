@@ -67,7 +67,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
 
     return (
         <SelectionScreen
-            displayName={SageIntacctDatePage.displayName}
+            displayName="SageIntacctDatePage"
             title="workspace.sageIntacct.exportDate.label"
             headerContent={headerContent}
             sections={[{data}]}
@@ -86,7 +86,5 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
         />
     );
 }
-
-SageIntacctDatePage.displayName = 'SageIntacctDatePage';
 
 export default withPolicyConnections(SageIntacctDatePage);

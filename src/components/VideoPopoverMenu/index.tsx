@@ -39,6 +39,5 @@ function VideoPopoverMenu({
         />
     );
 }
-VideoPopoverMenu.displayName = 'VideoPopoverMenu';
 
 export default VideoPopoverMenu;

@@ -95,5 +95,4 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
     );
 }
 
-NetSuiteTokenInputForm.displayName = 'NetSuiteTokenInputForm';
 export default NetSuiteTokenInputForm;

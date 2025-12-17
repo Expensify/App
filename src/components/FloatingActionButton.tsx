@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Icon from './Icon';
 import {PlusCircle} from './Icon/Expensicons';
 import {PressableWithFeedback, PressableWithoutFeedback} from './Pressable';
@@ -23,9 +24,8 @@ const SMALL_FAB_PATH =
     'M9.6 13.6002C9.6 14.4839 8.88366 15.2002 8 15.2002C7.11635 15.2002 6.4 14.4839 6.4 13.6002V9.6002H2.4C1.51635 9.6002 0.800003 8.88385 0.800003 8.0002C0.800003 7.11654 1.51635 6.4002 2.4 6.4002H6.4V2.4002C6.4 1.51654 7.11635 0.800196 8 0.800196C8.88366 0.800196 9.6 1.51654 9.6 2.4002V6.4002H13.6C14.4837 6.4002 15.2 7.11654 15.2 8.0002C15.2 8.88385 14.4837 9.6002 13.6 9.6002H9.6V13.6002Z';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
-AnimatedPath.displayName = 'AnimatedPath';
 
-type FloatingActionButtonProps = {
+type FloatingActionButtonProps = WithSentryLabel & {
     /* Callback to fire on request to toggle the FloatingActionButton */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
@@ -45,7 +45,7 @@ type FloatingActionButtonProps = {
     ref?: ForwardedRef<HTMLDivElement | ViewType | TextType>;
 };
 
-function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref}: FloatingActionButtonProps) {
+function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref, sentryLabel}: FloatingActionButtonProps) {
     const {buttonDefaultBG, buttonHoveredBG, icon} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
@@ -117,6 +117,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                     role={role}
                     shouldUseHapticsOnLongPress
                     testID="floating-action-button"
+                    sentryLabel={sentryLabel}
                 >
                     {({hovered}) => {
                         isHovered.set(hovered);
@@ -157,6 +158,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 styles.flex1,
             ]}
             testID="create-action-button"
+            sentryLabel={sentryLabel}
         >
             <View
                 testID="fab-container"
@@ -180,7 +182,5 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
         </PressableWithFeedback>
     );
 }
-
-FloatingActionButton.displayName = 'FloatingActionButton';
 
 export default FloatingActionButton;

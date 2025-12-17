@@ -52,6 +52,4 @@ function WorkspaceInvoicingDetailsSection({policyID}: WorkspaceInvoicingDetailsS
     );
 }
 
-WorkspaceInvoicingDetailsSection.displayName = 'WorkspaceInvoicingDetailsSection';
-
 export default WorkspaceInvoicingDetailsSection;

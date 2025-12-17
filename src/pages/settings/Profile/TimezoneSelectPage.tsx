@@ -73,7 +73,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={TimezoneSelectPage.displayName}
+            testID="TimezoneSelectPage"
         >
             <HeaderWithBackButton
                 title={translate('timezonePage.timezone')}
@@ -93,7 +93,5 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
         </ScreenWrapper>
     );
 }
-
-TimezoneSelectPage.displayName = 'TimezoneSelectPage';
 
 export default withCurrentUserPersonalDetails(TimezoneSelectPage);

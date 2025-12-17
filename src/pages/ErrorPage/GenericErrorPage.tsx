@@ -95,6 +95,4 @@ function GenericErrorPage({error}: {error?: Error}) {
     );
 }
 
-GenericErrorPage.displayName = 'ErrorPage';
-
 export default GenericErrorPage;

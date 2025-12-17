@@ -301,6 +301,7 @@ function AttachmentView({
                             }
                             setImageError(false);
                         }}
+                        sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.RETRY_BUTTON}
                     />
                 </View>
             );
@@ -381,8 +382,6 @@ function AttachmentView({
         />
     );
 }
-
-AttachmentView.displayName = 'AttachmentView';
 
 export default memo(AttachmentView);
 

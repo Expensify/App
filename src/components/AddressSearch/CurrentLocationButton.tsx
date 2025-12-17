@@ -34,6 +34,4 @@ function CurrentLocationButton({onPress, isDisabled = false}: CurrentLocationBut
     );
 }
 
-CurrentLocationButton.displayName = 'CurrentLocationButton';
-
 export default CurrentLocationButton;

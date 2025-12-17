@@ -77,5 +77,4 @@ function HelpHeader({title, onBackButtonPress, onCloseButtonPress, shouldShowBac
     );
 }
 
-HelpHeader.displayName = 'HelpHeader';
 export default HelpHeader;

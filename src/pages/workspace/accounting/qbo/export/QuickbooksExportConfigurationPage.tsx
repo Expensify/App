@@ -89,7 +89,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksExportConfigurationPage.displayName}
+            displayName="QuickbooksExportConfigurationPage"
             headerTitle="workspace.accounting.export"
             title="workspace.qbo.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -127,7 +127,5 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
         </ConnectionLayout>
     );
 }
-
-QuickbooksExportConfigurationPage.displayName = 'QuickbooksExportConfigurationPage';
 
 export default withPolicyConnections(QuickbooksExportConfigurationPage);

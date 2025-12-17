@@ -253,6 +253,4 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     );
 }
 
-BaseOnboardingWorkEmail.displayName = 'BaseOnboardingWorkEmail';
-
 export default BaseOnboardingWorkEmail;

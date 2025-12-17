@@ -92,6 +92,4 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
     );
 }
 
-ChatBubbleCell.displayName = 'ChatBubbleCell';
-
 export default ChatBubbleCell;

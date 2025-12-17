@@ -64,6 +64,4 @@ function DateTimeSelector(
     );
 }
 
-DateTimeSelector.displayName = 'DateTimeSelector';
-
 export default DateTimeSelector;

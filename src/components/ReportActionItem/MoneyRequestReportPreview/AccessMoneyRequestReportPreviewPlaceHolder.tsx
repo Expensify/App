@@ -32,6 +32,4 @@ function AccessMoneyRequestReportPreviewPlaceHolder() {
     );
 }
 
-AccessMoneyRequestReportPreviewPlaceHolder.displayName = 'AccessMoneyRequestReportPreviewPlaceHolder';
-
 export default AccessMoneyRequestReportPreviewPlaceHolder;

@@ -81,7 +81,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksExportInvoiceAccountSelectPage.displayName}
+            displayName="QuickbooksExportInvoiceAccountSelectPage"
             sections={data.length ? [{data}] : []}
             listItem={RadioListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>}
@@ -99,7 +99,5 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
         />
     );
 }
-
-QuickbooksExportInvoiceAccountSelectPage.displayName = 'QuickbooksExportInvoiceAccountSelectPage';
 
 export default withPolicyConnections(QuickbooksExportInvoiceAccountSelectPage);

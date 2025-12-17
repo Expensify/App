@@ -35,8 +35,8 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (typeof source === 'number' || !source) {
             return;
         }
-        fileDownload(addEncryptedAuthTokenToURL(source));
-    }, [source]);
+        fileDownload(translate, addEncryptedAuthTokenToURL(source));
+    }, [source, translate]);
 
     const menuItems = useMemo(() => {
         const items: PopoverMenuItem[] = [];
@@ -82,7 +82,5 @@ function useVideoPopoverMenuContext() {
     }
     return videoPopoverMenuContext;
 }
-
-VideoPopoverMenuContextProvider.displayName = 'VideoPopoverMenuContextProvider';
 
 export {VideoPopoverMenuContextProvider, useVideoPopoverMenuContext};

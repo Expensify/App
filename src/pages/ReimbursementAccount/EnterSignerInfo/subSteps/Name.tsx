@@ -55,6 +55,4 @@ function Name({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-Name.displayName = 'Name';
-
 export default Name;

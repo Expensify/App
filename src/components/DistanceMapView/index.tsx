@@ -7,6 +7,4 @@ function DistanceMapView({overlayStyle, ...rest}: DistanceMapViewProps) {
     return <MapView {...rest} />;
 }
 
-DistanceMapView.displayName = 'DistanceMapView';
-
 export default DistanceMapView;

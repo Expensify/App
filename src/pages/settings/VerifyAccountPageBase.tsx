@@ -65,7 +65,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
-                testID={VerifyAccountPageBase.displayName}
+                testID="VerifyAccountPageBase"
             >
                 <HeaderWithBackButton
                     title={translate('contacts.validateAccount')}
@@ -91,7 +91,5 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
         />
     );
 }
-
-VerifyAccountPageBase.displayName = 'VerifyAccountPageBase';
 
 export default VerifyAccountPageBase;

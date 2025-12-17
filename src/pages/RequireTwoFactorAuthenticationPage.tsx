@@ -50,7 +50,7 @@ function RequireTwoFactorAuthenticationPage() {
     }, [isUserValidated]);
 
     return (
-        <ScreenWrapper testID={RequireTwoFactorAuthenticationPage.displayName}>
+        <ScreenWrapper testID="RequireTwoFactorAuthenticationPage">
             <View style={styles.twoFARequiredContainer}>
                 <View style={[styles.twoFAIllustration, styles.alignItemsCenter]}>
                     <Icon
@@ -78,7 +78,5 @@ function RequireTwoFactorAuthenticationPage() {
         </ScreenWrapper>
     );
 }
-
-RequireTwoFactorAuthenticationPage.displayName = 'RequireTwoFactorAuthenticationPage';
 
 export default RequireTwoFactorAuthenticationPage;

@@ -176,7 +176,7 @@ function WorkspaceReportFieldsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceReportFieldsPage.displayName}
+                testID="WorkspaceReportFieldsPage"
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
@@ -332,7 +332,5 @@ function WorkspaceReportFieldsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceReportFieldsPage.displayName = 'WorkspaceReportFieldsPage';
 
 export default WorkspaceReportFieldsPage;

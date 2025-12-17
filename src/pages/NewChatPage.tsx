@@ -449,7 +449,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
-            testID={NewChatPage.displayName}
+            testID="NewChatPage"
         >
             <SelectionList<Option & ListItem>
                 ref={selectionListRef}
@@ -478,7 +478,5 @@ function NewChatPage({ref}: NewChatPageProps) {
         </ScreenWrapper>
     );
 }
-
-NewChatPage.displayName = 'NewChatPage';
 
 export default NewChatPage;

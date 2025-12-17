@@ -37,6 +37,4 @@ function FullPageOfflineBlockingView({children, addBottomSafeAreaPadding = true,
     return children;
 }
 
-FullPageOfflineBlockingView.displayName = 'FullPageOfflineBlockingView';
-
 export default FullPageOfflineBlockingView;

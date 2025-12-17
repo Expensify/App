@@ -93,6 +93,4 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
     );
 }
 
-ReportActionItemThread.displayName = 'ReportActionItemThread';
-
 export default ReportActionItemThread;

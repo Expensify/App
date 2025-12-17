@@ -152,6 +152,4 @@ function useSearchRouterContext() {
     return useContext(Context);
 }
 
-SearchRouterContextProvider.displayName = 'SearchRouterContextProvider';
-
 export {SearchRouterContextProvider, useSearchRouterContext};

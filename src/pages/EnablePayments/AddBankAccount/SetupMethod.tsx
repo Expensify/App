@@ -56,6 +56,4 @@ function SetupMethod() {
     );
 }
 
-SetupMethod.displayName = 'SetupMethod';
-
 export default SetupMethod;

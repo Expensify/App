@@ -69,6 +69,4 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     );
 }
 
-SearchRejectReasonPage.displayName = 'SearchRejectReasonPage';
-
 export default SearchRejectReasonPage;

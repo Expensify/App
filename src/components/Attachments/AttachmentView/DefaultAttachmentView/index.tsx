@@ -73,6 +73,4 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
     );
 }
 
-DefaultAttachmentView.displayName = 'DefaultAttachmentView';
-
 export default DefaultAttachmentView;

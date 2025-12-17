@@ -62,5 +62,4 @@ function ExpiredValidateCodeModal() {
     );
 }
 
-ExpiredValidateCodeModal.displayName = 'ExpiredValidateCodeModal';
 export default ExpiredValidateCodeModal;

@@ -34,7 +34,7 @@ function ReportVirtualCardFraudConfirmationPage({
             includeSafeAreaPaddingBottom
             includePaddingTop
             shouldEnableMaxHeight
-            testID={ReportVirtualCardFraudConfirmationPage.displayName}
+            testID="ReportVirtualCardFraudConfirmationPage"
             offlineIndicatorStyle={themeStyles.mtAuto}
         >
             <HeaderWithBackButton
@@ -69,7 +69,5 @@ function ReportVirtualCardFraudConfirmationPage({
         </ScreenWrapper>
     );
 }
-
-ReportVirtualCardFraudConfirmationPage.displayName = 'ReportVirtualCardFraudConfirmationPage';
 
 export default ReportVirtualCardFraudConfirmationPage;

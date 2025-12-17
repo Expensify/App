@@ -34,6 +34,4 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
     );
 }
 
-SupportalPermissionDeniedModalProvider.displayName = 'SupportalPermissionDeniedModalProvider';
-
 export default SupportalPermissionDeniedModalProvider;

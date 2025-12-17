@@ -47,9 +47,10 @@ function CategoryRequireReceiptsOverPage({
     const requireReceiptsOverListData = [
         {
             value: null,
-            text: translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
-                defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-            }),
+            text: translate(
+                `workspace.rules.categoryRules.requireReceiptsOverList.default`,
+                convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+            ),
             keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT,
             isSelected: !isAlwaysSelected && !isNeverSelected,
         },
@@ -78,7 +79,7 @@ function CategoryRequireReceiptsOverPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryRequireReceiptsOverPage.displayName}
+                testID="CategoryRequireReceiptsOverPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -105,7 +106,5 @@ function CategoryRequireReceiptsOverPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryRequireReceiptsOverPage.displayName = 'CategoryRequireReceiptsOverPage';
 
 export default CategoryRequireReceiptsOverPage;

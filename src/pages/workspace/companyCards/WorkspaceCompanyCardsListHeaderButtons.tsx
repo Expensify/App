@@ -185,6 +185,4 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     );
 }
 
-WorkspaceCompanyCardsListHeaderButtons.displayName = 'WorkspaceCompanyCardsListHeaderButtons';
-
 export default WorkspaceCompanyCardsListHeaderButtons;

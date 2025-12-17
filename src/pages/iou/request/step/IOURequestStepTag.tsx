@@ -159,7 +159,7 @@ function IOURequestStepTag({
             headerTitle={policyTagListName}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepTag.displayName}
+            testID="IOURequestStepTag"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             {!shouldShowTag && (
@@ -209,7 +209,5 @@ function IOURequestStepTag({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepTag.displayName = 'IOURequestStepTag';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepTag));

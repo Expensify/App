@@ -55,7 +55,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesAutoPayReportsUnderPage.displayName}
+                testID="RulesAutoPayReportsUnderPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
@@ -92,7 +92,5 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesAutoPayReportsUnderPage.displayName = 'RulesAutoPayReportsUnderPage';
 
 export default RulesAutoPayReportsUnderPage;

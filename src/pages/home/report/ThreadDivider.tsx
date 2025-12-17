@@ -69,5 +69,4 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
     );
 }
 
-ThreadDivider.displayName = 'ThreadDivider';
 export default ThreadDivider;

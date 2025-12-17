@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Shortcut} from '@libs/KeyboardShortcut';
 import type CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type StylePropWithFunction = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
 
@@ -39,7 +40,8 @@ type RequiredAccessibilityLabel =
 
 type PressableProps = RNPressableProps &
     RequiredAccessibilityLabel &
-    ForwardedFSClassProps & {
+    ForwardedFSClassProps &
+    WithSentryLabel & {
         /**
          * onPress callback
          */
@@ -155,11 +157,6 @@ type PressableProps = RNPressableProps &
          * Whether the pressable is nested in another one.
          */
         isNested?: boolean;
-
-        /**
-         * Label for Sentry tracking. On web, this will be added as data-sentry-label attribute.
-         */
-        sentryLabel?: string;
 
         /**
          * Reference to the outer element.

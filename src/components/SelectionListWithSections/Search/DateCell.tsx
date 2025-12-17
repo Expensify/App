@@ -24,5 +24,4 @@ function DateCell({date, showTooltip, isLargeScreenWidth}: DateCellProps) {
     );
 }
 
-DateCell.displayName = 'DateCell';
 export default DateCell;

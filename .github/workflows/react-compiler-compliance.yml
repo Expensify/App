@@ -25,10 +25,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Run React Compiler Compliance Check
-        # In phase 0 of the React Compiler compliance check rollout,
-        # we want to report failures but don't fail the check.
-        # See https://github.com/Expensify/App/issues/68765#issuecomment-3487317881
-        run: npm run react-compiler-compliance-check check-changed -- --filterByDiff --enforceNewComponents
+        run: npm run react-compiler-compliance-check check-changed
         env:
           CI: true
           GITHUB_TOKEN: ${{ github.token }}

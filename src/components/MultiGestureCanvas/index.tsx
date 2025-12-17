@@ -294,7 +294,6 @@ function MultiGestureCanvas({
         </View>
     );
 }
-MultiGestureCanvas.displayName = 'MultiGestureCanvas';
 
 export default MultiGestureCanvas;
 export {DEFAULT_ZOOM_RANGE};

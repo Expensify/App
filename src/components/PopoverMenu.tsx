@@ -583,8 +583,6 @@ function BasePopoverMenu({
     );
 }
 
-PopoverMenu.displayName = 'PopoverMenu';
-
 export default React.memo(
     PopoverMenu,
     (prevProps, nextProps) =>

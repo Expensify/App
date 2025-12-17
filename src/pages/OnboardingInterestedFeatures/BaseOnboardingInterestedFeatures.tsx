@@ -372,6 +372,4 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     );
 }
 
-BaseOnboardingInterestedFeatures.displayName = 'BaseOnboardingInterestedFeatures';
-
 export default BaseOnboardingInterestedFeatures;

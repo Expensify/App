@@ -86,5 +86,4 @@ function CustomSegmentNameStep({customSegmentType, onNext, isEditing, customSegm
     );
 }
 
-CustomSegmentNameStep.displayName = 'CustomSegmentNameStep';
 export default CustomSegmentNameStep;

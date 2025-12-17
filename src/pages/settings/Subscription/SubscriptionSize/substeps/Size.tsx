@@ -81,6 +81,4 @@ function Size({onNext}: SizeProps) {
     );
 }
 
-Size.displayName = 'SizeStep';
-
 export default Size;

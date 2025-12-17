@@ -54,6 +54,4 @@ function HoldMenuSectionList() {
     );
 }
 
-HoldMenuSectionList.displayName = 'HoldMenuSectionList';
-
 export default HoldMenuSectionList;

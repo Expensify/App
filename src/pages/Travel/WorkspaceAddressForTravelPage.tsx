@@ -57,6 +57,4 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
     );
 }
 
-WorkspaceAddressForTravelPage.displayName = 'WorkspaceAddressForTravelPage';
-
 export default WorkspaceAddressForTravelPage;

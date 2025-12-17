@@ -43,5 +43,4 @@ function WorkspacesEmptyStateComponent() {
     );
 }
 
-WorkspacesEmptyStateComponent.displayName = 'WorkspacesEmptyStateComponent';
 export default WorkspacesEmptyStateComponent;

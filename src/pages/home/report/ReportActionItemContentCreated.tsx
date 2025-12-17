@@ -210,8 +210,6 @@ function ReportActionItemContentCreated({
     );
 }
 
-ReportActionItemContentCreated.displayName = 'ReportActionItemContentCreated';
-
 export default memo(
     ReportActionItemContentCreated,
     (prevProps, nextProps) =>

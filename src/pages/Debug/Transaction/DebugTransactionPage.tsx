@@ -103,7 +103,7 @@ function DebugTransactionPage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugTransactionPage.displayName}
+            testID="DebugTransactionPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -120,7 +120,5 @@ function DebugTransactionPage({
         </ScreenWrapper>
     );
 }
-
-DebugTransactionPage.displayName = 'DebugTransactionPage';
 
 export default DebugTransactionPage;

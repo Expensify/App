@@ -33,6 +33,4 @@ function MoneyReportHeaderStatusBarSkeleton() {
     );
 }
 
-MoneyReportHeaderStatusBarSkeleton.displayName = 'MoneyReportHeaderStatusBarSkeleton';
-
 export default MoneyReportHeaderStatusBarSkeleton;

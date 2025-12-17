@@ -833,6 +833,4 @@ function MoneyRequestReportActionsList({
     );
 }
 
-MoneyRequestReportActionsList.displayName = 'MoneyRequestReportActionsList';
-
 export default MoneyRequestReportActionsList;

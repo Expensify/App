@@ -103,6 +103,4 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
     );
 }
 
-Address.displayName = 'Address';
-
 export default Address;

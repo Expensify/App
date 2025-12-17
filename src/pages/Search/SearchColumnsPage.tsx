@@ -86,7 +86,7 @@ function SearchColumnsPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchColumnsPage.displayName}
+            testID="SearchColumnsPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -126,7 +126,5 @@ function SearchColumnsPage() {
         </ScreenWrapper>
     );
 }
-
-SearchColumnsPage.displayName = 'SearchColumnsPage';
 
 export default SearchColumnsPage;

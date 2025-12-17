@@ -22,7 +22,7 @@ function ImTeacherUpdateEmailPage() {
     const contactMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(ROUTES.I_AM_A_TEACHER)}`;
 
     return (
-        <ScreenWrapper testID={ImTeacherUpdateEmailPage.displayName}>
+        <ScreenWrapper testID="ImTeacherUpdateEmailPage">
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iAmATeacher')}
                 onBackButtonPress={() => Navigation.goBack()}
@@ -34,7 +34,7 @@ function ImTeacherUpdateEmailPage() {
                 title={translate('teachersUnitePage.updateYourEmail')}
                 CustomSubtitle={
                     <Text style={[styles.textAlignCenter]}>
-                        <RenderHTML html={translate('teachersUnitePage.schoolMailAsDefault', {contactMethodsRoute})} />
+                        <RenderHTML html={translate('teachersUnitePage.schoolMailAsDefault', contactMethodsRoute)} />
                     </Text>
                 }
                 iconWidth={variables.signInLogoWidthLargeScreen}
@@ -52,7 +52,5 @@ function ImTeacherUpdateEmailPage() {
         </ScreenWrapper>
     );
 }
-
-ImTeacherUpdateEmailPage.displayName = 'ImTeacherUpdateEmailPage';
 
 export default ImTeacherUpdateEmailPage;

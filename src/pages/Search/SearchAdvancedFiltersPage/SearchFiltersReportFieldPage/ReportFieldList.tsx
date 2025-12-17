@@ -84,6 +84,4 @@ function ReportFieldList({field, close}: ReportFieldListProps) {
     );
 }
 
-ReportFieldList.displayName = 'SearchFiltersReportFieldPage';
-
 export default ReportFieldList;

@@ -140,7 +140,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         <ScreenWrapper
             shouldEnableMaxHeight
             shouldUseCachedViewportHeight
-            testID={ImportedMembersConfirmationPage.displayName}
+            testID="ImportedMembersConfirmationPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -220,7 +220,5 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         </ScreenWrapper>
     );
 }
-
-ImportedMembersConfirmationPage.displayName = 'ImportedMembersConfirmationPage';
 
 export default ImportedMembersConfirmationPage;

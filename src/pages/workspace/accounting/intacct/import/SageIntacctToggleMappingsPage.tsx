@@ -73,7 +73,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctToggleMappingsPage.displayName}
+            displayName="SageIntacctToggleMappingsPage"
             headerTitleAlreadyTranslated={Str.recapitalize(translate('workspace.intacct.mappingTitle', {mappingName}))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -124,7 +124,5 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
         </ConnectionLayout>
     );
 }
-
-SageIntacctToggleMappingsPage.displayName = 'SageIntacctToggleMappingsPage';
 
 export default SageIntacctToggleMappingsPage;

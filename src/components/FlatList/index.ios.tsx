@@ -73,5 +73,4 @@ function CustomFlatList<T>({
     );
 }
 
-CustomFlatList.displayName = 'CustomFlatList';
 export default CustomFlatList;

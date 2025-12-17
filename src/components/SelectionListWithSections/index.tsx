@@ -111,6 +111,4 @@ function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHide
     );
 }
 
-SelectionListWithSections.displayName = 'SelectionListWithSections';
-
 export default SelectionListWithSections;

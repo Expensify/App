@@ -24,6 +24,4 @@ function ExitSurveyOffline() {
     );
 }
 
-ExitSurveyOffline.displayName = 'ExitSurveyOffline';
-
 export default memo(ExitSurveyOffline);

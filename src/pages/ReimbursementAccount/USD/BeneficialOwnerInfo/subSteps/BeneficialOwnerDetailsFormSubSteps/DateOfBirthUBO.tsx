@@ -42,6 +42,4 @@ function DateOfBirthUBO({onNext, onMove, isEditing, beneficialOwnerBeingModified
     );
 }
 
-DateOfBirthUBO.displayName = 'DateOfBirthUBO';
-
 export default DateOfBirthUBO;

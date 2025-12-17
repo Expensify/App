@@ -18,6 +18,4 @@ function DraggableList<T>({ref, ...viewProps}: DraggableListProps<T> & {ref?: Re
     );
 }
 
-DraggableList.displayName = 'DraggableList';
-
 export default DraggableList;

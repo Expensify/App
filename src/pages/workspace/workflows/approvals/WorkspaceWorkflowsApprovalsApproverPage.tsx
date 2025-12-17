@@ -178,7 +178,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <ApproverSelectionList
-                testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}
+                testID="WorkspaceWorkflowsApprovalsApproverPage"
                 headerTitle={translate('workflowsPage.approver')}
                 subtitle={subtitle}
                 isLoadingReportData={isLoadingReportData}
@@ -195,7 +195,5 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceWorkflowsApprovalsApproverPage.displayName = 'WorkspaceWorkflowsApprovalsApproverPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsApproverPage);

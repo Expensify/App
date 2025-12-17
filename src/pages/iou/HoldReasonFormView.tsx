@@ -38,7 +38,7 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1}: Hold
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={HoldReasonFormView.displayName}
+            testID="HoldReasonFormView"
         >
             <HeaderWithBackButton
                 title={translate('iou.holdExpense', {count: expenseCount})}
@@ -70,7 +70,5 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1}: Hold
         </ScreenWrapper>
     );
 }
-
-HoldReasonFormView.displayName = 'HoldReasonFormViewProps';
 
 export default HoldReasonFormView;

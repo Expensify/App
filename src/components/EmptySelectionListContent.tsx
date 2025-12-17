@@ -49,6 +49,4 @@ function EmptySelectionListContent({contentType}: EmptySelectionListContentProps
     );
 }
 
-EmptySelectionListContent.displayName = 'EmptySelectionListContent';
-
 export default EmptySelectionListContent;

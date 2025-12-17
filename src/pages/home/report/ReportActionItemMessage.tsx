@@ -200,6 +200,4 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     );
 }
 
-ReportActionItemMessage.displayName = 'ReportActionItemMessage';
-
 export default ReportActionItemMessage;

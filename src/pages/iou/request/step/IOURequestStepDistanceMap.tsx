@@ -579,7 +579,7 @@ function IOURequestStepDistanceMap({
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
-            testID={IOURequestStepDistanceMap.displayName}
+            testID="IOURequestStepDistanceMap"
             shouldShowNotFoundPage={(isEditing && !transaction?.comment?.waypoints) || shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
@@ -625,8 +625,6 @@ function IOURequestStepDistanceMap({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepDistanceMap.displayName = 'IOURequestStepDistanceMap';
 
 const IOURequestStepDistanceMapWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceMap);
 // eslint-disable-next-line rulesdir/no-negated-variables

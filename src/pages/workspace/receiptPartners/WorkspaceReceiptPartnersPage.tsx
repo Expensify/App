@@ -251,7 +251,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                 />
             ) : (
                 <ScreenWrapper
-                    testID={WorkspaceReceiptPartnersPage.displayName}
+                    testID="WorkspaceReceiptPartnersPage"
                     shouldShowOfflineIndicatorInWideScreen
                 >
                     <HeaderWithBackButton
@@ -354,7 +354,5 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceReceiptPartnersPage.displayName = 'WorkspaceReceiptPartnersPage';
 
 export default WorkspaceReceiptPartnersPage;

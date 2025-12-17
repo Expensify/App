@@ -16,6 +16,4 @@ function Balance({textStyles, balance}: BalanceProps) {
     return <Text style={[styles.textHeadline, styles.textXXXLarge, textStyles]}>{formattedBalance}</Text>;
 }
 
-Balance.displayName = 'Balance';
-
 export default Balance;

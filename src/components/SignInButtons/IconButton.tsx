@@ -56,6 +56,4 @@ function IconButton({onPress = () => {}, provider}: IconButtonProps) {
     );
 }
 
-IconButton.displayName = 'IconButton';
-
 export default IconButton;

@@ -36,6 +36,4 @@ function Docusign({onBackButtonPress, onSubmit, currency}: DocusignProps) {
     );
 }
 
-Docusign.displayName = 'Docusign';
-
 export default Docusign;

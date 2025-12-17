@@ -52,12 +52,10 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                     }
                 })}
                 style={styles.flex1}
-                sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.TASK_ACTION_BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.TASK.HEADER_ACTION_BUTTON}
             />
         </View>
     );
 }
-
-TaskHeaderActionButton.displayName = 'TaskHeaderActionButton';
 
 export default TaskHeaderActionButton;

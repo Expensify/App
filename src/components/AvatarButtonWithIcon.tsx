@@ -138,7 +138,5 @@ function AvatarButtonWithIcon({
     );
 }
 
-AvatarButtonWithIcon.displayName = 'AvatarButtonWithIcon';
-
 export default AvatarButtonWithIcon;
 export type {AvatarButtonWithIconProps};

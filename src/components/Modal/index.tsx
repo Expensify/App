@@ -105,5 +105,4 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     );
 }
 
-Modal.displayName = 'Modal';
 export default Modal;

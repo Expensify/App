@@ -179,7 +179,5 @@ function CardListItem<TItem extends ListItem>({
     );
 }
 
-CardListItem.displayName = 'CardListItem';
-
 export default CardListItem;
 export type {AdditionalCardProps};

@@ -230,6 +230,4 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     );
 }
 
-WorkspaceCompanyCardsPage.displayName = 'WorkspaceCompanyCardsPage';
-
 export default WorkspaceCompanyCardsPage;

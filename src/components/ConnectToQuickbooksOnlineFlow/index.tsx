@@ -18,6 +18,4 @@ function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlow
     return null;
 }
 
-ConnectToQuickbooksOnlineFlow.displayName = 'ConnectToQuickbooksOnlineFlow';
-
 export default ConnectToQuickbooksOnlineFlow;

@@ -73,6 +73,7 @@ function EmojiPickerButtonDropdown(
                 id="emojiDropdownButton"
                 accessibilityLabel="statusEmoji"
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.BUTTON_DROPDOWN}
             >
                 {({hovered, pressed}) => (
                     <View style={styles.emojiPickerButtonDropdownContainer}>
@@ -102,7 +103,5 @@ function EmojiPickerButtonDropdown(
         </Tooltip>
     );
 }
-
-EmojiPickerButtonDropdown.displayName = 'EmojiPickerButtonDropdown';
 
 export default EmojiPickerButtonDropdown;

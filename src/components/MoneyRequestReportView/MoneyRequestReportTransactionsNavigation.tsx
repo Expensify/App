@@ -183,6 +183,4 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     );
 }
 
-MoneyRequestReportTransactionsNavigation.displayName = 'MoneyRequestReportTransactionsNavigation';
-
 export default MoneyRequestReportTransactionsNavigation;

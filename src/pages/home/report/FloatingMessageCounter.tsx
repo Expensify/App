@@ -89,6 +89,4 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
     );
 }
 
-FloatingMessageCounter.displayName = 'FloatingMessageCounter';
-
 export default React.memo(FloatingMessageCounter);

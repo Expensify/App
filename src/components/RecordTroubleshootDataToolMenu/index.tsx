@@ -67,6 +67,4 @@ function RecordTroubleshootDataToolMenu() {
     );
 }
 
-RecordTroubleshootDataToolMenu.displayName = 'RecordTroubleshootDataToolMenu';
-
 export default RecordTroubleshootDataToolMenu;

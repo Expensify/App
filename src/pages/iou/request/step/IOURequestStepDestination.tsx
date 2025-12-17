@@ -148,7 +148,7 @@ function IOURequestStepDestination({
         <ScreenWrapper
             includePaddingTop={false}
             keyboardVerticalOffset={keyboardVerticalOffset}
-            testID={`${IOURequestStepDestination.displayName}-container`}
+            testID="IOURequestStepDestination-container"
             shouldShowOfflineIndicator={false}
         >
             <StepScreenWrapper
@@ -156,7 +156,7 @@ function IOURequestStepDestination({
                 onBackButtonPress={navigateBack}
                 shouldShowWrapper={!openedFromStartPage}
                 shouldShowNotFoundPage={shouldShowNotFoundPage}
-                testID={IOURequestStepDestination.displayName}
+                testID="IOURequestStepDestination"
             >
                 {isLoading && (
                     <ActivityIndicator
@@ -204,8 +204,6 @@ function IOURequestStepDestination({
         </ScreenWrapper>
     );
 }
-
-IOURequestStepDestination.displayName = 'IOURequestStepDestination';
 
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepDestinationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDestination);

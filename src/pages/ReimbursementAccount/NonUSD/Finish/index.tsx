@@ -35,7 +35,7 @@ function Finish() {
 
     return (
         <ScreenWrapper
-            testID={Finish.displayName}
+            testID="Finish"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -86,7 +86,5 @@ function Finish() {
         </ScreenWrapper>
     );
 }
-
-Finish.displayName = 'Finish';
 
 export default Finish;

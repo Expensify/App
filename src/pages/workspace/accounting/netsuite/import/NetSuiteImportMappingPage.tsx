@@ -98,7 +98,7 @@ function NetSuiteImportMappingPage({
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteImportMappingPage.displayName}
+            displayName="NetSuiteImportMappingPage"
             sections={[{data: inputSectionData}]}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
@@ -115,7 +115,5 @@ function NetSuiteImportMappingPage({
         />
     );
 }
-
-NetSuiteImportMappingPage.displayName = 'NetSuiteImportMappingPage';
 
 export default withPolicyConnections(NetSuiteImportMappingPage);

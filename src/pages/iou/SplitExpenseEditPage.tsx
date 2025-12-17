@@ -125,7 +125,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
     return (
-        <ScreenWrapper testID={SplitExpenseEditPage.displayName}>
+        <ScreenWrapper testID="SplitExpenseEditPage">
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction) || !isSplitAvailable}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
@@ -283,6 +283,5 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         </ScreenWrapper>
     );
 }
-SplitExpenseEditPage.displayName = 'SplitExpenseEditPage';
 
 export default SplitExpenseEditPage;

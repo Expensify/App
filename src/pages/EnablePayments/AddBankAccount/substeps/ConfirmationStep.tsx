@@ -69,6 +69,4 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
     );
 }
 
-ConfirmationStep.displayName = 'ConfirmationStep';
-
 export default ConfirmationStep;

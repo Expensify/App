@@ -270,7 +270,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
-            <ScreenWrapper testID={EditInviteReceiptPartnerPolicyPage.displayName}>
+            <ScreenWrapper testID="EditInviteReceiptPartnerPolicyPage">
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.manageInvites')}
                     onBackButtonPress={() => {
@@ -332,7 +332,5 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         </AccessOrNotFoundWrapper>
     );
 }
-
-EditInviteReceiptPartnerPolicyPage.displayName = 'EditInviteReceiptPartnerPolicyPage';
 
 export default EditInviteReceiptPartnerPolicyPage;

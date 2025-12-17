@@ -276,7 +276,5 @@ function MoneyRequestAmountForm({
     );
 }
 
-MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
-
 export default MoneyRequestAmountForm;
 export type {CurrentMoney, MoneyRequestAmountFormProps};

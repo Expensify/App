@@ -198,7 +198,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            testID={ImportSpreadsheet.displayName}
+            testID="ImportSpreadsheet"
             shouldEnableMaxHeight={canUseTouchScreen()}
             headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
         >
@@ -257,7 +257,5 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
         </ScreenWrapper>
     );
 }
-
-ImportSpreadsheet.displayName = 'ImportSpreadsheet';
 
 export default ImportSpreadsheet;

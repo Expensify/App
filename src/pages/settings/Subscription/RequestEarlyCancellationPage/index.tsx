@@ -109,7 +109,7 @@ function RequestEarlyCancellationPage() {
 
     return (
         <ScreenWrapper
-            testID={RequestEarlyCancellationPage.displayName}
+            testID="RequestEarlyCancellationPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -125,7 +125,5 @@ function RequestEarlyCancellationPage() {
         </ScreenWrapper>
     );
 }
-
-RequestEarlyCancellationPage.displayName = 'RequestEarlyCancellationPage';
 
 export default RequestEarlyCancellationPage;

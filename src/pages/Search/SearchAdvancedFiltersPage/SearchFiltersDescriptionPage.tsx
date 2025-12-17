@@ -7,12 +7,10 @@ function SearchFiltersDescriptionPage() {
         <SearchFiltersTextBase
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION}
             titleKey="common.description"
-            testID={SearchFiltersDescriptionPage.displayName}
+            testID="SearchFiltersDescriptionPage"
             characterLimit={CONST.DESCRIPTION_LIMIT}
         />
     );
 }
-
-SearchFiltersDescriptionPage.displayName = 'SearchFiltersDescriptionPage';
 
 export default SearchFiltersDescriptionPage;

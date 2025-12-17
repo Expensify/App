@@ -68,6 +68,4 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashS
     );
 }
 
-SplashScreenHider.displayName = 'SplashScreenHider';
-
 export default SplashScreenHider;

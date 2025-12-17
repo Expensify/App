@@ -48,6 +48,4 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     );
 }
 
-WorkspaceInvoicesPage.displayName = 'WorkspaceInvoicesPage';
-
 export default WorkspaceInvoicesPage;

@@ -83,7 +83,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksDesktopCompanyCardExpenseAccountSelectPage.displayName}
+            displayName="QuickbooksDesktopCompanyCardExpenseAccountSelectPage"
             headerTitleAlreadyTranslated={getQBDNonReimbursableExportAccountType(translate, nonReimbursable)}
             headerContent={nonReimbursable ? <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbd.accounts.${nonReimbursable}AccountDescription`)}</Text> : null}
             sections={data.length ? [{data}] : []}
@@ -101,7 +101,5 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
         />
     );
 }
-
-QuickbooksDesktopCompanyCardExpenseAccountSelectPage.displayName = 'QuickbooksDesktopCompanyCardExpenseAccountSelectPage';
 
 export default withPolicyConnections(QuickbooksDesktopCompanyCardExpenseAccountSelectPage);

@@ -498,6 +498,4 @@ function SuggestionMention({
     );
 }
 
-SuggestionMention.displayName = 'SuggestionMention';
-
 export default SuggestionMention;
