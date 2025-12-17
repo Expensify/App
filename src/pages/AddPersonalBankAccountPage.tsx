@@ -63,7 +63,7 @@ function AddPersonalBankAccountPage() {
                 includeSafeAreaPaddingBottom={shouldShowSuccess}
                 shouldEnablePickerAvoiding={false}
                 shouldShowOfflineIndicator={false}
-                testID='AddPersonalBankAccountPage'
+                testID="AddPersonalBankAccountPage"
             >
                 <FullPageNotFoundView>
                     <HeaderWithBackButton
