@@ -7,14 +7,15 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
@@ -150,8 +151,26 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
-    const [modalVisible, setModalVisible] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
+    const {showConfirmModal} = useConfirmModal();
+
+    const showRedirectToExpensifyClassicModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
+            prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
+            confirmText: translate('exitSurvey.goToExpensifyClassic'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            if (CONFIG.IS_HYBRID_APP) {
+                closeReactNativeApp({shouldSetNVP: true});
+                return;
+            }
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+        });
+    }, [showConfirmModal, translate]);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
@@ -303,14 +322,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const startScan = useCallback(() => {
         interceptAnonymousUser(() => {
             if (shouldRedirectToExpensifyClassic) {
-                setModalVisible(true);
+                showRedirectToExpensifyClassicModal();
                 return;
             }
 
             // Start the scan flow directly
             startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, allTransactionDrafts);
         });
-    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts, reportID]);
+    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts, reportID, showRedirectToExpensifyClassicModal]);
 
     const startQuickScan = useCallback(() => {
         interceptAnonymousUser(() => {
@@ -401,7 +420,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 onSelected: () =>
                     interceptAnonymousUser(() => {
                         if (shouldRedirectToExpensifyClassic) {
-                            setModalVisible(true);
+                            showRedirectToExpensifyClassicModal();
                             return;
                         }
                         startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, allTransactionDrafts);
@@ -409,7 +428,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE,
             },
         ];
-    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID]);
+    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID, showRedirectToExpensifyClassicModal]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -546,7 +565,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             onSelected: () => {
                 interceptAnonymousUser(() => {
                     if (shouldRedirectToExpensifyClassic) {
-                        setModalVisible(true);
+                        showRedirectToExpensifyClassicModal();
                         return;
                     }
                     // Start the flow to start tracking a distance request
@@ -564,7 +583,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                       onSelected: () => {
                           interceptAnonymousUser(() => {
                               if (shouldRedirectToExpensifyClassic) {
-                                  setModalVisible(true);
+                                  showRedirectToExpensifyClassicModal();
                                   return;
                               }
 
@@ -609,7 +628,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                       onSelected: () =>
                           interceptAnonymousUser(() => {
                               if (shouldRedirectToExpensifyClassic) {
-                                  setModalVisible(true);
+                                  showRedirectToExpensifyClassicModal();
                                   return;
                               }
 
@@ -683,22 +702,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     };
                 })}
                 anchorRef={fabRef}
-            />
-            <ConfirmModal
-                prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
-                isVisible={modalVisible}
-                onConfirm={() => {
-                    setModalVisible(false);
-                    if (CONFIG.IS_HYBRID_APP) {
-                        closeReactNativeApp({shouldSetNVP: true});
-                        return;
-                    }
-                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                }}
-                onCancel={() => setModalVisible(false)}
-                title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
-                confirmText={translate('exitSurvey.goToExpensifyClassic')}
-                cancelText={translate('common.cancel')}
             />
             {!shouldUseNarrowLayout && (
                 <FloatingReceiptButton

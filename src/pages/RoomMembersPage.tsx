@@ -5,11 +5,12 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useConfirmModal from '@hooks/useConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
@@ -59,7 +60,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
-    const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
@@ -132,18 +133,35 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
      * Remove selected users from the room
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
-    const removeUsers = () => {
+    const removeUsers = useCallback(() => {
         if (report) {
             removeFromRoom(report.reportID, selectedMembers);
         }
         setSearchValue('');
-        setRemoveMembersConfirmModalVisible(false);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedMembers([]);
             clearUserSearchPhrase();
         });
-    };
+    }, [report, selectedMembers, setSelectedMembers]);
+
+    const showRemoveMembersModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
+            prompt: translate('roomMembersPage.removeMembersPrompt', {
+                count: selectedMembers.length,
+                memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
+            }),
+            confirmText: translate('common.remove'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            removeUsers();
+        });
+    }, [showConfirmModal, translate, selectedMembers, formatPhoneNumber, currentUserAccountID, removeUsers]);
 
     /**
      * Add user from the selectedMembers list
@@ -319,11 +337,11 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: icons.RemoveMembers,
-                onSelected: () => setRemoveMembersConfirmModalVisible(true),
+                onSelected: showRemoveMembersModal,
             },
         ];
         return options;
-    }, [icons.RemoveMembers, translate, selectedMembers.length]);
+    }, [icons.RemoveMembers, translate, selectedMembers.length, showRemoveMembersModal]);
 
     const headerButtons = useMemo(() => {
         return (
@@ -417,26 +435,12 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                     }}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
-                <ConfirmModal
-                    danger
-                    title={translate('workspace.people.removeMembersTitle', {count: selectedMembers.length})}
-                    isVisible={removeMembersConfirmModalVisible}
-                    onConfirm={removeUsers}
-                    onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={translate('roomMembersPage.removeMembersPrompt', {
-                        count: selectedMembers.length,
-                        memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
-                    })}
-                    confirmText={translate('common.remove')}
-                    cancelText={translate('common.cancel')}
-                />
                 <View style={[styles.w100, styles.mt3, styles.flex1]}>
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         sections={[{data, isDisabled: false}]}
                         shouldShowTextInput={shouldShowTextInput}
                         textInputLabel={translate('selectionList.findMember')}
-                        disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         textInputValue={searchValue}
                         onChangeText={setSearchValue}
                         headerMessage={headerMessage}
