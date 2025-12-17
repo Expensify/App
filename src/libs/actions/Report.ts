@@ -1973,6 +1973,9 @@ function handlePreexistingReport(report: Report) {
 
         const isParentOneTransactionReport = isOneTransactionReport(parentReport);
 
+        // If the parent report is a one transaction report, we want to copy the draft comment to the one transaction report instead of the preexisting thread report
+        const reportToCopyDraftTo = !!parentReportID && isParentOneTransactionReport ? parentReportID : preexistingReportID;
+
         // Only re-route them if they are still looking at the optimistically created report
         const activeRoute = Navigation.getActiveRoute();
         if (activeRoute.includes(`/r/${reportID}`) || activeRoute.includes(`/search/view/${reportID}`)) {
@@ -1999,6 +2002,7 @@ function handlePreexistingReport(report: Report) {
             // This will allow the newest draft comment to be transferred to the existing report
             DeviceEventEmitter.emit(`switchToPreExistingReport_${reportID}`, {
                 preexistingReportID,
+                reportToCopyDraftTo,
                 callback,
             });
 
@@ -2016,8 +2020,6 @@ function handlePreexistingReport(report: Report) {
         // after that clear the optimistically created report
         const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
 
-        // If the parent report is a one transaction report, we want to copy the draft comment to the one transaction report instead of the preexisting thread report
-        const reportToCopyDraftTo = !!parentReportID && isParentOneTransactionReport ? parentReportID : preexistingReportID;
         if (!draftReportComment) {
             callback();
             return;
