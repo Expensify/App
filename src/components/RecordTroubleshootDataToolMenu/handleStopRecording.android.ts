@@ -1,4 +1,5 @@
 import RNFetchBlob from 'react-native-blob-util';
+import finalizeStopRecording from './finalizeStopRecording';
 import type StopRecordingParams from './handleStopRecording.types';
 
 export default async function handleStopRecording({
@@ -24,9 +25,13 @@ export default async function handleStopRecording({
         }
     }
 
-    zipRef.current?.file(infoFileName, appInfo);
-
-    await onDisableLogging(logsWithParsedMessages);
-    cleanupAfterDisable();
-    onDownloadZip?.();
+    await finalizeStopRecording({
+        infoFileName,
+        appInfo,
+        logsWithParsedMessages,
+        onDisableLogging,
+        cleanupAfterDisable,
+        zipRef,
+        onDownloadZip,
+    });
 }

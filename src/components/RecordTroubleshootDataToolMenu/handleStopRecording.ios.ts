@@ -1,5 +1,6 @@
 import RNFS from 'react-native-fs';
 import Log from '@libs/Log';
+import finalizeStopRecording from './finalizeStopRecording';
 import type StopRecordingParams from './handleStopRecording.types';
 
 export default async function handleStopRecording({
@@ -37,11 +38,15 @@ export default async function handleStopRecording({
 
     try {
         await RNFS.copyFile(profilePath, newFilePath);
-        zipRef.current?.file(infoFileName, appInfo);
-
-        await onDisableLogging(logsWithParsedMessages);
-        cleanupAfterDisable();
-        onDownloadZip?.();
+        await finalizeStopRecording({
+            infoFileName,
+            appInfo,
+            logsWithParsedMessages,
+            onDisableLogging,
+            cleanupAfterDisable,
+            zipRef,
+            onDownloadZip,
+        });
 
         setProfileTracePath?.(newFilePath);
         Log.hmmm('[ProfilingToolMenu] file copied successfully');
