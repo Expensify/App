@@ -67,7 +67,7 @@ function IOURequestStepDistanceGPS({
                     type="error"
                 />
                 <GPSButtons
-                    // todo: next step naviagiton will be added in a separate PR
+                    // todo: next step navigation will be added in a separate PR
                     navigateToNextStep={() => {}}
                     setShouldShowStartError={setShouldShowStartError}
                     setShouldShowPermissionsError={setShouldShowPermissionsError}
