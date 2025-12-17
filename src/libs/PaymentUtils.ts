@@ -1,4 +1,3 @@
-import isEmpty from 'lodash/isEmpty';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Merge, ValueOf} from 'type-fest';
@@ -223,8 +222,8 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
  */
 function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined) {
     const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
-
     let paymentType;
+    paymentType = latestBankItems?.at(0);
     switch (paymentMethod) {
         case CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT:
             paymentType = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
