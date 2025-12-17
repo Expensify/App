@@ -146,7 +146,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                             </View>
                             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN)}>
                                 <TextWithTooltip
-                                    text={withdrawalIDItem.formattedWithdrawalDate ?? ''}
+                                    text={formattedWithdrawalDate}
                                     style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
                                 />
                             </View>

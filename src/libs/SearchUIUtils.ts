@@ -202,7 +202,7 @@ const transactionCardGroupColumnNamesToSortingProperty: TransactionCardGroupSort
 const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithdrawalIDGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT]: 'bankName' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: 'formattedWithdrawalDate' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: 'debitPosted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
     [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: 'count' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
@@ -1920,17 +1920,11 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
                 continue;
             }
 
-            const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
-                withdrawalIDGroup.debitPosted,
-                DateUtils.doesDateBelongToAPastYear(withdrawalIDGroup.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            );
-
             withdrawalIDSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 transactions: [],
                 transactionsQueryJSON,
                 ...withdrawalIDGroup,
-                formattedWithdrawalDate,
                 formattedWithdrawalID: String(withdrawalIDGroup.entryID),
             };
         }

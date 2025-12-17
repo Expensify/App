@@ -464,9 +464,6 @@ type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedB
     };
 
 type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup & {
-        /** Final and formatted "withdrawalDate" value used for displaying and sorting */
-        formattedWithdrawalDate?: string;
-
         /** Final and formatted "withdrawalID" value used for displaying and sorting */
         formattedWithdrawalID?: string;
     };
