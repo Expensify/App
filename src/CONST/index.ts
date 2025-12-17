@@ -6692,6 +6692,7 @@ const CONST = {
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
                     POSTED: this.TABLE_COLUMNS.POSTED,
                     MERCHANT: this.TABLE_COLUMNS.MERCHANT,
+                    DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,

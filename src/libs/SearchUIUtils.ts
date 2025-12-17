@@ -2277,6 +2277,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'search.filters.posted';
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return 'common.merchant';
+        case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+            return 'common.description';
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
             return 'common.from';
         case CONST.SEARCH.TABLE_COLUMNS.TO:
