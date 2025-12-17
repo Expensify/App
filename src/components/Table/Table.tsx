@@ -186,6 +186,4 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
     return <TableContext.Provider value={contextValue as unknown as TableContextValue<unknown, string>}>{children}</TableContext.Provider>;
 }
 
-Table.displayName = 'Table';
-
 export default Table;

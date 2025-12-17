@@ -1,12 +1,15 @@
 import {FlashList} from '@shopify/flash-list';
 import React from 'react';
 import {View} from 'react-native';
+import type {ViewProps} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {useTableContext} from './TableContext';
 
-function TableBody<T>() {
+type TableBodyProps = ViewProps;
+
+function TableBody<T>(props: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {processedData: filteredAndSortedData, originalDataLength, activeSearchString, listProps} = useTableContext<T>();
@@ -41,20 +44,21 @@ function TableBody<T>() {
     );
 
     return (
-        <FlashList<T>
-            data={filteredAndSortedData}
-            keyExtractor={defaultKeyExtractor}
-            ListEmptyComponent={isEmptySearchResult ? EmptySearchComponent : ListEmptyComponent}
-            contentContainerStyle={[contentContainerStyle, filteredAndSortedData.length === 0 && styles.flex1]}
-            onScroll={onScroll}
-            onEndReached={onEndReached}
-            onEndReachedThreshold={onEndReachedThreshold}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...listProps}
-        />
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <View {...props}>
+            <FlashList<T>
+                data={filteredAndSortedData}
+                keyExtractor={defaultKeyExtractor}
+                ListEmptyComponent={isEmptySearchResult ? EmptySearchComponent : ListEmptyComponent}
+                contentContainerStyle={[contentContainerStyle, filteredAndSortedData.length === 0 && styles.flex1]}
+                onScroll={onScroll}
+                onEndReached={onEndReached}
+                onEndReachedThreshold={onEndReachedThreshold}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...listProps}
+            />
+        </View>
     );
 }
-
-TableBody.displayName = 'TableBody';
 
 export default TableBody;

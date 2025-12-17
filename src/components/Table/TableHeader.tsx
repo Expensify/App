@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {ViewProps} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -10,12 +11,18 @@ import variables from '@styles/variables';
 import {useTableContext} from './TableContext';
 import type {TableColumn} from './types';
 
-function TableHeader() {
+type TableHeaderProps = ViewProps;
+
+function TableHeader({style, ...props}: TableHeaderProps) {
     const styles = useThemeStyles();
     const {columns} = useTableContext();
 
     return (
-        <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
+        <View
+            style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4, style]}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        >
             {columns.map((column) => {
                 return (
                     <TableHeaderColumn
