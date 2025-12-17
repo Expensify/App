@@ -5,7 +5,7 @@ import type {ViewProps} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {useTableContext} from './TableContext';
+import {useTableContext} from '.';
 
 type TableBodyProps = ViewProps;
 

@@ -5,7 +5,7 @@ import Icon from '@components/Icon';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {useTableContext} from './TableContext';
+import {useTableContext} from '.';
 import type {ActiveSorting} from './types';
 
 type SortButtonProps<ColumnKey extends string = string> = {

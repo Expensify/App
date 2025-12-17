@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import TextInput from '@components/TextInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import {useTableContext} from './TableContext';
+import {useTableContext} from '.';
 
 function TableSearchBar() {
     const {translate} = useLocalize();
