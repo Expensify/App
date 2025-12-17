@@ -33,7 +33,7 @@ type MultifactorAuthorization<T extends MultifactorAuthenticationScenario> = (
  * Base type for the register function that handles multifactorial authentication setup.
  * Takes a validate code and additional params, returns a MultifactorAuthenticationStatus.
  */
-type RegisterFunction<T, Q> = (params: {validateCode?: number} & MultifactorKeyStoreOptions & T, scenario?: unknown) => Promise<Q>;
+type RegisterFunction<T, Q> = (params: {validateCode?: number} & MultifactorKeyStoreOptions & T, scenario?: unknown, notificationPaths?: NotificationPaths) => Promise<Q>;
 
 /**
  * Function to register multifactorial authentication on the device.
