@@ -2062,6 +2062,7 @@ function getSortedTransactionData(
     }
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.CARD) {
+        // TODO##
         return data.sort((a, b) => {
             const aValue = "A";
             const bValue = 'B';

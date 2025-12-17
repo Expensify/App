@@ -415,6 +415,7 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.CARD}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}
                 >
+                    {/* TODO## */}
                     <TextCell text={'CARD GOES HERE'} />
                 </View>
             ),
