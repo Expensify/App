@@ -469,7 +469,7 @@ function PolicyDistanceRatesPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={PolicyDistanceRatesPage.displayName}
+                testID="PolicyDistanceRatesPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
@@ -540,7 +540,5 @@ function PolicyDistanceRatesPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-PolicyDistanceRatesPage.displayName = 'PolicyDistanceRatesPage';
 
 export default PolicyDistanceRatesPage;

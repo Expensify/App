@@ -464,7 +464,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     isDisabled={!selectedCategories.length}
-                    testID={`${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`}
+                    testID="WorkspaceCategoriesPage-header-dropdown-menu-button"
                 />
             );
         }
@@ -552,7 +552,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceCategoriesPage.displayName}
+                testID="WorkspaceCategoriesPage"
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
@@ -681,7 +681,5 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
 
 export default WorkspaceCategoriesPage;

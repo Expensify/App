@@ -146,7 +146,7 @@ function CardTypeStep() {
 
     return (
         <ScreenWrapper
-            testID={CardTypeStep.displayName}
+            testID="CardTypeStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -182,7 +182,5 @@ function CardTypeStep() {
         </ScreenWrapper>
     );
 }
-
-CardTypeStep.displayName = 'CardTypeStep';
 
 export default CardTypeStep;

@@ -410,7 +410,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
-            testID={ReportParticipantsPage.displayName}
+            testID="ReportParticipantsPage"
         >
             <FullPageNotFoundView shouldShow={!report || isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report)}>
                 <HeaderWithBackButton
@@ -476,7 +476,5 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         </ScreenWrapper>
     );
 }
-
-ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
 export default withReportOrNotFound()(ReportParticipantsPage);

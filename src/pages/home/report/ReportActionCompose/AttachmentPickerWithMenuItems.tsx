@@ -532,6 +532,4 @@ function AttachmentPickerWithMenuItems({
     );
 }
 
-AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
-
 export default AttachmentPickerWithMenuItems;

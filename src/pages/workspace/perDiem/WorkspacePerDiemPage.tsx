@@ -410,7 +410,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspacePerDiemPage.displayName}
+                testID="WorkspacePerDiemPage"
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
@@ -525,7 +525,5 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspacePerDiemPage.displayName = 'WorkspacePerDiemPage';
 
 export default WorkspacePerDiemPage;

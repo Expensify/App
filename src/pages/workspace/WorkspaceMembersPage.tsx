@@ -687,7 +687,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 isSplitButton={false}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedEmployees.length}
-                testID={`${WorkspaceMembersPage.displayName}-header-dropdown-menu-button`}
+                testID="WorkspaceMembersPage-header-dropdown-menu-button"
             />
         ) : (
             <View style={[styles.flexRow, styles.gap2]}>
@@ -753,7 +753,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             route={route}
             icon={!selectionModeHeader ? illustrations.ReceiptWrangler : undefined}
             headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
-            testID={WorkspaceMembersPage.displayName}
+            testID="WorkspaceMembersPage"
             shouldShowLoading={false}
             shouldUseHeadlineHeader={!selectionModeHeader}
             shouldShowOfflineIndicatorInWideScreen
@@ -840,7 +840,5 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         </WorkspacePageWithSections>
     );
 }
-
-WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceMembersPage);
