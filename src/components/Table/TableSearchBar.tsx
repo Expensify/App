@@ -10,26 +10,18 @@ function TableSearchBar() {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
     const {searchString, updateSearchString} = useTableContext();
 
-    const handleChangeText = (text: string) => {
-        updateSearchString(text);
-    };
-
-    const handleClearInput = () => {
-        updateSearchString('');
-    };
-
     return (
         <View>
             <TextInput
                 label={translate('workspace.companyCards.findCard')}
                 accessibilityLabel={translate('workspace.companyCards.findCard')}
                 value={searchString}
-                onChangeText={handleChangeText}
+                onChangeText={(text) => updateSearchString(text)}
                 icon={searchString.length === 0 ? expensifyIcons.MagnifyingGlass : undefined}
                 includeIconPadding={false}
                 shouldShowClearButton
                 shouldHideClearButton={searchString.length === 0}
-                onClearInput={handleClearInput}
+                onClearInput={() => updateSearchString('')} )}
                 autoCapitalize="none"
                 autoCorrect={false}
                 spellCheck={false}
