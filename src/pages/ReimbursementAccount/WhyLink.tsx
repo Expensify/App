@@ -18,7 +18,7 @@ function WhyLink({containerStyles}: WhyLinkProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
@@ -39,7 +39,5 @@ function WhyLink({containerStyles}: WhyLinkProps) {
         </View>
     );
 }
-
-WhyLink.displayName = 'WhyLink';
 
 export default WhyLink;

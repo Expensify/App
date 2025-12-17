@@ -45,6 +45,4 @@ function TaxExemptActions() {
     );
 }
 
-TaxExemptActions.displayName = 'TaxExemptActions';
-
 export default TaxExemptActions;
