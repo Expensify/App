@@ -297,7 +297,7 @@ function IOURequestStepParticipants({
 
         const newReportID = selectedReportID.current;
         const shouldUpdateTransactionReportID = participants?.at(0)?.reportID !== newReportID;
-        const transactionReportID = selectedReportID.current === selfDMReportID ? CONST.REPORT.UNREPORTED_REPORT_ID : newReportID;
+        const transactionReportID = newReportID === selfDMReportID ? CONST.REPORT.UNREPORTED_REPORT_ID : newReportID;
         // TODO: probably should also change participants here for selectedParticipants.current, but out of scope of this PR
         for (const transaction of transactions) {
             const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
