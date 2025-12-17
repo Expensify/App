@@ -48,6 +48,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const {showConfirmModal} = useConfirmModal();
 
     if (Object.keys(messages).length === 0) {
         return null;
