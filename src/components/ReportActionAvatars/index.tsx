@@ -69,6 +69,9 @@ type ReportActionAvatarsProps = {
 
     /** Whether to use custom fallback avatar */
     shouldUseCustomFallbackAvatar?: boolean;
+
+    /** chatReportID needed for the avatars logic. When provided, this will be used as a fallback if the snapshot is undefined */
+    chatReportID?: string;
 };
 
 /**
@@ -101,6 +104,7 @@ function ReportActionAvatars({
     fallbackDisplayName,
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
+    chatReportID,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -135,6 +139,7 @@ function ReportActionAvatars({
         fallbackDisplayName,
         invitedEmailsToAccountIDs,
         shouldUseCustomFallbackAvatar,
+        chatReportID,
     });
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;

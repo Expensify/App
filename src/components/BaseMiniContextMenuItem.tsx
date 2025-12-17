@@ -41,13 +41,26 @@ type BaseMiniContextMenuItemProps = {
      * Reference to the outer element
      */
     ref?: PressableRef;
+
+    /**
+     * Label for Sentry tracking
+     */
+    sentryLabel?: string;
 };
 
 /**
  * Component that renders a mini context menu item with a
  * pressable. Also renders a tooltip when hovering the item.
  */
-function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonStateComplete = true, shouldPreventDefaultFocusOnPress = true, ref}: BaseMiniContextMenuItemProps) {
+function BaseMiniContextMenuItem({
+    tooltipText,
+    onPress,
+    children,
+    isDelayButtonStateComplete = true,
+    shouldPreventDefaultFocusOnPress = true,
+    ref,
+    sentryLabel,
+}: BaseMiniContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (
@@ -79,6 +92,7 @@ function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonS
                 }}
                 accessibilityLabel={tooltipText}
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={sentryLabel}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, isDelayButtonStateComplete), true),

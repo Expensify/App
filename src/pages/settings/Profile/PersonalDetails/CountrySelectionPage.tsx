@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -39,7 +39,6 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
     );
 
     const searchResults = searchOptions(searchValue, countries);
-    const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountry = useCallback(
         (option: Option) => {
@@ -54,6 +53,16 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
             }
         },
         [route.params.backTo],
+    );
+
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage: searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+            label: translate('common.country'),
+            value: searchValue,
+            onChangeText: setSearchValue,
+        }),
+        [searchResults.length, searchValue, translate],
     );
 
     return (
@@ -72,16 +81,12 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
             />
 
             <SelectionList
-                headerMessage={headerMessage}
-                textInputLabel={translate('common.country')}
-                textInputValue={searchValue}
-                sections={[{data: searchResults}]}
+                data={searchResults}
                 ListItem={RadioListItem}
                 onSelectRow={selectCountry}
+                textInputOptions={textInputOptions}
+                initiallyFocusedItemKey={currentCountry}
                 shouldSingleExecuteRowSelect
-                onChangeText={setSearchValue}
-                initiallyFocusedOptionKey={currentCountry}
-                shouldUseDynamicMaxToRenderPerBatch
                 addBottomSafeAreaPadding
             />
         </ScreenWrapper>

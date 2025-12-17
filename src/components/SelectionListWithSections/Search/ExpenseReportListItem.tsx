@@ -17,8 +17,7 @@ import {isSettled} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
-import type {Policy} from '@src/types/onyx';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
+import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 
 function ExpenseReportListItem<TItem extends ListItem>({
@@ -26,6 +25,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     isLoading,
     isFocused,
     showTooltip,
+    columns,
     canSelectMultiple,
     onSelectRow,
     onFocus,
@@ -43,13 +43,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     const snapshotData = snapshot?.data;
 
     const snapshotReport = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return (snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
+        return (snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
     }, [snapshotData, reportItem.reportID]);
 
     const snapshotPolicy = useMemo(() => {
@@ -161,6 +160,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 <View style={[styles.flex1]}>
                     <ExpenseReportListItemRow
                         item={reportItem}
+                        columns={columns}
                         policy={snapshotPolicy}
                         isActionLoading={isActionLoading ?? isLoading}
                         showTooltip={showTooltip}

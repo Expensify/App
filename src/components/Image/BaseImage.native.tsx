@@ -5,9 +5,7 @@ import type {AttachmentSource} from '@components/Attachments/types';
 import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type {BaseImageProps} from './types';
 
-function BaseImage({onLoad, source: sourceProp, ...props}: BaseImageProps) {
-    const sourceRef = useRef(sourceProp);
-    const source = sourceRef.current;
+function BaseImage({onLoad, source, ...props}: BaseImageProps) {
     const isLoadedRef = useRef(false);
     const attachmentContext = useContext(AttachmentStateContext);
     const {setAttachmentLoaded} = attachmentContext || {};

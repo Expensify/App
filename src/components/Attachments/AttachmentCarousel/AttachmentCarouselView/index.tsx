@@ -62,7 +62,7 @@ function AttachmentCarouselView({
 }: AttachmentCarouselViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const canUseTouchScreen = canUseTouchScreenUtil();
     const {isFullScreenRef} = useFullScreenContext();
     const isPagerScrolling = useSharedValue(false);

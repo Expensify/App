@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate, Transaction} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -180,6 +180,24 @@ function getDistanceRateCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | unde
  */
 function getPerDiemCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+}
+
+/**
+ * Finds a policy that contains the customUnitID from the transaction
+ */
+function getPolicyByCustomUnitID(transaction: OnyxEntry<Transaction>, policies: OnyxCollection<Policy>): OnyxEntry<Policy> {
+    const customUnitID = transaction?.comment?.customUnit?.customUnitID;
+
+    if (!customUnitID || !policies) {
+        return undefined;
+    }
+
+    return Object.values(policies).find((policy) => {
+        if (!policy?.customUnits || !policy?.arePerDiemRatesEnabled) {
+            return false;
+        }
+        return customUnitID in policy.customUnits;
+    });
 }
 
 /**
@@ -689,11 +707,12 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
 function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<string, string[]> {
     const allTaxRates: Record<string, string[]> = {};
-    // eslint-disable-next-line unicorn/no-array-for-each
-    Object.values(policies ?? {})?.forEach((policy) => {
+
+    for (const policy of Object.values(policies ?? {})) {
         if (!policy?.taxRates?.taxes) {
-            return;
+            continue;
         }
+
         for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes)) {
             if (!allTaxRates[taxRate.name]) {
                 allTaxRates[taxRate.name] = [taxRateKey];
@@ -704,7 +723,8 @@ function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<st
             }
             allTaxRates[taxRate.name].push(taxRateKey);
         }
-    });
+    }
+
     return allTaxRates;
 }
 
@@ -1675,6 +1695,7 @@ export {
     getSageIntacctBankAccounts,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
+    getPolicyByCustomUnitID,
     getDistanceRateCustomUnitRate,
     getPerDiemRateCustomUnitRate,
     sortWorkspacesBySelected,

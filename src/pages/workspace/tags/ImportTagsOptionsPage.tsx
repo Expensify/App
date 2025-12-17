@@ -51,7 +51,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isSwitchSingleToMultipleLevelTagWarningModalVisible, setIsSwitchSingleToMultipleLevelTagWarningModalVisible] = useState(false);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MultiTag', 'Tag'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MultiTag', 'Tag']);
 
     const [isOverridingMultiTag, setIsOverridingMultiTag] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);

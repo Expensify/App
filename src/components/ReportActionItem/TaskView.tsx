@@ -15,7 +15,9 @@ import RenderHTML from '@components/RenderHTML';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,8 +65,10 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const isOpen = isOpenTaskReport(report);
     const isCompleted = isCompletedTaskReport(report);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
-    const isTaskActionable = canActionTask(report, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
+    const parentReportAction = useParentReportAction(report);
+    const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
     const disableState = !isTaskModifiable;
     const isDisableInteractive = disableState || !isOpen;
@@ -92,7 +96,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                 <OfflineWithFeedback
                     shouldShowErrorMessages
                     errors={report?.errorFields?.editTask ?? report?.errorFields?.createTask}
-                    onClose={() => clearTaskErrors(report?.reportID)}
+                    onClose={() => clearTaskErrors(report)}
                     errorRowStyles={styles.ph5}
                 >
                     <Hoverable>
@@ -128,9 +132,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         return;
                                                     }
                                                     if (isCompleted) {
-                                                        reopenTask(report, currentUserPersonalDetails.accountID);
+                                                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID);
                                                     } else {
-                                                        completeTask(report);
+                                                        completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction);
                                                     }
                                                 })}
                                                 isChecked={isCompleted}

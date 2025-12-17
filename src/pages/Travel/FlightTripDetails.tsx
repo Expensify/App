@@ -7,6 +7,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,7 +26,8 @@ type FlightTripDetailsProps = {
 function FlightTripDetails({reservation, prevReservation, personalDetails}: FlightTripDetailsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass']);
 
     const cabinClassMapping: Record<string, string> = {
         UNKNOWN_CABIN: translate('travel.flightDetails.cabinClasses.unknown'),
@@ -35,8 +37,8 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
         FIRST: translate('travel.flightDetails.cabinClasses.first'),
     };
 
-    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
-    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
+    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
+    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
 
     const prevFlightEndDate = prevReservation?.end.date;
     const layover = prevFlightEndDate && DateUtils.getFormattedDurationBetweenDates(translate, new Date(prevFlightEndDate), new Date(reservation.start.date));
@@ -54,7 +56,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
             {!!layover && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mh5, styles.mv3, styles.gap2]}>
                     <Icon
-                        src={Expensicons.Hourglass}
+                        src={expensifyIcons.Hourglass}
                         height={variables.iconSizeNormal}
                         width={variables.iconSizeNormal}
                         fill={theme.icon}

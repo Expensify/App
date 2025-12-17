@@ -117,6 +117,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                                     lat: '',
                                     lng: '',
                                 }}
+                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                             />
                         </View>
                     ))}

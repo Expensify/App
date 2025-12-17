@@ -22,7 +22,7 @@ import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getHeaderMessage} from '@libs/OptionsListUtils';
+import {getHeaderMessage, getParticipantsOption} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -50,6 +50,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
         policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
@@ -74,6 +76,24 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         );
     }, [policy?.employeeList]);
 
+    const initiallySelectedOptions = useMemo(() => {
+        if (!invitedEmailsToAccountIDsDraft || !personalDetails) {
+            return [];
+        }
+
+        // Convert InvitedEmailsToAccountIDs to OptionData[]
+        // The draft stores login -> accountID mappings
+        // Use getParticipantsOption to enrich with full user details
+        return Object.entries(invitedEmailsToAccountIDsDraft).map(([login, accountID]) => {
+            const participant = {
+                login,
+                accountID,
+                selected: true,
+            };
+            return getParticipantsOption(participant, personalDetails) as OptionData;
+        });
+    }, [invitedEmailsToAccountIDsDraft, personalDetails]);
+
     const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached, searchOptions} =
         useSearchSelector({
             selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
@@ -82,6 +102,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             excludeLogins: excludedUsers,
             includeRecentReports: false,
             shouldInitialize: didScreenTransitionEnd,
+            initialSelected: initiallySelectedOptions,
         });
 
     const sections: Sections[] = useMemo(() => {
@@ -116,7 +137,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails.length, availableOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {

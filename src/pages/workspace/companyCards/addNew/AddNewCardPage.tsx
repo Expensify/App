@@ -131,12 +131,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
 
     return (
         <>
-            <View
-                style={styles.flex1}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
-            >
-                {CurrentStep}
-            </View>
+            <View style={styles.flex1}>{CurrentStep}</View>
             <ConfirmModal
                 isVisible={isModalVisible}
                 title={translate('workspace.companyCards.addNewCard.exitModal.title')}

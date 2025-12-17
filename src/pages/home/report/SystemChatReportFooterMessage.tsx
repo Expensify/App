@@ -1,10 +1,10 @@
 import {emailSelector} from '@selectors/Session';
 import React, {useMemo} from 'react';
 import Banner from '@components/Banner';
-import {Lightbulb} from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,6 +16,7 @@ import ROUTES from '@src/ROUTES';
 function SystemChatReportFooterMessage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const {environmentURL} = useEnvironment();
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     const [choice] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
@@ -54,7 +55,7 @@ function SystemChatReportFooterMessage() {
         <Banner
             containerStyles={[styles.chatFooterBanner]}
             shouldShowIcon
-            icon={Lightbulb}
+            icon={expensifyIcons.Lightbulb}
             content={
                 <Text
                     suppressHighlighting

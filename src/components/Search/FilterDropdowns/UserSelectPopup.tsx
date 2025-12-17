@@ -42,9 +42,16 @@ type UserSelectPopupProps = {
 
     /** Function to call when changes are applied */
     onChange: (value: string[]) => void;
+
+    /**
+     * Whether the search input should be displayed.
+     * When undefined, defaults to showing search when user count >= CONST.STANDARD_LIST_ITEM_LIMIT (12 users).
+     * Set to true to always show search, or false to never show search regardless of user count.
+     */
+    isSearchable?: boolean;
 };
 
-function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) {
+function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
     const selectionListRef = useRef<SelectionListHandle | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -171,21 +178,25 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [closeOverlay, onChange]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const dataLength = listData.length;
+    const totalOptionsCount = optionsList.personalDetails.length + optionsList.recentReports.length;
+    const shouldShowSearchInput = isSearchable ?? totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const textInputOptions = useMemo(
-        () => ({
-            value: searchTerm,
-            label: translate('selectionList.searchForSomeone'),
-            onChangeText: setSearchTerm,
-            headerMessage,
-            disableAutoFocus: !shouldFocusInputOnScreenFocus,
-        }),
-        [searchTerm, translate, headerMessage, shouldFocusInputOnScreenFocus],
+        () =>
+            shouldShowSearchInput
+                ? {
+                      value: searchTerm,
+                      label: translate('selectionList.searchForSomeone'),
+                      onChangeText: setSearchTerm,
+                      headerMessage,
+                      disableAutoFocus: !shouldFocusInputOnScreenFocus,
+                  }
+                : undefined,
+        [searchTerm, translate, headerMessage, shouldFocusInputOnScreenFocus, shouldShowSearchInput],
     );
 
     return (
-        <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
+        <View style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}>
             <SelectionList
                 data={listData}
                 ref={selectionListRef}

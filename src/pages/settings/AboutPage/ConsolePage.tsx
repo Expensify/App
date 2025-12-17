@@ -42,7 +42,7 @@ const filterBy = {
 type FilterBy = (typeof filterBy)[keyof typeof filterBy];
 
 function ConsolePage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'UploadAlt'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['All', 'Download', 'Globe', 'UploadAlt']);
     const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: false});
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [input, setInput] = useState('');
@@ -62,7 +62,7 @@ function ConsolePage() {
                 disabled: true,
             },
             {
-                icon: Expensicons.All,
+                icon: icons.All,
                 text: translate('common.all'),
                 iconFill: activeFilterIndex === filterBy.all ? theme.iconSuccessFill : theme.icon,
                 iconRight: Expensicons.Checkmark,
@@ -73,7 +73,7 @@ function ConsolePage() {
                 },
             },
             {
-                icon: Expensicons.Globe,
+                icon: icons.Globe,
                 text: translate('common.network'),
                 iconFill: activeFilterIndex === filterBy.network ? theme.iconSuccessFill : theme.icon,
                 iconRight: Expensicons.CheckCircle,
@@ -84,7 +84,7 @@ function ConsolePage() {
                 },
             },
         ],
-        [activeFilterIndex, theme.icon, theme.iconSuccessFill, translate],
+        [activeFilterIndex, icons.All, icons.Globe, theme.icon, theme.iconSuccessFill, translate],
     );
 
     const prevLogs = useRef<OnyxEntry<CapturedLogs>>({});
