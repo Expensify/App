@@ -246,7 +246,7 @@ function WorkspaceCompanyCardsTable({
             filters={filterConfig}
         >
             {renderHeaderButtons?.(<Table.SearchBar />, <Table.FilterButtons />)}
-            <Table.Header />
+            {!shouldUseNarrowLayout && <Table.Header />}
             <Table.Body />
         </Table>
     );
