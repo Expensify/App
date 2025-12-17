@@ -12,13 +12,12 @@ import MultiSelectListItem from '@components/SelectionListWithSections/MultiSele
 import type {SectionListDataType} from '@components/SelectionListWithSections/types';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import useSearchFilterFormValues from '@hooks/useSearchFilterFormValues';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import {getCustomColumnDefault, getCustomColumns, getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -27,14 +26,14 @@ function SearchColumnsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const filterForm = useSearchFilterFormValues();
     const {currentSearchQueryJSON} = useSearchContext();
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const searchType = currentSearchQueryJSON?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     const allCustomColumns = getCustomColumns(searchType);
     const defaultCustomColumns = getCustomColumnDefault(searchType);
 
     const [selectedColumnIds, setSelectedColumnIds] = useState<SearchCustomColumnIds[]>(() => {
-        const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
+        const columnIds = filterForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
 
         // We dont allow the user to unselect all columns, so we can assume that no columns = default columns
         if (!columnIds.length) {
@@ -79,7 +78,7 @@ function SearchColumnsPage() {
             return;
         }
 
-        const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {...searchAdvancedFiltersForm, columns: isDefaultColumns ? undefined : selectedColumnIds};
+        const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {...filterForm, columns: isDefaultColumns ? undefined : selectedColumnIds};
         const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters);
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
