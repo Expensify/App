@@ -7754,7 +7754,16 @@ ${reportName}
         addDomain: {title: '添加域', subtitle: '请输入您想访问的私有域名（例如：expensify.com）。', domainName: '域名', newDomain: '新域名'},
         domainAdded: {title: '已添加域名', description: '接下来，您需要验证域名的所有权并调整您的安全设置。', configure: '配置'},
         enhancedSecurity: {title: '增强的安全性', subtitle: '要求您域内的成员使用单点登录登录、限制工作区创建等。', enable: '启用'},
-        admins: {title: '管理员', findAdmin: '查找管理员', primaryContact: '主要联系人', addPrimaryContact: '添加主要联系人', settings: '设置'},
+        admins: {
+            title: '管理员',
+            findAdmin: '查找管理员',
+            primaryContact: '主要联系人',
+            addPrimaryContact: '添加主要联系人',
+            settings: '设置',
+            consolidatedDomainBilling: '合并域名结算',
+            consolidatedDomainBillingDescription: (domainName: string) => `启用后，主要联系人将为<strong>${domainName}</strong>成员拥有的所有工作区付款，并接收所有账单收据。`,
+            consolidatedDomainBillingError: '无法更改合并域账单。请稍后重试。',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

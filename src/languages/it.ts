@@ -7956,6 +7956,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             primaryContact: 'Contatto principale',
             addPrimaryContact: 'Aggiungi contatto principale',
             settings: 'Impostazioni',
+            consolidatedDomainBilling: 'Fatturazione consolidata del dominio',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `Quando abilitata, il contatto principale pagherà per tutti gli spazi di lavoro di proprietà dei membri di <strong>${domainName}</strong> e riceverà tutte le ricevute di fatturazione.`,
+            consolidatedDomainBillingError: 'La fatturazione dominio consolidata non può essere modificata. Riprova più tardi.',
         },
     },
 };
