@@ -5039,6 +5039,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 172,
         },
 
+        gpsWebIllustrationContainer: {
+            width: 286,
+            height: 189,
+        },
+
         emptyStateCardIllustrationContainer: {
             height: 220,
             ...flex.alignItemsCenter,
