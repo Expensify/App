@@ -426,7 +426,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
 function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
     if (isAnonymousUser() && !isAnonymousAction) {
         return () => {
-            close(signOutAndRedirectToSignIn);
+            close(() => signOutAndRedirectToSignIn());
         };
     }
     return callback;
