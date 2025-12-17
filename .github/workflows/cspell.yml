@@ -35,7 +35,7 @@ jobs:
       - name: Filter out dot files
         id: filtered-files
         run: |
-          FILES=$(echo "${{ steps.changed-files.outputs.files }}" | tr ' ' '\n' | grep -v '^\.' | tr '\n' ' ')
+          FILES=$(echo "${{ steps.changed-files.outputs.files }}" | tr ' ' '\n' | grep -v '^\.' | xargs)
           echo "files=$FILES" >> "$GITHUB_OUTPUT"
 
       - name: Spell check
