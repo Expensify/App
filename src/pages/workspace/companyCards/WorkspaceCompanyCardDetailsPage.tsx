@@ -111,7 +111,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceCompanyCardDetailsPage.displayName}
+                testID="WorkspaceCompanyCardDetailsPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.moreFeatures.companyCards.cardDetails')}
@@ -256,7 +256,5 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCompanyCardDetailsPage.displayName = 'WorkspaceCompanyCardDetailsPage';
 
 export default WorkspaceCompanyCardDetailsPage;

@@ -103,7 +103,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={ConfirmationStep.displayName}
+            wrapperID="ConfirmationStep"
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={3}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
@@ -167,7 +167,5 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default ConfirmationStep;

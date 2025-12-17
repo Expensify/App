@@ -58,6 +58,4 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     );
 }
 
-TaskHeaderActionButton.displayName = 'TaskHeaderActionButton';
-
 export default TaskHeaderActionButton;

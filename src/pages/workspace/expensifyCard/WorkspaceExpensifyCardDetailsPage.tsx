@@ -108,7 +108,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceExpensifyCardDetailsPage.displayName}
+                testID="WorkspaceExpensifyCardDetailsPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.expensifyCard.cardDetails')}
@@ -253,7 +253,5 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceExpensifyCardDetailsPage.displayName = 'WorkspaceExpensifyCardDetailsPage';
 
 export default WorkspaceExpensifyCardDetailsPage;

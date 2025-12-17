@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 // eslint-disable-next-line no-restricted-imports
@@ -7,8 +8,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
+import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
+import cropOrRotateImage from '@libs/cropOrRotateImage';
+import fetchImage from '@libs/fetchImage';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -22,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
@@ -37,6 +41,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
@@ -68,6 +73,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const readonly = readonlyParam === 'true';
     const isFromReviewDuplicates = isFromReviewDuplicatesParam === 'true';
     const source = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
+    const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
@@ -80,7 +86,11 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
     const iouType = useMemo(() => iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseActionValue, iouTypeParam]);
 
+    const receiptFilename = transaction?.receipt?.filename;
+    const isImage = !!receiptFilename && Str.isImage(receiptFilename);
+
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
+    const [isRotating, setIsRotating] = useState(false);
 
     useEffect(() => {
         if ((!!report && !!transaction) || isDraftTransaction) {
@@ -91,6 +101,27 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    useEffect(() => {
+        if (!source || !isImage) {
+            return;
+        }
+
+        if (!isAuthTokenRequired || typeof source !== 'string') {
+            setSourceUri(source);
+            return;
+        }
+
+        if (!session?.encryptedAuthToken) {
+            return;
+        }
+
+        fetchImage(source, session?.encryptedAuthToken)
+            .then((uri) => {
+                setSourceUri(uri);
+            })
+            .catch(() => setSourceUri(''));
+    }, [source, isAuthTokenRequired, session?.encryptedAuthToken, isDraftTransaction, isImage]);
+
     const receiptPath = transaction?.receipt?.source;
 
     useEffect(() => {
@@ -99,7 +130,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         }
 
         const requestType = getRequestType(transaction);
-        const receiptFilename = transaction?.receipt?.filename;
         const receiptType = transaction?.receipt?.type;
         navigateToStartStepIfScanFileCannotBeRead(
             receiptFilename,
@@ -127,6 +157,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     }, [receiptPath]);
 
     const moneyRequestReportID = isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseReportValue = isTrackExpenseReport(report);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -152,6 +183,68 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     });
 
     const allowDownload = !isEReceipt;
+
+    /**
+     * Rotate the receipt image 90 degrees and save it automatically.
+     */
+    const rotateReceipt = useCallback(() => {
+        if (!transaction?.transactionID || !sourceUri || !isImage) {
+            return;
+        }
+
+        const receiptType = transaction?.receipt?.type ?? CONST.IMAGE_FILE_FORMAT.JPEG;
+
+        setIsRotating(true);
+        cropOrRotateImage(sourceUri as string, [{rotate: -90}], {
+            compress: 1,
+            name: receiptFilename,
+            type: receiptType,
+        })
+            .then((rotatedImage) => {
+                if (!rotatedImage) {
+                    setIsRotating(false);
+                    return;
+                }
+
+                // Both web and native return objects with uri property
+                const imageUriResult = 'uri' in rotatedImage && rotatedImage.uri ? rotatedImage.uri : undefined;
+                if (!imageUriResult) {
+                    setIsRotating(false);
+                    return;
+                }
+
+                const file = rotatedImage as File;
+                const rotatedFilename = file.name ?? receiptFilename;
+
+                if (isDraftTransaction) {
+                    // Update the transaction immediately so the modal displays the rotated image right away
+                    setMoneyRequestReceipt(transaction.transactionID, imageUriResult, rotatedFilename, isDraftTransaction, receiptType);
+                } else {
+                    replaceReceipt({
+                        transactionID: transaction.transactionID,
+                        file,
+                        source: imageUriResult,
+                        transactionPolicyCategories: policyCategories,
+                        transactionPolicy: policy,
+                    });
+                }
+                setIsRotating(false);
+            })
+            .catch(() => {
+                setIsRotating(false);
+            });
+    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt?.type, policy]);
+
+    const shouldShowRotateReceiptButton = useMemo(
+        () =>
+            shouldShowReplaceReceiptButton &&
+            transaction &&
+            hasReceiptSource(transaction) &&
+            !isEReceipt &&
+            !transaction?.receipt?.isTestDriveReceipt &&
+            (receiptFilename ? Str.isImage(receiptFilename) : false),
+        [shouldShowReplaceReceiptButton, transaction, isEReceipt, receiptFilename],
+    );
 
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
@@ -241,6 +334,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
             shouldShowCarousel: false,
+            shouldShowRotateButton: shouldShowRotateReceiptButton,
+            onRotateButtonPress: rotateReceipt,
+            isRotating,
             onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
             transaction,
         }),
@@ -254,6 +350,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             report,
             reportMetadata?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
+            shouldShowRotateReceiptButton,
+            rotateReceipt,
+            isRotating,
             source,
             threeDotsMenuItems,
             transaction,
@@ -268,6 +367,5 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         />
     );
 }
-TransactionReceiptModalContent.displayName = 'TransactionReceiptModalContent';
 
 export default TransactionReceiptModalContent;

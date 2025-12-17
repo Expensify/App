@@ -55,7 +55,7 @@ function DebitCardPage() {
         <ScreenWrapper
             onEntryTransitionEnd={() => nameOnCardRef.current?.focus()}
             includeSafeAreaPaddingBottom={false}
-            testID={DebitCardPage.displayName}
+            testID="DebitCardPage"
         >
             <HeaderWithBackButton
                 title={translate('addDebitCardPage.addADebitCard')}
@@ -73,7 +73,5 @@ function DebitCardPage() {
         </ScreenWrapper>
     );
 }
-
-DebitCardPage.displayName = 'DebitCardPage';
 
 export default DebitCardPage;
