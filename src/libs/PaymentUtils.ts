@@ -222,8 +222,6 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
  * based on the provided payment method, active admin policies, and latest bank items.
  */
 function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined) {
-    const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(paymentMethod as ValueOf<typeof CONST.PAYMENT_METHODS>);
-    const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
     const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
 
     let paymentType;
@@ -242,7 +240,6 @@ function getActivePaymentType(paymentMethod: string | undefined, activeAdminPoli
     return {
         paymentType,
         selectedPolicy,
-        shouldSelectPaymentMethod,
     };
 }
 
