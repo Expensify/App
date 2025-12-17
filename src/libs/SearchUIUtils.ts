@@ -93,6 +93,7 @@ import {
     generateReportID,
     getIcons,
     getPersonalDetailsForAccountID,
+    getPolicyName,
     getReportName,
     getReportOrDraftReport,
     getReportStatusTranslation,
@@ -2055,8 +2056,8 @@ function getSortedTransactionData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
         return data.sort((a, b) => {
-            const aValue = a.policy?.name ?? '';
-            const bValue = b.policy?.name ?? '';
+            const aValue = getPolicyName({report: a.report});
+            const bValue = getPolicyName({report: b.report});
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -2154,11 +2155,13 @@ function getSortedReportData(
     }
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
-        return data.sort((a, b) => {
-            const aValue = a.policyName;
-            const bValue = b.policyName;
-            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-        });
+        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
+            return data.sort((a, b) => {
+                const aValue = getPolicyName({report: a});
+                const bValue = getPolicyName({report: b});
+                return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+            });
+        }
     }
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REPORT_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID) {
