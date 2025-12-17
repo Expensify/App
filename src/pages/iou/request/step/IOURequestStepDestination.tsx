@@ -88,10 +88,7 @@ function IOURequestStepDestination({
         }
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
-                // If we are not coming from the global create menu then this is always reported
-                const shouldAutoReport = !!policy?.autoReporting || !!personalPolicy?.autoReporting || action !== CONST.IOU.ACTION.CREATE || !transaction?.isFromGlobalCreate;
-                const transactionReportID = shouldAutoReport ? policyExpenseReport?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
-                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
+                setTransactionReport(transactionID, {reportID: policyExpenseReport?.reportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, accountID);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
