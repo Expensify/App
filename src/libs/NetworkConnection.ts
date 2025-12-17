@@ -52,8 +52,11 @@ const triggerReconnectionCallbacks = throttle(
 
 
 // Only allow one NetInfo.refresh at a time, and respect the interval
-let isCheckPending = false;
-let lastCheckTimestamp = 0;
+// Exported state object to allow unit tests to inspect and control internal state
+const recheckNetworkState = {
+    isCheckPending: false,
+    lastCheckTimestamp: 0,
+}
 
 /**
  * Refresh NetInfo state.
@@ -61,25 +64,25 @@ let lastCheckTimestamp = 0;
 function recheckNetworkConnection() {
     const now = Date.now();
 
-    if (isCheckPending) {
+    if (recheckNetworkState.isCheckPending) {
         Log.info('[NetworkConnection] NetInfo.refresh already in progress, skipping new check.');
         return;
     }
 
-    if (now - lastCheckTimestamp < CONST.NETWORK.MAX_PENDING_TIME_MS) {
+    if (now - recheckNetworkState.lastCheckTimestamp < CONST.NETWORK.MAX_PENDING_TIME_MS) {
         Log.info('[NetworkConnection] NetInfo.refresh called too soon, skipping to respect interval.');
         return;
     }
 
-    isCheckPending = true;
-    lastCheckTimestamp = now;
+    recheckNetworkState.isCheckPending = true;
+    recheckNetworkState.lastCheckTimestamp = now;
     Log.info('[NetworkConnection] refresh NetInfo.');
     Promise.resolve(NetInfo.refresh())
-        .catch((err) => {
-            Log.info('[NetworkConnection] NetInfo.refresh failed.', false, err);
+        .catch((err: unknown) => {
+            Log.info('[NetworkConnection] NetInfo.refresh failed.', false, String(err));
         })
         .finally(() => {
-            isCheckPending = false;
+            recheckNetworkState.isCheckPending = false;
             Log.info('[NetworkConnection] NetInfo.refresh finished.');
         });
 }
@@ -354,5 +357,6 @@ export default {
     recheckNetworkConnection,
     subscribeToNetInfo,
     getDBTimeWithSkew,
+    recheckNetworkState
 };
 export type {NetworkStatus};
