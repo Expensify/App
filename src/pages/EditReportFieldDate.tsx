@@ -72,6 +72,4 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
     );
 }
 
-EditReportFieldDatePage.displayName = 'EditReportFieldDatePage';
-
 export default EditReportFieldDatePage;

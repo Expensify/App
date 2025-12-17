@@ -61,7 +61,7 @@ function AddPersonalBankAccountPage() {
                   };
             addPersonalBankAccount(bankAccountWithToken, policyID, source);
         }
-    }, [plaidData, selectedPlaidAccountId, personalBankAccount]);
+    }, [plaidData?.bankAccounts, plaidData?.plaidAccessToken, selectedPlaidAccountId, personalBankAccount?.policyID, personalBankAccount?.source]);
 
     const exitFlow = useCallback(
         (shouldContinue = false) => {
@@ -76,7 +76,7 @@ function AddPersonalBankAccountPage() {
                 goBack();
             }
         },
-        [personalBankAccount, goBack, kycWallRef],
+        [personalBankAccount?.exitReportID, personalBankAccount?.onSuccessFallbackRoute, goBack, kycWallRef],
     );
 
     useEffect(() => clearPersonalBankAccount, []);
@@ -86,7 +86,7 @@ function AddPersonalBankAccountPage() {
             includeSafeAreaPaddingBottom={shouldShowSuccess}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator={false}
-            testID={AddPersonalBankAccountPage.displayName}
+            testID="AddPersonalBankAccountPage"
         >
             <FullPageNotFoundView>
                 <HeaderWithBackButton
@@ -132,6 +132,5 @@ function AddPersonalBankAccountPage() {
         </ScreenWrapper>
     );
 }
-AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
 export default AddPersonalBankAccountPage;

@@ -6,17 +6,15 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {Receipt} from '@src/types/onyx/Transaction';
 import SafeString from '@src/utils/SafeString';
 import {convertToDisplayString} from './CurrencyUtils';
-import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransaction';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {getAttendeesListDisplayString, getCurrency, getReimbursable, getWaypoints, isDistanceRequest, isManagedCardTransaction, isMerchantMissing} from './TransactionUtils';
+import {getAttendeesListDisplayString, getCurrency, getReimbursable, getWaypoints, isDistanceRequest, isExpenseSplit, isManagedCardTransaction, isMerchantMissing} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
@@ -51,14 +49,6 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
     reportID: 'common.report',
 } as const;
 
-// Get the filename from the receipt
-function getReceiptFileName(receipt?: Receipt) {
-    if (typeof receipt?.source === 'string') {
-        return receipt?.source?.split('/')?.pop();
-    }
-    return `${receipt?.filename ?? receipt?.source}`;
-}
-
 function getMergeFieldErrorText(translate: LocaleContextProps['translate'], mergeField: MergeFieldData) {
     if (mergeField.field === 'attendees') {
         return translate('transactionMerge.detailsPage.pleaseSelectAttendees');
@@ -75,7 +65,7 @@ function getMergeFieldErrorText(translate: LocaleContextProps['translate'], merg
  */
 function fillMissingReceiptSource(transaction: Transaction) {
     // If receipt.source already exists, no need to modify
-    if (!transaction.receipt || !!transaction.receipt?.source || !getReceiptFilenameFromTransaction(transaction)) {
+    if (!transaction.receipt || !!transaction.receipt.source || !transaction.receipt.filename) {
         return transaction;
     }
 
@@ -83,7 +73,7 @@ function fillMissingReceiptSource(transaction: Transaction) {
         ...transaction,
         receipt: {
             ...transaction.receipt,
-            source: `${RECEIPT_SOURCE_URL}${getReceiptFilenameFromTransaction(transaction)}`,
+            source: `${RECEIPT_SOURCE_URL}${transaction.receipt.filename}`,
         },
     };
 }
@@ -190,9 +180,16 @@ function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
  * Get mergeableData data if one is missing, and conflict fields that need to be resolved by the user
  * @param targetTransaction - The target transaction
  * @param sourceTransaction - The source transaction
+ * @param originalTargetTransaction - The original transaction of target transaction
+ * @param localeCompare - The localize compare function
  * @returns mergeableData and conflictFields
  */
-function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, localeCompare: (a: string, b: string) => number) {
+function getMergeableDataAndConflictFields(
+    targetTransaction: OnyxEntry<Transaction>,
+    sourceTransaction: OnyxEntry<Transaction>,
+    originalTargetTransaction: OnyxEntry<Transaction>,
+    localeCompare: (a: string, b: string) => number,
+) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
 
@@ -207,11 +204,16 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         const isSourceValueEmpty = isEmptyMergeValue(sourceValue);
 
         if (field === 'amount') {
-            // If target transaction is a card transaction, always preserve the target transaction's amount and currency
+            // If target transaction is a card or split expense, always preserve the target transaction's amount and currency
+            // Card takes precedence over split expense
             // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
-            if (isManagedCardTransaction(targetTransaction)) {
+            const isTargetExpenseSplit = isExpenseSplit(targetTransaction, originalTargetTransaction);
+            if (isManagedCardTransaction(targetTransaction) || isTargetExpenseSplit) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
+                if (isTargetExpenseSplit) {
+                    mergeableData.originalTransactionID = targetTransaction?.comment?.originalTransactionID;
+                }
                 continue;
             }
 
@@ -335,7 +337,6 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         },
         reimbursable: mergeTransaction.reimbursable,
         billable: mergeTransaction.billable,
-        filename: getReceiptFileName(mergeTransaction.receipt),
         receipt: mergeTransaction.receipt,
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
@@ -346,24 +347,27 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
 }
 
 /**
- * Determines the correct target and source transaction IDs for merging based on transaction types.
+ * Determines the correct target and source transactions for merging based on transaction types.
  *
  * Rules:
- * - If one transaction is a card transaction, it becomes the target (card transactions take priority)
- * - If both are cash transactions, the first parameter becomes the target
- * - Users can only merge two cash expenses or one cash/one card expense
+ * - The target transaction (transaction to keep) is selected based on the following priority: card transaction > split expense > cash transaction
  * - Users cannot merge two card expenses
+ * - Users cannot merge two split expenses
+ * - Users can merge any other combinations
  *
- * @param targetTransaction - The first transaction in the merge operation
- * @param sourceTransaction - The second transaction in the merge operation
- * @returns An object containing the determined targetTransactionID and sourceTransactionID
+ * @param targetTransaction - The transaction where the merge action is started from
+ * @param sourceTransaction - The selected transaction to be merged with the target transaction
+ * @param originalSourceTransaction - The original transaction of the source transaction
+ * @returns An object containing the determined targetTransaction and sourceTransaction
  */
-function selectTargetAndSourceTransactionsForMerge(originalTargetTransaction: OnyxEntry<Transaction>, originalSourceTransaction: OnyxEntry<Transaction>) {
-    if (isManagedCardTransaction(originalSourceTransaction)) {
-        return {targetTransaction: originalSourceTransaction, sourceTransaction: originalTargetTransaction};
+function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, originalSourceTransaction?: OnyxEntry<Transaction>) {
+    // If target transaction is a card or split expense, always preserve the target transaction
+    // Card takes precedence over split expense
+    if (isManagedCardTransaction(sourceTransaction) || (isExpenseSplit(sourceTransaction, originalSourceTransaction) && !isManagedCardTransaction(targetTransaction))) {
+        return {targetTransaction: sourceTransaction, sourceTransaction: targetTransaction};
     }
 
-    return {targetTransaction: originalTargetTransaction, sourceTransaction: originalSourceTransaction};
+    return {targetTransaction, sourceTransaction};
 }
 
 /**
@@ -502,7 +506,6 @@ export {
     isEmptyMergeValue,
     fillMissingReceiptSource,
     getTransactionThreadReportID,
-    getReceiptFileName,
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,

@@ -248,7 +248,7 @@ describe('hasRTERWithoutViolation', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(hasAnyTransactionWithoutRTERViolation([transactionWithoutViolation, transactionWithViolation], violations, '', undefined, undefined)).toBe(true);
+        expect(hasAnyTransactionWithoutRTERViolation([transactionWithoutViolation, transactionWithViolation], violations, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined)).toBe(true);
     });
 
     test('Return false if there is no rter without violation in all transactionViolations with given transactionIDs.', async () => {
@@ -277,7 +277,7 @@ describe('hasRTERWithoutViolation', () => {
         };
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
-        expect(hasAnyTransactionWithoutRTERViolation([transactionWithViolation], violations, '', undefined, undefined)).toBe(false);
+        expect(hasAnyTransactionWithoutRTERViolation([transactionWithViolation], violations, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined)).toBe(false);
     });
 });
 

@@ -427,6 +427,99 @@ describe('SidebarUtils', () => {
 
             expect(result).toBeNull();
         });
+
+        it('returns correct reason when copilot with full access approves report but deposit and withdrawal accounts are the same', async () => {
+            await Onyx.clear();
+
+            // Given: Copilot is set up with full access
+            const copilotEmail = 'copilot@example.com';
+            const delegatedAccess = {
+                delegate: copilotEmail,
+                delegates: [{email: copilotEmail, role: CONST.DELEGATE_ROLE.ALL}],
+            };
+
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Given: An expense report (chat report) exists
+            const expenseReportID = '12345';
+            const chatReport: Report = {
+                reportID: expenseReportID,
+                ownerAccountID: 12345,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID: '6',
+            };
+
+            // Given: An APPROVED report action with the deposit/withdrawal account error
+            const approvedReportActionID = '999';
+            const errorTimestamp = DateUtils.getMicroseconds();
+            const approvedReportAction: ReportAction = {
+                reportActionID: approvedReportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                actorAccountID: 12345,
+                created: DateUtils.getDBTime(),
+                message: [
+                    {
+                        type: '',
+                        text: '',
+                    },
+                ],
+                errors: {
+                    depositWithdrawalAccountError: {
+                        [errorTimestamp]: 'The deposit and withdrawal accounts are the same.',
+                    },
+                },
+            };
+
+            const MOCK_REPORTS: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}` as const]: chatReport,
+            };
+
+            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
+                [approvedReportActionID]: approvedReportAction,
+            };
+
+            const MOCK_TRANSACTIONS = {};
+            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    ...MOCK_REPORTS,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}` as const]: chatReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                });
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When: Checking for RBR on the chat report
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(chatReport?.reportID));
+            const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS);
+
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                chatReport,
+                chatReport,
+                MOCK_REPORT_ACTIONS,
+                false,
+                reportErrors,
+                MOCK_TRANSACTIONS,
+                MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived.current,
+            );
+
+            // Then: RBR should appear on the chat for the expense report
+            expect(result).not.toBeNull();
+            expect(result?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
+            expect(result?.reportAction).toMatchObject<ReportAction>(approvedReportAction);
+            expect(Object.values(reportErrors)).toContain('The deposit and withdrawal accounts are the same.');
+
+            await Onyx.clear();
+        });
     });
 
     describe('shouldShowRedBrickRoad', () => {
@@ -874,9 +967,83 @@ describe('SidebarUtils', () => {
                     )
                     .then(() => {
                         const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
-                        expect(result.messageText).toBe('This chat is with One and Two.');
+                        expect(result.messageHtml).toContain('This chat is with');
+                        expect(result.messageHtml).toContain('<user-details accountid="1">');
+                        expect(result.messageHtml).toContain('<user-details accountid="2">');
+                        expect(result.messageHtml).toContain('</user-details> and');
                     })
             );
+        });
+
+        it('returns correct messageText for a single user DM chat', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: undefined,
+                type: 'chat',
+            };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'} as unknown as PersonalDetails,
+            ];
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+            expect(result.messageText).toBe('This chat is with Email One.');
+            expect(result.messageHtml).toContain('<user-details accountid="1">Email One</user-details>');
+        });
+
+        it('returns correct messageText for two users in a group chat', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: 'group',
+                type: 'chat',
+            };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'} as unknown as PersonalDetails,
+                {accountID: 2, displayName: 'Email Two', avatar: 'https://example.com/two.png', login: 'email2@test.com'} as unknown as PersonalDetails,
+            ];
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+            expect(result.messageText).toMatch(/^This chat is with .+ and .+\.$/);
+            expect(result.messageText).toContain(' and ');
+            expect(result.messageText).not.toContain('<user-details');
+        });
+
+        it('returns correct messageText for three users in a group chat', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: 'group',
+                type: 'chat',
+            };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, displayName: 'Email One', avatar: 'https://example.com/one.png', login: 'email1@test.com'} as unknown as PersonalDetails,
+                {accountID: 2, displayName: 'Email Two', avatar: 'https://example.com/two.png', login: 'email2@test.com'} as unknown as PersonalDetails,
+                {accountID: 3, displayName: 'Email Three', avatar: 'https://example.com/three.png', login: 'email3@test.com'} as unknown as PersonalDetails,
+            ];
+
+            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                });
+            });
+
+            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
+            expect(result.messageText).toMatch(/^This chat is with .+, .+, and .+\.$/);
+            expect(result.messageText).toContain(', and ');
+            expect(result.messageText).not.toContain('<user-details');
         });
 
         it('returns a welcome message for an archived chat room', () => {

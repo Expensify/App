@@ -276,7 +276,7 @@ function BaseValidateCodeForm({
             return translate(formError?.validateCode);
         }
         return getLatestErrorMessage(account ?? {});
-    }, [canShowError, formError, account, translate]);
+    }, [canShowError, formError?.validateCode, account, translate]);
 
     const shouldShowTimer = isCountdownRunning && !isOffline;
 
@@ -378,8 +378,6 @@ function BaseValidateCodeForm({
         </>
     );
 }
-
-BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export type {ValidateCodeFormProps, ValidateCodeFormHandle};
 

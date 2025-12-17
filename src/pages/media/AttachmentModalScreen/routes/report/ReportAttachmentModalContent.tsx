@@ -55,7 +55,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         }
         const isEmptyReport = isEmptyObject(report);
         return !!isLoadingApp || isEmptyReport || (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport);
-    }, [isOffline, reportActionReportID, isLoadingApp, report, reportMetadata, shouldFetchReport]);
+    }, [isOffline, reportActionReportID, isLoadingApp, report, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport]);
 
     const fetchReport = useCallback(() => {
         openReport(reportActionReportID, reportActionID);
@@ -142,6 +142,5 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         />
     );
 }
-ReportAttachmentModalContent.displayName = 'ReportAttachmentModalContent';
 
 export default ReportAttachmentModalContent;

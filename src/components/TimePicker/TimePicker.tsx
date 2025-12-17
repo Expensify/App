@@ -652,7 +652,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
             }
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [selectionHour, selectionMinute],
+        [selectionHour, selectionMinute.start],
     );
     const arrowRightCallback = useCallback(
         (e?: GestureResponderEvent | KeyboardEvent) => {
@@ -673,7 +673,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
             }
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [selectionHour, selectionMinute, selectionSecond, selectionMillisecond],
+        [selectionHour.start, selectionMinute.start, selectionSecond.start, selectionMillisecond],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, arrowConfig);
@@ -919,8 +919,6 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         </View>
     );
 }
-
-TimePicker.displayName = 'TimePicker';
 
 export default TimePicker;
 

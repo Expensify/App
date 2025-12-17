@@ -63,7 +63,7 @@ function PolicyDistanceRatesPage({
         params: {policyID},
     },
 }: PolicyDistanceRatesPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -75,7 +75,7 @@ function PolicyDistanceRatesPage({
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const {asset: CarIce} = useMemoizedLazyAsset(() => loadIllustration('CarIce' as IllustrationName));
     const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
-    const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
+    const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit?.rates]);
 
     const selectableRates = useMemo(
         () =>
@@ -133,7 +133,7 @@ function PolicyDistanceRatesPage({
                 {transactionIDs: new Set<string>(), rateIDToTransactionIDsMap: {} as Record<string, string[]>},
             );
         },
-        [customUnit, rateIDs, policyReports],
+        [customUnit?.customUnitID, rateIDs, policyReports],
     );
 
     const [eligibleTransactionsData] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -250,7 +250,7 @@ function PolicyDistanceRatesPage({
                     />
                 ),
             })),
-        [canDisableOrDeleteRate, customUnitRates, translate, customUnit, policy?.pendingAction, updateDistanceRateEnabled],
+        [canDisableOrDeleteRate, customUnitRates, translate, customUnit?.attributes?.unit, customUnit?.pendingFields?.attributes, policy?.pendingAction, updateDistanceRateEnabled],
     );
 
     const filterRate = useCallback((rate: RateForList, searchInput: string) => {
@@ -469,7 +469,7 @@ function PolicyDistanceRatesPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={PolicyDistanceRatesPage.displayName}
+                testID="PolicyDistanceRatesPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
@@ -541,7 +541,5 @@ function PolicyDistanceRatesPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-PolicyDistanceRatesPage.displayName = 'PolicyDistanceRatesPage';
 
 export default PolicyDistanceRatesPage;

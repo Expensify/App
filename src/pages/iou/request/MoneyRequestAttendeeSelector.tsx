@@ -159,7 +159,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
             onFinish(CONST.IOU.TYPE.SUBMIT);
         },
-        [shouldShowErrorMessage, onFinish, selectedOptions],
+        [shouldShowErrorMessage, onFinish, selectedOptions.length],
     );
 
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
@@ -255,7 +255,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         }
 
         const headerMessage = getHeaderMessage(
-            (orderedAvailableOptions.personalDetails ?? []).length + (orderedAvailableOptions.recentReports ?? []).length !== 0,
+            formatResults.section.data.length + (orderedAvailableOptions.personalDetails ?? []).length + (orderedAvailableOptions.recentReports ?? []).length !== 0,
             !!orderedAvailableOptions?.userToInvite,
             cleanSearchTerm,
             countryCode,
@@ -274,6 +274,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         personalDetails,
         translate,
         reportAttributesDerived,
+        countryCode,
     ]);
 
     const optionLength = useMemo(() => {
@@ -310,6 +311,5 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     );
 }
 
-MoneyRequestAttendeeSelector.displayName = 'MoneyRequestAttendeeSelector';
-
+// eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- attendees array is derived and may have unstable references
 export default memo(MoneyRequestAttendeeSelector, (prevProps, nextProps) => deepEqual(prevProps.attendees, nextProps.attendees) && prevProps.iouType === nextProps.iouType);

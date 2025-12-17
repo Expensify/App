@@ -67,7 +67,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard, backTo, policyID, currentFullScreenRoute?.state?.routes]);
+    }, [assignCard?.isAssigned, backTo, policyID, currentFullScreenRoute?.state?.routes]);
 
     const submit = () => {
         if (!policyID) {
@@ -89,7 +89,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
             setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             return;
         }
-        assignWorkspaceCompanyCard(policyID, {...data, bankName});
+        assignWorkspaceCompanyCard(policy, {...data, bankName});
     };
 
     const editStep = (step: AssignCardStep) => {
@@ -102,7 +102,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={ConfirmationStep.displayName}
+            wrapperID="ConfirmationStep"
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={3}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
@@ -166,7 +166,5 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default ConfirmationStep;

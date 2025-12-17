@@ -41,7 +41,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
     const {isOffline} = useNetwork();
     const domain = getDomainNameForPolicy(policyID);
 
-    const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData]);
+    const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData?.bankAccounts?.length, plaidData?.errors]);
 
     /**
      * Blocks the keyboard shortcuts that can navigate
@@ -203,7 +203,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
 
     return (
         <ScreenWrapper
-            testID={PlaidConnectionStep.displayName}
+            testID="PlaidConnectionStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -220,7 +220,5 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
         </ScreenWrapper>
     );
 }
-
-PlaidConnectionStep.displayName = 'PlaidConnectionStep';
 
 export default PlaidConnectionStep;
