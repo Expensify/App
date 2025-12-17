@@ -80,12 +80,12 @@ function Confirmation() {
             transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
         }
         IOU.mergeDuplicates(transactionsMergeParams);
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
     }, [reportAction?.childReportID, transactionsMergeParams]);
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
     }, [transactionsMergeParams]);
 
     const contextValue = useMemo(
