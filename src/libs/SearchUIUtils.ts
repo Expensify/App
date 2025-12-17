@@ -2770,6 +2770,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,

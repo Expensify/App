@@ -95,13 +95,13 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.withdrawalID',
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
-        translationKey: 'common.tax',
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
+        translationKey: 'iou.taxRate',
         canBeMissing: true,
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
-        translationKey: 'iou.taxRate',
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
+        translationKey: 'common.tax',
         canBeMissing: true,
     },
     {
