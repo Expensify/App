@@ -4,6 +4,7 @@ import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,7 +19,6 @@ import {clearSetPrimaryContactError, clearToggleConsolidatedDomainBillingErrors,
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import RenderHTML from '@components/RenderHTML';
 
 type DomainAdminsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS_SETTINGS>;
 
@@ -71,7 +71,6 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                     switchAccessibilityLabel={translate('domain.admins.consolidatedDomainBilling')}
                     isActive={!!technicalContactSettings?.technicalContactEmail && !!technicalContactSettings?.useTechnicalContactBillingCard}
                     disabled={!technicalContactSettings?.technicalContactEmail}
-                    showLockIcon={!technicalContactSettings?.technicalContactEmail}
                     onToggle={(value) => {
                         if (!domain?.email) {
                             return;
