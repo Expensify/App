@@ -81,10 +81,6 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canBeMissing: true,
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
-        translationKey: 'common.originalAmount',
-    },
-    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
         translationKey: 'common.reimbursable',
         canBeMissing: true,
@@ -95,14 +91,18 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canBeMissing: true,
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
-        translationKey: 'common.withdrawalID',
-    },
-    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
         isColumnSortable: false,
         canBeMissing: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+        translationKey: 'common.originalAmount',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+        translationKey: 'common.withdrawalID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
