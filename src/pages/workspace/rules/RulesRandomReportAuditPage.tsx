@@ -37,13 +37,13 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
             shouldBeBlocked={!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesRandomReportAuditPage.displayName}
+                testID="RulesRandomReportAuditPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
@@ -76,7 +76,5 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesRandomReportAuditPage.displayName = 'RulesRandomReportAuditPage';
 
 export default RulesRandomReportAuditPage;

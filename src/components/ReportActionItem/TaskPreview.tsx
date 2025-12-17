@@ -148,9 +148,9 @@ function TaskPreview({
                             disabled={!isTaskActionable}
                             onPress={callFunctionIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
-                                    reopenTask(taskReport, currentUserPersonalDetails.accountID, taskReportID);
+                                    reopenTask(taskReport, parentReport, currentUserPersonalDetails.accountID, taskReportID);
                                 } else {
-                                    completeTask(taskReport, hasOutstandingChildTask, parentReportAction, taskReportID);
+                                    completeTask(taskReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, taskReportID);
                                 }
                             })}
                             accessibilityLabel={translate('task.task')}
@@ -190,7 +190,5 @@ function TaskPreview({
         </View>
     );
 }
-
-TaskPreview.displayName = 'TaskPreview';
 
 export default withCurrentUserPersonalDetails(TaskPreview);

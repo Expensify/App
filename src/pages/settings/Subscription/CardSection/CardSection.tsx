@@ -8,7 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -46,7 +46,8 @@ function CardSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History']);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
@@ -237,7 +238,7 @@ function CardSection() {
                 {!!account?.hasPurchases && (
                     <MenuItem
                         shouldShowRightIcon
-                        icon={Expensicons.History}
+                        icon={expensifyIcons.History}
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
@@ -275,7 +276,5 @@ function CardSection() {
         </>
     );
 }
-
-CardSection.displayName = 'CardSection';
 
 export default CardSection;

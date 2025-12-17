@@ -45,19 +45,24 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
 const useSearchTypeMenuSections = () => {
     const {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard} = useCardFeedsForDisplay();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Document'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']);
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
-    const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: () => void} | null>(null);
+    const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
+        null,
+    );
 
-    const handlePendingConfirm = useCallback(() => {
-        pendingReportCreation?.onConfirm();
-        setPendingReportCreation(null);
-    }, [pendingReportCreation, setPendingReportCreation]);
+    const handlePendingConfirm = useCallback(
+        (shouldDismissEmptyReportsConfirmation: boolean) => {
+            pendingReportCreation?.onConfirm(shouldDismissEmptyReportsConfirmation);
+            setPendingReportCreation(null);
+        },
+        [pendingReportCreation, setPendingReportCreation],
+    );
 
     const handlePendingCancel = useCallback(() => {
         setPendingReportCreation(null);

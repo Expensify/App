@@ -63,6 +63,9 @@ type CheckboxProps = Partial<ChildrenProps> & {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
+
+    /** Label for Sentry tracking. On web, this will be added as data-sentry-label attribute. */
+    sentryLabel?: string;
 };
 
 function Checkbox({
@@ -84,6 +87,7 @@ function Checkbox({
     wrapperStyle,
     testID,
     ref,
+    sentryLabel,
 }: CheckboxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -135,6 +139,7 @@ function Checkbox({
             accessibilityLabel={accessibilityLabel}
             pressDimmingValue={1}
             wrapperStyle={wrapperStyle}
+            sentryLabel={sentryLabel}
         >
             {children ?? (
                 <View
@@ -161,8 +166,6 @@ function Checkbox({
         </PressableWithFeedback>
     );
 }
-
-Checkbox.displayName = 'Checkbox';
 
 export default Checkbox;
 

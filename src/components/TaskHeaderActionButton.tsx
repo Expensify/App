@@ -11,6 +11,7 @@ import {canWriteInReport, isCompletedTaskReport} from '@libs/ReportUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import Button from './Button';
 
@@ -45,17 +46,16 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                         return;
                     }
                     if (isCompletedTaskReport(report)) {
-                        reopenTask(report, currentUserPersonalDetails.accountID);
+                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID);
                     } else {
-                        completeTask(report, hasOutstandingChildTask, parentReportAction);
+                        completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction);
                     }
                 })}
                 style={styles.flex1}
+                sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.TASK_ACTION_BUTTON}
             />
         </View>
     );
 }
-
-TaskHeaderActionButton.displayName = 'TaskHeaderActionButton';
 
 export default TaskHeaderActionButton;

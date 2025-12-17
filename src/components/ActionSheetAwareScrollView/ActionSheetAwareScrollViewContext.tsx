@@ -1,51 +1,22 @@
-import noop from 'lodash/noop';
-import PropTypes from 'prop-types';
 import type {PropsWithChildren} from 'react';
 import React, {createContext, useMemo} from 'react';
-import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import type {ActionWithPayload, State, StateMachine} from '@hooks/useWorkletStateMachine';
 import useWorkletStateMachine from '@hooks/useWorkletStateMachine';
+import type {StateMachine} from '@hooks/useWorkletStateMachine';
+import createDummySharedValue from '@src/utils/createDummySharedValue';
+import {INITIAL_ACTION_SHEET_STATE} from './constants';
+import type {ActionSheetAwareScrollViewContextValue, ActionSheetAwareScrollViewMeasurements} from './types';
 
-type MeasuredElements = {
-    frameY?: number;
-    popoverHeight?: number;
-    height?: number;
+const NOOP = () => {};
+
+const initialContextValue: ActionSheetAwareScrollViewContextValue = {
+    currentActionSheetState: createDummySharedValue(INITIAL_ACTION_SHEET_STATE),
+    transitionActionSheetState: NOOP,
+    transitionActionSheetStateWorklet: NOOP,
+    resetStateMachine: NOOP,
 };
 
-type Context = {
-    currentActionSheetState: SharedValue<State<MeasuredElements>>;
-    transitionActionSheetState: (action: ActionWithPayload) => void;
-    transitionActionSheetStateWorklet: (action: ActionWithPayload) => void;
-    resetStateMachine: () => void;
-};
-
-/** Holds all information that is needed to coordinate the state value for the action sheet state machine. */
-const currentActionSheetStateValue = {
-    previous: {
-        state: 'idle',
-        payload: null,
-    },
-    current: {
-        state: 'idle',
-        payload: null,
-    },
-};
-const defaultValue: Context = {
-    currentActionSheetState: {
-        value: currentActionSheetStateValue,
-        addListener: noop,
-        removeListener: noop,
-        modify: noop,
-        get: () => currentActionSheetStateValue,
-        set: noop,
-    },
-    transitionActionSheetState: noop,
-    transitionActionSheetStateWorklet: noop,
-    resetStateMachine: noop,
-};
-
-const ActionSheetAwareScrollViewContext = createContext<Context>(defaultValue);
+const ActionSheetAwareScrollViewContext = createContext<ActionSheetAwareScrollViewContextValue>(initialContextValue);
 
 const Actions = {
     OPEN_KEYBOARD: 'OPEN_KEYBOARD',
@@ -127,17 +98,11 @@ const STATE_MACHINE: StateMachine<ValueOf<typeof States>, ValueOf<typeof Actions
     },
 };
 
-function ActionSheetAwareScrollViewProvider(props: PropsWithChildren<unknown>) {
-    const {currentState, transition, transitionWorklet, reset} = useWorkletStateMachine<typeof STATE_MACHINE, MeasuredElements>(STATE_MACHINE, {
-        previous: {
-            state: 'idle',
-            payload: null,
-        },
-        current: {
-            state: 'idle',
-            payload: null,
-        },
-    });
+function ActionSheetAwareScrollViewProvider(props: PropsWithChildren) {
+    const {currentState, transition, transitionWorklet, reset} = useWorkletStateMachine<typeof STATE_MACHINE, ActionSheetAwareScrollViewMeasurements>(
+        STATE_MACHINE,
+        INITIAL_ACTION_SHEET_STATE,
+    );
 
     const value = useMemo(
         () => ({
@@ -151,9 +116,5 @@ function ActionSheetAwareScrollViewProvider(props: PropsWithChildren<unknown>) {
 
     return <ActionSheetAwareScrollViewContext.Provider value={value}>{props.children}</ActionSheetAwareScrollViewContext.Provider>;
 }
-
-ActionSheetAwareScrollViewProvider.propTypes = {
-    children: PropTypes.node.isRequired,
-};
 
 export {ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions, States};
