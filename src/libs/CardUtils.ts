@@ -255,7 +255,7 @@ function maskCardNumber(cardName?: string, feed?: string, showOriginalName?: boo
 /**
  * Returns last 4 number from company card name
  *
- * @param cardName - card name with dash (or other separator) in the middle and 4 numbers in the end.
+ * @param cardName - card name with dash in the middle and 4 numbers in the end.
  * @returns - Last 4 numbers
  */
 function lastFourNumbersFromCardName(cardName: string | undefined): string {
