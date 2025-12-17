@@ -32,6 +32,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchFilterFormValues from '@hooks/useSearchFilterFormValues';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
@@ -41,9 +42,9 @@ import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getActiveAdminWorkspaces, getAllTaxRates, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
-import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
@@ -104,18 +105,13 @@ function SearchFiltersBar({
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: searchResultsErrorSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
-
-    const taxRates = getAllTaxRates(allPolicies);
 
     // Get workspace data for the filter
     const {sections: workspaces, shouldShowSearchInput: shouldShowWorkspaceSearchInput} = useWorkspaceList({
@@ -148,9 +144,7 @@ function SearchFiltersBar({
         return policies.some((policy) => policy.outputCurrency !== outputCurrency);
     }, [allPolicies]);
 
-    const filterFormValues = useMemo(() => {
-        return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
-    }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
+    const filterFormValues = useSearchFilterFormValues();
 
     // Get selected workspace options from filterFormValues or queryJSON
     const selectedWorkspaceOptions = useMemo(() => {
