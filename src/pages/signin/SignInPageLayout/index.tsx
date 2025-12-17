@@ -178,6 +178,4 @@ function SignInPageLayout({
     );
 }
 
-SignInPageLayout.displayName = 'SignInPageLayout';
-
 export default SignInPageLayout;

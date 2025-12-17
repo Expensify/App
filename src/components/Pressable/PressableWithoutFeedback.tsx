@@ -13,6 +13,4 @@ function PressableWithoutFeedback({pressStyle, focusStyle, screenReaderActiveSty
     );
 }
 
-PressableWithoutFeedback.displayName = 'PressableWithoutFeedback';
-
 export default PressableWithoutFeedback;

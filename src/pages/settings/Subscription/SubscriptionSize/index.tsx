@@ -66,7 +66,7 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
 
     return (
         <ScreenWrapper
-            testID={SubscriptionSizePage.displayName}
+            testID="SubscriptionSizePage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -86,7 +86,5 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
         </ScreenWrapper>
     );
 }
-
-SubscriptionSizePage.displayName = 'SubscriptionSizePage';
 
 export default SubscriptionSizePage;

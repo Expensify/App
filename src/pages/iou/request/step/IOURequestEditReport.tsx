@@ -98,11 +98,12 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        if (!policyForMovingExpensesID) {
+        if (!hasPerDiemTransactions && !policyForMovingExpensesID) {
             return;
         }
 
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID, false, shouldDismissEmptyReportsConfirmation);
+        const policyForNewReportID = hasPerDiemTransactions ? selectedReport?.policyID : policyForMovingExpensesID;
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReportID, false, shouldDismissEmptyReportsConfirmation);
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
@@ -114,7 +115,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
-        if (!policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (hasPerDiemTransactions) {
+            handleCreateReport();
+            return;
+        }
+        if (!hasPerDiemTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
@@ -144,7 +149,5 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         </>
     );
 }
-
-IOURequestEditReport.displayName = 'IOURequestEditReport';
 
 export default withWritableReportOrNotFound(IOURequestEditReport);
