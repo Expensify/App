@@ -40,6 +40,7 @@ import {
     allHavePendingRTERViolation,
     getTransactionViolations,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    hasSmartScanFailedViolation,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
@@ -76,7 +77,15 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
 }
 
-function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs) {
+function isSubmitAction(
+    report: Report,
+    reportTransactions: Transaction[],
+    policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
+    violations?: OnyxCollection<TransactionViolation[]>,
+    currentUserEmail?: string,
+    currentUserAccountID?: number,
+) {
     if (isArchivedReport(reportNameValuePairs)) {
         return false;
     }
@@ -96,9 +105,15 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
         return false;
     }
 
+    if (violations && currentUserEmail && currentUserAccountID !== undefined) {
+        if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+            return false;
+        }
+    }
+
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
 
@@ -126,6 +141,13 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     }
 
     if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
+
+    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
+    const isReportSubmitter = isCurrentUserSubmitter(report);
+
+    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
     }
 
@@ -404,7 +426,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     if (isPrimaryMarkAsResolvedAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, violations, currentUserEmail, currentUserAccountID)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 

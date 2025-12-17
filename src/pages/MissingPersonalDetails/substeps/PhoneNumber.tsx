@@ -63,6 +63,4 @@ function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: Cus
     );
 }
 
-PhoneNumberStep.displayName = 'PhoneNumberStep';
-
 export default PhoneNumberStep;

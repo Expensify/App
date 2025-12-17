@@ -132,7 +132,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         >
             <ScreenWrapper
                 shouldEnableMaxHeight
-                testID={CardReconciliationPage.displayName}
+                testID="CardReconciliationPage"
             >
                 <HeaderWithBackButton title={translate('workspace.accounting.cardReconciliation')} />
                 <ScrollView
@@ -175,7 +175,5 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-CardReconciliationPage.displayName = 'CardReconciliationPage';
 
 export default withPolicyConnections(CardReconciliationPage);

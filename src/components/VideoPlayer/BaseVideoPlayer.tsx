@@ -6,7 +6,8 @@ import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
-import {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
@@ -123,7 +124,7 @@ function BaseVideoPlayer({
             return;
         }
 
-        controlsOpacity.set(withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE)));
+        controlsOpacity.set(withTiming(0, {duration: 500}, () => scheduleOnRN(setControlStatusState, CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE)));
     }, [controlsOpacity, isEnded]);
     const debouncedHideControl = useMemo(() => debounce(hideControl, 1500), [hideControl]);
 
@@ -445,6 +446,7 @@ function BaseVideoPlayer({
                                     toggleControl();
                                 }}
                                 style={[styles.flex1, styles.noSelect]}
+                                sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.VIDEO}
                             >
                                 {shouldUseSharedVideoElement ? (
                                     <>
@@ -549,7 +551,5 @@ function BaseVideoPlayer({
         </>
     );
 }
-
-BaseVideoPlayer.displayName = 'BaseVideoPlayer';
 
 export default BaseVideoPlayer;

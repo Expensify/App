@@ -152,15 +152,13 @@ function ReanimatedModal({
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
 
-        // On the web platform, the Modal's onDismiss callback may not be triggered if the dismiss process is interrupted by other actions such as navigation.
-        // Specifically on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
+        // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
         // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
-        // Therefore, we manually call onDismiss and onModalHide here.
-        if (getPlatform() !== CONST.PLATFORM.IOS) {
-            onDismiss?.();
+        // Therefore, we manually call onModalHide() here for Android.
+        if (getPlatform() === CONST.PLATFORM.ANDROID) {
             onModalHide();
         }
-    }, [onDismiss, onModalHide]);
+    }, [onModalHide]);
 
     const containerView = (
         <Container
@@ -218,11 +216,10 @@ function ReanimatedModal({
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
                 onDismiss={() => {
-                    if (getPlatform() !== CONST.PLATFORM.IOS) {
-                        return;
-                    }
                     onDismiss?.();
-                    onModalHide();
+                    if (getPlatform() !== CONST.PLATFORM.ANDROID) {
+                        onModalHide();
+                    }
                 }}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
@@ -250,7 +247,5 @@ function ReanimatedModal({
         </LayoutAnimationConfig>
     );
 }
-
-ReanimatedModal.displayName = 'ReanimatedModal';
 
 export default ReanimatedModal;
