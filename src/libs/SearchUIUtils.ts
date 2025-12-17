@@ -937,7 +937,8 @@ function shouldShowYear(
     for (const key of Object.keys(data)) {
         if (!checkOnlyReports && isTransactionEntry(key)) {
             const item = data[key];
-            if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+            const transactionCreated = getTransactionCreatedDate(item);
+            if (transactionCreated && DateUtils.doesDateBelongToAPastYear(transactionCreated)) {
                 result.shouldShowYearCreated = true;
             }
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
@@ -2066,12 +2067,8 @@ function getSortedTransactionData(
             const aReport = a.report;
             const bReport = b.report;
 
-            if (!aReport || !bReport) {
-                return 0;
-            }
-
-            const aValue = getReportStatusTranslation({stateNum: aReport.stateNum, statusNum: aReport.statusNum, translate});
-            const bValue = getReportStatusTranslation({stateNum: bReport.stateNum, statusNum: bReport.statusNum, translate});
+            const aValue = getReportStatusTranslation({stateNum: aReport?.stateNum, statusNum: aReport?.statusNum, translate});
+            const bValue = getReportStatusTranslation({stateNum: bReport?.stateNum, statusNum: bReport?.statusNum, translate});
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
