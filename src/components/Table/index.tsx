@@ -3,14 +3,12 @@ import TableBody from './TableBody';
 import TableContext from './TableContext';
 import TableFilterButtons from './TableFilterButtons';
 import TableHeader from './TableHeader';
-import TableHeaderContainer from './TableHeaderContainer';
 import TableSearchBar from './TableSearchBar';
 import TableSortButtons from './TableSortButtons';
 
 const Table = Object.assign(TableComponent, {
     Context: TableContext,
     Header: TableHeader,
-    HeaderContainer: TableHeaderContainer,
     Body: TableBody,
     FilterButtons: TableFilterButtons,
     SearchBar: TableSearchBar,
