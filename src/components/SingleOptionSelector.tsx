@@ -61,6 +61,4 @@ function SingleOptionSelector<TKey extends string>({options = [], selectedOption
     );
 }
 
-SingleOptionSelector.displayName = 'SingleOptionSelector';
-
 export default SingleOptionSelector;

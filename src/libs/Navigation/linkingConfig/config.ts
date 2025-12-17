@@ -890,6 +890,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: {
                             path: ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.route,
                         },
+                        [SCREENS.WORKSPACE.CATEGORY_REQUIRED_FIELDS]: {
+                            path: ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.route,
+                        },
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
                             path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
                         },
@@ -1004,8 +1007,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
                             path: ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.route,
                         },
-                        [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {
-                            path: ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.route,
+                        [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
@@ -1107,6 +1110,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.DOMAIN.VERIFIED]: {
                             path: ROUTES.DOMAIN_VERIFIED.route,
+                        },
+                        [SCREENS.DOMAIN.ADMIN_DETAILS]: {
+                            path: ROUTES.DOMAIN_ADMIN_DETAILS.route,
+                        },
+                        [SCREENS.DOMAIN.ADMINS_SETTINGS]: {
+                            path: ROUTES.DOMAIN_ADMINS_SETTINGS.route,
+                        },
+                        [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
+                            path: ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.route,
                         },
                     },
                 },
@@ -1592,6 +1604,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TRAVEL.VERIFY_ACCOUNT]: ROUTES.TRAVEL_VERIFY_ACCOUNT.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: {
+                    screens: {
+                        [SCREENS.SEARCH.COLUMNS_RHP]: ROUTES.SEARCH_COLUMNS,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
                     screens: {
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
@@ -1606,11 +1623,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: ROUTES.TRANSACTION_HOLD_REASON_RHP,
                         [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: ROUTES.SEARCH_REJECT_REASON_RHP,
                         [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP,
-                    },
-                },
-                [SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]: {
-                    screens: {
-                        [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: ROUTES.SEARCH_MONEY_REQUEST_REPORT.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
@@ -1783,11 +1795,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.route,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.EXPENSE_REPORT]: {
-                    screens: {
-                        [SCREENS.EXPENSE_REPORT_RHP]: ROUTES.EXPENSE_REPORT_RHP.route,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.DOMAIN]: {
                     screens: {
                         [SCREENS.WORKSPACES_VERIFY_DOMAIN]: {
@@ -1942,6 +1949,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             screens: {
                 [SCREENS.SEARCH.ROOT]: {
                     path: ROUTES.SEARCH_ROOT.route,
+                },
+                [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
+                    path: ROUTES.SEARCH_MONEY_REQUEST_REPORT.route,
                 },
             },
         },
