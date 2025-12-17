@@ -15,7 +15,8 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Restore cspell cache
-        uses: actions/cache@v4
+        # v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: .cspellcache
           key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json') }}
