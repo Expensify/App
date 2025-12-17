@@ -86,7 +86,7 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OriginalMessageIOU, PersonalDetailsList, Policy, PolicyTagLists, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {OriginalMessageIOU, PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedCategories, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant, Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
@@ -6085,7 +6085,14 @@ describe('actions/IOU', () => {
             const companyWebsite = 'https://www.53019.com';
 
             // When the user sends a new invoice to an individual
-            sendInvoice(currentUserAccountID, transaction, undefined, undefined, policy, undefined, undefined, companyName, companyWebsite);
+            sendInvoice({
+                currentUserAccountID,
+                transaction: transaction as unknown as OnyxEntry<Transaction>,
+                policyRecentlyUsedCurrencies: [],
+                policy,
+                companyName,
+                companyWebsite,
+            });
 
             // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
             expect(writeSpy).toHaveBeenCalledWith(
@@ -6101,7 +6108,11 @@ describe('actions/IOU', () => {
         it('should not clear transaction pending action when send invoice fails', async () => {
             // Given a send invoice request
             mockFetch?.pause?.();
-            sendInvoice(1, createRandomTransaction(1));
+            sendInvoice({
+                currentUserAccountID: 1,
+                transaction: createRandomTransaction(1) as unknown as OnyxEntry<Transaction>,
+                policyRecentlyUsedCurrencies: [],
+            });
 
             // When the request fails
             mockFetch?.fail?.();
@@ -9924,18 +9935,19 @@ describe('actions/IOU', () => {
             };
 
             // When: Call getSendInvoiceInformation
-            const result = getSendInvoiceInformation(
-                mockTransaction as OnyxEntry<Transaction>,
+            const result = getSendInvoiceInformation({
+                transaction: mockTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
-                undefined, // invoiceChatReport
-                undefined, // receipt
-                mockPolicy,
-                mockPolicyTagList as OnyxEntry<PolicyTagLists>,
-                mockPolicyCategories,
-                'Test Company Inc.',
-                'https://testcompany.com',
-                ['Services', 'Consulting'],
-            );
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: undefined,
+                receiptFile: undefined,
+                policy: mockPolicy,
+                policyTagList: mockPolicyTagList as OnyxEntry<PolicyTagLists>,
+                policyCategories: mockPolicyCategories,
+                companyName: 'Test Company Inc.',
+                companyWebsite: 'https://testcompany.com',
+                policyRecentlyUsedCategories: undefined,
+            });
 
             // Then: Verify the result structure and key values
             expect(result).toMatchObject({
@@ -10024,17 +10036,19 @@ describe('actions/IOU', () => {
             const currentUserAccountID = 123;
 
             // When: Call getSendInvoiceInformation with existing chat report
-            const result = getSendInvoiceInformation(
-                mockTransaction,
+            const result = getSendInvoiceInformation({
+                transaction: mockTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
-                existingInvoiceChatReport as OnyxEntry<Report>,
-                undefined, // receipt
-                undefined, // policy
-                undefined, // policyTagList
-                undefined, // policyCategories
-                'Client Company Ltd.',
-                'https://clientcompany.com',
-            );
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: 'Client Company Ltd.',
+                companyWebsite: 'https://clientcompany.com',
+                policyRecentlyUsedCategories: undefined,
+            });
 
             // Then: Verify the result uses existing chat report
             expect(result.invoiceRoom.reportID).toBe('invoice_chat_123');
@@ -10084,15 +10098,19 @@ describe('actions/IOU', () => {
             const currentUserAccountID = 123;
 
             // When: Call getSendInvoiceInformation with receipt
-            const result = getSendInvoiceInformation(
-                mockTransaction,
+            const result = getSendInvoiceInformation({
+                transaction: mockTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
-                undefined, // invoiceChatReport
-                mockReceipt,
-                undefined, // policy
-                undefined, // policyTagList
-                undefined, // policyCategories
-            );
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: undefined,
+                receiptFile: mockReceipt as unknown as Receipt,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: undefined,
+            });
 
             // Then: Verify receipt handling
             expect(result.transactionID).toBeDefined();
@@ -10128,7 +10146,19 @@ describe('actions/IOU', () => {
             const currentUserAccountID = 123;
 
             // When: Call getSendInvoiceInformation with minimal data
-            const result = getSendInvoiceInformation(mockTransaction, currentUserAccountID);
+            const result = getSendInvoiceInformation({
+                transaction: mockTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: undefined,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: undefined,
+            });
 
             // Then: Verify function handles missing data gracefully
             expect(result).toBeDefined();
@@ -10855,11 +10885,19 @@ describe('actions/IOU', () => {
 
             // Step 4: Call getSendInvoiceInformation with stale User A report
             // This simulates the bug scenario where the report from route params is stale
-            const invoiceInfo = getSendInvoiceInformation(
-                updatedTransaction,
-                senderAccountID,
-                userAInvoiceReport, // Passing stale report for User A
-            );
+            const invoiceInfo = getSendInvoiceInformation({
+                transaction: updatedTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID: senderAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: userAInvoiceReport,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: undefined,
+            });
 
             // Step 5: Verify that the invoice is created for User B, not User A
             // The doesReportReceiverMatchParticipant utility should detect the mismatch
