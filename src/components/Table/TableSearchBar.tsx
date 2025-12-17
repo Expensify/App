@@ -21,7 +21,7 @@ function TableSearchBar() {
                 includeIconPadding={false}
                 shouldShowClearButton
                 shouldHideClearButton={searchString.length === 0}
-                onClearInput={() => updateSearchString('')} )}
+                onClearInput={() => updateSearchString('')}
                 autoCapitalize="none"
                 autoCorrect={false}
                 spellCheck={false}
