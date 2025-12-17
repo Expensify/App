@@ -135,36 +135,6 @@ function mapTransactionItemToSelectedEntry(
     ];
 }
 
-function mapToTransactionItemWithAdditionalInfo(item: TransactionListItemType, shouldAnimateInHighlight: boolean, hash?: number) {
-    return {...item, shouldAnimateInHighlight, hash};
-}
-
-function mapToItemWithAdditionalInfo(item: SearchListItem, shouldAnimateInHighlight: boolean, hash?: number) {
-    if (isTaskListItemType(item)) {
-        return {
-            ...item,
-            shouldAnimateInHighlight,
-            hash,
-        };
-    }
-
-    if (isReportActionListItemType(item)) {
-        return {
-            ...item,
-            shouldAnimateInHighlight,
-            hash,
-        };
-    }
-
-    return isTransactionListItemType(item)
-        ? mapToTransactionItemWithAdditionalInfo(item, shouldAnimateInHighlight, hash)
-        : {
-              ...item,
-              shouldAnimateInHighlight,
-              hash,
-          };
-}
-
 function prepareTransactionsList(
     item: TransactionListItemType,
     itemTransaction: OnyxEntry<Transaction>,
@@ -853,10 +823,8 @@ function Search({
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
 
-                // Check if the base key matches the newSearchResultKey (TransactionListItemType)
                 const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
 
-                // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
                 const isAnyTransactionMatch =
                     !isChat &&
                     (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
@@ -864,10 +832,13 @@ function Search({
                         return !!newSearchResultKeys?.has(transactionKey);
                     });
 
-                // Determine if either the base key or any transaction key matches
                 const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-                return mapToItemWithAdditionalInfo(item, shouldAnimateInHighlight, hash);
+                if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
+                    return item;
+                }
+
+                return {...item, shouldAnimateInHighlight, hash};
             }),
         [type, status, filteredData, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, localeCompare, hash],
     );
