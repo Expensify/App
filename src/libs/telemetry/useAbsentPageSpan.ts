@@ -1,36 +1,23 @@
-import {useContext, useEffect} from 'react';
-import {Platform} from 'react-native';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
-import Navigation from '@libs/Navigation/Navigation';
+import {useEffect} from 'react';
+import useDeepLink from '@hooks/useDeepLink';
 import CONST from '@src/CONST';
 import {endSpan, startSpan} from './activeSpans';
 
 export default function useAbsentPageSpan() {
-    const {initialURL} = useContext(InitialURLContext);
+    const {isDeeplink, deepLinkUrl} = useDeepLink();
 
     useEffect(() => {
-        let isDeeplink = false;
-        let currentUrl = '';
-
-        if (Platform.OS === 'web') {
-            currentUrl = window.location.href;
-            isDeeplink = currentUrl === initialURL;
-        } else {
-            isDeeplink = !!initialURL;
-            currentUrl = Navigation.getActiveRoute() || '';
-        }
-
         const NAVIGATION_SOURCE = isDeeplink ? 'deeplink' : 'button';
 
         startSpan(CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE, {
             name: CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE,
             op: CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE,
             attributes: {
-                url: currentUrl,
+                url: deepLinkUrl,
                 navigationSource: NAVIGATION_SOURCE,
             },
         });
 
         endSpan(CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE);
-    }, [initialURL]);
+    }, [isDeeplink, deepLinkUrl]);
 }

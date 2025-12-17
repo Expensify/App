@@ -1,12 +1,7 @@
 import {useContext} from 'react';
-import {Platform} from 'react-native';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
-
-type UseDeepLinkResult = {
-    isDeeplink: boolean;
-    deepLinkUrl: string;
-};
+import type UseDeepLinkResult from './types';
 
 /**
  * Hook to detect if the current navigation is from a deeplink and get the deeplink URL
@@ -17,19 +12,12 @@ type UseDeepLinkResult = {
 export default function useDeepLink(): UseDeepLinkResult {
     const {initialURL} = useContext(InitialURLContext);
 
-    let isDeeplink = false;
-    let deepLinkUrl = '';
-
-    if (Platform.OS === 'web') {
-        deepLinkUrl = window.location.href;
-        isDeeplink = deepLinkUrl === initialURL;
-    } else {
-        isDeeplink = !!initialURL;
-        deepLinkUrl = Navigation.getActiveRoute() || '';
-    }
+    const isDeeplink = !!initialURL;
+    const deepLinkUrl = Navigation.getActiveRoute() || '';
 
     return {
         isDeeplink,
         deepLinkUrl,
     };
 }
+
