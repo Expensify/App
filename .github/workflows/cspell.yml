@@ -21,8 +21,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cspell-
 
-      - uses: streetsidesoftware/cspell-action@72ae91e90fa38f2335a60e233a847a6d00a9f221
+      - name: Spell check with cspell
+        # v8.1.1
+        uses: streetsidesoftware/cspell-action@e5a858a18b7e0b56e0342b1dcad796308b7341a2
         with:
+          files: "**/*"
           root: "."
           config: "./cspell.json"
           inline: error
