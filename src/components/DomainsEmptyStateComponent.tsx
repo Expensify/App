@@ -34,5 +34,4 @@ function DomainsEmptyStateComponent() {
     );
 }
 
-DomainsEmptyStateComponent.displayName = 'DomainsEmptyStateComponent';
 export default DomainsEmptyStateComponent;
