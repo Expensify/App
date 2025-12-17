@@ -692,6 +692,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Actie vereist',
         duplicate: 'Dupliceren',
         duplicated: 'Gedupliceerd',
+        originalAmount: 'Oorspronkelijk bedrag',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
