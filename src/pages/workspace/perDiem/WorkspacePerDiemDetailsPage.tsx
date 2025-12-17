@@ -88,7 +88,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspacePerDiemDetailsPage.displayName}
+                testID="WorkspacePerDiemDetailsPage"
             >
                 <HeaderWithBackButton title={translate('workspace.perDiem.editPerDiemRate')} />
                 <ScrollView
@@ -130,7 +130,5 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspacePerDiemDetailsPage.displayName = 'WorkspacePerDiemDetailsPage';
 
 export default WorkspacePerDiemDetailsPage;

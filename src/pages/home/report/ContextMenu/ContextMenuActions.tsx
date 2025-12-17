@@ -33,6 +33,7 @@ import {
     getDeletedApprovalRuleMessage,
     getExportIntegrationMessageHTML,
     getForwardsToUpdateMessage,
+    getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
@@ -82,6 +83,7 @@ import {
     isActionableTrackExpense,
     isActionOfType,
     isCardIssuedAction,
+    isCreatedAction,
     isCreatedTaskReportAction,
     isDeletedAction as isDeletedActionReportActionsUtils,
     isMarkAsClosedAction,
@@ -102,6 +104,7 @@ import {
     isUnapprovedAction,
     isWhisperAction as isWhisperActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteReportAction,
     canEditReportAction,
@@ -120,7 +123,7 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
-    getReportName,
+    getReportName as getReportNameDeprecated,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
@@ -147,6 +150,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
@@ -194,6 +198,7 @@ type ShouldShow = (args: {
     transactions?: OnyxCollection<Transaction>;
     moneyRequestReport?: OnyxEntry<ReportType>;
     moneyRequestPolicy?: OnyxEntry<Policy>;
+    isHarvestReport?: boolean;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -216,6 +221,7 @@ type ContextMenuActionPayload = {
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
+    isHarvestReport?: boolean;
     isTryNewDotNVPDismissed?: boolean;
     childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
@@ -224,6 +230,7 @@ type ContextMenuActionPayload = {
     policy?: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
+    harvestReport?: OnyxEntry<ReportType>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -236,7 +243,7 @@ type ContextMenuActionWithContent = {
     renderContent: RenderContent;
 };
 
-type ContextMenuActionWithIcon = {
+type ContextMenuActionWithIcon = WithSentryLabel & {
     textTranslateKey: TranslationPaths;
     icon:
         | IconAsset
@@ -340,7 +347,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !reportID) {
                 return false;
             }
-            return !shouldDisableThread(reportAction, reportID, isThreadReportParentAction, isArchivedRoom);
+            return !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -355,6 +362,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.REPLY_IN_THREAD,
     },
     {
         isAnonymousAction: false,
@@ -369,6 +377,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MARK_AS_UNREAD,
     },
     {
         isAnonymousAction: false,
@@ -383,6 +392,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MARK_AS_READ,
     },
     {
         isAnonymousAction: false,
@@ -422,6 +432,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             editAction();
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EDIT_COMMENT,
     },
     {
         isAnonymousAction: false,
@@ -444,6 +455,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(moneyRequestAction);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.UNHOLD,
     },
     {
         isAnonymousAction: false,
@@ -466,12 +478,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(moneyRequestAction);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
         icon: 'Bell',
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
@@ -479,12 +492,16 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
+            const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
+            const shouldDisableJoinThread = shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
             return (
                 !subscribed &&
                 !isWhisperAction &&
                 !isTaskAction &&
                 !isExpenseReportAction &&
                 !isThreadReportParentAction &&
+                !isHarvestCreatedExpenseReportAction &&
+                !shouldDisableJoinThread &&
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
@@ -503,12 +520,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD,
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.leaveThread',
         icon: Expensicons.Exit,
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
@@ -516,12 +534,14 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
+            const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
             return (
                 subscribed &&
                 !isWhisperAction &&
                 !isTaskAction &&
                 !isExpenseReportAction &&
                 !isThreadReportParentAction &&
+                !isHarvestCreatedExpenseReportAction &&
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
@@ -540,6 +560,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.LEAVE_THREAD,
     },
     {
         isAnonymousAction: true,
@@ -553,6 +574,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: (selection) => selection,
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_URL,
     },
     {
         isAnonymousAction: true,
@@ -566,6 +588,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => undefined,
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_TO_CLIPBOARD,
     },
     {
         isAnonymousAction: true,
@@ -579,6 +602,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: (selection) => EmailUtils.prefixMailSeparatorsWithBreakOpportunities(EmailUtils.trimMailTo(selection ?? '')),
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_EMAIL,
     },
     {
         isAnonymousAction: true,
@@ -602,6 +626,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 reportID,
                 card,
                 originalReport,
+                isHarvestReport,
                 isTryNewDotNVPDismissed,
                 movedFromReport,
                 movedToReport,
@@ -610,6 +635,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 policy,
                 policyTags,
                 translate,
+                harvestReport,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -629,6 +655,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(displayMessage);
                 } else if (isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = getForReportActionTemp({
+                        translate,
                         reportAction,
                         policy,
                         movedFromReport,
@@ -652,7 +679,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    const logMessage = getMemberChangeMessageFragment(reportAction, getReportName).html ?? '';
+                    const logMessage = getMemberChangeMessageFragment(reportAction, getReportNameDeprecated).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
                     Clipboard.setString(Str.htmlDecode(getWorkspaceNameUpdatedMessage(reportAction)));
@@ -839,6 +866,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionableJoinRequest(reportAction)) {
                     const displayMessage = getJoinRequestMessage(reportAction);
                     Clipboard.setString(displayMessage);
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestReport) {
+                    const harvestReportName = getReportName(harvestReport);
+                    const displayMessage = getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate);
+                    setClipboardMessage(displayMessage);
                 } else if (content) {
                     setClipboardMessage(
                         content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
@@ -856,6 +887,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE,
     },
     {
         isAnonymousAction: true,
@@ -879,6 +911,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_LINK,
     },
     {
         isAnonymousAction: false,
@@ -892,6 +925,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.PIN,
     },
     {
         isAnonymousAction: false,
@@ -905,6 +939,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.UNPIN,
     },
     {
         isAnonymousAction: false,
@@ -934,6 +969,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute));
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.FLAG_AS_OFFENSIVE,
     },
     {
         isAnonymousAction: true,
@@ -962,6 +998,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         getDescription: () => {},
         shouldDisable: (download) => download?.isDownloading ?? false,
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.DOWNLOAD,
     },
     {
         isAnonymousAction: true,
@@ -975,6 +1012,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_ONYX_DATA,
     },
     {
         isAnonymousAction: true,
@@ -990,6 +1028,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(false, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.DEBUG,
     },
     {
         isAnonymousAction: false,
@@ -1026,6 +1065,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             showDeleteModal(reportID, moneyRequestAction ?? reportAction);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.DELETE,
     },
     {
         isAnonymousAction: true,
@@ -1038,6 +1078,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         getDescription: () => {},
         shouldPreventDefaultFocusOnPress: false,
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MENU,
     },
 ];
 

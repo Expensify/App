@@ -64,7 +64,7 @@ function PolicyDistanceRatesPage({
         params: {policyID},
     },
 }: PolicyDistanceRatesPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -492,7 +492,7 @@ function PolicyDistanceRatesPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={PolicyDistanceRatesPage.displayName}
+                testID="PolicyDistanceRatesPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
@@ -545,7 +545,5 @@ function PolicyDistanceRatesPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-PolicyDistanceRatesPage.displayName = 'PolicyDistanceRatesPage';
 
 export default PolicyDistanceRatesPage;

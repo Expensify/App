@@ -12,6 +12,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clamp, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type VolumeButtonProps = {
@@ -35,7 +36,7 @@ const getVolumeIcon = (icons: Record<'Mute' | 'VolumeHigh' | 'VolumeLow', IconAs
 function VolumeButton({style, small = false}: VolumeButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Mute', 'VolumeHigh', 'VolumeLow'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Mute', 'VolumeHigh', 'VolumeLow']);
     const {updateVolume, volume, toggleMute} = useVolumeContext();
     const [sliderHeight, setSliderHeight] = useState(1);
     const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(expensifyIcons, volume.get())});
@@ -105,13 +106,12 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
                         src={volumeIcon.icon}
                         small={small}
                         shouldForceRenderingTooltipBelow
+                        sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.MUTE_BUTTON}
                     />
                 </Animated.View>
             )}
         </Hoverable>
     );
 }
-
-VolumeButton.displayName = 'VolumeButton';
 
 export default memo(VolumeButton);

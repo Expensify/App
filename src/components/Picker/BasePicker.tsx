@@ -227,6 +227,4 @@ function BasePicker<TPickerValue>({
     );
 }
 
-BasePicker.displayName = 'BasePicker';
-
 export default BasePicker;

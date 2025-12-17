@@ -89,8 +89,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table', 'Trashcan', 'Close', 'Checkmark', 'Plus'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['FolderOpen'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table', 'Trashcan', 'Close', 'Checkmark', 'Plus']);
+    const illustrations = useMemoizedLazyIllustrations(['FolderOpen']);
 
     const {
         taskReport: setupCategoryTaskReport,
@@ -499,7 +499,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     isDisabled={!selectedCategories.length}
-                    testID={`${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`}
+                    testID="WorkspaceCategoriesPage-header-dropdown-menu-button"
                 />
             );
         }
@@ -587,7 +587,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceCategoriesPage.displayName}
+                testID="WorkspaceCategoriesPage"
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
@@ -688,7 +688,5 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
 
 export default WorkspaceCategoriesPage;

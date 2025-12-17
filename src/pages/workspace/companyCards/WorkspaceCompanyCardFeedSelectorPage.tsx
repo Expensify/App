@@ -67,7 +67,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const {isBlockedToAddNewFeeds} = useIsBlockedToAddFeed(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const feeds: CardFeedListItem[] = (Object.entries(companyFeeds) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([key, feedSettings]) => {
         const filteredFeedCards = filterInactiveCards(
@@ -129,7 +129,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceCompanyCardFeedSelectorPage.displayName}
+                testID="WorkspaceCompanyCardFeedSelectorPage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -157,7 +157,5 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCompanyCardFeedSelectorPage.displayName = 'WorkspaceCompanyCardFeedSelectorPage';
 
 export default WorkspaceCompanyCardFeedSelectorPage;

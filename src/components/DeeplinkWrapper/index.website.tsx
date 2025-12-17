@@ -126,6 +126,4 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
     return children;
 }
 
-DeeplinkWrapper.displayName = 'DeeplinkWrapper';
-
 export default DeeplinkWrapper;

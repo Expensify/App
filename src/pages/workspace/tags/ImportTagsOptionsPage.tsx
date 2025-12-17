@@ -3,7 +3,6 @@ import React, {useCallback, useMemo, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -52,7 +51,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MultiTag', 'Tag'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MultiTag', 'Tag']);
 
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [shouldRunPostUpgradeFlow, setShouldRunPostUpgradeFlow] = useState(false);
@@ -222,7 +221,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
-                testID={ImportSpreadsheet.displayName}
+                testID="ImportSpreadsheet"
                 shouldEnableMaxHeight={canUseTouchScreen()}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -278,7 +277,5 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-ImportTagsOptionsPage.displayName = 'ImportTagsOptionsPage';
 
 export default ImportTagsOptionsPage;

@@ -6,7 +6,6 @@ import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -60,10 +59,8 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
-    canDeleteMoneyRequestReport,
     generateReportID,
     getPolicyExpenseChat,
     getReportOrDraftReport,
@@ -85,7 +82,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Report, SearchResults, Transaction} from '@src/types/onyx';
+import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
@@ -101,7 +98,6 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -228,6 +224,12 @@ function SearchPage({route}: SearchPageProps) {
         [queryJSON, selectedTransactionsKeys, areAllMatchingItemsSelected, selectedTransactionReportIDs],
     );
 
+    const policyIDsWithVBBA = useMemo(() => {
+        return Object.values(policies ?? {})
+            .filter((policy): policy is Policy => !!policy?.achAccount?.bankAccountID)
+            .map((policy) => policy.id);
+    }, [policies]);
+
     const onBulkPaySelected = useCallback(
         (paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
             if (!hash) {
@@ -235,11 +237,6 @@ function SearchPage({route}: SearchPageProps) {
             }
             if (isOffline) {
                 setIsOfflineModalVisible(true);
-                return;
-            }
-
-            if (isDelegateAccessRestricted) {
-                showDelegateNoAccessModal();
                 return;
             }
 
@@ -264,7 +261,7 @@ function SearchPage({route}: SearchPageProps) {
                     return;
                 }
 
-                const hasPolicyVBBA = hasVBBA(itemPolicyID);
+                const hasPolicyVBBA = itemPolicyID ? policyIDsWithVBBA.includes(itemPolicyID) : false;
 
                 if (isExpenseReport && lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA) {
                     Navigation.navigate(
@@ -334,18 +331,7 @@ function SearchPage({route}: SearchPageProps) {
                 clearSelectedTransactions();
             });
         },
-        [
-            clearSelectedTransactions,
-            hash,
-            isOffline,
-            isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-            lastPaymentMethods,
-            selectedReports,
-            selectedTransactions,
-            policies,
-            formatPhoneNumber,
-        ],
+        [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions, policies, formatPhoneNumber, policyIDsWithVBBA],
     );
 
     // Check if all selected transactions are from the submitter
@@ -481,11 +467,6 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
                     // Check if any of the selected items have DEW enabled
                     const selectedPolicyIDList = selectedReports.length
                         ? selectedReports.map((report) => report.policyID)
@@ -607,11 +588,6 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
                     const isDismissed = areAllTransactionsFromSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                     if (isDismissed) {
@@ -699,24 +675,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowDeleteOption =
-            !isOffline &&
-            selectedTransactionsKeys.every((id) => {
-                const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-                if (!transaction) {
-                    return false;
-                }
-                const parentReportID = transaction.reportID;
-                const parentReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-                if (!parentReport) {
-                    return false;
-                }
-                const reportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
-                const parentReportAction = Object.values(reportActions ?? {}).find(
-                    (action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === transaction.transactionID,
-                );
-                return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
-            });
+        const shouldShowDeleteOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canDelete);
 
         if (shouldShowDeleteOption) {
             options.push({
@@ -763,35 +722,32 @@ function SearchPage({route}: SearchPageProps) {
         status,
         hash,
         selectedTransactions,
-        expensifyIcons,
         translate,
         areAllMatchingItemsSelected,
         isOffline,
         selectedReports,
-        queryJSON,
+        selectedTransactionReportIDs,
         lastPaymentMethods,
         selectedReportIDs,
         allTransactions,
-        selectedTransactionReportIDs,
+        queryJSON,
         selectedPolicyIDs,
         policies,
         integrationsExportTemplates,
         csvExportLayouts,
         clearSelectedTransactions,
         beginExportWithTemplate,
-        isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
         dismissedRejectUseExplanation,
         bulkPayButtonOptions,
         onBulkPaySelected,
-        areAllTransactionsFromSubmitter,
-        dismissedHoldUseExplanation,
         allReports,
-        currentSearchResults?.data,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
+        expensifyIcons,
+        dismissedHoldUseExplanation,
+        areAllTransactionsFromSubmitter,
     ]);
 
     const handleDeleteExpenses = () => {
@@ -1164,7 +1120,6 @@ function SearchPage({route}: SearchPageProps) {
     );
 }
 
-SearchPage.displayName = 'SearchPage';
 SearchPage.whyDidYouRender = true;
 
 export default SearchPage;
