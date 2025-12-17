@@ -164,7 +164,7 @@ function MoneyRequestReportTransactionList({
     useCopySelectionHelper();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'CheckSquare'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'CheckSquare']);
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
@@ -650,8 +650,6 @@ function MoneyRequestReportTransactionList({
         </>
     );
 }
-
-MoneyRequestReportTransactionList.displayName = 'MoneyRequestReportTransactionList';
 
 export default memo(MoneyRequestReportTransactionList);
 export type {TransactionWithOptionalHighlight};
