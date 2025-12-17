@@ -132,7 +132,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON,
-        translationKey: undefined,
+        translationKey: 'search.exportedTo',
         isColumnSortable: false,
     },
     {
@@ -176,7 +176,7 @@ const taskHeaders: SearchColumnConfig[] = [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON,
-        translationKey: undefined,
+        translationKey: 'search.exportedTo',
         isColumnSortable: false,
     },
     {
