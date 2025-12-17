@@ -24,7 +24,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import {clearShareBankAccountErrors, openBankAccountSharePage, setShareBankAccountAdmins, shareBankAccount} from '@userActions/BankAccounts';
+import {clearShareBankAccount, clearShareBankAccountErrors, openBankAccountSharePage, setShareBankAccountAdmins, shareBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -68,6 +68,15 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         setIsAlertVisible(false);
         setSelectedOptions(newSelectedOptions);
     };
+    useEffect(() => {
+        return () => {
+            if (!shouldShowSuccess) {
+                return;
+            }
+            clearShareBankAccount();
+        };
+    }, [shouldShowSuccess]);
+
     useEffect(() => {
         if (isOffline) {
             return;
