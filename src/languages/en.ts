@@ -671,6 +671,7 @@ const translations = {
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
         enableGlobalReimbursements: 'Enable Global Reimbursements',
         purchaseAmount: 'Purchase amount',
+        originalAmount: 'Original amount',
         frequency: 'Frequency',
         link: 'Link',
         pinned: 'Pinned',
@@ -6053,6 +6054,10 @@ const translations = {
                 title: 'Category rules',
                 approver: 'Approver',
                 requireDescription: 'Require description',
+                requireFields: 'Require fields',
+                requiredFieldsTitle: 'Required fields',
+                requiredFieldsDescription: (categoryName: string) => `This will apply to all expenses categorized as <strong>${categoryName}</strong>.`,
+                requireAttendees: 'Require attendees',
                 descriptionHint: 'Description hint',
                 descriptionHintDescription: (categoryName: string) =>
                     `Remind employees to provide additional information for “${categoryName}” spend. This hint appears in the description field on expenses.`,
@@ -7100,6 +7105,7 @@ const translations = {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
+        missingAttendees: 'Multiple attendees required for this category',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7817,6 +7823,9 @@ const translations = {
         admins: {
             title: 'Admins',
             findAdmin: 'Find admin',
+            primaryContact: 'Primary contact',
+            addPrimaryContact: 'Add primary contact',
+            settings: 'Settings',
         },
     },
 };

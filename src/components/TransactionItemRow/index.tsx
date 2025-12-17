@@ -10,7 +10,8 @@ import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
-import TitleCell from '@components/SelectionListWithSections/Search/TitleCell';
+import TextCell from '@components/SelectionListWithSections/Search/TextCell';
+import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -20,11 +21,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import {isSettled} from '@libs/ReportUtils';
+import getBase62ReportID from '@libs/getBase62ReportID';
+import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
     getMerchant,
+    getOriginalAmount,
+    getOriginalCurrency,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
@@ -447,6 +451,27 @@ function TransactionItemRow({
                     />
                 </View>
             ),
+            [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
+                >
+                    <AmountCell
+                        total={isExpenseReport(transactionItem.report) ? -(transactionItem.originalAmount ?? 0) : getOriginalAmount(transactionItem)}
+                        currency={getOriginalCurrency(transactionItem)}
+                    />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
+                    <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : transactionItem.reportID} />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}>
+                    <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transactionItem.reportID))} />
+                </View>
+            ),
             [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.TAX_RATE}
@@ -468,7 +493,7 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
-                    <TitleCell
+                    <TextCell
                         text={transactionItem.report?.reportName ?? ''}
                         isLargeScreenWidth={isLargeScreenWidth}
                     />
