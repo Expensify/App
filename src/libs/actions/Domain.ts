@@ -434,6 +434,13 @@ function toggleConsolidatedDomainBilling(domainAccountID: number, domainName: st
                 useTechnicalContactBillingCard: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                useTechnicalContactBillingCardErrors: null,
+            },
+        },
     ];
     const successData: OnyxUpdate[] = [
         {
