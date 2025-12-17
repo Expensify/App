@@ -21,7 +21,7 @@ function SearchRouterModal() {
     const [shouldHideInputCaret, setShouldHideInputCaret] = useState(isMobileWebIOS);
 
     useEffect(() => {
-        if (!isSearchRouterDisplayed) {
+        if (!isSearchRouterDisplayed || shouldUseNarrowLayout) {
             return;
         }
 
@@ -30,7 +30,7 @@ function SearchRouterModal() {
         return () => {
             subscription.remove();
         };
-    }, [isSearchRouterDisplayed, closeSearchRouter]);
+    }, [isSearchRouterDisplayed, closeSearchRouter, shouldUseNarrowLayout]);
 
     const modalType = shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT : CONST.MODAL.MODAL_TYPE.POPOVER;
     return (
