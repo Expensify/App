@@ -11599,6 +11599,16 @@ function submitReport(
         });
     }
 
+    if (isDEWPolicy) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
+            value: {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+            },
+        });
+    }
+
     const successData: OnyxUpdate[] = [];
     if (!isDEWPolicy) {
         successData.push({
@@ -11620,6 +11630,16 @@ function submitReport(
             },
         },
     });
+
+    if (isDEWPolicy) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
+            value: {
+                pendingExpenseAction: null,
+            },
+        });
+    }
 
     const failureData: OnyxUpdate[] = [
         {
@@ -11644,11 +11664,20 @@ function submitReport(
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
         value: {
             [optimisticSubmittedReportAction.reportActionID]: {
-                pendingAction: null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
             },
         },
     });
+
+    if (isDEWPolicy) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
+            value: {
+                pendingExpenseAction: null,
+            },
+        });
+    }
 
     if (!isDEWPolicy) {
         failureData.push({

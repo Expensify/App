@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
@@ -140,6 +140,7 @@ function isSubmitAction(
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
+    reportMetadata?: OnyxEntry<ReportMetadata>,
     isChatReportArchived = false,
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
     violations?: OnyxCollection<TransactionViolation[]>,
@@ -150,7 +151,7 @@ function isSubmitAction(
         return false;
     }
 
-    if (hasPendingDEWSubmit(reportActions ?? [], hasDynamicExternalWorkflow(policy))) {
+    if (hasPendingDEWSubmit(reportMetadata, hasDynamicExternalWorkflow(policy))) {
         return false;
     }
 
@@ -688,6 +689,7 @@ function getSecondaryReportActions({
     policy,
     reportNameValuePairs,
     reportActions,
+    reportMetadata,
     policies,
     isChatReportArchived = false,
 }: {
@@ -701,6 +703,7 @@ function getSecondaryReportActions({
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
+    reportMetadata?: OnyxEntry<ReportMetadata>;
     policies?: OnyxCollection<Policy>;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
@@ -725,10 +728,25 @@ function getSecondaryReportActions({
         policy,
         reportNameValuePairs,
         reportActions,
+        reportMetadata,
         isChatReportArchived,
     });
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction, violations, currentUserEmail, currentUserAccountID)) {
+    if (
+        isSubmitAction(
+            report,
+            reportTransactions,
+            policy,
+            reportNameValuePairs,
+            reportActions,
+            reportMetadata,
+            isChatReportArchived,
+            primaryAction,
+            violations,
+            currentUserEmail,
+            currentUserAccountID,
+        )
+    ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 

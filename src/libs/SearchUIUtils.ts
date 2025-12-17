@@ -75,11 +75,10 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
-    hasPendingDEWSubmit,
     isCreatedAction,
     isDeletedAction,
     isHoldAction,
@@ -109,7 +108,6 @@ import {
     isOneTransactionReport,
     isOpenExpenseReport,
     isOpenReport,
-    isReportApproved,
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
@@ -1240,10 +1238,6 @@ function getActions(
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
-    if (hasPendingDEWSubmit(reportActions, hasDynamicExternalWorkflow(policy))) {
-        return [CONST.SEARCH.ACTION_TYPES.VIEW];
-    }
-
     // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcut the logic for performance reasons
     if (!isMoneyRequestReport(report) && !isInvoiceReport(report)) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
@@ -1277,13 +1271,8 @@ function getActions(
 
     const chatReport = getChatReport(data, report);
 
-    // For DEW policies, don't show PAY if the report is not approved yet
-    // DEW reports need to go through external approval workflow before payment
-    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
-    const shouldSkipPayForDEW = isDEWPolicy && !isReportApproved({report}) && !isClosedReport(report);
-
-    const canBePaid = shouldSkipPayForDEW ? false : canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
-    const shouldOnlyShowElsewhere = shouldSkipPayForDEW ? false : !canBePaid && canIOUBePaid(report, chatReport, policy, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
+    const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
+    const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(report, chatReport, policy, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
 
     // We're not supporting pay partial amount on search page now.
     if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
