@@ -5715,6 +5715,7 @@ const CONST = {
         OVER_TRIP_LIMIT: 'overTripLimit',
         MISSING_ATTENDEES: 'missingAttendees',
         COMPANY_CARD_REQUIRED: 'companyCardRequired',
+        NO_ROUTE: 'noRoute',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
