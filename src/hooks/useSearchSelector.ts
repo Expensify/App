@@ -9,7 +9,7 @@ import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} fro
  * @param config - Configuration object for the hook
  * @returns Object with search and selection utilities
  */
-function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorReturn {
+function useSearchSelector(config: UseSearchSelectorConfig): any {
     return useSearchSelectorBase(config);
 }
 
