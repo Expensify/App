@@ -11,6 +11,17 @@ jobs:
     steps:
       - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
 
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Get changed files
+        id: changed-files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          FILES=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files --jq '.[].filename' | grep -v '^\.' | tr '\n' ' ')
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+
       - name: Spell check
-        # v8.1.1
-        uses: streetsidesoftware/cspell-action@e5a858a18b7e0b56e0342b1dcad796308b7341a2
+        if: steps.changed-files.outputs.files != ''
+        run: npm run spell -- --no-progress --no-must-find-files --dot false ${{ steps.changed-files.outputs.files }}
