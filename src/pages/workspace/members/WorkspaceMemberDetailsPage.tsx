@@ -274,6 +274,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_NEW_CARD.getRoute(policyID, accountID));
             return;
         }
+
         const activeRoute = Navigation.getActiveRoute();
 
         setIssueNewCardStepAndData({
