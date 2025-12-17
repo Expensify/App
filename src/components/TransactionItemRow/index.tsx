@@ -429,9 +429,17 @@ function TransactionItemRow({
                     />
                 </View>
             ),
-            [CONST.SEARCH.TABLE_COLUMNS.TAX]: (
+            [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: (
                 <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.TAX}
+                    key={CONST.SEARCH.TABLE_COLUMNS.TAX_RATE}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
+                >
+                    <Text>{'100'}</Text>
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, isTaxAmountColumnWide)]}
                 >
                     <TaxCell

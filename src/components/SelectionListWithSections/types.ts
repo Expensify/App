@@ -332,6 +332,9 @@ type TransactionListItemType = ListItem &
 
         /** The main action that can be performed for the transaction */
         action: SearchTransactionAction;
+
+        /** The tax code of the transaction */
+        taxCode?: string;
     };
 
 type ReportActionListItemType = ListItem &
