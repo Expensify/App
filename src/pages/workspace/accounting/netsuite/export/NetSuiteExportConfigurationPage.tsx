@@ -207,7 +207,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteExportConfigurationPage.displayName}
+            displayName="NetSuiteExportConfigurationPage"
             headerTitle="workspace.accounting.export"
             headerSubtitle={config?.subsidiary ?? ''}
             title="workspace.netsuite.exportDescription"
@@ -261,7 +261,5 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         </ConnectionLayout>
     );
 }
-
-NetSuiteExportConfigurationPage.displayName = 'NetSuiteExportConfigurationPage';
 
 export default withPolicyConnections(NetSuiteExportConfigurationPage);

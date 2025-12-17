@@ -65,6 +65,4 @@ function ValidateCodeActionForm({
     );
 }
 
-ValidateCodeActionForm.displayName = 'ValidateCodeActionForm';
-
 export default ValidateCodeActionForm;

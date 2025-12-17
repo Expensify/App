@@ -66,7 +66,7 @@ function NewChatSelectorPage() {
             shouldEnableKeyboardAvoidingView={false}
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight
-            testID={NewChatSelectorPage.displayName}
+            testID="NewChatSelectorPage"
             focusTrapSettings={{containerElements}}
         >
             <FocusTrapContainerElement
@@ -105,7 +105,5 @@ function NewChatSelectorPage() {
         </ScreenWrapper>
     );
 }
-
-NewChatSelectorPage.displayName = 'NewChatSelectorPage';
 
 export default NewChatSelectorPage;

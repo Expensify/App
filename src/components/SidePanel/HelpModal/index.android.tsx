@@ -32,6 +32,4 @@ function Help({shouldHideSidePanel, closeSidePanel}: HelpProps) {
     );
 }
 
-Help.displayName = 'Help';
-
 export default Help;

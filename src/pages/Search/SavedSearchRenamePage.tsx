@@ -49,7 +49,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
 
     return (
         <ScreenWrapper
-            testID={SavedSearchRenamePage.displayName}
+            testID="SavedSearchRenamePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -77,7 +77,5 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
         </ScreenWrapper>
     );
 }
-
-SavedSearchRenamePage.displayName = 'SavedSearchRenamePage';
 
 export default SavedSearchRenamePage;

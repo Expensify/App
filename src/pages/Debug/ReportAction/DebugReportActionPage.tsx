@@ -113,7 +113,7 @@ function DebugReportActionPage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugReportActionPage.displayName}
+            testID="DebugReportActionPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -130,7 +130,5 @@ function DebugReportActionPage({
         </ScreenWrapper>
     );
 }
-
-DebugReportActionPage.displayName = 'DebugReportActionPage';
 
 export default DebugReportActionPage;
