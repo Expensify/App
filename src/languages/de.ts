@@ -6226,7 +6226,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 },
                 requireItemizedReceiptsOver: 'Detaillierte Belege über erforderlich',
                 requireItemizedReceiptsOverList: {
-                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Standard`,
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Standard`,
                     never: 'Detaillierte Belege niemals verlangen',
                     always: 'Immer detaillierte Belege anfordern',
                 },

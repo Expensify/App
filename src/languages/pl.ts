@@ -6186,7 +6186,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 },
                 requireItemizedReceiptsOver: 'Wymagaj szczegółowych paragonów powyżej',
                 requireItemizedReceiptsOverList: {
-                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Domyślny`,
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Domyślny`,
                     never: 'Nigdy nie wymagaj szczegółowych paragonów',
                     always: 'Zawsze wymagaj szczegółowych paragonów',
                 },

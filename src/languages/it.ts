@@ -6205,7 +6205,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 },
                 requireItemizedReceiptsOver: 'Richiedi ricevute dettagliate superiori a',
                 requireItemizedReceiptsOverList: {
-                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predefinito`,
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predefinito`,
                     never: 'Non richiedere mai ricevute dettagliate',
                     always: 'Richiedi sempre ricevute dettagliate',
                 },

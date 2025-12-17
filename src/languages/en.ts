@@ -6079,7 +6079,7 @@ const translations = {
                 },
                 requireItemizedReceiptsOver: 'Require itemized receipts over',
                 requireItemizedReceiptsOverList: {
-                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Default`,
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Default`,
                     never: 'Never require itemized receipts',
                     always: 'Always require itemized receipts',
                 },

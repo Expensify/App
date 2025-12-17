@@ -56,9 +56,10 @@ function formatRequireItemizedReceiptsOverText(translate: LocaleContextProps['tr
 
     const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoItemizedReceipt;
 
-    return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.default`, {
-        defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-    });
+    return translate(
+        `workspace.rules.categoryRules.requireItemizedReceiptsOverList.default`,
+        convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+    );
 }
 
 function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: string) {

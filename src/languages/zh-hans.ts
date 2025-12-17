@@ -6071,7 +6071,7 @@ ${reportName}
                 },
                 requireItemizedReceiptsOver: '要求明细收据超过',
                 requireItemizedReceiptsOverList: {
-                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} 默认`,
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} 默认`,
                     never: '从不要求明细收据',
                     always: '始终要求明细收据',
                 },

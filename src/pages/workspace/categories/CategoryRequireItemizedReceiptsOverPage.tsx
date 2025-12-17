@@ -47,9 +47,10 @@ function CategoryRequireItemizedReceiptsOverPage({
     const requireItemizedReceiptsOverListData = [
         {
             value: null,
-            text: translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.default`, {
-                defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-            }),
+            text: translate(
+                `workspace.rules.categoryRules.requireItemizedReceiptsOverList.default`,
+                convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+            ),
             keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT,
             isSelected: !isAlwaysSelected && !isNeverSelected,
         },

@@ -6234,7 +6234,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 },
                 requireItemizedReceiptsOver: 'Exiger des reçus détaillés au-dessus de',
                 requireItemizedReceiptsOverList: {
-                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Par défaut`,
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Par défaut`,
                     never: 'Ne jamais exiger de reçus détaillés',
                     always: 'Toujours exiger des reçus détaillés',
                 },

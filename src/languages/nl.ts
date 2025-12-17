@@ -6195,7 +6195,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 },
                 requireItemizedReceiptsOver: 'Vereis gespecificeerde bonnen boven',
                 requireItemizedReceiptsOverList: {
-                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Standaard`,
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Standaard`,
                     never: 'Nooit gespecificeerde bonnen vereisen',
                     always: 'Altijd gespecificeerde bonnen vereisen',
                 },

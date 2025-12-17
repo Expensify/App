@@ -6163,7 +6163,7 @@ ${reportName}
                 },
                 requireItemizedReceiptsOver: 'を超える明細領収書を必須にする',
                 requireItemizedReceiptsOverList: {
-                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} デフォルト`,
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} デフォルト`,
                     never: '明細領収書を要求しない',
                     always: '常に明細領収書を要求する',
                 },

@@ -6188,7 +6188,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 },
                 requireItemizedReceiptsOver: 'Exigir recibos detalhados acima de',
                 requireItemizedReceiptsOverList: {
-                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Padrão`,
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Padrão`,
                     never: 'Nunca exigir recibos detalhados',
                     always: 'Sempre exigir recibos detalhados',
                 },
