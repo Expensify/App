@@ -79,12 +79,12 @@ function Confirmation() {
             transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
         }
         mergeDuplicates(transactionsMergeParams);
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
     }, [reportAction?.childReportID, transactionsMergeParams]);
 
     const handleResolveDuplicates = useCallback(() => {
         resolveDuplicates(transactionsMergeParams);
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
     }, [transactionsMergeParams]);
 
     const contextValue = useMemo(
