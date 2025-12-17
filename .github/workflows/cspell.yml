@@ -16,11 +16,12 @@ jobs:
 
       - name: Restore cspell cache
         # v4
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: .cspellcache
-          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json') }}
+          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'package-lock.json') }}-${{ github.sha }}
           restore-keys: |
+            cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'package-lock.json') }}-
             cspell-${{ runner.os }}-
 
       - name: Get changed files
@@ -40,3 +41,11 @@ jobs:
       - name: Spell check
         if: steps.filtered-files.outputs.files != ''
         run: npm run spell-changed -- ${{ steps.filtered-files.outputs.files }}
+
+      - name: Save cspell cache
+        # v4
+        uses: actions/cache/save@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        if: always()
+        with:
+          path: .cspellcache
+          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'package-lock.json') }}-${{ github.sha }}
