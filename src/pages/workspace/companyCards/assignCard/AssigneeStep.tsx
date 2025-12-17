@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
+import {format} from 'date-fns';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -106,6 +107,8 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
             nextStep = CONST.COMPANY_CARD.STEP.CONFIRMATION;
             data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
             data.cardNumber = assignCard.data.cardNumber;
+            data.startDate = data.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+            data.dateOption = data.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
         }
 
         setAssignCardStepAndData({
