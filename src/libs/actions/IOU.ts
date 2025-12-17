@@ -14427,42 +14427,28 @@ function resetSplitExpensesByDateRange(transaction: OnyxEntry<OnyxTypes.Transact
         return;
     }
 
-    const originalTransactionID = transaction?.transactionID;
-
-    if (!originalTransactionID) {
-        return;
-    }
-
     // Generate all dates in the range
     const dates = eachDayOfInterval({
         start: new Date(startDate),
         end: new Date(endDate),
     });
 
-    const datesCount = dates.length;
-    if (datesCount === 0) {
-        return;
-    }
-
     const transactionDetails = getTransactionDetails(transaction);
     const total = transactionDetails?.amount ?? 0;
     const currency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
 
     // Create split expenses for each date with proportional amounts
-    const lastIndex = datesCount - 1;
+    const lastIndex = dates.length - 1;
     const newSplitExpenses: SplitExpense[] = dates.map((date, index) => {
-        const formattedDate = format(date, CONST.DATE.FNS_FORMAT_STRING);
-        const isLast = index === lastIndex;
-
         return initSplitExpenseItemData(transaction, {
-            amount: calculateIOUAmount(datesCount - 1, total, currency, isLast, true),
+            amount: calculateIOUAmount(lastIndex, total, currency, index === lastIndex, true),
             transactionID: NumberUtils.rand64(),
             reportID: transaction?.reportID,
-            created: formattedDate,
+            created: format(date, CONST.DATE.FNS_FORMAT_STRING),
         });
     });
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`, {
         comment: {
             splitExpenses: newSplitExpenses,
             splitsStartDate: startDate,

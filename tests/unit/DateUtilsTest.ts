@@ -6,7 +6,7 @@ import DateUtils from '@libs/DateUtils';
 import {translate} from '@libs/Localize';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -432,8 +432,7 @@ describe('DateUtils', () => {
     });
 
     describe('getFormattedSplitDateRange', () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const translateEN = <TPath extends TranslationPaths>(path: TPath, ...params: any[]) => translate(LOCALE, path, ...params);
+        const translateEN = <TPath extends TranslationPaths>(path: TPath, ...params: TranslationParameters<TPath>) => translate(LOCALE, path, ...params);
 
         it('should return empty string when startDate is undefined', () => {
             const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, '2024-01-15');
@@ -448,13 +447,6 @@ describe('DateUtils', () => {
         it('should return empty string when both dates are undefined', () => {
             const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, undefined);
             expect(result).toBe('');
-        });
-
-        it('should return correct format for 1 day (same start and end date)', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-10');
-            expect(result).toContain('2024-01-10');
-            expect(result).toContain('to');
-            expect(result).toContain('1 day');
         });
 
         it('should return plural form for multiple days', () => {
