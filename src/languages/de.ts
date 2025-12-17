@@ -7969,7 +7969,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             subtitle: 'Erzwingen Sie für Mitglieder Ihrer Domain die Anmeldung per Single Sign-On, schränken Sie die Erstellung von Workspaces ein und vieles mehr.',
             enable: 'Aktivieren',
         },
-        admins: {title: 'Admins', findAdmin: 'Admin finden'},
+        admins: {title: 'Admins', findAdmin: 'Admin finden', primaryContact: 'Hauptansprechpartner', addPrimaryContact: 'Primären Kontakt hinzufügen', settings: 'Einstellungen'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

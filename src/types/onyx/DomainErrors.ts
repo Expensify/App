@@ -16,6 +16,11 @@ type DomainErrors = {
             errors: OnyxCommon.Errors;
         }
     >;
+
+    /**
+     * Errors related to the technical contact email
+     */
+    technicalContactEmailErrors?: OnyxCommon.Errors;
 };
 
 export default DomainErrors;

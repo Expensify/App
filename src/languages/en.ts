@@ -7817,9 +7817,12 @@ const translations = {
         },
         admins: {
             title: 'Admins',
+            findAdmin: 'Find admin',
+            primaryContact: 'Primary contact',
+            addPrimaryContact: 'Add primary contact',
+            settings: 'Settings',
             addAdmin: 'Add admin',
             invite: 'Invite',
-            findAdmin: 'Find admin',
             addAdminError: 'Unable to add this member as an admin. Please try again.',
         },
     },

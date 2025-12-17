@@ -1332,6 +1332,12 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
         accountID: number;
     };
+    [SCREENS.DOMAIN.ADMINS_SETTINGS]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
+        domainAccountID: number;
+    };
     [SCREENS.DOMAIN.ADD_ADMIN]: {
         domainAccountID: number;
     };
