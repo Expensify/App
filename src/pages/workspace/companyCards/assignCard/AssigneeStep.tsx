@@ -83,9 +83,18 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         };
 
         Keyboard.dismiss();
+
         if (assignee?.login === assignCard?.data?.email) {
+            if (assignCard?.data?.encryptedCardNumber) {
+                nextStep = CONST.COMPANY_CARD.STEP.CONFIRMATION;
+                data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
+                data.cardNumber = assignCard.data.cardNumber;
+                data.startDate = data.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+                data.dateOption = data.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+            }
             setAssignCardStepAndData({
                 currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
+                data,
                 isEditing: false,
             });
             return;

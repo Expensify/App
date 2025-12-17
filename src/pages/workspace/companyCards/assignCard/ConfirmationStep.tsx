@@ -128,8 +128,8 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                 <MenuItem
                     label={translate('workspace.companyCards.cardholder')}
                     labelStyle={styles.mb3}
-                    title={cardholderEmail}
-                    description={cardholderEmail}
+                    title={cardholderName && cardholderName !== cardholderEmail ? cardholderName : cardholderEmail}
+                    {...(cardholderName && cardholderName !== cardholderEmail ? {description: cardholderEmail} : {})}
                     icon={cardholderDetails?.avatar ?? getDefaultAvatarURL(cardholderAccountID)}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     shouldShowRightIcon
