@@ -122,10 +122,11 @@ function IOURequestStepDescription({
     }, [backTo]);
 
     useEffect(() => {
-        if (isSaved && shouldNavigateAfterSaveRef.current) {
-            shouldNavigateAfterSaveRef.current = false;
-            navigateBack();
+        if (!isSaved || !shouldNavigateAfterSaveRef.current) {
+            return;
         }
+        shouldNavigateAfterSaveRef.current = false;
+        navigateBack();
     }, [isSaved, navigateBack]);
 
     const updateDescriptionRef = (value: string) => {
