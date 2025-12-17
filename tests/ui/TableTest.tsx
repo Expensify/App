@@ -1,9 +1,10 @@
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
-import {Text, View} from 'react-native';
-import type {ListRenderItemInfo} from 'react-native';
+import {View} from 'react-native';
 import Table from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import Text from '@components/Text';
 import type Navigation from '@libs/Navigation/Navigation';
 
 // Mock navigation
@@ -67,27 +68,33 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 // Mock Icon component
 jest.mock('@components/Icon', () => {
-    const MockIcon = (): null => null;
+    function MockIcon(): null {
+        return null;
+    }
     return MockIcon;
 });
 
 // Mock TextInput component
 jest.mock('@components/TextInput', () => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const {TextInput: RNTextInput} = jest.requireActual<typeof import('react-native')>('react-native');
-    const MockTextInput = (props: {label: string; accessibilityLabel: string; value: string; onChangeText: (text: string) => void}) => (
-        <RNTextInput
-            testID="search-input"
-            accessibilityLabel={props.accessibilityLabel}
-            value={props.value}
-            onChangeText={props.onChangeText}
-        />
-    );
+    function MockTextInput(props: {accessibilityLabel: string; value: string; onChangeText: (text: string) => void}) {
+        return (
+            <RNTextInput
+                testID="search-input"
+                accessibilityLabel={props.accessibilityLabel}
+                value={props.value}
+                onChangeText={props.onChangeText}
+            />
+        );
+    }
     return MockTextInput;
 });
 
 // Mock PressableWithFeedback
 jest.mock('@components/Pressable', () => ({
     PressableWithFeedback: (props: {children: React.ReactNode; onPress: () => void; accessibilityLabel: string; accessibilityRole: 'button' | 'link' | 'none' | undefined}) => {
+        // eslint-disable-next-line @typescript-eslint/consistent-type-imports
         const {Pressable} = jest.requireActual<typeof import('react-native')>('react-native');
         return (
             <Pressable
@@ -136,9 +143,9 @@ function createDefaultProps() {
 
     const isItemInSearch: IsItemInSearchCallback<TestItem> = (item, searchString) => item.name.toLowerCase().includes(searchString.toLowerCase());
 
-    const compareItems: CompareItemsCallback<TestItem, TestColumnKey> = (a, b, sortColumn, order) => {
+    const compareItems: CompareItemsCallback<TestItem, TestColumnKey> = (a, b, {columnKey, order}) => {
         const multiplier = order === 'asc' ? 1 : -1;
-        if (sortColumn === 'name') {
+        if (columnKey === 'name') {
             return a.name.localeCompare(b.name) * multiplier;
         }
         return a.category.localeCompare(b.category) * multiplier;
@@ -163,7 +170,7 @@ describe('Table', () => {
         it('should render all data items', () => {
             const props = createDefaultProps();
             render(
-                <Table<TestItem, TestColumnKey>
+                <Table
                     data={props.data}
                     columns={props.columns}
                     renderItem={props.renderItem}
@@ -184,7 +191,7 @@ describe('Table', () => {
         it('should render column headers when Header component is used', () => {
             const props = createDefaultProps();
             render(
-                <Table<TestItem, TestColumnKey>
+                <Table
                     data={props.data}
                     columns={props.columns}
                     renderItem={props.renderItem}
