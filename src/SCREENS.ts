@@ -48,6 +48,7 @@ const SCREENS = {
         MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
         MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS: 'Search_Money_Request_Report_Reject_Transactions',
         REPORT_RHP: 'Search_Report_RHP',
+        COLUMNS_RHP: 'Search_Columns_RHP',
         REPORT_VERIFY_ACCOUNT: 'Search_Report_Verify_Account',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
@@ -253,6 +254,7 @@ const SCREENS = {
         EXPENSE_REPORT: 'ExpenseReport',
         SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
 
+        SEARCH_COLUMNS: 'SearchColumns',
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',
@@ -325,6 +327,7 @@ const SCREENS = {
         DISTANCE_CREATE: 'Money_Request_Distance_Create',
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
+        STEP_DISTANCE_GPS: 'Money_Request_Step_Distance_GPS',
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
     },
 
@@ -671,6 +674,7 @@ const SCREENS = {
         CATEGORY_DESCRIPTION_HINT: 'Category_Description_Hint',
         CATEGORY_APPROVER: 'Category_Approver',
         CATEGORY_REQUIRE_RECEIPTS_OVER: 'Category_Require_Receipts_Over',
+        CATEGORY_REQUIRED_FIELDS: 'Category_Required_Fields',
         CATEGORIES_SETTINGS: 'Categories_Settings',
         CATEGORIES_IMPORT: 'Categories_Import',
         CATEGORIES_IMPORTED: 'Categories_Imported',
@@ -851,6 +855,9 @@ const SCREENS = {
         INITIAL: 'Domain_Initial',
         SAML: 'Domain_SAML',
         ADMINS: 'Domain_Admins',
+        ADMIN_DETAILS: 'Domain_Admin_Details',
+        ADMINS_SETTINGS: 'Admins_Settings',
+        ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
     },
 } as const;
 

@@ -90,7 +90,7 @@ function AvatarButtonWithIcon({
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
 
     return (
         <Tooltip
@@ -137,8 +137,6 @@ function AvatarButtonWithIcon({
         </Tooltip>
     );
 }
-
-AvatarButtonWithIcon.displayName = 'AvatarButtonWithIcon';
 
 export default AvatarButtonWithIcon;
 export type {AvatarButtonWithIconProps};

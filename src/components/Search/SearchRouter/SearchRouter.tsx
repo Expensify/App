@@ -110,7 +110,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
@@ -496,7 +496,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     return (
         <View
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
-            testID={SearchRouter.displayName}
+            testID="SearchRouter"
             ref={ref}
         >
             {shouldUseNarrowLayout && (
@@ -561,7 +561,5 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         </View>
     );
 }
-
-SearchRouter.displayName = 'SearchRouter';
 
 export default SearchRouter;
