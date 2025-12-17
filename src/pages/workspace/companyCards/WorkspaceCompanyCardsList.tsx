@@ -1,6 +1,6 @@
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -72,14 +72,12 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
     const plaidIconUrl = getPlaidInstitutionIconUrl(selectedFeed);
 
     // Get all cards sorted by cardholder name
-    const allCards = useMemo(() => {
-        const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
-        return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
-    }, [cardsList, policy?.employeeList]);
+    const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
+    const allCards = getCardsByCardholderName(cardsList, policyMembersAccountIDs);
 
     // Filter and sort cards based on search input
-    const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
-    const sortCards = useCallback((cardsToSort: Card[]) => sortCardsByCardholderName(cardsToSort, personalDetails, localeCompare), [personalDetails, localeCompare]);
+    const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
+    const sortCards = (cardsToSort: Card[]) => sortCardsByCardholderName(cardsToSort, personalDetails, localeCompare);
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
@@ -88,8 +86,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
     const shouldUseNarrowTableRowLayout = isMediumScreenWidth || shouldUseNarrowLayout;
 
-    const renderItem = useCallback(
-        ({item: cardName, index}: ListRenderItemInfo<string>) => {
+    const renderItem = ({item: cardName, index}: ListRenderItemInfo<string>) => {
             const assignedCard = Object.values(assignedCards ?? {}).find((card) => card.cardName === cardName);
 
             const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID];
@@ -185,10 +182,9 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
             styles.mb3,
             styles.mh5,
             styles.ph5,
-        ],
     );
 
-    const keyExtractor = useCallback((item: string, index: number) => `${item}_${index}`, []);
+    const keyExtractor = (item: string, index: number) => `${item}_${index}`;
 
     const ListHeaderComponent = shouldUseNarrowTableRowLayout ? (
         <View style={styles.h7} />
