@@ -25,6 +25,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 <br><br>
 
 <div class="currency-block" data-currency="usd">
+  
   ## 💵 USD pricing
 
   **Collect**
@@ -41,6 +42,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 </div>
 
 <div class="currency-block" data-currency="gbp" style="display:none;">
+  
   ## 💵 GBP pricing
 
   **Collect**
@@ -55,6 +57,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 </div>
 
 <div class="currency-block" data-currency="eur" style="display:none;">
+  
   ## 💵 EUR pricing
 
   **Collect**
@@ -68,6 +71,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 </div>
 
 <div class="currency-block" data-currency="aud" style="display:none;">
+  
   ## 💵 AUD pricing
 
   **Collect**
@@ -80,6 +84,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 </div>
 
 <div class="currency-block" data-currency="nzd" style="display:none;">
+  
   ## 💵 NZD pricing
 
   **Collect**
