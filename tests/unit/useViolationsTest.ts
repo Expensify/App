@@ -33,11 +33,11 @@ describe('useViolations', () => {
             // Then each violation should be accessible under its corresponding field
             // so the UI can display the right error message next to each input field
             expect(result.current.getViolationsForField('category')).toHaveLength(1);
-            expect(result.current.getViolationsForField('category')[0].name).toBe(CONST.VIOLATIONS.MISSING_CATEGORY);
+            expect(result.current.getViolationsForField('category').at(0)?.name).toBe(CONST.VIOLATIONS.MISSING_CATEGORY);
             expect(result.current.getViolationsForField('tag')).toHaveLength(1);
-            expect(result.current.getViolationsForField('tag')[0].name).toBe(CONST.VIOLATIONS.MISSING_TAG);
+            expect(result.current.getViolationsForField('tag').at(0)?.name).toBe(CONST.VIOLATIONS.MISSING_TAG);
             expect(result.current.getViolationsForField('receipt')).toHaveLength(1);
-            expect(result.current.getViolationsForField('receipt')[0].name).toBe(CONST.VIOLATIONS.RECEIPT_REQUIRED);
+            expect(result.current.getViolationsForField('receipt').at(0)?.name).toBe(CONST.VIOLATIONS.RECEIPT_REQUIRED);
         });
 
         it('should group multiple violations under the same field', () => {
@@ -156,11 +156,11 @@ describe('useViolations', () => {
             // so each tag input only shows an error if that specific level is required
             const violationsForTag0 = result.current.getViolationsForField('tag', {tagListIndex: 0, tagListName: 'Tag Level 1'});
             expect(violationsForTag0).toHaveLength(1);
-            expect(violationsForTag0[0].data?.tagName).toBe('Tag Level 1');
+            expect(violationsForTag0.at(0)?.data?.tagName).toBe('Tag Level 1');
 
             const violationsForTag2 = result.current.getViolationsForField('tag', {tagListIndex: 2, tagListName: 'Tag Level 3'});
             expect(violationsForTag2).toHaveLength(1);
-            expect(violationsForTag2[0].data?.tagName).toBe('Tag Level 3');
+            expect(violationsForTag2.at(0)?.data?.tagName).toBe('Tag Level 3');
 
             // Tag level 1 is not in errorIndexes, so should return empty
             const violationsForTag1 = result.current.getViolationsForField('tag', {tagListIndex: 1, tagListName: 'Tag Level 2'});
@@ -184,7 +184,7 @@ describe('useViolations', () => {
 
             // Then the violation should be returned because 0 is a valid index that should not be skipped
             expect(violationsForTag).toHaveLength(1);
-            expect(violationsForTag[0].data?.tagName).toBe('First Tag');
+            expect(violationsForTag.at(0)?.data?.tagName).toBe('First Tag');
         });
     });
 
@@ -205,7 +205,7 @@ describe('useViolations', () => {
 
             // Then the violation should include the tagName so the UI can show which specific tag is missing
             expect(violationsForTag).toHaveLength(1);
-            expect(violationsForTag[0].data?.tagName).toBe('Department');
+            expect(violationsForTag.at(0)?.data?.tagName).toBe('Department');
         });
 
         it('should not add tagName to missingTag violation when policyHasDependentTags is false', () => {
@@ -223,7 +223,7 @@ describe('useViolations', () => {
 
             // Then the violation should not have tagName added because it's not needed for independent tags
             expect(violationsForTag).toHaveLength(1);
-            expect(violationsForTag[0].data?.tagName).toBeUndefined();
+            expect(violationsForTag.at(0)?.data?.tagName).toBeUndefined();
         });
     });
 
@@ -250,11 +250,11 @@ describe('useViolations', () => {
             // so each tag selector only shows its own "out of policy" error
             const violationsForDepartment = result.current.getViolationsForField('tag', {tagListName: 'Department'});
             expect(violationsForDepartment).toHaveLength(1);
-            expect(violationsForDepartment[0].data?.tagName).toBe('Department');
+            expect(violationsForDepartment.at(0)?.data?.tagName).toBe('Department');
 
             const violationsForProject = result.current.getViolationsForField('tag', {tagListName: 'Project'});
             expect(violationsForProject).toHaveLength(1);
-            expect(violationsForProject[0].data?.tagName).toBe('Project');
+            expect(violationsForProject.at(0)?.data?.tagName).toBe('Project');
         });
 
         it('should return all tagOutOfPolicy violations when tagListName is undefined', () => {
@@ -305,7 +305,7 @@ describe('useViolations', () => {
             // Then only violations for that specific tag level should be returned
             // because we only want to show the error on the tag field that needs attention
             expect(violationsForDepartment).toHaveLength(1);
-            expect(violationsForDepartment[0].data?.tagName).toBe('Department');
+            expect(violationsForDepartment.at(0)?.data?.tagName).toBe('Department');
         });
 
         it('should return all allTagLevelsRequired violations when tagValue is not provided', () => {
@@ -349,7 +349,7 @@ describe('useViolations', () => {
 
             // Then all original data should be preserved for the UI to display detailed error messages
             expect(amountViolations).toHaveLength(1);
-            expect(amountViolations[0].data).toEqual({formattedLimit: '$1,000 USD', category: 'Travel'});
+            expect(amountViolations.at(0)?.data).toEqual({formattedLimit: '$1,000 USD', category: 'Travel'});
         });
     });
 });
