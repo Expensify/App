@@ -936,6 +936,21 @@ function shouldShowYear(
         return result;
     }
 
+    const lastExportedActionByReportID = new Map<string, OnyxTypes.ReportAction>();
+    for (const key of Object.keys(data)) {
+        if (isReportActionEntry(key)) {
+            const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+            const actions = data[key];
+            const exportedAction = Object.values(actions)
+                .filter((action): action is OnyxTypes.ReportAction => action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)
+                .sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
+                .at(0);
+            if (exportedAction) {
+                lastExportedActionByReportID.set(reportID, exportedAction);
+            }
+        }
+    }
+
     for (const key of Object.keys(data)) {
         if (!checkOnlyReports && isTransactionEntry(key)) {
             const item = data[key];
@@ -957,12 +972,7 @@ function shouldShowYear(
                 result.shouldShowYearPosted = postedYear !== currentYear;
             }
 
-            const reportActions = data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item.reportID}`];
-            const exportedAction = Object.values(reportActions)
-                .filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)
-                .sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
-                .at(0);
-
+            const exportedAction = lastExportedActionByReportID.get(item.reportID);
             if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
                 result.shouldShowYearExported = true;
             }
@@ -987,16 +997,9 @@ function shouldShowYear(
                 result.shouldShowYearApproved = true;
             }
 
-            const reportActions = data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item.reportID}`];
-            if (reportActions) {
-                const exportedAction = Object.values(reportActions)
-                    .filter((action): action is OnyxTypes.ReportAction => action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)
-                    .sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
-                    .at(0);
-
-                if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
-                    result.shouldShowYearExported = true;
-                }
+            const exportedAction = lastExportedActionByReportID.get(item.reportID ?? '');
+            if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
+                result.shouldShowYearExported = true;
             }
         }
 
