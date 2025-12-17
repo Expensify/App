@@ -44,6 +44,7 @@ function ThreeDotsMenu({
     isNested = false,
     shouldSelfPosition = false,
     threeDotsMenuRef,
+    sentryLabel,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
 
@@ -153,6 +154,7 @@ function ThreeDotsMenu({
                         role={getButtonRole(isNested)}
                         isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}
+                        sentryLabel={sentryLabel}
                     >
                         <Icon
                             src={icon ?? expensifyIcons.ThreeDots}

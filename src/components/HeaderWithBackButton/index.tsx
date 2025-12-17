@@ -148,6 +148,7 @@ function HeaderWithBackButton({
                         style={[styles.touchableButtonImage]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={threeDotsMenuItems.at(0)?.text ?? ''}
+                        sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
                     >
                         <Icon
                             src={threeDotsMenuItems.at(0)?.icon as React.FC<SvgProps>}
@@ -166,6 +167,7 @@ function HeaderWithBackButton({
                     shouldOverlay={shouldOverlayDots}
                     anchorAlignment={threeDotsAnchorAlignment}
                     shouldSetModalVisibility={shouldSetModalVisibility}
+                    sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                 />
             );
         }

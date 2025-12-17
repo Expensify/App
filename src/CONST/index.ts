@@ -7604,6 +7604,7 @@ const CONST = {
             BACK_BUTTON: 'Header-BackButton',
             DOWNLOAD_BUTTON: 'Header-DownloadButton',
             CLOSE_BUTTON: 'Header-CloseButton',
+            MORE_BUTTON: 'Header-MoreButton',
         },
         VIDEO_PLAYER: {
             PLAY_PAUSE_BUTTON: 'VideoPlayer-PlayPauseButton',
@@ -7619,6 +7620,11 @@ const CONST = {
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
+        },
+        RECEIPT_MODAL: {
+            REPLACE_RECEIPT: 'ReceiptModal-ReplaceReceipt',
+            DOWNLOAD_RECEIPT: 'ReceiptModal-DownloadReceipt',
+            DELETE_RECEIPT: 'ReceiptModal-DeleteReceipt',
         },
         HEADER_VIEW: {
             BACK_BUTTON: 'HeaderView-BackButton',

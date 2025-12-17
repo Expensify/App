@@ -50,6 +50,9 @@ type ThreeDotsMenuProps = {
 
     /** Ref to the menu */
     threeDotsMenuRef?: React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean} | null>;
+
+    /** Label for Sentry INP tracking */
+    sentryLabel?: string;
 };
 
 type ThreeDotsMenuWithOptionalAnchorProps =
