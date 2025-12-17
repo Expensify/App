@@ -5987,7 +5987,7 @@ ${amount} para ${merchant} - ${date}`,
             return `actualizar la fecha de envío del informe mensual a "${newValue}" (previamente "${oldValue}")`;
         },
         updateDefaultTitleEnforced: ({value}) => `cambió "Requerir título predeterminado de informe" a ${value ? 'activado' : 'desactivado'}`,
-        changedCustomReportNameFormula: ({newValue, oldValue}) => `cambió la fórmula del nombre del informe personalizado a "${newValue}" (anteriormente "${oldValue}")`,
+        changedCustomReportNameFormula: ({newValue, oldValue}) => `cambió la fórmula del nombre del informe a "${newValue}" (anteriormente "${oldValue}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}) =>
             !oldDescription
                 ? `estableció la descripción de este espacio de trabajo como "${newDescription}"`
