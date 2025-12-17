@@ -71,6 +71,4 @@ jobs:
             ${{ runner.os }}-eslint-changed-
 
       - name: Run ESLint to check for deprecation warnings
-        run: |
-          # shellcheck disable=SC2046
-          npm run lint-changed
+        run: npm run lint-changed
