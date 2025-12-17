@@ -179,11 +179,11 @@ const taskHeaders: SearchColumnConfig[] = [
     },
 ];
 
-const getExpenseReportHeaders = (icons: SearchHeaderIcons): SearchColumnConfig[] => [
+const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
         translationKey: undefined,
-        icon: icons.Profile,
+        icon: profileIcon,
         isColumnSortable: false,
     },
     {
@@ -329,7 +329,7 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: 
         case CONST.SEARCH.DATA_TYPES.TASK:
             return taskHeaders;
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-            return getExpenseReportHeaders(icons);
+            return getExpenseReportHeaders(icons.Profile);
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
             return null;
