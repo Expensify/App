@@ -2275,14 +2275,7 @@ function getSortedData<T extends TransactionGroupListItemType>(
  * Sorts member sections based on a specified column and sort order.
  */
 function getSortedMemberData(data: TransactionMemberGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
-    return getSortedData(
-        data,
-        localeCompare,
-        transactionMemberGroupColumnNamesToSortingProperty,
-        (a, b) => localeCompare(a.displayName ?? a.login ?? '', b.displayName ?? b.login ?? ''),
-        sortBy,
-        sortOrder,
-    );
+    return getSortedData(data, localeCompare, transactionMemberGroupColumnNamesToSortingProperty, (a, b) => localeCompare(a.formattedFrom ?? '', b.formattedFrom ?? ''), sortBy, sortOrder);
 }
 
 /**
@@ -2294,7 +2287,7 @@ function getSortedCardData(data: TransactionCardGroupListItemType[], localeCompa
         data,
         localeCompare,
         transactionCardGroupColumnNamesToSortingProperty,
-        (a, b) => localeCompare(a.formattedFeedName ?? '', b.formattedFeedName ?? ''),
+        (a, b) => localeCompare(a.formattedCardName ?? '', b.formattedCardName ?? ''),
         sortBy,
         sortOrder,
     );
@@ -2305,7 +2298,7 @@ function getSortedCardData(data: TransactionCardGroupListItemType[], localeCompa
  * Sorts withdrawal ID sections based on a specified column and sort order.
  */
 function getSortedWithdrawalIDData(data: TransactionWithdrawalIDGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
-    return getSortedData(data, localeCompare, transactionWithdrawalIDGroupColumnNamesToSortingProperty, (a, b) => localeCompare(b.debitPosted, a.debitPosted), sortBy, sortOrder);
+    return getSortedData(data, localeCompare, transactionWithdrawalIDGroupColumnNamesToSortingProperty, (a, b) => localeCompare(a.debitPosted, b.debitPosted), sortBy, sortOrder);
 }
 
 /**
