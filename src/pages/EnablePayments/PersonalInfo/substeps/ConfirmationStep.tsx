@@ -82,6 +82,4 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-ConfirmationStep.displayName = 'ConfirmationStep';
-
 export default ConfirmationStep;
