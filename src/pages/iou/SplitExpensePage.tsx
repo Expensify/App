@@ -439,7 +439,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                 id={CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}
                                 defaultSelectedTab={CONST.IOU.SPLIT_TYPE.AMOUNT}
                                 tabBar={TabSelector}
-                                disableSwipe
                             >
                                 <TopTab.Screen name={CONST.IOU.SPLIT_TYPE.AMOUNT}>
                                     {() => (
