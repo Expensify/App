@@ -1,6 +1,8 @@
-import {adminAccountIDsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, technicalContactEmailSelector} from '@selectors/Domain';
 import React from 'react';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import {View} from 'react-native';
+import Badge from '@components/Badge';
+import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -23,6 +25,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +46,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Members']);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Gear']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -56,6 +59,13 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     });
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [technicalContactEmail] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+        canBeMissing: false,
+        selector: technicalContactEmailSelector,
+    });
+
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     const data: AdminOption[] = [];
     for (const accountID of adminAccountIDs ?? []) {
@@ -74,6 +84,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     id: accountID,
                 },
             ],
+            rightElement: technicalContactEmail === details?.login && <Badge text={translate('domain.admins.primaryContact')} />,
             errors: getLatestError(domainErrors?.adminErrors?.[accountID]?.errors),
         });
     }
@@ -98,6 +109,25 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         );
     };
 
+    const getHeaderButtons = () => {
+        if (!isAdmin) {
+            return null;
+        }
+        return (
+            <View style={[styles.flexRow, styles.gap2]}>
+                <Button
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
+                    }}
+                    text={translate('domain.admins.settings')}
+                    icon={icons.Gear}
+                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                    style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+                />
+            </View>
+        );
+    };
+
     const listHeaderContent =
         data.length > CONST.SEARCH_ITEM_LIMIT ? (
             <SearchBar
@@ -112,27 +142,24 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         return <FullScreenLoadingIndicator />;
     }
 
-    const currentUserAccountID = getCurrentUserAccountID();
-    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
-
     return (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            shouldEnableMaxHeight
-            shouldShowOfflineIndicatorInWideScreen
-            testID="DomainAdminsPage"
-        >
-            <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={!isAdmin}
-                shouldForceFullScreen
+        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
+                shouldShowOfflineIndicatorInWideScreen
+                testID={DomainAdminsPage.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('domain.admins.title')}
                     onBackButtonPress={Navigation.popToSidebar}
                     icon={illustrations.Members}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                />
+                >
+                    {!shouldUseNarrowLayout && getHeaderButtons()}
+                </HeaderWithBackButton>
+
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <SelectionList
                     sections={[{data: filteredData}]}
                     canSelectMultiple={false}
@@ -148,9 +175,11 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     customListHeader={getCustomListHeader()}
                     onDismissError={(item: AdminOption) => clearRemoveAdminError(domainAccountID, item.accountID)}
                 />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </DomainNotFoundPageWrapper>
     );
 }
+
+DomainAdminsPage.displayName = 'DomainAdminsPage';
 
 export default DomainAdminsPage;

@@ -48,4 +48,8 @@ function adminAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
     );
 }
 
-export {domainMemberSamlSettingsSelector, domainSettingsPrimaryContactSelector, domainSamlSettingsStateSelector, domainNameSelector, metaIdentitySelector, adminAccountIDsSelector};
+// TODO unify that with domainSettingsPrimaryContactSelector
+const technicalContactEmailSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => domainMemberSharedNVP?.settings?.technicalContactEmail;
+
+
+export {domainMemberSamlSettingsSelector, domainSettingsPrimaryContactSelector, domainSamlSettingsStateSelector, domainNameSelector, metaIdentitySelector, adminAccountIDsSelector, technicalContactEmailSelector};

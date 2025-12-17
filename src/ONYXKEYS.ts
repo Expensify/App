@@ -740,6 +740,7 @@ const ONYXKEYS = {
 
         /** Pending actions for a domain */
         DOMAIN_PENDING_ACTIONS: 'domainPendingActions_',
+
         /** Errors related to a domain */
         DOMAIN_ERRORS: 'domainErrors_',
     },

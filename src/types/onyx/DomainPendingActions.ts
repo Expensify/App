@@ -18,6 +18,11 @@ type DomainPendingAction = {
      * Pending actions for specific administrators, keyed by their accountID
      */
     admin?: Record<number, GeneralDomainAdminPendingAction>;
+
+    /**
+     * Pending action for the technical contact email
+     */
+    technicalContactEmail?: OnyxCommon.PendingAction;
 };
 
 export default DomainPendingAction;

@@ -300,6 +300,6 @@ export type {
     HybridApp,
     AppReview,
     SamlMetadata,
-    DomainPendingActions,
     DomainErrors,
+    DomainPendingActions,
 };
