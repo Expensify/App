@@ -54,5 +54,4 @@ function ChooseCustomListStep({policy, onNext, isEditing, netSuiteCustomFieldFor
     );
 }
 
-ChooseCustomListStep.displayName = 'ChooseCustomListStep';
 export default ChooseCustomListStep;

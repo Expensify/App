@@ -113,7 +113,7 @@ function SearchFiltersBar({
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: searchResultsErrorSelector});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
 
     const taxRates = getAllTaxRates(allPolicies);
 
@@ -307,6 +307,7 @@ function SearchFiltersBar({
             // If the type has changed, reset the status so we dont have an invalid status selected
             if (updatedFilterFormValues.type !== filterFormValues.type) {
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                updatedFilterFormValues.columns = [];
             }
 
             const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
@@ -781,7 +782,7 @@ function SearchFiltersBar({
         [],
     );
 
-    const shouldShowColumnsButton = isLargeScreenWidth && queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const shouldShowColumnsButton = isLargeScreenWidth && (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE || queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
 
     const filterButtonText = useMemo(
         () => translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : ''),
@@ -915,7 +916,5 @@ function SearchFiltersBar({
         </View>
     );
 }
-
-SearchFiltersBar.displayName = 'SearchFiltersBar';
 
 export default SearchFiltersBar;

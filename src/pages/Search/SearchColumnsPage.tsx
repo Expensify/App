@@ -13,18 +13,14 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAllFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getCustomColumns, getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import arraysEqual from '@src/utils/arraysEqual';
-
-const allCustomColumns = Object.values(CONST.SEARCH.CUSTOM_COLUMNS);
-const defaultCustomColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
 
 function SearchColumnsPage() {
     const styles = useThemeStyles();
@@ -32,8 +28,12 @@ function SearchColumnsPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
+    const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const allCustomColumns = getCustomColumns(queryType);
+    const defaultCustomColumns = getCustomColumnDefault(queryType);
+
     const [selectedColumnIds, setSelectedColumnIds] = useState<SearchCustomColumnIds[]>(() => {
-        const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => Object.values(CONST.SEARCH.CUSTOM_COLUMNS).includes(columnId)) ?? [];
+        const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
 
         // We dont allow the user to unselect all columns, so we can assume that no columns = default columns
         if (!columnIds.length) {
@@ -81,13 +81,12 @@ function SearchColumnsPage() {
         const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {...searchAdvancedFiltersForm, columns: selectedColumnIds};
         const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters);
 
-        clearAllFilters();
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
     };
 
     return (
         <ScreenWrapper
-            testID={SearchColumnsPage.displayName}
+            testID="SearchColumnsPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -127,7 +126,5 @@ function SearchColumnsPage() {
         </ScreenWrapper>
     );
 }
-
-SearchColumnsPage.displayName = 'SearchColumnsPage';
 
 export default SearchColumnsPage;

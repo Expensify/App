@@ -11,6 +11,9 @@ type SelectedTransactionInfo = {
     /** Whether the transaction is selected */
     isSelected: boolean;
 
+    /** If the transaction can be deleted */
+    canDelete: boolean;
+
     /** If the transaction can be rejected */
     canReject: boolean;
 
@@ -107,7 +110,7 @@ type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 type SearchAction = ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
-type SearchCustomColumnIds = ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS>;
+type SearchCustomColumnIds = ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE> | ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT>;
 
 type SearchContextData = {
     currentSearchHash: number;
