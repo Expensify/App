@@ -56,7 +56,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
     const isScreenFocused = useIsFocused();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
@@ -452,7 +452,5 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         </View>
     );
 }
-
-LHNOptionsList.displayName = 'LHNOptionsList';
 
 export default memo(LHNOptionsList);

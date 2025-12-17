@@ -47,8 +47,8 @@ type BaseMenuItem = {
 };
 
 function TroubleshootPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'ExpensifyLogoNew', 'Bug', 'RotateLeft'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['Lightbulb'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'ExpensifyLogoNew', 'Bug', 'RotateLeft']);
+    const illustrations = useMemoizedLazyIllustrations(['Lightbulb']);
     const troubleshootIllustration = useTroubleshootSectionIllustration();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -167,7 +167,7 @@ function TroubleshootPage() {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={TroubleshootPage.displayName}
+            testID="TroubleshootPage"
         >
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
@@ -244,7 +244,5 @@ function TroubleshootPage() {
         </ScreenWrapper>
     );
 }
-
-TroubleshootPage.displayName = 'TroubleshootPage';
 
 export default TroubleshootPage;
