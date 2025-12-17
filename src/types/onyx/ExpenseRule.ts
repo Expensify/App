@@ -9,31 +9,31 @@ type TaxRate = {
 
 /** Model of expense rule */
 type ExpenseRule = {
-    /** Whether the transaction is billable */
+    /** Whether the transaction is set to be billable */
     billable: string;
 
-    /** The name of the category */
+    /** The category set by the rule */
     category: string;
 
-    /** The description of the rule */
+    /** The description set by the rule */
     comment: string;
 
-    /** The name of the merchant */
+    /** The merchant set by the rule */
     merchant: string;
 
-    /** When the merchant name contains */
+    /** Merchant name to match to apply the rule */
     merchantToMatch: string;
 
-    /** Whether the transaction is reimbursable */
+    /** Whether the transaction is set to be reimbursable */
     reimbursable: string;
 
-    /** Add to a report named */
+    /** Name of the report to add transactions to */
     report: string;
 
-    /** The name of the tag */
+    /** The tag set by the rule */
     tag: string;
 
-    /** The tax rate */
+    /** The tax rate set by the rule */
     tax: Record<string, TaxRate>;
 };
 
