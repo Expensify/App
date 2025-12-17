@@ -140,10 +140,14 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'date' as const,
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 'submitted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.POSTED]: 'posted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'tag' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'originalAmount' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: 'billable' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: null,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
@@ -649,7 +653,7 @@ function getTransactionItemCommonFormattedProperties(
     policy: OnyxTypes.Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     report: OnyxTypes.Report | undefined,
-): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'submitted' | 'approved'> {
+): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'submitted' | 'approved' | 'posted'> {
     const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
     const fromName = getDisplayNameOrDefault(from);
@@ -670,12 +674,16 @@ function getTransactionItemCommonFormattedProperties(
     const submitted = report?.submitted;
     const approved = report?.approved;
 
+    // Posted date is in the YYYYMMDD format, so we format it to YYYY-MM-DD here since JS's Date constructor interprets it as an invalid date.
+    const posted = !transactionItem?.posted ? '' : `${transactionItem?.posted.slice(0, 4)}-${transactionItem?.posted.slice(4, 6)}-${transactionItem?.posted.slice(6, 8)}`;
+
     return {
         formattedFrom,
         formattedTo,
         date,
         submitted,
         approved,
+        posted,
         formattedTotal,
         formattedMerchant,
     };
@@ -858,6 +866,7 @@ type ShouldShowYearResult = {
     shouldShowYearCreated: boolean;
     shouldShowYearSubmitted: boolean;
     shouldShowYearApproved: boolean;
+    shouldShowYearPosted: boolean;
 };
 
 /**
@@ -874,6 +883,7 @@ function shouldShowYear(
         shouldShowYearCreated: false,
         shouldShowYearSubmitted: false,
         shouldShowYearApproved: false,
+        shouldShowYearPosted: false,
     };
 
     const currentYear = new Date().getFullYear();
@@ -908,10 +918,16 @@ function shouldShowYear(
                 if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
                     result.shouldShowYearApproved = true;
                 }
+
+                // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
+                if (item?.posted) {
+                    const postedYear = parseInt(item.posted.slice(0, 4), 10);
+                    result.shouldShowYearPosted = postedYear !== currentYear;
+                }
             }
 
             // Early exit if all flags are true
-            if (result.shouldShowYearCreated && result.shouldShowYearSubmitted) {
+            if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted) {
                 return result;
             }
         }
@@ -930,6 +946,12 @@ function shouldShowYear(
             }
             if (report?.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
                 result.shouldShowYearApproved = true;
+            }
+
+            // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
+            if (item?.posted) {
+                const postedYear = parseInt(item.posted.slice(0, 4), 10);
+                result.shouldShowYearPosted = postedYear !== currentYear;
             }
         } else if (!checkOnlyReports && isReportActionEntry(key)) {
             const item = data[key];
@@ -954,7 +976,7 @@ function shouldShowYear(
         }
 
         // Early exit if all flags are true
-        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted) {
+        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted) {
             return result;
         }
     }
@@ -1111,7 +1133,7 @@ function getTransactionsSections(
     isActionLoadingSet: ReadonlySet<string> | undefined,
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved} = shouldShowYear(data);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted} = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
     // Pre-filter transaction keys to avoid repeated checks
@@ -1160,7 +1182,7 @@ function getTransactionsSections(
             const from = reportAction?.actorAccountID ? (personalDetailsMap.get(reportAction.actorAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved} = getTransactionItemCommonFormattedProperties(
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
                 from,
                 to,
@@ -1187,10 +1209,12 @@ function getTransactionsSections(
                 date,
                 submitted,
                 approved,
+                posted,
                 shouldShowMerchant,
                 shouldShowYear: shouldShowYearCreated,
                 shouldShowYearSubmitted,
                 shouldShowYearApproved,
+                shouldShowYearPosted,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 violations: transactionViolations,
@@ -1566,6 +1590,7 @@ function getReportSections(
         shouldShowYearCreated: shouldShowYearCreatedTransaction,
         shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
         shouldShowYearApproved: shouldShowYearApprovedTransaction,
+        shouldShowYearPosted: shouldShowYearPostedTransaction,
     } = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
     const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
@@ -1717,6 +1742,7 @@ function getReportSections(
                 shouldShowYear: shouldShowYearCreatedTransaction,
                 shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
                 shouldShowYearApproved: shouldShowYearApprovedTransaction,
+                shouldShowYearPosted: shouldShowYearPostedTransaction,
                 keyForList: transactionItem.transactionID,
                 violations: transactionViolations,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
@@ -1974,12 +2000,32 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
     }
 
     if (typeof a === 'number' && typeof b === 'number') {
-        const aValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT && !shouldCompareOriginalValue ? Math.abs(a) : a;
-        const bValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT && !shouldCompareOriginalValue ? Math.abs(b) : b;
+        const aValue =
+            (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || sortBy.toLowerCase() === CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT) && !shouldCompareOriginalValue ? Math.abs(a) : a;
+        const bValue =
+            (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || sortBy.toLowerCase() === CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT) && !shouldCompareOriginalValue ? Math.abs(b) : b;
         return isAsc ? aValue - bValue : bValue - aValue;
     }
 
     return 0;
+}
+
+/**
+ * @private
+ * Gets the value to use for sorting a transaction by a given property.
+ * Handles special cases like comments and boolean fields (reimbursable, billable).
+ */
+function getTransactionSortValue(transaction: TransactionListItemType, sortingProperty: string): unknown {
+    if (sortingProperty === 'comment') {
+        return transaction.comment?.comment;
+    }
+
+    if (sortingProperty === 'reimbursable' || sortingProperty === 'billable') {
+        const boolValue = transaction[sortingProperty as keyof TransactionListItemType];
+        return boolValue ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+    }
+
+    return transaction[sortingProperty as keyof TransactionListItemType];
 }
 
 /**
@@ -1997,7 +2043,23 @@ function getSortedTransactionData(
         return data;
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REPORT_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID) {
+        return data.sort((a, b) => {
+            const aValue = a.reportID;
+            const bValue = b.reportID;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
+        });
+    }
+
     const sortingProperty = transactionColumnNamesToSortingProperty[sortBy];
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TITLE) {
+        return data.sort((a, b) => {
+            const aValue = a.report?.reportName ?? '';
+            const bValue = b.report?.reportName ?? '';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.STATUS) {
         return data.sort((a, b) => {
@@ -2019,10 +2081,23 @@ function getSortedTransactionData(
     }
 
     return data.sort((a, b) => {
-        const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty as keyof TransactionListItemType];
-        const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty as keyof TransactionListItemType];
+        const aValue = getTransactionSortValue(a, sortingProperty);
+        const bValue = getTransactionSortValue(b, sortingProperty);
 
-        return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
+        const primaryComparison = compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
+
+        if (primaryComparison !== 0) {
+            return primaryComparison;
+        }
+
+        // If we have a tie in the primary comparison, we add a tie breaker on date and/or transactionID as a last resort to make the sort deterministic
+        const createdComparison = compareValues(a.created, b.created, sortOrder, 'created', localeCompare);
+
+        if (createdComparison !== 0) {
+            return createdComparison;
+        }
+
+        return compareValues(a.transactionID, b.transactionID, sortOrder, 'transactionID', localeCompare);
     });
 }
 
@@ -2092,12 +2167,15 @@ function getSortedReportData(
         return data.sort((a, b) => {
             const aNonReimbursableTotal = a.nonReimbursableTotal;
             const bNonReimbursableTotal = b.nonReimbursableTotal;
-
-            if (aNonReimbursableTotal == null || bNonReimbursableTotal == null) {
-                return 0;
-            }
-
             return compareValues(aNonReimbursableTotal, bNonReimbursableTotal, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REPORT_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID) {
+        return data.sort((a, b) => {
+            const aValue = a.reportID;
+            const bValue = b.reportID;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
         });
     }
 
@@ -2240,6 +2318,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.submitted';
         case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
             return 'search.filters.approved';
+        case CONST.SEARCH.TABLE_COLUMNS.POSTED:
+            return 'search.filters.posted';
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return 'common.merchant';
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
@@ -2252,6 +2332,12 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.receipt';
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return 'common.tag';
+        case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
+            return 'common.originalAmount';
+        case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
+            return 'common.reimbursable';
+        case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+            return 'common.billable';
         case CONST.SEARCH.TABLE_COLUMNS.ACTION:
             return 'common.action';
         case CONST.SEARCH.TABLE_COLUMNS.TITLE:
@@ -2262,6 +2348,10 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.reimbursableTotal';
         case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
             return 'common.nonReimbursableTotal';
+        case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
+            return 'common.longID';
+        case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
+            return 'common.reportID';
     }
 }
 
@@ -2651,6 +2741,8 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: false,
             [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
         };
 
@@ -2716,17 +2808,23 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.POSTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
           };
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
@@ -2927,10 +3025,12 @@ function getTableMinWidth(columns: SearchColumnType[]) {
             minWidth += 80;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
             minWidth += 48;
-        } else if (column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED || column === CONST.SEARCH.TABLE_COLUMNS.APPROVED) {
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED || column === CONST.SEARCH.TABLE_COLUMNS.APPROVED || column === CONST.SEARCH.TABLE_COLUMNS.POSTED) {
             minWidth += 72;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {
             minWidth += 20;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || column === CONST.SEARCH.TABLE_COLUMNS.BILLABLE) {
+            minWidth += 92;
         } else {
             minWidth += 200;
         }

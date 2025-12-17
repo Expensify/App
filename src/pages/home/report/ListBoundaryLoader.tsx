@@ -107,6 +107,4 @@ function ListBoundaryLoader({
     }
 }
 
-ListBoundaryLoader.displayName = 'ListBoundaryLoader';
-
 export default ListBoundaryLoader;

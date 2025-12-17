@@ -68,7 +68,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     }
 
     return (
-        <ScreenWrapper testID={RoomMemberDetailsPage.displayName}>
+        <ScreenWrapper testID="RoomMemberDetailsPage">
             <HeaderWithBackButton
                 title={displayName}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -125,7 +125,5 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
         </ScreenWrapper>
     );
 }
-
-RoomMemberDetailsPage.displayName = 'RoomMemberDetailsPage';
 
 export default withReportOrNotFound()(RoomMemberDetailsPage);

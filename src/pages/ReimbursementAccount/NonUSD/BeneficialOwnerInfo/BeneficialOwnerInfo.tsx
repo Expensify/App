@@ -284,7 +284,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BeneficialOwnerInfo.displayName}
+            wrapperID="BeneficialOwnerInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('ownershipInfoStep.ownerInfo')}
             stepNames={stepNames}
@@ -344,7 +344,5 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
         </InteractiveStepWrapper>
     );
 }
-
-BeneficialOwnerInfo.displayName = 'BeneficialOwnerInfo';
 
 export default BeneficialOwnerInfo;

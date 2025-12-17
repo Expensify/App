@@ -392,7 +392,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
-            testID={RoomMembersPage.displayName}
+            testID="RoomMembersPage"
         >
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report) || isReportArchived || (!isChatThread(report) && ((isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || isDefaultRoom(report)))}
@@ -458,7 +458,5 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         </ScreenWrapper>
     );
 }
-
-RoomMembersPage.displayName = 'RoomMembersPage';
 
 export default withReportOrNotFound()(withCurrentUserPersonalDetails(RoomMembersPage));
