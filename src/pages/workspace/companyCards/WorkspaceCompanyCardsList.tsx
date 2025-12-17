@@ -22,6 +22,7 @@ import {
     getPlaidInstitutionIconUrl,
     sortCardsByCardholderName,
 } from '@libs/CardUtils';
+import Log from '@libs/Log';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -30,6 +31,25 @@ import ROUTES from '@src/ROUTES';
 import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, WorkspaceCardsList} from '@src/types/onyx';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsListRow from './WorkspaceCompanyCardsListRow';
+
+function isSameCommercialCompanyCardName(aMaskedPan: string | undefined, bMaskedPan: string | undefined) {
+    if (!aMaskedPan || !bMaskedPan) {
+        return false;
+    }
+
+    const aFirstDigits = aMaskedPan.split('X').at(0);
+    const bFirstDigits = bMaskedPan.split('X').at(0);
+    const aLastDigits = aMaskedPan.split('X').at(-1);
+    const bLastDigits = bMaskedPan.split('X').at(-1);
+
+    const firstDigitsCount = Math.min(aFirstDigits?.length ?? 0, bFirstDigits?.length ?? 0);
+    const lastDigitsCount = Math.min(aLastDigits?.length ?? 0, bLastDigits?.length ?? 0);
+
+    const areFirstDigitsEqual = aFirstDigits?.slice(0, firstDigitsCount) === bFirstDigits?.slice(0, firstDigitsCount);
+    const areLastDigitsEqual = aLastDigits?.slice(-lastDigitsCount) === bLastDigits?.slice(-lastDigitsCount);
+
+    return areFirstDigitsEqual && areLastDigitsEqual;
+}
 
 type WorkspaceCompanyCardsListProps = {
     /** Selected feed */
@@ -63,9 +83,21 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
 
     const {cardList, ...assignedCards} = cardsList ?? {};
     const [cardFeeds] = useCardFeeds(policyID);
-
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const cards = companyFeeds?.[selectedFeed]?.accountList;
+
+    const hasCommercialCompanyCards = !!cardList;
+    const hasPlaidCompanyCards = !!companyFeeds?.[selectedFeed]?.accountList;
+
+    if (hasCommercialCompanyCards && hasPlaidCompanyCards) {
+        Log.warn('Both commercial and company cards found');
+    }
+
+    if (!hasCommercialCompanyCards && !hasPlaidCompanyCards) {
+        Log.warn('No commercial nor Plaid cards found');
+    }
+
+    const isPlaidCardFeed = hasPlaidCompanyCards;
+    const cards = isPlaidCardFeed ? (companyFeeds?.[selectedFeed]?.accountList ?? []) : Object.keys(cardList ?? {});
 
     const plaidIconUrl = getPlaidInstitutionIconUrl(selectedFeed);
 
@@ -88,7 +120,11 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
 
     const renderItem = useCallback(
         ({item: cardName, index}: ListRenderItemInfo<string>) => {
-            const assignedCard = Object.values(assignedCards ?? {}).find((card) => card.cardName === cardName);
+            const assignedCardPredicate = (card: Card) => (isPlaidCardFeed ? card.cardName === cardName : isSameCommercialCompanyCardName(card.cardName, cardName));
+
+            const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
+
+            console.log('assignedCard', assignedCard);
 
             const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID];
 
@@ -148,6 +184,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
             assignedCards,
             customCardNames,
             isAssigningCardDisabled,
+            isPlaidCardFeed,
             onAssignCard,
             personalDetails,
             plaidIconUrl,
