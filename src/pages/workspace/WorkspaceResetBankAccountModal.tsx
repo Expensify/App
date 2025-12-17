@@ -129,6 +129,4 @@ function WorkspaceResetBankAccountModal({
     );
 }
 
-WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';
-
 export default WorkspaceResetBankAccountModal;
