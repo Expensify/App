@@ -1,6 +1,6 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type {NetInfoState} from '@react-native-community/netinfo';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {sub as dateSubtract} from 'date-fns/sub';
 import type {Mock} from 'jest-mock';
 import type {OnyxEntry} from 'react-native-onyx';

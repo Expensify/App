@@ -50,13 +50,12 @@ const triggerReconnectionCallbacks = throttle(
     {trailing: false},
 );
 
-
 // Only allow one NetInfo.refresh at a time, and respect the interval
 // Exported state object to allow unit tests to inspect and control internal state
 const recheckNetworkState = {
     isCheckPending: false,
     lastCheckTimestamp: 0,
-}
+};
 
 /**
  * Refresh NetInfo state.
@@ -357,6 +356,6 @@ export default {
     recheckNetworkConnection,
     subscribeToNetInfo,
     getDBTimeWithSkew,
-    recheckNetworkState
+    recheckNetworkState,
 };
 export type {NetworkStatus};
