@@ -145,7 +145,7 @@ function MoneyRequestReportPreviewContent({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow', 'Location'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow', 'Location']);
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -879,7 +879,5 @@ function MoneyRequestReportPreviewContent({
         </View>
     );
 }
-
-MoneyRequestReportPreviewContent.displayName = 'MoneyRequestReportPreviewContent';
 
 export default MoneyRequestReportPreviewContent;
