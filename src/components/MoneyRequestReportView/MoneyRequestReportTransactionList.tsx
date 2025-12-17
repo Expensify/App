@@ -76,6 +76,8 @@ import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyS
 
 const test = 'test';
 
+// Props for the MoneyRequestReportTransactionList component
+
 type MoneyRequestReportTransactionListProps = {
     /** The money request report containing the transactions */
     report: OnyxTypes.Report;
