@@ -819,7 +819,7 @@ const translations = {
         searchForSomeone: 'Search for someone',
     },
     customApprovalWorkflow: {
-        title: 'Custom aproval workflow',
+        title: 'Custom approval workflow',
         description: 'Your company has a custom approval workflow on this workspace. Please take this action in Expensify Classic',
         goToExpensifyClassic: 'Switch to Expensify Classic',
     },
@@ -871,7 +871,7 @@ const translations = {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
-        blockedFromConcierge: 'Comunication is barred',
+        blockedFromConcierge: 'Communication is barred',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}: LocalTimeParams) => `It's ${time} for ${user}`,
         edited: '(edited)',
