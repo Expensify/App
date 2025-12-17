@@ -1339,12 +1339,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `heeft uitgave verplaatst van persoonlijke ruimte naar ${workspaceName ?? `chat met ${reportName}`}`,
         movedToPersonalSpace: 'uitgave verplaatst naar persoonlijke ruimte',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'een' : 'een';
-            const tag = policyTagListName ?? 'label';
-            return `Selecteer ${article} ${tag} om je uitgaven beter te organiseren.`;
-        },
-        categorySelection: 'Selecteer een categorie om je uitgaven beter te organiseren.',
         error: {
             invalidCategoryLength: 'De categorienaam bevat meer dan 255 tekens. Verkort deze of kies een andere categorie.',
             invalidTagLength: 'De namen van tags mogen niet langer zijn dan 255 tekens. Verkort de tagnaam of kies een andere tag.',
