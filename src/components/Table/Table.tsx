@@ -1,5 +1,5 @@
 import type {FlashListRef} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
 import TableContext from './TableContext';
 import type {TableContextValue, UpdateFilterCallback, UpdateSortingCallback} from './TableContext';
 import type {ActiveSorting, GetActiveFiltersCallback, GetActiveSearchStringCallback, GetActiveSortingCallback, TableHandle, TableMethods, TableProps, ToggleSortingCallback} from './types';
@@ -33,12 +33,12 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         return initialFilters;
     });
 
-    const updateFilter: UpdateFilterCallback = ({key, value}) => {
+    const updateFilter: UpdateFilterCallback = useCallback(({key, value}) => {
         setCurrentFilters((prev) => ({
             ...prev,
             [key]: value,
         }));
-    };
+    }, []);
 
     // Apply filters using predicate functions
     let filteredData = data;
@@ -80,41 +80,48 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         filteredAndSearchedData = filteredData.filter((item) => isItemInSearch(item, activeSearchString));
     }
 
-    const [sortToggleCount, setSortToggleCount] = useState(0);
+    const sortToggleCountRef = useRef(0);
     const [activeSorting, setActiveSorting] = useState<ActiveSorting<ColumnKey>>({columnKey: undefined, order: 'asc'});
 
-    const updateSorting: UpdateSortingCallback<ColumnKey> = ({columnKey, order}) => {
+    const updateSorting: UpdateSortingCallback<ColumnKey> = useCallback(({columnKey, order}) => {
         if (columnKey) {
             setActiveSorting({columnKey, order: order ?? 'asc'});
             return;
         }
 
         setActiveSorting({columnKey: undefined, order: 'asc'});
-    };
+    }, []);
 
-    const toggleSorting: ToggleSortingCallback<ColumnKey> = (columnKey) => {
-        if (!columnKey) {
-            updateSorting({columnKey: undefined});
-            setSortToggleCount(0);
-            return;
-        }
+    const toggleSorting: ToggleSortingCallback<ColumnKey> = useCallback(
+        (columnKey) => {
+            if (!columnKey) {
+                updateSorting({columnKey: undefined});
+                sortToggleCountRef.current = 0;
+                return;
+            }
 
-        if (columnKey !== activeSorting.columnKey) {
-            updateSorting({columnKey, order: 'asc'});
-            setSortToggleCount(0);
-            return;
-        }
+            setActiveSorting((currentSorting) => {
+                if (columnKey !== currentSorting.columnKey) {
+                    sortToggleCountRef.current = 0;
+                    return {columnKey, order: 'asc'};
+                }
 
-        if (sortToggleCount >= MAX_SORT_TOGGLE_COUNT) {
-            updateSorting({columnKey: undefined});
-            setSortToggleCount(0);
-            return;
-        }
+                // Check current toggle count to decide if we should reset
+                if (sortToggleCountRef.current >= MAX_SORT_TOGGLE_COUNT) {
+                    // Reset sorting when max toggle count is reached
+                    sortToggleCountRef.current = 0;
+                    updateSorting({columnKey: undefined});
+                    return {columnKey: undefined, order: 'asc'};
+                }
 
-        const newSortOrder = activeSorting.order === 'asc' ? 'desc' : 'asc';
-        setSortToggleCount((prev) => prev + 1);
-        updateSorting({columnKey: activeSorting.columnKey, order: newSortOrder});
-    };
+                // Toggle the sort order
+                sortToggleCountRef.current += 1;
+                const newSortOrder = currentSorting.order === 'asc' ? 'desc' : 'asc';
+                return {columnKey: currentSorting.columnKey, order: newSortOrder};
+            });
+        },
+        [updateSorting],
+    );
 
     // Apply sorting using comparator function
     let processedData = filteredAndSearchedData;
@@ -138,39 +145,25 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
 
     const listRef = useRef<FlashListRef<T>>(null);
     useImperativeHandle(ref, () => {
-        return new Proxy(
-            {},
-            {
-                get: (_target, prop) => {
-                    const property = prop as keyof TableMethods<ColumnKey, FilterKey>;
+        const customMethods: TableMethods<ColumnKey, FilterKey> = {
+            updateSorting,
+            toggleSorting,
+            updateFilter,
+            updateSearchString,
+            getActiveSorting,
+            getActiveFilters,
+            getActiveSearchString,
+        };
 
-                    if (property === 'updateSorting') {
-                        return updateSorting;
-                    }
-                    if (property === 'toggleSorting') {
-                        return toggleSorting;
-                    }
-                    if (property === 'updateFilter') {
-                        return updateFilter;
-                    }
-                    if (prop === 'updateSearchString') {
-                        return updateSearchString;
-                    }
+        return new Proxy(customMethods, {
+            get: (target, prop) => {
+                if (prop in target) {
+                    return target[prop as keyof typeof target];
+                }
 
-                    if (property === 'getActiveSorting') {
-                        return getActiveSorting;
-                    }
-                    if (property === 'getActiveFilters') {
-                        return getActiveFilters;
-                    }
-                    if (property === 'getActiveSearchString') {
-                        return getActiveSearchString;
-                    }
-
-                    return listRef.current?.[prop as keyof FlashListRef<T>];
-                },
+                return listRef.current?.[prop as keyof FlashListRef<T>];
             },
-        ) as TableHandle<T, ColumnKey, FilterKey>;
+        }) as TableHandle<T, ColumnKey, FilterKey>;
     });
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values
