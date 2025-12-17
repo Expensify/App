@@ -273,6 +273,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
         return workspaceCardsFeed;
     }, {});
 
+    // Card feed names with type
     const cardFeedNamesWithType = getCardFeedNamesWithType({
         workspaceCardFeeds,
         translate,
