@@ -12,7 +12,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
-import {findSelfDMReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 import {createNewReport} from '@userActions/Report';
@@ -56,9 +56,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
-    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
 
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (selectedTransactionIDs.length === 0 || item.value === reportID) {
@@ -78,7 +77,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 reportNextStep,
                 allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                selfDMReportID,
             );
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -91,17 +89,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!selectedReport || selectedTransactionIDs.length === 0) {
             return;
         }
-        changeTransactionsReport(
-            selectedTransactionIDs,
-            isASAPSubmitBetaEnabled,
-            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            session?.email ?? '',
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            selfDMReportID,
-        );
+        changeTransactionsReport(selectedTransactionIDs, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
@@ -109,12 +97,13 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         Navigation.dismissModal();
     };
 
-    const createReportForPolicy = () => {
-        if (!policyForMovingExpensesID) {
+    const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!hasPerDiemTransactions && !policyForMovingExpensesID) {
             return;
         }
 
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+        const policyForNewReportID = hasPerDiemTransactions ? selectedReport?.policyID : policyForMovingExpensesID;
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReportID, false, shouldDismissEmptyReportsConfirmation);
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
@@ -126,7 +115,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
-        if (!policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (hasPerDiemTransactions) {
+            handleCreateReport();
+            return;
+        }
+        if (!hasPerDiemTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
@@ -156,7 +149,5 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         </>
     );
 }
-
-IOURequestEditReport.displayName = 'IOURequestEditReport';
 
 export default withWritableReportOrNotFound(IOURequestEditReport);

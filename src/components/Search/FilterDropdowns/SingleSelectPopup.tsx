@@ -77,7 +77,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
             })),
             noResultsFound: false,
         };
-    }, [isSearchable, items, value, selectedItem, debouncedSearchTerm]);
+    }, [isSearchable, items, value, selectedItem?.value, debouncedSearchTerm]);
 
     const updateSelectedItem = useCallback(
         (item: ListItem) => {
@@ -142,6 +142,5 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
     );
 }
 
-SingleSelectPopup.displayName = 'SingleSelectPopup';
 export type {SingleSelectPopupProps, SingleSelectItem};
 export default SingleSelectPopup;

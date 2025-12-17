@@ -158,7 +158,23 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isUberForBusinessEnabled && (policy?.receiptPartners?.enabled ?? false),
         }),
-        [policy, isUberForBusinessEnabled],
+        [
+            policy?.areDistanceRatesEnabled,
+            policy?.areWorkflowsEnabled,
+            policy?.areCategoriesEnabled,
+            policy?.areTagsEnabled,
+            policy?.tax?.trackingEnabled,
+            policy?.areCompanyCardsEnabled,
+            policy?.areConnectionsEnabled,
+            policy?.connections,
+            policy?.areExpensifyCardsEnabled,
+            policy?.areReportFieldsEnabled,
+            policy?.areRulesEnabled,
+            policy?.areInvoicesEnabled,
+            policy?.arePerDiemRatesEnabled,
+            policy?.receiptPartners?.enabled,
+            isUberForBusinessEnabled,
+        ],
     ) as PolicyFeatureStates;
 
     const fetchPolicyData = useCallback(() => {
@@ -468,7 +484,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     return (
         <ScreenWrapper
-            testID={WorkspaceInitialPage.displayName}
+            testID="WorkspaceInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={
                 shouldShowNavigationTabBar &&
@@ -553,7 +569,5 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         </ScreenWrapper>
     );
 }
-
-WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceInitialPage);

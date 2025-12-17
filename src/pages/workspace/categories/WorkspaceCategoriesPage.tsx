@@ -92,13 +92,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['FolderOpen'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table']);
+    const illustrations = useMemoizedLazyIllustrations(['FolderOpen']);
 
     const {
         taskReport: setupCategoryTaskReport,
         taskParentReport: setupCategoryTaskParentReport,
         isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+        hasOutstandingChildTask,
+        parentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const fetchCategories = useCallback(() => {
@@ -158,9 +160,19 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
                 currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
             );
         },
-        [policyData, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, currentUserPersonalDetails.accountID],
+        [
+            policyData,
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
+            hasOutstandingChildTask,
+            parentReportAction,
+        ],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -278,6 +290,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
                 currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
             );
         }
         setDeleteCategoriesConfirmModalVisible(false);
@@ -402,6 +416,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
                             currentUserPersonalDetails.accountID,
+                            hasOutstandingChildTask,
+                            parentReportAction,
                         );
                     },
                 });
@@ -431,6 +447,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
                             currentUserPersonalDetails.accountID,
+                            hasOutstandingChildTask,
+                            parentReportAction,
                         );
                     },
                 });
@@ -446,7 +464,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     isDisabled={!selectedCategories.length}
-                    testID={`${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`}
+                    testID="WorkspaceCategoriesPage-header-dropdown-menu-button"
                 />
             );
         }
@@ -534,7 +552,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceCategoriesPage.displayName}
+                testID="WorkspaceCategoriesPage"
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
@@ -664,7 +682,5 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
 
 export default WorkspaceCategoriesPage;

@@ -41,7 +41,7 @@ type WorkspaceReceiptPartnersPageProps = PlatformStackScreenProps<WorkspaceSplit
 
 function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps) {
     const policyID = route.params.policyID;
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Key', 'NewWindow']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -74,7 +74,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                 }
             }
         },
-        [integrations],
+        [integrations?.uber?.connectFormData],
     );
 
     const fetchReceiptPartners = useCallback(() => {
@@ -124,7 +124,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     if (shouldShowEnterCredentialsError) {
                         return [
                             {
-                                icon: Expensicons.Key,
+                                icon: icons.Key,
                                 text: translate('workspace.accounting.enterCredentials'),
                                 onSelected: () => startIntegrationFlow({name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER}),
                                 shouldCallAfterModalHide: true,
@@ -149,7 +149,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     return [];
             }
         },
-        [icons.NewWindow, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow],
+        [icons.Key, icons.NewWindow, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow],
     );
 
     const onCloseModal = useCallback(() => {
@@ -251,7 +251,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                 />
             ) : (
                 <ScreenWrapper
-                    testID={WorkspaceReceiptPartnersPage.displayName}
+                    testID="WorkspaceReceiptPartnersPage"
                     shouldShowOfflineIndicatorInWideScreen
                 >
                     <HeaderWithBackButton
@@ -354,7 +354,5 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceReceiptPartnersPage.displayName = 'WorkspaceReceiptPartnersPage';
 
 export default WorkspaceReceiptPartnersPage;

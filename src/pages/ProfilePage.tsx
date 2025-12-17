@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-imports */
 import {Str} from 'expensify-common';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -8,7 +7,6 @@ import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -18,6 +16,7 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -75,18 +74,18 @@ function ProfilePage({route}: ProfilePageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
-    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
-
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isCurrentUser = session?.accountID === accountID;
     const reportKey = useMemo(() => {
-        const reportID = isCurrentUser ? selfDMReportID : getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID;
+        const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID;
 
         if (isAnonymousUserSession() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-    }, [accountID, selfDMReportID, isCurrentUser, reports, session]);
+    }, [accountID, isCurrentUser, reports, session?.accountID]);
+
     const [report] = useOnyx(reportKey, {canBeMissing: true});
 
     const styles = useThemeStyles();
@@ -175,7 +174,7 @@ function ProfilePage({route}: ProfilePageProps) {
     }, [accountID, isCurrentUser, loginParams, report]);
 
     return (
-        <ScreenWrapper testID={ProfilePage.displayName}>
+        <ScreenWrapper testID="ProfilePage">
             <FullPageNotFoundView shouldShow={shouldShowBlockingView}>
                 <HeaderWithBackButton
                     title={translate('common.profile')}
@@ -255,7 +254,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             <MenuItem
                                 shouldShowRightIcon
                                 title={translate('common.editYourProfile')}
-                                icon={Expensicons.Pencil}
+                                icon={expensifyIcons.Pencil}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
                             />
                         )}
@@ -271,7 +270,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             <MenuItem
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
-                                icon={Expensicons.Pencil}
+                                icon={expensifyIcons.Pencil}
                                 onPress={() => navigateToPrivateNotes(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, navigateBackTo)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
@@ -281,7 +280,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         {isConcierge && !!guideCalendarLink && (
                             <MenuItem
                                 title={translate('videoChatButtonAndMenu.tooltip')}
-                                icon={Expensicons.Phone}
+                                icon={expensifyIcons.Phone}
                                 isAnonymousAction={false}
                                 onPress={callFunctionIfActionIsAllowed(() => {
                                     openExternalLink(guideCalendarLink);
@@ -291,7 +290,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         {!!report?.reportID && !!isDebugModeEnabled && (
                             <MenuItem
                                 title={translate('debug.debug')}
-                                icon={Expensicons.Bug}
+                                icon={expensifyIcons.Bug}
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
                             />
@@ -303,7 +302,5 @@ function ProfilePage({route}: ProfilePageProps) {
         </ScreenWrapper>
     );
 }
-
-ProfilePage.displayName = 'ProfilePage';
 
 export default ProfilePage;

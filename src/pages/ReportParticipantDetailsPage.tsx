@@ -4,8 +4,6 @@ import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -35,7 +33,7 @@ import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound
 type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>;
 
 function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -57,7 +55,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
         setIsRemoveMemberConfirmModalVisible(false);
         removeFromGroupChat(report?.reportID, [accountID]);
         Navigation.goBack(backTo);
-    }, [backTo, report, accountID]);
+    }, [backTo, report?.reportID, accountID]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
@@ -72,7 +70,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     }
 
     return (
-        <ScreenWrapper testID={ReportParticipantDetails.displayName}>
+        <ScreenWrapper testID="ReportParticipantDetails">
             <HeaderWithBackButton
                 title={displayName}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -133,7 +131,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                     )}
                     <MenuItem
                         title={translate('common.profile')}
-                        icon={Expensicons.Info}
+                        icon={icons.Info}
                         onPress={navigateToProfile}
                         shouldShowRightIcon
                     />
@@ -142,7 +140,5 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
         </ScreenWrapper>
     );
 }
-
-ReportParticipantDetails.displayName = 'ReportParticipantDetails';
 
 export default withReportOrNotFound()(ReportParticipantDetails);

@@ -33,7 +33,7 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
     const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID, allWorkspaceCards);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew', 'HandCard', 'MagnifyingGlassMoney', 'CompanyCardsEmptyState'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew', 'HandCard', 'MagnifyingGlassMoney', 'CompanyCardsEmptyState']);
 
     const companyCardFeatures = useMemo(() => {
         const features = [
@@ -58,7 +58,7 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
                 icon: feature.icon,
                 translationKey: feature.translationKey,
             }));
-    }, [illustrations]);
+    }, [illustrations.CreditCardsNew, illustrations.HandCard, illustrations.MagnifyingGlassMoney]);
 
     const handleCtaPress = useCallback(() => {
         if (!policy?.id) {
@@ -70,7 +70,7 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
         }
         clearAddNewCardFlow();
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policy.id));
-    }, [policy, isActingAsDelegate, showDelegateNoAccessModal]);
+    }, [policy?.id, isActingAsDelegate, showDelegateNoAccessModal]);
 
     return (
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -78,7 +78,7 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
             <FeatureList
                 menuItems={companyCardFeatures as FeatureListItem[]}
                 title={translate('workspace.moreFeatures.companyCards.feed.title')}
-                subtitle={translate('workspace.moreFeatures.companyCards.subtitle')}
+                subtitle={translate('workspace.moreFeatures.companyCards.feed.subtitle')}
                 ctaText={translate('workspace.companyCards.addCards')}
                 ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
                 onCtaPress={handleCtaPress}
@@ -93,7 +93,5 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
         </View>
     );
 }
-
-WorkspaceCompanyCardPageEmptyState.displayName = 'WorkspaceCompanyCardPageEmptyState';
 
 export default withPolicyAndFullscreenLoading(WorkspaceCompanyCardPageEmptyState);

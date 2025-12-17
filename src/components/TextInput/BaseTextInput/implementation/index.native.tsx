@@ -113,7 +113,7 @@ function BaseTextInput({
     const isLabelActive = useRef(initialActiveLabel);
     const hasLabel = !!label?.length;
 
-    useHtmlPaste(input, undefined, isMarkdownEnabled);
+    useHtmlPaste(input, undefined, isMarkdownEnabled, maxLength);
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
@@ -314,18 +314,13 @@ function BaseTextInput({
                         ]}
                     >
                         {hasLabel ? (
-                            <>
-                                {/* Adding this background to the label only for multiline text input,
-                to prevent text overlapping with label when scrolling */}
-                                {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone, inputProps.disabled && styles.textInputDisabledContainer]} />}
-                                <TextInputLabel
-                                    label={label}
-                                    labelTranslateY={labelTranslateY}
-                                    labelScale={labelScale}
-                                    for={inputProps.nativeID}
-                                    isMultiline={isMultiline}
-                                />
-                            </>
+                            <TextInputLabel
+                                label={label}
+                                labelTranslateY={labelTranslateY}
+                                labelScale={labelScale}
+                                for={inputProps.nativeID}
+                                isMultiline={isMultiline}
+                            />
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, styles.flex1, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
@@ -501,7 +496,5 @@ function BaseTextInput({
         </>
     );
 }
-
-BaseTextInput.displayName = 'BaseTextInput';
 
 export default BaseTextInput;

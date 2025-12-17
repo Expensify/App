@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import CustomStylesForChildrenProvider from './CustomStylesForChildrenProvider';
 import ErrorMessageRow from './ErrorMessageRow';
 import ImageSVG from './ImageSVG';
@@ -50,6 +50,9 @@ type OfflineWithFeedbackProps = ChildrenProps & {
     /** Additional style object for the error row */
     errorRowStyles?: StyleProp<ViewStyle>;
 
+    /** Additional style object for the error row text */
+    errorRowTextStyles?: StyleProp<TextStyle>;
+
     /** Whether applying strikethrough to the children should be disabled */
     shouldDisableStrikeThrough?: boolean;
 
@@ -87,13 +90,14 @@ function OfflineWithFeedback({
     shouldDisplayErrorAbove = false,
     shouldForceOpacity = false,
     dismissError = () => {},
+    errorRowTextStyles,
     ...rest
 }: OfflineWithFeedbackProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
 
-    const hasErrors = !isEmptyObject(errors ?? {});
+    const hasErrors = !isEmptyValueObject(errors ?? {});
 
     const isOfflinePendingAction = !!isOffline && !!pendingAction;
     const isUpdateOrDeleteError = hasErrors && (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -143,6 +147,7 @@ function OfflineWithFeedback({
                     errorRowStyles={errorRowStyles}
                     onClose={onClose}
                     canDismissError={canDismissError}
+                    errorRowTextStyles={errorRowTextStyles}
                     dismissError={dismissError}
                 />
             )}
@@ -158,6 +163,7 @@ function OfflineWithFeedback({
                 <ErrorMessageRow
                     errors={errors}
                     errorRowStyles={errorRowStyles}
+                    errorRowTextStyles={errorRowTextStyles}
                     onClose={onClose}
                     canDismissError={canDismissError}
                     dismissError={dismissError}
@@ -166,8 +172,6 @@ function OfflineWithFeedback({
         </View>
     );
 }
-
-OfflineWithFeedback.displayName = 'OfflineWithFeedback';
 
 export default OfflineWithFeedback;
 export type {OfflineWithFeedbackProps};

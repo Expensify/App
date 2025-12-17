@@ -222,6 +222,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                         inputMode={CONST.INPUT_MODE.DECIMAL}
+                        shouldAllowNegative
                         autoFocus
                         uncontrolled
                     />
@@ -230,7 +231,5 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         </ScreenWrapper>
     );
 }
-
-SearchFiltersAmountBase.displayName = 'SearchFiltersAmountBase';
 
 export default SearchFiltersAmountBase;

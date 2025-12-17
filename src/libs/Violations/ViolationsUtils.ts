@@ -10,6 +10,7 @@ import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
 import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -232,6 +233,8 @@ const ViolationsUtils = {
         hasDependentTags: boolean,
         isInvoiceTransaction: boolean,
         isSelfDM?: boolean,
+        iouReport?: OnyxEntry<Report> | null,
+        isFromExpenseReport?: boolean,
     ): OnyxUpdate {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -246,14 +249,24 @@ const ViolationsUtils = {
 
         let newTransactionViolations = [...transactionViolations];
 
-        const shouldShowSmartScanFailedError = isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
+        // Remove AUTO_REPORTED_REJECTED_EXPENSE violation when the submitter edits the expense
+        if (iouReport && isFromExpenseReport && isCurrentUserSubmitter(iouReport)) {
+            const hasRejectedExpenseViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+            if (hasRejectedExpenseViolation) {
+                newTransactionViolations = newTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+            }
+        }
+
+        // Only show SmartScan failed when scan failed AND the user hasn't filled required fields yet
+        const hasUserStartedFixingSmartscan = !TransactionUtils.isAmountMissing(updatedTransaction) || !TransactionUtils.isMerchantMissing(updatedTransaction);
+        const shouldShowSmartScanFailedError =
+            isScanRequest &&
+            updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED &&
+            TransactionUtils.hasMissingSmartscanFields(updatedTransaction, iouReport ?? undefined) &&
+            !hasUserStartedFixingSmartscan;
         const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
         if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
-            return {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
-                value: [{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}],
-            };
+            newTransactionViolations.push({name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true});
         }
         if (!shouldShowSmartScanFailedError && hasSmartScanFailedError) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
@@ -571,6 +584,8 @@ const ViolationsUtils = {
                 return translate('violations.taxRequired');
             case 'hold':
                 return translate('violations.hold');
+            case 'companyCardRequired':
+                return translate('violations.companyCardRequired');
             case CONST.VIOLATIONS.PROHIBITED_EXPENSE:
                 return translate('violations.prohibitedExpense', {
                     prohibitedExpenseTypes: violation.data?.prohibitedExpenseRule ?? [],
@@ -629,6 +644,7 @@ const ViolationsUtils = {
         report: OnyxEntry<Report>,
         violations: OnyxCollection<TransactionViolation[]>,
         currentUserEmail: string,
+        currentUserAccountID: number,
         policy: OnyxEntry<Policy>,
         transactions: Transaction[],
     ): boolean {
@@ -645,7 +661,10 @@ const ViolationsUtils = {
 
             // Check if any violation is not dismissed and should be shown based on user role and violation type
             return transactionViolations.some((violation: TransactionViolation) => {
-                return !isViolationDismissed(transaction, violation, currentUserEmail, report, policy) && shouldShowViolation(report, policy, violation.name, currentUserEmail);
+                return (
+                    !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
+                    shouldShowViolation(report, policy, violation.name, currentUserEmail)
+                );
             });
         });
     },

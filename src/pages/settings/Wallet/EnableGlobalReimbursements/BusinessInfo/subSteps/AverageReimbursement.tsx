@@ -18,7 +18,10 @@ function AverageReimbursements({onNext, onMove, isEditing, currency}: AverageRei
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: true});
 
-    const tradeVolumeRangeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange), [corpayOnboardingFields]);
+    const tradeVolumeRangeListOptions = useMemo(
+        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange),
+        [corpayOnboardingFields?.picklists.TradeVolumeRange],
+    );
 
     const pushRowFields = useMemo(
         () => [
@@ -26,7 +29,7 @@ function AverageReimbursements({onNext, onMove, isEditing, currency}: AverageRei
                 inputID: TRADE_VOLUME,
                 defaultValue: enableGlobalReimbursementsDraft?.[TRADE_VOLUME] ?? '',
                 options: tradeVolumeRangeListOptions,
-                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', {currencyCode: currency}),
+                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', currency),
                 modalHeaderTitle: translate('businessInfoStep.selectAverageReimbursement'),
                 searchInputTitle: translate('businessInfoStep.findAverageReimbursement'),
             },
@@ -56,7 +59,5 @@ function AverageReimbursements({onNext, onMove, isEditing, currency}: AverageRei
         />
     );
 }
-
-AverageReimbursements.displayName = 'AverageReimbursements';
 
 export default AverageReimbursements;

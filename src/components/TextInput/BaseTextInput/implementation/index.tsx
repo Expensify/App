@@ -115,7 +115,7 @@ function BaseTextInput({
     const isLabelActive = useRef(initialActiveLabel);
     const didScrollToEndRef = useRef(false);
 
-    useHtmlPaste(input as RefObject<TextInput | null>, undefined, isMarkdownEnabled);
+    useHtmlPaste(input as RefObject<TextInput | null>, undefined, isMarkdownEnabled, maxLength);
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -373,7 +373,13 @@ function BaseTextInput({
                                             setIsPrefixCharacterPaddingCalculated(true);
                                         }}
                                         tabIndex={-1}
-                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
+                                        style={[
+                                            styles.textInputPrefix,
+                                            !hasLabel && styles.pv0,
+                                            styles.pointerEventsNone,
+                                            inputProps.disabled && shouldUseDisabledStyles && styles.textSupporting,
+                                            prefixStyle,
+                                        ]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         shouldUseDefaultLineHeight={shouldUseDefaultLineHeightForPrefix}
                                     >
@@ -536,7 +542,5 @@ function BaseTextInput({
         </>
     );
 }
-
-BaseTextInput.displayName = 'BaseTextInput';
 
 export default BaseTextInput;

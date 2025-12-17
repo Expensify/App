@@ -101,6 +101,7 @@ type BaseTextInputWithSymbolProps = {
     | 'shouldUseDefaultLineHeightForPrefix'
     | 'onFocus'
     | 'onBlur'
+    | 'disabled'
     | 'ref'
 >;
 

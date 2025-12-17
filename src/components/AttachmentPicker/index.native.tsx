@@ -8,8 +8,6 @@ import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -125,7 +123,7 @@ function AttachmentPicker({
     fileLimit = 1,
     onOpenPicker,
 }: AttachmentPickerProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'Paperclip'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
     const StyleUtils = useStyleUtils();
@@ -298,14 +296,14 @@ function AttachmentPicker({
         }
         if (!shouldHideCameraOption) {
             data.unshift({
-                icon: Expensicons.Camera,
+                icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => showImagePicker(launchCamera),
             });
         }
 
         return data;
-    }, [icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
+    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -521,7 +519,5 @@ function AttachmentPicker({
         </>
     );
 }
-
-AttachmentPicker.displayName = 'AttachmentPicker';
 
 export default AttachmentPicker;

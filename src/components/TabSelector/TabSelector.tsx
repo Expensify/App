@@ -43,7 +43,11 @@ type IconTitleAndTestID = {
     testID?: string;
 };
 
-function getIconTitleAndTestID(icons: Record<'CalendarSolid' | 'UploadAlt' | 'User', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
+function getIconTitleAndTestID(
+    icons: Record<'CalendarSolid' | 'UploadAlt' | 'User' | 'Car' | 'Hashtag' | 'Map' | 'Pencil', IconAsset>,
+    route: string,
+    translate: LocaleContextProps['translate'],
+): IconTitleAndTestID {
     switch (route) {
         case CONST.TAB.RECEIPT_PARTNERS.ALL:
             return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all'};
@@ -52,15 +56,15 @@ function getIconTitleAndTestID(icons: Record<'CalendarSolid' | 'UploadAlt' | 'Us
         case CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING:
             return {title: translate('workspace.receiptPartners.uber.outstanding'), testID: 'outstanding'};
         case CONST.TAB_REQUEST.MANUAL:
-            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
+            return {icon: icons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
         case CONST.TAB_REQUEST.SCAN:
             return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
         case CONST.TAB.NEW_CHAT:
             return {icon: icons.User, title: translate('tabSelector.chat'), testID: 'chat'};
         case CONST.TAB.NEW_ROOM:
-            return {icon: Expensicons.Hashtag, title: translate('tabSelector.room'), testID: 'room'};
+            return {icon: icons.Hashtag, title: translate('tabSelector.room'), testID: 'room'};
         case CONST.TAB_REQUEST.DISTANCE:
-            return {icon: Expensicons.Car, title: translate('common.distance'), testID: 'distance'};
+            return {icon: icons.Car, title: translate('common.distance'), testID: 'distance'};
         case CONST.TAB.SHARE.SHARE:
             return {icon: icons.UploadAlt, title: translate('common.share'), testID: 'share'};
         case CONST.TAB.SHARE.SUBMIT:
@@ -68,9 +72,9 @@ function getIconTitleAndTestID(icons: Record<'CalendarSolid' | 'UploadAlt' | 'Us
         case CONST.TAB_REQUEST.PER_DIEM:
             return {icon: icons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
         case CONST.TAB_REQUEST.DISTANCE_MAP:
-            return {icon: Expensicons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
+            return {icon: icons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
         case CONST.TAB_REQUEST.DISTANCE_MANUAL:
-            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
+            return {icon: icons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -87,7 +91,7 @@ function TabSelector({
     renderProductTrainingTooltip,
     equalWidth = false,
 }: TabSelectorProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'UploadAlt', 'User'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'UploadAlt', 'User', 'Car', 'Hashtag', 'Map', 'Pencil']);
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -185,8 +189,6 @@ function TabSelector({
         </FocusTrapContainerElement>
     );
 }
-
-TabSelector.displayName = 'TabSelector';
 
 export default TabSelector;
 

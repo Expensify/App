@@ -21,6 +21,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -53,6 +54,9 @@ function AttachmentModalBaseContent({
     shouldShowCarousel = true,
     shouldDisableSendButton = false,
     shouldDisplayHelpButton = false,
+    shouldShowRotateButton = false,
+    onRotateButtonPress,
+    isRotating = false,
     submitRef,
     onDownloadAttachment,
     onClose,
@@ -185,14 +189,15 @@ function AttachmentModalBaseContent({
     }, [clearAttachmentErrors]);
 
     const {isAttachmentLoaded} = useContext(AttachmentStateContext);
+    const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const shouldShowDownloadButton = useMemo(() => {
         const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH;
-        if (!isValidContext || isErrorInAttachment(source)) {
+        if (!isValidContext || isErrorInAttachment(source) || isEReceipt) {
             return false;
         }
 
         return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && isAttachmentLoaded?.(source);
-    }, [isAttachmentLoaded, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type]);
+    }, [isAttachmentLoaded, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type, isEReceipt]);
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
@@ -288,6 +293,9 @@ function AttachmentModalBaseContent({
                 title={headerTitle ?? translate('common.attachment')}
                 shouldShowBorderBottom
                 shouldShowDownloadButton={shouldShowDownloadButton}
+                shouldShowRotateButton={shouldShowRotateButton}
+                onRotateButtonPress={onRotateButtonPress}
+                isRotating={isRotating}
                 shouldDisplayHelpButton={shouldDisplayHelpButton}
                 onDownloadButtonPress={() => onDownloadAttachment?.({file: fileToDisplay, source})}
                 shouldShowCloseButton={!shouldUseNarrowLayout}
@@ -349,6 +357,5 @@ function AttachmentModalBaseContent({
         </GestureHandlerRootView>
     );
 }
-AttachmentModalBaseContent.displayName = 'AttachmentModalBaseContent';
 
 export default memo(AttachmentModalBaseContent);

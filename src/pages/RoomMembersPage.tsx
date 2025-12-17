@@ -53,7 +53,7 @@ type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalD
 
 function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers']);
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
@@ -200,7 +200,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         }
     };
 
-    /** Include the search bar when there are 8 or more active members in the selection list */
+    /** Include the search bar when there are STANDARD_LIST_ITEM_LIMIT or more active members in the selection list */
     const shouldShowTextInput = useMemo(() => {
         // Get the active chat members by filtering out the pending members with delete action
         const activeParticipants = participants.filter((accountID) => {
@@ -352,7 +352,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, canSelectMultiple, shouldUseNarrowLayout]);
+    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout]);
 
     /** Opens the room member details page */
     const openRoomMemberDetails = useCallback(
@@ -363,7 +363,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
 
             Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID, backTo));
         },
-        [report, backTo],
+        [report.reportID, backTo],
     );
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
@@ -392,7 +392,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
-            testID={RoomMembersPage.displayName}
+            testID="RoomMembersPage"
         >
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report) || isReportArchived || (!isChatThread(report) && ((isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || isDefaultRoom(report)))}
@@ -403,6 +403,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
@@ -457,7 +458,5 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         </ScreenWrapper>
     );
 }
-
-RoomMembersPage.displayName = 'RoomMembersPage';
 
 export default withReportOrNotFound()(withCurrentUserPersonalDetails(RoomMembersPage));

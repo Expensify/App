@@ -80,7 +80,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
-                testID={AddNewCardPage.displayName}
+                testID="AddNewCardPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
             >
@@ -131,12 +131,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
 
     return (
         <>
-            <View
-                style={styles.flex1}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
-            >
-                {CurrentStep}
-            </View>
+            <View style={styles.flex1}>{CurrentStep}</View>
             <ConfirmModal
                 isVisible={isModalVisible}
                 title={translate('workspace.companyCards.addNewCard.exitModal.title')}
@@ -154,5 +149,4 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     );
 }
 
-AddNewCardPage.displayName = 'AddNewCardPage';
 export default withPolicyAndFullscreenLoading(AddNewCardPage);
