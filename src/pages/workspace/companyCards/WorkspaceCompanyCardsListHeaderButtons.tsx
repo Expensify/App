@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -11,6 +11,7 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import type {CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -21,16 +22,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {
     checkIfFeedConnectionIsBroken,
-    flatAllCardsList,
     getBankName,
     getCardFeedIcon,
     getCompanyCardFeed,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
-    getDomainOrWorkspaceAccountID,
     getPlaidCountry,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
@@ -67,10 +65,8 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
@@ -81,9 +77,9 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
     const bankName = plaidUrl && formattedFeedName ? formattedFeedName : getBankName(feed);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeedData);
-    const hasFeedError = !!cardFeeds?.[selectedFeed]?.errors;
-    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed) || hasFeedError;
+    const [cardsList] = useCardsList(selectedFeed);
+    const {cardList, ...cards} = cardsList ?? {};
+    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(cards);
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
 
@@ -111,24 +107,23 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed)));
     };
 
-    const secondaryActions = useMemo(
-        () => [
-            {
-                icon: icons.Gear,
-                text: translate('common.settings'),
-                onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID)),
-                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-            },
-        ],
-        [policyID, icons.Gear, translate],
-    );
-
-    const supportingText = useMemo(() => {
+    const getSecondaryActions = () => [
+        {
+            icon: icons.Gear,
+            text: translate('common.settings'),
+            onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID)),
+            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+        },
+    ];
+    const getSupportingText = () => {
         const firstPart = translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed');
         const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
         const secondPart = ` (${domainName ?? policy?.name})`;
         return `${firstPart}${secondPart}`;
-    }, [domain?.email, isCommercialFeed, policy?.name, translate]);
+    };
+
+    const secondaryActions = getSecondaryActions();
+    const supportingText = getSupportingText();
 
     return (
         <View>
