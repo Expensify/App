@@ -190,7 +190,7 @@ function VerifiedBankAccountFlowEntryPoint({
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={VerifiedBankAccountFlowEntryPoint.displayName}
+            testID="VerifiedBankAccountFlowEntryPoint"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -313,7 +313,5 @@ function VerifiedBankAccountFlowEntryPoint({
         </ScreenWrapper>
     );
 }
-
-VerifiedBankAccountFlowEntryPoint.displayName = 'VerifiedBankAccountFlowEntryPoint';
 
 export default VerifiedBankAccountFlowEntryPoint;

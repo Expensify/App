@@ -79,7 +79,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={SageIntacctPrerequisitesPage.displayName}
+            testID="SageIntacctPrerequisitesPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -114,7 +114,5 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
         </ScreenWrapper>
     );
 }
-
-SageIntacctPrerequisitesPage.displayName = 'SageIntacctPrerequisitesPage';
 
 export default SageIntacctPrerequisitesPage;

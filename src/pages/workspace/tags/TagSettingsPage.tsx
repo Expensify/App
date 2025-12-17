@@ -146,7 +146,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={TagSettingsPage.displayName}
+                testID="TagSettingsPage"
             >
                 <HeaderWithBackButton
                     title={getCleanedTagName(tagName)}
@@ -258,7 +258,5 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-TagSettingsPage.displayName = 'TagSettingsPage';
 
 export default TagSettingsPage;

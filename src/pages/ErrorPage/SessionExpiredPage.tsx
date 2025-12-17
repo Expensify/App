@@ -54,6 +54,4 @@ function SessionExpiredPage() {
     );
 }
 
-SessionExpiredPage.displayName = 'SessionExpiredPage';
-
 export default SessionExpiredPage;
