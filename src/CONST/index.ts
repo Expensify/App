@@ -6815,7 +6815,6 @@ const CONST = {
             ASSIGNEE: 'assignee',
             IN: 'in',
             COMMENTS: 'comments',
-            CARD: 'card',
             WITHDRAWAL_ID: 'withdrawalID',
             AVATAR: 'avatar',
             STATUS: 'status',

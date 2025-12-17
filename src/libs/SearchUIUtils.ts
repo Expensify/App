@@ -2061,6 +2061,14 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.CARD) {
+        return data.sort((a, b) => {
+            const aValue = "A";
+            const bValue = 'B';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.STATUS) {
         return data.sort((a, b) => {
             const aReport = a.report;
@@ -2318,6 +2326,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.title';
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
             return 'common.status';
+        case CONST.SEARCH.TABLE_COLUMNS.CARD:
+            return 'common.card';
         case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
             return 'common.longID';
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
@@ -2781,6 +2791,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
