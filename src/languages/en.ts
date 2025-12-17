@@ -7039,7 +7039,7 @@ const translations = {
         },
     },
     gps: {
-        tooltip: "Don't worry, you can safely do other things. Stop tracking when you've arrived.",
+        tooltip: "GPS tracking in progress! When you're done, stop tracking below.",
         disclaimer: 'Use GPS to create an expense from your journey. Tap Start below to begin tracking.',
         error: {
             failedToStart: 'Failed to start location tracking.',
@@ -7050,17 +7050,15 @@ const translations = {
         start: 'Start',
         stop: 'Stop',
         discard: 'Discard',
-        stopGpsTracking: 'Stop GPS tracking',
-        resumeTracking: 'Resume tracking',
         stopGpsTrackingModal: {
-            title: 'Stop GPS tracking?',
-            prompt: 'Are you sure you want to stop recording your GPS location?',
+            title: 'Stop GPS tracking',
+            prompt: 'Are you sure? This will end your current journey.',
             cancel: 'Resume tracking',
             confirm: 'Stop GPS tracking',
         },
         discardDistanceTrackingModal: {
-            title: 'Discard distance tracking?',
-            prompt: 'Are you sure you want to discard this distance tracking? This action cannot be undone.',
+            title: 'Discard distance tracking',
+            prompt: "Are you sure? This will discard your current journey and can't be undone.",
             confirm: 'Discard distance tracking',
         },
         zeroDistanceTripModal: {
