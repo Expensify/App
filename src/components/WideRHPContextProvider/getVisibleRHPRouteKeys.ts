@@ -8,6 +8,10 @@ import {navigationRef} from '@libs/Navigation/Navigation';
  * @param allWideRHPKeys - an array of all Wide/Super Wide RHP keys
  */
 function getVisibleWideRHPKeys(allWideRHPKeys: string[]) {
+    if (!navigationRef.isReady()) {
+        return [];
+    }
+
     const rootState = navigationRef.getRootState();
 
     if (!rootState) {

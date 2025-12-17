@@ -58,6 +58,4 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     );
 }
 
-MoneyReportHeaderStatusBar.displayName = 'MoneyReportHeaderStatusBar';
-
 export default MoneyReportHeaderStatusBar;

@@ -38,7 +38,7 @@ function SearchAdvancedFiltersPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchAdvancedFiltersPage.displayName}
+            testID="SearchAdvancedFiltersPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -50,7 +50,5 @@ function SearchAdvancedFiltersPage() {
         </ScreenWrapper>
     );
 }
-
-SearchAdvancedFiltersPage.displayName = 'SearchAdvancedFiltersPage';
 
 export default SearchAdvancedFiltersPage;

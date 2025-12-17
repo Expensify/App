@@ -54,7 +54,7 @@ function VerifyIdentity() {
     };
 
     return (
-        <ScreenWrapper testID={VerifyIdentity.displayName}>
+        <ScreenWrapper testID="VerifyIdentity">
             <HeaderWithBackButton
                 title={translate('onfidoStep.verifyIdentity')}
                 onBackButtonPress={goBack}
@@ -102,7 +102,5 @@ function VerifyIdentity() {
         </ScreenWrapper>
     );
 }
-
-VerifyIdentity.displayName = 'VerifyIdentity';
 
 export default VerifyIdentity;
