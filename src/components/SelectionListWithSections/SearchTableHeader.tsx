@@ -175,6 +175,11 @@ const taskHeaders: SearchColumnConfig[] = [
         canBeMissing: false,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON,
+        translationKey: undefined,
+        isColumnSortable: false,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
         isColumnSortable: false,
