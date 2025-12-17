@@ -221,7 +221,7 @@ describe('PureReportActionItem', () => {
     });
 
     describe('DEW (Dynamic External Workflow) actions', () => {
-        it('should display DEW queued message for pending SUBMITTED action when policy has DEW enabled', async () => {
+        it('should display DEW queued message for pending SUBMITTED action when policy has DEW enabled and offline', async () => {
             // Given a SUBMITTED action with pendingAction on a policy with DEW (Dynamic External Workflow) enabled
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: false});
             action.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
@@ -237,12 +237,16 @@ describe('PureReportActionItem', () => {
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+            };
+
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}testPolicy`, dewPolicy);
             });
             await waitForBatchedUpdatesWithAct();
 
-            // When the PureReportActionItem is rendered with the pending SUBMITTED action
+            // When the PureReportActionItem is rendered with the pending SUBMITTED action while offline
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
@@ -264,6 +268,8 @@ describe('PureReportActionItem', () => {
                                     taskReport={undefined}
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
+                                    reportMetadata={reportMetadata}
+                                    isOffline
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -272,7 +278,7 @@ describe('PureReportActionItem', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            // Then it should display the DEW queued message because submission is pending via external workflow
+            // Then it should display the DEW queued message because submission is pending via external workflow while offline
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('iou.queuedToSubmitViaDEW'))).toBeOnTheScreen();
         });
