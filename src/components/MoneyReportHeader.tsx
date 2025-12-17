@@ -1290,10 +1290,20 @@ function MoneyReportHeader({
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    let goBackRoute: Route | undefined;
                     if (transactionThreadReportID) {
                         if (!requestParentReportAction || !transaction?.transactionID) {
                             throw new Error('Missing data!');
+                        }
+                        const goBackRoute = getNavigationUrlOnMoneyRequestDelete(
+                            transaction.transactionID,
+                            requestParentReportAction,
+                            iouReport,
+                            chatIOUReport,
+                            isChatIOUReportArchived,
+                            false,
+                        );
+                        if (goBackRoute) {
+                            navigateOnDeleteExpense(goBackRoute);
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
@@ -1302,11 +1312,6 @@ function MoneyReportHeader({
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
                             removeTransaction(transaction.transactionID);
                         });
-                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, isChatIOUReportArchived, false);
-                    }
-
-                    if (goBackRoute) {
-                        Navigation.setNavigationActionToMicrotaskQueue(() => navigateOnDeleteExpense(goBackRoute));
                     }
                     return;
                 }
