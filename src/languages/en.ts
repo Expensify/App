@@ -2291,7 +2291,7 @@ const translations = {
         next: 'Next',
         removeLimit: 'Remove limit',
         enterAmountError: 'Please enter a valid amount',
-        enterApproverError: 'Approver is required when you have a report limit',
+        enterApproverError: 'Approver is required when you set a report limit',
         enterBothError: 'Enter a report amount and additional approver',
         forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Reports above ${approvalLimit} forward to ${approverName}`,
     },

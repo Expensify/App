@@ -2342,7 +2342,7 @@ ${amount} pour ${merchant} - ${date}`,
         next: 'Suivant',
         removeLimit: 'Supprimer la limite',
         enterAmountError: 'Veuillez entrer un montant valide',
-        enterApproverError: 'Un approbateur est requis lorsque vous avez une limite de rapport',
+        enterApproverError: 'Un approbateur est requis lorsque vous définissez une limite de rapport',
         enterBothError: 'Entrez un montant de rapport et un approbateur supplémentaire',
         forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
             `Les rapports supérieurs à ${approvalLimit} sont transférés à ${approverName}`,

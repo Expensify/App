@@ -2329,7 +2329,7 @@ ${amount} voor ${merchant} - ${date}`,
         next: 'Volgende',
         removeLimit: 'Limiet verwijderen',
         enterAmountError: 'Voer een geldig bedrag in',
-        enterApproverError: 'Een goedkeurder is vereist wanneer u een rapportlimiet heeft',
+        enterApproverError: 'Een goedkeurder is vereist wanneer u een rapportlimiet instelt',
         enterBothError: 'Voer een rapportbedrag en een extra goedkeurder in',
         forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
             `Rapporten boven ${approvalLimit} worden doorgestuurd naar ${approverName}`,

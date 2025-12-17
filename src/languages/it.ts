@@ -2331,7 +2331,7 @@ ${amount} per ${merchant} - ${date}`,
         next: 'Avanti',
         removeLimit: 'Rimuovi limite',
         enterAmountError: 'Inserisci un importo valido',
-        enterApproverError: 'Un approvatore è richiesto quando hai un limite di report',
+        enterApproverError: 'Un approvatore è richiesto quando imposti un limite di report',
         enterBothError: 'Inserisci un importo del report e un approvatore aggiuntivo',
         forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
             `I report superiori a ${approvalLimit} vengono inoltrati a ${approverName}`,
