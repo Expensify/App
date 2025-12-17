@@ -3198,6 +3198,12 @@ function peg$parse(input, options) {
     "withdrawal-id": "withdrawn",
   };
 
+  const GROUP_BY_DEFAULT_SORT_ORDER = {
+    from: "asc",
+    card: "asc",
+    "withdrawal-id": "desc",
+  };
+
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
 
   const defaultValues = {
@@ -3222,6 +3228,10 @@ function peg$parse(input, options) {
     return GROUP_BY_DEFAULT_SORT[groupBy];
   }
 
+  function getDefaultSortOrderForGroupBy(groupBy) {
+    return GROUP_BY_DEFAULT_SORT_ORDER[groupBy];
+  }
+
   function applyDefaults(filters) {
     return {
       ...defaultValues,
@@ -3241,9 +3251,21 @@ function peg$parse(input, options) {
       userProvidedSortBy = true;
     }
 
-    // Auto-update sortBy when groupBy changes, only if user hasn't set a custom sortBy
-    if (field === "groupBy" && !userProvidedSortBy && value) {
-      defaultValues.sortBy = getDefaultSortByForGroupBy(value);
+    // Auto-update sortBy and sortOrder when groupBy changes
+    // Only reset sortOrder if sortBy actually changes (to avoid resetting on every parse)
+    if (field === "groupBy" && value) {
+      if (!userProvidedSortBy) {
+        const defaultSortBy = getDefaultSortByForGroupBy(value);
+        // Check if sortBy is actually changing
+        if (defaultSortBy && defaultValues.sortBy !== defaultSortBy) {
+          defaultValues.sortBy = defaultSortBy;
+          // When sortBy changes, reset the sortOrder flag and apply new default
+          const defaultSortOrder = getDefaultSortOrderForGroupBy(value);
+          if (defaultSortOrder) {
+            defaultValues.sortOrder = defaultSortOrder;
+          }
+        }
+      }
     }
 
     defaultValues[field] = value;
