@@ -51,34 +51,37 @@ jest.mock('@hooks/useResponsiveLayout', () =>
 
 // Mock SearchBar component to avoid deep dependency issues
 jest.mock('@components/SearchBar', () => {
-    const {TextInput, View} = require('react-native');
-    return function MockSearchBar({label, inputValue, onChangeText}: {label: string; inputValue: string; onChangeText: (text: string) => void}) {
-        return (
-            <View>
-                <TextInput
-                    testID="search-input"
-                    accessibilityLabel={label}
-                    value={inputValue}
-                    onChangeText={onChangeText}
-                />
-            </View>
-        );
-    };
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    const RN = require('react-native');
+    // eslint-disable-next-line react/function-component-definition
+    const MockSearchBar = ({label, inputValue, onChangeText}: {label: string; inputValue: string; onChangeText: (text: string) => void}) => (
+        <RN.View>
+            <RN.TextInput
+                testID="search-input"
+                accessibilityLabel={label}
+                value={inputValue}
+                onChangeText={onChangeText}
+            />
+        </RN.View>
+    );
+    return MockSearchBar;
 });
 
 // Mock SortableHeaderText component
 jest.mock('@components/SelectionListWithSections/SortableHeaderText', () => {
-    const {Text, Pressable} = require('react-native');
-    return function MockSortableHeaderText({text, onPress}: {text: string; onPress: (order: string) => void}) {
-        return (
-            <Pressable
-                onPress={() => onPress('desc')}
-                testID="sortable-header"
-            >
-                <Text>{text}</Text>
-            </Pressable>
-        );
-    };
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    const RN = require('react-native');
+    // eslint-disable-next-line react/function-component-definition
+    const MockSortableHeaderText = ({text, onPress}: {text: string; onPress: (order: string) => void}) => (
+        <RN.Pressable
+            onPress={() => onPress('desc')}
+            testID="sortable-header"
+            accessibilityRole="button"
+        >
+            <RN.Text>{text}</RN.Text>
+        </RN.Pressable>
+    );
+    return MockSortableHeaderText;
 });
 
 // Sample data types for testing
@@ -102,8 +105,9 @@ const mockColumns: ColumnConfig[] = [
     {columnName: 'category', translationKey: 'common.category'},
 ];
 
-describe('GenericTable', () => {
-    const defaultProps = {
+// Helper function to create default props for GenericTable
+function createDefaultProps() {
+    return {
         data: mockData,
         columns: mockColumns,
         renderRow: (item: TestItem) => (
@@ -114,14 +118,25 @@ describe('GenericTable', () => {
         keyExtractor: (item: TestItem) => item.id,
         filterData: (item: TestItem, query: string) => item.name.toLowerCase().includes(query.toLowerCase()),
     };
+}
 
+describe('GenericTable', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
     describe('rendering', () => {
         it('should render all data items', () => {
-            render(<GenericTable<TestItem> {...defaultProps} />);
+            const props = createDefaultProps();
+            render(
+                <GenericTable<TestItem>
+                    data={props.data}
+                    columns={props.columns}
+                    renderRow={props.renderRow}
+                    keyExtractor={props.keyExtractor}
+                    filterData={props.filterData}
+                />,
+            );
 
             expect(screen.getByTestId('row-1')).toBeTruthy();
             expect(screen.getByTestId('row-2')).toBeTruthy();
@@ -131,21 +146,33 @@ describe('GenericTable', () => {
         });
 
         it('should render column headers when columns are provided', () => {
-            render(<GenericTable<TestItem> {...defaultProps} />);
+            const props = createDefaultProps();
+            render(
+                <GenericTable<TestItem>
+                    data={props.data}
+                    columns={props.columns}
+                    renderRow={props.renderRow}
+                    keyExtractor={props.keyExtractor}
+                    filterData={props.filterData}
+                />,
+            );
 
-            // Column headers should be rendered
             expect(screen.getByText('common.name')).toBeTruthy();
             expect(screen.getByText('common.category')).toBeTruthy();
         });
 
         it('should render empty state when no data', () => {
-            const EmptyComponent = () => <Text testID="empty-state">No items found</Text>;
+            const props = createDefaultProps();
+            const EmptyState = <Text testID="empty-state">No items found</Text>;
 
             render(
                 <GenericTable<TestItem>
-                    {...defaultProps}
                     data={[]}
-                    ListEmptyComponent={<EmptyComponent />}
+                    columns={props.columns}
+                    renderRow={props.renderRow}
+                    keyExtractor={props.keyExtractor}
+                    filterData={props.filterData}
+                    ListEmptyComponent={EmptyState}
                 />,
             );
 
@@ -155,33 +182,46 @@ describe('GenericTable', () => {
 
     describe('search functionality', () => {
         it('should not show search bar when item count is below limit', () => {
+            const props = createDefaultProps();
             render(
                 <GenericTable<TestItem>
-                    {...defaultProps}
+                    data={props.data}
+                    columns={props.columns}
+                    renderRow={props.renderRow}
+                    keyExtractor={props.keyExtractor}
+                    filterData={props.filterData}
                     searchItemLimit={10}
                 />,
             );
 
-            // Search bar should not be visible since we have 5 items < 10 limit
             expect(screen.queryByLabelText('common.search')).toBeNull();
         });
 
         it('should show search bar when item count exceeds limit', () => {
+            const props = createDefaultProps();
             render(
                 <GenericTable<TestItem>
-                    {...defaultProps}
+                    data={props.data}
+                    columns={props.columns}
+                    renderRow={props.renderRow}
+                    keyExtractor={props.keyExtractor}
+                    filterData={props.filterData}
                     searchItemLimit={3}
                 />,
             );
 
-            // Search bar should be visible since we have 5 items > 3 limit
             expect(screen.getByLabelText('common.search')).toBeTruthy();
         });
 
         it('should filter data when search query is entered', () => {
+            const props = createDefaultProps();
             render(
                 <GenericTable<TestItem>
-                    {...defaultProps}
+                    data={props.data}
+                    columns={props.columns}
+                    renderRow={props.renderRow}
+                    keyExtractor={props.keyExtractor}
+                    filterData={props.filterData}
                     searchItemLimit={1}
                 />,
             );
@@ -189,27 +229,28 @@ describe('GenericTable', () => {
             const searchInput = screen.getByLabelText('common.search');
             fireEvent.changeText(searchInput, 'apple');
 
-            // Only Apple should be visible after filtering
             expect(screen.getByTestId('row-1')).toBeTruthy();
             expect(screen.queryByTestId('row-2')).toBeNull();
             expect(screen.queryByTestId('row-3')).toBeNull();
         });
 
         it('should show all items when search is cleared', () => {
+            const props = createDefaultProps();
             render(
                 <GenericTable<TestItem>
-                    {...defaultProps}
+                    data={props.data}
+                    columns={props.columns}
+                    renderRow={props.renderRow}
+                    keyExtractor={props.keyExtractor}
+                    filterData={props.filterData}
                     searchItemLimit={1}
                 />,
             );
 
             const searchInput = screen.getByLabelText('common.search');
-
-            // Filter data
             fireEvent.changeText(searchInput, 'apple');
             expect(screen.queryByTestId('row-2')).toBeNull();
 
-            // Clear search
             fireEvent.changeText(searchInput, '');
             expect(screen.getByTestId('row-2')).toBeTruthy();
         });
@@ -217,6 +258,7 @@ describe('GenericTable', () => {
 
     describe('sorting functionality', () => {
         it('should apply custom sort function', () => {
+            const props = createDefaultProps();
             const sortedData: TestItem[] = [];
             const sortData = (data: TestItem[]) => {
                 const sorted = [...data].sort((a, b) => b.name.localeCompare(a.name));
@@ -226,30 +268,35 @@ describe('GenericTable', () => {
 
             render(
                 <GenericTable<TestItem>
-                    {...defaultProps}
+                    data={props.data}
+                    columns={props.columns}
+                    renderRow={props.renderRow}
+                    keyExtractor={props.keyExtractor}
+                    filterData={props.filterData}
                     sortData={sortData}
                 />,
             );
 
-            // Verify sort function was called
             expect(sortedData.length).toBeGreaterThan(0);
-            // First item should be Eggplant (reverse alphabetical)
-            expect(sortedData[0].name).toBe('Eggplant');
+            expect(sortedData.at(0)?.name).toBe('Eggplant');
         });
 
         it('should call onSortPress when sortable column header is clicked', () => {
+            const props = createDefaultProps();
             const onSortPress = jest.fn();
 
             render(
                 <GenericTable<TestItem>
-                    {...defaultProps}
+                    data={props.data}
                     columns={[{columnName: 'name', translationKey: 'common.name', isSortable: true}]}
+                    renderRow={props.renderRow}
+                    keyExtractor={props.keyExtractor}
+                    filterData={props.filterData}
                     shouldShowSorting
                     onSortPress={onSortPress}
                 />,
             );
 
-            // Click on sortable column header
             const sortableHeader = screen.getByText('common.name');
             fireEvent.press(sortableHeader);
 
@@ -259,6 +306,7 @@ describe('GenericTable', () => {
 
     describe('filter functionality', () => {
         it('should render filter buttons when filterOptions are provided', () => {
+            const props = createDefaultProps();
             const filterOptions: FilterOption[] = [
                 {value: 'all', labelKey: 'common.all'},
                 {value: 'status', labelKey: 'common.status'},
@@ -266,9 +314,11 @@ describe('GenericTable', () => {
 
             render(
                 <GenericTable<TestItem>
-                    {...defaultProps}
-                    // Use empty columns to avoid conflict with filter labels
+                    data={props.data}
                     columns={[]}
+                    renderRow={props.renderRow}
+                    keyExtractor={props.keyExtractor}
+                    filterData={props.filterData}
                     filterOptions={filterOptions}
                     activeFilter="all"
                     onFilterChange={jest.fn()}
@@ -280,6 +330,7 @@ describe('GenericTable', () => {
         });
 
         it('should call onFilterChange when filter button is pressed', () => {
+            const props = createDefaultProps();
             const onFilterChange = jest.fn();
             const filterOptions: FilterOption[] = [
                 {value: 'all', labelKey: 'common.all'},
@@ -288,9 +339,11 @@ describe('GenericTable', () => {
 
             render(
                 <GenericTable<TestItem>
-                    {...defaultProps}
-                    // Use empty columns to avoid conflict with filter labels
+                    data={props.data}
                     columns={[]}
+                    renderRow={props.renderRow}
+                    keyExtractor={props.keyExtractor}
+                    filterData={props.filterData}
                     filterOptions={filterOptions}
                     activeFilter="all"
                     onFilterChange={onFilterChange}
@@ -351,11 +404,8 @@ describe('FilterButtons', () => {
             />,
         );
 
-        // The 'all' button should be highlighted (success prop)
-        // This is tested by checking the component renders correctly
         expect(screen.getByText('common.all')).toBeTruthy();
 
-        // Change active filter
         rerender(
             <FilterButtons
                 options={filterOptions}
@@ -364,7 +414,6 @@ describe('FilterButtons', () => {
             />,
         );
 
-        // The 'date' button should now be highlighted
         expect(screen.getByText('common.date')).toBeTruthy();
     });
 });

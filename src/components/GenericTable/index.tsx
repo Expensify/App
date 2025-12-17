@@ -81,7 +81,7 @@ function GenericTable<T>({
                     />
                 )}
 
-                {filterOptions && activeFilter && onFilterChange && (
+                {!!filterOptions && !!activeFilter && !!onFilterChange && (
                     <FilterButtons
                         options={filterOptions}
                         activeValue={activeFilter}
