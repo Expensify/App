@@ -104,8 +104,6 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
         <InteractiveStepWrapper
             wrapperID={ConfirmationStep.displayName}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={3}
-            stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={cardholderName}
             enableEdgeToEdgeBottomSafeAreaPadding
