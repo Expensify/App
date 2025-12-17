@@ -10,6 +10,8 @@ import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
+import TextCell from '@components/SelectionListWithSections/Search/TextCell';
+import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -19,11 +21,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import {isSettled} from '@libs/ReportUtils';
+import getBase62ReportID from '@libs/getBase62ReportID';
+import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
     getMerchant,
+    getOriginalAmount,
+    getOriginalCurrency,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
@@ -92,6 +97,7 @@ type TransactionItemRowProps = {
     dateColumnSize: TableColumnSize;
     submittedColumnSize?: TableColumnSize;
     approvedColumnSize?: TableColumnSize;
+    postedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     onCheckboxPress?: (transactionID: string) => void;
@@ -136,6 +142,7 @@ function TransactionItemRow({
     dateColumnSize,
     submittedColumnSize,
     approvedColumnSize,
+    postedColumnSize,
     amountColumnSize,
     taxAmountColumnSize,
     onCheckboxPress = () => {},
@@ -169,6 +176,7 @@ function TransactionItemRow({
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isApprovedColumnWide = approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isPostedColumnWide = postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
@@ -284,6 +292,18 @@ function TransactionItemRow({
                     />
                 </View>
             ),
+            [CONST.SEARCH.TABLE_COLUMNS.POSTED]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.POSTED}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, false, false, false, areAllOptionalColumnsHidden, false, false, isPostedColumnWide)]}
+                >
+                    <DateCell
+                        date={transactionItem.posted ?? ''}
+                        showTooltip={shouldShowTooltip}
+                        isLargeScreenWidth={!shouldUseNarrowLayout}
+                    />
+                </View>
+            ),
             [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.CATEGORY}
@@ -294,6 +314,22 @@ function TransactionItemRow({
                         shouldShowTooltip={shouldShowTooltip}
                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                     />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
+                >
+                    <Text>{transactionItem.reimbursable ? translate('common.yes') : translate('common.no')}</Text>
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.BILLABLE}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
+                >
+                    <Text>{transactionItem.billable ? translate('common.yes') : translate('common.no')}</Text>
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
@@ -397,6 +433,27 @@ function TransactionItemRow({
                     />
                 </View>
             ),
+            [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
+                >
+                    <AmountCell
+                        total={isExpenseReport(transactionItem.report) ? -(transactionItem.originalAmount ?? 0) : getOriginalAmount(transactionItem)}
+                        currency={getOriginalCurrency(transactionItem)}
+                    />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
+                    <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : transactionItem.reportID} />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}>
+                    <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transactionItem.reportID))} />
+                </View>
+            ),
             [CONST.SEARCH.TABLE_COLUMNS.TAX]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.TAX}
@@ -405,6 +462,14 @@ function TransactionItemRow({
                     <TaxCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
+                    />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
+                    <TextCell
+                        text={transactionItem.report?.reportName ?? ''}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
             ),
@@ -418,28 +483,31 @@ function TransactionItemRow({
             ),
         }),
         [
+            translate,
             StyleUtils,
-            createdAt,
-            report?.submitted,
-            report?.approved,
-            isActionLoading,
-            isReportItemChild,
-            isDateColumnWide,
-            isSubmittedColumnWide,
-            isApprovedColumnWide,
-            isAmountColumnWide,
-            isTaxAmountColumnWide,
-            isInSingleTransactionReport,
-            isSelected,
-            merchant,
-            description,
-            onButtonPress,
+            transactionItem,
             shouldShowTooltip,
             shouldUseNarrowLayout,
-            transactionItem,
+            isSelected,
+            isDateColumnWide,
+            areAllOptionalColumnsHidden,
+            createdAt,
+            isSubmittedColumnWide,
+            report?.submitted,
+            report?.approved,
             report?.policyID,
             report?.total,
-            areAllOptionalColumnsHidden,
+            isApprovedColumnWide,
+            isPostedColumnWide,
+            isReportItemChild,
+            onButtonPress,
+            isActionLoading,
+            merchant,
+            description,
+            isInSingleTransactionReport,
+            isAmountColumnWide,
+            isTaxAmountColumnWide,
+            isLargeScreenWidth,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
@@ -645,8 +713,6 @@ function TransactionItemRow({
         </>
     );
 }
-
-TransactionItemRow.displayName = 'TransactionItemRow';
 
 export default TransactionItemRow;
 export type {TransactionWithOptionalSearchFields};

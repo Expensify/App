@@ -720,6 +720,4 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     );
 }
 
-WorkspaceOverviewPage.displayName = 'WorkspaceOverviewPage';
-
 export default withPolicy(WorkspaceOverviewPage);

@@ -71,6 +71,4 @@ function PushRowFieldsStep<TFormID extends keyof OnyxFormValuesMapping>({formID,
     );
 }
 
-PushRowFieldsStep.displayName = 'PushRowFieldsStep';
-
 export default PushRowFieldsStep;

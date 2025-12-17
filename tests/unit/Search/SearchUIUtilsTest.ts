@@ -775,6 +775,7 @@ const transactionsListItems = [
         created: '2024-12-21',
         submitted: undefined,
         approved: undefined,
+        posted: '',
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
@@ -801,6 +802,7 @@ const transactionsListItems = [
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearPosted: false,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -831,6 +833,7 @@ const transactionsListItems = [
         created: '2024-12-21',
         submitted: '2024-12-21 13:05:20',
         approved: undefined,
+        posted: '',
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
@@ -856,6 +859,7 @@ const transactionsListItems = [
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearPosted: false,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -897,6 +901,7 @@ const transactionsListItems = [
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: undefined,
+        posted: '',
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
@@ -929,6 +934,7 @@ const transactionsListItems = [
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearPosted: false,
         keyForList: '3',
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -958,6 +964,7 @@ const transactionsListItems = [
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: undefined,
+        posted: '',
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
@@ -990,6 +997,7 @@ const transactionsListItems = [
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearPosted: false,
         keyForList: '4',
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -1082,6 +1090,7 @@ const transactionReportGroupListItems = [
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPosted: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -1188,6 +1197,7 @@ const transactionReportGroupListItems = [
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPosted: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -1306,6 +1316,7 @@ const transactionReportGroupListItems = [
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPosted: false,
                 keyForList: '3',
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1365,6 +1376,7 @@ const transactionReportGroupListItems = [
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
+                shouldShowYearPosted: false,
                 keyForList: '4',
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1861,7 +1873,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 50;
+            const expectedPropertyCount = 52;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1894,7 +1906,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 48;
+            const expectedPropertyCount = 49;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2758,6 +2770,8 @@ describe('SearchUIUtils', () => {
                 [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
             });
         });
 
@@ -2777,6 +2791,8 @@ describe('SearchUIUtils', () => {
                 // Total should always be visible
                 [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
             });
         });
 

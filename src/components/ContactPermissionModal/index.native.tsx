@@ -88,6 +88,4 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
     );
 }
 
-ContactPermissionModal.displayName = 'ContactPermissionModal';
-
 export default ContactPermissionModal;

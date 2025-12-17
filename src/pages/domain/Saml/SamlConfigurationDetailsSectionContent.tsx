@@ -166,6 +166,4 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
     );
 }
 
-SamlConfigurationDetailsSectionContent.displayName = 'SamlConfigurationDetailsSectionContent';
-
 export default SamlConfigurationDetailsSectionContent;

@@ -108,6 +108,4 @@ function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColu
     );
 }
 
-MoneyRequestReportTableHeader.displayName = 'MoneyRequestReportTableHeader';
-
 export default MoneyRequestReportTableHeader;

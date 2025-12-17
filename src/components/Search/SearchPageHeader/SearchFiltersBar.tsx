@@ -917,6 +917,4 @@ function SearchFiltersBar({
     );
 }
 
-SearchFiltersBar.displayName = 'SearchFiltersBar';
-
 export default SearchFiltersBar;

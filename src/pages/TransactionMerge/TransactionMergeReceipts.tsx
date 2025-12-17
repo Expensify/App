@@ -93,5 +93,4 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
     );
 }
 
-TransactionMergeReceipts.displayName = 'TransactionMergeReceipts';
 export default TransactionMergeReceipts;

@@ -39,6 +39,4 @@ function EmojiWithTooltip({emojiCode, style = {}}: EmojiWithTooltipProps) {
     );
 }
 
-EmojiWithTooltip.displayName = 'EmojiWithTooltip';
-
 export default EmojiWithTooltip;

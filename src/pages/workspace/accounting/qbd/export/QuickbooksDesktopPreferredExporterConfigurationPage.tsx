@@ -92,7 +92,7 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksDesktopPreferredExporterConfigurationPage.displayName}
+            displayName="QuickbooksDesktopPreferredExporterConfigurationPage"
             sections={[{data}]}
             listItem={RadioListItem}
             headerContent={headerContent}
@@ -114,7 +114,5 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
         />
     );
 }
-
-QuickbooksDesktopPreferredExporterConfigurationPage.displayName = 'QuickbooksDesktopPreferredExporterConfigurationPage';
 
 export default withPolicyConnections(QuickbooksDesktopPreferredExporterConfigurationPage);

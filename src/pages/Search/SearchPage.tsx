@@ -1157,7 +1157,6 @@ function SearchPage({route}: SearchPageProps) {
     );
 }
 
-SearchPage.displayName = 'SearchPage';
 SearchPage.whyDidYouRender = true;
 
 export default SearchPage;

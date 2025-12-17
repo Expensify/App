@@ -62,7 +62,7 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ReceiptReviewPage.displayName}
+            testID="ReceiptReviewPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -97,7 +97,5 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
         </ScreenWrapper>
     );
 }
-
-ReceiptReviewPage.displayName = 'ReceiptReviewPage';
 
 export default ReceiptReviewPage;

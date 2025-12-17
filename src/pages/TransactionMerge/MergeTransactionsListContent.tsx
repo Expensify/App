@@ -147,6 +147,4 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     );
 }
 
-MergeTransactionsListContent.displayName = 'MergeTransactionsListContent';
-
 export default MergeTransactionsListContent;

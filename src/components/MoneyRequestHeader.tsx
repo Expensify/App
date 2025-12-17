@@ -577,6 +577,4 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     );
 }
 
-MoneyRequestHeader.displayName = 'MoneyRequestHeader';
-
 export default MoneyRequestHeader;
