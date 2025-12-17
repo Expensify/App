@@ -91,7 +91,19 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             if (!htmlContent.includes('<emoji>')) {
                 htmlContent = Parser.replace(htmlContent, {filterRules: ['emoji'], shouldEscapeText: false});
             }
-            htmlContent = Str.replaceAll(htmlContent, '<emoji>', '<emoji ismedium>');
+            const lines = htmlContent.split(/<br\s*\/?>/i);
+            function isSingleEmojiLine(line: string) {
+                const trimmed = line.replaceAll(/<br\s*\/?>/gi, '').trim();
+                return /^<emoji>.*<\/emoji>$/.test(trimmed);
+            }
+            const processedLines = lines.map((line) => {
+                if (isSingleEmojiLine(line)) {
+                    return line.replace('<emoji>', '<emoji ismedium oneline >');
+                }
+                return line.replace('<emoji>', '<emoji ismedium>');
+            });
+
+            htmlContent = processedLines.join('<br />');
         }
 
         let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
@@ -101,20 +113,6 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
         }
 
         htmlWithTag = adjustExpensifyLinksForEnv(getHtmlWithAttachmentID(htmlWithTag, reportActionID));
-
-        const lines = htmlContent.split(/<br\s*\/?>/i);
-        function isSingleEmojiLine(line: string) {
-            const trimmed = line.replaceAll(/<br\s*\/?>/gi, '').trim();
-            return /^<emoji>.*<\/emoji>$/.test(trimmed);
-        }
-        const processedLines = lines.map((line) => {
-            if (isSingleEmojiLine(line)) {
-                return line.replace('<emoji>', '<emoji ismedium oneline >');
-            }
-            return line.replace('<emoji>', '<emoji ismedium>');
-        });
-
-        htmlContent = processedLines.join('<br />');
 
         return (
             <RenderCommentHTML
