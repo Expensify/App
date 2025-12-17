@@ -46,7 +46,7 @@ function SearchChangeApproverPage() {
     const {clearSelectedTransactions, selectedReports} = useSearchContext();
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
-    const isSavingRef = useRef(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     const getOnyxReports = useCallback(
         (allReports: OnyxCollection<Report>) => {
@@ -127,7 +127,7 @@ function SearchChangeApproverPage() {
             return;
         }
 
-        isSavingRef.current = true;
+        setIsSaving(true);
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = onyxReports?.get(selectedReport.reportID);
@@ -240,7 +240,7 @@ function SearchChangeApproverPage() {
         [environmentURL, selectedPolicies, selectedReports.length, styles.flexRow, styles.mb5, styles.ph5, styles.renderHTML, translate],
     );
 
-    if ((!isOffline && onyxReports?.size !== selectedReports.length) || isSavingRef.current) {
+    if ((!isOffline && onyxReports?.size !== selectedReports.length) || isSaving) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 

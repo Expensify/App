@@ -1,6 +1,6 @@
 import lodashIntersection from 'lodash/intersection';
 import lodashPick from 'lodash/pick';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
@@ -34,7 +34,7 @@ function SearchAddApproverPage() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const {clearSelectedTransactions, selectedReports} = useSearchContext();
-    const isSavingRef = useRef(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -120,7 +120,7 @@ function SearchAddApproverPage() {
             return;
         }
 
-        isSavingRef.current = true;
+        setIsSaving(true);
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
@@ -187,7 +187,7 @@ function SearchAddApproverPage() {
         });
     }, [selectedReports.length]);
 
-    if (isSavingRef.current) {
+    if (isSaving) {
         return <FullScreenLoadingIndicator />;
     }
 
