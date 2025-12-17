@@ -68,7 +68,7 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceEditCardNamePage.displayName}
+                testID="WorkspaceEditCardNamePage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
@@ -100,7 +100,5 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceEditCardNamePage.displayName = 'WorkspaceEditCardNamePage';
 
 export default WorkspaceEditCardNamePage;

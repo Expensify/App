@@ -63,7 +63,7 @@ function AddPersonalBankAccountPage() {
                 includeSafeAreaPaddingBottom={shouldShowSuccess}
                 shouldEnablePickerAvoiding={false}
                 shouldShowOfflineIndicator={false}
-                testID={AddPersonalBankAccountPage.displayName}
+                testID='AddPersonalBankAccountPage'
             >
                 <FullPageNotFoundView>
                     <HeaderWithBackButton
@@ -87,6 +87,5 @@ function AddPersonalBankAccountPage() {
 
     return <PersonalInfoPage />;
 }
-AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
 export default AddPersonalBankAccountPage;
