@@ -481,7 +481,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
         icon: Expensicons.Bell,
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => shouldShowJoinThread({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}),
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) =>
+            shouldShowJoinThread({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}),
         onPress: (closePopover, {reportAction, reportID}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -503,7 +504,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.leaveThread',
         icon: Expensicons.Exit,
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => shouldShowLeaveThread({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}),
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) =>
+            shouldShowLeaveThread({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}),
         onPress: (closePopover, {reportAction, reportID}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const originalReportID = getOriginalReportID(reportID, reportAction);
