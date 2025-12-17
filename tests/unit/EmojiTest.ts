@@ -1,5 +1,6 @@
 import Emojis, {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
+// eslint-disable-next-line no-restricted-syntax
 import * as Browser from '@libs/Browser';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 // eslint-disable-next-line no-restricted-syntax
