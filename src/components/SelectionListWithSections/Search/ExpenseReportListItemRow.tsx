@@ -107,6 +107,16 @@ function ExpenseReportListItemRow({
                 />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, item.shouldShowYearExported)]}>
+                <DateCell
+                    // TODO##
+                    date={'2025-01-01'}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.STATUS]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
                 <StatusCell
