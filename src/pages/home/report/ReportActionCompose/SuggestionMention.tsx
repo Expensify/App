@@ -81,7 +81,7 @@ function SuggestionMention({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone', 'FallbackAvatar'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone', 'FallbackAvatar']);
 
     const currentReportID = useCurrentReportID();
     const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID?.currentReportID}`];
@@ -264,7 +264,7 @@ function SuggestionMention({
 
     const getUserMentionOptions = useCallback(
         (personalDetailsParam: PersonalDetailsList | SuggestionPersonalDetailsList | undefined, searchValue = ''): Mention[] => {
-            const suggestions = [];
+            const suggestions: Mention[] = [];
 
             if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue.toLowerCase())) {
                 suggestions.push({
@@ -315,10 +315,9 @@ function SuggestionMention({
             // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
             const sortedPersonalDetails = getSortedPersonalDetails(filteredPersonalDetails, localeCompare);
 
-            // eslint-disable-next-line unicorn/no-array-for-each
-            sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
+            for (const detail of sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length)) {
                 suggestions.push({
-                    text: formatLoginPrivateDomain(getDisplayNameOrDefault(detail), detail?.login),
+                    text: `${formatLoginPrivateDomain(getDisplayNameOrDefault(detail), detail?.login)}`,
                     alternateText: `@${formatLoginPrivateDomain(detail?.login, detail?.login)}`,
                     handle: detail?.login,
                     icons: [
@@ -331,7 +330,7 @@ function SuggestionMention({
                         },
                     ],
                 });
-            });
+            }
 
             return suggestions;
         },
@@ -341,10 +340,9 @@ function SuggestionMention({
     const getRoomMentionOptions = useCallback(
         (searchTerm: string, reportBatch: OnyxCollection<Report>): Mention[] => {
             const filteredRoomMentions: Mention[] = [];
-            // eslint-disable-next-line unicorn/no-array-for-each
-            Object.values(reportBatch ?? {}).forEach((report) => {
+            for (const report of Object.values(reportBatch ?? {})) {
                 if (!canReportBeMentionedWithinPolicy(report, policyID)) {
-                    return;
+                    continue;
                 }
                 if (report?.reportName?.toLowerCase().includes(searchTerm.toLowerCase())) {
                     filteredRoomMentions.push({
@@ -353,7 +351,7 @@ function SuggestionMention({
                         alternateText: report.reportName,
                     });
                 }
-            });
+            }
 
             return lodashSortBy(filteredRoomMentions, 'handle').slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
         },
@@ -499,7 +497,5 @@ function SuggestionMention({
         />
     );
 }
-
-SuggestionMention.displayName = 'SuggestionMention';
 
 export default SuggestionMention;

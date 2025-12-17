@@ -85,10 +85,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         | DomainSplitNavigatorParamList[typeof SCREENS.DOMAIN.INITIAL];
     const {typeMenuSections} = useSearchTypeMenuSections();
     const subscriptionPlan = useSubscriptionPlan();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings']);
 
     const paramsPolicyID = params && 'policyID' in params ? params.policyID : undefined;
-    const paramsDomainAccountID = params && 'accountID' in params ? params.accountID : undefined;
+    const paramsDomainAccountID = params && 'domainAccountID' in params ? params.domainAccountID : undefined;
 
     const lastViewedPolicySelector = useCallback(
         (policies: OnyxCollection<Policy>) => {
@@ -257,7 +257,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 )}
                 <View
                     style={styles.leftNavigationTabBarContainer}
-                    testID={NavigationTabBar.displayName}
+                    testID="NavigationTabBar"
                 >
                     <HeaderGap />
                     <View style={styles.flex1}>
@@ -268,6 +268,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             testID="ExpensifyLogoButton"
                             onPress={navigateToChats}
                             wrapperStyle={styles.leftNavigationTabBarItem}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
                         >
                             <ImageSVG
                                 style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
@@ -279,6 +280,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.inbox')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
                         >
                             {({hovered}) => (
                                 <>
@@ -319,6 +321,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.reports')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                         >
                             {({hovered}) => (
                                 <>
@@ -350,6 +353,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.workspacesTabTitle')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
                         >
                             {({hovered}) => (
                                 <>
@@ -409,7 +413,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             )}
             <View
                 style={styles.navigationTabBarContainer}
-                testID={NavigationTabBar.displayName}
+                testID="NavigationTabBar"
             >
                 <PressableWithFeedback
                     onPress={navigateToChats}
@@ -417,6 +421,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     accessibilityLabel={translate('common.inbox')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
                 >
                     <View>
                         <Icon
@@ -453,6 +458,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     accessibilityLabel={translate('common.reports')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                 >
                     <View>
                         <Icon
@@ -484,6 +490,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     accessibilityLabel={translate('common.workspacesTabTitle')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
                 >
                     <View>
                         <Icon
@@ -517,7 +524,5 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         </>
     );
 }
-
-NavigationTabBar.displayName = 'NavigationTabBar';
 
 export default memo(NavigationTabBar);
