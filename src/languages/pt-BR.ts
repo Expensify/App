@@ -1523,6 +1523,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         moveExpenses: () => ({one: 'Mover despesa', other: 'Mover despesas'}),
+        moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros espaços de trabalho, porque as taxas de diária podem diferir entre espaços de trabalho.',
         changeApprover: {
             title: 'Alterar aprovador',
             subtitle: 'Escolha uma opção para alterar o aprovador deste relatório.',

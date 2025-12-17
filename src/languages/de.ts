@@ -1531,6 +1531,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         moveExpenses: () => ({one: 'Auslage verschieben', other: 'Ausgaben verschieben'}),
+        moveExpensesError: 'Sie können Per Diem-Ausgaben nicht in Berichte auf anderen Arbeitsbereichen verschieben, da sich die Tagessätze zwischen Arbeitsbereichen unterscheiden können.',
         changeApprover: {
             title: 'Genehmigenden ändern',
             subtitle: 'Wählen Sie eine Option, um den Genehmiger für diesen Bericht zu ändern.',

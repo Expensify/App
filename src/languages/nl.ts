@@ -1525,6 +1525,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         moveExpenses: () => ({one: 'Onkosten verplaatsen', other: 'Onkosten verplaatsen'}),
+        moveExpensesError: 'U kunt geen dagvergoedingskosten verplaatsen naar rapporten op andere werkruimtes, omdat de dagvergoedingstarieven tussen werkruimtes kunnen verschillen.',
         changeApprover: {
             title: 'Fiatteur wijzigen',
             subtitle: 'Kies een optie om de fiatteur voor dit rapport te wijzigen.',

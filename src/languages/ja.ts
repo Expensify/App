@@ -1528,6 +1528,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         moveExpenses: () => ({one: '経費を移動', other: '経費を移動'}),
+        moveExpensesError: '日当経費は他のワークスペースのレポートに移動できません。ワークスペース間で日当レートが異なる可能性があるためです。',
         changeApprover: {
             title: '承認者を変更',
             subtitle: 'このレポートの承認者を変更する方法を選択してください。',

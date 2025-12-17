@@ -1524,6 +1524,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         moveExpenses: () => ({one: 'Przenieś wydatek', other: 'Przenieś wydatki'}),
+        moveExpensesError: 'Nie możesz przenosić wydatków do raportów w innych obszarach roboczych, ponieważ stawki diety mogą się różnić między obszarami roboczymi.',
         changeApprover: {
             title: 'Zmień akceptującego',
             subtitle: 'Wybierz opcję, aby zmienić osobę zatwierdzającą ten raport.',
