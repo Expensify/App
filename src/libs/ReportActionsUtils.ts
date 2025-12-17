@@ -2608,7 +2608,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
                     return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.always');
                 }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.default', {defaultAmount: formatAmount()});
+                return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.default', formatAmount());
             };
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspaceActions.updateCategoryMaxAmountNoReceipt', {

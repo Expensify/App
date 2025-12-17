@@ -52,6 +52,4 @@ function DateOfBirth({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-DateOfBirth.displayName = 'DateOfBirth';
-
 export default DateOfBirth;
