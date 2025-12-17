@@ -18,7 +18,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID, isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -59,7 +59,6 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         outputCurrency: policy.outputCurrency,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         customUnits: policy.customUnits,
-        autoReporting: policy.autoReporting,
     };
 
 const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policySelector);
@@ -95,8 +94,6 @@ function IOURequestStepParticipants({
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? (participants.at(0)?.reportID ?? reportID) : reportID);
-    // We can assume that shouldAutoReport is true as the initial value is not used. shouldAutoReport is only used after the selectedReportID changes in addParticipant where we'd update shouldAutoReport too
-    const shouldAutoReport = useRef(true);
     const numberOfParticipants = useRef(participants?.length ?? 0);
     const iouRequestType = getRequestType(initialTransaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
@@ -125,7 +122,6 @@ function IOURequestStepParticipants({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const personalPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -278,7 +274,6 @@ function IOURequestStepParticipants({
 
             if (hasOneValidParticipant && !isInvoice) {
                 selectedReportID.current = reportID;
-                shouldAutoReport.current = true;
                 return;
             }
 
@@ -286,27 +281,8 @@ function IOURequestStepParticipants({
             // We use || to be sure that if the first participant doesn't have a reportID, we generate a new one.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             selectedReportID.current = firstParticipantReportID || generateReportID();
-
-            // IOUs are always reported. non-CREATE actions require a report
-            if (!isPolicyExpenseChat || action !== CONST.IOU.ACTION.CREATE) {
-                shouldAutoReport.current = true;
-            } else {
-                shouldAutoReport.current = !!policy?.autoReporting || !!personalPolicy?.autoReporting;
-            }
         },
-        [
-            isSplitRequest,
-            allPolicies,
-            iouType,
-            transactions,
-            isMovingTransactionFromTrackExpense,
-            reportID,
-            action,
-            trackExpense,
-            initialTransactionID,
-            lastSelectedDistanceRates,
-            personalPolicy?.autoReporting,
-        ],
+        [isSplitRequest, allPolicies, iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, initialTransactionID, lastSelectedDistanceRates],
     );
 
     const goToNextStep = useCallback(() => {
@@ -321,7 +297,7 @@ function IOURequestStepParticipants({
 
         const newReportID = selectedReportID.current;
         const shouldUpdateTransactionReportID = participants?.at(0)?.reportID !== newReportID;
-        const transactionReportID = shouldAutoReport.current ? newReportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+        const transactionReportID = selectedReportID.current === selfDMReportID ? CONST.REPORT.UNREPORTED_REPORT_ID : newReportID;
         // TODO: probably should also change participants here for selectedParticipants.current, but out of scope of this PR
         for (const transaction of transactions) {
             const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
