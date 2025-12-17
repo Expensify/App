@@ -32,6 +32,4 @@ function ListItemRightCaretWithLabel({labelText, shouldShowCaret = false}: ListI
     );
 }
 
-ListItemRightCaretWithLabel.displayName = 'ListItemRightCaretWithLabel';
-
 export default ListItemRightCaretWithLabel;
