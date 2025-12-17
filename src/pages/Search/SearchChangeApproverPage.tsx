@@ -8,9 +8,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -158,7 +158,7 @@ function SearchChangeApproverPage() {
         transactionViolations,
     ]);
 
-    const sections = useMemo(() => {
+    const approverTypes = useMemo(() => {
         const data: Array<ListItem<ApproverType>> = [
             {
                 text: translate('iou.changeApprover.actions.addApprover'),
@@ -201,18 +201,45 @@ function SearchChangeApproverPage() {
             });
         }
 
-        return [{data}];
+        return data;
     }, [allPolicies, currentUserDetails.accountID, onyxReports, selectedApproverType, selectedReports, translate]);
 
     useEffect(() => {
-        if (selectedReports.length && sections.at(0)?.data.length) {
+        if (selectedReports.length && approverTypes.length) {
             return;
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.closeRHPFlow();
         });
-    }, [sections, selectedReports.length]);
+    }, [approverTypes, selectedReports.length]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('iou.changeApprover.title'),
+            onConfirm: changeApprover,
+        }),
+        [changeApprover, translate],
+    );
+
+    const listHeader = useMemo(
+        () => (
+            <>
+                <Text style={[styles.ph5, styles.mb5]}>{translate(selectedReports.length === 1 ? 'iou.changeApprover.subtitle' : 'iou.changeApprover.bulkSubtitle')}</Text>
+                {selectedPolicies.length === 1 && (
+                    <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML
+                            html={translate('iou.changeApprover.description', {
+                                workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`,
+                            })}
+                        />
+                    </View>
+                )}
+            </>
+        ),
+        [environmentURL, selectedPolicies, selectedReports, styles.flexRow, styles.mb5, styles.ph5, styles.renderHTML, translate],
+    );
 
     if ((!isOffline && onyxReports?.size !== selectedReports.length) || isSavingRef.current) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
@@ -236,9 +263,9 @@ function SearchChangeApproverPage() {
                 </FullPageOfflineBlockingView>
             ) : (
                 <SelectionList
+                    data={approverTypes}
                     ListItem={RadioListItem}
-                    sections={sections}
-                    isAlternateTextMultilineSupported
+                    alternateNumberOfSupportedLines={2}
                     onSelectRow={(option) => {
                         if (!option.keyForList) {
                             return;
@@ -246,24 +273,9 @@ function SearchChangeApproverPage() {
                         setSelectedApproverType(option.keyForList);
                         setHasError(false);
                     }}
-                    showConfirmButton
-                    confirmButtonText={translate('iou.changeApprover.title')}
-                    onConfirm={changeApprover}
+                    confirmButtonOptions={confirmButtonOptions}
                     shouldUpdateFocusedIndex
-                    customListHeader={
-                        <>
-                            <Text style={[styles.ph5, styles.mb5]}>{translate(selectedReports.length === 1 ? 'iou.changeApprover.subtitle' : 'iou.changeApprover.bulkSubtitle')}</Text>
-                            {selectedPolicies.length === 1 && (
-                                <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                                    <RenderHTML
-                                        html={translate('iou.changeApprover.description', {
-                                            workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`,
-                                        })}
-                                    />
-                                </View>
-                            )}
-                        </>
-                    }
+                    customListHeader={listHeader}
                 >
                     {hasError && (
                         <FormHelpMessage
