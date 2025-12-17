@@ -671,6 +671,7 @@ const translations = {
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
         enableGlobalReimbursements: 'Enable Global Reimbursements',
         purchaseAmount: 'Purchase amount',
+        originalAmount: 'Original amount',
         frequency: 'Frequency',
         link: 'Link',
         pinned: 'Pinned',
