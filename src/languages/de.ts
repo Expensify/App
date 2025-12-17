@@ -691,6 +691,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Aktion erforderlich',
         duplicate: 'Duplizieren',
         duplicated: 'Dupliziert',
+        reimbursableTotal: 'Erstattungsfähiger Gesamtbetrag',
+        nonReimbursableTotal: 'Nicht erstattungsfähiger Gesamtbetrag',
         originalAmount: 'Ursprünglicher Betrag',
     },
     supportalNoAccess: {
@@ -1036,6 +1038,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Manuell',
         scan: 'Scannen',
         map: 'Karte',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Eine Tabellenkalkulation hochladen',
@@ -6200,6 +6203,10 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 title: 'Kategorierichtlinien',
                 approver: 'Genehmiger',
                 requireDescription: 'Beschreibung erforderlich',
+                requireFields: 'Felder verpflichtend machen',
+                requiredFieldsTitle: 'Pflichtfelder',
+                requiredFieldsDescription: (categoryName: string) => `Dies gilt für alle Ausgaben, die als <strong>${categoryName}</strong> kategorisiert sind.`,
+                requireAttendees: 'Teilnehmer erforderlich machen',
                 descriptionHint: 'Hinweis zur Beschreibung',
                 descriptionHintDescription: (categoryName: string) =>
                     `Mitarbeitende daran erinnern, zusätzliche Informationen für Ausgaben der Kategorie „${categoryName}“ anzugeben. Dieser Hinweis erscheint im Beschreibungsfeld von Ausgaben.`,
@@ -7248,6 +7255,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Datum älter als ${maxAge} Tage`,
         missingCategory: 'Fehlende Kategorie',
         missingComment: 'Beschreibung für ausgewählte Kategorie erforderlich',
+        missingAttendees: 'Für diese Kategorie sind mehrere Teilnehmer erforderlich',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Fehlende ${tagName ?? 'Tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7969,7 +7977,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             subtitle: 'Erzwingen Sie für Mitglieder Ihrer Domain die Anmeldung per Single Sign-On, schränken Sie die Erstellung von Workspaces ein und vieles mehr.',
             enable: 'Aktivieren',
         },
-        admins: {title: 'Admins', findAdmin: 'Admin finden'},
+        admins: {title: 'Admins', findAdmin: 'Admin finden', primaryContact: 'Hauptansprechpartner', addPrimaryContact: 'Primären Kontakt hinzufügen', settings: 'Einstellungen'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

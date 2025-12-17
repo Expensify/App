@@ -105,9 +105,13 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.withdrawalID',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
+        translationKey: 'iou.taxRate',
+        canBeMissing: true,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
-        isColumnSortable: false,
         canBeMissing: true,
     },
     {
@@ -213,6 +217,14 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TO,
         translationKey: 'common.to',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL,
+        translationKey: 'common.reimbursableTotal',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
+        translationKey: 'common.nonReimbursableTotal',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
