@@ -2166,13 +2166,37 @@ function getSortedReportData(
     }
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
-        if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
-            return data.sort((a, b) => {
-                const aValue = getPolicyName({report: a});
-                const bValue = getPolicyName({report: b});
-                return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
-            });
-        }
+        return data.sort((a, b) => {
+            const aValue = getPolicyName({report: a});
+            const bValue = getPolicyName({report: b});
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL) {
+        return data.sort((a, b) => {
+            const aTotal = a.total;
+            const bTotal = b.total;
+
+            const aNonReimbursableTotal = a.nonReimbursableTotal;
+            const bNonReimbursableTotal = b.nonReimbursableTotal;
+
+            if (aTotal == null || bTotal == null || aNonReimbursableTotal == null || bNonReimbursableTotal == null) {
+                return 0;
+            }
+
+            const aValue = aTotal - aNonReimbursableTotal;
+            const bValue = bTotal - bNonReimbursableTotal;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL) {
+        return data.sort((a, b) => {
+            const aNonReimbursableTotal = a.nonReimbursableTotal;
+            const bNonReimbursableTotal = b.nonReimbursableTotal;
+            return compareValues(aNonReimbursableTotal, bNonReimbursableTotal, sortOrder, sortBy, localeCompare);
+        });
     }
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REPORT_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID) {
@@ -2350,6 +2374,10 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.status';
         case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
             return 'workspace.common.workspace';
+        case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
+            return 'common.reimbursableTotal';
+        case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
+            return 'common.nonReimbursableTotal';
         case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
             return 'common.tax';
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
@@ -2745,6 +2773,8 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
             [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
             [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
             [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,

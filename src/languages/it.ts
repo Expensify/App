@@ -692,6 +692,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Azione richiesta',
         duplicate: 'Duplica',
         duplicated: 'Duplicato',
+        reimbursableTotal: 'Totale rimborsabile',
+        nonReimbursableTotal: 'Totale non rimborsabile',
         originalAmount: 'Importo originale',
     },
     supportalNoAccess: {

@@ -221,6 +221,14 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'workspace.common.workspace',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL,
+        translationKey: 'common.reimbursableTotal',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
+        translationKey: 'common.nonReimbursableTotal',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
         translationKey: 'common.total',
     },
