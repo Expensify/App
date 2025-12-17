@@ -598,7 +598,6 @@ const config = defineConfig([
         '**/vendor',
         'modules/group-ib-fp/**/*',
         'web/snippets/gib.js',
-        'desktop/**/*',
     ]),
 ]);
 

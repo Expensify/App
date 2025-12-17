@@ -20,6 +20,4 @@ function ActivatePhysicalCardPage({
     );
 }
 
-ActivatePhysicalCardPage.displayName = 'ActivatePhysicalCardPage';
-
 export default ActivatePhysicalCardPage;

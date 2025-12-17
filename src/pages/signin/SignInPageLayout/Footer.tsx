@@ -148,7 +148,7 @@ function Footer({navigateFocus}: FooterProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyFooterLogo', 'ExpensifyFooterLogoVertical'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyFooterLogo', 'ExpensifyFooterLogoVertical']);
     const isVertical = shouldUseNarrowLayout;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
@@ -231,7 +231,5 @@ function Footer({navigateFocus}: FooterProps) {
         </View>
     );
 }
-
-Footer.displayName = 'Footer';
 
 export default Footer;

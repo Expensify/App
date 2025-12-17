@@ -152,7 +152,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
@@ -225,7 +225,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             const displayName = getDisplayNameOrDefault(participantPersonalDetail);
             const login = participantPersonalDetail?.login;
             if (displayName && login) {
-                return translate('common.chatWithAccountManager', {accountManagerDisplayName: `${displayName} (${login})`});
+                return translate('common.chatWithAccountManager', `${displayName} (${login})`);
             }
         }
         return '';
@@ -876,9 +876,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        // Check if IOU action exists - if not, it's a legacy transaction
+        // Skip legacy transaction handling if:
+        // - IOU action already exists (not a legacy transaction)
+        // - Transaction is pending addition (new transaction, not legacy)
         const iouAction = getIOUActionForReportID(reportID, transaction.transactionID);
-        if (iouAction) {
+        if (iouAction || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             return;
         }
 
@@ -964,7 +966,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     onClose={dismissBanner}
                                     onButtonPress={chatWithAccountManager}
                                     shouldShowCloseButton
-                                    icon={Expensicons.Lightbulb}
+                                    icon={expensifyIcons.Lightbulb}
                                     shouldShowIcon
                                     shouldShowButton
                                 />
@@ -1011,6 +1013,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             hasOlderActions={hasOlderActions}
                                             hasNewerActions={hasNewerActions}
                                             showReportActionsLoadingState={showReportActionsLoadingState}
+                                            reportPendingAction={reportPendingAction}
                                         />
                                     ) : null}
                                     {isCurrentReportLoadedFromOnyx ? (
@@ -1037,5 +1040,5 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 }
 
-ReportScreen.displayName = 'ReportScreen';
+// eslint-disable-next-line rulesdir/no-deep-equal-in-memo
 export default memo(ReportScreen, (prevProps, nextProps) => deepEqual(prevProps.route, nextProps.route));

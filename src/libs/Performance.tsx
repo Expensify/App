@@ -165,8 +165,9 @@ function printPerformanceMetrics(): void {
 
 function subscribeToMeasurements(callback: (entry: PerformanceEntry) => void): () => void {
     const observer = new PerformanceObserver((list) => {
-        // eslint-disable-next-line unicorn/no-array-for-each
-        list.getEntriesByType('measure').forEach(callback);
+        for (const entry of list.getEntriesByType('measure')) {
+            callback(entry);
+        }
     });
 
     observer.observe({type: 'measure', buffered: true});

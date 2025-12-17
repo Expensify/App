@@ -35,7 +35,7 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['MushroomTopHat'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['MushroomTopHat']);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const [exitSurveyResponse] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
         selector: exitResponseSelector,
@@ -66,7 +66,7 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
 
     return (
         <ScreenWrapper
-            testID={ExitSurveyConfirmPage.displayName}
+            testID="ExitSurveyConfirmPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -106,7 +106,5 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
         </ScreenWrapper>
     );
 }
-
-ExitSurveyConfirmPage.displayName = 'ExitSurveyConfirmPage';
 
 export default ExitSurveyConfirmPage;

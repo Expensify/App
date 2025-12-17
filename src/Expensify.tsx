@@ -11,6 +11,7 @@ import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
 import {InitialURLContext} from './components/InitialURLContextProvider';
+import ProactiveAppReviewModalManager from './components/ProactiveAppReviewModalManager';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
@@ -371,6 +372,8 @@ function Expensify() {
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
                     {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
+                    {/* Proactive app review modal shown when user has completed a trigger action */}
+                    <ProactiveAppReviewModalManager />
                     {screenShareRequest ? (
                         <ConfirmModal
                             title={translate('guides.screenShare')}
@@ -398,7 +401,5 @@ function Expensify() {
         </DeeplinkWrapper>
     );
 }
-
-Expensify.displayName = 'Expensify';
 
 export default Expensify;
