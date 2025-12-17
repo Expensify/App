@@ -867,6 +867,7 @@ type ShouldShowYearResult = {
     shouldShowYearSubmitted: boolean;
     shouldShowYearApproved: boolean;
     shouldShowYearPosted: boolean;
+    shouldShowYearExported: boolean;
 };
 
 /**
@@ -884,8 +885,9 @@ function shouldShowYear(
         shouldShowYearSubmitted: false,
         shouldShowYearApproved: false,
         shouldShowYearPosted: false,
+        shouldShowYearExported: false,
     };
-
+    console.log('over here item')
     const currentYear = new Date().getFullYear();
 
     if (Array.isArray(data)) {
@@ -908,6 +910,7 @@ function shouldShowYear(
                 }
             }
             if (isTransactionListItemType(item)) {
+                console.log('over here item 1', item);
                 const transactionCreated = getTransactionCreatedDate(item);
                 if (transactionCreated && DateUtils.doesDateBelongToAPastYear(transactionCreated)) {
                     result.shouldShowYearCreated = true;
@@ -937,6 +940,7 @@ function shouldShowYear(
     for (const key of Object.keys(data)) {
         if (!checkOnlyReports && isTransactionEntry(key)) {
             const item = data[key];
+            console.log('over here item 2', item);
             if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
                 result.shouldShowYearCreated = true;
             }
@@ -963,6 +967,7 @@ function shouldShowYear(
             }
         } else if (isReportEntry(key)) {
             const item = data[key];
+            console.log('over here item 3', item);
 
             if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
                 result.shouldShowYearCreated = true;
