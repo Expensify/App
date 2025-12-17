@@ -97,7 +97,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     };
 
     const handleBackButtonPress = () => {
-        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
+        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
     };
 
     return (
