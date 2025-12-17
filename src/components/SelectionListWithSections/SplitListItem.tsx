@@ -1,4 +1,4 @@
-import React, {useCallback, useLayoutEffect, useRef} from 'react';
+import React, {useMemo, useCallback, useState, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
@@ -13,8 +13,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
+import sizing from '@styles/utils/sizing';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
@@ -41,8 +43,12 @@ function SplitListItem<TItem extends ListItem>({
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
 
+    const [isNegativeAmount, setIsNegativeAmount] = useState(splitItem.amount < 0);
+    const displayedAmount = Math.abs(splitItem.amount);
+
     const onSplitExpenseAmountChange = (amount: string) => {
-        splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
+        const realAmount = isNegativeAmount ? -1 * Number(amount): Number(amount);
+        splitItem.onSplitExpenseAmountChange(splitItem.transactionID, realAmount);
     };
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
@@ -83,6 +89,22 @@ function SplitListItem<TItem extends ListItem>({
     const inputCallbackRef = (ref: BaseTextInputRef | null) => {
         inputRef.current = ref;
     };
+
+    const canUseTouchScreen = canUseTouchScreenUtil();
+
+    const handleToogleNegative = useCallback(() => {
+        setIsNegativeAmount(!isNegativeAmount)
+    }, [isNegativeAmount]);
+    
+    const handleClearNegative = useCallback(() => {
+        if (canUseTouchScreen) { return }
+        console.log("clearingggu")
+        setIsNegativeAmount(false)
+    }, []);
+
+
+    //const prefixCharacter={splitItem.currencySymbol}
+    const pref = useMemo(() => isNegativeAmount ? "-" + splitItem.currencySymbol : splitItem.currencySymbol, [isNegativeAmount]);
 
     return (
         <BaseListItem
@@ -168,10 +190,12 @@ function SplitListItem<TItem extends ListItem>({
                             ref={inputCallbackRef}
                             disabled={!splitItem.isEditable}
                             autoGrow={false}
-                            amount={splitItem.amount}
+                            amount={displayedAmount}
                             currency={splitItem.currency}
                             prefixCharacter={splitItem.currencySymbol}
+                            //prefixCharacter={pref}
                             disableKeyboard={false}
+                            //shouldShowBigNumberPad={canUseTouchScreen}
                             isCurrencyPressable={false}
                             hideFocusedState={false}
                             hideCurrencySymbol
@@ -179,7 +203,7 @@ function SplitListItem<TItem extends ListItem>({
                             formatAmountOnBlur
                             onAmountChange={onSplitExpenseAmountChange}
                             prefixContainerStyle={[styles.pv0, styles.h100]}
-                            prefixStyle={styles.lineHeightUndefined}
+                            prefixStyle={[styles.lineHeightUndefined]}
                             inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
                             containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                             touchableInputWrapperStyle={[styles.ml3]}
@@ -190,6 +214,12 @@ function SplitListItem<TItem extends ListItem>({
                             shouldWrapInputInContainer={false}
                             onFocus={focusHandler}
                             onBlur={onInputBlur}
+                            toggleNegative={handleToogleNegative}
+                            clearNegative={handleClearNegative}
+                            isNegative={isNegativeAmount}
+                            allowFlippingAmount
+                            symbolTextStyle={[styles.flexRow]}
+                            flipButtonPlacement={"nextToInput"}
                         />
                     </View>
                     <View style={[styles.popoverMenuIcon]}>

@@ -119,6 +119,9 @@ type MoneyRequestAmountInputProps = {
     /** Whether the input is disabled or not */
     disabled?: boolean;
 
+    /* If flip button showm, this property determine where to put the flip button next to text input or not. */
+    flipButtonPlacement?: string;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
@@ -256,6 +259,7 @@ function MoneyRequestAmountInput({
             allowFlippingAmount={allowFlippingAmount}
             toggleNegative={toggleNegative}
             clearNegative={clearNegative}
+            flipButtonPlacement={props.flipButtonPlacement}
             onFocus={props.onFocus}
         />
     );

@@ -357,6 +357,21 @@ function NumberWithSymbolForm({
     }));
 
     const formattedNumber = replaceAllDigits(currentNumber, toLocaleDigit);
+    const flipButtonNextToInput = props.flipButtonPlacement === 'nextToInput';
+
+    const flipButton = (
+        <Button
+            shouldShowRightIcon
+            small
+            iconRight={Expensicons.PlusMinus}
+            style={flipButtonNextToInput ? [styles.minWidth18, styles.mt2, styles.ml3] : styles.minWidth18}
+            onPress={toggleNegative}
+            isContentCentered
+            text={translate('iou.flip')}
+        />
+    );
+
+    const shouldShowFlipButton = allowFlippingAmount && canUseTouchScreen;
 
     if (displayAsTextInput) {
         return (
@@ -452,6 +467,8 @@ function NumberWithSymbolForm({
             isNegative={isNegative}
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
+            flipButton={shouldShowFlipButton && flipButtonNextToInput && flipButton}
+            flipButtonContainerStyles={[styles.flexColumn]}
         />
     );
 
@@ -504,17 +521,7 @@ function NumberWithSymbolForm({
                         text={currency}
                     />
                 )}
-                {allowFlippingAmount && canUseTouchScreen && (
-                    <Button
-                        shouldShowRightIcon
-                        small
-                        iconRight={Expensicons.PlusMinus}
-                        onPress={toggleNegative}
-                        style={styles.minWidth18}
-                        isContentCentered
-                        text={translate('iou.flip')}
-                    />
-                )}
+                {shouldShowFlipButton && !flipButtonNextToInput && flipButton}
             </View>
 
             {shouldShowBigNumberPad || !!footer ? (
