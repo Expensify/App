@@ -151,6 +151,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
                                 customCardName={customCardName}
                                 isHovered={hovered}
                                 isAssigned={!!assignedCard}
+                                isPlaidCardFeed={isPlaidCardFeed}
                                 onAssignCard={onAssignCard}
                                 isAssigningCardDisabled={isAssigningCardDisabled}
                                 shouldUseNarrowTableRowLayout={shouldUseNarrowTableRowLayout}

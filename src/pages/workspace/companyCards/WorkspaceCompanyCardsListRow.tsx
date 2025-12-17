@@ -13,7 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardDefaultName} from '@libs/actions/Card';
-import {getCardFeedIcon, lastFourNumbersFromCardName} from '@libs/CardUtils';
+import {getCardFeedIcon, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -47,6 +47,9 @@ type WorkspaceCompanyCardsListRowProps = {
     /** Whether to use narrow table row layout */
     shouldUseNarrowTableRowLayout?: boolean;
 
+    /** Whether the card is a Plaid card feed */
+    isPlaidCardFeed: boolean;
+
     /** On assign card callback */
     onAssignCard: () => void;
 };
@@ -58,6 +61,7 @@ function WorkspaceCompanyCardsListRow({
     cardName,
     isHovered,
     isAssigned,
+    isPlaidCardFeed,
     onAssignCard,
     plaidIconUrl,
     isAssigningCardDisabled,
@@ -77,9 +81,11 @@ function WorkspaceCompanyCardsListRow({
         cardFeedIcon = getCardFeedIcon(selectedFeed as CompanyCardFeed, illustrations, companyCardFeedIcons);
     }
 
-    const lastFourCardNameNumbers = lastFourNumbersFromCardName(cardName);
+    const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
 
-    const alternateLoginText = shouldUseNarrowTableRowLayout ? `${customCardNameWithFallback} - ${lastFourCardNameNumbers}` : (cardholder?.login ?? '');
+    console.log('lastCardNumbers', lastCardNumbers);
+
+    const alternateLoginText = shouldUseNarrowTableRowLayout ? `${customCardNameWithFallback}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : (cardholder?.login ?? '');
 
     return (
         <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.br3, styles.p4]}>
