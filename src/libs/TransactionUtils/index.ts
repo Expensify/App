@@ -1311,6 +1311,7 @@ function shouldShowViolation(
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
     const isReportOpen = isOpenExpenseReport(iouReport);
     const isOpenOrProcessingReport = isReportOpen || isProcessingReport(iouReport);
+    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? false;
 
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
         return isSubmitter || isPolicyAdmin(policy);
@@ -1326,6 +1327,10 @@ function shouldShowViolation(
 
     if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
         return isPolicyMember && !isSubmitter && !isReportOpen;
+    }
+
+    if (violationName === CONST.VIOLATIONS.MISSING_ATTENDEES) {
+        return isAttendeeTrackingEnabled;
     }
 
     return true;

@@ -103,6 +103,9 @@ type SettlementButtonProps = {
 
     /** Whether we the report has only held expenses */
     hasOnlyHeldExpenses?: boolean;
+
+    /** Label for Sentry tracking */
+    sentryLabel?: string;
 };
 
 export default SettlementButtonProps;
