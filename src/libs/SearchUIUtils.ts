@@ -936,7 +936,8 @@ function shouldShowYear(
     for (const key of Object.keys(data)) {
         if (!checkOnlyReports && isTransactionEntry(key)) {
             const item = data[key];
-            if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+            const transactionCreated = getTransactionCreatedDate(item);
+            if (transactionCreated && DateUtils.doesDateBelongToAPastYear(transactionCreated)) {
                 result.shouldShowYearCreated = true;
             }
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
