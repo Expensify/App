@@ -180,7 +180,10 @@ function ExpenseReportListItemRow({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}>
-                <WorkspaceCell policyID={item.policyID} />
+                <WorkspaceCell
+                    policyID={item.policyID}
+                    report={item}
+                />
             </View>
         ),
     };

@@ -2,31 +2,35 @@ import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import TextWithTooltip from '@components/TextWithTooltip';
-import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getPolicyName, getWorkspaceIcon} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
 
 type WorkspaceCellProps = {
     policyID?: string;
+    report?: Report;
 };
 
-function WorkspaceCell({policyID}: WorkspaceCellProps) {
+function WorkspaceCell({policyID, report}: WorkspaceCellProps) {
     const styles = useThemeStyles();
-    const policy = usePolicy(policyID);
+    const icon = getWorkspaceIcon(report);
+    const name = getPolicyName({report});
 
-    if (policy?.type === CONST.POLICY.TYPE.PERSONAL || !policy) {
+    if (report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
         return null;
     }
 
-    const name = policy.name;
-    const avatar = policy.avatarURL;
+    if (!icon || !name) {
+        return null;
+    }
 
     return (
         <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
             <Avatar
                 imageStyles={[styles.alignSelfCenter]}
                 size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                source={avatar}
+                source={icon.source}
                 avatarID={policyID}
                 name={name ?? ''}
                 type={CONST.ICON_TYPE_WORKSPACE}

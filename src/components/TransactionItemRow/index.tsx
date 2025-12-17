@@ -468,7 +468,10 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}>
-                    <WorkspaceCell policyID={transactionItem.report?.policyID} />
+                    <WorkspaceCell
+                        policyID={transactionItem.report?.policyID}
+                        report={transactionItem.report}
+                    />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
