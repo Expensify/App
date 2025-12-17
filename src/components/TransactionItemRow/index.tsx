@@ -315,6 +315,22 @@ function TransactionItemRow({
                     />
                 </View>
             ),
+            [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
+                >
+                    <Text>{transactionItem.reimbursable ? translate('common.yes') : translate('common.no')}</Text>
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.BILLABLE}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
+                >
+                    <Text>{transactionItem.billable ? translate('common.yes') : translate('common.no')}</Text>
+                </View>
+            ),
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.ACTION}
@@ -456,6 +472,7 @@ function TransactionItemRow({
             ),
         }),
         [
+            translate,
             StyleUtils,
             transactionItem,
             shouldShowTooltip,
