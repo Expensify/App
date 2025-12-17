@@ -197,18 +197,22 @@ function WorkspaceCompanyCardsTable({
     ];
 
     const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
+    const isNarrowLayoutRef = useRef(shouldUseNarrowLayout);
+
     useEffect(() => {
-        if (shouldUseNarrowLayout) {
+        if (shouldUseNarrowLayout && !isNarrowLayoutRef.current) {
+            isNarrowLayoutRef.current = true;
             const activeSorting = tableRef.current?.getActiveSorting();
             setActiveSortingInWideLayout(activeSorting);
             tableRef.current?.updateSorting({columnKey: 'member'});
             return;
         }
 
-        if (!activeSortingInWideLayout) {
+        if (!activeSortingInWideLayout || !isNarrowLayoutRef.current) {
             return;
         }
 
+        isNarrowLayoutRef.current = false;
         tableRef.current?.updateSorting(activeSortingInWideLayout);
     }, [activeSortingInWideLayout, shouldUseNarrowLayout]);
 
