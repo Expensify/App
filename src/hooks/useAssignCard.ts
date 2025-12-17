@@ -101,6 +101,10 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
             bankName: feed,
         };
 
+        if (cardID) {
+            data.encryptedCardNumber = cardID;
+        }
+
         let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
         const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
         const isFeedExpired = isSelectedFeedExpired(selectedFeedData);
@@ -112,7 +116,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
             importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', undefined, undefined, plaidAccessToken);
         }
 
-        if (employeeList.length === 1) {
+        if (!cardID && employeeList.length === 1) {
             const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
             data.email = userEmail;
             const personalDetails = getPersonalDetailByEmail(userEmail);
