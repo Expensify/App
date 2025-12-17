@@ -493,6 +493,4 @@ function PaymentMethodList({
     );
 }
 
-PaymentMethodList.displayName = 'PaymentMethodList';
-
 export default PaymentMethodList;

@@ -71,8 +71,6 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
     return <CurrentReportIDContext.Provider value={contextValue}>{props.children}</CurrentReportIDContext.Provider>;
 }
 
-CurrentReportIDContextProvider.displayName = 'CurrentReportIDContextProvider';
-
 export default function useCurrentReportID(): CurrentReportIDContextValue | null {
     return useContext(CurrentReportIDContext);
 }
