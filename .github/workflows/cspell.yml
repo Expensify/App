@@ -12,12 +12,22 @@ jobs:
     steps:
       - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
 
+      - name: Get changed files
+        id: changed-files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CHANGED_FILES=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files --jq '.[].filename' | tr '\n' ' ')
+          echo "files=$CHANGED_FILES" >> "$GITHUB_OUTPUT"
+
       - name: Spell check
+        if: steps.changed-files.outputs.files != ''
         # v8.1.1
         uses: streetsidesoftware/cspell-action@e5a858a18b7e0b56e0342b1dcad796308b7341a2
         with:
+          files: ${{ steps.changed-files.outputs.files }}
+          root: "."
           config: "./cspell.json"
           inline: error
           strict: true
-          check_dot_files: 'false'
-          incremental_files_only: 'true'
+          check_dot_files: false
