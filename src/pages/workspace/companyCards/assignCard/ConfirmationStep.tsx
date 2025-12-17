@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
@@ -124,14 +125,11 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                     title={data?.encryptedCardNumber ?? maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
                     interactive={false}
                 />
-                <MenuItemWithTopDescription
-                    description={translate('workspace.companyCards.cardholder')}
-                    titleComponent={
-                        <View>
-                            <Text style={[styles.textStrong, styles.pre]}>{cardholderName}</Text>
-                            <Text style={[styles.textSupporting, styles.mt1]}>{cardholderEmail}</Text>
-                        </View>
-                    }
+                <MenuItem
+                    label={translate('workspace.companyCards.cardholder')}
+                    labelStyle={styles.mb3}
+                    title={cardholderEmail}
+                    description={cardholderEmail}
                     icon={cardholderDetails?.avatar ?? getDefaultAvatarURL(cardholderAccountID)}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     shouldShowRightIcon
