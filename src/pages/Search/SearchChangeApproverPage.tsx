@@ -170,26 +170,25 @@ function SearchChangeApproverPage() {
 
         const hasPermission = selectedReports.every((selectedReport) => {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+            const report = onyxReports?.get(selectedReport.reportID);
 
-            if (!policy) {
+            if (!policy || !report) {
                 return false;
             }
 
-            return isPolicyAdmin(policy);
+            return isPolicyAdmin(policy) && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy);
         });
 
         const shouldShowBypassApproversOption =
             hasPermission &&
             selectedReports.some((selectedReport) => {
-                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
                 const report = onyxReports?.get(selectedReport.reportID);
 
-                if (!policy || !report) {
+                if (!report) {
                     return false;
                 }
 
-                const isCurrentUserManager = report.managerID === currentUserDetails.accountID;
-                return !isCurrentUserManager && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy);
+                return report.managerID !== currentUserDetails.accountID;
             });
 
         if (shouldShowBypassApproversOption) {
@@ -205,7 +204,7 @@ function SearchChangeApproverPage() {
     }, [allPolicies, currentUserDetails.accountID, onyxReports, selectedApproverType, selectedReports, translate]);
 
     useEffect(() => {
-        if (selectedReports.length && approverTypes.length) {
+        if (selectedReports.length && approverTypes.at(0)) {
             return;
         }
 
@@ -238,7 +237,7 @@ function SearchChangeApproverPage() {
                 )}
             </>
         ),
-        [environmentURL, selectedPolicies, selectedReports, styles.flexRow, styles.mb5, styles.ph5, styles.renderHTML, translate],
+        [environmentURL, selectedPolicies, selectedReports.length, styles.flexRow, styles.mb5, styles.ph5, styles.renderHTML, translate],
     );
 
     if ((!isOffline && onyxReports?.size !== selectedReports.length) || isSavingRef.current) {
