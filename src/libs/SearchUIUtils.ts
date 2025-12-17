@@ -2062,8 +2062,8 @@ function getSortedTransactionData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.CARD) {
         return data.sort((a, b) => {
-            const aValue = a.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : a.cardName ?? '';
-            const bValue = b.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : b.cardName ?? '';
+            const aValue = a.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : (a.cardName ?? '');
+            const bValue = b.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : (b.cardName ?? '');
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
