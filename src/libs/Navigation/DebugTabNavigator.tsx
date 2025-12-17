@@ -52,7 +52,7 @@ type DebugTabNavigatorProps = {
 };
 
 function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Exclamation', 'Info'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Exclamation', 'Info']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const navigation = useNavigation<NavigationProp<Record<string, unknown>>>();

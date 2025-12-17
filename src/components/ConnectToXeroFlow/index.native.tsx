@@ -96,6 +96,4 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     );
 }
 
-ConnectToXeroFlow.displayName = 'ConnectToXeroFlow';
-
 export default ConnectToXeroFlow;

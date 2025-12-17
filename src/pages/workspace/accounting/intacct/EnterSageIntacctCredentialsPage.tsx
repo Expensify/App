@@ -96,6 +96,4 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
     );
 }
 
-EnterSageIntacctCredentialsPage.displayName = 'EnterSageIntacctCredentialsPage';
-
 export default EnterSageIntacctCredentialsPage;

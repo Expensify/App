@@ -55,7 +55,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteTokenInputPage.displayName}
+            displayName="NetSuiteTokenInputPage"
             headerTitle="workspace.netsuite.tokenInput.title"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -85,7 +85,5 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         </ConnectionLayout>
     );
 }
-
-NetSuiteTokenInputPage.displayName = 'NetSuiteTokenInputPage';
 
 export default withPolicyConnections(NetSuiteTokenInputPage);

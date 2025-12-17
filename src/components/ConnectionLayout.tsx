@@ -157,5 +157,4 @@ function ConnectionLayout({
     );
 }
 
-ConnectionLayout.displayName = 'ConnectionLayout';
 export default ConnectionLayout;
