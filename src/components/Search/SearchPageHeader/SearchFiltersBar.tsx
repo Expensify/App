@@ -1,8 +1,7 @@
-import {useIsFocused} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {emailSelector} from '@selectors/Session';
 import {searchResultsErrorSelector} from '@selectors/Snapshot';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
@@ -32,12 +31,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchFilterFormValues from '@hooks/useSearchFilterFormValues';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {close} from '@libs/actions/Modal';
-import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
+import {handleBulkPayItemSelected} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -85,10 +83,10 @@ function SearchFiltersBar({
     confirmPayment,
     latestBankItems,
 }: SearchFiltersBarProps) {
-    const isFocused = useIsFocused();
     const scrollRef = useRef<FlatList<FilterItem>>(null);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
+    const [filterFormValues = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
     const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
@@ -313,17 +311,12 @@ function SearchFiltersBar({
     );
 
     const openAdvancedFilters = useCallback(() => {
-        updateAdvancedFilters(filterFormValues, true);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [filterFormValues]);
+    }, []);
 
     const openSearchColumns = () => {
         Navigation.navigate(ROUTES.SEARCH_COLUMNS);
     };
-
-    useEffect(() => {
-        updateAdvancedFilters(filterFormValues, true);
-    }, [filterFormValues]);
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {

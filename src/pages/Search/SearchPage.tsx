@@ -85,7 +85,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CurrencyList, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
