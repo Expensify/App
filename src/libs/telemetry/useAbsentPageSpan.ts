@@ -38,10 +38,5 @@ export default function useAbsentPageSpan() {
 
         endSpan(CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE);
         hasCreatedSpan.current = true;
-
-        return () => {
-            endSpan(CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE);
-            hasCreatedSpan.current = true;
-        };
     }, [initialURL]);
 }
