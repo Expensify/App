@@ -1182,6 +1182,7 @@ function getTransactionsSections(
             // Use Map.get() for faster lookups with default values
             const from = reportAction?.actorAccountID ? (personalDetailsMap.get(reportAction.actorAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
+            const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
@@ -1219,6 +1220,7 @@ function getTransactionsSections(
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 violations: transactionViolations,
+                category: isIOUReport ? '' : transactionItem?.category,
             };
 
             transactionsSections.push(transactionSection);
@@ -1713,6 +1715,7 @@ function getReportSections(
             const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
             const from = reportAction?.actorAccountID ? (data.personalDetailsList?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
+            const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
@@ -1748,6 +1751,7 @@ function getReportSections(
                 violations: transactionViolations,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
+                category: isIOUReport ? '' : transactionItem?.category,
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
