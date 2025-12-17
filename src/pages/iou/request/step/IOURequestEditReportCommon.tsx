@@ -1,6 +1,7 @@
 import {createPoliciesSelector} from '@selectors/Policy';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -16,9 +17,8 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSubmitPerDiemExpenseFromWorkspace, getPersonalPolicy, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {
     canAddTransaction,
     getOutstandingReportsForUser,
@@ -30,10 +30,11 @@ import {
     isSelfDM,
     sortOutstandingReportsBySelected,
 } from '@libs/ReportUtils';
+import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 
@@ -80,7 +81,7 @@ function IOURequestEditReportCommon({
     const {options} = useOptionsList();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [firstTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionIDs?.at(0))}`, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
     const resolvedReportOwnerAccountID = useMemo(() => {
@@ -97,7 +98,8 @@ function IOURequestEditReportCommon({
     const reportPolicy = usePolicy(selectedReport?.policyID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest);
 
-    const perDiemOriginalPolicy = getPolicyByCustomUnitID(firstTransaction, allPolicies);
+    const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
+
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
@@ -167,9 +169,6 @@ function IOURequestEditReportCommon({
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .filter((report) => {
-                if (isPerDiemRequest && report?.policyID !== perDiemOriginalPolicy?.id) {
-                    return false;
-                }
                 if (isPerDiemRequest && report?.policyID && selectedReportID !== report?.reportID) {
                     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                     return canSubmitPerDiemExpenseFromWorkspace(policy);
@@ -212,11 +211,72 @@ function IOURequestEditReportCommon({
         allPolicies,
         isPerDiemRequest,
         currentUserPersonalDetails.accountID,
-        perDiemOriginalPolicy?.id,
     ]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
+    };
+
+    const checkIfPerDiemTransactionsCanBeMoved = useCallback(
+        (selectedReportPolicyID: string | undefined) => {
+            const transactionDetails = transactionIDs?.map((transactionID) => {
+                const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                return {
+                    transaction,
+                    isPerDiem: transaction ? isPerDiemRequestUtil(transaction) : false,
+                    customUnitID: transaction?.comment?.customUnit?.customUnitID,
+                };
+            });
+
+            const destinationPolicy = selectedReportPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReportPolicyID}`] : undefined;
+
+            if (!destinationPolicy?.arePerDiemRatesEnabled || !destinationPolicy?.customUnits || isEmptyObject(destinationPolicy.customUnits)) {
+                return false;
+            }
+
+            const invalidPerDiemTransaction = transactionDetails?.find((detail) => {
+                if (!detail.isPerDiem) {
+                    return false;
+                }
+                const customUnitID = detail.customUnitID;
+                return !customUnitID || !Object.keys(destinationPolicy?.customUnits ?? {}).includes(customUnitID);
+            });
+
+            if (invalidPerDiemTransaction) {
+                return false;
+            }
+
+            return true;
+        },
+        [transactionIDs, allPolicies, allTransactions],
+    );
+
+    const validatePerDiemMove = (policyID: string | undefined): boolean => {
+        if (transactionIDs?.length === 0) {
+            return false;
+        }
+        if (isPerDiemRequest) {
+            const canTransactionsBeMoved = checkIfPerDiemTransactionsCanBeMoved(policyID);
+            if (!canTransactionsBeMoved) {
+                setPerDiemWarningModalVisible(true);
+                return false;
+            }
+        }
+        return true;
+    };
+
+    const handleSelectReport = (item: TransactionGroupListItem) => {
+        if (!validatePerDiemMove(item.policyID)) {
+            return;
+        }
+        selectReport(item);
+    };
+
+    const handleCreateReport = () => {
+        if (!validatePerDiemMove(policyForMovingExpenses?.id)) {
+            return;
+        }
+        createReport?.();
     };
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
@@ -228,13 +288,13 @@ function IOURequestEditReportCommon({
 
         return (
             <MenuItem
-                onPress={createReport}
+                onPress={handleCreateReport}
                 title={translate('report.newReport.createReport')}
-                description={isPerDiemRequest ? perDiemOriginalPolicy?.name : policyForMovingExpenses?.name}
+                description={policyForMovingExpenses?.name}
                 icon={icons.Document}
             />
         );
-    }, [icons.Document, createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name, perDiemOriginalPolicy?.name, isPerDiemRequest]);
+    }, [icons.Document, createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name, handleCreateReport]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
@@ -268,7 +328,7 @@ function IOURequestEditReportCommon({
         >
             <SelectionList
                 data={reportOptions}
-                onSelectRow={selectReport}
+                onSelectRow={handleSelectReport}
                 shouldShowTextInput={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
                 textInputOptions={{
                     value: searchValue,
@@ -293,6 +353,14 @@ function IOURequestEditReportCommon({
                     </>
                 }
                 listEmptyContent={createReportOption}
+            />
+            <ConfirmModal
+                isVisible={perDiemWarningModalVisible}
+                onConfirm={() => setPerDiemWarningModalVisible(false)}
+                title={translate('iou.moveExpenses', {count: transactionIDs?.length ?? 1})}
+                prompt={translate('iou.moveExpensesError')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
             />
         </StepScreenWrapper>
     );
