@@ -810,7 +810,8 @@ function ReportActionsList({
         );
     }, [canShowHeader, retryLoadNewerChatsError]);
 
-    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const shouldShowSkeleton = isOffline && sortedVisibleReportActions.length === 0;
+
 
     const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {

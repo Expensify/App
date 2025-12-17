@@ -25,6 +25,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {findSelfDMReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -105,6 +106,10 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             }
         } else {
             Navigation.dismissModal();
+        }
+
+        if (reportID) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
         }
     };
 

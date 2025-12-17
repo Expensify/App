@@ -31,7 +31,7 @@ import {
     isMoneyRequestAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
-import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, getReportOrDraftReport, isExpenseReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,6 +80,7 @@ function ReportActionsView({
     hasOlderActions,
     isReportTransactionThread,
 }: ReportActionsViewProps) {
+    const reportID = report.reportID;
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -108,18 +109,18 @@ function ReportActionsView({
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
     const didLayout = useRef(false);
     const {isOffline} = useNetwork();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, {canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(false);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
-    const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
-    const reportTransactionIDs = useMemo(
-        () => getAllNonDeletedTransactions(reportTransactions, allReportActions ?? []).map((transaction) => transaction.transactionID),
-        [reportTransactions, allReportActions],
-    );
+    const reportTransactionIDs = useMemo(() => {
+        const allTransactions = getAllNonDeletedTransactions(reportTransactions, allReportActions ?? []);
+        return allTransactions.map((transaction) => transaction.transactionID);
+    }, [reportTransactions, allReportActions]);
 
     const lastAction = allReportActions?.at(-1);
     const isInitiallyLoadingTransactionThread = isReportTransactionThread && (!!isLoadingInitialReportActions || (allReportActions ?? [])?.length <= 1);
@@ -203,10 +204,11 @@ function ReportActionsView({
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
-    const reportActions = useMemo(
-        () => (reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? []) : []),
-        [reportActionsToDisplay, transactionThreadReportActions, transactionThreadReportID],
-    );
+    const reportActions = useMemo(() => {
+        return reportActionsToDisplay
+            ? getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? [])
+            : [];
+    }, [reportActionsToDisplay, transactionThreadReportActions, transactionThreadReportID]);
 
     const parentReportActionForTransactionThread = useMemo(
         () =>
@@ -216,16 +218,62 @@ function ReportActionsView({
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
 
-    const visibleReportActions = useMemo(
-        () =>
-            reportActions.filter(
-                (reportAction) =>
-                    (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
-                    shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
-                    isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs),
-            ),
-        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
-    );
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+
+    const visibleReportActions = useMemo(() => {
+        const filtered = reportActions.filter((reportAction) => {
+            const passesBasicFilters =
+                (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
+                shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction, policy);
+
+            if (!passesBasicFilters) {
+                return false;
+            }
+
+            if (isOffline && isMoneyRequestAction(reportAction)) {
+                return true;
+            }
+
+            const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
+            const iouReportID = originalMessage?.IOUReportID;
+            const transactionID = originalMessage?.IOUTransactionID;
+            let transactionIDsToCheck = reportTransactionIDs;
+
+            if (iouReportID && transactionID) {
+                const transactionInOnyx = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+                const iouReport = getReportOrDraftReport(iouReportID);
+                const isIOUReportExpense = isExpenseReport(iouReport);
+
+                if (isIOUReportExpense) {
+                    const expenseReportTransactions = Object.values(allTransactions ?? {}).filter((transaction) => {
+                        if (!transaction) {
+                            return false;
+                        }
+                        const matchesReportID = transaction.reportID === iouReportID;
+                        const hasValidPendingAction = !transaction.pendingAction || (isOffline && transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+                        return matchesReportID && hasValidPendingAction;
+                    });
+                    transactionIDsToCheck = expenseReportTransactions
+                        .map((transaction) => transaction?.transactionID)
+                        .filter((id): id is string => Boolean(id));
+
+                    if (transactionInOnyx && transactionInOnyx.reportID === iouReportID && !transactionIDsToCheck.includes(transactionID)) {
+                        const hasValidPendingAction = !transactionInOnyx.pendingAction || (isOffline && transactionInOnyx.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                        if (hasValidPendingAction) {
+                            transactionIDsToCheck.push(transactionID);
+                        }
+                    }
+                }
+            }
+
+            const matches = isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
+            return matches;
+        });
+
+        return filtered;
+    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, policy, allTransactions]);
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
@@ -305,11 +353,11 @@ function ReportActionsView({
     // Show skeleton while the app is loading and we're online
     const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
 
-    if (shouldShowSkeletonForInitialLoad ?? shouldShowSkeletonForAppLoad) {
+    if (!isOffline && (shouldShowSkeletonForInitialLoad ?? shouldShowSkeletonForAppLoad)) {
         return <ReportActionsSkeletonView />;
     }
 
-    if (!isReportTransactionThread && isMissingReportActions) {
+    if (!isReportTransactionThread && isMissingReportActions && !isOffline) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
