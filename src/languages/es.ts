@@ -5786,7 +5786,7 @@ ${amount} para ${merchant} - ${date}`,
                 },
                 requireItemizedReceiptsOver: 'Requerir recibos detallados para importes superiores a',
                 requireItemizedReceiptsOverList: {
-                    default: ({defaultAmount}) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predeterminado`,
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predeterminado`,
                     never: 'Nunca requerir recibos detallados',
                     always: 'Requerir recibos detallados siempre',
                 },
