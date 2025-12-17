@@ -51,6 +51,7 @@ import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
 import * as HybridAppActions from '@userActions/HybridApp';
 import type HybridAppSettings from '@userActions/HybridApp/types';
+import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
@@ -425,7 +426,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
 function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
     if (isAnonymousUser() && !isAnonymousAction) {
         return () => {
-            signOutAndRedirectToSignIn();
+            close(signOutAndRedirectToSignIn);
         };
     }
     return callback;
