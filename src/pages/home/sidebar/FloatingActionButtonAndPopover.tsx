@@ -711,8 +711,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     );
 }
 
-FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
-
 export default FloatingActionButtonAndPopover;
 
 export type {PolicySelector};

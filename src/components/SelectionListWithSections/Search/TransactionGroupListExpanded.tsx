@@ -274,6 +274,4 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     );
 }
 
-TransactionGroupListExpanded.displayName = 'TransactionGroupListExpanded';
-
 export default TransactionGroupListExpanded;

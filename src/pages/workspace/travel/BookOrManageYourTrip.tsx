@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import BookTravelButton from '@components/BookTravelButton';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';

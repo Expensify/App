@@ -99,7 +99,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
         <>
             <ScreenWrapper
                 shouldEnableMaxHeight
-                testID={TravelTerms.displayName}
+                testID="TravelTerms"
             >
                 <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel}>
                     <HeaderWithBackButton
@@ -175,7 +175,5 @@ function TravelTerms({route}: TravelTermsPageProps) {
         </>
     );
 }
-
-TravelTerms.displayName = 'TravelMenu';
 
 export default TravelTerms;

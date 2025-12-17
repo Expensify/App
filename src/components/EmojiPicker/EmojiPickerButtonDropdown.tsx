@@ -103,6 +103,4 @@ function EmojiPickerButtonDropdown(
     );
 }
 
-EmojiPickerButtonDropdown.displayName = 'EmojiPickerButtonDropdown';
-
 export default EmojiPickerButtonDropdown;

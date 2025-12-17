@@ -81,7 +81,7 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
         <AccessOrNotFoundWrapper policyID={policyID}>
             <ScreenWrapper
                 shouldEnableMaxHeight
-                testID={DomainSelectorPage.displayName}
+                testID="DomainSelectorPage"
             >
                 <HeaderWithBackButton
                     title={translate('travel.domainSelector.title')}
@@ -111,7 +111,5 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-DomainSelectorPage.displayName = 'DomainSelectorPage';
 
 export default DomainSelectorPage;

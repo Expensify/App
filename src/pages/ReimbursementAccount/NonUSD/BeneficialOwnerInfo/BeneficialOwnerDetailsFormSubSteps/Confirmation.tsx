@@ -167,6 +167,4 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
     );
 }
 
-Confirmation.displayName = 'Confirmation';
-
 export default Confirmation;

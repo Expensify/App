@@ -95,6 +95,4 @@ function ManageTrips({policyID}: ManageTripsProps) {
     );
 }
 
-ManageTrips.displayName = 'ManageTrips';
-
 export default ManageTrips;
