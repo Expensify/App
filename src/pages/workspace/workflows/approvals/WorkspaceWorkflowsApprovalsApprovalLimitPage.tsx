@@ -80,7 +80,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const amountError = hasSubmitted && onlyAmountEmpty ? translate('workflowsApprovalLimitPage.enterAmountError') : undefined;
     const approverErrorText = hasSubmitted && onlyApproverEmpty ? translate('workflowsApprovalLimitPage.enterApproverError') : undefined;
 
-    const firstApprover = approvalWorkflow?.approvers?.at(0)?.email ?? '';
+    const firstApprover = approvalWorkflow?.originalApprovers?.at(0)?.email ?? '';
 
     const navigateAfterCompletion = () => {
         if (isEditFlow) {
@@ -239,6 +239,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                     displayAsTextInput
                                     disabled={areLimitFieldsDisabled}
                                     errorText={amountError}
+                                    onSubmitEditing={handleSubmit}
                                 />
                             </View>
 

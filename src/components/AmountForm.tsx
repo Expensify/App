@@ -48,7 +48,7 @@ type AmountFormProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'onSubmitEditing'>;
 
 /**
  * Wrapper around NumberWithSymbolForm with currency handling.
@@ -69,6 +69,7 @@ function AmountForm({
     autoFocus,
     autoGrowExtraSpace,
     autoGrowMarginSide,
+    onSubmitEditing,
     ref,
 }: AmountFormProps) {
     const styles = useThemeStyles();
@@ -103,6 +104,7 @@ function AmountForm({
             autoFocus={autoFocus}
             autoGrowExtraSpace={autoGrowExtraSpace}
             autoGrowMarginSide={autoGrowMarginSide}
+            onSubmitEditing={onSubmitEditing}
             disabled={disabled}
         />
     );

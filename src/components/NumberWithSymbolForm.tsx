@@ -84,6 +84,9 @@ type NumberWithSymbolFormProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
+
+    /** Callback when the user presses the submit key (Enter) */
+    onSubmitEditing?: () => void;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -145,6 +148,7 @@ function NumberWithSymbolForm({
     clearNegative,
     ref,
     disabled,
+    onSubmitEditing,
     ...props
 }: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
@@ -395,6 +399,7 @@ function NumberWithSymbolForm({
                 autoFocus={props.autoFocus}
                 autoGrowExtraSpace={props.autoGrowExtraSpace}
                 autoGrowMarginSide={props.autoGrowMarginSide}
+                onSubmitEditing={onSubmitEditing}
             />
         );
     }
