@@ -92,6 +92,7 @@ function SelectionListWithModal<TItem extends ListItem>({
                 selectedItems={selectedItemsProp}
                 onLongPressRow={handleLongPressRow}
                 isSmallScreenWidth={isSmallScreenWidth}
+                disableMaintainingScrollPosition
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
