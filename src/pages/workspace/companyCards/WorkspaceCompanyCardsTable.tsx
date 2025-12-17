@@ -1,5 +1,6 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Table from '@components/Table';
 import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
@@ -68,7 +69,7 @@ function WorkspaceCompanyCardsTable({
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
-    const shouldUseNarrowTableRowLayout = isMediumScreenWidth || shouldUseNarrowLayout;
+    const shouldShowNarrowLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
@@ -96,7 +97,7 @@ function WorkspaceCompanyCardsTable({
             plaidIconUrl={plaidIconUrl}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
-            shouldUseNarrowTableRowLayout={shouldUseNarrowTableRowLayout}
+            shouldUseNarrowTableRowLayout={shouldShowNarrowLayout}
         />
     );
 
@@ -197,12 +198,12 @@ function WorkspaceCompanyCardsTable({
     ];
 
     const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
-    const isNarrowLayoutRef = useRef(shouldUseNarrowTableRowLayout);
+    const isNarrowLayoutRef = useRef(shouldShowNarrowLayout);
 
     // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
     // When switching back to wide layout, we want to restore the previous sorting.
     useEffect(() => {
-        if (shouldUseNarrowTableRowLayout) {
+        if (shouldShowNarrowLayout) {
             if (isNarrowLayoutRef.current) {
                 return;
             }
@@ -220,7 +221,7 @@ function WorkspaceCompanyCardsTable({
 
         isNarrowLayoutRef.current = false;
         tableRef.current?.updateSorting(activeSortingInWideLayout);
-    }, [activeSortingInWideLayout, shouldUseNarrowTableRowLayout]);
+    }, [activeSortingInWideLayout, shouldShowNarrowLayout]);
 
     // Show empty state when there are no cards
     if (!data.length) {
@@ -245,8 +246,10 @@ function WorkspaceCompanyCardsTable({
             isItemInFilter={isItemInFilter}
             filters={filterConfig}
         >
-            {renderHeaderButtons?.(<Table.SearchBar />, <Table.FilterButtons />)}
-            {!shouldUseNarrowLayout && <Table.Header />}
+            <View style={shouldShowNarrowLayout && styles.mb5}>{renderHeaderButtons?.(<Table.SearchBar />, <Table.FilterButtons />)}</View>
+
+            {!shouldShowNarrowLayout && <Table.Header />}
+
             <Table.Body />
         </Table>
     );

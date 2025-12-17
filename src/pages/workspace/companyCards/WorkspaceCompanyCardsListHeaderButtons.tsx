@@ -129,7 +129,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, searchB
         return `${firstPart}${secondPart}`;
     }, [domain?.email, isCommercialFeed, policy?.name, translate]);
 
-    const shouldShowResponsiveLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const shouldShowNarrowLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     return (
         <View>
@@ -139,7 +139,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, searchB
                     styles.ph5,
                     styles.gap5,
                     styles.pb2,
-                    !shouldShowResponsiveLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
+                    !shouldShowNarrowLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
                 ]}
             >
                 <FeedSelector
@@ -151,15 +151,11 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, searchB
                     shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed)}
                 />
                 <View
-                    style={[
-                        styles.alignItemsCenter,
-                        styles.gap3,
-                        shouldShowResponsiveLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow,
-                    ]}
+                    style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
                 >
                     {searchBar}
-                    <View style={[styles.flexRow, styles.gap3, shouldShowResponsiveLayout && [styles.w100]]}>
-                        <View style={shouldShowResponsiveLayout && styles.flex1}>{filterButtons}</View>
+                    <View style={[styles.flexRow, styles.gap3, shouldShowNarrowLayout && [styles.w100]]}>
+                        <View style={shouldShowNarrowLayout && styles.flex1}>{filterButtons}</View>
                         <ButtonWithDropdownMenu
                             success={false}
                             onPress={() => {}}
@@ -167,7 +163,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, searchB
                             customText={translate('common.more')}
                             options={secondaryActions}
                             isSplitButton={false}
-                            wrapperStyle={shouldShowResponsiveLayout ? styles.flex1 : styles.flexGrow0}
+                            wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
                         />
                     </View>
                 </View>
