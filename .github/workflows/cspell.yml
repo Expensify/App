@@ -12,23 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
 
-      - name: Cache cspell
-        # v4
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
-        with:
-          path: .cspellcache
-          key: ${{ runner.os }}-cspell-${{ hashFiles('cspell.json') }}
-          restore-keys: |
-            ${{ runner.os }}-cspell-
-
-      - name: Spell check with cspell
+      - name: Spell check
         # v8.1.1
         uses: streetsidesoftware/cspell-action@e5a858a18b7e0b56e0342b1dcad796308b7341a2
         with:
-          files: "**/*"
           root: "."
           config: "./cspell.json"
           inline: error
           strict: true
-          use_cspell_files: false
+          check_dot_files: false
           incremental_files_only: true
