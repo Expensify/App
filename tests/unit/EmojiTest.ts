@@ -1,5 +1,6 @@
 import Emojis, {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
+import * as Browser from '@libs/Browser';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 // eslint-disable-next-line no-restricted-syntax
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -285,6 +286,15 @@ describe('EmojiTest', () => {
         // ZWNJ character for comparison
         const ZWNJ = '\u200C';
 
+        // Mock isSafari to return true for these tests since the function only applies on Safari
+        beforeEach(() => {
+            jest.spyOn(Browser, 'isSafari').mockReturnValue(true);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
         it('should insert ZWNJ between a single digit and emoji', () => {
             // Given a digit immediately followed by an emoji
             const input = '1😄';
@@ -419,6 +429,17 @@ describe('EmojiTest', () => {
             expect(result.includes(ZWNJ)).toBe(true);
             // Verify the result is different from input (ZWNJ was added)
             expect(result.length).toBe(afterEmojiConversion.length + 1);
+        });
+
+        it('should return input unchanged on non-Safari browsers', () => {
+            // Given we're not on Safari
+            jest.spyOn(Browser, 'isSafari').mockReturnValue(false);
+            // When we process a digit + emoji string
+            const input = '234😄';
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then the text should remain unchanged (no ZWNJ inserted)
+            expect(result).toBe('234😄');
+            expect(result.includes(ZWNJ)).toBe(false);
         });
     });
 });

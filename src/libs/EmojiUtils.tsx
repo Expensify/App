@@ -11,6 +11,7 @@ import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {isSafari} from './Browser';
 import type EmojiTrie from './EmojiTrie';
 import memoize from './memoize';
 
@@ -663,14 +664,12 @@ function containsOnlyCustomEmoji(text?: string): boolean {
 }
 
 /**
- * Insert ZWNJ (Zero-Width Non-Joiner) between digits and emoji to prevent Safari keycap bug.
- * Safari automatically converts digit + emoji patterns into Unicode keycap sequences,
- * causing character corruption. ZWNJ breaks this automatic sequence detection.
- *
- * @param input - The text to process
- * @returns The text with ZWNJ inserted between digits and emojis
+ * Insert ZWNJ between digits and emoji to prevent Safari keycap sequence bug.
  */
 function insertZWNJBetweenDigitAndEmoji(input: string): string {
+    if (!isSafari()) {
+        return input;
+    }
     return input.replaceAll(/(\d)([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu, '$1\u200C$2');
 }
 

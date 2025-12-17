@@ -25,7 +25,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import {containsOnlyEmojis, extractEmojis, getAddedEmojis, replaceAndExtractEmojis} from '@libs/EmojiUtils';
+import {containsOnlyEmojis, extractEmojis, getAddedEmojis, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
@@ -183,20 +183,6 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-
-/**
- * Insert ZWNJ between digits and emoji to prevent Safari character corruption bug
- * This prevents Safari from corrupting digit+emoji combinations
- * Only applies on Safari browsers (mobile and desktop)
- */
-function insertZWNJBetweenDigitAndEmoji(input: string): string {
-    // Only apply ZWNJ insertion on Safari browsers
-    if (!isSafari()) {
-        return input;
-    }
-    const regex = /(\d)([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu;
-    return input.replaceAll(regex, '$1\u200C$2');
-}
 
 /**
  * This component holds the value and selection state.
@@ -411,7 +397,6 @@ function ComposerWithSuggestions({
             const commentWithSpaceInserted = isEmojiInserted ? insertWhiteSpaceAtIndex(effectiveCommentValue, endIndex) : effectiveCommentValue;
             const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
 
-            // Safari ZWNJ normalization AFTER shortcodes replaced, so 234:smile: → 234😄 (with ZWNJ)
             const newComment = insertZWNJBetweenDigitAndEmoji(emojiConvertedText);
 
             // Calculate how many ZWNJ characters were inserted before the cursor position

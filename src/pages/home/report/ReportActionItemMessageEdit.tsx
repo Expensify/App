@@ -33,7 +33,7 @@ import {setShouldShowComposeInput} from '@libs/actions/Composer';
 import {clearActive, isActive as isEmojiPickerActive, isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
 import {deleteReportActionDraft, editReportComment, saveReportActionDraft} from '@libs/actions/Report';
-import {isMobileChrome} from '@libs/Browser/index.website';
+import {isMobileChrome, isSafari} from '@libs/Browser/index.website';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
 import {extractEmojis, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
@@ -243,17 +243,22 @@ function ReportActionItemMessageEdit({
         (newDraftInput: string) => {
             raiseIsScrollLayoutTriggered();
             const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
-
-            // Safari ZWNJ normalization AFTER shortcodes replaced, so 234:smile: → 234😄 (with ZWNJ)
-            // This prevents Safari's automatic keycap sequence detection that causes character corruption
             const newDraft = insertZWNJBetweenDigitAndEmoji(emojiConvertedText);
+
+            let zwnjOffset = 0;
+            if (isSafari() && cursorPosition !== undefined && cursorPosition !== null) {
+                const textBeforeCursor = emojiConvertedText.substring(0, cursorPosition);
+                const textWithZWNJBeforeCursor = insertZWNJBetweenDigitAndEmoji(textBeforeCursor);
+                zwnjOffset = textWithZWNJBeforeCursor.length - textBeforeCursor.length;
+            }
 
             emojisPresentBefore.current = emojis;
 
             setDraft(newDraft);
 
             if (newDraftInput !== newDraft) {
-                const position = Math.max((selection?.end ?? 0) + (newDraft.length - draftRef.current.length), cursorPosition ?? 0);
+                const adjustedCursorPosition = cursorPosition !== undefined && cursorPosition !== null ? cursorPosition + zwnjOffset : undefined;
+                const position = Math.max((selection?.end ?? 0) + (newDraft.length - draftRef.current.length), adjustedCursorPosition ?? 0);
                 setSelection({
                     start: position,
                     end: position,
