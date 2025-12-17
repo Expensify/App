@@ -14,14 +14,18 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      - name: Remove E/App version from package-lock.json
+        shell: bash
+        run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
+
       - name: Restore cspell cache
         # v4
         uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: .cspellcache
-          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'package-lock.json') }}-${{ github.sha }}
+          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-${{ github.sha }}
           restore-keys: |
-            cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'package-lock.json') }}-
+            cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-
             cspell-${{ runner.os }}-
 
       - name: Get changed files
@@ -48,4 +52,4 @@ jobs:
         if: always()
         with:
           path: .cspellcache
-          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'package-lock.json') }}-${{ github.sha }}
+          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-${{ github.sha }}
