@@ -130,6 +130,4 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
     );
 }
 
-WorkspaceCardListRow.displayName = 'WorkspaceCardListRow';
-
 export default WorkspaceCardListRow;

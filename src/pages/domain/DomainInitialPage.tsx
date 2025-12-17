@@ -45,7 +45,7 @@ type DomainMenuItem = {
 type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.INITIAL>;
 
 function DomainInitialPage({route}: DomainInitialPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['UserLock'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['UserLock']);
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -85,7 +85,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
 
     return (
         <ScreenWrapper
-            testID={DomainInitialPage.displayName}
+            testID="DomainInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={
                 !shouldDisplayLHB && (
@@ -138,7 +138,5 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         </ScreenWrapper>
     );
 }
-
-DomainInitialPage.displayName = 'DomainInitialPage';
 
 export default DomainInitialPage;

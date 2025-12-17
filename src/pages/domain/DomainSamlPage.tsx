@@ -33,7 +33,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['LaptopOnDeskWithCoffeeAndKey', 'LockClosed', 'OpenSafe', 'ShieldYellow'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LaptopOnDeskWithCoffeeAndKey', 'LockClosed', 'OpenSafe', 'ShieldYellow']);
 
     const domainAccountID = route.params?.domainAccountID;
     const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
@@ -75,7 +75,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
-            testID={DomainSamlPage.displayName}
+            testID="DomainSamlPage"
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
@@ -158,7 +158,5 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
         </ScreenWrapper>
     );
 }
-
-DomainSamlPage.displayName = 'DomainSamlPage';
 
 export default DomainSamlPage;
