@@ -8,7 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import {useTableContext} from '.';
+import {useTableContext} from './TableContext';
 import type {TableColumn} from './types';
 
 type TableHeaderProps = ViewProps;

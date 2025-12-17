@@ -14,6 +14,5 @@ const Table = Object.assign(TableComponent, {
 });
 
 export default Table;
-export {useTableContext} from './TableContext';
 export type {TableContextValue} from './TableContext';
 export type * from './types';
