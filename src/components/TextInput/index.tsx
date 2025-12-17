@@ -77,6 +77,4 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
     );
 }
 
-TextInput.displayName = 'TextInput';
-
 export default TextInput;

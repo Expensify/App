@@ -33,7 +33,7 @@ const defaultProps = {
     taxAmountColumnSize: CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
     onCheckboxPress: jest.fn(),
     shouldShowCheckbox: false,
-    columns: Object.values(CONST.REPORT.TRANSACTION_LIST.COLUMNS) as SearchColumnType[],
+    columns: Object.values(CONST.SEARCH.TABLE_COLUMNS) as SearchColumnType[],
     onButtonPress: jest.fn(),
     isParentHovered: false,
 };

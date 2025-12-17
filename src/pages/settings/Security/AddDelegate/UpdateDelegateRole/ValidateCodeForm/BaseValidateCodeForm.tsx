@@ -202,8 +202,6 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
     );
 }
 
-BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
-
 export type {BaseValidateCodeFormProps, ValidateCodeFormHandle};
 
 export default BaseValidateCodeForm;

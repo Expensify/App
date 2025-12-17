@@ -80,6 +80,4 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     return <FullScreenLoadingIndicator />;
 }
 
-LogOutPreviousUserPage.displayName = 'LogOutPreviousUserPage';
-
 export default LogOutPreviousUserPage;

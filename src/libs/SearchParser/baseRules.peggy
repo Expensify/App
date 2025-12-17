@@ -78,6 +78,7 @@ has = "has"i {return "has"; }
 is = "is"i {return "is"; }
 purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
+columns = "columns"i {return "columns"}
 
 // Value transformation rules
 values

@@ -167,8 +167,6 @@ function Checkbox({
     );
 }
 
-Checkbox.displayName = 'Checkbox';
-
 export default Checkbox;
 
 export type {CheckboxProps};

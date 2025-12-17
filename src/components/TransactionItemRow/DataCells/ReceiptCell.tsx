@@ -76,5 +76,4 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     );
 }
 
-ReceiptCell.displayName = 'ReceiptCell';
 export default ReceiptCell;

@@ -18,8 +18,8 @@ function ExpiredValidateCodeModal() {
     const styles = useThemeStyles();
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: false});
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -62,5 +62,4 @@ function ExpiredValidateCodeModal() {
     );
 }
 
-ExpiredValidateCodeModal.displayName = 'ExpiredValidateCodeModal';
 export default ExpiredValidateCodeModal;

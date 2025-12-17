@@ -58,5 +58,4 @@ function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
     );
 }
 
-AutoUpdateTime.displayName = 'AutoUpdateTime';
 export default AutoUpdateTime;

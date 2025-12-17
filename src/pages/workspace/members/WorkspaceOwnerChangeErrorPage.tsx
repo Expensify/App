@@ -45,7 +45,7 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
             policyID={policyID}
         >
             <ScreenWrapper
-                testID={WorkspaceOwnerChangeErrorPage.displayName}
+                testID="WorkspaceOwnerChangeErrorPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
@@ -79,7 +79,5 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceOwnerChangeErrorPage.displayName = 'WorkspaceOwnerChangeErrorPage';
 
 export default WorkspaceOwnerChangeErrorPage;

@@ -26,7 +26,7 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
 
     return (
         <ScreenWrapper
-            testID={NotFoundPage.displayName}
+            testID="NotFoundPage"
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
         >
             <FullPageNotFoundView
@@ -50,7 +50,5 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
         </ScreenWrapper>
     );
 }
-
-NotFoundPage.displayName = 'NotFoundPage';
 
 export default NotFoundPage;

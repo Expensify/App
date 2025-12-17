@@ -50,6 +50,4 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
     return `${translate('violations.memberBrokenConnectionError')} ${translate('violations.markAsCashToIgnore')}`;
 }
 
-BrokenConnectionDescription.displayName = 'BrokenConnectionDescription';
-
 export default BrokenConnectionDescription;

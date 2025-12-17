@@ -38,6 +38,4 @@ function RegistrationNumber({onNext, onMove, isEditing}: RegistrationNumberProps
     );
 }
 
-RegistrationNumber.displayName = 'RegistrationNumber';
-
 export default RegistrationNumber;

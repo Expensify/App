@@ -24,7 +24,7 @@ type IconMap = Record<IconName, IconAsset>;
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch']);
     const iconMap: IconMap = useMemo(
         () => ({
             [CONST.NEXT_STEP.ICONS.HOURGLASS]: icons.Hourglass,
@@ -56,7 +56,5 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         </View>
     );
 }
-
-MoneyReportHeaderStatusBar.displayName = 'MoneyReportHeaderStatusBar';
 
 export default MoneyReportHeaderStatusBar;

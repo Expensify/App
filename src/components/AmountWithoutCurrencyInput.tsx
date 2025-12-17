@@ -102,6 +102,4 @@ function AmountWithoutCurrencyInput({
     );
 }
 
-AmountWithoutCurrencyInput.displayName = 'AmountWithoutCurrencyInput';
-
 export default AmountWithoutCurrencyInput;

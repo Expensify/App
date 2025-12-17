@@ -168,6 +168,4 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-FullNameStep.displayName = 'FullNameStep';
-
 export default FullNameStep;

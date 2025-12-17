@@ -382,6 +382,4 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     );
 }
 
-WorkspaceDuplicateSelectFeaturesForm.displayName = 'WorkspaceDuplicateSelectFeaturesForm';
-
 export default WorkspaceDuplicateSelectFeaturesForm;

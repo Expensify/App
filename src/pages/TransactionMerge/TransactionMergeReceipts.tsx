@@ -25,7 +25,7 @@ type TransactionMergeReceiptsProps = {
 function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: TransactionMergeReceiptsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Zoom'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Zoom']);
 
     return (
         <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentBetween]}>
@@ -87,5 +87,4 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
     );
 }
 
-TransactionMergeReceipts.displayName = 'TransactionMergeReceipts';
 export default TransactionMergeReceipts;

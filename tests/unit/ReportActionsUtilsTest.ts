@@ -1,8 +1,10 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
+import ROUTES from '@src/ROUTES';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
@@ -10,6 +12,7 @@ import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {getCardIssuedMessage, getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction} from '../../src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -1411,6 +1414,14 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
+
+        it("should return false for concierge categorize suggestion whisper message when the policy's category feature is disabled", () => {
+            const reportAction: ReportAction = {...createRandomReportAction(123), actionName: CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS};
+            const categoryFeatureDisabledPolicy = {...createRandomPolicy(1234), areCategoriesEnabled: false};
+
+            const result = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, categoryFeatureDisabledPolicy);
+            expect(result).toBe(false);
+        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {
@@ -1520,6 +1531,26 @@ describe('ReportActionsUtils', () => {
                 previousMessage: [],
             };
             expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
+        });
+    });
+
+    describe('getHarvestCreatedExpenseReportMessage', () => {
+        let environmentURL: string;
+        beforeAll(async () => {
+            environmentURL = await getEnvironmentURL();
+        });
+
+        it('should return the correct message with a valid report ID and report name', () => {
+            const reportID = '12345';
+            const reportName = 'Test Expense Report';
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', {
+                reportUrl: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`,
+                reportName,
+            });
+
+            const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
+
+            expect(result).toBe(expectedMessage);
         });
     });
 });

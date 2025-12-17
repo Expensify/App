@@ -52,7 +52,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={UpdateDelegateRolePage.displayName}
+            testID="UpdateDelegateRolePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -78,7 +78,5 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
         </ScreenWrapper>
     );
 }
-
-UpdateDelegateRolePage.displayName = 'UpdateDelegateRolePage';
 
 export default UpdateDelegateRolePage;

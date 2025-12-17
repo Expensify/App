@@ -22,7 +22,7 @@ type ApprovalWorkflowSectionProps = {
 };
 
 function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Users', 'UserCheck'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();

@@ -28,6 +28,4 @@ function RequestorStep({shouldShowOnfido, onBackButtonPress, ref}: RequestorStep
     );
 }
 
-RequestorStep.displayName = 'RequestorStep';
-
 export default RequestorStep;

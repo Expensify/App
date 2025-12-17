@@ -122,7 +122,5 @@ function ProcessMoneyReportHoldMenu({
     );
 }
 
-ProcessMoneyReportHoldMenu.displayName = 'ProcessMoneyReportHoldMenu';
-
 export default ProcessMoneyReportHoldMenu;
 export type {ActionHandledType};

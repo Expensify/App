@@ -38,6 +38,4 @@ function CardPreview() {
     );
 }
 
-CardPreview.displayName = 'CardPreview';
-
 export default CardPreview;

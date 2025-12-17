@@ -50,6 +50,4 @@ function SearchPageFooter({count, total, currency}: SearchPageFooterProps) {
     );
 }
 
-SearchPageFooter.displayName = 'SearchPageFooter';
-
 export default SearchPageFooter;

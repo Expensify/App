@@ -81,7 +81,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
 
     return (
         <ScreenWrapper
-            testID={SetDefaultWorkspacePage.displayName}
+            testID="SetDefaultWorkspacePage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -108,7 +108,5 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         </ScreenWrapper>
     );
 }
-
-SetDefaultWorkspacePage.displayName = 'SetDefaultWorkspacePage';
 
 export default SetDefaultWorkspacePage;

@@ -323,7 +323,7 @@ function getSynchronizationErrorMessage(
     if (isAuthenticationError(policy, connectionName)) {
         return (
             <Text style={[styles?.formError]}>
-                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', {connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]})} </Text>
+                <Text style={[styles?.formError]}>{translate('workspace.common.authenticationError', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName])} </Text>
                 {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
                     <>
                         <TextLink

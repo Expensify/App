@@ -32,7 +32,7 @@ import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
 function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -73,7 +73,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                testID={WorkspaceOverviewSharePage.displayName}
+                testID="WorkspaceOverviewSharePage"
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -136,7 +136,5 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceOverviewSharePage.displayName = 'WorkspaceOverviewSharePage';
 
 export default withPolicy(WorkspaceOverviewSharePage);

@@ -1,23 +1,25 @@
-import React, {useMemo} from 'react';
+import React, {Fragment, useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportSearchHeader from '@components/ReportSearchHeader';
+import type {SearchColumnType} from '@components/Search/types';
 import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getBase62ReportID from '@libs/getBase62ReportID';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import StatusCell from './StatusCell';
-import TitleCell from './TitleCell';
+import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 import UserInfoCell from './UserInfoCell';
@@ -36,6 +38,7 @@ type ExpenseReportListItemRowProps = {
     isDisabledCheckbox?: boolean;
     isHovered?: boolean;
     isFocused?: boolean;
+    columns?: SearchColumnType[];
 };
 
 function ExpenseReportListItemRow({
@@ -50,6 +53,7 @@ function ExpenseReportListItemRow({
     isSelectAllChecked,
     isIndeterminate,
     isDisabledCheckbox,
+    columns = [],
     isHovered = false,
     isFocused = false,
 }: ExpenseReportListItemRowProps) {
@@ -57,7 +61,7 @@ function ExpenseReportListItemRow({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const {total, currency} = useMemo(() => {
         let reportTotal = item.total ?? 0;
@@ -74,6 +78,106 @@ function ExpenseReportListItemRow({
 
         return {total: reportTotal, currency: reportCurrency};
     }, [item.type, item.total, item.currency]);
+
+    const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
+                <DateCell
+                    date={item.created ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, false, false, false, false, item.shouldShowYearSubmitted)]}>
+                <DateCell
+                    date={item.submitted ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, false, item.shouldShowYearApproved)]}>
+                <DateCell
+                    date={item.approved ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.STATUS]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
+                <StatusCell
+                    stateNum={item.stateNum}
+                    statusNum={item.statusNum}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
+                <TextCell
+                    text={item.reportName ?? ''}
+                    isLargeScreenWidth={isLargeScreenWidth}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.FROM]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                {!!item.from && (
+                    <UserInfoCell
+                        accountID={item.from.accountID}
+                        avatar={item.from.avatar}
+                        displayName={item.from.displayName ?? item.from.login ?? ''}
+                    />
+                )}
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.TO]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TO)]}>
+                {!!item.to && (
+                    <UserInfoCell
+                        accountID={item.to.accountID}
+                        avatar={item.to.avatar}
+                        displayName={item.to.displayName ?? item.to.login ?? ''}
+                    />
+                )}
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+                <TotalCell
+                    total={total}
+                    currency={currency}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
+                <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : item.reportID} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}>
+                <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(item.reportID))} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                <ActionCell
+                    action={item.action}
+                    goToItem={onButtonPress}
+                    isSelected={item.isSelected}
+                    isLoading={isActionLoading}
+                    policyID={item.policyID}
+                    reportID={item.reportID}
+                    hash={item.hash}
+                    amount={item.total}
+                />
+            </View>
+        ),
+    };
 
     const thereIsFromAndTo = !!item?.from && !!item?.to;
     const showUserInfo = (item.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (item.type === CONST.REPORT.TYPE.EXPENSE && !!item?.from);
@@ -151,61 +255,11 @@ function ExpenseReportListItemRow({
                         subscriptAvatarBorderColor={finalAvatarBorderColor}
                     />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
-                    <DateCell
-                        created={item.created ?? ''}
-                        showTooltip
-                        isLargeScreenWidth
-                    />
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
-                    <StatusCell
-                        stateNum={item.stateNum}
-                        statusNum={item.statusNum}
-                    />
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
-                    <TitleCell
-                        text={item.reportName ?? ''}
-                        isLargeScreenWidth={isLargeScreenWidth}
-                    />
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
-                    {!!item.from && (
-                        <UserInfoCell
-                            accountID={item.from.accountID}
-                            avatar={item.from.avatar}
-                            displayName={item.from.displayName ?? item.from.login ?? ''}
-                        />
-                    )}
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TO)]}>
-                    {!!item.to && (
-                        <UserInfoCell
-                            accountID={item.to.accountID}
-                            avatar={item.to.avatar}
-                            displayName={item.to.displayName ?? item.to.login ?? ''}
-                        />
-                    )}
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
-                    <TotalCell
-                        total={total}
-                        currency={currency}
-                    />
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                    <ActionCell
-                        action={item.action}
-                        goToItem={onButtonPress}
-                        isSelected={item.isSelected}
-                        isLoading={isActionLoading}
-                        policyID={item.policyID}
-                        reportID={item.reportID}
-                        hash={item.hash}
-                        amount={item.total}
-                    />
-                </View>
+
+                {columns.map((column) => {
+                    const CellComponent = columnComponents[column as keyof typeof columnComponents];
+                    return <Fragment key={column}>{CellComponent}</Fragment>;
+                })}
             </View>
             <View style={styles.ml2}>
                 <Icon
@@ -219,7 +273,5 @@ function ExpenseReportListItemRow({
         </View>
     );
 }
-
-ExpenseReportListItemRow.displayName = 'ExpenseReportListItemRow';
 
 export default ExpenseReportListItemRow;

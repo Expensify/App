@@ -119,7 +119,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID={NewTaskPage.displayName}
+            testID="NewTaskPage"
         >
             <FullPageNotFoundView
                 shouldShow={!isAllowedToCreateTask}
@@ -207,7 +207,5 @@ function NewTaskPage({route}: NewTaskPageProps) {
         </ScreenWrapper>
     );
 }
-
-NewTaskPage.displayName = 'NewTaskPage';
 
 export default NewTaskPage;

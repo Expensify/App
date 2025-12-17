@@ -81,7 +81,7 @@ function SuggestionMention({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone', 'FallbackAvatar'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone', 'FallbackAvatar']);
 
     const currentReportID = useCurrentReportID();
     const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID?.currentReportID}`];
@@ -497,7 +497,5 @@ function SuggestionMention({
         />
     );
 }
-
-SuggestionMention.displayName = 'SuggestionMention';
 
 export default SuggestionMention;

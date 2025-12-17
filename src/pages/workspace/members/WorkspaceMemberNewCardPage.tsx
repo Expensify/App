@@ -65,7 +65,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const lazyIllustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage'] as const);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const [cardFeeds, , defaultFeed] = useCardFeeds(policyID);
@@ -197,7 +197,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceMemberNewCardPage.displayName}
+                testID="WorkspaceMemberNewCardPage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
@@ -224,7 +224,5 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceMemberNewCardPage.displayName = 'WorkspaceMemberNewCardPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceMemberNewCardPage);

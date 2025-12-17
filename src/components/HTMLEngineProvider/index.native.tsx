@@ -6,6 +6,4 @@ function HTMLEngineProvider({children}: ChildrenProps) {
     return <BaseHTMLEngineProvider enableExperimentalBRCollapsing>{children}</BaseHTMLEngineProvider>;
 }
 
-HTMLEngineProvider.displayName = 'HTMLEngineProvider';
-
 export default HTMLEngineProvider;

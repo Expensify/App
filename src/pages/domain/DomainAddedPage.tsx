@@ -35,7 +35,7 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
     }
 
     return (
-        <ScreenWrapper testID={DomainAddedPage.displayName}>
+        <ScreenWrapper testID="DomainAddedPage">
             <HeaderWithBackButton title={translate('domain.domainAdded.title')} />
             <ConfirmationPage
                 illustration={Encryption}
@@ -51,5 +51,4 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
     );
 }
 
-DomainAddedPage.displayName = 'DomainAddedPage';
 export default DomainAddedPage;

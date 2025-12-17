@@ -15,6 +15,4 @@ function OnboardingPrivateDomain(props: OnboardingPrivateDomainProps) {
     );
 }
 
-OnboardingPrivateDomain.displayName = 'OnboardingPrivateDomain';
-
 export default OnboardingPrivateDomain;

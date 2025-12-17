@@ -54,6 +54,4 @@ function ProactiveAppReviewModalManager() {
     );
 }
 
-ProactiveAppReviewModalManager.displayName = 'ProactiveAppReviewModalManager';
-
 export default ProactiveAppReviewModalManager;

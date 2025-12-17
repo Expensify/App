@@ -98,7 +98,7 @@ function ThumbnailImage({
     loadingIndicatorStyles,
     onLoad,
 }: ThumbnailImageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'OfflineCloud'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'OfflineCloud']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -180,5 +180,4 @@ function ThumbnailImage({
     );
 }
 
-ThumbnailImage.displayName = 'ThumbnailImage';
 export default React.memo(ThumbnailImage);

@@ -10,13 +10,14 @@ import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports,
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
-import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, OpenSearchPageParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import Navigation from '@libs/Navigation/Navigation';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
@@ -38,8 +39,10 @@ import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
@@ -78,8 +81,6 @@ function handleActionButtonPress(
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
     currentSearchKey?: SearchKey,
     onDEWModalOpen?: () => void,
-    isDelegateAccessRestricted?: boolean,
-    onDelegateAccessRestricted?: () => void,
 ) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -94,17 +95,9 @@ function handleActionButtonPress(
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
-            if (isDelegateAccessRestricted) {
-                onDelegateAccessRestricted?.();
-                return;
-            }
             getPayActionCallback(hash, item, goToItem, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
-            if (isDelegateAccessRestricted) {
-                onDelegateAccessRestricted?.();
-                return;
-            }
             if (hasDynamicExternalWorkflow(snapshotPolicy)) {
                 onDEWModalOpen?.();
                 return;
@@ -354,8 +347,8 @@ function deleteSavedSearch(hash: number) {
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
-function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParams) {
-    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts});
+function openSearchPage() {
+    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
 }
 
 function search({
@@ -792,6 +785,8 @@ function rejectMoneyRequestsOnSearch(
         return acc;
     }, {});
 
+    const isSingleReport = Object.keys(transactionsByReport).length === 1;
+    let urlToNavigateBack;
     for (const [reportID, selectedTransactionIDs] of Object.entries(transactionsByReport)) {
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const totalReportTransactions = report?.transactionCount ?? 0;
@@ -811,7 +806,22 @@ function rejectMoneyRequestsOnSearch(
                 rejectMoneyRequest(transactionID, reportID, comment, policy, {sharedRejectedToReportID});
             }
         }
+        if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {
+            const searchFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+            const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
+            const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
+            const isUserOnSearchMoneyRequestReport = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
+            if (isUserOnSearchPage) {
+                urlToNavigateBack = undefined;
+            } else if (isUserOnSearchMoneyRequestReport) {
+                const lastRouteParams = lastRoute?.params;
+                urlToNavigateBack = lastRouteParams && 'backTo' in lastRouteParams ? lastRouteParams?.backTo : undefined;
+            } else {
+                urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report?.chatReportID);
+            }
+        }
     }
+    return urlToNavigateBack;
 }
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
@@ -961,6 +971,8 @@ function clearAdvancedFilters() {
         switch (key) {
             case FILTER_KEYS.GROUP_BY:
                 continue;
+            case FILTER_KEYS.COLUMNS:
+                continue;
             case FILTER_KEYS.TYPE:
                 values[key] = CONST.SEARCH.DATA_TYPES.EXPENSE;
                 continue;
@@ -1039,39 +1051,17 @@ function isValidBulkPayOption(item: PopoverMenuItem) {
 /**
  * Handles the click event when user selects bulk pay action.
  */
-function handleBulkPayItemSelected(params: {
-    item: PopoverMenuItem;
-    triggerKYCFlow: (params: ContinueActionParams) => void;
-    isAccountLocked: boolean;
-    showLockedAccountModal: () => void;
-    policy: OnyxEntry<Policy>;
-    latestBankItems: BankAccountMenuItem[] | undefined;
-    activeAdminPolicies: Policy[];
-    isUserValidated: boolean | undefined;
-    isDelegateAccessRestricted: boolean;
-    showDelegateNoAccessModal: () => void;
-    confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void;
-}) {
-    const {
-        item,
-        triggerKYCFlow,
-        isAccountLocked,
-        showLockedAccountModal,
-        policy,
-        latestBankItems,
-        activeAdminPolicies,
-        isUserValidated,
-        isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-        confirmPayment,
-    } = params;
-
-    // If delegate access is restricted, we should not allow bulk pay with business bank account or bulk pay
-    if (isDelegateAccessRestricted && 'value' in item && (item.value === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || item.value === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT)) {
-        showDelegateNoAccessModal();
-        return;
-    }
-
+function handleBulkPayItemSelected(
+    item: PopoverMenuItem,
+    triggerKYCFlow: (params: ContinueActionParams) => void,
+    isAccountLocked: boolean,
+    showLockedAccountModal: () => void,
+    policy: OnyxEntry<Policy>,
+    latestBankItems: BankAccountMenuItem[] | undefined,
+    activeAdminPolicies: Policy[],
+    isUserValidated: boolean | undefined,
+    confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void,
+) {
     const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
     // Policy id is also a last payment method so we shouldn't early return here for that case.
     if (!isValidBulkPayOption(item) && !selectedPolicy) {

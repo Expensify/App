@@ -13,7 +13,7 @@ function PendingMapView({title = '', subtitle = '', style, isSmallerIcon = false
     const hasTextContent = !isEmpty(title) || !isEmpty(subtitle);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['EmptyStateRoutePending'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['EmptyStateRoutePending']);
     const iconSize = isSmallerIcon ? variables.iconSizeSuperLarge : variables.iconSizeUltraLarge;
     return (
         <View style={[styles.mapPendingView, style]}>
@@ -38,7 +38,5 @@ function PendingMapView({title = '', subtitle = '', style, isSmallerIcon = false
         </View>
     );
 }
-
-PendingMapView.displayName = 'PendingMapView';
 
 export default PendingMapView;

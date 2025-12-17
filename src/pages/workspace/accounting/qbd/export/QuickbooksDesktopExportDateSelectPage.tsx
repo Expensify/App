@@ -66,7 +66,7 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksDesktopExportDateSelectPage.displayName}
+            displayName="QuickbooksDesktopExportDateSelectPage"
             sections={[{data}]}
             listItem={RadioListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbd.exportDate.description')}</Text>}
@@ -88,7 +88,5 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
         />
     );
 }
-
-QuickbooksDesktopExportDateSelectPage.displayName = 'QuickbooksDesktopExportDateSelectPage';
 
 export default withPolicyConnections(QuickbooksDesktopExportDateSelectPage);

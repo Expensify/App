@@ -61,7 +61,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Zoom'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Zoom']);
 
     const originalImageWidth = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
@@ -368,7 +368,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
-                testID={AvatarCropModal.displayName}
+                testID="AvatarCropModal"
             >
                 {shouldUseNarrowLayout && <HeaderGap />}
                 <HeaderWithBackButton
@@ -448,7 +448,5 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         </Modal>
     );
 }
-
-AvatarCropModal.displayName = 'AvatarCropModal';
 
 export default AvatarCropModal;

@@ -58,6 +58,4 @@ function ConfirmDelegateMagicCodePage({route}: ConfirmDelegateMagicCodePageProps
     );
 }
 
-ConfirmDelegateMagicCodePage.displayName = 'ConfirmDelegateMagicCodePage';
-
 export default ConfirmDelegateMagicCodePage;

@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import CustomStylesForChildrenProvider from './CustomStylesForChildrenProvider';
 import ErrorMessageRow from './ErrorMessageRow';
 import ImageSVG from './ImageSVG';
@@ -97,7 +97,7 @@ function OfflineWithFeedback({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
 
-    const hasErrors = !isEmptyObject(errors ?? {});
+    const hasErrors = !isEmptyValueObject(errors ?? {});
 
     const isOfflinePendingAction = !!isOffline && !!pendingAction;
     const isUpdateOrDeleteError = hasErrors && (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -172,8 +172,6 @@ function OfflineWithFeedback({
         </View>
     );
 }
-
-OfflineWithFeedback.displayName = 'OfflineWithFeedback';
 
 export default OfflineWithFeedback;
 export type {OfflineWithFeedbackProps};

@@ -51,8 +51,6 @@ function ReportFieldTypePicker({defaultValue, onOptionSelected}: ReportFieldType
     );
 }
 
-ReportFieldTypePicker.displayName = 'ReportFieldTypePicker';
-
 export default ReportFieldTypePicker;
 
 export type {ReportFieldItemType};

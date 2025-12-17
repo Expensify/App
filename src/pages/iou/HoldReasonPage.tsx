@@ -79,6 +79,4 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     );
 }
 
-HoldReasonPage.displayName = 'MoneyRequestHoldReasonPage';
-
 export default HoldReasonPage;

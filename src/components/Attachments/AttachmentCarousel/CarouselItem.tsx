@@ -108,6 +108,4 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
     );
 }
 
-CarouselItem.displayName = 'CarouselItem';
-
 export default CarouselItem;

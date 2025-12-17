@@ -124,6 +124,4 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
     );
 }
 
-Confirmation.displayName = 'Confirmation';
-
 export default Confirmation;

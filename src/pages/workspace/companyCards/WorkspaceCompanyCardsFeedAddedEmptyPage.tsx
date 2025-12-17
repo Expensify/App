@@ -24,7 +24,7 @@ type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
 function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAssignCardButton, shouldShowGBDisclaimer}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['CompanyCardsEmptyState'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['CompanyCardsEmptyState']);
 
     return (
         <ScrollView
@@ -54,7 +54,5 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAs
         </ScrollView>
     );
 }
-
-WorkspaceCompanyCardsFeedAddedEmptyPage.displayName = 'WorkspaceCompanyCardsFeedAddedEmptyPage';
 
 export default WorkspaceCompanyCardsFeedAddedEmptyPage;

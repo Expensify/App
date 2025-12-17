@@ -95,6 +95,7 @@ function IOURequestStepDistance({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const waypoints = useMemo(
         () =>
             optimisticWaypoints ??
@@ -381,6 +382,7 @@ function IOURequestStepDistance({
                     isASAPSubmitBetaEnabled,
                     transactionViolations,
                     quickAction,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 });
                 return;
             }
@@ -575,7 +577,7 @@ function IOURequestStepDistance({
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
-            testID={IOURequestStepDistance.displayName}
+            testID="IOURequestStepDistance"
             shouldShowNotFoundPage={(isEditing && !transaction?.comment?.waypoints) || shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
@@ -621,8 +623,6 @@ function IOURequestStepDistance({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepDistance.displayName = 'IOURequestStepDistance';
 
 const IOURequestStepDistanceWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistance);
 // eslint-disable-next-line rulesdir/no-negated-variables

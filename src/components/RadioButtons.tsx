@@ -76,7 +76,5 @@ function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyl
     );
 }
 
-RadioButtons.displayName = 'RadioButtons';
-
 export type {Choice};
 export default RadioButtons;

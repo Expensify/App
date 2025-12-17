@@ -77,6 +77,4 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     );
 }
 
-TopBar.displayName = 'TopBar';
-
 export default TopBar;

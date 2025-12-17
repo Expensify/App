@@ -125,6 +125,4 @@ function ImportSpreadsheetColumns({
     );
 }
 
-ImportSpreadsheetColumns.displayName = 'ImportSpreadsheetColumns';
-
 export default ImportSpreadsheetColumns;

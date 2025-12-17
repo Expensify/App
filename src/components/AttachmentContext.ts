@@ -16,8 +16,6 @@ const AttachmentContext = createContext<AttachmentContextProps>({
     hashKey: undefined,
 });
 
-AttachmentContext.displayName = 'AttachmentContext';
-
 export {
     // eslint-disable-next-line import/prefer-default-export
     AttachmentContext,

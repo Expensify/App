@@ -12,7 +12,7 @@ import ROUTES from '@src/ROUTES';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function DisabledPage() {
-    const illustrations = useMemoizedLazyIllustrations(['LockOpen'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockOpen']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -39,7 +39,5 @@ function DisabledPage() {
         </TwoFactorAuthWrapper>
     );
 }
-
-DisabledPage.displayName = 'DisabledPage';
 
 export default DisabledPage;

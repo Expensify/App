@@ -223,17 +223,13 @@ describe('ValidationUtils', () => {
         test('Should return an error message for a date before the minimum age requirement', () => {
             const invalidDate: string = format(subYears(new Date(), 17), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 17 years ago
             const error = getAgeRequirementError(invalidDate, 18, 150);
-            expect(error).toEqual(
-                translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)}),
-            );
+            expect(error).toEqual(translateLocal('privatePersonalDetails.error.dateShouldBeBefore', format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)));
         });
 
         test('Should return an error message for a date after the maximum age requirement', () => {
             const invalidDate: string = format(subYears(new Date(), 160), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 160 years ago
             const error = getAgeRequirementError(invalidDate, 18, 150);
-            expect(error).toEqual(
-                translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)}),
-            );
+            expect(error).toEqual(translateLocal('privatePersonalDetails.error.dateShouldBeAfter', format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)));
         });
 
         test('Should return an error message for an invalid date', () => {

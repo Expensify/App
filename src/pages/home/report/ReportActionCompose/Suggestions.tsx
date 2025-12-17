@@ -177,8 +177,6 @@ function Suggestions({
     );
 }
 
-Suggestions.displayName = 'Suggestions';
-
 export default Suggestions;
 
 export type {SuggestionProps};

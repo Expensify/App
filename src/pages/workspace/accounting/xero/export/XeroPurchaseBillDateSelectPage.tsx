@@ -66,7 +66,7 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <SelectionScreen
-            displayName={XeroPurchaseBillDateSelectPage.displayName}
+            displayName="XeroPurchaseBillDateSelectPage"
             title="workspace.xero.exportDate.label"
             headerContent={headerContent}
             sections={[{data}]}
@@ -85,7 +85,5 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-XeroPurchaseBillDateSelectPage.displayName = 'XeroPurchaseBillDateSelectPage';
 
 export default withPolicyConnections(XeroPurchaseBillDateSelectPage);

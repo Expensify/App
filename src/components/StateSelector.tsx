@@ -98,8 +98,6 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
     );
 }
 
-StateSelector.displayName = 'StateSelector';
-
 export default StateSelector;
 
 export type {State};

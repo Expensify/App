@@ -30,7 +30,7 @@ function AnimatedSettlementButton({
 }: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'Checkmark'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'Checkmark']);
     const isAnimationRunning = isPaidAnimationRunning || isApprovedAnimationRunning;
     const buttonDuration = isPaidAnimationRunning ? CONST.ANIMATION_PAID_DURATION : CONST.ANIMATION_THUMBS_UP_DURATION;
     const buttonDelay = CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
@@ -126,7 +126,5 @@ function AnimatedSettlementButton({
         </Animated.View>
     );
 }
-
-AnimatedSettlementButton.displayName = 'AnimatedSettlementButton';
 
 export default AnimatedSettlementButton;

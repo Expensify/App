@@ -46,7 +46,7 @@ function IOURequestRedirectToStartPage({
 
     if (!isIouTypeValid || !isIouRequestTypeValid) {
         return (
-            <ScreenWrapper testID={IOURequestRedirectToStartPage.displayName}>
+            <ScreenWrapper testID="IOURequestRedirectToStartPage">
                 <FullPageNotFoundView shouldShow />
             </ScreenWrapper>
         );
@@ -54,7 +54,5 @@ function IOURequestRedirectToStartPage({
 
     return null;
 }
-
-IOURequestRedirectToStartPage.displayName = 'IOURequestRedirectToStartPage';
 
 export default IOURequestRedirectToStartPage;

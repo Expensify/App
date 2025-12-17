@@ -68,7 +68,7 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
             <ScreenWrapper
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceOverviewDescriptionPage.displayName}
+                testID="WorkspaceOverviewDescriptionPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.editor.descriptionInputLabel')}
@@ -115,7 +115,5 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceOverviewDescriptionPage.displayName = 'WorkspaceOverviewDescriptionPage';
 
 export default withPolicy(WorkspaceOverviewDescriptionPage);

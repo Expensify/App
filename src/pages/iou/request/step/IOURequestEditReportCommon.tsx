@@ -75,7 +75,7 @@ function IOURequestEditReportCommon({
     createReport,
     isPerDiemRequest,
 }: Props) {
-    const icons = useMemoizedLazyExpensifyIcons(['Document'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Document']);
     const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});

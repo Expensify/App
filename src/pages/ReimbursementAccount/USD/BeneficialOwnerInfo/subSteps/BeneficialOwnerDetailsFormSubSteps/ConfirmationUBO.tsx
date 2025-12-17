@@ -70,6 +70,4 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
     );
 }
 
-ConfirmationUBO.displayName = 'ConfirmationUBO';
-
 export default ConfirmationUBO;

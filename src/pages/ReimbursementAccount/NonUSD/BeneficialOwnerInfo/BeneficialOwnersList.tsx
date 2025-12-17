@@ -101,6 +101,4 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
     );
 }
 
-BeneficialOwnersList.displayName = 'BeneficialOwnersList';
-
 export default BeneficialOwnersList;

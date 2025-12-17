@@ -15,6 +15,7 @@ import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import type TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
@@ -37,8 +38,10 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {getTableMinWidth} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
@@ -226,6 +229,10 @@ function SearchList({
 
     const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
 
+    const {windowWidth} = useWindowDimensions();
+    const minTableWidth = getTableMinWidth(columns);
+    const shouldScrollHorizontally = !!SearchTableHeader && minTableWidth > windowWidth;
+
     const handleLongPressRow = useCallback(
         (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
             const currentRoute = navigationRef.current?.getCurrentRoute();
@@ -375,7 +382,7 @@ function SearchList({
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
 
-    return (
+    const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
@@ -441,6 +448,21 @@ function SearchList({
             </Modal>
         </View>
     );
+
+    if (shouldScrollHorizontally) {
+        return (
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator
+                style={styles.flex1}
+                contentContainerStyle={{width: minTableWidth}}
+            >
+                {content}
+            </ScrollView>
+        );
+    }
+
+    return content;
 }
 
 export default SearchList;

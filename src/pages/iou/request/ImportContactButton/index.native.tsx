@@ -31,6 +31,4 @@ function ImportContactButton({showImportContacts, inputHelperText, isInSearch = 
     ) : null;
 }
 
-ImportContactButton.displayName = 'ImportContactButton';
-
 export default ImportContactButton;

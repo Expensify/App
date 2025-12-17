@@ -73,7 +73,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={YearPickerModal.displayName}
+                testID="YearPickerModal"
             >
                 <HeaderWithBackButton
                     title={translate('yearPickerPage.year')}
@@ -97,7 +97,5 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
         </Modal>
     );
 }
-
-YearPickerModal.displayName = 'YearPickerModal';
 
 export default YearPickerModal;

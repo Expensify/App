@@ -36,7 +36,7 @@ type WorkspaceExpensifyCardPageEmptyStateProps = {
 } & WithPolicyAndFullscreenLoadingProps;
 
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {
-    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'HandCard', 'ExpensifyCardIllustration'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'HandCard', 'ExpensifyCardIllustration']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -150,7 +150,5 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         </WorkspacePageWithSections>
     );
 }
-
-WorkspaceExpensifyCardPageEmptyState.displayName = 'WorkspaceExpensifyCardPageEmptyState';
 
 export default withPolicyAndFullscreenLoading(WorkspaceExpensifyCardPageEmptyState);

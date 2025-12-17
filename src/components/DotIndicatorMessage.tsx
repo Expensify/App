@@ -47,7 +47,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     const [shouldShowErrorModal, setShouldShowErrorModal] = useState(false);
 
@@ -128,7 +128,5 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         </View>
     );
 }
-
-DotIndicatorMessage.displayName = 'DotIndicatorMessage';
 
 export default DotIndicatorMessage;

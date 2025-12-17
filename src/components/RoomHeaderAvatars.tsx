@@ -38,7 +38,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
         }
     };
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserAccountID = getCurrentUserAccountID();
@@ -72,7 +72,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                     errors={report.errorFields?.avatar ?? null}
                     errorRowStyles={styles.mt6}
                     onErrorClose={() => clearAvatarErrors(report.reportID)}
-                    style={[styles.w100, styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
+                    style={[styles.mb3, styles.w100, styles.alignItemsCenter]}
                     type={icon.type}
                     editorMaskImage={expensifyIcons.ImageCropSquareMask}
                     name={icon.name}
@@ -156,7 +156,5 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
         </View>
     );
 }
-
-RoomHeaderAvatars.displayName = 'RoomHeaderAvatars';
 
 export default memo(RoomHeaderAvatars);

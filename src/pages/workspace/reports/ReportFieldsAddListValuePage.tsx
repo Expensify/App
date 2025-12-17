@@ -82,7 +82,7 @@ function ReportFieldsAddListValuePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={ReportFieldsAddListValuePage.displayName}
+                testID="ReportFieldsAddListValuePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -112,7 +112,5 @@ function ReportFieldsAddListValuePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportFieldsAddListValuePage.displayName = 'ReportFieldsAddListValuePage';
 
 export default withPolicyAndFullscreenLoading(ReportFieldsAddListValuePage);

@@ -67,18 +67,17 @@ function MoneyReportHeaderKYCDropdown({
                     }}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
-                    shouldPopoverUseScrollView={applicableSecondaryActions.length >= 5}
+                    shouldPopoverUseScrollView={applicableSecondaryActions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                     customText={translate('common.more')}
                     options={applicableSecondaryActions}
                     isSplitButton={false}
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
                     shouldUseModalPaddingStyle
+                    sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
                 />
             )}
         </KYCWall>
     );
 }
-
-MoneyReportHeaderKYCDropdown.displayName = 'MoneyReportHeaderKYCDropdown';
 
 export default memo(MoneyReportHeaderKYCDropdown);

@@ -24,6 +24,4 @@ function TextPill({color, textStyles, children}: TextPillProps) {
     );
 }
 
-TextPill.displayName = 'TextPill';
-
 export default TextPill;

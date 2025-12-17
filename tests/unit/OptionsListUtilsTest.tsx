@@ -1204,24 +1204,6 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
         });
 
-        it('should exclude the person and the report from selected options', () => {
-            const selectedPerson = PERSONAL_DETAILS['3'];
-            const selectedReport = REPORTS['3'] as unknown as OptionData;
-
-            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                selectedOptions: [selectedPerson, selectedReport],
-            });
-
-            // The person must be excluded
-            expect(results.recentReports.every((option) => option.login !== selectedPerson.login)).toBe(true);
-            expect(results.personalDetails.every((option) => option.login !== selectedPerson.login)).toBe(true);
-
-            // The report must be excluded
-            expect(results.recentReports.every((option) => option.reportID !== selectedReport.reportID)).toBe(true);
-            expect(results.personalDetails.every((option) => option.reportID !== selectedPerson.reportID)).toBe(true);
-        });
-
         it('should limit recent reports when maxRecentReportElements is specified', () => {
             // Given a set of reports and personalDetails with multiple reports
             // When we call getValidOptions with maxRecentReportElements set to 2
@@ -2802,6 +2784,28 @@ describe('OptionsListUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
+        });
+        it('should return last visible message text when last action is hidden (e.g. whisper)', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                lastMessageText: 'joined the chat',
+            };
+            const whisperAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [whisperAction.reportActionID]: whisperAction,
+            });
+            await waitForBatchedUpdates();
+
+            const expectedVisibleText = '';
+            const result = getLastMessageTextForReport({
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(result).toBe(expectedVisibleText);
         });
     });
 

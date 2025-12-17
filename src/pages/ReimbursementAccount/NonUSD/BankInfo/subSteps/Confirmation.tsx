@@ -78,6 +78,4 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     );
 }
 
-Confirmation.displayName = 'Confirmation';
-
 export default Confirmation;

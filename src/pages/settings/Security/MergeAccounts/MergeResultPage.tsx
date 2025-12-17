@@ -221,7 +221,7 @@ function MergeResultPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={MergeResultPage.displayName}
+            testID="MergeResultPage"
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
@@ -253,7 +253,5 @@ function MergeResultPage() {
         </ScreenWrapper>
     );
 }
-
-MergeResultPage.displayName = 'MergeResultPage';
 
 export default MergeResultPage;

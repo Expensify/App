@@ -64,7 +64,7 @@ function ReviewTag() {
     };
 
     return (
-        <ScreenWrapper testID={ReviewTag.displayName}>
+        <ScreenWrapper testID="ReviewTag">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
@@ -79,7 +79,5 @@ function ReviewTag() {
         </ScreenWrapper>
     );
 }
-
-ReviewTag.displayName = 'ReviewTag';
 
 export default ReviewTag;

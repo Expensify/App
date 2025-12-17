@@ -20,6 +20,4 @@ function KeyboardAvoidingView({shouldOffsetBottomSafeAreaPadding = false, keyboa
     );
 }
 
-KeyboardAvoidingView.displayName = 'KeyboardAvoidingView';
-
 export default KeyboardAvoidingView;

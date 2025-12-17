@@ -46,6 +46,4 @@ function ValidateLoginPage({
     return <FullScreenLoadingIndicator />;
 }
 
-ValidateLoginPage.displayName = 'ValidateLoginPage';
-
 export default ValidateLoginPage;

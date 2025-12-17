@@ -80,7 +80,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
-                testID={AddNewCardPage.displayName}
+                testID="AddNewCardPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
             >
@@ -149,5 +149,4 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     );
 }
 
-AddNewCardPage.displayName = 'AddNewCardPage';
 export default withPolicyAndFullscreenLoading(AddNewCardPage);

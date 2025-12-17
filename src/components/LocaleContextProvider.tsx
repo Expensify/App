@@ -224,8 +224,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
 
-LocaleContextProvider.displayName = 'LocaleContextProvider';
-
 export {LocaleContext, LocaleContextProvider};
 
 export type {Locale, LocaleContextProps, LocalizedTranslate};

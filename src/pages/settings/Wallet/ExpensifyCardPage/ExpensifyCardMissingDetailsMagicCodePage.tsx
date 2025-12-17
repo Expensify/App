@@ -95,6 +95,4 @@ function ExpensifyCardMissingDetailsMagicCodePage({
     );
 }
 
-ExpensifyCardMissingDetailsMagicCodePage.displayName = 'ExpensifyCardMissingDetailsMagicCodePage';
-
 export default ExpensifyCardMissingDetailsMagicCodePage;

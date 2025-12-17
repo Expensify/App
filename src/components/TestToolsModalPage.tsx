@@ -86,6 +86,4 @@ function TestToolsModalPage() {
     );
 }
 
-TestToolsModalPage.displayName = 'TestToolsModalPage';
-
 export default TestToolsModalPage;

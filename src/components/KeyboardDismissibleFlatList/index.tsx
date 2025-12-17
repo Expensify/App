@@ -27,6 +27,5 @@ function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, inverted, ...re
         />
     );
 }
-KeyboardDismissibleFlatList.displayName = 'KeyboardDismissibleFlatList';
 
 export default React.forwardRef(KeyboardDismissibleFlatList);

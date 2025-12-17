@@ -2,12 +2,12 @@ import React from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-type TitleCellProps = {
-    text: string;
-    isLargeScreenWidth: boolean;
+type TextCellProps = {
+    text?: string;
+    isLargeScreenWidth?: boolean;
 };
 
-function TitleCell({text, isLargeScreenWidth}: TitleCellProps) {
+function TextCell({text = '', isLargeScreenWidth = true}: TextCellProps) {
     const styles = useThemeStyles();
 
     return (
@@ -19,4 +19,4 @@ function TitleCell({text, isLargeScreenWidth}: TitleCellProps) {
     );
 }
 
-export default TitleCell;
+export default TextCell;

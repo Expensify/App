@@ -91,7 +91,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Lock'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Lock']);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
@@ -190,7 +190,7 @@ function VerifiedBankAccountFlowEntryPoint({
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={VerifiedBankAccountFlowEntryPoint.displayName}
+            testID="VerifiedBankAccountFlowEntryPoint"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -313,7 +313,5 @@ function VerifiedBankAccountFlowEntryPoint({
         </ScreenWrapper>
     );
 }
-
-VerifiedBankAccountFlowEntryPoint.displayName = 'VerifiedBankAccountFlowEntryPoint';
 
 export default VerifiedBankAccountFlowEntryPoint;

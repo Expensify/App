@@ -194,6 +194,4 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-AddressStep.displayName = 'AddressStep';
-
 export default AddressStep;

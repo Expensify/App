@@ -76,7 +76,5 @@ function OptionsPicker<TKey extends string>({options, selectedOption, onOptionSe
     );
 }
 
-OptionsPicker.displayName = 'OptionsPicker';
-
 export default OptionsPicker;
 export type {OptionsPickerItem};

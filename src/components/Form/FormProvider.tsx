@@ -471,8 +471,6 @@ function FormProvider({
     );
 }
 
-FormProvider.displayName = 'Form';
-
 export default FormProvider as <TFormID extends OnyxFormKey>(props: FormProviderProps<TFormID>) => ReactNode;
 
 export type {FormProviderProps};

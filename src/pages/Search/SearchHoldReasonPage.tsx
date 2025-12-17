@@ -71,6 +71,4 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     );
 }
 
-SearchHoldReasonPage.displayName = 'SearchHoldReasonPage';
-
 export default SearchHoldReasonPage;

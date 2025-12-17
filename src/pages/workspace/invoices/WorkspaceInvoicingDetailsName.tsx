@@ -45,7 +45,7 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceInvoicingDetailsName.displayName}
+                testID="WorkspaceInvoicingDetailsName"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -75,7 +75,5 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceInvoicingDetailsName.displayName = 'WorkspaceInvoicingDetailsName';
 
 export default WorkspaceInvoicingDetailsName;

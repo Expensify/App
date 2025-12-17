@@ -12,7 +12,7 @@ function MyTripsPage() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={MyTripsPage.displayName}
+            testID="MyTripsPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -23,7 +23,5 @@ function MyTripsPage() {
         </ScreenWrapper>
     );
 }
-
-MyTripsPage.displayName = 'MyTripsPage';
 
 export default MyTripsPage;

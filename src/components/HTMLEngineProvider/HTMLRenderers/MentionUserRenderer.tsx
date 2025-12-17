@@ -122,6 +122,4 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     );
 }
 
-MentionUserRenderer.displayName = 'MentionUserRenderer';
-
 export default withCurrentUserPersonalDetails(MentionUserRenderer);

@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
 
@@ -58,7 +58,7 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteInvoiceItemSelectPage.displayName}
+            displayName="NetSuiteInvoiceItemSelectPage"
             sections={netsuiteInvoiceItemOptions.length ? [{data: netsuiteInvoiceItemOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateInvoiceItem}
@@ -75,7 +75,5 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-NetSuiteInvoiceItemSelectPage.displayName = 'NetSuiteInvoiceItemSelectPage';
 
 export default withPolicyConnections(NetSuiteInvoiceItemSelectPage);

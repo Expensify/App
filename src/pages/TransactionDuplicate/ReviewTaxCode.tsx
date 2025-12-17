@@ -16,7 +16,6 @@ import {calculateTaxAmount, compareDuplicateTransactionFields, getAmount, getDef
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import ReviewDescription from './ReviewDescription';
 import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
@@ -81,7 +80,7 @@ function ReviewTaxRate() {
     );
 
     return (
-        <ScreenWrapper testID={ReviewDescription.displayName}>
+        <ScreenWrapper testID="ReviewDescription">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
@@ -96,7 +95,5 @@ function ReviewTaxRate() {
         </ScreenWrapper>
     );
 }
-
-ReviewTaxRate.displayName = 'ReviewTaxRate';
 
 export default ReviewTaxRate;

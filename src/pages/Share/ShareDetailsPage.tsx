@@ -164,7 +164,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             includeSafeAreaPaddingBottom
             keyboardAvoidingViewBehavior="padding"
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={ShareDetailsPage.displayName}
+            testID="ShareDetailsPage"
         >
             <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
                 <PressableWithoutFeedback
@@ -249,5 +249,4 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     );
 }
 
-ShareDetailsPage.displayName = 'ShareDetailsPage';
 export default ShareDetailsPage;
