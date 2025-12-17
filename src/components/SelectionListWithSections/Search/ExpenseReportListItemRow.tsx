@@ -24,6 +24,7 @@ import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 import UserInfoCell from './UserInfoCell';
+import WorkspaceCell from './WorkspaceCell';
 
 type ExpenseReportListItemRowProps = {
     item: ExpenseReportListItemType;
@@ -79,6 +80,9 @@ function ExpenseReportListItemRow({
 
         return {total: reportTotal, currency: reportCurrency};
     }, [item.type, item.total, item.currency]);
+
+    const nonReimbursableTotal = item.nonReimbursableTotal ?? 0;
+    const reimbursableTotal = total - nonReimbursableTotal;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
@@ -146,6 +150,22 @@ function ExpenseReportListItemRow({
                 )}
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+                <TotalCell
+                    total={reimbursableTotal}
+                    currency={currency}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+                <TotalCell
+                    total={nonReimbursableTotal}
+                    currency={currency}
+                />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
                 <TotalCell
@@ -180,6 +200,14 @@ function ExpenseReportListItemRow({
                     reportID={item.reportID}
                     hash={item.hash}
                     amount={item.total}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}>
+                <WorkspaceCell
+                    policyID={item.policyID}
+                    report={item}
                 />
             </View>
         ),
