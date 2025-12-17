@@ -693,6 +693,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Action requise',
         duplicate: 'Dupliquer',
         duplicated: 'Dupliqué',
+        originalAmount: 'Montant d’origine',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
