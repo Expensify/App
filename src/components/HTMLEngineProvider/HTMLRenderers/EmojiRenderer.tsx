@@ -1,4 +1,3 @@
-import React, {useMemo} from 'react';
 import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import EmojiWithTooltip from '@components/EmojiWithTooltip';
@@ -6,7 +5,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
-    const style = useMemo(() => {
+
+    const getStyle = (): TextStyle[] | null => {
         if ('islarge' in tnode.attributes) {
             return [styleProp as TextStyle, styles.onlyEmojisText];
         }
@@ -16,7 +16,9 @@ function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TP
         }
 
         return null;
-    }, [tnode.attributes, styles, styleProp]);
+    };
+
+    const style = getStyle();
     return (
         <EmojiWithTooltip
             oneLine={'oneline' in tnode.attributes}
