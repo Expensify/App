@@ -7820,6 +7820,7 @@ const translations = {
             findAdmin: 'Find admin',
             primaryContact: 'Primary contact',
             addPrimaryContact: 'Add primary contact',
+            setPrimaryContactError: 'Unable to set primary contact. Please try again later.',
             settings: 'Settings',
             addAdmin: 'Add admin',
             invite: 'Invite',

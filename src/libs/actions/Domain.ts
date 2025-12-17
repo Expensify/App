@@ -380,6 +380,13 @@ function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID
                 technicalContactEmail: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                technicalContactEmailErrors: null,
+            },
+        },
     ];
     const failureData: OnyxUpdate[] = [
         {
@@ -389,6 +396,13 @@ function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID
                 settings: {
                     technicalContactEmail: currentTechnicalContactEmail,
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                technicalContactEmailErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.setPrimaryContactError'),
             },
         },
         {
@@ -514,11 +528,15 @@ function clearAddAdminError(domainAccountID: number, accountID: number) {
     });
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
-        [accountID]: null,
+        adminErrors: {
+            [accountID]: null,
+        },
     });
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        [accountID]: null,
+        admin: {
+            [accountID]: null,
+        },
     });
 }
 
