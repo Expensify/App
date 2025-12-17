@@ -138,10 +138,10 @@ function TaskAssigneeSelectorModal() {
                 isDisabled: option.isDisabled ?? undefined,
                 login: option.login ?? undefined,
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
-                isSelected: task?.assigneeAccountID === option.accountID,
+                isSelected: task?.assigneeAccountID === option.accountID || task?.report?.managerID === option.accountID,
             })),
         }));
-    }, [optionsWithoutCurrentUser, task?.assigneeAccountID, translate]);
+    }, [optionsWithoutCurrentUser, task?.assigneeAccountID, translate, task?.report?.managerID]);
 
     const initiallyFocusedOptionKey = useMemo(() => {
         return sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
@@ -219,7 +219,7 @@ function TaskAssigneeSelectorModal() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={TaskAssigneeSelectorModal.displayName}
+            testID="TaskAssigneeSelectorModal"
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                 <HeaderWithBackButton
@@ -246,7 +246,5 @@ function TaskAssigneeSelectorModal() {
         </ScreenWrapper>
     );
 }
-
-TaskAssigneeSelectorModal.displayName = 'TaskAssigneeSelectorModal';
 
 export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModal));

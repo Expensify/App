@@ -337,6 +337,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             name={SCREENS.RIGHT_MODAL.DOMAIN}
                             component={ModalStackNavigators.WorkspacesDomainModalStackNavigator}
                         />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.SEARCH_COLUMNS}
+                            component={ModalStackNavigators.SearchColumnsModalStackNavigator}
+                        />
                     </Stack.Navigator>
                 </Animated.View>
                 {/* The third and second overlays are displayed here to cover RHP screens wider than the currently focused screen. */}
@@ -367,7 +371,5 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         </NarrowPaneContextProvider>
     );
 }
-
-RightModalNavigator.displayName = 'RightModalNavigator';
 
 export default RightModalNavigator;

@@ -5,9 +5,9 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchAction} from '@components/Search/types';
-import SelectionList from '@components/SelectionListWithSections';
-import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,7 +46,7 @@ function SearchFiltersActionPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersActionPage.displayName}
+            testID="SearchFiltersActionPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -59,10 +59,10 @@ function SearchFiltersActionPage() {
             />
             <View style={[styles.flex1]}>
                 <SelectionList
-                    shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
+                    data={listData}
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
+                    shouldSingleExecuteRowSelect
                 />
             </View>
             <FixedFooter style={styles.mtAuto}>
@@ -84,7 +84,5 @@ function SearchFiltersActionPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersActionPage.displayName = 'SearchFiltersActionPage';
 
 export default SearchFiltersActionPage;

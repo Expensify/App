@@ -863,7 +863,7 @@ const modifiedArray = someArray.filter(filterFunc).map(mapFunc);
 
 - Prefer `async/await` over `.then/.catch` across the codebase. Use raw `Promise` only when wrapping callbacks or implementing deferred signals.
 - Use `Promise.all(...)` (or `Promise.allSettled(...)`) for work that can run in parallel.
-- In UI code, start unrelated async tasks at the same time (don’t wait for one to finish before starting another), and let the UI render immediately with loading states ([see data-binding](./philosophies/DATA-BINDING.md)). 
+- In UI code, start unrelated async tasks at the same time (don’t wait for one to finish before starting another), and let the UI render immediately with loading states ([see data-binding](./philosophies/DATA-BINDING.md)).
 - See the detailed [async philosophy document](./philosophies/ASYNC.md)
 
 ## Accessing Object Properties and Default Values
@@ -1130,14 +1130,18 @@ In React Native, one **must not** attempt to falsy-check a string for an inline 
 
 ### Function component style
 
-When writing a function component, you must ALWAYS add a `displayName` property and give it the same value as the name of the component (this is so it appears properly in the React dev tools)
+When writing a function component do not explicitly add `displayName` property when component name matches with displayName. A few components such as higher-order components, may need the `displayName` property (this is so it appears properly in the React dev tools)
 
 ```tsx
-function Avatar(props: AvatarProps) {...};
+export default function <TProps extends WithCurrentUserPersonalDetailsProps>(WrappedComponent: ComponentType<TProps>): ComponentType<Omit<TProps, keyof HOCProps>> {
+    function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof HOCProps>) {
+       ...
+    }
 
-Avatar.displayName = 'Avatar';
+    WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
 
-export default Avatar;
+    return WithCurrentUserPersonalDetails;
+}
 ```
 
 ### Forwarding refs
@@ -1235,7 +1239,7 @@ The correct approach is avoid using `ScrollView`. You can add props like `listHe
 </ScrollView>
 ```
 
-### Correct Approach 
+### Correct Approach
 The correct approach is to use the list component's built-in header and footer props instead of wrapping in a `ScrollView`:
 
 - Using `SelectionList`

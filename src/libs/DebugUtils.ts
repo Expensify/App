@@ -418,6 +418,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
     switch (key) {
         case 'avatarUrl':
         case 'created':
+        case 'submitted':
+        case 'approved':
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
         case 'lastReadTime':
@@ -440,6 +442,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'preexistingReportID':
         case 'private_isArchived':
         case 'welcomeMessage':
+        case 'origin':
+        case 'originalID':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -615,6 +619,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                submitted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                approved: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -641,6 +647,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 expensify_text_title: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 transactionCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                origin: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                originalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'expensify_text_title':
             return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {
@@ -944,7 +952,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'category':
         case 'merchant':
         case 'taxCode':
-        case 'filename':
         case 'modifiedCurrency':
         case 'modifiedMerchant':
         case 'transactionID':
@@ -1054,7 +1061,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    filename: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     iouRequestType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     modifiedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,

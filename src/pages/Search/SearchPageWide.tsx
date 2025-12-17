@@ -80,13 +80,13 @@ function SearchPageWide({
         return [styles.mtAuto];
     }, [shouldShowFooter, styles]);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan']);
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
     return (
         <View style={styles.searchSplitContainer}>
             <ScreenWrapper
-                testID={Search.displayName}
+                testID="Search"
                 shouldEnableMaxHeight
                 headerGapStyles={[styles.searchHeaderGap, styles.h0]}
                 shouldShowOfflineIndicatorInWideScreen={!!searchResults}
@@ -150,7 +150,5 @@ function SearchPageWide({
         </View>
     );
 }
-
-SearchPageWide.displayName = 'SearchPageWide';
 
 export default SearchPageWide;

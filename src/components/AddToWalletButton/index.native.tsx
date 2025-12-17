@@ -113,6 +113,4 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
     );
 }
 
-AddToWalletButton.displayName = 'AddToWalletButton';
-
 export default AddToWalletButton;
