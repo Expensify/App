@@ -1,12 +1,13 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -38,30 +39,14 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false, selector: ownerPoliciesSelectorWithAccountID});
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
+    const {showConfirmModal} = useConfirmModal();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [isDowngradeWarningModalOpen, setIsDowngradeWarningModalOpen] = useState(false);
 
     const canPerformDowngrade = useMemo(() => canModifyPlan(ownerPolicies, policy), [ownerPolicies, policy]);
     const isDowngraded = useMemo(() => isCollectPolicy(policy), [policy]);
 
-    const onDowngradeToTeam = () => {
-        if (!canPerformDowngrade || !policy) {
-            return;
-        }
-        if (Object.keys(companyFeeds).length > 1) {
-            setIsDowngradeWarningModalOpen(true);
-            return;
-        }
-        downgradeToTeam(policy.id);
-    };
-
-    const onClose = () => {
-        setIsDowngradeWarningModalOpen(false);
-        Navigation.dismissModal();
-    };
-
-    const dismissModalAndNavigate = (targetPolicyID: string) => {
+    const dismissModalAndNavigate = useCallback((targetPolicyID: string) => {
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(targetPolicyID));
@@ -71,18 +56,43 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
             });
         });
-    };
+    }, []);
 
-    const onMoveToCompanyCardFeeds = () => {
+    const onMoveToCompanyCardFeeds = useCallback(() => {
         if (!policyID) {
             return;
         }
-
-        setIsDowngradeWarningModalOpen(false);
-
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
-    };
+    }, [policyID, dismissModalAndNavigate]);
+
+    const onDowngradeToTeam = useCallback(() => {
+        if (!canPerformDowngrade || !policy) {
+            return;
+        }
+        if (Object.keys(companyFeeds).length > 1) {
+            showConfirmModal({
+                title: translate('workspace.moreFeatures.companyCards.downgradeTitle'),
+                prompt: (
+                    <View style={styles.flexRow}>
+                        <RenderHTML
+                            html={translate('workspace.moreFeatures.companyCards.downgradeSubTitle')}
+                            onLinkPress={onMoveToCompanyCardFeeds}
+                        />
+                    </View>
+                ),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM || !policyID) {
+                    return;
+                }
+                dismissModalAndNavigate(policyID);
+            });
+            return;
+        }
+        downgradeToTeam(policy.id);
+    }, [canPerformDowngrade, policy, companyFeeds, showConfirmModal, translate, styles.flexRow, onMoveToCompanyCardFeeds, policyID, dismissModalAndNavigate]);
 
     if (!canPerformDowngrade) {
         return <NotFoundPage />;
@@ -124,22 +134,6 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                     />
                 )}
             </ScrollView>
-            <ConfirmModal
-                title={translate('workspace.moreFeatures.companyCards.downgradeTitle')}
-                isVisible={isDowngradeWarningModalOpen}
-                onConfirm={onClose}
-                shouldShowCancelButton={false}
-                onCancel={onClose}
-                prompt={
-                    <View style={styles.flexRow}>
-                        <RenderHTML
-                            html={translate('workspace.moreFeatures.companyCards.downgradeSubTitle')}
-                            onLinkPress={onMoveToCompanyCardFeeds}
-                        />
-                    </View>
-                }
-                confirmText={translate('common.buttonConfirm')}
-            />
         </ScreenWrapper>
     );
 }
