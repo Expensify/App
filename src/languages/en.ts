@@ -819,7 +819,7 @@ const translations = {
         searchForSomeone: 'Search for someone',
     },
     customApprovalWorkflow: {
-        title: 'Custom approval workflow',
+        title: 'Custom aproval workflow',
         description: 'Your company has a custom approval workflow on this workspace. Please take this action in Expensify Classic',
         goToExpensifyClassic: 'Switch to Expensify Classic',
     },
