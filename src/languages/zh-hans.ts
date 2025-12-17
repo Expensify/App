@@ -688,6 +688,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: '需要操作',
         duplicate: '复制',
         duplicated: '已重复',
+        reimbursableTotal: '可报销总额',
+        nonReimbursableTotal: '不可报销总额',
         originalAmount: '原始金额',
     },
     supportalNoAccess: {
@@ -1022,6 +1024,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: '手动',
         scan: '扫描',
         map: '地图',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: '上传电子表格',

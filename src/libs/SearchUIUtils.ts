@@ -151,7 +151,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: null,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 'taxAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
 };
 
@@ -2076,6 +2076,14 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TAX_RATE) {
+        return data.sort((a, b) => {
+            const aValue = `${a.policy?.taxRates?.taxes?.[a.taxCode ?? '']?.name ?? ''} (${a.policy?.taxRates?.taxes?.[a.taxCode ?? '']?.value ?? ''})`;
+            const bValue = `${b.policy?.taxRates?.taxes?.[b.taxCode ?? '']?.name ?? ''} (${b.policy?.taxRates?.taxes?.[b.taxCode ?? '']?.value ?? ''})`;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     if (!sortingProperty) {
         return data;
     }
@@ -2142,6 +2150,32 @@ function getSortedReportData(
             }
 
             return localeCompare(b.created.toLowerCase(), a.created.toLowerCase());
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL) {
+        return data.sort((a, b) => {
+            const aTotal = a.total;
+            const bTotal = b.total;
+
+            const aNonReimbursableTotal = a.nonReimbursableTotal;
+            const bNonReimbursableTotal = b.nonReimbursableTotal;
+
+            if (aTotal == null || bTotal == null || aNonReimbursableTotal == null || bNonReimbursableTotal == null) {
+                return 0;
+            }
+
+            const aValue = aTotal - aNonReimbursableTotal;
+            const bValue = bTotal - bNonReimbursableTotal;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL) {
+        return data.sort((a, b) => {
+            const aNonReimbursableTotal = a.nonReimbursableTotal;
+            const bNonReimbursableTotal = b.nonReimbursableTotal;
+            return compareValues(aNonReimbursableTotal, bNonReimbursableTotal, sortOrder, sortBy, localeCompare);
         });
     }
 
@@ -2318,6 +2352,14 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.title';
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
             return 'common.status';
+        case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
+            return 'common.reimbursableTotal';
+        case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
+            return 'common.nonReimbursableTotal';
+        case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
+            return 'common.tax';
+        case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
+            return 'iou.taxRate';
         case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
             return 'common.longID';
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
@@ -2708,6 +2750,8 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
             [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
             [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
             [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
@@ -2785,6 +2829,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
