@@ -136,7 +136,7 @@ function IOURequestStepTime({
             onBackButtonPress={navigateBack}
             shouldShowNotFoundPage={shouldShowNotFound}
             shouldShowWrapper
-            testID={IOURequestStepTime.displayName}
+            testID="IOURequestStepTime"
             includeSafeAreaPaddingBottom
         >
             <FormProvider
@@ -183,8 +183,6 @@ function IOURequestStepTime({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepTime.displayName = 'IOURequestStepTime';
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTimeWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTime);
