@@ -235,6 +235,11 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'common.longID',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_ICON,
+        translationKey: 'search.exportedTo',
+        isColumnSortable: false,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
         isColumnSortable: false,
