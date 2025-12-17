@@ -4,7 +4,6 @@ import TableContext from './TableContext';
 import TableFilterButtons from './TableFilterButtons';
 import TableHeader from './TableHeader';
 import TableSearchBar from './TableSearchBar';
-import TableSortButtons from './TableSortButtons';
 
 const Table = Object.assign(TableComponent, {
     Context: TableContext,
@@ -12,7 +11,6 @@ const Table = Object.assign(TableComponent, {
     Body: TableBody,
     FilterButtons: TableFilterButtons,
     SearchBar: TableSearchBar,
-    SortButtons: TableSortButtons,
 });
 
 export default Table;
