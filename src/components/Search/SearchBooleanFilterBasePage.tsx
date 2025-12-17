@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FixedFooter from '@components/FixedFooter';
@@ -42,29 +42,27 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
         return booleanValues.find((value) => searchAdvancedFiltersForm?.[booleanKey].includes(value)) ?? null;
     });
 
-    const items = useMemo(() => {
-        return booleanValues.map((value) => ({
-            value,
-            keyForList: value,
-            text: translate(`common.${value}`),
-            isSelected: selectedItem === value,
-        }));
-    }, [selectedItem, translate, booleanValues]);
+    const items = booleanValues.map((value) => ({
+        value,
+        keyForList: value,
+        text: translate(`common.${value}`),
+        isSelected: selectedItem === value,
+    }));
 
-    const updateFilter = useCallback((selectedFilter: BooleanFilterItem) => {
+    const updateFilter = (selectedFilter: BooleanFilterItem) => {
         const newValue = selectedFilter.isSelected ? null : selectedFilter.value;
         setSelectedItem(newValue);
-    }, []);
+    };
 
-    const resetChanges = useCallback(() => {
+    const resetChanges = () => {
         setSelectedItem(null);
-    }, []);
+    };
 
-    const applyChanges = useCallback(() => {
+    const applyChanges = () => {
         const selectedItems = selectedItem ? [selectedItem] : [];
         updateAdvancedFilters({[booleanKey]: selectedItems} as Partial<Record<SearchBooleanFilterKeys, string[]>>);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [booleanKey, selectedItem]);
+    };
 
     return (
         <ScreenWrapper
