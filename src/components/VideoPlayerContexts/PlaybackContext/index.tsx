@@ -154,6 +154,4 @@ function usePlaybackContext() {
     return playbackContext;
 }
 
-PlaybackContextProvider.displayName = 'PlaybackContextProvider';
-
 export {Context as PlaybackContext, PlaybackContextProvider, usePlaybackContext};

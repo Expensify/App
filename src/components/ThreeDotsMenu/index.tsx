@@ -182,6 +182,4 @@ function ThreeDotsMenu({
     );
 }
 
-ThreeDotsMenu.displayName = 'ThreeDotsMenu';
-
 export default ThreeDotsMenu;

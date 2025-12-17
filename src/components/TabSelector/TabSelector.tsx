@@ -195,8 +195,6 @@ function TabSelector({
     );
 }
 
-TabSelector.displayName = 'TabSelector';
-
 export default TabSelector;
 
 export type {TabSelectorProps};

@@ -289,6 +289,4 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     );
 }
 
-Lightbox.displayName = 'Lightbox';
-
 export default Lightbox;

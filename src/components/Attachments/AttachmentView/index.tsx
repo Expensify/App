@@ -382,8 +382,6 @@ function AttachmentView({
     );
 }
 
-AttachmentView.displayName = 'AttachmentView';
-
 export default memo(AttachmentView);
 
 export {checkIsFileImage};
