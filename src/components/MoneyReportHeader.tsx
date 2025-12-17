@@ -659,7 +659,16 @@ function MoneyReportHeader({
     };
 
     const getFirstDuplicateThreadID = (transactionsList: OnyxTypes.Transaction[], allReportActions: OnyxTypes.ReportAction[]) => {
-        const duplicateTransaction = transactionsList.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '', accountID, moneyRequestReport, policy, transactionViolations));
+        const duplicateTransaction = transactionsList.find((reportTransaction) =>
+            isDuplicate(
+                reportTransaction,
+                email ?? '',
+                accountID,
+                moneyRequestReport,
+                policy,
+                allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + reportTransaction.transactionID],
+            ),
+        );
         if (!duplicateTransaction) {
             return null;
         }
