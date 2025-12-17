@@ -26,8 +26,8 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
+    getCurrency,
     getDescription,
-    getExchangeRate,
     getMerchant,
     getOriginalAmount,
     getOriginalCurrency,
@@ -238,7 +238,9 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report]);
 
-    const exchangeRate = getExchangeRate(transactionItem);
+    const fromCurrency = getCurrency(transactionItem);
+    const toCurrency = transactionItem.groupCurrency ?? fromCurrency;
+    const exchangeRateMessage = transactionItem.groupExchangeRate ? `${transactionItem.groupExchangeRate} ${fromCurrency}/${toCurrency}` : '';
 
     const columnComponent = useMemo(
         () => ({
@@ -453,7 +455,7 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE)]}>
-                    <TextCell text={exchangeRate} />
+                    <TextCell text={exchangeRateMessage} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: (
@@ -534,7 +536,6 @@ function TransactionItemRow({
             ),
         }),
         [
-            translate,
             StyleUtils,
             transactionItem,
             shouldShowTooltip,
@@ -550,17 +551,18 @@ function TransactionItemRow({
             report?.total,
             isApprovedColumnWide,
             isPostedColumnWide,
+            translate,
             isReportItemChild,
             onButtonPress,
             isActionLoading,
             merchant,
             description,
             isInSingleTransactionReport,
-            exchangeRate,
+            exchangeRateMessage,
             isAmountColumnWide,
+            formattedTaxRate,
             isTaxAmountColumnWide,
             isLargeScreenWidth,
-            formattedTaxRate,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
