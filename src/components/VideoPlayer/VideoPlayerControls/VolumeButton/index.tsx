@@ -35,7 +35,7 @@ const getVolumeIcon = (icons: Record<'Mute' | 'VolumeHigh' | 'VolumeLow', IconAs
 function VolumeButton({style, small = false}: VolumeButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Mute', 'VolumeHigh', 'VolumeLow'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Mute', 'VolumeHigh', 'VolumeLow']);
     const {updateVolume, volume, toggleMute} = useVolumeContext();
     const [sliderHeight, setSliderHeight] = useState(1);
     const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(expensifyIcons, volume.get())});
@@ -111,7 +111,5 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
         </Hoverable>
     );
 }
-
-VolumeButton.displayName = 'VolumeButton';
 
 export default memo(VolumeButton);

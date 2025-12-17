@@ -70,6 +70,4 @@ function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardView
     );
 }
 
-EmptyCardView.displayName = 'EmptyCardView';
-
 export default EmptyCardView;

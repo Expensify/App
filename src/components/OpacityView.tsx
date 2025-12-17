@@ -61,5 +61,4 @@ function OpacityView({
     );
 }
 
-OpacityView.displayName = 'OpacityView';
 export default OpacityView;

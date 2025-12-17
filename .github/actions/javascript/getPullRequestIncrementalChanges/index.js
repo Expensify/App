@@ -12739,6 +12739,10 @@ class Git {
                     // Context line - skip it (we only care about added/removed lines)
                     continue;
                 }
+                else if (firstChar === '\\') {
+                    // "No newline at end of file" marker - skip it (metadata, not content)
+                    continue;
+                }
                 else {
                     throw new Error(`Unknown line type! First character of line is ${firstChar}`);
                 }

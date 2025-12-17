@@ -44,6 +44,7 @@ import type {
     RoomMembersNavigatorParamList,
     ScheduleCallParamList,
     SearchAdvancedFiltersParamList,
+    SearchColumnsParamList,
     SearchReportActionsParamList,
     SearchReportParamList,
     SearchSavedSearchParamList,
@@ -193,8 +194,6 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
             </View>
         );
     }
-
-    ModalStack.displayName = 'ModalStack';
 
     return ModalStack;
 }
@@ -493,6 +492,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DOWNGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/downgrade/WorkspaceDowngradePage').default,
     [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/downgrade/PayAndDowngradePage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsPage').default,
+    [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsRolePage').default,
     [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberCustomFieldPage').default,
     [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberNewCardPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: () => require<ReactComponentModule>('@pages/workspace/members/WorkspaceOwnerChangeWrapperPage').default,
@@ -506,6 +506,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryFlagAmountsOverPage').default,
     [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryDescriptionHintPage').default,
     [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryRequireReceiptsOverPage').default,
+    [SCREENS.WORKSPACE.CATEGORY_REQUIRED_FIELDS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryRequiredFieldsPage').default,
     [SCREENS.WORKSPACE.CATEGORY_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryApproverPage').default,
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/CreateDistanceRatePage').default,
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE_UPGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/CreateDistanceRatePage').default,
@@ -847,6 +848,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/ChangeReceiptBillingAccountPage').default,
     [SCREENS.DOMAIN.VERIFY]: () => require<ReactComponentModule>('../../../../pages/domain/SamlVerifyDomainPage').default,
     [SCREENS.DOMAIN.VERIFIED]: () => require<ReactComponentModule>('../../../../pages/domain/SamlDomainVerifiedPage').default,
+    [SCREENS.DOMAIN.ADMIN_DETAILS]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAdminDetailsPage').default,
+    [SCREENS.DOMAIN.ADMINS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAdminsSettingsPage').default,
+    [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAddPrimaryContactPage').default,
 });
 
 const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
@@ -917,8 +921,6 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRejectReasonPage').default,
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
-    [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchChangeApproverPage').default,
-    [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAddApproverPage').default,
 });
 
 // This navigator is reserved for the screen that can be displayed as Wide RHP, other screens should not be added here.
@@ -976,6 +978,10 @@ const SearchSavedSearchModalStackNavigator = createModalStackNavigator<SearchSav
 
 const RestrictedActionModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
     [SCREENS.RESTRICTED_ACTION_ROOT]: () => require<ReactComponentModule>('../../../../pages/RestrictedAction/Workspace/WorkspaceRestrictedActionPage').default,
+});
+
+const SearchColumnsModalStackNavigator = createModalStackNavigator<SearchColumnsParamList>({
+    [SCREENS.SEARCH.COLUMNS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchColumnsPage').default,
 });
 
 const ShareModalStackNavigator = createModalStackNavigator<ShareNavigatorParamList>({
@@ -1068,4 +1074,5 @@ export {
     MergeTransactionStackNavigator,
     ReportCardActivateStackNavigator,
     WorkspacesDomainModalStackNavigator,
+    SearchColumnsModalStackNavigator,
 };

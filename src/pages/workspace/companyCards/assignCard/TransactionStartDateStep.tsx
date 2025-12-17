@@ -87,7 +87,7 @@ function TransactionStartDateStep() {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={TransactionStartDateStep.displayName}
+            wrapperID="TransactionStartDateStep"
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={2}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
@@ -143,7 +143,5 @@ function TransactionStartDateStep() {
         </InteractiveStepWrapper>
     );
 }
-
-TransactionStartDateStep.displayName = 'TransactionStartDateStep';
 
 export default TransactionStartDateStep;
