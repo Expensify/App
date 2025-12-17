@@ -52,7 +52,7 @@ import BaseSearchList from './BaseSearchList';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
-// Module-level storage for horizontal scroll offset (single value since we only have one search view at a time)
+// Keep a ref to the horizontal scroll offset so we can restore it if users change the search query
 let savedHorizontalScrollOffset = 0;
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
@@ -243,7 +243,7 @@ function SearchList({
         savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
     }, []);
 
-    // Restore horizontal scroll position synchronously before paint using useLayoutEffect
+    // Restore horizontal scroll position synchronously before paint using useLayoutEffect to avoid a visible shift on the table
     useLayoutEffect(() => {
         if (!shouldScrollHorizontally || savedHorizontalScrollOffset <= 0) {
             return;
