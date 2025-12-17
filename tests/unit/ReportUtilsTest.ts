@@ -3401,7 +3401,7 @@ describe('ReportUtils', () => {
             const reportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
             } as ReportAction;
-            expect(shouldDisableThread(reportAction, reportID, true)).toBeTruthy();
+            expect(shouldDisableThread(reportAction, false, false)).toBeTruthy();
         });
 
         describe('deleted threads', () => {
