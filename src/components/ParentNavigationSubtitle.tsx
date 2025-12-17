@@ -59,6 +59,9 @@ type ParentNavigationSubtitleProps = {
 
     /** The number of lines for the subtitle */
     subtitleNumberOfLines?: number;
+
+    /** Whether to show the "from" text prefix */
+    shouldShowFrom?: boolean;
 };
 
 function ParentNavigationSubtitle({
@@ -74,6 +77,7 @@ function ParentNavigationSubtitle({
     statusTextColor,
     statusTextContainerStyles,
     subtitleNumberOfLines = 1,
+    shouldShowFrom = true,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -166,7 +170,7 @@ function ParentNavigationSubtitle({
             >
                 {!!reportName && (
                     <>
-                        <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>
+                        {shouldShowFrom && <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>}
                         {hasAccessToParentReport ? (
                             <TextLink
                                 onMouseEnter={onMouseEnter}

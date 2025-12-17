@@ -688,60 +688,34 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     }, [canJoin, report, backTo]);
 
     const nameSectionExpenseIOU = (
-        <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
-            {shouldDisableRename && (
-                <>
-                    <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
-                        <DisplayNames
-                            fullTitle={reportName}
-                            displayNamesWithTooltips={displayNamesWithTooltips}
-                            shouldParseFullTitle={!isGroupChat}
-                            tooltipEnabled
-                            numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
-                            textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
-                            shouldUseFullTitle={shouldUseFullTitle}
-                        />
-                    </View>
-                    {isPolicyAdmin ? (
-                        <PressableWithoutFeedback
-                            style={[styles.w100]}
-                            disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={chatRoomSubtitle}
-                            accessible
-                            onPress={() => {
-                                let policyID = report?.policyID;
-
-                                if (!policyID) {
-                                    policyID = '';
-                                }
-
-                                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-                            }}
-                        >
-                            {chatRoomSubtitleText}
-                        </PressableWithoutFeedback>
-                    ) : (
-                        chatRoomSubtitleText
-                    )}
-                </>
-            )}
+        <>
+            <MenuItemWithTopDescription
+                shouldShowRightIcon={false}
+                interactive={false}
+                title={reportName}
+                titleStyle={styles.newKansasLarge}
+                shouldCheckActionAllowedOnPress={false}
+                description={translate('common.title')}
+            />
             {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport) && (
-                <View style={[styles.w100, styles.mt1, styles.alignItemsCenter]}>
-                    <View style={styles.mw100}>
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon={false}
+                    interactive={false}
+                    titleComponent={
                         <ParentNavigationSubtitle
                             parentNavigationSubtitleData={parentNavigationSubtitleData}
                             reportID={report?.reportID}
                             parentReportID={report?.parentReportID}
                             parentReportActionID={report?.parentReportActionID}
-                            pressableStyles={[styles.mt1, styles.mw100]}
-                            textStyles={[styles.textAlignCenter]}
                             subtitleNumberOfLines={2}
+                            shouldShowFrom={false}
                         />
-                    </View>
-                </View>
+                    }
+                    description={translate('threads.from')}
+                    shouldCheckActionAllowedOnPress={false}
+                />
             )}
-        </View>
+        </>
     );
 
     const nameSectionGroupWorkspace = (
@@ -788,6 +762,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             parentReportActionID={report?.parentReportActionID}
             pressableStyles={[styles.mt1, styles.mw100]}
             subtitleNumberOfLines={2}
+            shouldShowFrom={false}
         />
     );
 
@@ -816,7 +791,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
                         Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, policyID, titleField.fieldID, backTo));
                     }}
-                    furtherDetailsComponent={nameSectionFurtherDetailsContent}
+                />
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon={false}
+                    interactive={false}
+                    titleComponent={nameSectionFurtherDetailsContent}
+                    description={translate('common.from')}
                 />
             </View>
         </OfflineWithFeedback>
@@ -939,11 +919,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
-                        {renderedAvatar}
-                        {isExpenseReport && (!shouldShowTitleField || !titleField) && nameSectionExpenseIOU}
-                    </View>
-
+                    <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>{renderedAvatar}</View>
+                    {isExpenseReport && (!shouldShowTitleField || !titleField) && nameSectionExpenseIOU}
                     {isExpenseReport && shouldShowTitleField && titleField && nameSectionTitleField}
 
                     {!isExpenseReport && nameSectionGroupWorkspace}
