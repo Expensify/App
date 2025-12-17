@@ -2040,6 +2040,14 @@ function getSortedTransactionData(
         return data;
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REPORT_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID) {
+        return data.sort((a, b) => {
+            const aValue = a.reportID;
+            const bValue = b.reportID;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
+        });
+    }
+
     const sortingProperty = transactionColumnNamesToSortingProperty[sortBy];
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TITLE) {
@@ -2131,6 +2139,14 @@ function getSortedReportData(
             }
 
             return localeCompare(b.created.toLowerCase(), a.created.toLowerCase());
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REPORT_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID) {
+        return data.sort((a, b) => {
+            const aValue = a.reportID;
+            const bValue = b.reportID;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
         });
     }
 
@@ -2297,6 +2313,10 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.title';
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
             return 'common.status';
+        case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
+            return 'common.longID';
+        case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
+            return 'common.reportID';
     }
 }
 
@@ -2684,6 +2704,8 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
         };
 
@@ -2760,6 +2782,8 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
