@@ -54,6 +54,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CurrencyList, Policy} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
@@ -98,7 +99,7 @@ function SearchFiltersBar({
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading} = useSearchContext();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
@@ -112,12 +113,12 @@ function SearchFiltersBar({
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: searchResultsErrorSelector});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
 
     const taxRates = getAllTaxRates(allPolicies);
 
     // Get workspace data for the filter
-    const {sections: workspaces} = useWorkspaceList({
+    const {sections: workspaces, shouldShowSearchInput: shouldShowWorkspaceSearchInput} = useWorkspaceList({
         policies: allPolicies,
         currentUserLogin: email,
         shouldShowPendingDeletePolicy: false,
@@ -131,10 +132,11 @@ function SearchFiltersBar({
     const workspaceOptions = useMemo<Array<MultiSelectItem<string>>>(() => {
         return workspaces
             .flatMap((section) => section.data)
-            .filter((workspace): workspace is typeof workspace & {policyID: string} => !!workspace.policyID)
+            .filter((workspace): workspace is typeof workspace & {policyID: string; icons: Icon[]} => !!workspace.policyID && !!workspace.icons)
             .map((workspace) => ({
                 text: workspace.text,
                 value: workspace.policyID,
+                icons: workspace.icons,
             }));
     }, [workspaces]);
 
@@ -305,6 +307,7 @@ function SearchFiltersBar({
             // If the type has changed, reset the status so we dont have an invalid status selected
             if (updatedFilterFormValues.type !== filterFormValues.type) {
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                updatedFilterFormValues.columns = [];
             }
 
             const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
@@ -321,6 +324,10 @@ function SearchFiltersBar({
         updateAdvancedFilters(filterFormValues, true);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [filterFormValues]);
+
+    const openSearchColumns = () => {
+        Navigation.navigate(ROUTES.SEARCH_COLUMNS);
+    };
 
     const isFormInitializedRef = useRef(false);
 
@@ -424,6 +431,7 @@ function SearchFiltersBar({
             items: Array<MultiSelectItem<T>>,
             value: Array<MultiSelectItem<T>>,
             onChangeCallback: (selectedItems: Array<MultiSelectItem<T>>) => void,
+            isSearchable?: boolean,
         ) => {
             return ({closeOverlay}: PopoverComponentProps) => {
                 return (
@@ -433,6 +441,7 @@ function SearchFiltersBar({
                         value={value}
                         closeOverlay={closeOverlay}
                         onChange={onChangeCallback}
+                        isSearchable={isSearchable}
                     />
                 );
             };
@@ -508,12 +517,28 @@ function SearchFiltersBar({
         [filterFormValues.from, updateFilterForm],
     );
 
-    const workspaceComponent = useMemo(() => {
-        const updateWorkspaceFilterForm = (items: Array<MultiSelectItem<string>>) => {
+    const handleWorkspaceChange = useCallback(
+        (items: Array<MultiSelectItem<string>>) => {
             updateFilterForm({policyID: items.map((item) => item.value)});
-        };
-        return createMultiSelectComponent('workspace.common.workspace', workspaceOptions, selectedWorkspaceOptions, updateWorkspaceFilterForm);
-    }, [createMultiSelectComponent, workspaceOptions, selectedWorkspaceOptions, updateFilterForm]);
+        },
+        [updateFilterForm],
+    );
+
+    const workspaceComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            return (
+                <MultiSelectPopup
+                    label={translate('workspace.common.workspace')}
+                    items={workspaceOptions}
+                    value={selectedWorkspaceOptions}
+                    closeOverlay={closeOverlay}
+                    onChange={handleWorkspaceChange}
+                    isSearchable={shouldShowWorkspaceSearchInput}
+                />
+            );
+        },
+        [workspaceOptions, selectedWorkspaceOptions, handleWorkspaceChange, shouldShowWorkspaceSearchInput, translate],
+    );
 
     const workspaceValue = useMemo(() => selectedWorkspaceOptions.map((option) => option.text), [selectedWorkspaceOptions]);
 
@@ -757,6 +782,8 @@ function SearchFiltersBar({
         [],
     );
 
+    const shouldShowColumnsButton = isLargeScreenWidth && (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE || queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
+
     const filterButtonText = useMemo(
         () => translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : ''),
         [translate, hiddenSelectedFilters.length],
@@ -764,19 +791,46 @@ function SearchFiltersBar({
 
     const renderListFooter = useCallback(
         () => (
-            <Button
-                link
-                small
-                shouldUseDefaultHover={false}
-                text={filterButtonText}
-                iconFill={theme.link}
-                iconHoverFill={theme.linkHover}
-                icon={expensifyIcons.Filter}
-                textStyles={[styles.textMicroBold]}
-                onPress={openAdvancedFilters}
-            />
+            <View style={[styles.flexRow, styles.gap2]}>
+                <Button
+                    link
+                    small
+                    shouldUseDefaultHover={false}
+                    text={filterButtonText}
+                    iconFill={theme.link}
+                    iconHoverFill={theme.linkHover}
+                    icon={expensifyIcons.Filter}
+                    textStyles={[styles.textMicroBold]}
+                    onPress={openAdvancedFilters}
+                />
+                {shouldShowColumnsButton && (
+                    <Button
+                        link
+                        small
+                        shouldUseDefaultHover={false}
+                        text={translate('search.columns')}
+                        iconFill={theme.link}
+                        iconHoverFill={theme.linkHover}
+                        icon={expensifyIcons.Columns}
+                        textStyles={[styles.textMicroBold]}
+                        onPress={openSearchColumns}
+                    />
+                )}
+            </View>
         ),
-        [filterButtonText, theme.link, theme.linkHover, styles.textMicroBold, openAdvancedFilters, expensifyIcons],
+        [
+            styles.flexRow,
+            styles.gap2,
+            styles.textMicroBold,
+            filterButtonText,
+            theme.link,
+            theme.linkHover,
+            expensifyIcons.Filter,
+            expensifyIcons.Columns,
+            openAdvancedFilters,
+            shouldShowColumnsButton,
+            translate,
+        ],
     );
 
     if (hasErrors) {
@@ -862,7 +916,5 @@ function SearchFiltersBar({
         </View>
     );
 }
-
-SearchFiltersBar.displayName = 'SearchFiltersBar';
 
 export default SearchFiltersBar;
