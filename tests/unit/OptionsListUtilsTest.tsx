@@ -2832,7 +2832,7 @@ describe('OptionsListUtils', () => {
         describe('DEW (Dynamic External Workflow)', () => {
             beforeEach(() => Onyx.clear());
 
-            it('should show queued message for SUBMITTED action with DEW policy and pending add', async () => {
+            it('should show queued message for SUBMITTED action with DEW policy when offline and pending submit', async () => {
                 const reportID = 'dewReport1';
                 const report: Report = {
                     reportID,
@@ -2854,13 +2854,16 @@ describe('OptionsListUtils', () => {
                     message: [{type: 'COMMENT', text: 'submitted'}],
                     originalMessage: {},
                 };
+                const reportMetadata = {
+                    pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+                };
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [submittedAction.reportActionID]: submittedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policy});
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policy, reportMetadata, isOffline: true});
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
             });
 
