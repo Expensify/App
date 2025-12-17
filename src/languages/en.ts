@@ -7824,7 +7824,7 @@ const translations = {
             consolidatedDomainBilling: 'Consolidated domain billing',
             consolidatedDomainBillingDescription:
                 "When enabled, the Primary Contact will be billed for all workspaces owned by expensify.com users and the billing receipt will be routed to the Primary Contact's account.",
-            consolidatedDomainBillingError: 'Consolidated domain billing couldn\'t be changed. Please try again later.',
+            consolidatedDomainBillingError: "Consolidated domain billing couldn't be changed. Please try again later.",
         },
     },
 };
