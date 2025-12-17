@@ -355,7 +355,7 @@ function resetCreateDomainForm() {
  * Removes admin access for a domain member
  */
 function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
-    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.DOMAIN_ADMIN_PERMISSIONS}${accountID}`;
+    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     const optimisticData: OnyxUpdate[] = [
         {
