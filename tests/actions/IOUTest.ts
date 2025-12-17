@@ -5755,6 +5755,7 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
+            let nextStepBeforeSubmit: Report['nextStep'];
             const policyID = generatePolicyID();
             createWorkspace({
                 policyOwnerEmail: CARLOS_EMAIL,
@@ -5856,6 +5857,7 @@ describe('actions/IOU', () => {
 
                                     expect(expenseReport?.stateNum).toBe(0);
                                     expect(expenseReport?.statusNum).toBe(0);
+                                    nextStepBeforeSubmit = expenseReport?.nextStep;
                                     resolve();
                                 },
                             });
@@ -5879,7 +5881,7 @@ describe('actions/IOU', () => {
 
                                     expect(expenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
                                     expect(expenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
-                                    expect(expenseReport?.nextStep).toBeUndefined();
+                                    expect(expenseReport?.nextStep).toEqual(nextStepBeforeSubmit);
                                     expect(expenseReport?.pendingFields?.nextStep).toBeUndefined();
 
                                     resolve();

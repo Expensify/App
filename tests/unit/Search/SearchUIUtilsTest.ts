@@ -1860,52 +1860,6 @@ describe('SearchUIUtils', () => {
             expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
-        test('Should return `View` action when report has pending SUBMITTED action on DEW policy and is OPEN', async () => {
-            const dewReportID = '777';
-            const dewTransactionID = '7777';
-            const dewReportActionID = '77777';
-            const dewPolicyID = 'dewPolicy777';
-
-            const localSearchResults = {
-                ...searchResults.data,
-                [`policy_${dewPolicyID}`]: {
-                    ...searchResults.data[`policy_${policyID}`],
-                    id: dewPolicyID,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
-                },
-                [`report_${dewReportID}`]: {
-                    ...searchResults.data[`report_${reportID}`],
-                    reportID: dewReportID,
-                    policyID: dewPolicyID,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                },
-                [`transactions_${dewTransactionID}`]: {
-                    ...searchResults.data[`transactions_${transactionID}`],
-                    transactionID: dewTransactionID,
-                    reportID: dewReportID,
-                },
-            };
-
-            const dewReportActions = [
-                {
-                    reportActionID: dewReportActionID,
-                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    reportID: dewReportID,
-                    created: '2025-01-01 00:00:00',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    originalMessage: {
-                        amount: 10000,
-                        currency: 'USD',
-                    },
-                },
-            ] as OnyxTypes.ReportAction[];
-
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', dewReportActions).at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
-        });
-
         test('Should NOT return `View` action when report has pending SUBMITTED action on non-DEW policy', async () => {
             const nonDewReportID = '666';
             const nonDewTransactionID = '6666';

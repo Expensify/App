@@ -11693,7 +11693,7 @@ function submitReport(
                       ...expenseReport,
                       lastMessageText: getReportActionText(optimisticSubmittedReportAction),
                       lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
-                      // For DEW policies, don't optimistically update managerID, stateNum, or statusNum
+                      // For DEW policies, don't optimistically update managerID, stateNum, statusNum, or nextStep
                       // because DEW determines the actual workflow on the backend
                       ...(isDEWPolicy
                           ? {}
@@ -11713,7 +11713,7 @@ function submitReport(
                   key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                   value: {
                       ...expenseReport,
-                      // For DEW policies, don't optimistically update stateNum or statusNum
+                      // For DEW policies, don't optimistically update stateNum, statusNum, or nextStep
                       ...(isDEWPolicy
                           ? {}
                           : {
