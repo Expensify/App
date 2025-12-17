@@ -2,14 +2,13 @@ import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import DotLottieAnimations from '@components/LottieAnimations';
-import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {
     SearchAction,
     SearchColumnType,
+    SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchGroupBy,
@@ -59,6 +58,7 @@ import type {
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport, startMoneyRequest} from './actions/IOU';
 import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from './actions/isOpenConfirmNavigateExpensifyClassicModal';
@@ -75,16 +75,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {
-    arePaymentsEnabled,
-    canSendInvoice,
-    getGroupPaidPoliciesWithExpenseChatEnabled,
-    getPolicy,
-    getSubmitToAccountID,
-    isPaidGroupPolicy,
-    isPolicyAdmin,
-    isPolicyPayer,
-} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -112,14 +103,11 @@ import {
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
-    isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isMoneyRequestReport,
-    isMoneyRequestReportPendingDeletion,
     isOneTransactionReport,
     isOpenExpenseReport,
     isOpenReport,
-    isProcessingReport,
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
@@ -137,7 +125,6 @@ import {
     isScanning,
     isViolationDismissed,
 } from './TransactionUtils';
-import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
 import ViolationsUtils from './Violations/ViolationsUtils';
 
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
@@ -151,10 +138,16 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'date' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 'submitted' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.POSTED]: 'posted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'tag' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'originalAmount' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: 'billable' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: null,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
@@ -174,6 +167,8 @@ const taskColumnNamesToSortingProperty: TaskSorting = {
 const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'created' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 'submitted' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'formattedStatus' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'reportName' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
@@ -286,7 +281,6 @@ type SearchTypeMenuItem = {
     hash: number;
     similarSearchHash: number;
     emptyState?: {
-        headerMedia: DotLottieAnimation;
         title: TranslationPaths;
         subtitle: TranslationPaths;
         buttons?: Array<{
@@ -336,7 +330,7 @@ type GetSectionsParams = {
 function getSuggestedSearches(
     accountID: number = CONST.DEFAULT_NUMBER_ID,
     defaultFeedID?: string,
-    icons?: Record<'Document' | 'Pencil', IconAsset>,
+    icons?: Record<'Document' | 'Pencil' | 'ThumbsUp', IconAsset>,
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
@@ -411,7 +405,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.APPROVE,
             translationPath: 'search.bulkActions.approve',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: Expensicons.ThumbsUp,
+            icon: icons?.ThumbsUp,
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
@@ -659,7 +653,7 @@ function getTransactionItemCommonFormattedProperties(
     policy: OnyxTypes.Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     report: OnyxTypes.Report | undefined,
-): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
+): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'submitted' | 'approved' | 'posted'> {
     const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
     const fromName = getDisplayNameOrDefault(from);
@@ -677,11 +671,19 @@ function getTransactionItemCommonFormattedProperties(
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem, policy);
     const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
+    const submitted = report?.submitted;
+    const approved = report?.approved;
+
+    // Posted date is in the YYYYMMDD format, so we format it to YYYY-MM-DD here since JS's Date constructor interprets it as an invalid date.
+    const posted = !transactionItem?.posted ? '' : `${transactionItem?.posted.slice(0, 4)}-${transactionItem?.posted.slice(4, 6)}-${transactionItem?.posted.slice(6, 8)}`;
 
     return {
         formattedFrom,
         formattedTo,
         date,
+        submitted,
+        approved,
+        posted,
         formattedTotal,
         formattedMerchant,
     };
@@ -860,59 +862,126 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
     };
 }
 
+type ShouldShowYearResult = {
+    shouldShowYearCreated: boolean;
+    shouldShowYearSubmitted: boolean;
+    shouldShowYearApproved: boolean;
+    shouldShowYearPosted: boolean;
+};
+
 /**
  * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
  * @param data - The search results data (array or object)
  * @param checkOnlyReports - When true and data is an object, only check report dates (skip transactions and report actions)
+ * @returns An object indicating which date fields should display the full year
  */
-function shouldShowYear(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data'], checkOnlyReports = false) {
+function shouldShowYear(
+    data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data'],
+    checkOnlyReports = false,
+): ShouldShowYearResult {
+    const result: ShouldShowYearResult = {
+        shouldShowYearCreated: false,
+        shouldShowYearSubmitted: false,
+        shouldShowYearApproved: false,
+        shouldShowYearPosted: false,
+    };
+
     const currentYear = new Date().getFullYear();
 
     if (Array.isArray(data)) {
-        return data.some((item: TransactionListItemType | TransactionGroupListItemType | TaskListItemType) => {
+        for (const item of data) {
             if (isTaskListItemType(item)) {
                 const taskYear = new Date(item.created).getFullYear();
-                return taskYear !== currentYear;
+                if (taskYear !== currentYear) {
+                    result.shouldShowYearCreated = true;
+                }
+            }
+            if (isTransactionReportGroupListItemType(item)) {
+                if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+                    result.shouldShowYearCreated = true;
+                }
+                if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
+                    result.shouldShowYearSubmitted = true;
+                }
+                if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
+                    result.shouldShowYearApproved = true;
+                }
+            }
+            if (isTransactionListItemType(item)) {
+                const transactionCreated = getTransactionCreatedDate(item);
+                if (transactionCreated && DateUtils.doesDateBelongToAPastYear(transactionCreated)) {
+                    result.shouldShowYearCreated = true;
+                }
+                if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
+                    result.shouldShowYearSubmitted = true;
+                }
+                if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
+                    result.shouldShowYearApproved = true;
+                }
+
+                // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
+                if (item?.posted) {
+                    const postedYear = parseInt(item.posted.slice(0, 4), 10);
+                    result.shouldShowYearPosted = postedYear !== currentYear;
+                }
             }
 
-            if (isTransactionGroupListItemType(item)) {
-                // If the item is a TransactionGroupListItemType, iterate over its transactions and check them
-                return item.transactions.some((transaction) => {
-                    const transactionYear = new Date(getTransactionCreatedDate(transaction)).getFullYear();
-                    return transactionYear !== currentYear;
-                });
+            // Early exit if all flags are true
+            if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted) {
+                return result;
             }
-
-            const createdYear = new Date(item?.modifiedCreated ? item.modifiedCreated : item?.created || '').getFullYear();
-            return createdYear !== currentYear;
-        });
+        }
+        return result;
     }
 
-    for (const key in data) {
+    for (const key of Object.keys(data)) {
         if (!checkOnlyReports && isTransactionEntry(key)) {
             const item = data[key];
-            if (shouldShowTransactionYear(item)) {
-                return true;
+            if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+                result.shouldShowYearCreated = true;
+            }
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+            if (report?.submitted && DateUtils.doesDateBelongToAPastYear(report.submitted)) {
+                result.shouldShowYearSubmitted = true;
+            }
+            if (report?.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
+                result.shouldShowYearApproved = true;
+            }
+
+            // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
+            if (item?.posted) {
+                const postedYear = parseInt(item.posted.slice(0, 4), 10);
+                result.shouldShowYearPosted = postedYear !== currentYear;
             }
         } else if (!checkOnlyReports && isReportActionEntry(key)) {
             const item = data[key];
             for (const action of Object.values(item)) {
                 const date = action.created;
-
                 if (DateUtils.doesDateBelongToAPastYear(date)) {
-                    return true;
+                    result.shouldShowYearCreated = true;
                 }
             }
         } else if (isReportEntry(key)) {
             const item = data[key];
-            const date = item.created;
 
-            if (date && DateUtils.doesDateBelongToAPastYear(date)) {
-                return true;
+            if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+                result.shouldShowYearCreated = true;
+            }
+            if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
+                result.shouldShowYearSubmitted = true;
+            }
+            if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
+                result.shouldShowYearApproved = true;
             }
         }
+
+        // Early exit if all flags are true
+        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted) {
+            return result;
+        }
     }
-    return false;
+
+    return result;
 }
 
 /**
@@ -1064,7 +1133,7 @@ function getTransactionsSections(
     isActionLoadingSet: ReadonlySet<string> | undefined,
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const doesDataContainAPastYearTransaction = shouldShowYear(data);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted} = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
     // Pre-filter transaction keys to avoid repeated checks
@@ -1113,7 +1182,7 @@ function getTransactionsSections(
             const from = reportAction?.actorAccountID ? (personalDetailsMap.get(reportAction.actorAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
                 from,
                 to,
@@ -1125,7 +1194,7 @@ function getTransactionsSections(
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 keyForList: transactionItem.transactionID,
-                action: getAction(allActions),
+                action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 allActions,
                 report,
                 policy,
@@ -1138,8 +1207,14 @@ function getTransactionsSections(
                 formattedTotal,
                 formattedMerchant,
                 date,
+                submitted,
+                approved,
+                posted,
                 shouldShowMerchant,
-                shouldShowYear: doesDataContainAPastYearTransaction,
+                shouldShowYear: shouldShowYearCreated,
+                shouldShowYearSubmitted,
+                shouldShowYearApproved,
+                shouldShowYearPosted,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 violations: transactionViolations,
@@ -1299,8 +1374,7 @@ function getActions(
 
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isScanning(t) || isPending(t));
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
-    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
+    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
 
     // We're not supporting approve partial amount on search page now
     if (
@@ -1317,26 +1391,11 @@ function getActions(
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
-    if (report && policy && isPolicyAdmin(policy) && isExpenseReportUtil(report) && isProcessingReport(report) && !isMoneyRequestReportPendingDeletion(report)) {
-        allActions.push(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
-    }
-
     if (reportNVP?.exportFailedTime) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
     return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
-}
-
-/**
- * @private
- * Returns the main action that can be taken on a given transaction or report
- *
- * Do not use directly, use only via `getSections()` facade.
- */
-function getAction(allActions: SearchTransactionAction[]) {
-    // VIEW should take precedence over CHANGE_APPROVER
-    return allActions.find((action) => action !== CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER) ?? CONST.SEARCH.ACTION_TYPES.VIEW;
 }
 
 /**
@@ -1367,7 +1426,7 @@ function getTaskSections(
             const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
             const parentReport = getReportOrDraftReport(taskItem.parentReportID);
 
-            const doesDataContainAPastYearTransaction = shouldShowYear(data);
+            const {shouldShowYearCreated} = shouldShowYear(data);
             const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName));
             const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description));
 
@@ -1380,7 +1439,7 @@ function getTaskSections(
                 createdBy,
                 formattedCreatedBy,
                 keyForList: taskItem.reportID,
-                shouldShowYear: doesDataContainAPastYearTransaction,
+                shouldShowYear: shouldShowYearCreated,
             };
 
             if (parentReport && personalDetails) {
@@ -1527,7 +1586,12 @@ function getReportSections(
 ): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
-    const doesDataContainAPastYearTransaction = shouldShowYear(data);
+    const {
+        shouldShowYearCreated: shouldShowYearCreatedTransaction,
+        shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
+        shouldShowYearApproved: shouldShowYearApprovedTransaction,
+        shouldShowYearPosted: shouldShowYearPostedTransaction,
+    } = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
     const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
 
@@ -1550,7 +1614,11 @@ function getReportSections(
     );
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
-    const doesDataContainAPastYearReport = shouldShowYear(data, true);
+    const {
+        shouldShowYearCreated: shouldShowYearCreatedReport,
+        shouldShowYearSubmitted: shouldShowYearSubmittedReport,
+        shouldShowYearApproved: shouldShowYearApprovedReport,
+    } = shouldShowYear(data, true);
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
@@ -1612,7 +1680,7 @@ function getReportSections(
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
-                    action: getAction(allActions),
+                    action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                     allActions,
                     keyForList: String(reportItem.reportID),
                     groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
@@ -1623,7 +1691,9 @@ function getReportSections(
                     formattedStatus,
                     transactions,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
-                    shouldShowYear: doesDataContainAPastYearReport,
+                    shouldShowYear: shouldShowYearCreatedReport,
+                    shouldShowYearSubmitted: shouldShowYearSubmittedReport,
+                    shouldShowYearApproved: shouldShowYearApprovedReport,
                     hasVisibleViolations: hasVisibleViolationsForReport,
                 };
 
@@ -1655,7 +1725,7 @@ function getReportSections(
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions);
             const transaction = {
                 ...transactionItem,
-                action: getAction(allActions),
+                action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 allActions,
                 report,
                 reportAction,
@@ -1669,7 +1739,10 @@ function getReportSections(
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
-                shouldShowYear: doesDataContainAPastYearTransaction,
+                shouldShowYear: shouldShowYearCreatedTransaction,
+                shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
+                shouldShowYearApproved: shouldShowYearApprovedTransaction,
+                shouldShowYearPosted: shouldShowYearPostedTransaction,
                 keyForList: transactionItem.transactionID,
                 violations: transactionViolations,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
@@ -1870,6 +1943,7 @@ function getSortedSections(
     status: SearchStatus,
     data: ListItemDataType<typeof type, typeof status>,
     localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocaleContextProps['translate'],
     sortBy?: SearchColumnType,
     sortOrder?: SortOrder,
     groupBy?: SearchGroupBy,
@@ -1881,7 +1955,7 @@ function getSortedSections(
         return getSortedTaskData(data as TaskListItemType[], localeCompare, sortBy, sortOrder);
     }
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare, sortBy, sortOrder);
+        return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare, translate, sortBy, sortOrder);
     }
 
     if (groupBy) {
@@ -1897,7 +1971,7 @@ function getSortedSections(
         }
     }
 
-    return getSortedTransactionData(data as TransactionListItemType[], localeCompare, sortBy, sortOrder);
+    return getSortedTransactionData(data as TransactionListItemType[], localeCompare, translate, sortBy, sortOrder);
 }
 
 /**
@@ -1906,9 +1980,19 @@ function getSortedSections(
  */
 function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string, localeCompare: LocaleContextProps['localeCompare'], shouldCompareOriginalValue = false): number {
     const isAsc = sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
+    const aIsEmpty = a === undefined || a === null || a === '';
+    const bIsEmpty = b === undefined || b === null || b === '';
 
-    if (a === undefined || b === undefined) {
+    if (aIsEmpty && bIsEmpty) {
         return 0;
+    }
+
+    if (aIsEmpty) {
+        return isAsc ? -1 : 1;
+    }
+
+    if (bIsEmpty) {
+        return isAsc ? 1 : -1;
     }
 
     if (typeof a === 'string' && typeof b === 'string') {
@@ -1916,8 +2000,10 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
     }
 
     if (typeof a === 'number' && typeof b === 'number') {
-        const aValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT && !shouldCompareOriginalValue ? Math.abs(a) : a;
-        const bValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT && !shouldCompareOriginalValue ? Math.abs(b) : b;
+        const aValue =
+            (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || sortBy.toLowerCase() === CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT) && !shouldCompareOriginalValue ? Math.abs(a) : a;
+        const bValue =
+            (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || sortBy.toLowerCase() === CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT) && !shouldCompareOriginalValue ? Math.abs(b) : b;
         return isAsc ? aValue - bValue : bValue - aValue;
     }
 
@@ -1926,24 +2012,92 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
 
 /**
  * @private
+ * Gets the value to use for sorting a transaction by a given property.
+ * Handles special cases like comments and boolean fields (reimbursable, billable).
+ */
+function getTransactionSortValue(transaction: TransactionListItemType, sortingProperty: string): unknown {
+    if (sortingProperty === 'comment') {
+        return transaction.comment?.comment;
+    }
+
+    if (sortingProperty === 'reimbursable' || sortingProperty === 'billable') {
+        const boolValue = transaction[sortingProperty as keyof TransactionListItemType];
+        return boolValue ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+    }
+
+    return transaction[sortingProperty as keyof TransactionListItemType];
+}
+
+/**
+ * @private
  * Sorts transaction sections based on a specified column and sort order.
  */
-function getSortedTransactionData(data: TransactionListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+function getSortedTransactionData(
+    data: TransactionListItemType[],
+    localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocaleContextProps['translate'],
+    sortBy?: SearchColumnType,
+    sortOrder?: SortOrder,
+) {
     if (!sortBy || !sortOrder) {
         return data;
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REPORT_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID) {
+        return data.sort((a, b) => {
+            const aValue = a.reportID;
+            const bValue = b.reportID;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
+        });
+    }
+
     const sortingProperty = transactionColumnNamesToSortingProperty[sortBy];
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TITLE) {
+        return data.sort((a, b) => {
+            const aValue = a.report?.reportName ?? '';
+            const bValue = b.report?.reportName ?? '';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.STATUS) {
+        return data.sort((a, b) => {
+            const aReport = a.report;
+            const bReport = b.report;
+
+            if (!aReport || !bReport) {
+                return 0;
+            }
+
+            const aValue = getReportStatusTranslation({stateNum: aReport.stateNum, statusNum: aReport.statusNum, translate});
+            const bValue = getReportStatusTranslation({stateNum: bReport.stateNum, statusNum: bReport.statusNum, translate});
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
 
     if (!sortingProperty) {
         return data;
     }
 
     return data.sort((a, b) => {
-        const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty as keyof TransactionListItemType];
-        const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty as keyof TransactionListItemType];
+        const aValue = getTransactionSortValue(a, sortingProperty);
+        const bValue = getTransactionSortValue(b, sortingProperty);
 
-        return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
+        const primaryComparison = compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
+
+        if (primaryComparison !== 0) {
+            return primaryComparison;
+        }
+
+        // If we have a tie in the primary comparison, we add a tie breaker on date and/or transactionID as a last resort to make the sort deterministic
+        const createdComparison = compareValues(a.created, b.created, sortOrder, 'created', localeCompare);
+
+        if (createdComparison !== 0) {
+            return createdComparison;
+        }
+
+        return compareValues(a.transactionID, b.transactionID, sortOrder, 'transactionID', localeCompare);
     });
 }
 
@@ -1970,9 +2124,15 @@ function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContex
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedReportData(data: TransactionReportGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+function getSortedReportData(
+    data: TransactionReportGroupListItemType[],
+    localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocaleContextProps['translate'],
+    sortBy?: SearchColumnType,
+    sortOrder?: SortOrder,
+) {
     for (const report of data) {
-        report.transactions = getSortedTransactionData(report.transactions, localeCompare, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
+        report.transactions = getSortedTransactionData(report.transactions, localeCompare, translate, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
     }
 
     if (!sortBy || !sortOrder) {
@@ -1982,6 +2142,14 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
             }
 
             return localeCompare(b.created.toLowerCase(), a.created.toLowerCase());
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.REPORT_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID) {
+        return data.sort((a, b) => {
+            const aValue = a.reportID;
+            const bValue = b.reportID;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
         });
     }
 
@@ -2079,6 +2247,84 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+function getCustomColumns(type: SearchDataTypes): SearchCustomColumnIds[] {
+    // eslint-disable-next-line default-case
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE);
+        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT);
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.INVOICE);
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.TASK);
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.TRIP);
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.CHAT);
+    }
+}
+
+function getCustomColumnDefault(type: SearchDataTypes): SearchCustomColumnIds[] {
+    // eslint-disable-next-line default-case
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            return CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE;
+        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            return CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT;
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return CONST.SEARCH.DEFAULT_COLUMNS.INVOICE;
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return CONST.SEARCH.DEFAULT_COLUMNS.TASK;
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return CONST.SEARCH.DEFAULT_COLUMNS.TRIP;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return CONST.SEARCH.DEFAULT_COLUMNS.CHAT;
+    }
+}
+
+function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (columnId) {
+        case CONST.SEARCH.TABLE_COLUMNS.DATE:
+            return 'common.date';
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
+            return 'common.submitted';
+        case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
+            return 'search.filters.approved';
+        case CONST.SEARCH.TABLE_COLUMNS.POSTED:
+            return 'search.filters.posted';
+        case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            return 'common.merchant';
+        case CONST.SEARCH.TABLE_COLUMNS.FROM:
+            return 'common.from';
+        case CONST.SEARCH.TABLE_COLUMNS.TO:
+            return 'common.to';
+        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+            return 'common.category';
+        case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
+            return 'common.receipt';
+        case CONST.SEARCH.TABLE_COLUMNS.TAG:
+            return 'common.tag';
+        case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
+            return 'common.originalAmount';
+        case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
+            return 'common.reimbursable';
+        case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+            return 'common.billable';
+        case CONST.SEARCH.TABLE_COLUMNS.ACTION:
+            return 'common.action';
+        case CONST.SEARCH.TABLE_COLUMNS.TITLE:
+            return 'common.title';
+        case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+            return 'common.status';
+        case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
+            return 'common.longID';
+        case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
+            return 'common.reportID';
+    }
+}
+
 type OverflowMenuIconsType = Record<'Pencil', IconAsset>;
 
 /**
@@ -2135,7 +2381,7 @@ function isCorrectSearchUserName(displayName?: string) {
 
 // eslint-disable-next-line @typescript-eslint/max-params
 function createTypeMenuSections(
-    icons: Record<'Document' | 'Pencil', IconAsset>,
+    icons: Record<'Document' | 'Pencil' | 'ThumbsUp', IconAsset>,
     currentUserEmail: string | undefined,
     currentUserAccountID: number | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
@@ -2164,7 +2410,6 @@ function createTypeMenuSections(
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
                     subtitle: 'search.searchResults.emptySubmitResults.subtitle',
                     buttons:
@@ -2193,7 +2438,6 @@ function createTypeMenuSections(
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyApproveResults.title',
                     subtitle: 'search.searchResults.emptyApproveResults.subtitle',
                 },
@@ -2203,7 +2447,6 @@ function createTypeMenuSections(
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.PAY],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyPayResults.title',
                     subtitle: 'search.searchResults.emptyPayResults.subtitle',
                 },
@@ -2213,7 +2456,6 @@ function createTypeMenuSections(
             todoSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyExportResults.title',
                     subtitle: 'search.searchResults.emptyExportResults.subtitle',
                 },
@@ -2236,7 +2478,6 @@ function createTypeMenuSections(
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.STATEMENTS],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyStatementsResults.title',
                     subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
                 },
@@ -2246,7 +2487,6 @@ function createTypeMenuSections(
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
                     subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
                 },
@@ -2256,7 +2496,6 @@ function createTypeMenuSections(
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
                     subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
                 },
@@ -2266,7 +2505,6 @@ function createTypeMenuSections(
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyStatementsResults.title',
                     subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
                 },
@@ -2456,20 +2694,45 @@ function getActionOptions(translate: LocaleContextProps['translate']) {
 function getColumnsToShow(
     currentAccountID: number | undefined,
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[],
+    visibleColumns: SearchCustomColumnIds[] = [],
     isExpenseReportView = false,
     type?: SearchDataTypes,
 ): ColumnVisibility {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return {
+        const reportColumns: ColumnVisibility = {
             [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
             [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
             [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
             [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
         };
+
+        // If there are no visible columns, everything should be visible
+        if (!visibleColumns.length) {
+            return reportColumns;
+        }
+
+        // If the user has set custom columns, toggle the visible columns on, with all other
+        // columns hidden by default
+        const columns: ColumnVisibility = {};
+        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+
+        for (const columnId of Object.keys(reportColumns) as SearchColumnType[]) {
+            columns[columnId] = requiredColumns.has(columnId);
+        }
+
+        for (const column of visibleColumns) {
+            columns[column as keyof ColumnVisibility] = true;
+        }
+
+        return columns;
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
@@ -2497,52 +2760,62 @@ function getColumnsToShow(
 
     const columns: ColumnVisibility = isExpenseReportView
         ? {
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: true,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: true,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: false,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: false,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]: false,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]: false,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: true,
-              [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
           }
         : {
               [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.POSTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
           };
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
+
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const updateColumns = (transaction: OnyxTypes.Transaction | SearchTransaction) => {
         const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
         if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) || isScanning(transaction)) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT] = true;
+            columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT] = true;
         }
 
         if (getDescription(transaction) !== '') {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION] = true;
+            columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION] = true;
         }
 
         const category = getCategory(transaction);
         if (category !== '' && category !== CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = true;
+            columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = true;
         }
 
         const tag = getTag(transaction);
         if (tag !== '' && tag !== CONST.SEARCH.TAG_EMPTY_VALUE) {
-            columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = true;
+            columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = true;
         }
 
         if (isExpenseReportView) {
@@ -2558,16 +2831,28 @@ function getColumnsToShow(
             // if From or To differ from current user in any transaction, show the columns
             const accountID = reportAction?.actorAccountID;
             if (accountID && accountID !== currentAccountID) {
-                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] = true;
+                columns[CONST.SEARCH.TABLE_COLUMNS.FROM] = true;
             }
 
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const toFieldValue = getToFieldValueForTransaction(transaction as SearchTransaction, report, data.personalDetailsList, reportAction);
-            if (toFieldValue.accountID && toFieldValue.accountID !== currentAccountID && !columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]) {
-                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] = !!report && !isOpenReport(report);
+            if (toFieldValue.accountID && toFieldValue.accountID !== currentAccountID && !columns[CONST.SEARCH.TABLE_COLUMNS.TO]) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TO] = !!report && !isOpenReport(report);
             }
         }
     };
+
+    // If the user has set custom columns for the search, we need to respect their preference, and only show
+    // them what they want to see
+    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
+        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
+
+        for (const column of Object.keys(columns) as SearchCustomColumnIds[]) {
+            columns[column] = visibleColumns.includes(column) || requiredColumns.has(column);
+        }
+
+        return columns;
+    }
 
     if (Array.isArray(data)) {
         for (const item of data) {
@@ -2695,6 +2980,32 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
+function getTableMinWidth(columns: SearchColumnType[]) {
+    // Starts at 24px to account for the checkbox width
+    let minWidth = 24;
+
+    for (const column of columns) {
+        if (column === CONST.SEARCH.TABLE_COLUMNS.RECEIPT || column === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
+            minWidth += 36;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.AVATAR) {
+            minWidth += 40;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.STATUS || column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
+            minWidth += 80;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
+            minWidth += 48;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED || column === CONST.SEARCH.TABLE_COLUMNS.APPROVED || column === CONST.SEARCH.TABLE_COLUMNS.POSTED) {
+            minWidth += 72;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {
+            minWidth += 20;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || column === CONST.SEARCH.TABLE_COLUMNS.BILLABLE) {
+            minWidth += 92;
+        } else {
+            minWidth += 200;
+        }
+    }
+    return minWidth;
+}
+
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -2740,5 +3051,9 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getTransactionFromTransactionListItem,
+    getSearchColumnTranslationKey,
+    getTableMinWidth,
+    getCustomColumns,
+    getCustomColumnDefault,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

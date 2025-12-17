@@ -34,8 +34,8 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(true, undefined, undefined, reimbursementAccount?.achData?.ACHRequestReportActionID);
 
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil']);
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble']);
 
     return (
         <ScrollView style={[styles.flex1]}>
@@ -84,7 +84,5 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
         </ScrollView>
     );
 }
-
-FinishChatCard.displayName = 'FinishChatCard';
 
 export default FinishChatCard;
