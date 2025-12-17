@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID, WorkspaceCardsList} from '@src/types/onyx';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
+import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableItem';
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableItem';
 
@@ -38,20 +39,9 @@ type WorkspaceCompanyCardsTableProps = {
 
     /** Whether to show GB disclaimer */
     shouldShowGBDisclaimer?: boolean;
-
-    /** Render prop for header buttons - receives SearchBar and FilterButtons as children */
-    renderHeaderButtons?: (searchBar: React.ReactNode, filterButtons: React.ReactNode) => React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTable({
-    selectedFeed,
-    cardsList,
-    policyID,
-    onAssignCard,
-    isAssigningCardDisabled,
-    shouldShowGBDisclaimer,
-    renderHeaderButtons,
-}: WorkspaceCompanyCardsTableProps) {
+function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer}: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -64,8 +54,6 @@ function WorkspaceCompanyCardsTable({
 
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const cards = companyFeeds?.[selectedFeed]?.accountList;
-
-    const plaidIconUrl = getPlaidInstitutionIconUrl(selectedFeed);
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
@@ -94,7 +82,7 @@ function WorkspaceCompanyCardsTable({
             item={item}
             policyID={policyID}
             selectedFeed={selectedFeed}
-            plaidIconUrl={plaidIconUrl}
+            plaidIconUrl={getPlaidInstitutionIconUrl(selectedFeed)}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
             shouldUseNarrowTableRowLayout={shouldShowNarrowLayout}
@@ -223,11 +211,17 @@ function WorkspaceCompanyCardsTable({
     // Show empty state when there are no cards
     if (!data.length) {
         return (
-            <WorkspaceCompanyCardsFeedAddedEmptyPage
-                shouldShowGBDisclaimer={shouldShowGBDisclaimer}
-                handleAssignCard={onAssignCard}
-                isAssigningCardDisabled={isAssigningCardDisabled}
-            />
+            <View>
+                <WorkspaceCompanyCardsTableHeaderButtons
+                    policyID={policyID}
+                    selectedFeed={selectedFeed}
+                />
+                <WorkspaceCompanyCardsFeedAddedEmptyPage
+                    shouldShowGBDisclaimer={shouldShowGBDisclaimer}
+                    handleAssignCard={onAssignCard}
+                    isAssigningCardDisabled={isAssigningCardDisabled}
+                />
+            </View>
         );
     }
 
@@ -243,7 +237,13 @@ function WorkspaceCompanyCardsTable({
             isItemInFilter={isItemInFilter}
             filters={filterConfig}
         >
-            <View style={shouldShowNarrowLayout && styles.mb5}>{renderHeaderButtons?.(<Table.SearchBar />, <Table.FilterButtons />)}</View>
+            <View style={shouldShowNarrowLayout && styles.mb5}>
+                <WorkspaceCompanyCardsTableHeaderButtons
+                    policyID={policyID}
+                    selectedFeed={selectedFeed}
+                    shouldDisplayTableComponents
+                />
+            </View>
 
             {!shouldShowNarrowLayout && <Table.Header />}
 

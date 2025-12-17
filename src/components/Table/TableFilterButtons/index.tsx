@@ -10,12 +10,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import buildFilterItems from './buildFilterItems';
 import type {FilterButtonItem} from './buildFilterItems';
 
-type TableFilterButtonsProps = ViewProps;
+type TableFilterButtonsProps = ViewProps & {
+    contentContainerStyle?: StyleProp<ViewStyle>;
+};
 
-function TableFilterButtons(props: TableFilterButtonsProps) {
+function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {filterConfig: filterConfigs, activeFilters: filters, updateFilter} = useTableContext();
 
     const setFilter = (key: string, value: unknown) => {
@@ -28,8 +29,6 @@ function TableFilterButtons(props: TableFilterButtonsProps) {
         return null;
     }
 
-    const shouldShowResponsiveLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <View {...props}>
@@ -38,8 +37,7 @@ function TableFilterButtons(props: TableFilterButtonsProps) {
                 data={filterItems}
                 keyExtractor={(item) => item.key}
                 renderItem={({item}) => <FilterItemRenderer item={item} />}
-                style={shouldShowResponsiveLayout && [styles.flexGrow0, styles.flexShrink0]}
-                contentContainerStyle={[styles.flexRow, styles.gap2, styles.w100]}
+                contentContainerStyle={[styles.flexRow, styles.gap2, styles.w100, contentContainerStyle]}
                 showsHorizontalScrollIndicator={false}
                 CellRendererComponent={CellRendererComponent}
             />
