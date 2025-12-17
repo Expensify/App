@@ -26,8 +26,8 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
-    getCurrency,
     getDescription,
+    getExchangeRate,
     getMerchant,
     getOriginalAmount,
     getOriginalCurrency,
@@ -238,9 +238,7 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report]);
 
-    const fromCurrency = getCurrency(transactionItem);
-    const toCurrency = transactionItem.groupCurrency ?? fromCurrency;
-    const exchangeRateMessage = transactionItem.groupExchangeRate ? `${transactionItem.groupExchangeRate} ${fromCurrency}/${toCurrency}` : '';
+    const exchangeRateMessage = getExchangeRate(transactionItem);
 
     const columnComponent = useMemo(
         () => ({
