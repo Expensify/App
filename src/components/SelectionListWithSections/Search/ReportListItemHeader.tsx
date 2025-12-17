@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {ColorValue} from 'react-native';
 import Checkbox from '@components/Checkbox';
@@ -113,21 +113,15 @@ function HeaderFirstRow<TItem extends ListItem>({
     const theme = useTheme();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
 
-    const {total, currency} = useMemo(() => {
-        let reportTotal = reportItem.total ?? 0;
-
-        if (reportTotal) {
-            if (reportItem.type === CONST.REPORT.TYPE.IOU) {
-                reportTotal = Math.abs(reportTotal ?? 0);
-            } else {
-                reportTotal *= reportItem.type === CONST.REPORT.TYPE.EXPENSE || reportItem.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
-            }
+    let total = reportItem.total ?? 0;
+    if (total) {
+        if (reportItem.type === CONST.REPORT.TYPE.IOU) {
+            total = Math.abs(total);
+        } else {
+            total *= reportItem.type === CONST.REPORT.TYPE.EXPENSE || reportItem.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
         }
-
-        const reportCurrency = reportItem.currency ?? CONST.CURRENCY.USD;
-
-        return {total: reportTotal, currency: reportCurrency};
-    }, [reportItem.type, reportItem.total, reportItem.currency]);
+    }
+    const currency = reportItem.currency ?? CONST.CURRENCY.USD;
 
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pl3]}>
@@ -221,12 +215,8 @@ function ReportListItemHeader<TItem extends ListItem>({
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
-    const snapshotReport = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
-    }, [snapshot, reportItem.reportID]);
-    const snapshotPolicy = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
-    }, [snapshot, reportItem.policyID]);
+    const snapshotReport = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
+    const snapshotPolicy = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
     const avatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
         theme.highlightBG;
