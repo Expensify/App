@@ -4,7 +4,7 @@ import type {GroupedTransactions} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
-import isTagMissing, {getDecodedTagName} from './TagUtils';
+import isTagMissing from './TagUtils';
 import {getAmount, getCategory, getCurrency, getTag, isTransactionPendingDelete} from './TransactionUtils';
 
 /**
@@ -110,7 +110,7 @@ function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<R
     const result: GroupedTransactions[] = [];
     for (const [tagKey, transactionList] of groups) {
         result.push({
-            groupName: tagKey ? getDecodedTagName(tagKey) : tagKey,
+            groupName: tagKey,
             groupKey: tagKey,
             transactions: transactionList,
             subTotalAmount: calculateGroupTotal(transactionList, reportCurrency),
