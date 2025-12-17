@@ -10,6 +10,7 @@ import PlaidConnectionStep from '@pages/workspace/companyCards/addNew/PlaidConne
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import {getCompanyCardFeed} from '@libs/CardUtils';
 import {clearAssignCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,15 +44,19 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
         };
     }, []);
 
-    // useEffect(() => {
-    //     if (cardID) {
-    //         setAssignCardStepAndData({
-    //             currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
-    //             data: {encryptedCardNumber: cardSelected, cardNumber},
-    //             isEditing: false,
-    //         });
-    //     }
-    // }, [cardID]);
+    useEffect(() => {
+        if (cardID && !currentStep) {
+            const companyCardFeed = getCompanyCardFeed(feed);
+
+            setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                data: {
+                    bankName: companyCardFeed,
+                    encryptedCardNumber: cardID,
+                },
+            });
+        }
+    }, [cardID, currentStep, feed]);
 
     if (isActingAsDelegate) {
         return (
