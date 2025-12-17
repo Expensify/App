@@ -84,7 +84,7 @@ function SubscriptionSettings() {
         }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(1));
     };
-    const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual', 'SubscriptionPPU'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual', 'SubscriptionPPU']);
 
     const options: Array<OptionsPickerItem<SubscriptionType>> = [
         {
@@ -171,7 +171,7 @@ function SubscriptionSettings() {
 
     return (
         <ScreenWrapper
-            testID={SubscriptionSettings.displayName}
+            testID="SubscriptionSettings"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -258,7 +258,5 @@ function SubscriptionSettings() {
         </ScreenWrapper>
     );
 }
-
-SubscriptionSettings.displayName = 'SubscriptionSettings';
 
 export default SubscriptionSettings;

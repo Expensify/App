@@ -161,7 +161,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceEditCardLimitTypePage.displayName}
+                testID="WorkspaceEditCardLimitTypePage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
@@ -202,7 +202,5 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceEditCardLimitTypePage.displayName = 'WorkspaceEditCardLimitTypePage';
 
 export default WorkspaceEditCardLimitTypePage;
