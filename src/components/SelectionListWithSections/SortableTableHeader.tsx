@@ -34,6 +34,7 @@ type SearchTableHeaderProps = {
     shouldShowColumn: (columnName: SearchColumnType) => boolean;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
     areAllOptionalColumnsHidden?: boolean;
+    groupBy?: string;
 };
 
 function SortableTableHeader({
@@ -51,6 +52,7 @@ function SortableTableHeader({
     amountColumnSize,
     taxAmountColumnSize,
     areAllOptionalColumnsHidden,
+    groupBy,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -86,6 +88,8 @@ function SortableTableHeader({
                                     submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    // In GroupBy views, disable flex expansion for Total columns so Expenses column gets more space
+                                    !!groupBy,
                                 ),
                             ]}
                             isSortable={isSortable}

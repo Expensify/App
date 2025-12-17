@@ -1727,6 +1727,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         isSubmittedColumnWide = false,
         isApprovedColumnWide = false,
         isPostedColumnWide = false,
+        shouldRemoveTotalColumnFlex = false,
     ): ViewStyle => {
         let columnWidth;
         switch (columnName) {
@@ -1768,12 +1769,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPENSES:
-                columnWidth = {...getWidthStyle(variables.w130)};
+                columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1, ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
-                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...styles.flex1, ...styles.alignItemsEnd};
+                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...(!shouldRemoveTotalColumnFlex && styles.flex1), ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
                 columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
