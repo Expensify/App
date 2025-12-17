@@ -111,7 +111,6 @@ import getEnvironment from './Environment/getEnvironment';
 import type EnvironmentType from './Environment/getEnvironment/types';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
-import {compute} from './Formula';
 import type {FormulaContext} from './Formula';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
@@ -6965,7 +6964,9 @@ function buildOptimisticExpenseReport(
             policy,
             allTransactions: reportTransactions ?? {},
         };
-        const computedName = compute(titleReportField.defaultValue, formulaContext);
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+        const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
+        const computedName = Formula.compute(titleReportField.defaultValue, formulaContext);
         expenseReport.reportName = computedName || expenseReport.reportName;
     }
 
@@ -7012,7 +7013,9 @@ function buildOptimisticEmptyReport(
         policy,
         allTransactions: reportTransactions ?? {},
     };
-    const optimisticReportName = compute(formula, formulaContext);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
+    const optimisticReportName = Formula.compute(formula, formulaContext);
     optimisticEmptyReport.reportName = optimisticReportName || '';
 
     optimisticEmptyReport.participants = accountID
