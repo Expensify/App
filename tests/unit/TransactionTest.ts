@@ -1,9 +1,9 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
-import {changeTransactionsReport, saveWaypoint} from '@libs/actions/Transaction';
+import {changeTransactionsReport, markAsCash, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -11,6 +11,7 @@ import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -19,6 +20,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -84,7 +86,10 @@ describe('Transaction', () => {
         });
     });
 
+    let mockFetch: TestHelper.MockFetch;
     beforeEach(() => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        mockFetch = global.fetch as TestHelper.MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -796,6 +801,146 @@ describe('Transaction', () => {
             expect(transaction?.errorFields?.route ?? null).toBeNull();
             expect(transaction?.routes?.route0?.distance ?? null).toBeNull();
             expect(transaction?.routes?.route0?.geometry?.coordinates ?? null).toBeNull();
+        });
+    });
+
+    describe('markAsCash', () => {
+        it('should optimistically remove RTER violation and add dismissed violation report action', async () => {
+            // Given a transaction with an RTER violation
+            const transactionID = 'transaction123';
+            const transactionThreadReportID = 'threadReport456';
+            const mockViolations: TransactionViolation[] = [
+                {name: CONST.VIOLATIONS.RTER, type: 'warning'},
+                {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'},
+            ];
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {});
+
+            // When markAsCash is called
+            markAsCash(transactionID, transactionThreadReportID, mockViolations);
+            await waitForBatchedUpdates();
+
+            // Then the RTER violation should be removed optimistically
+            const optimisticViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+
+            expect(optimisticViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
+
+            // And a dismissed violation report action should be added
+            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+
+            const reportActionValues = Object.values(reportActions ?? {});
+            expect(reportActionValues.length).toBe(1);
+            expect(reportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
+
+            // After API call succeeds, the optimistic updates should persist
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            const finalViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            expect(finalViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
+
+            const finalReportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+            const finalReportActionValues = Object.values(finalReportActions ?? {});
+            expect(finalReportActionValues.length).toBe(1);
+            expect(finalReportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
+        });
+
+        it('should restore RTER violation and remove report action when API fails', async () => {
+            // Given a transaction with an RTER violation
+            const transactionID = 'transaction123';
+            const transactionThreadReportID = 'threadReport456';
+            const mockViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.RTER, type: 'warning'}];
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {});
+
+            mockFetch.fail();
+
+            // When markAsCash is called and API fails
+            markAsCash(transactionID, transactionThreadReportID, mockViolations);
+            await waitForBatchedUpdates();
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the RTER violation should be restored to original state
+            const failureViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+
+            expect(failureViolations).toEqual(mockViolations);
+
+            // And the dismissed violation report action should be removed
+            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+
+            expect(Object.keys(reportActions ?? {}).length).toBe(0);
+        });
+
+        it('should handle empty transaction violations array', async () => {
+            // Given a transaction with no violations
+            const transactionID = 'transaction123';
+            const transactionThreadReportID = 'threadReport456';
+            const mockViolations: TransactionViolation[] = [];
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {});
+
+            // When markAsCash is called with empty violations array
+            markAsCash(transactionID, transactionThreadReportID, mockViolations);
+            await waitForBatchedUpdates();
+
+            // Then the violations should remain empty after filtering out RTER
+            const optimisticViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+
+            expect(optimisticViolations).toEqual([]);
+
+            await mockFetch.resume();
+        });
+
+        it('should work with data from useOnyx hook', async () => {
+            // Given a transaction with an RTER violation loaded via useOnyx
+            const transactionID = 'transaction123';
+            const transactionThreadReportID = 'threadReport456';
+            const mockViolations: TransactionViolation[] = [
+                {name: CONST.VIOLATIONS.RTER, type: 'warning'},
+                {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'},
+            ];
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {});
+
+            const {result} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`));
+
+            await waitFor(() => {
+                expect(result.current[0]).toBeDefined();
+            });
+
+            // When markAsCash is called with data from useOnyx hook
+            await act(async () => {
+                markAsCash(transactionID, transactionThreadReportID, result.current[0] ?? []);
+                await waitForBatchedUpdates();
+            });
+
+            // Then the RTER violation should be removed optimistically
+            await waitFor(() => {
+                expect(result.current[0]).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
+            });
+
+            // And a dismissed violation report action should be added
+            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+
+            const reportActionValues = Object.values(reportActions ?? {});
+            expect(reportActionValues.length).toBe(1);
+            expect(reportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
+
+            await mockFetch.resume();
         });
     });
 });
