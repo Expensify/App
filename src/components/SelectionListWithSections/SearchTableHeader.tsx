@@ -69,6 +69,11 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CARD,
         translationKey: 'common.card',
+        canBeMissing: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.CARD,
+        translationKey: 'common.card',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,

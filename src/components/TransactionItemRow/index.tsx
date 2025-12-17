@@ -410,6 +410,14 @@ function TransactionItemRow({
                     )}
                 </View>
             ),
+            [CONST.SEARCH.TABLE_COLUMNS.CARD]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.CARD}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}
+                >
+                    <TextCell text={'CARD GOES HERE'} />
+                </View>
+            ),
             [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.COMMENTS}
