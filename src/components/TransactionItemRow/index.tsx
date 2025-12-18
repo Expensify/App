@@ -18,6 +18,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {computeReportName} from '@libs/ReportNameUtils';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -550,7 +551,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
                     <TextCell
-                        text={transactionItem.report?.reportName ?? ''}
+                        text={computeReportName(transactionItem.report) ?? transactionItem.report?.reportName ?? ''}
                         isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
