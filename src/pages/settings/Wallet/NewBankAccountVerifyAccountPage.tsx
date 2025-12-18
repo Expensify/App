@@ -1,13 +1,13 @@
 import React, {useMemo} from 'react';
+import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+import {getCurrentUserEmail} from '@userActions/Report';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
-import {getCurrentUserEmail} from '@userActions/Report';
-import useOnyx from '@hooks/useOnyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type NewBankAccountVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT>;
 

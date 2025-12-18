@@ -3,11 +3,11 @@ import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 
 type BankAccountPurposeProps = {
     /** Callback to call when the user selects a purpose */

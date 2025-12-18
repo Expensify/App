@@ -36,7 +36,6 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [selectedCountry, setSelectedCountry] = useState<string>('');
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
@@ -50,6 +49,7 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
     const countriesSupportedForExpensifyCard = getAvailableEuCountries();
 
     const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
+    const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
 
     const disableSubmit = !(currency in CONST.CURRENCY);
 
@@ -132,7 +132,7 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
                 modalHeaderTitle={translate('countryStep.selectCountry')}
                 searchInputTitle={translate('countryStep.findCountry')}
                 shouldAllowChange={shouldAllowChange}
-                value={selectedCountry || countryDefaultValue}
+                value={selectedCountry}
                 inputID={COUNTRY}
                 shouldSaveDraft={false}
             />

@@ -20,7 +20,7 @@ function CountrySelection() {
 
     return (
         <CountrySelectionList
-            selectedCountry={isSupportedCountry ? country : CONST.COUNTRY.US}
+            selectedCountry={isSupportedCountry ? country : ''}
             countries={CONST.BBA_SUPPORTED_COUNTRIES}
             onCountrySelected={onCountrySelected}
         />

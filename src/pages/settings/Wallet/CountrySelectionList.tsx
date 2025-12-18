@@ -60,7 +60,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
     const confirmButtonOptions = {
         showButton: true,
         text: isEditing ? translate('common.confirm') : translate('common.next'),
-        isDisabled: isOffline,
+        isDisabled: isOffline || !currentCountry,
         onConfirm: () => onCountrySelected(currentCountry),
     };
 

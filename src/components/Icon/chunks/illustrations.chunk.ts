@@ -155,8 +155,8 @@ import TrashCan from '@assets/images/simple-illustrations/simple-illustration__t
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
-import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
+import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
