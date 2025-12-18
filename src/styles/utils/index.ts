@@ -1798,6 +1798,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
+                columnWidth = {...getWidthStyle(variables.w72)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.FEED:
             case CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
