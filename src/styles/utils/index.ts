@@ -37,6 +37,7 @@ import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
 import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
+import splitPercentageInputStyles from './splitPercentageInputStyles';
 import type {
     AllStyles,
     AvatarSize,
@@ -1333,6 +1334,7 @@ const staticStyleUtils = {
     getNavigationModalCardStyle,
     getCardStyles,
     getSearchPageNarrowHeaderStyles,
+    splitPercentageInputStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getIconWidthAndHeightStyle,
@@ -1728,6 +1730,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         isApprovedColumnWide = false,
         isPostedColumnWide = false,
         isExportedColumnWide = false,
+        shouldRemoveTotalColumnFlex = false,
     ): ViewStyle => {
         let columnWidth;
         switch (columnName) {
@@ -1761,6 +1764,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 }
                 columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52)};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
+                columnWidth = {...getWidthStyle(variables.w96)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             case CONST.SEARCH.TABLE_COLUMNS.TAG:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
@@ -1768,12 +1774,15 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
                 columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXPENSES:
+                columnWidth = {...getWidthStyle(variables.w130)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
-                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...styles.flex1, ...styles.alignItemsEnd};
+                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...(!shouldRemoveTotalColumnFlex && styles.flex1), ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
                 columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
@@ -1788,6 +1797,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.FEED:
+            case CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
             case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
             case CONST.SEARCH.TABLE_COLUMNS.CARD:
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
@@ -1799,6 +1811,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             case CONST.SEARCH.TABLE_COLUMNS.IN:
+            case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
             default:
                 columnWidth = styles.flex1;
         }
