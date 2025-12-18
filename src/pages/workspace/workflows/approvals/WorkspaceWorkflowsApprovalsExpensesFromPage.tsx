@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
@@ -17,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -45,14 +46,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
 
     const excludedUsers = useMemo(() => {
-        const ineligibleInvitees = getIneligibleInvitees(policy?.employeeList);
-        return ineligibleInvitees.reduce(
-            (acc, login) => {
-                acc[login] = true;
-                return acc;
-            },
-            {} as Record<string, boolean>,
-        );
+        return getExcludedUsers(policy?.employeeList);
     }, [policy?.employeeList]);
 
     const {
@@ -112,9 +106,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
         // Only update draft if there are non-members and draft has changed
         if (Object.keys(draftFromWorkflow).length > 0) {
-            const currentDraftStr = JSON.stringify(invitedEmailsToAccountIDsDraft ?? {});
-            const workflowDraftStr = JSON.stringify(draftFromWorkflow);
-            if (currentDraftStr !== workflowDraftStr) {
+            if (!deepEqual(invitedEmailsToAccountIDsDraft ?? {}, draftFromWorkflow)) {
                 setWorkspaceInviteMembersDraft(route.params.policyID, draftFromWorkflow);
             }
         }
