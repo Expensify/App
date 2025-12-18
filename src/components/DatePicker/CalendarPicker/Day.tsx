@@ -25,7 +25,6 @@ type DayProps = {
 function Day({disabled, selected, pressed, hovered, children}: DayProps) {
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-
     return (
         <View
             style={[

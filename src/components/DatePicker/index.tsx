@@ -113,10 +113,10 @@ function DatePicker({
 
     const getValidDateForCalendar = useMemo(() => {
         if (!selectedDate) {
-            return defaultValue;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return defaultValue || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
         }
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return defaultValue || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+        return selectedDate;
     }, [selectedDate, defaultValue]);
 
     return (
