@@ -189,7 +189,7 @@ function IOURequestStepScan({
                 setCameraPermissionStatus(status);
 
                 if (status === RESULTS.BLOCKED) {
-                    showCameraPermissionsAlert();
+                    showCameraPermissionsAlert(translate);
                 }
             })
             .catch(() => {

@@ -64,7 +64,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import MoneyRequestReportGroupHeader from './MoneyRequestReportGroupHeader';
@@ -183,7 +182,6 @@ function MoneyRequestReportTransactionList({
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
@@ -267,9 +265,9 @@ function MoneyRequestReportTransactionList({
     }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, report]);
 
     const columnsToShow = useMemo(() => {
-        const columns = getColumnsToShow(currentUserDetails?.accountID, transactions, visibleColumns, true, undefined, isIOUReport(report));
+        const columns = getColumnsToShow(currentUserDetails?.accountID, transactions, [], true, undefined, isIOUReport(report));
         return (Object.keys(columns) as SearchColumnType[]).filter((column) => columns[column]);
-    }, [transactions, currentUserDetails?.accountID, visibleColumns, report]);
+    }, [transactions, currentUserDetails?.accountID, report]);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 
