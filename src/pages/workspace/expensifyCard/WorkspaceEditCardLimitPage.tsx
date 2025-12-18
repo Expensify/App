@@ -132,7 +132,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceEditCardLimitPage.displayName}
+                testID="WorkspaceEditCardLimitPage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
@@ -179,7 +179,5 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceEditCardLimitPage.displayName = 'WorkspaceEditCardLimitPage';
 
 export default WorkspaceEditCardLimitPage;

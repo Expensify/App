@@ -58,7 +58,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={CardNameStep.displayName}
+                testID="CardNameStep"
                 shouldEnablePickerAvoiding={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -91,7 +91,5 @@ function CardNameStep({policyID}: CardNameStepProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-CardNameStep.displayName = 'CardNameStep';
 
 export default CardNameStep;

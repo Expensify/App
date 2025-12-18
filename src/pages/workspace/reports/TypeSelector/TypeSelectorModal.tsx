@@ -45,7 +45,7 @@ function TypeSelectorModal({isVisible, currentType, label, subtitle, onTypeSelec
                 style={styles.pb0}
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={TypeSelectorModal.displayName}
+                testID="TypeSelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}
@@ -63,7 +63,5 @@ function TypeSelectorModal({isVisible, currentType, label, subtitle, onTypeSelec
         </Modal>
     );
 }
-
-TypeSelectorModal.displayName = 'TypeSelectorModal';
 
 export default TypeSelectorModal;

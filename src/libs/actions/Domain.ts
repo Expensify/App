@@ -1,8 +1,10 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {SetTechnicalContactEmailParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getAuthToken} from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
@@ -49,7 +51,7 @@ function validateDomain(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {isValidationPending: true, domainValidationError: null},
+            value: {isValidationPending: true, domainValidationError: null, hasValidationSucceeded: null},
         },
     ];
 
@@ -57,7 +59,7 @@ function validateDomain(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {isValidationPending: null},
+            value: {isValidationPending: null, hasValidationSucceeded: true},
         },
     ];
 
@@ -102,6 +104,13 @@ function setSamlIdentity(accountID: number, domainName: string, metaIdentity: st
             value: {
                 samlMetadataError: null,
                 metaIdentity,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
+            value: {
+                samlRequiredError: null,
             },
         },
     ];
@@ -159,7 +168,7 @@ function getSamlSettings(accountID: number, domainName: string) {
 /**
  * Sets whether logging in via SAML is enabled for the domain
  */
-function setSamlEnabled(enabled: boolean, accountID: number, domainName: string) {
+function setSamlEnabled({enabled, accountID, domainName}: {enabled: boolean; accountID: number; domainName: string}) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -220,7 +229,12 @@ function resetSamlEnabledError(accountID: number) {
 /**
  * Sets whether logging in via SAML is required for the domain
  */
-function setSamlRequired(required: boolean, accountID: number, domainName: string) {
+function setSamlRequired({required, accountID, domainName, metaIdentity}: {required: boolean; accountID: number; domainName: string; metaIdentity: string | undefined}) {
+    if (required && !metaIdentity) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {samlRequiredError: getMicroSecondOnyxErrorWithTranslationKey('domain.samlLogin.requireWithEmptyMetadataError')});
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -304,6 +318,104 @@ async function getScimToken(domainName: string): Promise<ScimTokenWithState> {
     }
 }
 
+/** Sends request for claiming a domain */
+function createDomain(domainName: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            value: {hasCreationSucceeded: null, isLoading: true},
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            value: {hasCreationSucceeded: true, isLoading: null},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            value: {isLoading: null},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.CREATE_DOMAIN, {domainName}, {optimisticData, successData, failureData});
+}
+
+/**
+ * For resetting createDomain form data
+ * Resets it only on the client's side, no server call is performed
+ */
+function resetCreateDomainForm() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
+}
+
+function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    technicalContactEmail: newTechnicalContactEmail,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                technicalContactEmail: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                technicalContactEmail: null,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    technicalContactEmail: currentTechnicalContactEmail,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                technicalContactEmail: null,
+            },
+        },
+    ];
+
+    const authToken = getAuthToken();
+    const params: SetTechnicalContactEmailParams = {
+        authToken,
+        domainAccountID,
+        technicalContactAccountID: newTechnicalContactAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.SET_TECHNICAL_CONTACT_EMAIL, params, {optimisticData, successData, failureData});
+}
+
+function clearSetPrimaryContactError(domainAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        technicalContactEmailErrors: null,
+    });
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -316,4 +428,8 @@ export {
     resetSamlRequiredError,
     setSamlIdentity,
     getScimToken,
+    createDomain,
+    resetCreateDomainForm,
+    setPrimaryContact,
+    clearSetPrimaryContactError,
 };
