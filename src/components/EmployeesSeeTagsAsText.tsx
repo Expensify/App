@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Text from './Text';
@@ -11,19 +11,14 @@ function EmployeesSeeTagsAsText({customTagName}: EmployeesSeeTagsAsTextProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const {prefixWords, suffixWords} = useMemo(() => {
-        const template = translate('workspace.tags.employeesSeeTagsAs', {customTagName});
-        const parts = template.split(customTagName);
+    const template = translate('workspace.tags.employeesSeeTagsAs', {customTagName});
+    const parts = template.split(customTagName);
 
-        if (parts.length !== 2) {
-            const fallback = translate('workspace.tags.employeesSeeTagsAs', {customTagName});
-            return {prefixWords: fallback.match(/(\S+\s*)/g) ?? [], suffixWords: []};
-        }
+    const prefix = parts.length === 2 ? (parts.at(0) ?? '') : template;
+    const suffix = parts.length === 2 ? (parts.at(1) ?? '') : '';
 
-        const prefix = parts.at(0) ?? '';
-        const suffix = parts.at(1) ?? '';
-        return {prefixWords: prefix.match(/(\S+\s*)/g) ?? [], suffixWords: suffix.match(/(\S+\s*)/g) ?? []};
-    }, [customTagName, translate]);
+    const prefixWords = prefix.match(/(\S+\s*)/g) ?? [];
+    const suffixWords = suffix.match(/(\S+\s*)/g) ?? [];
 
     return (
         <>
@@ -51,3 +46,4 @@ function EmployeesSeeTagsAsText({customTagName}: EmployeesSeeTagsAsTextProps) {
 }
 
 export default EmployeesSeeTagsAsText;
+
