@@ -538,8 +538,8 @@ describe('getReportPreviewAction', () => {
     });
 
     describe('DEW (Dynamic External Workflow) submit pending', () => {
-        it('should return VIEW action when DEW submit is pending (offline) and report is OPEN', async () => {
-            // Given an open expense report with a corporate policy where DEW submit is pending (offline)
+        it('should return VIEW action when DEW submit is pending and report is OPEN', async () => {
+            // Given an open expense report with a corporate policy where DEW submit is pending
             const report: Report = {
                 ...createRandomReport(REPORT_ID, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,

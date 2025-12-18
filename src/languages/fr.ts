@@ -1379,7 +1379,6 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptFailureMessageShort: 'Une erreur s’est produite lors du téléchargement de votre reçu.',
             genericDeleteFailureMessage: 'Erreur inattendue lors de la suppression de cette dépense. Veuillez réessayer plus tard.',
             genericEditFailureMessage: 'Erreur inattendue lors de la modification de cette dépense. Veuillez réessayer plus tard.',
-            genericDEWSubmitFailureMessage: 'Échec de la soumission du flux de travail externe dynamique',
             genericSmartscanFailureMessage: 'Des champs manquent dans la transaction',
             duplicateWaypointsErrorMessage: 'Veuillez supprimer les points de passage en double',
             atLeastTwoDifferentWaypoints: 'Veuillez saisir au moins deux adresses différentes',
