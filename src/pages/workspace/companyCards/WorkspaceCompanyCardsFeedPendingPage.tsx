@@ -36,6 +36,4 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     );
 }
 
-WorkspaceCompanyCardsFeedPendingPage.displayName = 'WorkspaceCompanyCardsFeedPendingPage';
-
 export default WorkspaceCompanyCardsFeedPendingPage;
