@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -41,7 +42,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass'] as const);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
     const [list] = useCardsList(feed);
@@ -50,7 +51,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
     const isEditing = assignCard?.isEditing;
-    const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
+    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '');
     const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
@@ -142,18 +143,14 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
             <View style={[styles.renderHTML, styles.ph5, styles.mv3, styles.textSupporting]}>
-                <RenderHTML
-                    html={translate('workspace.companyCards.chooseCardFor', {
-                        assignee: assigneeDisplayName,
-                    })}
-                />
+                <RenderHTML html={translate('workspace.companyCards.chooseCardFor', assigneeDisplayName)} />
             </View>
         </View>
     );
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CardSelectionStep.displayName}
+            wrapperID="CardSelectionStep"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={assigneeDisplayName}
@@ -197,7 +194,5 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-CardSelectionStep.displayName = 'CardSelectionStep';
 
 export default CardSelectionStep;
