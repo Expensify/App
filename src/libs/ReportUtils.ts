@@ -10239,12 +10239,7 @@ function getOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
  */
 function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): ReportOfflinePendingActionAndErrors {
     // It shouldn't be possible for all of these actions to be pending (or to have errors) for the same report at the same time, so just take the first that exists
-    const reportPendingAction =
-        report?.pendingFields?.addWorkspaceRoom ??
-        report?.pendingFields?.createChat ??
-        report?.pendingFields?.reimbursed ??
-        report?.pendingFields?.createReport ??
-        report?.pendingFields?.reportName;
+    const reportPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat ?? report?.pendingFields?.createReport ?? report?.pendingFields?.reportName;
     const reportErrors = getCreationReportErrors(report);
     return {reportPendingAction, reportErrors};
 }
