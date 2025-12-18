@@ -6697,6 +6697,11 @@ const translations = {
         },
         refresh: 'Refresh',
     },
+    desktopAppRetiredPage: {
+        title: 'Desktop app has been retired',
+        body: 'The New Expensify Mac desktop app has been retired. Moving forward, please use the web app to access your account.',
+        goToWeb: 'Go to web',
+    },
     fileDownload: {
         success: {
             title: 'Downloaded!',

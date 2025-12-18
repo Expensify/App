@@ -6377,6 +6377,11 @@ ${amount} para ${merchant} - ${date}`,
         },
         refresh: 'Actualizar',
     },
+    desktopAppRetiredPage: {
+        title: 'La aplicación de escritorio ha sido retirada',
+        body: 'La nueva aplicación de escritorio Expensify para Mac ha sido retirada. En adelante, utiliza la aplicación web para acceder a tu cuenta.',
+        goToWeb: 'Ir a la web',
+    },
     fileDownload: {
         success: {
             title: '¡Descargado!',

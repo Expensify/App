@@ -7955,6 +7955,11 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             settings: 'Instellingen',
         },
     },
+    desktopAppRetiredPage: {
+        title: 'Desktop-app is buiten gebruik gesteld',
+        body: 'De nieuwe Expensify Mac-desktopapp is buiten gebruik gesteld. Gebruik voortaan de webapp om toegang te krijgen tot je account.',
+        goToWeb: 'Ga naar web',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

@@ -7902,6 +7902,11 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         },
         admins: {title: '管理者', findAdmin: '管理者を検索', primaryContact: '主要連絡先', addPrimaryContact: '主要連絡先を追加', settings: '設定'},
     },
+    desktopAppRetiredPage: {
+        title: 'デスクトップアプリは廃止されました',
+        body: 'New Expensify の Mac デスクトップアプリは廃止されました。今後は、アカウントへアクセスする際に Web アプリをご利用ください。',
+        goToWeb: 'Web を開く',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

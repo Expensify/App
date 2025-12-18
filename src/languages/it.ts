@@ -7969,6 +7969,11 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             settings: 'Impostazioni',
         },
     },
+    desktopAppRetiredPage: {
+        title: "L'app desktop è stata dismessa",
+        body: 'La nuova app desktop Expensify per Mac è stata ritirata. D’ora in avanti, usa l’app web per accedere al tuo account.',
+        goToWeb: 'Vai al sito web',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
