@@ -1376,7 +1376,6 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptFailureMessageShort: 'Beim Hochladen Ihres Belegs ist ein Fehler aufgetreten.',
             genericDeleteFailureMessage: 'Unerwarteter Fehler beim Löschen dieser Ausgabe. Bitte versuche es später erneut.',
             genericEditFailureMessage: 'Unerwarteter Fehler beim Bearbeiten dieser Ausgabe. Bitte versuche es später erneut.',
-            genericDEWSubmitFailureMessage: 'Fehler beim dynamischen externen Workflow-Einreichung',
             genericSmartscanFailureMessage: 'Transaktion hat fehlende Felder',
             duplicateWaypointsErrorMessage: 'Bitte entfernen Sie doppelte Wegpunkte',
             atLeastTwoDifferentWaypoints: 'Bitte gib mindestens zwei verschiedene Adressen ein',

@@ -9403,7 +9403,7 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     if (!isReportArchived && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
         const mostRecentActiveDEWAction = getMostRecentActiveDEWSubmitFailedAction(reportActionsArray);
         if (mostRecentActiveDEWAction) {
-            reportActionErrors.dewSubmitFailed = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDEWSubmitFailureMessage');
+            reportActionErrors.dewSubmitFailed = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage');
             reportAction = mostRecentActiveDEWAction;
         }
     }

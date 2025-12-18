@@ -1209,14 +1209,17 @@ function PureReportActionItem({
             const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
             const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
+            const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage>
                         <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallySubmitted')}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
-            } else if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
-                children = <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
+            } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
+                // When DEW submit is pending: show "queued" message if offline, otherwise show nothing
+                children = isOffline ? <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} /> : emptyHTML;
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.submitted', {memo: getOriginalMessage(action)?.message})} />;
             }
@@ -1232,7 +1235,7 @@ function PureReportActionItem({
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
             }
         } else if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
-            const errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericDEWSubmitFailureMessage');
+            const errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
             children = <ReportActionItemBasicMessage message={errorMessage} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
@@ -1982,6 +1985,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.bankAccountList, nextProps.bankAccountList) &&
         prevProps.reportNameValuePairsOrigin === nextProps.reportNameValuePairsOrigin &&
         prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID &&
-        prevProps.reportMetadata?.pendingExpenseAction === nextProps.reportMetadata?.pendingExpenseAction
+        prevProps.reportMetadata?.pendingExpenseAction === nextProps.reportMetadata?.pendingExpenseAction &&
+        prevProps.isOffline === nextProps.isOffline
     );
 });
