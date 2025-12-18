@@ -1873,16 +1873,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of tax rates attached to a policy */
         taxRates?: TaxRatesWithDefault;
 
-        /** Units configuration */
-        units?: {
-            /** Time tracking configuration */
-            time?: {
-                /** Whether time tracking is enabled */
-                enabled?: boolean;
-
-                /** Default hourly rate */
-                rate?: number;
-            };
+        /** Time tracking configuration */
+        time?: {
+            /** Whether time tracking is enabled */
+            enabled?: boolean;
+            /** Default hourly rate */
+            rate?: number;
         };
 
         /** A set of rules related to the workspace */
