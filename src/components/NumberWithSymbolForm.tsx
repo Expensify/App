@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -363,18 +363,26 @@ function NumberWithSymbolForm({
     const formattedNumber = replaceAllDigits(currentNumber, toLocaleDigit);
     const shouldShowFlipButton = allowFlippingAmount && canUseTouchScreen;
 
-    const flipButton = (
-        <Button
-            shouldShowRightIcon
-            small
-            shouldBlendOpacity={isSplitItemInput}
-            iconRight={Expensicons.PlusMinus}
-            style={isSplitItemInput ? [styles.minWidth18, styles.mt2, styles.ml3] : styles.minWidth18}
-            innerStyles={isSplitItemInput && styles.bgTransparent}
-            onPress={toggleNegative}
-            isContentCentered
-            text={translate('iou.flip')}
-        />
+    const flipButtonStyle = useMemo(
+        () => (isSplitItemInput ? [styles.minWidth18, styles.mt2, styles.ml3] : styles.minWidth18),
+        [isSplitItemInput, styles.minWidth18, styles.mt2, styles.ml3],
+    );
+
+    const flipButton = useMemo(
+        () => (
+            <Button
+                shouldShowRightIcon
+                small
+                shouldBlendOpacity={isSplitItemInput}
+                iconRight={Expensicons.PlusMinus}
+                style={flipButtonStyle}
+                innerStyles={isSplitItemInput && styles.bgTransparent}
+                onPress={toggleNegative}
+                isContentCentered
+                text={translate('iou.flip')}
+            />
+        ),
+        [isSplitItemInput, flipButtonStyle, toggleNegative, translate, styles.bgTransparent],
     );
 
     if (displayAsTextInput) {

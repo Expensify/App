@@ -55,7 +55,7 @@ function SplitListItem<TItem extends ListItem>({
             }
             splitItem.onSplitExpenseAmountChange(splitItem.transactionID, realAmount);
         },
-        [splitItem.onSplitExpenseAmountChange, isNegativeAmount, splitItem.amount],
+        [splitItem.onSplitExpenseAmountChange, isNegativeAmount, splitItem.amount, splitItem.transactionID],
     );
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
@@ -104,7 +104,7 @@ function SplitListItem<TItem extends ListItem>({
         inputRef.current = ref;
     };
 
-    const canUseTouchScreen = useMemo(() => canUseTouchScreenUtil(), [canUseTouchScreenUtil]);
+    const canUseTouchScreen = useMemo(() => canUseTouchScreenUtil(), []);
     const displayedAmount = useMemo(() => Math.abs(splitItem.amount), [splitItem.amount]);
 
     const handleToggleNegative = useCallback(() => {
@@ -117,7 +117,7 @@ function SplitListItem<TItem extends ListItem>({
 
         const realAmount = isCurrentlyNegative ? -1 * currentAbsAmount : currentAbsAmount;
         splitItem.onSplitExpenseAmountChange(splitItem.transactionID, realAmount);
-    }, [splitItem.amount, isNegativeAmount, splitItem.transactionID]);
+    }, [splitItem.amount, splitItem.currency, splitItem.onSplitExpenseAmountChange, splitItem.transactionID, isNegativeAmount]);
 
     const handleClearNegative = useCallback(() => {
         if (canUseTouchScreen) {
@@ -125,7 +125,7 @@ function SplitListItem<TItem extends ListItem>({
         }
 
         setIsNegativeAmount(false);
-    }, [canUseTouchScreen, splitItem.amount]);
+    }, [canUseTouchScreen]);
 
     return (
         <BaseListItem

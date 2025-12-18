@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ReactElement} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
@@ -71,8 +71,10 @@ function AmountTextInput({
     const navigation = useNavigation();
     const styles = useThemeStyles();
 
+    const viewContainerStyle = useMemo(() => (flipButton ? styles.flexColumn : styles.flexRow), [flipButton, styles.flexColumn, styles.flexRow]);
+
     return (
-        <View style={flipButton ? styles.flexColumn : styles.flexRow}>
+        <View style={viewContainerStyle}>
             <TextInput
                 autoGrow
                 hideFocusedState={hideFocusedState}
