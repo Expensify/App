@@ -2,15 +2,18 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import DraggableList from '@components/DraggableList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchCustomColumnIds} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
-import DraggableList from '@components/DraggableList';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
@@ -22,6 +25,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import arraysEqual from '@src/utils/arraysEqual';
 
 function SearchColumnsPage() {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -47,6 +51,13 @@ function SearchColumnsPage() {
         value: columnId,
         keyForList: columnId,
         isSelected: selectedColumnIds.includes(columnId),
+        leftElement: (
+            <Icon
+                src={Expensicons.DragHandles}
+                fill={theme.icon}
+                additionalStyles={styles.mr3}
+            />
+        ),
     }));
 
     const sortedDefaultColumns = [...defaultCustomColumns].sort();
