@@ -261,7 +261,5 @@ function MoneyRequestAmountInput({
     );
 }
 
-MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
-
 export default MoneyRequestAmountInput;
 export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};

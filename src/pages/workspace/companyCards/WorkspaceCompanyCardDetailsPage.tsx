@@ -1,11 +1,10 @@
 import {format, parseISO} from 'date-fns';
+import {Str} from 'expensify-common';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import {FallbackAvatar, Hourglass} from '@components/Icon/Expensicons';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -62,7 +61,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'RemoveMembers'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MoneySearch', 'RemoveMembers', 'Sync']);
 
     const {isOffline} = useNetwork();
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
@@ -112,7 +111,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceCompanyCardDetailsPage.displayName}
+                testID="WorkspaceCompanyCardDetailsPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.moreFeatures.companyCards.cardDetails')}
@@ -137,7 +136,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     </View>
                     {!cardholder?.validated && (
                         <MenuItem
-                            icon={Hourglass}
+                            icon={Expensicons.Hourglass}
                             iconStyles={styles.mln2}
                             descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
                             description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
@@ -151,9 +150,9 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         title={displayName}
                         titleStyle={styles.mt1}
                         iconStyles={styles.mt1}
-                        icon={cardholder?.avatar ?? FallbackAvatar}
+                        icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
-                        description={cardholder?.login}
+                        description={Str.removeSMSDomain(cardholder?.login ?? '')}
                         interactive={false}
                     />
                     <MenuItemWithTopDescription
@@ -228,7 +227,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, feed, 'lastScrape', true)}
                     >
                         <MenuItem
-                            icon={Expensicons.Sync}
+                            icon={expensifyIcons.Sync}
                             disabled={isOffline || card?.isLoadingLastUpdated}
                             title={translate('workspace.moreFeatures.companyCards.updateCard')}
                             brickRoadIndicator={card?.errorFields?.lastScrape ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -257,7 +256,5 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCompanyCardDetailsPage.displayName = 'WorkspaceCompanyCardDetailsPage';
 
 export default WorkspaceCompanyCardDetailsPage;

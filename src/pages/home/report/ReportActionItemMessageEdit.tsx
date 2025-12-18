@@ -490,6 +490,7 @@ function ReportActionItemMessageEdit({
                                 pressDimmingValue={1}
                                 // Keep focus on the composer when cancel button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON}
                             >
                                 <Icon
                                     fill={theme.icon}
@@ -607,6 +608,7 @@ function ReportActionItemMessageEdit({
                                 pressDimmingValue={0.2}
                                 // Keep focus on the composer when send button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON}
                             >
                                 <Icon
                                     src={Expensicons.Checkmark}
@@ -621,8 +623,6 @@ function ReportActionItemMessageEdit({
         </>
     );
 }
-
-ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
 export default ReportActionItemMessageEdit;
 export type {ReportActionItemMessageEditProps};

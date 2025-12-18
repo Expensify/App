@@ -1,5 +1,10 @@
 {
     "language": "en",
+    "enableGlobDot": false,
+    "cache": {
+        "useCache": true,
+        "cacheLocation": ".cspellcache"
+    },
     "words": [
         "--longpress",
         "Accelo",
@@ -19,6 +24,7 @@
         "alrt",
         "Amal",
         "Amal's",
+        "americanexpress",
         "americanexpressfdx",
         "Amina",
         "androiddebugkey",
@@ -96,6 +102,7 @@
         "buildscript",
         "Buildscript",
         "Bushwick",
+        "BYOC",
         "capitalone",
         "CAROOT",
         "Carta",
