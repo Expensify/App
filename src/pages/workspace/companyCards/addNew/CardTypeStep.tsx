@@ -15,10 +15,14 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isPlaidSupportedCountry} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import {useAddNewCardNavigation} from '@pages/workspace/companyCards/utils';
 import variables from '@styles/variables';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
 
 type AvailableCompanyCardTypes = {
@@ -84,7 +88,9 @@ function getAvailableCompanyCardTypes({translate, typeSelected, styles, canUsePl
     ];
 }
 
-function CardTypeStep() {
+type CardTypeStepProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_TYPE>;
+
+function CardTypeStep({route}: CardTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const companyCardBankIcons = useCompanyCardBankIcons();
@@ -92,6 +98,9 @@ function CardTypeStep() {
     const [typeSelected, setTypeSelected] = useState<CardFeedProvider>();
     const [isError, setIsError] = useState(false);
     const {isBetaEnabled} = usePermissions();
+    const policyID = route.params?.policyID;
+
+    useAddNewCardNavigation(policyID);
     const data = getAvailableCompanyCardTypes({
         translate,
         typeSelected,
