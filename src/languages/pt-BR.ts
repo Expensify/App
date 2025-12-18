@@ -6396,12 +6396,6 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `removeu o Campo de Relatório de ${fieldType} "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `atualizado "Evitar autoaprovação" para "${newValue === 'true' ? 'Ativado' : 'Desativado'}" (anteriormente "${oldValue === 'true' ? 'Ativado' : 'Desativado'}")`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `alterou o valor máximo de despesa que exige recibo para ${newValue} (antes ${oldValue})`,
-        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `alterou o valor máximo de despesa para violações para ${newValue} (anteriormente ${oldValue})`,
-        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `atualizado "Idade máxima da despesa (dias)" para "${newValue}" (anteriormente "${oldValue}")`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `defina a data de envio do relatório mensal para "${newValue}"`;

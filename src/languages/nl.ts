@@ -6402,11 +6402,6 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `heeft ${fieldType}-rapportveld "${fieldName}" verwijderd`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `heeft "Zelfgoedkeuring voorkomen" bijgewerkt naar "${newValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}" (voorheen "${oldValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}")`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `het maximale bedrag voor bonnetjesplichtige uitgaven gewijzigd naar ${newValue} (voorheen ${oldValue})`,
-        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `het maximale onkostbedrag voor overtredingen gewijzigd naar ${newValue} (voorheen ${oldValue})`,
-        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `"Maximale onkostenduur (dagen)" bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `stel de maandelijkse rapportindieningsdatum in op "${newValue}"`;

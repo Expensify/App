@@ -6443,12 +6443,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType} de rapport "${fieldName}" supprimé`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `mis à jour « Empêcher l’auto-approbation » en « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `a modifié le montant maximal d’une dépense nécessitant un reçu à ${newValue} (auparavant ${oldValue})`,
-        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `a modifié le montant maximal d’une dépense pour les violations à ${newValue} (auparavant ${oldValue})`,
-        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `« Ancienneté maximale de la dépense (jours) » mise à jour sur « ${newValue} » (précédemment « ${oldValue} »)`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `définir la date de soumission du rapport mensuel sur « ${newValue} »`;

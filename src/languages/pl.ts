@@ -6393,12 +6393,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `usunięto pole raportu ${fieldType} „${fieldName}”`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `zaktualizowano „Uniemożliwiaj samodzielne zatwierdzanie” na „${newValue === 'true' ? 'Włączone' : 'Wyłączone'}” (wcześniej „${oldValue === 'true' ? 'Włączone' : 'Wyłączone'}”)`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `zmienił maksymalną kwotę wydatku wymagającą paragonu na ${newValue} (wcześniej ${oldValue})`,
-        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `zmieniono maksymalną kwotę wydatku dla naruszeń na ${newValue} (wcześniej ${oldValue})`,
-        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `zaktualizowano „Maksymalny wiek wydatku (dni)" na „${newValue}" (poprzednio „${oldValue}")`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `ustaw comiesięczną datę przesyłania raportu na „${newValue}”`;
