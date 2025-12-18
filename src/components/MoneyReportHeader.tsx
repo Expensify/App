@@ -595,7 +595,7 @@ function MoneyReportHeader({
                     optimisticChatReportID,
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
-                    policyRecentlyUsedCurrencies,
+                    policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,

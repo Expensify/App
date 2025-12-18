@@ -184,7 +184,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     optimisticChatReportID,
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
-                    policyRecentlyUsedCurrencies,
+                    policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,
