@@ -9,6 +9,7 @@ import type {ValueOf} from 'type-fest';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/SelectionListWithSections/types';
+import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
@@ -109,6 +110,8 @@ type TransactionParams = {
     splitExpensesTotal?: number;
     participants?: Participant[];
     pendingAction?: PendingAction;
+    splitsStartDate?: string;
+    splitsEndDate?: string;
     distance?: number;
 };
 
@@ -345,6 +348,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         filename = '',
         customUnit,
         splitExpenses,
+        splitsStartDate,
+        splitsEndDate,
         splitExpensesTotal,
         participants,
         pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -365,6 +370,12 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     }
     if (splitExpenses) {
         commentJSON.splitExpenses = splitExpenses;
+    }
+    if (splitsStartDate) {
+        commentJSON.splitsStartDate = splitsStartDate;
+    }
+    if (splitsEndDate) {
+        commentJSON.splitsEndDate = splitsEndDate;
     }
     if (splitExpensesTotal) {
         commentJSON.splitExpensesTotal = splitExpensesTotal;
@@ -1035,6 +1046,24 @@ function getTagArrayFromName(tagName: string): string[] {
     }
 
     return newMatches;
+}
+
+/**
+ * Returns the exchange rate for a transaction, based on its group
+ */
+function getExchangeRate(transaction: TransactionWithOptionalSearchFields) {
+    const fromCurrency = getCurrency(transaction);
+    const toCurrency = transaction.groupCurrency ?? fromCurrency;
+
+    if (!transaction.groupExchangeRate) {
+        return '';
+    }
+
+    if (Number(transaction.groupExchangeRate) === 1) {
+        return '';
+    }
+
+    return transaction.groupExchangeRate ? `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}` : '';
 }
 
 /**
@@ -2397,6 +2426,7 @@ export {
     mergeProhibitedViolations,
     getOriginalAttendees,
     getReportOwnerAsAttendee,
+    getExchangeRate,
     shouldReuseInitialTransaction,
 };
 

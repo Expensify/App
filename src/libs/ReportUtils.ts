@@ -1199,6 +1199,12 @@ Onyx.connectWithoutView({
     },
 });
 
+let cachedSelfDMReportID: OnyxEntry<string>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SELF_DM_REPORT_ID,
+    callback: (value) => (cachedSelfDMReportID = value),
+});
+
 let hiddenTranslation = '';
 let unavailableTranslation = '';
 
@@ -1862,6 +1868,9 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 function findSelfDMReportID(): string | undefined {
+    if (cachedSelfDMReportID) {
+        return cachedSelfDMReportID;
+    }
     if (!allReports) {
         return;
     }
@@ -4537,7 +4546,7 @@ function getTransactionDetails(
 
     const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
-    const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
+    const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || isPaidGroupPolicyPolicyUtils(policy);
 
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
