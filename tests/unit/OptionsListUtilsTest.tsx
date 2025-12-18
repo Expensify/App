@@ -1943,6 +1943,7 @@ describe('OptionsListUtils', () => {
         it('should not return userToInvite for plain text name when shouldAcceptName is false', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, {includeUserToInvite: true});
+
             // When we call filterAndOrderOptions with a plain text name (not email or phone) without shouldAcceptName
             const filteredOptions = filterAndOrderOptions(options, 'Jeff Amazon', COUNTRY_CODE, {shouldAcceptName: false});
 
