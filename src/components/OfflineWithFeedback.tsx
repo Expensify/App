@@ -137,7 +137,7 @@ function OfflineWithFeedback({
         children = applyStrikeThrough(children);
     }
     return (
-        <View style={[style, shouldShowErrorMessages ? errorStyle : successStyle]}>
+        <View style={style}>
             {shouldShowErrorMessages && shouldDisplayErrorAbove && (
                 <ErrorMessageRow
                     errors={errors}
