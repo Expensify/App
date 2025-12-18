@@ -86,11 +86,13 @@ function SearchColumnsPage() {
             isDisabled: isRequired,
             isDragDisabled,
             leftElement: (
-                <Icon
-                    src={icons.DragHandles}
-                    fill={theme.icon}
-                    additionalStyles={[styles.mr3, isDragDisabled && styles.opacitySemiTransparent]}
-                />
+                <View style={[styles.mr3, isDragDisabled && styles.cursorDisabled]}>
+                    <Icon
+                        src={icons.DragHandles}
+                        fill={theme.icon}
+                        additionalStyles={isDragDisabled && styles.opacitySemiTransparent}
+                    />
+                </View>
             ),
         };
     });
