@@ -42,15 +42,15 @@ function SearchColumnsPage() {
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     const allTypeCustomColumns = getCustomColumns(queryType);
-    const defaultTypeCustomColumns = getCustomColumnDefault(queryType);
-
     const allGroupCustomColumns = getCustomColumns(groupBy);
     const defaultGroupCustomColumns = getCustomColumnDefault(groupBy);
+    const defaultTypeCustomColumns = getCustomColumnDefault(queryType);
 
     const allCustomColumns = [...allGroupCustomColumns, ...allTypeCustomColumns];
     const defaultCustomColumns = new Set([...defaultGroupCustomColumns, ...defaultTypeCustomColumns]);
 
-    // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns since it makes sense for them to show up in an expense management App and it fixes the layout issues.
+    // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns
+    // since it makes sense for them to show up in an expense management App and it fixes the layout issues.
     const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
 
     const sortColumns = (columnsToSort: ColumnItem[]): ColumnItem[] => {
@@ -65,19 +65,22 @@ function SearchColumnsPage() {
         return [...selected, ...unselected];
     };
 
-    const [columns, setColumns] = useState<ColumnItem[]>(() => {
-        const savedColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
+    const defaultColumns = sortColumns(
+        allCustomColumns.map((columnId) => ({
+            columnId,
+            isSelected: defaultCustomColumns.has(columnId),
+        })),
+    );
 
-        if (!savedColumnIds.length) {
-            const initialColumns = allCustomColumns.map((columnId) => ({
-                columnId,
-                isSelected: defaultCustomColumns.has(columnId),
-            }));
-            return sortColumns(initialColumns);
+    const [columns, setColumns] = useState<ColumnItem[]>(() => {
+        const selectedColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
+
+        if (!selectedColumnIds.length) {
+            return defaultColumns;
         }
 
-        const selected = savedColumnIds.map((columnId) => ({columnId, isSelected: true}));
-        const unselected = allCustomColumns.filter((columnId) => !savedColumnIds.includes(columnId)).map((columnId) => ({columnId, isSelected: false}));
+        const selected = selectedColumnIds.map((columnId) => ({columnId, isSelected: true}));
+        const unselected = allCustomColumns.filter((columnId) => !selectedColumnIds.includes(columnId)).map((columnId) => ({columnId, isSelected: false}));
 
         return sortColumns([...selected, ...unselected]);
     });
@@ -109,13 +112,6 @@ function SearchColumnsPage() {
 
     const typeColumnsList = allColumnsList.filter((column) => allTypeCustomColumns.includes(column.keyForList));
     const groupColumnsList = allColumnsList.filter((column) => allGroupCustomColumns.includes(column.keyForList));
-
-    const defaultColumns = sortColumns(
-        allCustomColumns.map((columnId) => ({
-            columnId,
-            isSelected: defaultCustomColumns.has(columnId),
-        })),
-    );
 
     // TODO
     const isDefaultState =
@@ -168,7 +164,9 @@ function SearchColumnsPage() {
         setColumns(sortColumns(newColumns));
     };
 
-    const resetColumns = () => setColumns(defaultColumns);
+    const resetColumns = () => {
+        setColumns(defaultColumns);
+    };
 
     const applyChanges = () => {
         if (!selectedColumnIds.length) {
