@@ -31,31 +31,53 @@ function SearchColumnsPage() {
     const groupBy = searchAdvancedFiltersForm?.groupBy;
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    const allCustomColumns = getCustomColumns(queryType);
+    const allTypeCustomColumns = getCustomColumns(queryType);
     const defaultCustomColumns = getCustomColumnDefault(queryType);
 
-    const [selectedColumnIds, setSelectedColumnIds] = useState<SearchCustomColumnIds[]>(() => {
-        const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
+    const allGroupByCustomColumns = getCustomColumns(groupBy);
+    const groupByDefaultColumns = getCustomColumnDefault(groupBy);
 
-        // We dont allow the user to unselect all columns, so we can assume that no columns = default columns
-        if (!columnIds.length) {
-            return defaultCustomColumns;
+    const [selectedColumnIds, setSelectedColumnIds] = useState<SearchCustomColumnIds[]>(() => {
+        const typeColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allTypeCustomColumns.includes(columnId)) ?? [];
+        const groupByColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allGroupByCustomColumns.includes(columnId)) ?? [];
+
+        const columnIds: SearchCustomColumnIds[] = [];
+
+        // We dont allow the user to unselect all columns, so we can assume that no type columns = default columns
+        if (!typeColumnIds.length) {
+            columnIds.push(...defaultCustomColumns);
+        } else {
+            columnIds.push(...typeColumnIds);
+        }
+
+        // We dont allow the user to unselect all columns, so we can assume that no groupBy columns = default columns
+        if (!groupByColumnIds.length) {
+            columnIds.push(...groupByDefaultColumns);
+        } else {
+            columnIds.push(...groupByColumnIds);
         }
 
         return columnIds;
     });
 
-    const sections: Array<SectionListDataType<ListItem>> = [
-        {
+    const sections: Array<SectionListDataType<ListItem>> = [];
+
+    if (groupBy) {
+        sections.push({
             title: undefined,
-            data: allCustomColumns.map((columnId) => ({
-                text: translate(getSearchColumnTranslationKey(columnId)),
-                value: columnId,
-                keyForList: columnId,
-                isSelected: selectedColumnIds?.includes(columnId),
-            })),
-        },
-    ];
+            data: [],
+        });
+    }
+
+    sections.push({
+        title: undefined,
+        data: allTypeCustomColumns.map((columnId) => ({
+            text: translate(getSearchColumnTranslationKey(columnId)),
+            value: columnId,
+            keyForList: columnId,
+            isSelected: selectedColumnIds?.includes(columnId),
+        })),
+    });
 
     const sortedDefaultColumns = [...defaultCustomColumns].sort();
     const sortedSelectedColumnIds = [...selectedColumnIds].sort();

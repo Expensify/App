@@ -2471,8 +2471,7 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
-function getCustomColumns(value: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
-    // eslint-disable-next-line default-case
+function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
@@ -2492,11 +2491,12 @@ function getCustomColumns(value: SearchDataTypes | SearchGroupBy): SearchCustomC
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM);
         case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID);
+        default:
+            return [];
     }
 }
 
-function getCustomColumnDefault(value: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
-    // eslint-disable-next-line default-case
+function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE;
@@ -2516,6 +2516,8 @@ function getCustomColumnDefault(value: SearchDataTypes | SearchGroupBy): SearchC
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.FROM;
         case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID;
+        default:
+            return [];
     }
 }
 
