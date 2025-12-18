@@ -997,7 +997,7 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string) {
             if (hasMultipleTransactions && reportID) {
                 Navigation.dismissModal();
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
                 });
                 return;
