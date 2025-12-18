@@ -39,6 +39,9 @@ type PopoverMenuItem = MenuItemProps & {
     /** A callback triggered when this item is selected */
     onSelected?: () => void;
 
+    /** Whether to force calling onSelected even if there are sub items */
+    shouldForceCallSelect?: boolean;
+
     /** Sub menu items to be rendered after a menu item is selected */
     subMenuItems?: PopoverMenuItem[];
 
@@ -167,6 +170,15 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
 
     /** Used to locate the component in the tests */
     testID?: string;
+
+    /** Whether to put the header text after the back button */
+    shouldPutHeaderTextAfterBackButton?: boolean;
+
+    /** Callback when back button is pressed */
+    onBackButtonPress?: () => void;
+
+    /** Whether to always show the header text, even when navigating submenus */
+    shouldAlwaysShowHeaderText?: boolean;
 };
 
 const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
@@ -283,6 +295,9 @@ function BasePopoverMenu({
     shouldUseModalPaddingStyle,
     shouldAvoidSafariException = false,
     testID,
+    shouldPutHeaderTextAfterBackButton = false,
+    onBackButtonPress = () => {},
+    shouldAlwaysShowHeaderText = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -305,6 +320,9 @@ function BasePopoverMenu({
             return;
         }
         if (selectedItem?.subMenuItems) {
+            if (selectedItem?.shouldForceCallSelect) {
+                selectedItem.onSelected?.();
+            }
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
@@ -358,6 +376,7 @@ function BasePopoverMenu({
                 shouldCheckActionAllowedOnPress={false}
                 description={previouslySelectedItem?.description}
                 onPress={() => {
+                    onBackButtonPress();
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);
                     setEnteredSubMenuIndexes((prevState) => prevState.slice(0, -1));
@@ -408,7 +427,7 @@ function BasePopoverMenu({
     });
 
     const renderHeaderText = () => {
-        if (!headerText || enteredSubMenuIndexes.length !== 0) {
+        if (!headerText || (enteredSubMenuIndexes.length !== 0 && !shouldAlwaysShowHeaderText)) {
             return;
         }
         return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}>{headerText}</Text>;
@@ -575,7 +594,12 @@ function BasePopoverMenu({
                     {renderWithConditionalWrapper(
                         shouldUseScrollView,
                         [scrollViewPaddingStyles, restScrollContainerStyle],
-                        [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
+                        [
+                            !shouldPutHeaderTextAfterBackButton && renderHeaderText(),
+                            enteredSubMenuIndexes.length > 0 && renderBackButtonItem(),
+                            shouldPutHeaderTextAfterBackButton && renderHeaderText(),
+                            renderedMenuItems,
+                        ],
                     )}
                 </View>
             </FocusTrapForModal>
@@ -601,7 +625,8 @@ export default React.memo(
         prevProps.animationInTiming === nextProps.animationInTiming &&
         prevProps.disableAnimation === nextProps.disableAnimation &&
         prevProps.withoutOverlay === nextProps.withoutOverlay &&
-        prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
+        prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility &&
+        prevProps.shouldPutHeaderTextAfterBackButton === nextProps.shouldPutHeaderTextAfterBackButton,
 );
 export type {PopoverMenuItem, PopoverMenuProps};
 export {getItemKey, buildKeyPathFromIndexPath, resolveIndexPathByKeyPath};

@@ -161,6 +161,15 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
 
     /** Reference to the outer element */
     ref?: React.Ref<ButtonWithDropdownMenuRef>;
+
+    /** Whether to put the header text after the back button */
+    shouldPutHeaderTextAfterBackButton?: boolean;
+
+    /** Whether to always show the header text, even when navigating submenus */
+    shouldAlwaysShowHeaderText?: boolean;
+
+    /** Callback when the back button in the header is pressed */
+    onBackButtonPress?: () => void;
 };
 
 type ButtonWithDropdownMenuRef = {

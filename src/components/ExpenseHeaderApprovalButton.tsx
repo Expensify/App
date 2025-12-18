@@ -38,10 +38,6 @@ type ApprovalOption = {
     onSelected: () => void;
 };
 
-type ApprovalDropdownOptions = {
-    options: ApprovalOption[];
-};
-
 type ApprovalDropdownOptionProps = {
     nonHeldAmount: string | undefined;
     fullAmount: string;
@@ -63,7 +59,7 @@ function getApprovalDropdownOptions({
     onPartialApprove,
     onFullApprove,
     translate,
-}: ApprovalDropdownOptionProps): ApprovalDropdownOptions {
+}: ApprovalDropdownOptionProps): ApprovalOption[] {
     const APPROVE_PARTIAL = 'approve_partial';
     const APPROVE_FULL = 'approve_full';
     const options: ApprovalOption[] = [];
@@ -84,9 +80,7 @@ function getApprovalDropdownOptions({
         onSelected: onFullApprove,
     });
 
-    return {
-        options,
-    };
+    return options;
 }
 
 function ExpenseHeaderApprovalButton({
@@ -114,11 +108,11 @@ function ExpenseHeaderApprovalButton({
             translate,
         });
 
-        if (approvalOptions.options.length > 1) {
+        if (approvalOptions.length > 1) {
             return (
                 <ButtonWithDropdownMenu
                     success
-                    options={approvalOptions.options}
+                    options={approvalOptions}
                     menuHeaderText={translate('iou.confirmApprovalWithHeldAmount')}
                     onPress={() => {}}
                     customText={translate('iou.approve')}

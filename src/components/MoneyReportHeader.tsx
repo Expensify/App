@@ -128,7 +128,7 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import DecisionModal from './DecisionModal';
 import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
-import ExpenseHeaderApprovalButton from './ExpenseHeaderApprovalButton';
+import ExpenseHeaderApprovalButton, {getApprovalDropdownOptions} from './ExpenseHeaderApprovalButton';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
@@ -253,6 +253,7 @@ function MoneyReportHeader({
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
+    const [isApprovalOptionPressed, setIsApprovalOptionPressed] = useState(false);
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -841,6 +842,20 @@ function MoneyReportHeader({
         return options;
     }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, exportTemplates, expensifyIcons]);
 
+    const onApprove = (isFullApproval: boolean) => {
+        startApprovedAnimation();
+        approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, isFullApproval);
+        if (currentSearchQueryJSON) {
+            search({
+                searchKey: currentSearchKey,
+                shouldCalculateTotals: true,
+                offset: 0,
+                queryJSON: currentSearchQueryJSON,
+                isLoading: !!currentSearchResults?.search?.isLoading,
+            });
+        }
+    };
+
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
             <AnimatedSubmitButton
@@ -880,19 +895,7 @@ function MoneyReportHeader({
                 hasValidNonHeldAmount={hasValidNonHeldAmount}
                 nonHeldAmount={nonHeldAmount}
                 fullAmount={fullAmount}
-                onApprove={(isFullApproval) => {
-                    startApprovedAnimation();
-                    approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, isFullApproval);
-                    if (currentSearchQueryJSON) {
-                        search({
-                            searchKey: currentSearchKey,
-                            shouldCalculateTotals: true,
-                            offset: 0,
-                            queryJSON: currentSearchQueryJSON,
-                            isLoading: !!currentSearchResults?.search?.isLoading,
-                        });
-                    }
-                }}
+                onApprove={onApprove}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.PAY]: (
@@ -1042,6 +1045,19 @@ function MoneyReportHeader({
         return getSecondaryExportReportActions(moneyRequestReport, policy, exportTemplates);
     }, [moneyRequestReport, policy, exportTemplates]);
 
+    const shouldShowApprovalSecondaryActions = isAnyTransactionOnHold && !isDelegateAccessRestricted;
+    const secondaryApprovalActions = shouldShowApprovalSecondaryActions
+        ? getApprovalDropdownOptions({
+              nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
+              fullAmount,
+              hasValidNonHeldAmount,
+              hasOnlyHeldExpenses,
+              onPartialApprove: () => onApprove(false),
+              onFullApprove: () => onApprove(true),
+              translate,
+          })
+        : [];
+
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
     const unapproveWarningText = useMemo(
         () => (
@@ -1062,7 +1078,7 @@ function MoneyReportHeader({
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
-        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>
+        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'shouldForceCallSelect'>
     > = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
@@ -1113,9 +1129,20 @@ function MoneyReportHeader({
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
             text: translate('iou.approve'),
             icon: expensifyIcons.ThumbsUp,
+            rightIcon: shouldShowApprovalSecondaryActions ? expensifyIcons.ArrowRight : undefined,
+            backButtonText: shouldShowApprovalSecondaryActions ? translate('iou.approve') : undefined,
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
-            onSelected: confirmApproval,
+            subMenuItems: secondaryApprovalActions,
+            shouldUpdateSelectedIndex: true,
+            onSelected: () => {
+                setIsApprovalOptionPressed(true);
+                if (shouldShowApprovalSecondaryActions) {
+                    return;
+                }
+                confirmApproval();
+            },
+            shouldForceCallSelect: true,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             text: translate('iou.unapprove'),
@@ -1589,6 +1616,10 @@ function MoneyReportHeader({
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}
+                                headerText={isApprovalOptionPressed ? translate('iou.confirmApprovalWithHeldAmount') : ''}
+                                shouldPutHeaderTextAfterBackButton
+                                shouldAlwaysShowHeaderText
+                                onBackButtonPress={() => setIsApprovalOptionPressed(false)}
                             />
                         )}
                         {shouldShowSelectedTransactionsButton && (
@@ -1629,6 +1660,10 @@ function MoneyReportHeader({
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}
+                                headerText={isApprovalOptionPressed ? translate('iou.confirmApprovalWithHeldAmount') : ''}
+                                shouldPutHeaderTextAfterBackButton
+                                shouldAlwaysShowHeaderText
+                                onBackButtonPress={() => setIsApprovalOptionPressed(false)}
                             />
                         )}
                     </View>
