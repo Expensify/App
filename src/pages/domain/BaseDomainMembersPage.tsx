@@ -44,17 +44,10 @@ type BaseDomainMembersPageProps = {
     /** Callback fired when a row is selected */
     onSelectRow: (item: MemberOption) => void;
 
-    hederIcon:  IconAsset;
+    hederIcon: IconAsset;
 };
 
-function BaseDomainMembersPage({
-                                   accountIDs,
-                                   headerTitle,
-                                   searchPlaceholder,
-                                   headerContent,
-                                   onSelectRow,
-                                   hederIcon
-                               }: BaseDomainMembersPageProps) {
+function BaseDomainMembersPage({accountIDs, headerTitle, searchPlaceholder, headerContent, onSelectRow, hederIcon}: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -88,10 +81,7 @@ function BaseDomainMembersPage({
         return results.length > 0;
     }, []);
 
-    const sortMembers = useCallback(
-        (options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare),
-        [localeCompare],
-    );
+    const sortMembers = useCallback((options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare), [localeCompare]);
 
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
@@ -99,17 +89,23 @@ function BaseDomainMembersPage({
         if (filteredData.length === 0) {
             return null;
         }
-        return <CustomListHeader canSelectMultiple={false} leftHeaderText={headerTitle} />;
+        return (
+            <CustomListHeader
+                canSelectMultiple={false}
+                leftHeaderText={headerTitle}
+            />
+        );
     };
 
-    const listHeaderContent = data.length > CONST.SEARCH_ITEM_LIMIT ? (
-        <SearchBar
-            inputValue={inputValue}
-            onChangeText={setInputValue}
-            label={searchPlaceholder}
-            shouldShowEmptyState={!filteredData.length}
-        />
-    ) : null;
+    const listHeaderContent =
+        data.length > CONST.SEARCH_ITEM_LIMIT ? (
+            <SearchBar
+                inputValue={inputValue}
+                onChangeText={setInputValue}
+                label={searchPlaceholder}
+                shouldShowEmptyState={!filteredData.length}
+            />
+        ) : null;
 
     return (
         <ScreenWrapper
@@ -118,36 +114,32 @@ function BaseDomainMembersPage({
             shouldShowOfflineIndicatorInWideScreen
             testID={BaseDomainMembersPage.displayName}
         >
-                <HeaderWithBackButton
-                    title={headerTitle}
-                    onBackButtonPress={Navigation.popToSidebar}
-                    icon={hederIcon}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                >
-                    {!shouldUseNarrowLayout && !!headerContent && (
-                        <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>
-                    )}
-                </HeaderWithBackButton>
+            <HeaderWithBackButton
+                title={headerTitle}
+                onBackButtonPress={Navigation.popToSidebar}
+                icon={hederIcon}
+                shouldShowBackButton={shouldUseNarrowLayout}
+            >
+                {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
+            </HeaderWithBackButton>
 
-                {shouldUseNarrowLayout && !!headerContent && (
-                    <View style={[styles.pl5, styles.pr5, styles.flexRow, styles.gap2]}>{headerContent}</View>
-                )}
+            {shouldUseNarrowLayout && !!headerContent && <View style={[styles.pl5, styles.pr5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
 
-                <SelectionList
-                    sections={[{data: filteredData}]}
-                    shouldShowRightCaret
-                    canSelectMultiple={false}
-                    listHeaderContent={listHeaderContent}
-                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                    ListItem={TableListItem}
-                    onSelectRow={onSelectRow}
-                    shouldShowListEmptyContent={false}
-                    listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
-                    showScrollIndicator={false}
-                    addBottomSafeAreaPadding
-                    customListHeader={getCustomListHeader()}
-                    containerStyle={[styles.flex1]}
-                />
+            <SelectionList
+                sections={[{data: filteredData}]}
+                shouldShowRightCaret
+                canSelectMultiple={false}
+                listHeaderContent={listHeaderContent}
+                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                ListItem={TableListItem}
+                onSelectRow={onSelectRow}
+                shouldShowListEmptyContent={false}
+                listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
+                showScrollIndicator={false}
+                addBottomSafeAreaPadding
+                customListHeader={getCustomListHeader()}
+                containerStyle={styles.flex1}
+            />
         </ScreenWrapper>
     );
 }

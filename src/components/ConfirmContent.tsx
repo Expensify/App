@@ -40,6 +40,9 @@ type ConfirmContentProps = {
     /** Whether we should use the success button color */
     success?: boolean;
 
+    /** Whether we should use the success button color for secondary action */
+    secondarySuccess?: boolean;
+
     /** Whether we should use the danger button color. Use if the action is destructive */
     danger?: boolean;
 
@@ -112,6 +115,7 @@ function ConfirmContent({
     cancelText = '',
     prompt = '',
     success = true,
+    secondarySuccess = false,
     danger = false,
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = false,
@@ -201,6 +205,7 @@ function ConfirmContent({
                                 onPress={onCancel}
                                 large
                                 text={cancelText || translate('common.no')}
+                                success={secondarySuccess}
                             />
                         )}
                         <Button
@@ -232,6 +237,7 @@ function ConfirmContent({
                                 style={[styles.noSelect, styles.flex1]}
                                 onPress={onCancel}
                                 text={cancelText || translate('common.no')}
+                                success={secondarySuccess}
                             />
                         )}
                         <Button

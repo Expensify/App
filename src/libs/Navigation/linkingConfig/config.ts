@@ -1111,6 +1111,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.ADMIN_DETAILS]: {
                             path: ROUTES.DOMAIN_ADMIN_DETAILS.route,
                         },
+                        [SCREENS.DOMAIN.MEMBER_DETAILS]: {
+                            path: ROUTES.DOMAIN_MEMBER_DETAILS.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
