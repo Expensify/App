@@ -191,7 +191,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -688,6 +687,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: '需要操作',
         duplicate: '复制',
         duplicated: '已重复',
+        reimbursableTotal: '可报销总额',
+        nonReimbursableTotal: '不可报销总额',
         originalAmount: '原始金额',
     },
     supportalNoAccess: {
@@ -1319,12 +1320,6 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `已发送 ${formattedAmount}${comment ? `为 ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `已将报销从个人空间移动到 ${workspaceName ?? `与 ${reportName} 聊天`}`,
         movedToPersonalSpace: '已将报销移动到个人空间',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? '一个' : 'a';
-            const tag = policyTagListName ?? '标签';
-            return `选择${article} ${tag}，以更好地整理您的支出。`;
-        },
-        categorySelection: '选择一个类别，以便更好地整理您的支出。',
         error: {
             invalidCategoryLength: '类别名称超过 255 个字符。请缩短名称或选择其他类别。',
             invalidTagLength: '标签名称超过了255个字符。请缩短它或选择其他标签。',
