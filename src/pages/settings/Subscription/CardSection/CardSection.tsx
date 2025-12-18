@@ -80,8 +80,12 @@ function CardSection() {
     }, []);
 
     const viewPurchases = useCallback(() => {
-        const query = buildQueryStringFromFilterFormValues({merchant: CONST.EXPENSIFY_MERCHANT});
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+        const query = buildQueryStringFromFilterFormValues({
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            merchant: CONST.EXPENSIFY_MERCHANT,
+        });
+
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
     }, []);
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
