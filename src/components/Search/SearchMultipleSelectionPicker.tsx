@@ -105,6 +105,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
             footerContent={footerContent}
             shouldStopPropagation
+            shouldUpdateFocusedIndex
             showLoadingPlaceholder={!noResultsFound}
             shouldShowTooltips
             canSelectMultiple
