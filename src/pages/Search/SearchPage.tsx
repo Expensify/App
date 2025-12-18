@@ -412,9 +412,6 @@ function SearchPage({route}: SearchPageProps) {
                         }
 
                         if (areAllMatchingItemsSelected) {
-                            if (!status || !hash) {
-                                return;
-                            }
                             showConfirmModal({
                                 title: translate('search.exportSearchResults.title'),
                                 prompt: translate('search.exportSearchResults.description'),
@@ -422,6 +419,9 @@ function SearchPage({route}: SearchPageProps) {
                                 cancelText: translate('common.cancel'),
                             }).then((result) => {
                                 if (result.action !== ModalActions.CONFIRM) {
+                                    return;
+                                }
+                                if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
                                     return;
                                 }
                                 const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
