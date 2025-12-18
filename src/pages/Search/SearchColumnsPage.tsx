@@ -32,7 +32,7 @@ function SearchColumnsPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DragHandles']);
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
@@ -43,70 +43,69 @@ function SearchColumnsPage() {
     // Columns that cannot be deselected (always required)
     const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
 
+    // Helper function to sort columns: selected at top (in order), unselected at bottom (alphabetically)
+    const sortColumns = (columnsToSort: ColumnItem[]): ColumnItem[] => {
+        const selected = columnsToSort.filter((col) => col.isSelected);
+        const unselected = columnsToSort
+            .filter((col) => !col.isSelected)
+            .sort((a, b) => {
+                const textA = translate(getSearchColumnTranslationKey(a.columnId));
+                const textB = translate(getSearchColumnTranslationKey(b.columnId));
+                return localeCompare(textA, textB);
+            });
+        return [...selected, ...unselected];
+    };
+
     const [columns, setColumns] = useState<ColumnItem[]>(() => {
         const savedColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
 
         // If no saved columns, use default order and selection
         if (!savedColumnIds.length) {
-            return allCustomColumns.map((columnId) => ({
+            const initialColumns = allCustomColumns.map((columnId) => ({
                 columnId,
                 isSelected: defaultCustomColumns.includes(columnId),
             }));
+            return sortColumns(initialColumns);
         }
 
-        // Build the list: start with default order, but place selected columns in saved order
-        // Selected columns appear in their saved order positions, unselected stay in default order
-        const unselectedColumns = allCustomColumns.filter((columnId) => !savedColumnIds.includes(columnId));
-        const result: ColumnItem[] = [];
-        let savedIndex = 0;
-        let unselectedIndex = 0;
+        // Build columns with saved selection state, maintaining saved order for selected items
+        const selected = savedColumnIds.map((columnId) => ({columnId, isSelected: true}));
+        const unselected = allCustomColumns
+            .filter((columnId) => !savedColumnIds.includes(columnId))
+            .map((columnId) => ({columnId, isSelected: false}));
 
-        // Go through default order and reconstruct the list
-        for (const columnId of allCustomColumns) {
-            if (savedColumnIds.includes(columnId)) {
-                // This position had a selected column - use the next saved column in order
-                result.push({
-                    columnId: savedColumnIds.at(savedIndex) ?? columnId,
-                    isSelected: true,
-                });
-                savedIndex++;
-            } else {
-                // This position has an unselected column - keep it
-                result.push({
-                    columnId: unselectedColumns.at(unselectedIndex) ?? columnId,
-                    isSelected: false,
-                });
-                unselectedIndex++;
-            }
-        }
-
-        return result;
+        return sortColumns([...selected, ...unselected]);
     });
 
     const selectedColumnIds = columns.filter((col) => col.isSelected).map((col) => col.columnId);
 
     const columnsList = columns.map(({columnId, isSelected}) => {
         const isRequired = requiredColumns.has(columnId);
+        const isEffectivelySelected = isRequired || isSelected;
+        const isDragDisabled = !isEffectivelySelected;
         return {
             text: translate(getSearchColumnTranslationKey(columnId)),
             value: columnId,
             keyForList: columnId,
-            isSelected: isRequired || isSelected,
+            isSelected: isEffectivelySelected,
             isDisabled: isRequired,
+            isDragDisabled,
             leftElement: (
                 <Icon
                     src={icons.DragHandles}
                     fill={theme.icon}
-                    additionalStyles={styles.mr3}
+                    additionalStyles={[styles.mr3, isDragDisabled && styles.opacitySemiTransparent]}
                 />
             ),
         };
     });
 
-    const defaultColumns = allCustomColumns.map((columnId) => ({
-        columnId,
-        isSelected: defaultCustomColumns.includes(columnId),
-    }));
+    const defaultColumns = sortColumns(
+        allCustomColumns.map((columnId) => ({
+            columnId,
+            isSelected: defaultCustomColumns.includes(columnId),
+        })),
+    );
 
     const isDefaultState =
         columns.length === defaultColumns.length &&
@@ -120,11 +119,35 @@ function SearchColumnsPage() {
             return;
         }
 
-        setColumns(columns.map((col) => (col.columnId === updatedColumnId ? {...col, isSelected: !col.isSelected} : col)));
+        setColumns((prevColumns) => {
+            const columnToUpdate = prevColumns.find((col) => col.columnId === updatedColumnId);
+            if (!columnToUpdate) {
+                return prevColumns;
+            }
+
+            const newIsSelected = !columnToUpdate.isSelected;
+
+            if (newIsSelected) {
+                // When selecting an unselected column, move it to the bottom of selected columns
+                const selected = prevColumns.filter((col) => col.isSelected);
+                const unselected = prevColumns.filter((col) => !col.isSelected && col.columnId !== updatedColumnId);
+                const unselectedSorted = unselected.sort((a, b) => {
+                    const textA = translate(getSearchColumnTranslationKey(a.columnId));
+                    const textB = translate(getSearchColumnTranslationKey(b.columnId));
+                    return localeCompare(textA, textB);
+                });
+                return [...selected, {columnId: updatedColumnId, isSelected: true}, ...unselectedSorted];
+            }
+            // When deselecting, update and re-sort
+            const updatedColumns = prevColumns.map((col) => (col.columnId === updatedColumnId ? {...col, isSelected: false} : col));
+            return sortColumns(updatedColumns);
+        });
     };
 
     const onDragEnd = ({data}: {data: typeof columnsList}) => {
-        setColumns(data.map((item) => ({columnId: item.value, isSelected: item.isSelected})));
+        // Only allow reordering within selected columns - maintain selected/unselected separation
+        const newColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+        setColumns(sortColumns(newColumns));
     };
 
     const resetColumns = () => setColumns(defaultColumns);

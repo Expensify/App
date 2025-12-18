@@ -2996,31 +2996,31 @@ function getColumnsToShow(
     if (!isExpenseReportView && groupBy) {
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.FROM:
-                return {
-                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-                };
+                return [
+                    CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    CONST.SEARCH.TABLE_COLUMNS.FROM,
+                    CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
+                    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+                ];
             case CONST.SEARCH.GROUP_BY.CARD:
-                return {
-                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.CARD]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.FEED]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-                };
+                return [
+                    CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    CONST.SEARCH.TABLE_COLUMNS.CARD,
+                    CONST.SEARCH.TABLE_COLUMNS.FEED,
+                    CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
+                    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+                ];
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-                return {
-                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-                };
+                return [
+                    CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT,
+                    CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN,
+                    CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+                    CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
+                    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+                ];
             default:
-                return {};
+                return [];
         }
     }
 
