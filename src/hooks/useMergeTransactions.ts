@@ -1,13 +1,13 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
+import {getTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction, Report, Transaction} from '@src/types/onyx';
+import type {MergeTransaction, Report, SearchResults, Transaction} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 type UseMergeTransactionsProps = {
     mergeTransaction?: MergeTransaction;
-    hash?: number;
 };
 
 type UseMergeTransactionsReturn = {
@@ -16,6 +16,24 @@ type UseMergeTransactionsReturn = {
     targetTransactionReport?: Report;
     sourceTransactionReport?: Report;
 };
+
+function getTransaction(
+    mergeTransaction: MergeTransaction | undefined,
+    transactionID: string | undefined,
+    onyxTransaction: OnyxEntry<Transaction>,
+    currentSearchResults: SearchResults | undefined,
+) {
+    if (!transactionID) {
+        return undefined;
+    }
+
+    const transaction = getTransactionFromMergeTransaction(mergeTransaction, transactionID);
+    if (transaction) {
+        return transaction;
+    }
+
+    return currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? onyxTransaction;
+}
 
 function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): UseMergeTransactionsReturn {
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -30,21 +48,8 @@ function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): Us
         canBeMissing: true,
     });
 
-    let targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction);
-    let sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction);
-    let targetTransactionReport;
-    let sourceTransactionReport;
-
-    // Always use transactions from the search snapshot if we're coming from the Reports page
-    if (searchHash) {
-        targetTransaction = targetTransaction ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`];
-        sourceTransaction = sourceTransaction ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`];
-        targetTransactionReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`];
-        sourceTransactionReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction?.reportID}`];
-    } else {
-        targetTransaction = targetTransaction ?? onyxTargetTransaction;
-        sourceTransaction = sourceTransaction ?? onyxSourceTransaction;
-    }
+    const targetTransaction = getTransaction(mergeTransaction, mergeTransaction?.targetTransactionID, onyxTargetTransaction, currentSearchResults);
+    const sourceTransaction = getTransaction(mergeTransaction, mergeTransaction?.sourceTransactionID, onyxSourceTransaction, currentSearchResults);
 
     const [onyxTargetTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {
         canBeMissing: true,
@@ -53,11 +58,19 @@ function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): Us
         canBeMissing: true,
     });
 
+    // Always use transactions from the search snapshot if we're coming from the Reports page
+    let targetTransactionReport = onyxTargetTransactionReport;
+    let sourceTransactionReport = onyxSourceTransactionReport;
+    if (searchHash && currentSearchResults?.data) {
+        targetTransactionReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`] ?? onyxTargetTransactionReport;
+        sourceTransactionReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction?.reportID}`] ?? onyxSourceTransactionReport;
+    }
+
     return {
-        targetTransaction: targetTransaction ?? onyxTargetTransaction,
-        sourceTransaction: sourceTransaction ?? onyxSourceTransaction,
-        targetTransactionReport: targetTransactionReport ?? onyxTargetTransactionReport,
-        sourceTransactionReport: sourceTransactionReport ?? onyxSourceTransactionReport,
+        targetTransaction,
+        sourceTransaction,
+        targetTransactionReport,
+        sourceTransactionReport,
     };
 }
 
