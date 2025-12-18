@@ -162,9 +162,13 @@ function NumberWithSymbolForm({
     // sync currentNumber with number prop when it changes externally
     useEffect(() => {
         const newNumber = typeof number === 'string' ? number : '';
-        if (newNumber !== currentNumber) {
-            setCurrentNumber(newNumber);
+
+        if (newNumber === currentNumber || (newNumber && currentNumber && Number(newNumber) === Number(currentNumber))) {
+            return;
         }
+
+        setCurrentNumber(newNumber);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [number]);
 
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
