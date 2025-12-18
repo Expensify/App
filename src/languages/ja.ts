@@ -6647,6 +6647,8 @@ ${reportName}
         columns: '列',
         resetColumns: '列をリセット',
         noColumnsError: '保存する前に、少なくとも 1 つの列を選択してください',
+        groupColumns: 'Group columns',
+        expenseColumns: 'Expenses',
         statements: 'ステートメント',
         unapprovedCash: '未承認の現金',
         unapprovedCard: '未承認のカード',

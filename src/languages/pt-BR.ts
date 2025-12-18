@@ -6682,6 +6682,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         columns: 'Colunas',
         resetColumns: 'Redefinir colunas',
         noColumnsError: 'Selecione pelo menos uma coluna antes de salvar',
+        groupColumns: 'Group columns',
+        expenseColumns: 'Expenses',
         statements: 'Extratos',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCard: 'Cartão não aprovado',

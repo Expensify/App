@@ -6574,6 +6574,8 @@ const translations = {
         columns: 'Columns',
         resetColumns: 'Reset columns',
         noColumnsError: 'Please select at least one column before saving',
+        groupColumns: 'Group columns',
+        expenseColumns: 'Expenses',
         statements: 'Statements',
         unapprovedCash: 'Unapproved cash',
         unapprovedCard: 'Unapproved card',

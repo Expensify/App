@@ -6547,6 +6547,8 @@ ${reportName}
         columns: '列',
         resetColumns: '重置列',
         noColumnsError: '请在保存前至少选择一列',
+        groupColumns: 'Group columns',
+        expenseColumns: 'Expenses',
         statements: '对账单',
         unapprovedCash: '未批准的现金',
         unapprovedCard: '未批准的卡片',

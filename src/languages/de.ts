@@ -6718,6 +6718,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         columns: 'Spalten',
         resetColumns: 'Spalten zurücksetzen',
         noColumnsError: 'Bitte wählen Sie vor dem Speichern mindestens eine Spalte aus',
+        groupColumns: 'Group columns',
+        expenseColumns: 'Expenses',
         statements: 'Abrechnungen',
         unapprovedCash: 'Nicht genehmigtes Bargeld',
         unapprovedCard: 'Nicht genehmigte Karte',
