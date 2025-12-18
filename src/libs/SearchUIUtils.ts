@@ -2456,7 +2456,7 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
             return 'iou.taxRate';
         case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
-            return 'common.longID';
+            return 'common.longReportID';
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             return 'common.reportID';
     }

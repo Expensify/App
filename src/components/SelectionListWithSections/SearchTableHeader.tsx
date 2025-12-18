@@ -126,7 +126,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
-        translationKey: 'common.longID',
+        translationKey: 'common.longReportID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
@@ -246,7 +246,7 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
-        translationKey: 'common.longID',
+        translationKey: 'common.longReportID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,

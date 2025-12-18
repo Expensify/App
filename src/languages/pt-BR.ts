@@ -595,7 +595,7 @@ const translations: TranslationDeepObject<typeof en> = {
         filterLogs: 'Filtrar Logs',
         network: 'Rede',
         reportID: 'ID do Relatório',
-        longID: 'ID longo',
+        longReportID: 'ID longo',
         withdrawalID: 'ID de saque',
         bankAccounts: 'Contas bancárias',
         chooseFile: 'Escolher arquivo',
