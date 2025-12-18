@@ -152,7 +152,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             }
             getPaymentMethods(true);
         };
-    }, []);
+    }, [achData, backTo]);
 
     useEffect(() => {
         if (!policyCurrency || isNonUSDSetup === (policyCurrency !== CONST.CURRENCY.USD)) {
