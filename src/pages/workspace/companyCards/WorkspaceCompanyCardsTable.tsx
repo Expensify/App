@@ -31,6 +31,9 @@ type WorkspaceCompanyCardsTableProps = {
     /** Current policy id */
     policyID: string;
 
+    /** Domain or workspace account ID */
+    domainOrWorkspaceAccountID: number;
+
     /** On assign card callback */
     onAssignCard: () => void;
 
@@ -41,20 +44,30 @@ type WorkspaceCompanyCardsTableProps = {
     shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer}: WorkspaceCompanyCardsTableProps) {
+function WorkspaceCompanyCardsTable({
+    selectedFeed,
+    cardsList,
+    policyID,
+    domainOrWorkspaceAccountID,
+    onAssignCard,
+    isAssigningCardDisabled,
+    shouldShowGBDisclaimer,
+}: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}`, {canBeMissing: true});
 
     const {cardList, ...assignedCards} = cardsList ?? {};
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
+    const companyCardFeedData = companyFeeds[selectedFeed];
 
-    const isPlaidCardFeed = !!companyFeeds?.[selectedFeed]?.accountList;
-    const cards = isPlaidCardFeed ? (companyFeeds?.[selectedFeed]?.accountList ?? []) : Object.keys(cardList ?? {});
+    const isPlaidCardFeed = !!companyCardFeedData?.accountList;
+    const cards = isPlaidCardFeed ? (companyCardFeedData?.accountList ?? []) : Object.keys(cardList ?? {});
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
@@ -68,6 +81,8 @@ function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssign
 
             const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
 
+            const failedCompanyCardAssignment = failedCompanyCardAssignments?.[cardName];
+
             const cardholder = personalDetails?.[assignedCard?.accountID ?? CONST.DEFAULT_NUMBER_ID];
 
             const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID] ?? getCardDefaultName(cardholder?.displayName);
@@ -76,7 +91,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssign
 
             const isAssigned = !!assignedCard;
 
-            return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder};
+            return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, failedCompanyCardAssignment: failedCompanyCardAssignment, cardholder};
         }) ?? [];
 
     const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceCompanyCardTableItemData>) => (
@@ -84,6 +99,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssign
             key={`${item.cardName}_${index}`}
             item={item}
             policyID={policyID}
+            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
             selectedFeed={selectedFeed}
             plaidIconUrl={getPlaidInstitutionIconUrl(selectedFeed)}
             isPlaidCardFeed={isPlaidCardFeed}

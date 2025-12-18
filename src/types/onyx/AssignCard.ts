@@ -3,12 +3,16 @@ import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {CompanyCardFeed} from './CardFeeds';
+import type PersonalDetails from './PersonalDetails';
 
 /** Assign card flow steps */
 type AssignCardStep = ValueOf<typeof CONST.COMPANY_CARD.STEP>;
 
 /** Data required to be sent to issue a new card */
 type AssignCardData = {
+    /** The cardholder personal details */
+    cardholder?: PersonalDetails;
+
     /** The email address of the assignee */
     email: string;
 
