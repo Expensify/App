@@ -587,8 +587,8 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
 }
 
-function isMergeActionFromReportView(transactions: Transaction[], reports: Report[], policies: Policy[]) {
-    if (transactions.length > 2 || reports.length > 2 || policies.length > 2) {
+function isMergeActionForSelectedTransactions(transactions: Transaction[], reports: Report[], policies: Policy[]) {
+    if ([transactions, reports, policies].some((collection) => collection?.length > 2)) {
         return false;
     }
 
@@ -599,6 +599,10 @@ function isMergeActionFromReportView(transactions: Transaction[], reports: Repor
             return true;
         }
         const policy = policies.find((p) => p?.id === report?.policyID);
+        if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
+            return false;
+        }
+
         return isMoneyRequestReportEligibleForMerge(report, policy?.role === CONST.POLICY.ROLE.ADMIN);
     });
 
@@ -879,4 +883,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, isMergeActionFromReportView, getSecondaryExportReportActions, isSplitAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, isMergeActionForSelectedTransactions, getSecondaryExportReportActions, isSplitAction};

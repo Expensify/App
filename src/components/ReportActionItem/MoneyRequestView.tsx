@@ -351,6 +351,7 @@ function MoneyRequestView({
         !isInvoice;
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
+    console.log(shouldShowAttendees, policy);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);

@@ -7,7 +7,7 @@ import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
-import {isMergeAction, isSplitAction} from '@libs/ReportSecondaryActionUtils';
+import {isMergeActionForSelectedTransactions, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
@@ -310,7 +310,7 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const canMergeTransaction = selectedTransactionsList.length < 3 && report && isMergeAction(report, selectedTransactionsList, policy);
+        const canMergeTransaction = selectedTransactionsList.length < 3 && report && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy]);
         if (canMergeTransaction) {
             options.push({
                 text: translate('common.merge'),

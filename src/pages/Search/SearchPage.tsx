@@ -61,7 +61,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {isMergeActionFromReportView} from '@libs/ReportSecondaryActionUtils';
+import {isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     generateReportID,
     getPolicyExpenseChat,
@@ -637,6 +637,26 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+        if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
+            const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
+            const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(1)}`];
+            const reports = [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]];
+            const transactionPolicies = [
+                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`],
+                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`],
+            ];
+            const transactions = selectedTransactionsKeys.length === 1 ? [transaction1] : [transaction1, transaction2];
+
+            if (isMergeActionForSelectedTransactions(transactions, reports, transactionPolicies)) {
+                options.push({
+                    text: translate('common.merge'),
+                    icon: expensifyIcons.ArrowCollapse,
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
+                    onSelected: () => setupMergeTransactionDataAndNavigate(transactions, localeCompare, reports),
+                });
+            }
+        }
+
         const ownerAccountIDs = new Set<number>();
         let hasUnknownOwner = false;
         for (const id of selectedTransactionsKeys) {
@@ -709,26 +729,6 @@ function SearchPage({route}: SearchPageProps) {
                     });
                 },
             });
-        }
-
-        if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
-            const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
-            const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(1)}`];
-            const reports = [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]];
-            const transactionPolicies = [
-                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`],
-                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`],
-            ];
-            const transactions = selectedTransactionsKeys.length === 1 ? [transaction1] : [transaction1, transaction2];
-
-            if (isMergeActionFromReportView(transactions, reports, transactionPolicies)) {
-                options.push({
-                    text: translate('common.merge'),
-                    icon: expensifyIcons.ArrowCollapse,
-                    value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                    onSelected: () => setupMergeTransactionDataAndNavigate(transactions, localeCompare, reports),
-                });
-            }
         }
 
         if (options.length === 0) {

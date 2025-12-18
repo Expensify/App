@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getSecondaryExportReportActions, getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeActionFromReportView} from '@libs/ReportSecondaryActionUtils';
+import {getSecondaryExportReportActions, getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -2674,7 +2674,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         });
     });
 
-    describe('isMergeActionFromReportView', () => {
+    describe('isMergeActionForSelectedTransactions', () => {
         beforeEach(() => {
             jest.clearAllMocks();
         });
@@ -2684,7 +2684,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [{reportID: '1', type: CONST.REPORT.TYPE.EXPENSE} as Report];
             const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
 
-            const result = isMergeActionFromReportView(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
             expect(result).toBe(false);
         });
@@ -2698,7 +2698,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             ];
             const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
 
-            const result = isMergeActionFromReportView(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
             expect(result).toBe(false);
         });
@@ -2712,7 +2712,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 {id: 'policy3', role: CONST.POLICY.ROLE.ADMIN},
             ] as Policy[];
 
-            const result = isMergeActionFromReportView(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
             expect(result).toBe(false);
         });
@@ -2724,7 +2724,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
 
-            const result = isMergeActionFromReportView(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
             expect(result).toBe(false);
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false);
@@ -2737,7 +2737,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionFromReportView(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
             expect(result).toBe(true);
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true);
@@ -2763,7 +2763,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionFromReportView(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
             expect(result).toBe(true);
         });
@@ -2788,7 +2788,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionFromReportView(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
             expect(result).toBe(false);
         });
@@ -2798,7 +2798,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [{reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'nonexistent'} as Report];
             const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
 
-            const result = isMergeActionFromReportView(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
             // Should return true because when policy is not found, function doesn't prevent merging
             // (since we have 1 transaction, it will return true after the policy check)
@@ -2812,7 +2812,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionFromReportView(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
             expect(result).toBe(true);
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true);
@@ -2825,7 +2825,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
 
-            const result = isMergeActionFromReportView(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
             expect(result).toBe(false);
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false);
@@ -2846,7 +2846,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 .mockReturnValueOnce(true) // First report eligible
                 .mockReturnValueOnce(false); // Second report not eligible
 
-            const result = isMergeActionFromReportView(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
 
             expect(result).toBe(false);
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledTimes(2);
