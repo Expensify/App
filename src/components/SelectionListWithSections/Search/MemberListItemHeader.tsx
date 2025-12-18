@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
@@ -62,6 +62,12 @@ function MemberListItemHeader<TItem extends ListItem>({
     const {translate, formatPhoneNumber} = useLocalize();
     const formattedDisplayName = formatPhoneNumber(getDisplayNameOrDefault(memberItem));
     const formattedLogin = formatPhoneNumber(memberItem.login ?? '');
+
+    const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]: <Fragment></Fragment>,
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: <Fragment></Fragment>,
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: <Fragment></Fragment>,
+    };
 
     return (
         <View>

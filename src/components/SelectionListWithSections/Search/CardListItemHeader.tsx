@@ -71,6 +71,13 @@ function CardListItemHeader<TItem extends ListItem>({
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
+    const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD]: <Fragment></Fragment>,
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED]: <Fragment></Fragment>,
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: <Fragment></Fragment>,
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: <Fragment></Fragment>,
+    };
+
     return (
         <View>
             <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>

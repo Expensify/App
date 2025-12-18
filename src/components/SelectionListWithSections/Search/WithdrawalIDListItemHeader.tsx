@@ -93,6 +93,14 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                   return translate('settlement.failedError', {link: walletLink});
               })();
 
+    const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: <Fragment></Fragment>,
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: <Fragment></Fragment>,
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: <Fragment></Fragment>,
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: <Fragment></Fragment>,
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: <Fragment></Fragment>,
+    };
+
     return (
         <View>
             <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
