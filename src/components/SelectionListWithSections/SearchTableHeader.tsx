@@ -35,16 +35,20 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.date',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.POSTED,
+        translationKey: 'search.filters.posted',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+        translationKey: 'search.filters.exported',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
         translationKey: 'common.submitted',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.APPROVED,
         translationKey: 'search.filters.approved',
-    },
-    {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.POSTED,
-        translationKey: 'search.filters.posted',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
@@ -85,10 +89,6 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canBeMissing: true,
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
-        translationKey: 'common.originalAmount',
-    },
-    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
         translationKey: 'common.reimbursable',
         canBeMissing: true,
@@ -97,10 +97,6 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         columnName: CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
         translationKey: 'common.billable',
         canBeMissing: true,
-    },
-    {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
-        translationKey: 'common.withdrawalID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
@@ -115,6 +111,14 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
         translationKey: 'common.exchangeRate',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+        translationKey: 'common.originalAmount',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+        translationKey: 'common.withdrawalID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
@@ -205,6 +209,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'search.filters.approved',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+        translationKey: 'search.filters.exported',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
         translationKey: 'common.status',
     },
@@ -279,6 +287,7 @@ type SearchTableHeaderProps = {
     shouldShowYearSubmitted?: boolean;
     shouldShowYearApproved?: boolean;
     shouldShowYearPosted?: boolean;
+    shouldShowYearExported?: boolean;
     isAmountColumnWide: boolean;
     isTaxAmountColumnWide: boolean;
     shouldShowSorting: boolean;
@@ -297,6 +306,7 @@ function SearchTableHeader({
     shouldShowYearSubmitted,
     shouldShowYearApproved,
     shouldShowYearPosted,
+    shouldShowYearExported,
     shouldShowSorting,
     canSelectMultiple,
     isAmountColumnWide,
@@ -338,6 +348,7 @@ function SearchTableHeader({
             submittedColumnSize={shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             approvedColumnSize={shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             postedColumnSize={shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+            exportedColumnSize={shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             taxAmountColumnSize={isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             shouldShowSorting={shouldShowSorting}

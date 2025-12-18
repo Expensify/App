@@ -179,7 +179,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -1120,6 +1119,7 @@ const translations = {
     },
     iou: {
         amount: 'Amount',
+        percent: 'Percent',
         taxAmount: 'Tax amount',
         taxRate: 'Tax rate',
         approve: ({formattedAmount}: {formattedAmount?: string} = {}) => (formattedAmount ? `Approve ${formattedAmount}` : 'Approve'),
@@ -1130,6 +1130,7 @@ const translations = {
         split: 'Split',
         splitExpense: 'Split expense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} from ${merchant}`,
+        splitByPercentage: 'Split by percentage',
         addSplit: 'Add split',
         makeSplitsEven: 'Make splits even',
         editSplits: 'Edit splits',
@@ -1321,12 +1322,6 @@ const translations = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `moved expense from personal space to ${workspaceName ?? `chat with ${reportName}`}`,
         movedToPersonalSpace: 'moved expense to personal space',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'an' : 'a';
-            const tag = policyTagListName ?? 'tag';
-            return `Select ${article} ${tag} to better organize your spend.`;
-        },
-        categorySelection: 'Select a category to better organize your spend.',
         error: {
             invalidCategoryLength: 'The category name exceeds 255 characters. Please shorten it or choose a different category.',
             invalidTagLength: 'The tag name exceeds 255 characters. Please shorten it or choose a different tag.',

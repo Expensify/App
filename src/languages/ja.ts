@@ -191,7 +191,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -1135,6 +1134,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: '金額',
+        percent: 'パーセント',
         taxAmount: '税額',
         taxRate: '税率',
         approve: ({
@@ -1149,6 +1149,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: '分割',
         splitExpense: '経費を分割',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${merchant} からの ${amount}`,
+        splitByPercentage: '割合で分割',
         addSplit: '分割を追加',
         makeSplitsEven: '分割を均等にする',
         editSplits: '分割を編集',
@@ -1346,12 +1347,6 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} を送信済み${comment ? `${comment} 用` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `経費を個人スペースから${workspaceName ?? `${reportName} とチャット`}に移動しました`,
         movedToPersonalSpace: '経費を個人スペースに移動しました',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? '1つの' : 'a';
-            const tag = policyTagListName ?? 'タグ';
-            return `支出をより適切に整理するために、${article} ${tag} を選択してください。`;
-        },
-        categorySelection: '支出をより整理しやすくするためにカテゴリを選択してください。',
         error: {
             invalidCategoryLength: 'カテゴリ名が255文字を超えています。短くするか、別のカテゴリを選択してください。',
             invalidTagLength: 'タグ名が255文字を超えています。短くするか、別のタグを選択してください。',

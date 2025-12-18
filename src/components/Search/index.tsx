@@ -1045,7 +1045,10 @@ function Search({
         navigation.setParams({q: newQuery, rawQuery: undefined});
     };
 
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted} = shouldShowYearUtil(searchResults?.data, isExpenseReportType ?? false);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYearUtil(
+        searchResults?.data,
+        isExpenseReportType ?? false,
+    );
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !validGroupBy;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy;
@@ -1079,6 +1082,7 @@ function Search({
                                     shouldShowYearSubmitted={shouldShowYearSubmitted}
                                     shouldShowYearApproved={shouldShowYearApproved}
                                     shouldShowYearPosted={shouldShowYearPosted}
+                                    shouldShowYearExported={shouldShowYearExported}
                                     isAmountColumnWide={shouldShowAmountInWideColumn}
                                     isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                                     shouldShowSorting={shouldShowSorting}

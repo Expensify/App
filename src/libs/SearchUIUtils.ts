@@ -143,6 +143,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 'submitted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
     [CONST.SEARCH.TABLE_COLUMNS.POSTED]: 'posted' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'tag' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
@@ -171,6 +172,7 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'created' as const,
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 'submitted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'formattedStatus' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'reportName' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
@@ -869,7 +871,42 @@ type ShouldShowYearResult = {
     shouldShowYearSubmitted: boolean;
     shouldShowYearApproved: boolean;
     shouldShowYearPosted: boolean;
+    shouldShowYearExported: boolean;
 };
+
+/**
+ * @private
+ * Builds a map of the last exported action by report ID for efficient lookups
+ */
+function buildLastExportedActionByReportIDMap(data: OnyxTypes.SearchResults['data']): Map<string, OnyxTypes.ReportAction> {
+    const lastExportedActionByReportID = new Map<string, OnyxTypes.ReportAction>();
+    for (const key of Object.keys(data)) {
+        if (isReportActionEntry(key)) {
+            const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+            const actions = data[key];
+            const exportedActions = Object.values(actions).filter(
+                (action): action is OnyxTypes.ReportAction =>
+                    action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            );
+
+            let exportedAction: OnyxTypes.ReportAction | undefined;
+            let latestTime = -Infinity;
+
+            for (const action of exportedActions) {
+                const currentTime = new Date(action.created).getTime();
+                if (currentTime > latestTime) {
+                    latestTime = currentTime;
+                    exportedAction = action;
+                }
+            }
+
+            if (exportedAction) {
+                lastExportedActionByReportID.set(reportID, exportedAction);
+            }
+        }
+    }
+    return lastExportedActionByReportID;
+}
 
 /**
  * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
@@ -886,6 +923,7 @@ function shouldShowYear(
         shouldShowYearSubmitted: false,
         shouldShowYearApproved: false,
         shouldShowYearPosted: false,
+        shouldShowYearExported: false,
     };
 
     const currentYear = new Date().getFullYear();
@@ -936,10 +974,13 @@ function shouldShowYear(
         return result;
     }
 
+    const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
+
     for (const key of Object.keys(data)) {
         if (!checkOnlyReports && isTransactionEntry(key)) {
             const item = data[key];
-            if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+            const transactionCreated = getTransactionCreatedDate(item);
+            if (transactionCreated && DateUtils.doesDateBelongToAPastYear(transactionCreated)) {
                 result.shouldShowYearCreated = true;
             }
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
@@ -954,6 +995,11 @@ function shouldShowYear(
             if (item?.posted) {
                 const postedYear = parseInt(item.posted.slice(0, 4), 10);
                 result.shouldShowYearPosted = postedYear !== currentYear;
+            }
+
+            const exportedAction = lastExportedActionByReportID.get(item.reportID);
+            if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
+                result.shouldShowYearExported = true;
             }
         } else if (!checkOnlyReports && isReportActionEntry(key)) {
             const item = data[key];
@@ -975,10 +1021,15 @@ function shouldShowYear(
             if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
                 result.shouldShowYearApproved = true;
             }
+
+            const exportedAction = lastExportedActionByReportID.get(item.reportID);
+            if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
+                result.shouldShowYearExported = true;
+            }
         }
 
         // Early exit if all flags are true
-        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted) {
+        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted && result.shouldShowYearExported) {
             return result;
         }
     }
@@ -1135,7 +1186,7 @@ function getTransactionsSections(
     isActionLoadingSet: ReadonlySet<string> | undefined,
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted} = shouldShowYear(data);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
     // Pre-filter transaction keys to avoid repeated checks
@@ -1148,6 +1199,8 @@ function getTransactionsSections(
     const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
 
     const transactionsSections: TransactionListItemType[] = [];
+
+    const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
 
     const queryJSON = getCurrentSearchQueryJSON();
 
@@ -1212,11 +1265,13 @@ function getTransactionsSections(
                 submitted,
                 approved,
                 posted,
+                exported: lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '',
                 shouldShowMerchant,
                 shouldShowYear: shouldShowYearCreated,
                 shouldShowYearSubmitted,
                 shouldShowYearApproved,
                 shouldShowYearPosted,
+                shouldShowYearExported,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 violations: transactionViolations,
@@ -1593,6 +1648,7 @@ function getReportSections(
         shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
         shouldShowYearApproved: shouldShowYearApprovedTransaction,
         shouldShowYearPosted: shouldShowYearPostedTransaction,
+        shouldShowYearExported: shouldShowYearExportedTransaction,
     } = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
     const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
@@ -1620,7 +1676,10 @@ function getReportSections(
         shouldShowYearCreated: shouldShowYearCreatedReport,
         shouldShowYearSubmitted: shouldShowYearSubmittedReport,
         shouldShowYearApproved: shouldShowYearApprovedReport,
+        shouldShowYearExported: shouldShowYearExportedReport,
     } = shouldShowYear(data, true);
+
+    const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
@@ -1688,6 +1747,7 @@ function getReportSections(
                     groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     from: fromDetails,
                     to: toDetails,
+                    exported: lastExportedActionByReportID.get(reportItem.reportID)?.created ?? '',
                     formattedFrom,
                     formattedTo,
                     formattedStatus,
@@ -1696,6 +1756,7 @@ function getReportSections(
                     shouldShowYear: shouldShowYearCreatedReport,
                     shouldShowYearSubmitted: shouldShowYearSubmittedReport,
                     shouldShowYearApproved: shouldShowYearApprovedReport,
+                    shouldShowYearExported: shouldShowYearExportedReport,
                     hasVisibleViolations: hasVisibleViolationsForReport,
                 };
 
@@ -1740,11 +1801,13 @@ function getReportSections(
                 formattedTotal,
                 formattedMerchant,
                 date,
+                exported: lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '',
                 shouldShowMerchant,
                 shouldShowYear: shouldShowYearCreatedTransaction,
                 shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
                 shouldShowYearApproved: shouldShowYearApprovedTransaction,
                 shouldShowYearPosted: shouldShowYearPostedTransaction,
+                shouldShowYearExported: shouldShowYearExportedTransaction,
                 keyForList: transactionItem.transactionID,
                 violations: transactionViolations,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
@@ -2087,12 +2150,8 @@ function getSortedTransactionData(
             const aReport = a.report;
             const bReport = b.report;
 
-            if (!aReport || !bReport) {
-                return 0;
-            }
-
-            const aValue = getReportStatusTranslation({stateNum: aReport.stateNum, statusNum: aReport.statusNum, translate});
-            const bValue = getReportStatusTranslation({stateNum: bReport.stateNum, statusNum: bReport.statusNum, translate});
+            const aValue = getReportStatusTranslation({stateNum: aReport?.stateNum, statusNum: aReport?.statusNum, translate});
+            const bValue = getReportStatusTranslation({stateNum: bReport?.stateNum, statusNum: bReport?.statusNum, translate});
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -2365,8 +2424,12 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'search.filters.approved';
         case CONST.SEARCH.TABLE_COLUMNS.POSTED:
             return 'search.filters.posted';
+        case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
+            return 'search.filters.exported';
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return 'common.merchant';
+        case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+            return 'common.description';
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
             return 'common.from';
         case CONST.SEARCH.TABLE_COLUMNS.TO:
@@ -2789,6 +2852,7 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
             [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
             [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: false,
             [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
             [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
@@ -2803,7 +2867,10 @@ function getColumnsToShow(
         };
 
         // If there are no visible columns, everything should be visible
-        if (!visibleColumns.length) {
+        const filteredVisibleColumns = visibleColumns.filter((column) =>
+            Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT>),
+        );
+        if (!filteredVisibleColumns.length) {
             return reportColumns;
         }
 
@@ -2862,15 +2929,16 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.POSTED]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.POSTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
               [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
@@ -2936,7 +3004,10 @@ function getColumnsToShow(
 
     // If the user has set custom columns for the search, we need to respect their preference, and only show
     // them what they want to see
-    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
+    const filteredVisibleColumns = visibleColumns.filter((column) =>
+        Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE).includes(column as ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE>),
+    );
+    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
         const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
 
         for (const column of Object.keys(columns) as SearchCustomColumnIds[]) {

@@ -2678,26 +2678,19 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
 
 function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, onlyShowPayElsewhere = false, reportPolicy?: OnyxInputOrEntry<Policy>) {
     const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
-
-    if (!policy) {
-        Log.warn('Missing policy during isPayer check');
-
-        return false;
-    }
-
-    const policyType = policy.type;
-    const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy.role === CONST.POLICY.ROLE.ADMIN;
+    const policyType = policy?.type;
+    const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = iouReport?.managerID === session?.accountID;
-    const reimbursementChoice = policy.reimbursementChoice;
+    const reimbursementChoice = policy?.reimbursementChoice;
 
     if (isPaidGroupPolicy(iouReport)) {
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            if (!policy.achAccount?.reimburser) {
+            if (!policy?.achAccount?.reimburser) {
                 return isAdmin;
             }
 
             // If we are the reimburser and the report is approved or we are the manager then we can pay it.
-            const isReimburser = session?.email === policy.achAccount?.reimburser;
+            const isReimburser = session?.email === policy?.achAccount?.reimburser;
             return isReimburser;
         }
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
@@ -10246,12 +10239,7 @@ function getOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
  */
 function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): ReportOfflinePendingActionAndErrors {
     // It shouldn't be possible for all of these actions to be pending (or to have errors) for the same report at the same time, so just take the first that exists
-    const reportPendingAction =
-        report?.pendingFields?.addWorkspaceRoom ??
-        report?.pendingFields?.createChat ??
-        report?.pendingFields?.reimbursed ??
-        report?.pendingFields?.createReport ??
-        report?.pendingFields?.reportName;
+    const reportPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat ?? report?.pendingFields?.createReport ?? report?.pendingFields?.reportName;
     const reportErrors = getCreationReportErrors(report);
     return {reportPendingAction, reportErrors};
 }
