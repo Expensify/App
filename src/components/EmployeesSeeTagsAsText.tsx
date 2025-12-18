@@ -16,7 +16,6 @@ function EmployeesSeeTagsAsText({customTagName}: EmployeesSeeTagsAsTextProps) {
         const parts = template.split(customTagName);
 
         if (parts.length !== 2) {
-            // Fallback: if the placeholder isn't present (or appears multiple times), just render a best-effort string.
             const fallback = translate('workspace.tags.employeesSeeTagsAs', {customTagName});
             return {prefixWords: fallback.match(/(\S+\s*)/g) ?? [], suffixWords: []};
         }
