@@ -23,6 +23,7 @@ function DraggableList<T>({
     onDragEnd: onDragEndCallback,
     // eslint-disable-next-line @typescript-eslint/naming-convention
     ListFooterComponent,
+    disableScroll,
     ref,
 }: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
     const styles = useThemeStyles();
@@ -80,6 +81,7 @@ function DraggableList<T>({
         <ScrollView
             ref={ref}
             style={styles.flex1}
+            scrollEnabled={!disableScroll}
             contentContainerStyle={styles.flex1}
         >
             <div>

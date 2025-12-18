@@ -6,6 +6,7 @@ import DraggableList from '@components/DraggableList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import type {SearchCustomColumnIds} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
@@ -46,7 +47,7 @@ function SearchColumnsPage() {
     const defaultGroupCustomColumns = getCustomColumnDefault(groupBy);
 
     const allCustomColumns = [...allGroupCustomColumns, ...allTypeCustomColumns];
-    const defaultCustomColumns = [...defaultGroupCustomColumns, ...defaultTypeCustomColumns];
+    const defaultCustomColumns = new Set([...defaultGroupCustomColumns, ...defaultTypeCustomColumns]);
 
     // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns since it makes sense for them to show up in an expense management App and it fixes the layout issues.
     const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
@@ -69,7 +70,7 @@ function SearchColumnsPage() {
         if (!savedColumnIds.length) {
             const initialColumns = allCustomColumns.map((columnId) => ({
                 columnId,
-                isSelected: defaultCustomColumns.includes(columnId),
+                isSelected: defaultCustomColumns.has(columnId),
             }));
             return sortColumns(initialColumns);
         }
@@ -82,7 +83,7 @@ function SearchColumnsPage() {
 
     const selectedColumnIds = columns.filter((col) => col.isSelected).map((col) => col.columnId);
 
-    const columnsList = columns.map(({columnId, isSelected}) => {
+    const allColumnsList = columns.map(({columnId, isSelected}) => {
         const isRequired = requiredColumns.has(columnId);
         const isEffectivelySelected = isRequired || isSelected;
         const isDragDisabled = !isEffectivelySelected;
@@ -105,13 +106,17 @@ function SearchColumnsPage() {
         };
     });
 
+    const typeColumnsList = allColumnsList.filter((column) => allTypeCustomColumns.includes(column.keyForList));
+    const groupColumnsList = allColumnsList.filter((column) => allGroupCustomColumns.includes(column.keyForList));
+
     const defaultColumns = sortColumns(
-        allTypeCustomColumns.map((columnId) => ({
+        allCustomColumns.map((columnId) => ({
             columnId,
-            isSelected: defaultTypeCustomColumns.includes(columnId),
+            isSelected: defaultCustomColumns.has(columnId),
         })),
     );
 
+    // TODO
     const isDefaultState =
         columns.length === defaultColumns.length &&
         columns.every((col, index) => col.columnId === defaultColumns.at(index)?.columnId && col.isSelected === defaultColumns.at(index)?.isSelected);
@@ -125,6 +130,7 @@ function SearchColumnsPage() {
 
         setColumns((prevColumns) => {
             const columnToUpdate = prevColumns.find((col) => col.columnId === updatedColumnId);
+
             if (!columnToUpdate) {
                 return prevColumns;
             }
@@ -147,7 +153,7 @@ function SearchColumnsPage() {
         });
     };
 
-    const onDragEnd = ({data}: {data: typeof columnsList}) => {
+    const onDragEnd = ({data}: {data: typeof allColumnsList}) => {
         const newColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         setColumns(sortColumns(newColumns));
     };
@@ -163,6 +169,7 @@ function SearchColumnsPage() {
             ...searchAdvancedFiltersForm,
             columns: selectedColumnIds,
         };
+
         const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters);
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
@@ -189,14 +196,25 @@ function SearchColumnsPage() {
             <HeaderWithBackButton title={translate('search.columns')}>
                 {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
             </HeaderWithBackButton>
-            <View style={styles.flex1}>
+            <ScrollView
+                style={styles.flex1}
+                contentContainerStyle={styles.flex1}
+            >
                 <DraggableList
-                    data={columnsList}
+                    disableScroll
+                    data={groupColumnsList}
                     keyExtractor={(item) => item.value}
                     onDragEnd={onDragEnd}
                     renderItem={renderItem}
                 />
-            </View>
+                <DraggableList
+                    disableScroll
+                    data={typeColumnsList}
+                    keyExtractor={(item) => item.value}
+                    onDragEnd={onDragEnd}
+                    renderItem={renderItem}
+                />
+            </ScrollView>
             <View style={[styles.ph5, styles.pb5]}>
                 {!selectedColumnIds.length && (
                     <DotIndicatorMessage
