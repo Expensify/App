@@ -66,6 +66,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
 import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -106,6 +107,7 @@ function mapTransactionItemToSelectedEntry(
         item.keyForList,
         {
             isSelected: true,
+            canDelete: item.canDelete,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
@@ -198,6 +200,7 @@ function prepareTransactionsList(
         ...selectedTransactions,
         [item.keyForList]: {
             isSelected: true,
+            canDelete: item.canDelete,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
@@ -283,9 +286,9 @@ function Search({
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useContext(WideRHPContext);
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
@@ -331,6 +334,8 @@ function Search({
         canBeMissing: true,
         selector: selectFilteredReportActions,
     });
+
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
@@ -398,14 +403,14 @@ function Search({
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        openSearch({includePartiallySetupBankAccounts: true});
+        openSearch();
     }, []);
 
     useEffect(() => {
         if (!prevIsOffline || isOffline) {
             return;
         }
-        openSearch({includePartiallySetupBankAccounts: true});
+        openSearch();
     }, [isOffline, prevIsOffline]);
 
     const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
@@ -456,9 +461,24 @@ function Search({
             archivedReportsIDList: archivedReportsIdSet,
             queryJSON,
             isActionLoadingSet,
+            cardFeeds,
         });
         return [filteredData1, filteredData1.length, allLength];
-    }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON, email, isActionLoadingSet]);
+    }, [
+        searchKey,
+        exportReportActions,
+        validGroupBy,
+        isDataLoaded,
+        searchResults,
+        type,
+        archivedReportsIdSet,
+        formatPhoneNumber,
+        accountID,
+        queryJSON,
+        email,
+        isActionLoadingSet,
+        cardFeeds,
+    ]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -543,6 +563,7 @@ function Search({
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
+                        canDelete: transactionItem.canDelete,
                         canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
@@ -594,6 +615,7 @@ function Search({
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
+                    canDelete: transactionItem.canDelete,
                     canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
@@ -801,13 +823,6 @@ function Search({
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
                     }
                 }
-
-                if (item.transactions.length > 1) {
-                    markReportIDAsMultiTransactionExpense(reportID);
-                } else {
-                    unmarkReportIDAsMultiTransactionExpense(reportID);
-                }
-
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
@@ -826,26 +841,17 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [
-            isMobileSelectionModeEnabled,
-            markReportIDAsExpense,
-            toggleTransaction,
-            queryJSON,
-            handleSearch,
-            searchKey,
-            markReportIDAsMultiTransactionExpense,
-            unmarkReportIDAsMultiTransactionExpense,
-        ],
+        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
 
     const currentColumns = useMemo(() => {
         if (!searchResults?.data) {
             return [];
         }
-        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type);
+        const columns = getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchResults?.search?.type, validGroupBy);
 
         return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
-    }, [accountID, searchResults?.data, searchResults?.search?.type]);
+    }, [accountID, searchResults?.data, searchResults?.search?.type, visibleColumns, validGroupBy]);
 
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({
@@ -873,12 +879,12 @@ function Search({
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && validGroupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
+    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
     const ListItem = getListItem(type, status, validGroupBy);
 
     const sortedSelectedData = useMemo(
         () =>
-            getSortedSections(type, status, filteredData, localeCompare, sortBy, sortOrder, validGroupBy).map((item) => {
+            getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy).map((item) => {
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
@@ -899,7 +905,7 @@ function Search({
 
                 return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
             }),
-        [type, status, filteredData, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, selectedTransactions, canSelectMultiple, localeCompare, hash],
+        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, selectedTransactions, canSelectMultiple, hash],
     );
 
     useEffect(() => {
@@ -1052,11 +1058,13 @@ function Search({
         navigation.setParams({q: newQuery, rawQuery: undefined});
     };
 
-    const shouldShowYear = shouldShowYearUtil(searchResults?.data, isExpenseReportType ?? false);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYearUtil(
+        searchResults?.data,
+        isExpenseReportType ?? false,
+    );
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
-    const shouldShowSorting = !validGroupBy;
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy;
-    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!validGroupBy || isExpenseReportType);
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat;
+    const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
 
     return (
         <SearchScopeProvider>
@@ -1082,10 +1090,14 @@ function Search({
                                     onSortPress={onSortPress}
                                     sortOrder={sortOrder}
                                     sortBy={sortBy}
-                                    shouldShowYear={shouldShowYear}
+                                    shouldShowYear={shouldShowYearCreated}
+                                    shouldShowYearSubmitted={shouldShowYearSubmitted}
+                                    shouldShowYearApproved={shouldShowYearApproved}
+                                    shouldShowYearPosted={shouldShowYearPosted}
+                                    shouldShowYearExported={shouldShowYearExported}
                                     isAmountColumnWide={shouldShowAmountInWideColumn}
                                     isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                                    shouldShowSorting={shouldShowSorting}
+                                    shouldShowSorting
                                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                                     groupBy={validGroupBy}
                                 />
@@ -1137,4 +1149,5 @@ Search.displayName = 'Search';
 export type {SearchProps};
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
 WrappedSearch.displayName = 'Search';
+
 export default WrappedSearch;

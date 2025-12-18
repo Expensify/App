@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 type CarouselButtonsProps = {
     /** Where the arrows should be visible */
@@ -53,6 +54,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             onPress={onBack}
                             onPressIn={cancelAutoHideArrow}
                             onPressOut={autoHideArrow}
+                            sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.PREVIOUS_BUTTON}
                         />
                     </View>
                 </Tooltip>
@@ -68,6 +70,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             onPress={onForward}
                             onPressIn={cancelAutoHideArrow}
                             onPressOut={autoHideArrow}
+                            sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.NEXT_BUTTON}
                         />
                     </View>
                 </Tooltip>
@@ -75,7 +78,5 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
         </>
     ) : null;
 }
-
-CarouselButtons.displayName = 'CarouselButtons';
 
 export default CarouselButtons;
