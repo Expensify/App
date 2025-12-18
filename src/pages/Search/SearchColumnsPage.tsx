@@ -169,7 +169,7 @@ function SearchColumnsPage() {
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.columns')}>
-                {!isDefaultColumns && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
+                {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
             </HeaderWithBackButton>
             <View style={styles.flex1}>
                 <DraggableList
