@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -73,40 +73,34 @@ function BaseDomainMembersPage({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const data: MemberOption[] = accountIDs.map((accountID) => {
+        const details = personalDetails?.[accountID];
+        const login = details?.login ?? '';
 
-    const data: MemberOption[] = useMemo(() => {
-        const options: MemberOption[] = [];
+        return {
+            keyForList: String(accountID),
+            accountID,
+            login,
+            text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+            alternateText: formatPhoneNumber(login),
+            icons: [
+                {
+                    source: details?.avatar ?? icons.FallbackAvatar,
+                    name: formatPhoneNumber(login),
+                    type: CONST.ICON_TYPE_AVATAR,
+                    id: accountID,
+                },
+            ],
+            rightElement: getCustomRightElement?.(accountID),
+        };
+    });
 
-        for (const accountID of accountIDs) {
-            const details = personalDetails?.[accountID];
-            const login = details?.login ?? '';
-
-            options.push({
-                keyForList: String(accountID),
-                accountID,
-                login,
-                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
-                alternateText: formatPhoneNumber(login),
-                icons: [
-                    {
-                        source: details?.avatar ?? icons.FallbackAvatar,
-                        name: formatPhoneNumber(login),
-                        type: CONST.ICON_TYPE_AVATAR,
-                        id: accountID,
-                    },
-                ],
-                rightElement: getCustomRightElement?.(accountID),
-            });
-        }
-        return options;
-    }, [accountIDs, personalDetails, formatPhoneNumber, icons.FallbackAvatar, getCustomRightElement]);
-
-    const filterMember = (option: MemberOption, searchQuery: string) => {
-        const results = tokenizedSearch([option], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
+    const filterMember = (memberOption: MemberOption, searchQuery: string) => {
+        const results = tokenizedSearch([memberOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
         return results.length > 0;
     };
 
-    const sortMembers = useCallback((options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare), [localeCompare]);
+    const sortMembers = (options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare);
 
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
