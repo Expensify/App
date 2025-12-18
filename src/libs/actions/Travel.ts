@@ -11,7 +11,7 @@ import type {Route} from '@src/ROUTES';
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
  */
 function acceptSpotnanaTerms(domain?: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRAVEL_SETTINGS | typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
@@ -29,7 +29,7 @@ function acceptSpotnanaTerms(domain?: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.TRAVEL_PROVISIONING,
@@ -39,7 +39,7 @@ function acceptSpotnanaTerms(domain?: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.TRAVEL_PROVISIONING,
