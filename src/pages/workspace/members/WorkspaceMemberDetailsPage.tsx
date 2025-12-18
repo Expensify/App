@@ -36,6 +36,7 @@ import {
     getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
     getPlaidInstitutionIconUrl,
+    isCard,
     isExpensifyCardFullySetUp,
     lastFourNumbersFromCardName,
     maskCardNumber,
@@ -128,7 +129,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         if (!workspaceCards) {
             return [];
         }
-        return Object.values(workspaceCards ?? {}).filter((card) => card.accountID === accountID);
+        return Object.values(workspaceCards ?? {}).filter((card): card is MemberCard => isCard(card) && card.accountID === accountID);
     }, [accountID, workspaceCards]);
 
     const confirmModalPrompt = useMemo(() => {

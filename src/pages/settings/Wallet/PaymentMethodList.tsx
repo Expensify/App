@@ -23,6 +23,7 @@ import {
     getAssignedCardSortKey,
     getCardFeedIcon,
     getPlaidInstitutionIconUrl,
+    isCard,
     isExpensifyCard,
     isExpensifyCardPendingAction,
     lastFourNumbersFromCardName,
@@ -195,8 +196,8 @@ function PaymentMethodList({
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
             const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
-                // Filter by active cards associated with a domain
-                .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
+                // Filter by actual Card objects with active states associated with a domain
+                .filter((card): card is Card => isCard(card) && typeof card.state === 'number' && !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state));
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
 

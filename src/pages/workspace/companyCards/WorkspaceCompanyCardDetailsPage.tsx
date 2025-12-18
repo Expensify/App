@@ -104,7 +104,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         return <NotFoundPage />;
     }
 
-    const shouldShowLastUpdated = !!lastScrape || card?.isLoadingLastUpdated;
+    const shouldShowLastUpdated = !!lastScrape || !!card?.isLoadingLastUpdated;
 
     return (
         <AccessOrNotFoundWrapper

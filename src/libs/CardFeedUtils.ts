@@ -123,7 +123,7 @@ function buildCardsData(
     // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag, we don't want to show closed cards in the individual cards section
     const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card) && !isCardClosed(card) && isCard(card));
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
-        .filter((card) => filterCondition(card))
+        .filter((card): card is Card => isCard(card) && filterCondition(card))
         .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
@@ -155,8 +155,12 @@ function buildCardsData(
 function generateDomainFeedData(cardList: CardList | undefined): Record<string, DomainFeedData> {
     return Object.values(cardList ?? {}).reduce(
         (domainFeedData, currentCard) => {
+            // Skip non-Card objects and only process actual cards
+            if (!isCard(currentCard)) {
+                return domainFeedData;
+            }
             // Cards in cardList can also be domain cards, we use them to compute domain feed
-            if (!currentCard?.domainName?.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard) && currentCard.fundID) {
+            if (!currentCard.domainName?.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard) && currentCard.fundID) {
                 if (domainFeedData[`${currentCard.fundID}_${currentCard.bank}`]) {
                     domainFeedData[`${currentCard.fundID}_${currentCard.bank}`].correspondingCardIDs.push(currentCard.cardID.toString());
                 } else {
@@ -165,8 +169,8 @@ function generateDomainFeedData(cardList: CardList | undefined): Record<string, 
                     domainFeedData[`${currentCard.fundID}_${currentCard.bank}`] = {
                         fundID: currentCard.fundID,
                         domainName: currentCard.domainName,
-                        bank: currentCard?.bank,
-                        correspondingCardIDs: [currentCard.cardID?.toString()],
+                        bank: currentCard.bank,
+                        correspondingCardIDs: [currentCard.cardID.toString()],
                     };
                 }
             }

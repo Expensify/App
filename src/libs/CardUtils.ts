@@ -197,7 +197,9 @@ function formatCardExpiration(expirationDateString: string) {
  */
 function getDomainCards(cardList: OnyxEntry<CardList>): Record<string, Card[]> {
     // Check for domainName to filter out personal credit cards.
-    const activeCards = Object.values(cardList ?? {}).filter((card) => !!card?.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.some((element) => element === card.state));
+    const activeCards = Object.values(cardList ?? {}).filter(
+        (card): card is Card => isCard(card) && !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.some((element) => element === card.state),
+    );
 
     return groupBy(activeCards, (card) => card.domainName);
 }
@@ -664,7 +666,7 @@ function getAllCardsForWorkspace(
 }
 
 function isSmartLimitEnabled(cards: CardList) {
-    return Object.values(cards).some((card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+    return Object.values(cards).some((card) => isCard(card) && card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
 }
 
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
@@ -773,7 +775,7 @@ function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: Priv
 }
 
 function hasPendingExpensifyCardAction(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails) {
-    return Object.values(cards ?? {}).some((card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
+    return Object.values(cards ?? {}).some((card) => isCard(card) && isExpensifyCardPendingAction(card, privatePersonalDetails));
 }
 const isCurrencySupportedForECards = (currency?: string) => {
     if (!currency) {
