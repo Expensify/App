@@ -252,6 +252,9 @@ type TransactionListItemType = ListItem &
         /** The date the report was posted */
         posted?: string;
 
+        /** The date the report was exported */
+        exported?: string;
+
         /** Policy to which the transaction belongs */
         policy: Policy | undefined;
 
@@ -310,6 +313,11 @@ type TransactionListItemType = ListItem &
          * This is true if at least one transaction in the dataset was posted in past years
          */
         shouldShowYearPosted: boolean;
+
+        /** Whether we should show the year for the exported date.
+         * This is true if at least one transaction in the dataset was exported in past years
+         */
+        shouldShowYearExported: boolean;
 
         isAmountColumnWide: boolean;
 
@@ -426,6 +434,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Final and formatted "to" value used for displaying and sorting */
         formattedTo?: string;
 
+        /** The date the report was exported */
+        exported?: string;
+
         /**
          * Whether we should show the report year.
          * This is true if at least one report in the dataset was created in past years
@@ -443,6 +454,12 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
          * This is true if at least one report in the dataset was approved in past years
          */
         shouldShowYearApproved: boolean;
+
+        /**
+         * Whether we should show the year for the exported date.
+         * This is true if at least one report in the dataset was exported in past years
+         */
+        shouldShowYearExported: boolean;
 
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;
