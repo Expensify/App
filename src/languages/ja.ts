@@ -6756,6 +6756,7 @@ ${reportName}
             title: 'エクスポートを作成',
             description: 'おっと、かなり多くのアイテムがありますね！まとめて整理してから、まもなくConciergeがファイルをお送りします。',
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: '一致する項目をすべて選択',
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
