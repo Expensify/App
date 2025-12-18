@@ -3851,7 +3851,7 @@ function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, iouCurre
     const perDiemAmountInCents = computePerDiemExpenseAmount(customUnit);
     const perDiemAmountString = convertToFrontendAmountAsString(perDiemAmountInCents, iouCurrencyCode);
     const decimals = getCurrencyDecimals(iouCurrencyCode);
-    return validateAmount(perDiemAmountString, decimals);
+    return validateAmount(perDiemAmountString, decimals, CONST.IOU.AMOUNT_MAX_LENGTH, true);
 }
 
 function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, currency: string) {
