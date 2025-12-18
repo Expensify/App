@@ -1,4 +1,4 @@
-import React, {useMemo, useCallback, useState, useLayoutEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
@@ -12,11 +12,11 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayStringWithoutCurrency, convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
-import variables from '@styles/variables';
 import sizing from '@styles/utils/sizing';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
@@ -40,16 +40,24 @@ function SplitListItem<TItem extends ListItem>({
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
 
     const splitItem = item as unknown as SplitListItemType;
+    const shouldSkipHandleAmountChange = useRef(false);
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
 
     const [isNegativeAmount, setIsNegativeAmount] = useState(splitItem.amount < 0);
-    const displayedAmount = Math.abs(splitItem.amount);
 
-    const onSplitExpenseAmountChange = (amount: string) => {
-        const realAmount = isNegativeAmount ? -1 * Number(amount): Number(amount);
-        splitItem.onSplitExpenseAmountChange(splitItem.transactionID, realAmount);
-    };
+    const onSplitExpenseAmountChange = useCallback(
+        (amount: string) => {
+            // Negative is flipped, amount change will be handled by handleToogleNegative
+            if (shouldSkipHandleAmountChange.current) {
+                shouldSkipHandleAmountChange.current = false;
+                return;
+            }
+            const realAmount = isNegativeAmount ? -1 * Number(amount) : Number(amount);
+            splitItem.onSplitExpenseAmountChange(splitItem.transactionID, realAmount);
+        },
+        [splitItem.onSplitExpenseAmountChange, isNegativeAmount, splitItem.amount],
+    );
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
 
@@ -77,6 +85,10 @@ function SplitListItem<TItem extends ListItem>({
         onInputFocus(index);
     }, [onInputFocus, index]);
 
+    useEffect(() => {
+        setIsNegativeAmount(splitItem.amount < 0);
+    }, [splitItem.amount]);
+
     // Auto-focus input when item is selected and screen transition ends
     useLayoutEffect(() => {
         if (!splitItem.isSelected || !splitItem.isEditable || !didScreenTransitionEnd || !inputRef.current) {
@@ -90,37 +102,29 @@ function SplitListItem<TItem extends ListItem>({
         inputRef.current = ref;
     };
 
-    /*
-    const flipButton = (
-        <Button
-            shouldShowRightIcon
-            small
-            iconRight={Expensicons.PlusMinus}
-            shouldBlendOpacity
-            style={true ? [styles.minWidth18, styles.mt2, styles.ml3] : styles.minWidth18}
-            innerStyles={[styles.bgTransparent]}
-            onPress={toggleNegative}
-            isContentCentered
-            text={translate('iou.flip')}
-        />
-    );
-    */
-
-    const canUseTouchScreen = canUseTouchScreenUtil();
+    const canUseTouchScreen = useMemo(() => canUseTouchScreenUtil(), [canUseTouchScreenUtil]);
+    const displayedAmount = useMemo(() => Math.abs(splitItem.amount), [splitItem.amount]);
 
     const handleToogleNegative = useCallback(() => {
-        setIsNegativeAmount(!isNegativeAmount)
-    }, [isNegativeAmount]);
-    
+        const isCurrentlyNegative = !isNegativeAmount;
+        const currentAbsAmount = Math.abs(convertToFrontendAmountAsInteger(splitItem.amount, splitItem.currency));
+        if (currentAbsAmount === 0) {
+            setIsNegativeAmount(isCurrentlyNegative);
+            return;
+        }
+
+        const realAmount = isCurrentlyNegative ? -1 * currentAbsAmount : currentAbsAmount;
+        shouldSkipHandleAmountChange.current = true;
+        splitItem.onSplitExpenseAmountChange(splitItem.transactionID, realAmount);
+    }, [splitItem.amount, isNegativeAmount, splitItem.transactionID]);
+
     const handleClearNegative = useCallback(() => {
-        if (canUseTouchScreen) { return }
-        console.log("clearingggu")
-        setIsNegativeAmount(false)
-    }, []);
+        if (canUseTouchScreen) {
+            return;
+        }
 
-
-    //const prefixCharacter={splitItem.currencySymbol}
-    const pref = useMemo(() => isNegativeAmount ? "-" + splitItem.currencySymbol : splitItem.currencySymbol, [isNegativeAmount]);
+        setIsNegativeAmount(false);
+    }, [canUseTouchScreen, splitItem.amount]);
 
     return (
         <BaseListItem
@@ -209,9 +213,7 @@ function SplitListItem<TItem extends ListItem>({
                             amount={displayedAmount}
                             currency={splitItem.currency}
                             prefixCharacter={splitItem.currencySymbol}
-                            //prefixCharacter={pref}
                             disableKeyboard={false}
-                            //shouldShowBigNumberPad={canUseTouchScreen}
                             isCurrencyPressable={false}
                             hideFocusedState={false}
                             hideCurrencySymbol
@@ -235,7 +237,7 @@ function SplitListItem<TItem extends ListItem>({
                             isNegative={isNegativeAmount}
                             allowFlippingAmount
                             symbolTextStyle={[styles.flexRow]}
-                            flipButtonPlacement={"nextToInput"}
+                            isSplitItemInput
                         />
                     </View>
                     <View style={[styles.popoverMenuIcon]}>

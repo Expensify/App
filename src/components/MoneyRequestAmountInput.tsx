@@ -119,8 +119,8 @@ type MoneyRequestAmountInputProps = {
     /** Whether the input is disabled or not */
     disabled?: boolean;
 
-    /* If flip button showm, this property determine where to put the flip button next to text input or not. */
-    flipButtonPlacement?: string;
+    /* Whether the text input is on a split list item or not */
+    isSplitItemInput?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
@@ -162,6 +162,7 @@ function MoneyRequestAmountInput({
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
     isNegative = false,
+    isSplitItemInput = false,
     allowFlippingAmount = false,
     toggleNegative,
     clearNegative,
@@ -259,7 +260,7 @@ function MoneyRequestAmountInput({
             allowFlippingAmount={allowFlippingAmount}
             toggleNegative={toggleNegative}
             clearNegative={clearNegative}
-            flipButtonPlacement={props.flipButtonPlacement}
+            isSplitItemInput={isSplitItemInput}
             onFocus={props.onFocus}
         />
     );

@@ -33,6 +33,9 @@ type AmountTextInputProps = {
     /** Whether to disable keyboard */
     disableKeyboard?: boolean;
 
+    /** Display the flip (negative) button inside the amount text input container */
+    flipButton?: ReactElement;
+
     /** Function to call to handle key presses in the text input */
     onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
 

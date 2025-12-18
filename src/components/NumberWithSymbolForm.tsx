@@ -140,6 +140,7 @@ function NumberWithSymbolForm({
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
     isNegative = false,
+    isSplitItemInput = false,
     allowFlippingAmount = false,
     toggleNegative,
     clearNegative,
@@ -357,17 +358,16 @@ function NumberWithSymbolForm({
     }));
 
     const formattedNumber = replaceAllDigits(currentNumber, toLocaleDigit);
-    const flipButtonNextToInput = props.flipButtonPlacement === 'nextToInput';
-    const shouldShowFlipButton =  allowFlippingAmount && canUseTouchScreen
+    const shouldShowFlipButton = allowFlippingAmount && canUseTouchScreen;
 
     const flipButton = (
         <Button
             shouldShowRightIcon
             small
-            shouldBlendOpacity={flipButtonNextToInput ? true : false} 
+            shouldBlendOpacity={isSplitItemInput}
             iconRight={Expensicons.PlusMinus}
-            style={flipButtonNextToInput ? [styles.minWidth18, styles.mt2, styles.ml3] : styles.minWidth18}
-            innerStyles={flipButtonNextToInput && styles.bgTransparent}
+            style={isSplitItemInput ? [styles.minWidth18, styles.mt2, styles.ml3] : styles.minWidth18}
+            innerStyles={isSplitItemInput && styles.bgTransparent}
             onPress={toggleNegative}
             isContentCentered
             text={translate('iou.flip')}
@@ -468,7 +468,7 @@ function NumberWithSymbolForm({
             isNegative={isNegative}
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
-            flipButton={shouldShowFlipButton && flipButtonNextToInput && flipButton}
+            flipButton={shouldShowFlipButton && isSplitItemInput && flipButton}
             flipButtonContainerStyles={[styles.flexColumn]}
         />
     );
@@ -522,7 +522,7 @@ function NumberWithSymbolForm({
                         text={currency}
                     />
                 )}
-                {shouldShowFlipButton && !flipButtonNextToInput && flipButton}
+                {shouldShowFlipButton && !isSplitItemInput && flipButton}
             </View>
 
             {shouldShowBigNumberPad || !!footer ? (
