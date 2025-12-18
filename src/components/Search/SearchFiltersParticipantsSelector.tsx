@@ -255,6 +255,4 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     );
 }
 
-SearchFiltersParticipantsSelector.displayName = 'SearchFiltersParticipantsSelector';
-
 export default SearchFiltersParticipantsSelector;

@@ -98,6 +98,7 @@ function IOURequestStepDistanceMap({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const waypoints = useMemo(
         () =>
             optimisticWaypoints ??
@@ -384,6 +385,7 @@ function IOURequestStepDistanceMap({
                     isASAPSubmitBetaEnabled,
                     transactionViolations,
                     quickAction,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 });
                 return;
             }
@@ -432,6 +434,7 @@ function IOURequestStepDistanceMap({
         reportNameValuePairs,
         iouType,
         defaultExpensePolicy,
+        currentUserPersonalDetails.accountID,
         setDistanceRequestData,
         shouldSkipConfirmation,
         transactionID,
@@ -446,13 +449,13 @@ function IOURequestStepDistanceMap({
         lastSelectedDistanceRates,
         backToReport,
         isASAPSubmitBetaEnabled,
+        transactionViolations,
+        quickAction,
+        policyRecentlyUsedCurrencies,
         customUnitRateID,
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,
         reportID,
-        transactionViolations,
-        currentUserPersonalDetails.accountID,
-        quickAction,
     ]);
 
     const getError = () => {
@@ -579,7 +582,7 @@ function IOURequestStepDistanceMap({
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
-            testID={IOURequestStepDistanceMap.displayName}
+            testID="IOURequestStepDistanceMap"
             shouldShowNotFoundPage={(isEditing && !transaction?.comment?.waypoints) || shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
@@ -625,8 +628,6 @@ function IOURequestStepDistanceMap({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepDistanceMap.displayName = 'IOURequestStepDistanceMap';
 
 const IOURequestStepDistanceMapWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceMap);
 // eslint-disable-next-line rulesdir/no-negated-variables

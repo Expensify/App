@@ -239,6 +239,4 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     );
 }
 
-MoneyRequestAccountantSelector.displayName = 'MoneyRequestAccountantSelector';
-
 export default memo(MoneyRequestAccountantSelector, (prevProps, nextProps) => prevProps.iouType === nextProps.iouType);
