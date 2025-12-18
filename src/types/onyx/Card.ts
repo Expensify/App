@@ -219,10 +219,13 @@ type ExpensifyCardDetails = {
     cvv: string;
 };
 
+/** List of assignable cards */
+type AssignableCardsList = Record<string, string>;
+
 /** Record of Expensify cards, indexed by cardID */
 type CardList = Record<string, Card> & {
     /** List of assignable cards */
-    cardList?: Record<string, string>;
+    cardList?: AssignableCardsList;
 };
 
 /** Issue new card flow steps */
@@ -292,4 +295,15 @@ type WorkspaceCardsList = Record<string, Card> & {
 type FilteredCardList = Record<string, string>;
 
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType, FilteredCardList, ProvisioningCardData};
+export type {
+    ExpensifyCardDetails,
+    CardList,
+    IssueNewCard,
+    IssueNewCardStep,
+    IssueNewCardData,
+    WorkspaceCardsList,
+    CardLimitType,
+    FilteredCardList,
+    ProvisioningCardData,
+    AssignableCardsList,
+};
