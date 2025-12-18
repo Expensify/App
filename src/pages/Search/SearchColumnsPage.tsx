@@ -57,7 +57,7 @@ function SearchColumnsPage() {
 
     const sortedDefaultColumns = [...defaultCustomColumns].sort();
     const sortedSelectedColumnIds = [...selectedColumnIds].sort();
-    const shouldShowResetColumns = !arraysEqual(sortedSelectedColumnIds, sortedDefaultColumns);
+    const isDefaultColumns = arraysEqual(sortedSelectedColumnIds, sortedDefaultColumns);
 
     const onSelectItem = (item: ListItem) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
@@ -78,7 +78,7 @@ function SearchColumnsPage() {
             return;
         }
 
-        const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {...searchAdvancedFiltersForm, columns: selectedColumnIds};
+        const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {...searchAdvancedFiltersForm, columns: isDefaultColumns ? undefined : selectedColumnIds};
         const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters);
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
@@ -92,7 +92,7 @@ function SearchColumnsPage() {
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.columns')}>
-                {shouldShowResetColumns && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
+                {!isDefaultColumns && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
             </HeaderWithBackButton>
             <View style={[styles.flex1]}>
                 <SelectionList
