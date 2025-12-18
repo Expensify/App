@@ -44,11 +44,12 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     }, [validateLoginError]);
     useEffect(() => {
         return () => {
-            if (pendingContactAction?.contactMethod) {
-                clearContactMethod(pendingContactAction?.contactMethod)
+            if (!pendingContactAction?.contactMethod) {
+                return;
             }
-        }
-    }, []);
+            clearContactMethod(pendingContactAction?.contactMethod);
+        };
+    }, [pendingContactAction?.contactMethod]);
 
     const handleAddSecondaryLogin = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {

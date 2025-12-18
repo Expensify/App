@@ -51,7 +51,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
-import {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {OnyxServerUpdate, OnyxUpdatesFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
