@@ -4,6 +4,8 @@ import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {SplitListItemType} from '@components/SelectionListWithSections/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToBackendAmount, convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
+import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import SplitAmountDisplay from './SplitAmountDisplay';
 
 type SplitAmountInputProps = {
@@ -24,15 +26,6 @@ type SplitAmountInputProps = {
 };
 
 function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onSplitExpenseValueChange, focusHandler, onInputBlur, inputCallbackRef}: SplitAmountInputProps) {
-    if (!splitItem.isEditable) {
-        return (
-            <SplitAmountDisplay
-                splitItem={splitItem}
-                contentWidth={contentWidth}
-            />
-        );
-    }
-
     const styles = useThemeStyles();
 
     const [isNegativeAmount, setIsNegativeAmount] = useState(splitItem.amount < 0);
@@ -48,7 +41,7 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
             }
             onSplitExpenseValueChange(String(realAmount));
         },
-        [splitItem.onSplitExpenseAmountChange, isNegativeAmount, splitItem.amount, splitItem.transactionID],
+        [onSplitExpenseValueChange, isNegativeAmount, splitItem.amount],
     );
 
     const canUseTouchScreen = useMemo(() => canUseTouchScreenUtil(), []);
@@ -71,7 +64,7 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
 
         const realAmount = isCurrentlyNegative ? -1 * currentAbsAmount : currentAbsAmount;
         onSplitExpenseValueChange(String(realAmount));
-    }, [splitItem.amount, splitItem.currency, splitItem.onSplitExpenseAmountChange, splitItem.transactionID, isNegativeAmount]);
+    }, [splitItem.amount, splitItem.currency, isNegativeAmount, onSplitExpenseValueChange]);
 
     const handleClearNegative = useCallback(() => {
         if (canUseTouchScreen) {
@@ -81,38 +74,47 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
         setIsNegativeAmount(false);
     }, [canUseTouchScreen]);
 
+    if (splitItem.isEditable) {
+        return (
+            <MoneyRequestAmountInput
+                ref={inputCallbackRef}
+                disabled={!splitItem.isEditable}
+                autoGrow={false}
+                amount={displayedAmount}
+                currency={splitItem.currency}
+                prefixCharacter={splitItem.currencySymbol}
+                disableKeyboard={false}
+                isCurrencyPressable={false}
+                hideFocusedState={false}
+                hideCurrencySymbol
+                submitBehavior="blurAndSubmit"
+                formatAmountOnBlur
+                onAmountChange={onSplitExpenseAmountChange}
+                prefixContainerStyle={[styles.pv0, styles.h100]}
+                prefixStyle={styles.lineHeightUndefined}
+                inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
+                containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
+                touchableInputWrapperStyle={[styles.ml3]}
+                maxLength={formattedOriginalAmount.length + 1}
+                contentWidth={contentWidth}
+                shouldApplyPaddingToContainer
+                shouldUseDefaultLineHeightForPrefix={false}
+                shouldWrapInputInContainer={false}
+                onFocus={focusHandler}
+                onBlur={onInputBlur}
+                toggleNegative={handleToggleNegative}
+                clearNegative={handleClearNegative}
+                isNegative={isNegativeAmount}
+                allowFlippingAmount
+                isSplitItemInput
+            />
+        );
+    }
+
     return (
-        <MoneyRequestAmountInput
-            ref={inputCallbackRef}
-            disabled={!splitItem.isEditable}
-            autoGrow={false}
-            amount={displayedAmount}
-            currency={splitItem.currency}
-            prefixCharacter={splitItem.currencySymbol}
-            disableKeyboard={false}
-            isCurrencyPressable={false}
-            hideFocusedState={false}
-            hideCurrencySymbol
-            submitBehavior="blurAndSubmit"
-            formatAmountOnBlur
-            onAmountChange={onSplitExpenseAmountChange}
-            prefixContainerStyle={[styles.pv0, styles.h100]}
-            prefixStyle={styles.lineHeightUndefined}
-            inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
-            containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
-            touchableInputWrapperStyle={[styles.ml3]}
-            maxLength={formattedOriginalAmount.length + 1}
+        <SplitAmountDisplay
+            splitItem={splitItem}
             contentWidth={contentWidth}
-            shouldApplyPaddingToContainer
-            shouldUseDefaultLineHeightForPrefix={false}
-            shouldWrapInputInContainer={false}
-            onFocus={focusHandler}
-            onBlur={onInputBlur}
-            toggleNegative={handleToggleNegative}
-            clearNegative={handleClearNegative}
-            isNegative={isNegativeAmount}
-            allowFlippingAmount
-            isSplitItemInput
         />
     );
 }
