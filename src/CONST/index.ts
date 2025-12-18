@@ -2911,6 +2911,10 @@ const CONST = {
             APPROVE: 'approve',
             TRACK: 'track',
         },
+        SPLIT_TYPE: {
+            AMOUNT: 'amount',
+            PERCENTAGE: 'percentage',
+        },
         AMOUNT_MAX_LENGTH: 8,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
         RECEIPT_STATE: {
@@ -5443,6 +5447,7 @@ const CONST = {
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
+        SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
         SHARE: {
             NAVIGATOR_ID: 'ShareNavigatorID',
             SHARE: 'ShareTab',
