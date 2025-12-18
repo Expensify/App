@@ -85,7 +85,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         });
     }, [showConfirmModal, translate]);
 
-    const showDeleteTagModal = () => {
+    const showDeleteTagModal = useCallback(() => {
         showConfirmModal({
             title: translate('workspace.tags.deleteTag'),
             prompt: translate('workspace.tags.deleteTagConfirmation'),
@@ -102,7 +102,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             deletePolicyTags(policyData, [currentPolicyTag.name]);
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
         });
-    };
+    }, [showConfirmModal, translate, currentPolicyTag?.name, policyData, isQuickSettingsFlow, policyID, backTo]);
 
     if (!currentPolicyTag) {
         return <NotFoundPage />;

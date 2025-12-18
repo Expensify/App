@@ -407,7 +407,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         });
     }, [policyData, selectedTags, isMobileSelectionModeEnabled, policyTagLists, setSelectedTags]);
 
-    const showDeleteTagsModal = () => {
+    const showDeleteTagsModal = useCallback(() => {
         showConfirmModal({
             title: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
             prompt: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation'),
@@ -420,7 +420,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             }
             deleteTags();
         });
-    };
+    }, [showConfirmModal, translate, selectedTags.length, deleteTags]);
 
     const isLoading = !isOffline && policyTags === undefined;
     const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);

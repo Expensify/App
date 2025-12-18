@@ -146,7 +146,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         });
     }, [showConfirmModal, translate]);
 
-    const showDeleteTagsModal = () => {
+    const showDeleteTagsModal = useCallback(() => {
         showConfirmModal({
             title: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
             prompt: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation'),
@@ -163,7 +163,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 setSelectedTags([]);
             });
         });
-    };
+    }, [showConfirmModal, translate, selectedTags, policyData]);
 
     const tagList = useMemo<TagListItem[]>(
         () =>
