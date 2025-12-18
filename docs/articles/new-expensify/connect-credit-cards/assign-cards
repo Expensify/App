@@ -23,12 +23,18 @@ Admins can assign and manage all corporate cards — both assigned and unassigne
 
 # Manage Assigned Cards
 
-- **Filter cards** by status: assigned vs. unassigned.
-- **Search** by:
-  - Employee name
-  - Last 4 digits of the card
-  - Card name (if available)
-- **Sort columns** for faster organization and review.
+After assigning cards to users, you can manage those assigned cards from the same page. To find a card:
+- Filter cards to assigned cards, unassigned cards, or all cards.
+- Search by employee name/email, last 4 digits of the card, or custom card name.
+- Sort columns for faster organization and review.
+
+**Available actions:**
+- Rename the card  
+- Assign a specific export account  
+- Update transactions  (to manually import newer transactions)
+- Unassign the card
+
+**Note:** Unassigning a card will delete unsubmitted expenses from draft reports for that cardholder.
 
 
 ## Example Use Cases
