@@ -1749,6 +1749,7 @@ const CONST = {
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
+            TIME: 'time',
         },
         STATUS: {
             PENDING: 'Pending',
@@ -1764,7 +1765,11 @@ const CONST = {
             ALLOW: 'personal',
         },
     },
-
+    TIME_TRACKING: {
+        UNIT: {
+            HOUR: 'h',
+        },
+    },
     MCC_GROUPS: {
         AIRLINES: 'Airlines',
         COMMUTER: 'Commuter',
