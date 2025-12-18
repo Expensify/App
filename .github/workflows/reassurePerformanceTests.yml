@@ -62,14 +62,15 @@ jobs:
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
 
-          # Run branch tests FIRST to leverage the already-installed node_modules
-          # from setupNode and maximize Jest cache hits for unchanged files
-          NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
-
-          # Now run baseline tests on main
+          # Run baseline tests on main FIRST (reassure requires this order)
           git checkout --force --detach "origin/$BASELINE_BRANCH" --no-recurse-submodules
           npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+
+          # Run branch tests SECOND - this generates output.json with comparison
+          git checkout --force --detach "${PR_SHA:-${GITHUB_SHA}}" --no-recurse-submodules
+          npm install --force || (rm -rf node_modules && npm install --force)
+          NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
 
       - name: Validate output.json
         id: validateReassureOutput
