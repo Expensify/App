@@ -83,6 +83,7 @@ describe('ExpensifyCardPage', () => {
                 [userCardID]: {
                     cardID: 1234,
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
                     domainName: 'xyz',
                     nameValuePairs: {
                         isVirtual: true,
@@ -124,6 +125,7 @@ describe('ExpensifyCardPage', () => {
                 [userCardID]: {
                     cardID: 1234,
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
                     domainName: 'xyz',
                     nameValuePairs: {
                         isVirtual: true,
@@ -172,6 +174,7 @@ describe('ExpensifyCardPage', () => {
                 [userCardID]: {
                     cardID: 1234,
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
                     domainName: 'xyz',
                     nameValuePairs: {
                         isVirtual: false,
@@ -209,6 +212,7 @@ describe('ExpensifyCardPage', () => {
                 [userCardID]: {
                     cardID: 1234,
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
                     domainName: 'xyz',
                     nameValuePairs: {
                         isVirtual: false,

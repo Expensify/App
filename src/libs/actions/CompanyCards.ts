@@ -453,6 +453,8 @@ function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankNa
 
 function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeed, lastScrapeResult?: number) {
     const authToken = NetworkStore.getAuthToken();
+    // Set optimistic lastScrape timestamp since backend doesn't send onyxData updates
+    const optimisticLastScrape = new Date().toISOString();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -461,6 +463,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             value: {
                 [cardID]: {
                     isLoadingLastUpdated: true,
+                    lastScrape: optimisticLastScrape,
                     lastScrapeResult: CONST.JSON_CODE.SUCCESS,
                     pendingFields: {
                         lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -476,6 +479,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
+                    lastScrape: optimisticLastScrape,
                     lastScrapeResult: CONST.JSON_CODE.SUCCESS,
                     isLoadingLastUpdated: true,
                     pendingFields: {
