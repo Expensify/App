@@ -22,7 +22,6 @@ import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAllFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -59,7 +58,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
         !!typeMenuSections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle') && isFocused,
     );
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil']);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -244,7 +243,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                             const focused = activeItemIndex === flattenedIndex;
 
                                             const onPress = singleExecution(() => {
-                                                clearAllFilters();
                                                 clearSelectedTransactions();
                                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                                             });
@@ -275,7 +273,5 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         </>
     );
 }
-
-SearchTypeMenu.displayName = 'SearchTypeMenu';
 
 export default SearchTypeMenu;

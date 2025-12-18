@@ -102,6 +102,4 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
     );
 }
 
-BaseReactionList.displayName = 'BaseReactionList';
-
 export default BaseReactionList;

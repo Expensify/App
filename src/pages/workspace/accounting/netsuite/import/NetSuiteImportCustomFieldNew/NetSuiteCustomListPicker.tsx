@@ -63,5 +63,4 @@ function NetSuiteCustomListPicker({value, policy, internalIDInputID, errorText, 
     );
 }
 
-NetSuiteCustomListPicker.displayName = 'NetSuiteCustomListPicker';
 export default NetSuiteCustomListPicker;
