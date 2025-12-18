@@ -301,6 +301,7 @@ function AttachmentView({
                             }
                             setImageError(false);
                         }}
+                        sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.RETRY_BUTTON}
                     />
                 </View>
             );
