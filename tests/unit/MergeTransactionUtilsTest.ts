@@ -32,56 +32,6 @@ describe('MergeTransactionUtils', () => {
         return waitForBatchedUpdates();
     });
 
-    describe('getSourceTransactionFromMergeTransaction', () => {
-        it('should return undefined when mergeTransaction is undefined', () => {
-            // Given a null merge transaction
-            const mergeTransaction = undefined;
-
-            // When we try to get the source transaction
-            const result = getSourceTransactionFromMergeTransaction(mergeTransaction);
-
-            // Then it should return undefined because the merge transaction is undefined
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined when sourceTransactionID is not found in eligibleTransactions', () => {
-            // Given a merge transaction with a sourceTransactionID that doesn't match any eligible transactions
-            const transaction1 = createRandomTransaction(0);
-            const transaction2 = createRandomTransaction(1);
-            const mergeTransaction = {
-                ...createRandomMergeTransaction(0),
-                sourceTransactionID: 'nonexistent',
-                eligibleTransactions: [transaction1, transaction2],
-            };
-
-            // When we try to get the source transaction
-            const result = getSourceTransactionFromMergeTransaction(mergeTransaction);
-
-            // Then it should return undefined because the source transaction ID doesn't match any eligible transaction
-            expect(result).toBeUndefined();
-        });
-
-        it('should return the correct transaction when sourceTransactionID matches an eligible transaction', () => {
-            // Given a merge transaction with a sourceTransactionID that matches one of the eligible transactions
-            const sourceTransaction = {...createRandomTransaction(0), receipt: undefined};
-            const otherTransaction = createRandomTransaction(1);
-            sourceTransaction.transactionID = 'source123';
-
-            const mergeTransaction = {
-                ...createRandomMergeTransaction(0),
-                sourceTransactionID: 'source123',
-                eligibleTransactions: [sourceTransaction, otherTransaction],
-            };
-
-            // When we try to get the source transaction
-            const result = getSourceTransactionFromMergeTransaction(mergeTransaction);
-
-            // Then it should return the matching transaction from the eligible transactions
-            expect(result).toBe(sourceTransaction);
-            expect(result?.transactionID).toBe('source123');
-        });
-    });
-
     describe('shouldNavigateToReceiptReview', () => {
         it('should return false when any transaction has no receipt', () => {
             // Given transactions where one has no receipt

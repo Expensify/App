@@ -102,32 +102,6 @@ const getTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<MergeTra
 };
 
 /**
- * Get the source transaction from a merge transaction
- * @param mergeTransaction - The merge transaction to get the source transaction from
- * @returns The source transaction or null if it doesn't exist
- */
-const getSourceTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<MergeTransaction>) => {
-    if (!mergeTransaction?.sourceTransactionID) {
-        return undefined;
-    }
-
-    return getTransactionFromMergeTransaction(mergeTransaction, mergeTransaction.sourceTransactionID);
-};
-
-/**
- * Get the target transaction from a merge transaction
- * @param mergeTransaction - The merge transaction to get the target transaction from
- * @returns The target transaction or null if it doesn't exist
- */
-const getTargetTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<MergeTransaction>) => {
-    if (!mergeTransaction?.targetTransactionID) {
-        return undefined;
-    }
-
-    return getTransactionFromMergeTransaction(mergeTransaction, mergeTransaction.targetTransactionID);
-};
-
-/**
  * Check if the user should navigate to the receipt review page
  * @param transactions - array of target and source transactions
  * @returns True if both transactions have a receipt
@@ -572,8 +546,7 @@ function getRateFromMerchant(merchant: string | undefined): string {
 }
 
 export {
-    getSourceTransactionFromMergeTransaction,
-    getTargetTransactionFromMergeTransaction,
+    getTransactionFromMergeTransaction,
     shouldNavigateToReceiptReview,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
