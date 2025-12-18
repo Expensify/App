@@ -5,6 +5,4 @@ function ContactPermissionModal(props: ContactPermissionModalProps) {
     return null;
 }
 
-ContactPermissionModal.displayName = 'ContactPermissionModal';
-
 export default ContactPermissionModal;

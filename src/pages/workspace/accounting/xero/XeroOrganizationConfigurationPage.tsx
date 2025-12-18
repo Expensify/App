@@ -83,7 +83,7 @@ function XeroOrganizationConfigurationPage({
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={XeroOrganizationConfigurationPage.displayName}
+            displayName="XeroOrganizationConfigurationPage"
             sections={sections.length ? [{data: sections}] : []}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
@@ -101,7 +101,5 @@ function XeroOrganizationConfigurationPage({
         />
     );
 }
-
-XeroOrganizationConfigurationPage.displayName = 'PolicyXeroOrganizationConfigurationPage';
 
 export default withPolicy(XeroOrganizationConfigurationPage);

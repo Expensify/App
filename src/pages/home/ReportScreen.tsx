@@ -952,7 +952,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                     >
                         <DragAndDropProvider isDisabled={isEditingDisabled}>
                             <OfflineWithFeedback
-                                pendingAction={reportPendingAction}
+                                pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
                                 errors={reportErrors}
                                 shouldShowErrorMessages={false}
                                 needsOffscreenAlphaCompositing
@@ -1040,6 +1040,5 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 }
 
-ReportScreen.displayName = 'ReportScreen';
 // eslint-disable-next-line rulesdir/no-deep-equal-in-memo
 export default memo(ReportScreen, (prevProps, nextProps) => deepEqual(prevProps.route, nextProps.route));

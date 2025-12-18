@@ -31,5 +31,4 @@ function SignInButton() {
     );
 }
 
-SignInButton.displayName = 'SignInButton';
 export default SignInButton;

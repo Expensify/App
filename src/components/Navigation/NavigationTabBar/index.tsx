@@ -250,7 +250,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 )}
                 <View
                     style={styles.leftNavigationTabBarContainer}
-                    testID={NavigationTabBar.displayName}
+                    testID="NavigationTabBar"
                 >
                     <HeaderGap />
                     <View style={styles.flex1}>
@@ -406,7 +406,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             )}
             <View
                 style={styles.navigationTabBarContainer}
-                testID={NavigationTabBar.displayName}
+                testID="NavigationTabBar"
             >
                 <PressableWithFeedback
                     onPress={navigateToChats}
@@ -517,7 +517,5 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         </>
     );
 }
-
-NavigationTabBar.displayName = 'NavigationTabBar';
 
 export default memo(NavigationTabBar);
