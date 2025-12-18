@@ -126,7 +126,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceWorkflowsApprovalsEditPage.displayName}
+                testID="WorkspaceWorkflowsApprovalsEditPage"
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
@@ -176,7 +176,5 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceWorkflowsApprovalsEditPage.displayName = 'WorkspaceWorkflowsApprovalsEditPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsEditPage);

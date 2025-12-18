@@ -251,6 +251,4 @@ function useSearchContext() {
     return useContext(SearchContext);
 }
 
-SearchContextProvider.displayName = 'SearchContextProvider';
-
 export {SearchContextProvider, useSearchContext, SearchContext};

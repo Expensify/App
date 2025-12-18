@@ -92,6 +92,4 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
     );
 }
 
-UnreportedExpensesSkeleton.displayName = 'UnreportedExpensesSkeleton';
-
 export default UnreportedExpensesSkeleton;

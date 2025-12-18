@@ -21,6 +21,7 @@ jest.mock('@libs/actions/Search', () => ({
 jest.mock('@libs/SearchUIUtils', () => ({
     getSections: jest.fn(() => []),
     isCorrectSearchUserName: jest.fn(() => true),
+    getTableMinWidth: jest.fn(() => 0),
 }));
 
 const mockEmptyReport: TransactionReportGroupListItemType = {
@@ -66,10 +67,15 @@ const mockEmptyReport: TransactionReportGroupListItemType = {
 const mockTransaction: TransactionListItemType = {
     accountID: 1,
     amount: 0,
+    canDelete: true,
     category: '',
     groupAmount: 1284,
     groupCurrency: 'USD',
     created: '2025-09-19',
+    submitted: '2025-09-19',
+    approved: undefined,
+    posted: undefined,
+    exported: undefined,
     currency: 'USD',
     policy: {
         id: '06F34677820A4D07',
@@ -104,6 +110,10 @@ const mockTransaction: TransactionListItemType = {
     date: '2025-09-07',
     shouldShowMerchant: true,
     shouldShowYear: true,
+    shouldShowYearSubmitted: false,
+    shouldShowYearApproved: false,
+    shouldShowYearPosted: false,
+    shouldShowYearExported: false,
     keyForList: '1',
     isAmountColumnWide: false,
     isTaxAmountColumnWide: false,
@@ -175,6 +185,9 @@ const mockReport: TransactionReportGroupListItemType = {
     chatReportID: '4735435600700077',
     chatType: undefined,
     created: '2025-09-19 20:00:47',
+    submitted: '2025-09-19',
+    approved: undefined,
+    exported: undefined,
     currency: 'USD',
     isOneTransactionReport: true,
     isOwnPolicyExpenseChat: false,
@@ -204,6 +217,9 @@ const mockReport: TransactionReportGroupListItemType = {
         displayName: 'Main Applause QA',
     },
     shouldShowYear: false,
+    shouldShowYearSubmitted: false,
+    shouldShowYearApproved: false,
+    shouldShowYearExported: false,
     action: 'view',
     transactions: [],
     groupedBy: 'expense-report',

@@ -54,6 +54,7 @@ import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
+import Columns from '@assets/images/columns.svg';
 import CommentBubbles from '@assets/images/comment-bubbles.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
@@ -159,6 +160,7 @@ import Offline from '@assets/images/offline.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
 import Pencil from '@assets/images/pencil.svg';
+import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
 import Plane from '@assets/images/plane.svg';
@@ -266,6 +268,7 @@ const Expensicons = {
     Clock,
     ClosedSign,
     Collapse,
+    Columns,
     CommentBubbles,
     Concierge,
     ConciergeAvatar,
@@ -357,6 +360,7 @@ const Expensicons = {
     Paperclip,
     Pause,
     Pencil,
+    Percent,
     Phone,
     Pin,
     Play,
