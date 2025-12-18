@@ -938,8 +938,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.activeComponentBG,
         },
 
-        touchableButtonImageContainer: {
-            width: variables.componentSizeNormal,
+        touchableButtonImageHeight: {
             height: variables.componentSizeNormal,
         },
 

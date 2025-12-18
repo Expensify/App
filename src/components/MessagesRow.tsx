@@ -34,10 +34,12 @@ type MessagesRowProps = {
     dismissError?: () => void;
 };
 
-function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissError = () => {}, errorTextStyles}: MessagesRowProps) {
+function MessagesRow({messages = {}, type, onDismiss = () => {}, containerStyles, dismissError = () => {}, errorTextStyles}: MessagesRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const showDismissButton = !!onDismiss;
 
     const dismissText = translate('common.dismiss');
 
@@ -46,7 +48,7 @@ function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissEr
     }
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb4, styles.messagesRowHeight, containerStyles]}>
             <DotIndicatorMessage
                 dismissError={dismissError}
                 style={styles.flex1}
@@ -54,23 +56,20 @@ function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissEr
                 messages={messages}
                 type={type}
             />
-            <View style={styles.touchableButtonImageContainer}>
-                {!!onDismiss && (
-                    <Tooltip text={dismissText}>
-                        <PressableWithoutFeedback
-                            onPress={onDismiss}
-                            style={[styles.touchableButtonImage]}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={dismissText}
-                        >
-                            <Icon
-                                fill={theme.icon}
-                                src={Expensicons.Close}
-                            />
-                        </PressableWithoutFeedback>
-                    </Tooltip>
-                )}
-            </View>
+            {showDismissButton && (
+                <Tooltip text={dismissText}>
+                    <PressableWithoutFeedback
+                        onPress={onDismiss}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={dismissText}
+                    >
+                        <Icon
+                            fill={theme.icon}
+                            src={Expensicons.Close}
+                        />
+                    </PressableWithoutFeedback>
+                </Tooltip>
+            )}
         </View>
     );
 }

@@ -41,10 +41,16 @@ type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
     /** A function to run when the X button next to the error is clicked */
     onClose?: () => void;
 
-    /** Additional styles to add after local styles. Applied to the parent container */
+    /** Additional styles to add to the container after local styles. Applied to the parent container */
     style?: StyleProp<ViewStyle>;
 
-    /** Additional styles to add after local styles. Applied to the children wrapper container */
+    /** Additional styles to add to the container after local styles. Applied to the parent container when there are no errors */
+    successStyle?: StyleProp<ViewStyle>;
+
+    /** Additional styles to add to the container after local styles. Applied to the parent container when there are errors */
+    errorStyle?: StyleProp<ViewStyle>;
+
+    /** Additional styles to add to the children wrapper container after local styles. Applied to the children wrapper container */
     contentContainerStyle?: StyleProp<ViewStyle>;
 
     /** Additional style object for the error row */
@@ -74,6 +80,8 @@ type StrikethroughProps = Partial<ChildrenProps> & {style: AllStyles[]};
 function OfflineWithFeedback({
     pendingAction,
     contentContainerStyle,
+    successStyle,
+    errorStyle,
     errorRowStyles,
     errors,
     needsOffscreenAlphaCompositing = false,
@@ -137,7 +145,7 @@ function OfflineWithFeedback({
         children = applyStrikeThrough(children);
     }
     return (
-        <View style={style}>
+        <View style={[style, shouldShowErrorMessages ? errorStyle : successStyle]}>
             {shouldShowErrorMessages && shouldDisplayErrorAbove && (
                 <ErrorMessageRow
                     errors={errors}
