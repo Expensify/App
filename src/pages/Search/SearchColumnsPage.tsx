@@ -35,6 +35,9 @@ function SearchColumnsPage() {
     const allCustomColumns = getCustomColumns(queryType);
     const defaultCustomColumns = getCustomColumnDefault(queryType);
 
+    // Columns that cannot be deselected (always required)
+    const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+
     type ColumnItem = {
         columnId: SearchCustomColumnIds;
         isSelected: boolean;
@@ -82,19 +85,23 @@ function SearchColumnsPage() {
 
     const selectedColumnIds = columns.filter((col) => col.isSelected).map((col) => col.columnId);
 
-    const columnsList = columns.map(({columnId, isSelected}) => ({
-        text: translate(getSearchColumnTranslationKey(columnId)),
-        value: columnId,
-        keyForList: columnId,
-        isSelected,
-        leftElement: (
-            <Icon
-                src={icons.DragHandles}
-                fill={theme.icon}
-                additionalStyles={styles.mr3}
-            />
-        ),
-    }));
+    const columnsList = columns.map(({columnId, isSelected}) => {
+        const isRequired = requiredColumns.has(columnId);
+        return {
+            text: translate(getSearchColumnTranslationKey(columnId)),
+            value: columnId,
+            keyForList: columnId,
+            isSelected: isRequired ? true : isSelected,
+            isDisabled: isRequired,
+            leftElement: (
+                <Icon
+                    src={icons.DragHandles}
+                    fill={theme.icon}
+                    additionalStyles={styles.mr3}
+                />
+            ),
+        };
+    });
 
     const defaultColumns = allCustomColumns.map((columnId) => ({
         columnId,
@@ -108,6 +115,11 @@ function SearchColumnsPage() {
 
     const onSelectItem = (item: ListItem) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
+
+        // Don't allow toggling required columns
+        if (requiredColumns.has(updatedColumnId)) {
+            return;
+        }
 
         setColumns(columns.map((col) => (col.columnId === updatedColumnId ? {...col, isSelected: !col.isSelected} : col)));
     };
@@ -142,9 +154,10 @@ function SearchColumnsPage() {
     const renderItem = ({item}: {item: ListItem}) => {
         return (
             <MultiSelectListItem
-                item={item} 
+                item={item}
                 showTooltip={false}
                 onSelectRow={onSelectItem}
+                isDisabled={item.isDisabled}
             />
         );
     };
