@@ -1,13 +1,133 @@
 import type {FlashListRef} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
+import useFiltering from './middlewares/filtering';
+import useSearching from './middlewares/searching';
+import useSorting from './middlewares/sorting';
 import TableContext from './TableContext';
-import type {TableContextValue, UpdateFilterCallback, UpdateSortingCallback} from './TableContext';
-import type {ActiveSorting, GetActiveFiltersCallback, GetActiveSearchStringCallback, GetActiveSortingCallback, TableHandle, TableMethods, TableProps, ToggleSortingCallback} from './types';
+import type {TableContextValue} from './TableContext';
+import type {TableHandle, TableMethods, TableProps} from './types';
 
-// We want to allow the user to switch once between ascending and descending order.
-// After that, sorting for a specific column will be reset.
-const MAX_SORT_TOGGLE_COUNT = 1;
-
+/**
+ * A composable table component that provides filtering, search, and sorting functionality.
+ *
+ * This component uses a compositional pattern where the parent `<Table>` component manages
+ * all state (filtering, searching, sorting) and provides it via context. Child components
+ * consume this context to render different parts of the table UI.
+ *
+ * ## Compositional Pattern
+ *
+ * The Table follows a compound component pattern similar to `<Menu>`, `<Form>`, or `<Tabs>`.
+ * You compose your table UI by nesting the sub-components you need:
+ *
+ * - `<Table>` - The parent component that manages state and provides context
+ * - `<Table.Header>` - Renders sortable column headers
+ * - `<Table.Body>` - Renders the data rows using FlashList
+ * - `<Table.SearchBar>` - Renders a search input that filters data
+ * - `<Table.FilterButtons>` - Renders dropdown filter buttons
+ *
+ * ## Middleware Architecture
+ *
+ * Data processing is handled through a pipeline of middleware functions:
+ * 1. **Filtering** - Applies dropdown filter selections
+ * 2. **Searching** - Applies search string filtering
+ * 3. **Sorting** - Sorts data by the active column
+ *
+ * Each middleware transforms the data array and passes it to the next.
+ *
+ * ## Generic Type Parameters
+ *
+ * - `T` - The type of items in your data array
+ * - `ColumnKey` - String literal union of valid column keys (e.g., `'name' | 'date'`)
+ * - `FilterKey` - String literal union of valid filter keys
+ *
+ * @example Basic Usage
+ * ```tsx
+ * type Item = { id: string; name: string; category: string };
+ * type ColumnKey = 'name' | 'category';
+ *
+ * const columns: Array<TableColumn<ColumnKey>> = [
+ *   { key: 'name', label: 'Name' },
+ *   { key: 'category', label: 'Category' },
+ * ];
+ *
+ * <Table<Item, ColumnKey>
+ *   data={items}
+ *   columns={columns}
+ *   renderItem={({ item }) => <ItemRow item={item} />}
+ *   keyExtractor={(item) => item.id}
+ * >
+ *   <Table.Header />
+ *   <Table.Body />
+ * </Table>
+ * ```
+ *
+ * @example With Search and Sorting
+ * ```tsx
+ * <Table<Item, ColumnKey>
+ *   data={items}
+ *   columns={columns}
+ *   renderItem={renderItem}
+ *   keyExtractor={keyExtractor}
+ *   isItemInSearch={(item, searchString) =>
+ *     item.name.toLowerCase().includes(searchString.toLowerCase())
+ *   }
+ *   compareItems={(a, b, { columnKey, order }) => {
+ *     const multiplier = order === 'asc' ? 1 : -1;
+ *     return a[columnKey].localeCompare(b[columnKey]) * multiplier;
+ *   }}
+ * >
+ *   <Table.SearchBar />
+ *   <Table.Header />
+ *   <Table.Body />
+ * </Table>
+ * ```
+ *
+ * @example With Filters
+ * ```tsx
+ * const filterConfig: FilterConfig = {
+ *   status: {
+ *     filterType: 'single-select',
+ *     options: [
+ *       { label: 'All', value: 'all' },
+ *       { label: 'Active', value: 'active' },
+ *       { label: 'Inactive', value: 'inactive' },
+ *     ],
+ *     default: 'all',
+ *   },
+ * };
+ *
+ * <Table<Item, ColumnKey>
+ *   data={items}
+ *   columns={columns}
+ *   renderItem={renderItem}
+ *   keyExtractor={keyExtractor}
+ *   filters={filterConfig}
+ *   isItemInFilter={(item, filterValues) => {
+ *     if (filterValues.includes('all')) return true;
+ *     return filterValues.includes(item.status);
+ *   }}
+ * >
+ *   <Table.FilterButtons />
+ *   <Table.Header />
+ *   <Table.Body />
+ * </Table>
+ * ```
+ *
+ * @example Programmatic Control via Ref
+ * ```tsx
+ * const tableRef = useRef<TableHandle<Item, ColumnKey>>(null);
+ *
+ * // Programmatically update sorting
+ * tableRef.current?.updateSorting({ columnKey: 'name', order: 'desc' });
+ *
+ * // Get current state
+ * const sorting = tableRef.current?.getActiveSorting();
+ *
+ * <Table ref={tableRef} {...props}>
+ *   <Table.Body />
+ * </Table>
+ * ```
+ */
 function Table<T, ColumnKey extends string = string, FilterKey extends string = string>({
     ref,
     data = [],
@@ -23,148 +143,40 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         throw new Error('Table columns must be provided');
     }
 
-    const [currentFilters, setCurrentFilters] = useState<Record<string, unknown>>(() => {
-        const initialFilters: Record<string, unknown> = {};
-        if (filters) {
-            for (const key of Object.keys(filters) as FilterKey[]) {
-                initialFilters[key] = filters[key].default;
-            }
-        }
-        return initialFilters;
-    });
+    const {middleware: filterMiddleware, currentFilters, methods: filterMethods} = useFiltering<T, FilterKey>({filters, isItemInFilter});
 
-    const updateFilter: UpdateFilterCallback = ({key, value}) => {
-        setCurrentFilters((prev) => ({
-            ...prev,
-            [key]: value,
-        }));
-    };
+    const {middleware: searchMiddleware, activeSearchString, methods: searchMethods} = useSearching<T>({isItemInSearch});
 
-    // Apply filters using predicate functions
-    let filteredData = data;
-    if (filters) {
-        filteredData = data.filter((item) => {
-            const filterKeys = Object.keys(filters) as FilterKey[];
+    const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<T, ColumnKey>({compareItems});
 
-            return filterKeys.every((filterKey) => {
-                const filterConfig = filters[filterKey];
-                const filterValue = currentFilters[filterKey];
-
-                // If filter value is empty/undefined, include the item
-                if (filterValue === undefined || filterValue === null) {
-                    return true;
-                }
-
-                // Handle multi-select filters (array values)
-                if (filterConfig.filterType === 'multi-select') {
-                    const filterValueArray = Array.isArray(filterValue) ? filterValue.filter((v): v is string => typeof v === 'string') : [];
-                    if (filterValueArray.length === 0) {
-                        return true;
-                    }
-                    // For multi-select, pass the array of selected values
-                    return isItemInFilter?.(item, filterValueArray) ?? true;
-                }
-
-                // Handle single-select filters
-                const singleValue = typeof filterValue === 'string' ? filterValue : '';
-                return singleValue === '' || (isItemInFilter?.(item, [singleValue]) ?? true);
-            });
-        });
-    }
-
-    const [activeSearchString, updateSearchString] = useState('');
-
-    // Apply search using onSearch callback
-    let filteredAndSearchedData = filteredData;
-    if (isItemInSearch && activeSearchString.trim()) {
-        filteredAndSearchedData = filteredData.filter((item) => isItemInSearch(item, activeSearchString));
-    }
-
-    const sortToggleCountRef = useRef(0);
-    const [activeSorting, setActiveSorting] = useState<ActiveSorting<ColumnKey>>({columnKey: undefined, order: 'asc'});
-
-    const updateSorting: UpdateSortingCallback<ColumnKey> = ({columnKey, order}) => {
-        if (columnKey) {
-            setActiveSorting({columnKey, order: order ?? 'asc'});
-            return;
-        }
-
-        setActiveSorting({columnKey: undefined, order: 'asc'});
-    };
-
-    const toggleSorting: ToggleSortingCallback<ColumnKey> = (columnKey) => {
-        if (!columnKey) {
-            updateSorting({columnKey: undefined});
-            sortToggleCountRef.current = 0;
-            return;
-        }
-
-        setActiveSorting((currentSorting) => {
-            if (columnKey !== currentSorting.columnKey) {
-                sortToggleCountRef.current = 0;
-                return {columnKey, order: 'asc'};
-            }
-
-            // Check current toggle count to decide if we should reset
-            if (sortToggleCountRef.current >= MAX_SORT_TOGGLE_COUNT) {
-                // Reset sorting when max toggle count is reached
-                sortToggleCountRef.current = 0;
-                updateSorting({columnKey: undefined});
-                return {columnKey: undefined, order: 'asc'};
-            }
-
-            // Toggle the sort order
-            sortToggleCountRef.current += 1;
-            const newSortOrder = currentSorting.order === 'asc' ? 'desc' : 'asc';
-            return {columnKey: currentSorting.columnKey, order: newSortOrder};
-        });
-    };
-
-    // Apply sorting using comparator function
-    let processedData = filteredAndSearchedData;
-    if (activeSorting.columnKey && compareItems) {
-        const sortedData = [...filteredAndSearchedData];
-        sortedData.sort((a, b) => {
-            return compareItems?.(a, b, activeSorting) ?? 0;
-        });
-        processedData = sortedData;
-    }
-
-    const getActiveSorting: GetActiveSortingCallback<ColumnKey> = () => {
-        return activeSorting;
-    };
-    const getActiveFilters: GetActiveFiltersCallback<FilterKey> = () => {
-        return currentFilters;
-    };
-    const getActiveSearchString: GetActiveSearchStringCallback = () => {
-        return activeSearchString;
-    };
+    const processedData = [filterMiddleware, searchMiddleware, sortMiddleware].reduce((acc, middleware) => middleware(acc), data);
 
     const listRef = useRef<FlashListRef<T>>(null);
-    useImperativeHandle(ref, () => {
-        const customMethods: TableMethods<ColumnKey, FilterKey> = {
-            updateSorting,
-            toggleSorting,
-            updateFilter,
-            updateSearchString,
-            getActiveSorting,
-            getActiveFilters,
-            getActiveSearchString,
-        };
 
-        return new Proxy(customMethods, {
-            get: (target, prop) => {
-                if (prop in target) {
-                    return target[prop as keyof typeof target];
+    const tableMethods: TableMethods<ColumnKey, FilterKey> = {
+        ...filterMethods,
+        ...sortMethods,
+        ...searchMethods,
+    };
+
+    /**
+     * Exposes table control methods through the ref.
+     * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
+     */
+    useImperativeHandle(ref, () => {
+        return new Proxy(tableMethods, {
+            get: (target, property) => {
+                if (property in target) {
+                    return target[property as keyof typeof target];
                 }
 
-                return listRef.current?.[prop as keyof FlashListRef<T>];
+                return listRef.current?.[property as keyof FlashListRef<T>];
             },
         }) as TableHandle<T, ColumnKey, FilterKey>;
     });
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const contextValue: TableContextValue<T, ColumnKey> = {
+    const contextValue: TableContextValue<T, ColumnKey, FilterKey> = {
         listRef,
         listProps,
         processedData,
@@ -174,10 +186,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         activeFilters: currentFilters,
         activeSorting,
         activeSearchString,
-        updateFilter,
-        updateSorting,
-        toggleSorting,
-        updateSearchString,
+        tableMethods,
     };
 
     return <TableContext.Provider value={contextValue as unknown as TableContextValue<unknown, string>}>{children}</TableContext.Provider>;

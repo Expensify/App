@@ -131,16 +131,16 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
         >
             {/* Dropdown Trigger */}
             <Button
-                small={!medium}
-                medium={medium}
                 ref={triggerRef}
                 innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}, innerStyles]}
                 onPress={calculatePopoverPositionAndToggleOverlay}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(medium ? {medium: true} : {small: true})}
             >
                 <CaretWrapper
                     style={[styles.flex1, styles.mw100, carretWrapperStyle]}
-                    carretWidth={variables.iconSizeSmall}
-                    carretHeight={variables.iconSizeSmall}
+                    caretWidth={variables.iconSizeSmall}
+                    caretHeight={variables.iconSizeSmall}
                 >
                     <Text
                         numberOfLines={1}

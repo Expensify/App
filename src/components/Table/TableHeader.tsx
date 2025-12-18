@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {ViewProps} from 'react-native';
 import Icon from '@components/Icon';
@@ -11,11 +11,43 @@ import variables from '@styles/variables';
 import {useTableContext} from './TableContext';
 import type {TableColumn} from './types';
 
+/**
+ * Number of times a column can be toggled before sorting is reset.
+ * Allows user to cycle through: asc -> desc -> reset.
+ */
+const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
+
+/**
+ * Props for the TableHeader component.
+ */
 type TableHeaderProps = ViewProps;
 
-function TableHeader({style, ...props}: TableHeaderProps) {
+/**
+ * Renders the table header row with sortable column headers.
+ *
+ * This component displays all configured columns as pressable headers.
+ * Clicking a column header toggles sorting: ascending -> descending -> reset.
+ * The currently sorted column displays an arrow icon indicating sort direction.
+ *
+ * @template T - The type of items in the table's data array.
+ * @template ColumnKey - A string literal type representing the valid column keys.
+ *
+ * @example
+ * ```tsx
+ * <Table
+ *   data={items}
+ *   columns={columns}
+ *   renderItem={renderItem}
+ *   compareItems={compareItems}
+ * >
+ *   <Table.Header />
+ *   <Table.Body />
+ * </Table>
+ * ```
+ */
+function TableHeader<T, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
     const styles = useThemeStyles();
-    const {columns} = useTableContext();
+    const {columns} = useTableContext<T, ColumnKey>();
 
     return (
         <View
@@ -35,14 +67,40 @@ function TableHeader({style, ...props}: TableHeaderProps) {
     );
 }
 
-function TableHeaderColumn({column}: {column: TableColumn}) {
+/**
+ * Renders a single sortable column header.
+ *
+ * @template T - The type of items in the table's data array.
+ * @template ColumnKey - A string literal type representing the valid column keys.
+ */
+function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {column: TableColumn<ColumnKey>}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong'] as const);
 
-    const {activeSorting, toggleSorting} = useTableContext();
+    const {
+        activeSorting,
+        tableMethods: {updateSorting, toggleColumnSorting},
+    } = useTableContext<T, ColumnKey>();
     const isSortingByColumn = column.key === activeSorting.columnKey;
     const sortIcon = activeSorting.order === 'asc' ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
+
+    const toggleCount = useRef(0);
+
+    /**
+     * Handles column header press for sorting.
+     * Cycles through: first toggle (asc), second toggle (desc), third toggle (reset).
+     */
+    const toggleSorting = (columnKey: ColumnKey) => {
+        if (toggleCount.current >= NUMBER_OF_TOGGLES_BEFORE_RESET) {
+            toggleCount.current = 0;
+            updateSorting({columnKey: undefined, order: 'asc'});
+            return;
+        }
+
+        toggleCount.current++;
+        toggleColumnSorting(columnKey);
+    };
 
     return (
         <PressableWithFeedback
