@@ -8,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -48,6 +49,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.length;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
@@ -225,11 +227,22 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 customUnits: selectedItems.includes('distanceRates'),
                 invoices: selectedItems.includes('invoices'),
                 exportLayouts: selectedItems.includes('workflows'),
+                overview: selectedItems.includes('overview'),
             },
             file: duplicatedWorkspaceAvatar,
+            localCurrency: currentUserPersonalDetails?.localCurrencyCode ?? '',
         });
         Navigation.closeRHPFlow();
-    }, [duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, policyCategories, selectedItems, translate, duplicatedWorkspaceAvatar]);
+    }, [
+        duplicateWorkspace?.name,
+        duplicateWorkspace?.policyID,
+        policy,
+        policyCategories,
+        selectedItems,
+        translate,
+        duplicatedWorkspaceAvatar,
+        currentUserPersonalDetails?.localCurrencyCode,
+    ]);
 
     const confirmDuplicateAndHideModal = useCallback(() => {
         setIsDuplicateModalOpen(false);
