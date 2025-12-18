@@ -144,6 +144,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
+    tempPropShouldStopScrollAndJump,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();

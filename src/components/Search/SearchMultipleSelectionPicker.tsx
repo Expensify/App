@@ -3,6 +3,7 @@ import SelectionList from '@components/SelectionListWithSections';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import {getFirstSelectedItemKey} from '@libs/OptionsListUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
@@ -107,6 +108,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             shouldShowTooltips
             canSelectMultiple
             ListItem={MultiSelectListItem}
+            tempPropShouldStopScrollAndJump
         />
     );
 }

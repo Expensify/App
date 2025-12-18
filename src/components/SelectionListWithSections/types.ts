@@ -1064,6 +1064,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** Temporary prop to roll out new scroll behavior when selecting items */
+    tempPropShouldStopScrollAndJump?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
