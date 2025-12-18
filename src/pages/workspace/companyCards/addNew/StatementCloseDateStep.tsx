@@ -14,9 +14,12 @@ import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/Ca
 type StatementCloseDateStepProps = {
     /** ID of the current policy */
     policyID: string | undefined;
+
+    /** Workspace account ID if the current policy */
+    workspaceAccountID: number;
 };
 
-function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
+function StatementCloseDateStep({policyID, workspaceAccountID}: StatementCloseDateStepProps) {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
@@ -37,11 +40,20 @@ function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
             }
 
             if (addNewCard?.data.feedDetails) {
-                addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, addNewCard.data.feedDetails, cardFeeds, statementPeriodEnd, statementPeriodEndDay, lastSelectedFeed);
+                addNewCompanyCardsFeed(
+                    policyID,
+                    workspaceAccountID,
+                    addNewCard.data.feedType,
+                    addNewCard.data.feedDetails,
+                    cardFeeds,
+                    statementPeriodEnd,
+                    statementPeriodEndDay,
+                    lastSelectedFeed,
+                );
                 Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
             }
         },
-        [policyID, addNewCard?.data.feedType, addNewCard?.data.feedDetails, cardFeeds, lastSelectedFeed, isPlaid],
+        [policyID, workspaceAccountID, addNewCard?.data.feedType, addNewCard?.data.feedDetails, cardFeeds, lastSelectedFeed, isPlaid],
     );
 
     const goBack = useCallback(() => {
