@@ -9007,7 +9007,6 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {
                 accountID: 2,
             });
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.NEWDOT_REJECT]);
             expect(canRejectReportAction(approver, expenseReport, reportPolicy)).toBe(false);
         });
     });
