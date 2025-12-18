@@ -394,7 +394,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 return;
             }
             if (isInNarrowPaneModal) {
-                Navigation.dismissModal();
+                Navigation.goBack();
                 return;
             }
             if (backTo) {
