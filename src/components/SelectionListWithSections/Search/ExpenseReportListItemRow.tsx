@@ -1,4 +1,4 @@
-import React, {Fragment, useMemo} from 'react';
+import React, {Fragment} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
@@ -258,7 +258,7 @@ function ExpenseReportListItemRow({
                     </View>
                     <View style={[styles.flexShrink0, styles.flexColumn, styles.alignItemsEnd, styles.gap1]}>
                         <TotalCell
-                            total={total}
+                            total={reportTotal}
                             currency={currency}
                         />
                     </View>
