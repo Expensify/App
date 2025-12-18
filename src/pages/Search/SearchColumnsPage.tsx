@@ -22,7 +22,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import arraysEqual from '@src/utils/arraysEqual';
 
 function SearchColumnsPage() {
     const theme = useTheme();
@@ -67,9 +66,15 @@ function SearchColumnsPage() {
         ),
     }));
 
-    const sortedDefaultColumns = [...defaultCustomColumns].sort();
-    const sortedSelectedColumnIds = [...selectedColumnIds].sort();
-    const shouldShowResetColumns = !arraysEqual(sortedSelectedColumnIds, sortedDefaultColumns);
+    const defaultColumns = allCustomColumns.map((columnId) => ({
+        columnId,
+        isSelected: defaultCustomColumns.includes(columnId),
+    }));
+
+    const isDefaultState =
+        columns.length === defaultColumns.length && columns.every((col, index) => col.columnId === defaultColumns.at(index)?.columnId && col.isSelected === defaultColumns.at(index)?.isSelected);
+
+    const shouldShowResetColumns = !isDefaultState;
 
     const onSelectItem = (item: ListItem) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
