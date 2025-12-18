@@ -883,6 +883,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 return;
             }
         }
+
+        // Scroll to top when text input changes
+        if (prevTextInputValue !== textInputValue) {
+            updateAndScrollToFocusedIndex(0);
+        }
+
         // Avoid clearing focus on initial render
         if (isInitialSectionListRender) {
             return;
