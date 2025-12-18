@@ -60,6 +60,8 @@ function SearchChangeApproverPage() {
         return reports;
     };
 
+    // React Compiler automatically memoizes the selector, so we can suppress the ESLint rule
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [onyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getOnyxReports, canBeMissing: true});
     const isLoadingOnyxReports = useRef(false);
 
