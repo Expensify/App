@@ -378,6 +378,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Acción requerida',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
+        reimbursableTotal: 'Total reembolsable',
+        nonReimbursableTotal: 'Total no reembolsable',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -698,6 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Manual',
         scan: 'Escanear',
         map: 'Map',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Importar',

@@ -87,13 +87,18 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                         });
                                     },
                                     hasDependentTags,
+                                    translate,
                                 );
                             } else {
-                                downloadTagsCSV(policyID, () => {
-                                    close(() => {
-                                        setIsDownloadFailureModalVisible(true);
-                                    });
-                                });
+                                downloadTagsCSV(
+                                    policyID,
+                                    () => {
+                                        close(() => {
+                                            setIsDownloadFailureModalVisible(true);
+                                        });
+                                    },
+                                    translate,
+                                );
                             }
                         }}
                     >
@@ -106,40 +111,42 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         [translate, isMultiLevelTags, policyID, hasDependentTags],
     );
 
-    const switchSingleToMultiLevelTagPrompt = useMemo(
-        () => (
-            <Text>
-                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
-                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
-                <TextLink
-                    onPress={() => {
-                        if (isMultiLevelTags) {
-                            downloadMultiLevelTagsCSV(
-                                policyID,
-                                () => {
-                                    close(() => {
-                                        setIsDownloadFailureModalVisible(true);
-                                    });
-                                },
-                                hasDependentTags,
-                            );
-                        } else {
-                            downloadTagsCSV(policyID, () => {
+    const switchSingleToMultiLevelTagPrompt = (
+        <Text>
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
+            <TextLink
+                onPress={() => {
+                    if (isMultiLevelTags) {
+                        downloadMultiLevelTagsCSV(
+                            policyID,
+                            () => {
                                 close(() => {
                                     setIsDownloadFailureModalVisible(true);
                                 });
-                            });
-                        }
-                    }}
-                >
-                    {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
-                </TextLink>
-                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
-                <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
-                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
-            </Text>
-        ),
-        [translate, isMultiLevelTags, policyID, hasDependentTags],
+                            },
+                            hasDependentTags,
+                            translate,
+                        );
+                    } else {
+                        downloadTagsCSV(
+                            policyID,
+                            () => {
+                                close(() => {
+                                    setIsDownloadFailureModalVisible(true);
+                                });
+                            },
+                            translate,
+                        );
+                    }
+                }}
+            >
+                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
+            </TextLink>
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
+            <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
+        </Text>
     );
 
     const showSwitchSingleToMultiLevelTagWarningModal = useCallback(() => {
