@@ -2562,6 +2562,22 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.longID';
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             return 'common.reportID';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
+            return 'common.bankAccount';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD:
+            return 'common.card';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM:
+            return 'common.from';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
+            return 'common.expenses';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
+            return 'common.total';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
+            return 'common.withdrawalID';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
+            return 'search.filters.withdrawn';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
+            return 'search.filters.feed';
     }
 }
 
