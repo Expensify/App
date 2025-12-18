@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
