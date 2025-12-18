@@ -4,6 +4,7 @@ import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
+import {SearchColumnType} from '@components/Search/types';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -47,6 +48,9 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether the down arrow is expanded */
     isExpanded?: boolean;
+
+    /** The visible columns for the header */
+    columns?: SearchColumnType[];
 };
 
 function WithdrawalIDListItemHeader<TItem extends ListItem>({
@@ -58,6 +62,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     isSelectAllChecked,
     onDownArrowClick,
     isExpanded,
+    columns,
 }: WithdrawalIDListItemHeaderProps<TItem>) {
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();

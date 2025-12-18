@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
+import {SearchColumnType} from '@components/Search/types';
 import type {ListItem, TransactionMemberGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -39,6 +40,9 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether the down arrow is expanded */
     isExpanded?: boolean;
+
+    /** The visible columns for the header */
+    columns?: SearchColumnType[];
 };
 
 function MemberListItemHeader<TItem extends ListItem>({
@@ -50,6 +54,7 @@ function MemberListItemHeader<TItem extends ListItem>({
     isIndeterminate,
     isExpanded,
     onDownArrowClick,
+    columns,
 }: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

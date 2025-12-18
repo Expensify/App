@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import {SearchColumnType} from '@components/Search/types';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -44,6 +45,9 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether the down arrow is expanded */
     isExpanded?: boolean;
+
+    /** The visible columns for the header */
+    columns?: SearchColumnType[];
 };
 
 function CardListItemHeader<TItem extends ListItem>({
@@ -55,6 +59,7 @@ function CardListItemHeader<TItem extends ListItem>({
     isSelectAllChecked,
     isIndeterminate,
     onDownArrowClick,
+    columns,
     isExpanded,
 }: CardListItemHeaderProps<TItem>) {
     const theme = useTheme();
