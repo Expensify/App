@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated} from 'react-native';
@@ -74,13 +74,13 @@ function TabSelectorBase({
 
     const routesLength = tabs.length;
 
-    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: routesLength}, (_v, i) => i), [routesLength]);
+    const defaultAffectedAnimatedTabs = Array.from({length: routesLength}, (_v, i) => i);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
     const viewRef = useRef<View>(null);
     const [selectorWidth, setSelectorWidth] = useState(0);
     const [selectorX, setSelectorX] = useState(0);
 
-    const activeIndex = useMemo(() => tabs.findIndex((tab) => tab.key === activeTabKey), [tabs, activeTabKey]);
+    const activeIndex = tabs.findIndex((tab) => tab.key === activeTabKey);
 
     // After a tab change, reset affectedAnimatedTabs once the transition is done so
     // tabs settle back into the default animated state.
@@ -92,12 +92,12 @@ function TabSelectorBase({
         return () => clearTimeout(timerID);
     }, [defaultAffectedAnimatedTabs, activeIndex]);
 
-    const measure = useCallback(() => {
+    const measure = () => {
         viewRef.current?.measureInWindow((x, _y, width) => {
             setSelectorX(x);
             setSelectorWidth(width);
         });
-    }, []);
+    };
 
     // Measure location/width after initial mount and when layout animations settle.
     useLayoutEffect(() => {

@@ -318,6 +318,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.CATEGORY_REQUIRED_FIELDS]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
@@ -1328,6 +1332,16 @@ type SettingsNavigatorParamList = {
     [SCREENS.DOMAIN.VERIFIED]: {
         domainAccountID: number;
     };
+    [SCREENS.DOMAIN.ADMIN_DETAILS]: {
+        domainAccountID: number;
+        accountID: number;
+    };
+    [SCREENS.DOMAIN.ADMINS_SETTINGS]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
+        domainAccountID: number;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {
@@ -1661,6 +1675,14 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
+        backToReport?: string;
+        reportActionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_GPS]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
         backToReport?: string;
         reportActionID?: string;
     };
@@ -2172,6 +2194,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: NavigatorScreenParams<SearchColumnsParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -2707,6 +2730,10 @@ type SearchSavedSearchParamList = {
     [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: SaveSearchParams;
 };
 
+type SearchColumnsParamList = {
+    [SCREENS.SEARCH.COLUMNS_RHP]: Record<string, never>;
+};
+
 type RestrictedActionParamList = {
     [SCREENS.RESTRICTED_ACTION_ROOT]: {
         policyID: string;
@@ -2921,4 +2948,5 @@ export type {
     WorkspacesDomainModalNavigatorParamList,
     DomainSplitNavigatorParamList,
     DomainScreenName,
+    SearchColumnsParamList,
 };

@@ -52,6 +52,7 @@ export default {
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
     breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
+    labelPaddingVertical: Math.abs((getValueUsingPixelRatio(13, 19) - 16) / 2),
     fontSizeXXSmall: 7,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
@@ -133,6 +134,7 @@ export default {
     inputHeightSmall: 28,
     inputIconMarginTopSmall: getValueUsingPixelRatio(8, 11),
     inputIconMarginTopLarge: getValueUsingPixelRatio(16, 21),
+    paddingSmall: getValueUsingPixelRatio(7, 8),
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 24),
@@ -341,6 +343,7 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
+    w200: 200,
     // Transaction item row heights based on layout types
     // Wide screen (desktop) layout
     optionRowWideItemHeight: 64,

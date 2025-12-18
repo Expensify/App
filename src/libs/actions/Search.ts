@@ -826,7 +826,7 @@ function rejectMoneyRequestsOnSearch(
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
-function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
+function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const reportIDSet = new Set<string>();
     const transactionIDSet = new Set(transactionIDList);
     for (const reportID of reportIDList) {
@@ -868,7 +868,7 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
         }
     }
 
-    fileDownload(getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams) {
@@ -958,18 +958,13 @@ function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ON
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
-/**
- * Clears all values for the advanced filters search form.
- */
-function clearAllFilters() {
-    Onyx.set(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, null);
-}
-
 function clearAdvancedFilters() {
     const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
     for (const key of Object.values(FILTER_KEYS)) {
         switch (key) {
             case FILTER_KEYS.GROUP_BY:
+                continue;
+            case FILTER_KEYS.COLUMNS:
                 continue;
             case FILTER_KEYS.TYPE:
                 values[key] = CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -1214,7 +1209,6 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     updateAdvancedFilters,
-    clearAllFilters,
     clearAdvancedFilters,
     deleteSavedSearch,
     payMoneyRequestOnSearch,

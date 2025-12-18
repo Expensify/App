@@ -83,6 +83,4 @@ function PercentageForm({value: amount, errorText, onInputChange, label, allowEx
     );
 }
 
-PercentageForm.displayName = 'PercentageForm';
-
 export default PercentageForm;

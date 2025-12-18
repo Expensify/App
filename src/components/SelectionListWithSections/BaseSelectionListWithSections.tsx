@@ -1119,6 +1119,4 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     );
 }
 
-BaseSelectionListWithSections.displayName = 'BaseSelectionListWithSections';
-
 export default BaseSelectionListWithSections;
