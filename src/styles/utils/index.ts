@@ -37,6 +37,7 @@ import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
 import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
+import splitPercentageInputStyles from './splitPercentageInputStyles';
 import type {
     AllStyles,
     AvatarSize,
@@ -1333,6 +1334,7 @@ const staticStyleUtils = {
     getNavigationModalCardStyle,
     getCardStyles,
     getSearchPageNarrowHeaderStyles,
+    splitPercentageInputStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getIconWidthAndHeightStyle,
@@ -1727,6 +1729,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         isSubmittedColumnWide = false,
         isApprovedColumnWide = false,
         isPostedColumnWide = false,
+        isExportedColumnWide = false,
     ): ViewStyle => {
         let columnWidth;
         switch (columnName) {
@@ -1748,6 +1751,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.POSTED:
                 columnWidth = {...getWidthStyle(isPostedColumnWide ? variables.w92 : variables.w72)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
+                columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w92 : variables.w72)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
                 // We will remove this variable & param, but in a follow up PR. We are duplicating the logic here to "use" the variable
@@ -1784,6 +1790,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
+            case CONST.SEARCH.TABLE_COLUMNS.CARD:
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
             case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
