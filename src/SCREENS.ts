@@ -327,6 +327,7 @@ const SCREENS = {
         DISTANCE_CREATE: 'Money_Request_Distance_Create',
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
+        STEP_DISTANCE_GPS: 'Money_Request_Step_Distance_GPS',
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
     },
 
