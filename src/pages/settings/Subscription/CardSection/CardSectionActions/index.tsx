@@ -42,6 +42,4 @@ function CardSectionActions() {
     );
 }
 
-CardSectionActions.displayName = 'CardSectionActions';
-
 export default CardSectionActions;

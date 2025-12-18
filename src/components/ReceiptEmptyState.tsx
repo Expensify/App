@@ -86,6 +86,4 @@ function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isIn
     );
 }
 
-ReceiptEmptyState.displayName = 'ReceiptEmptyState';
-
 export default ReceiptEmptyState;

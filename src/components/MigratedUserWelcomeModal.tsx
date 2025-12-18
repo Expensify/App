@@ -139,5 +139,4 @@ function MigratedUserWelcomeModal() {
     );
 }
 
-MigratedUserWelcomeModal.displayName = 'MigratedUserWelcomeModal';
 export default MigratedUserWelcomeModal;

@@ -77,7 +77,7 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
             style={[styles.mh5, styles.flexGrow1]}
             shouldHideFixErrorsAlert={!shouldGatherBothEmails}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(shouldGatherBothEmails ? 'signerInfoStep.enterTwoEmails' : 'signerInfoStep.enterOneEmail', {companyName})}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(shouldGatherBothEmails ? 'signerInfoStep.enterTwoEmails' : 'signerInfoStep.enterOneEmail', companyName)}</Text>
             {!shouldGatherBothEmails && <Text style={[styles.pv3, styles.textSupporting]}>{translate('signerInfoStep.regulationRequiresOneMoreDirector')}</Text>}
             <InputWrapper
                 InputComponent={TextInput}
@@ -103,8 +103,6 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
         </FormProvider>
     );
 }
-
-EnterEmail.displayName = 'EnterEmail';
 
 export type {EmailSubmitParams};
 export default EnterEmail;

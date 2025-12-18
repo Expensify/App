@@ -66,6 +66,4 @@ function ThirdPartySignInPage({signInProvider}: ThirdPartySignInPageProps) {
     );
 }
 
-ThirdPartySignInPage.displayName = 'ThirdPartySignInPage';
-
 export default ThirdPartySignInPage;

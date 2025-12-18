@@ -287,6 +287,4 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     );
 }
 
-SearchTypeMenu.displayName = 'SearchTypeMenu';
-
 export default SearchTypeMenu;

@@ -141,7 +141,6 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
     );
 }
 
-EReceiptThumbnail.displayName = 'EReceiptThumbnail';
 export default EReceiptThumbnail;
 
 export type {IconSize, EReceiptThumbnailProps};

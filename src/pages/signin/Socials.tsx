@@ -71,6 +71,4 @@ function Socials() {
     );
 }
 
-Socials.displayName = 'Socials';
-
 export default Socials;

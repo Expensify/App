@@ -276,6 +276,4 @@ function CardSection() {
     );
 }
 
-CardSection.displayName = 'CardSection';
-
 export default CardSection;

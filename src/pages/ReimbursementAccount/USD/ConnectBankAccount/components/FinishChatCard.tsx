@@ -86,6 +86,4 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
     );
 }
 
-FinishChatCard.displayName = 'FinishChatCard';
-
 export default FinishChatCard;

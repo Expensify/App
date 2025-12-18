@@ -139,6 +139,4 @@ function AddPaymentMethodMenu({
     );
 }
 
-AddPaymentMethodMenu.displayName = 'AddPaymentMethodMenu';
-
 export default AddPaymentMethodMenu;

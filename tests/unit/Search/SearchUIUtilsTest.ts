@@ -32,7 +32,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {formatPhoneNumber, localeCompare} from '../../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -108,6 +108,8 @@ const report2 = {
     action: 'view',
     chatReportID: '1706144653204915',
     created: '2024-12-21 13:05:20',
+    submitted: '2024-12-21 13:05:20',
+    approved: undefined,
     currency: 'USD',
     isOneTransactionReport: true,
     isWaitingOnBankAccount: false,
@@ -130,6 +132,8 @@ const report3 = {
     chatReportID: '6155022250251839',
     chatType: undefined,
     created: '2025-03-05 16:34:27',
+    submitted: '2025-03-05',
+    approved: undefined,
     currency: 'VND',
     isOneTransactionReport: false,
     isOwnPolicyExpenseChat: false,
@@ -384,6 +388,7 @@ const searchResults: OnyxTypes.SearchResults = {
         [`report_${reportID5}`]: report5,
         [`transactions_${transactionID}`]: {
             amount: -5000,
+            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -413,6 +418,7 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`transactions_${transactionID2}`]: {
             amount: -5000,
+            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -443,6 +449,7 @@ const searchResults: OnyxTypes.SearchResults = {
         ...allViolations,
         [`transactions_${transactionID3}`]: {
             amount: 1200,
+            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -472,6 +479,7 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`transactions_${transactionID4}`]: {
             amount: 3200,
+            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -757,11 +765,16 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction1,
         holdReportAction: undefined,
+        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
         comment: {comment: ''},
         created: '2024-12-21',
+        submitted: undefined,
+        approved: undefined,
+        posted: '',
+        exported: '',
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
@@ -786,6 +799,10 @@ const transactionsListItems = [
         reportID: '123456789',
         shouldShowMerchant: true,
         shouldShowYear: true,
+        shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
+        shouldShowYearPosted: false,
+        shouldShowYearExported: false,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -808,11 +825,16 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction2,
         holdReportAction: undefined,
+        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
         comment: {comment: ''},
         created: '2024-12-21',
+        submitted: '2024-12-21 13:05:20',
+        approved: undefined,
+        posted: '',
+        exported: '',
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
@@ -836,6 +858,10 @@ const transactionsListItems = [
         reportID: '11111',
         shouldShowMerchant: true,
         shouldShowYear: true,
+        shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
+        shouldShowYearPosted: false,
+        shouldShowYearExported: false,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -869,11 +895,16 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction3,
         holdReportAction: undefined,
+        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
         comment: {comment: ''},
         created: '2025-03-05',
+        submitted: '2025-03-05',
+        approved: undefined,
+        posted: '',
+        exported: '',
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
@@ -904,6 +935,10 @@ const transactionsListItems = [
         date: '2025-03-05',
         shouldShowMerchant: true,
         shouldShowYear: true,
+        shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
+        shouldShowYearPosted: false,
+        shouldShowYearExported: false,
         keyForList: '3',
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -925,11 +960,16 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction4,
         holdReportAction: undefined,
+        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
         comment: {comment: ''},
         created: '2025-03-05',
+        submitted: '2025-03-05',
+        approved: undefined,
+        posted: '',
+        exported: '',
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
@@ -960,6 +1000,10 @@ const transactionsListItems = [
         date: '2025-03-05',
         shouldShowMerchant: true,
         shouldShowYear: true,
+        shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
+        shouldShowYearPosted: false,
+        shouldShowYearExported: false,
         keyForList: '4',
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -1003,7 +1047,11 @@ const transactionReportGroupListItems = [
         policyID: 'A1B2C3',
         reportID: '123456789',
         reportName: 'Expense Report #123',
+        exported: '',
         shouldShowYear: true,
+        shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
+        shouldShowYearExported: false,
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -1018,6 +1066,7 @@ const transactionReportGroupListItems = [
                 reportAction: reportAction1,
                 holdReportAction: undefined,
                 amount: -5000,
+                canDelete: true,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1025,6 +1074,7 @@ const transactionReportGroupListItems = [
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
+                exported: '',
                 formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
                 formattedTo: '',
@@ -1047,6 +1097,10 @@ const transactionReportGroupListItems = [
                 reportID: '123456789',
                 shouldShowMerchant: true,
                 shouldShowYear: true,
+                shouldShowYearSubmitted: true,
+                shouldShowYearApproved: false,
+                shouldShowYearPosted: false,
+                shouldShowYearExported: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -1072,6 +1126,9 @@ const transactionReportGroupListItems = [
         allActions: ['approve'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
+        submitted: '2024-12-21 13:05:20',
+        approved: undefined,
+        exported: '',
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
@@ -1093,6 +1150,9 @@ const transactionReportGroupListItems = [
         reportID: '11111',
         reportName: 'Expense Report #123',
         shouldShowYear: true,
+        shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
+        shouldShowYearExported: false,
         stateNum: 1,
         statusNum: 1,
         to: {
@@ -1112,11 +1172,13 @@ const transactionReportGroupListItems = [
                 reportAction: reportAction2,
                 holdReportAction: undefined,
                 amount: -5000,
+                canDelete: true,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
                 comment: {comment: ''},
                 created: '2024-12-21',
+                exported: '',
                 currency: 'USD',
                 date: '2024-12-21',
                 formattedFrom: 'Admin',
@@ -1146,6 +1208,10 @@ const transactionReportGroupListItems = [
                 reportID: '11111',
                 shouldShowMerchant: true,
                 shouldShowYear: true,
+                shouldShowYearSubmitted: true,
+                shouldShowYearApproved: false,
+                shouldShowYearPosted: false,
+                shouldShowYearExported: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -1175,6 +1241,9 @@ const transactionReportGroupListItems = [
         chatReportID: '6155022250251839',
         chatType: undefined,
         created: '2025-03-05 16:34:27',
+        submitted: '2025-03-05',
+        approved: undefined,
+        exported: '',
         currency: 'VND',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
@@ -1192,6 +1261,9 @@ const transactionReportGroupListItems = [
         reportID: '99999',
         reportName: 'Approver owes ₫44.00',
         shouldShowYear: true,
+        shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
+        shouldShowYearExported: false,
         stateNum: 1,
         statusNum: 1,
         total: 4400,
@@ -1213,7 +1285,132 @@ const transactionReportGroupListItems = [
             displayName: 'Approver',
             login: 'approver@policy.com',
         },
-        transactions: [transactionsListItems.at(2), transactionsListItems.at(3)],
+        transactions: [
+            {
+                amount: 1200,
+                action: 'view',
+                allActions: ['view'],
+                report: report3,
+                policy,
+                reportAction: reportAction3,
+                holdReportAction: undefined,
+                canDelete: true,
+                cardID: undefined,
+                cardName: undefined,
+                category: '',
+                comment: {comment: ''},
+                created: '2025-03-05',
+                exported: '',
+                currency: 'VND',
+                hasEReceipt: false,
+                merchant: '(none)',
+                modifiedAmount: 0,
+                modifiedCreated: '',
+                modifiedCurrency: '',
+                modifiedMerchant: '',
+                parentTransactionID: '',
+                reportID: '99999',
+                tag: '',
+                transactionID: '3',
+                from: {
+                    accountID: 18439984,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    displayName: 'Admin',
+                    login: 'admin@policy.com',
+                },
+                to: {
+                    accountID: 1111111,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    displayName: 'Approver',
+                    login: 'approver@policy.com',
+                },
+                formattedFrom: 'Admin',
+                formattedTo: 'Approver',
+                formattedTotal: 1200,
+                formattedMerchant: '',
+                date: '2025-03-05',
+                shouldShowMerchant: true,
+                shouldShowYear: true,
+                shouldShowYearSubmitted: true,
+                shouldShowYearApproved: false,
+                shouldShowYearPosted: false,
+                shouldShowYearExported: false,
+                keyForList: '3',
+                isAmountColumnWide: false,
+                isTaxAmountColumnWide: false,
+                receipt: undefined,
+                taxAmount: undefined,
+                mccGroup: undefined,
+                modifiedMCCGroup: undefined,
+                pendingAction: undefined,
+                errors: undefined,
+                violations: [],
+                groupAmount: -5000,
+                groupCurrency: 'USD',
+            },
+            {
+                amount: 3200,
+                action: 'view',
+                allActions: ['view'],
+                report: report3,
+                policy,
+                reportAction: reportAction4,
+                holdReportAction: undefined,
+                canDelete: true,
+                cardID: undefined,
+                cardName: undefined,
+                category: '',
+                comment: {comment: ''},
+                created: '2025-03-05',
+                exported: '',
+                currency: 'VND',
+                hasEReceipt: false,
+                merchant: '(none)',
+                modifiedAmount: 0,
+                modifiedCreated: '',
+                modifiedCurrency: '',
+                modifiedMerchant: '',
+                parentTransactionID: '',
+                reportID: '99999',
+                tag: '',
+                transactionID: '4',
+                from: {
+                    accountID: 18439984,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    displayName: 'Admin',
+                    login: 'admin@policy.com',
+                },
+                to: {
+                    accountID: 1111111,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    displayName: 'Approver',
+                    login: 'approver@policy.com',
+                },
+                formattedFrom: 'Admin',
+                formattedTo: 'Approver',
+                formattedTotal: 3200,
+                formattedMerchant: '',
+                date: '2025-03-05',
+                shouldShowMerchant: true,
+                shouldShowYear: true,
+                shouldShowYearSubmitted: true,
+                shouldShowYearApproved: false,
+                shouldShowYearPosted: false,
+                shouldShowYearExported: false,
+                keyForList: '4',
+                isAmountColumnWide: false,
+                isTaxAmountColumnWide: false,
+                receipt: undefined,
+                taxAmount: undefined,
+                mccGroup: undefined,
+                modifiedMCCGroup: undefined,
+                pendingAction: undefined,
+                errors: undefined,
+                violations: [],
+                groupAmount: -5000,
+                groupCurrency: 'USD',
+            },
+        ],
     },
     {
         groupedBy: 'expense-report',
@@ -1222,6 +1419,7 @@ const transactionReportGroupListItems = [
         allActions: ['view'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
+        exported: '',
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Draft',
@@ -1243,6 +1441,9 @@ const transactionReportGroupListItems = [
         reportID: reportID5,
         reportName: 'Expense Report #123',
         shouldShowYear: true,
+        shouldShowYearSubmitted: true,
+        shouldShowYearApproved: false,
+        shouldShowYearExported: false,
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -1694,7 +1895,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 45;
+            const expectedPropertyCount = 54;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1727,7 +1928,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 45;
+            const expectedPropertyCount = 51;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1867,6 +2068,7 @@ describe('SearchUIUtils', () => {
                 CONST.SEARCH.STATUS.EXPENSE.ALL,
                 reportActionListItems,
                 localeCompare,
+                translateLocal,
             ) as ReportActionListItemType[];
             // Should return all report actions sorted by creation date in descending order (newest first)
             expect(sortedActions).toHaveLength(5);
@@ -1875,36 +2077,47 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getSortedTransactionData result when groupBy is undefined', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionsListItems, localeCompare, 'date', 'asc', undefined)).toStrictEqual(transactionsListItems);
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionsListItems, localeCompare, translateLocal, 'date', 'asc', undefined)).toStrictEqual(
+                transactionsListItems,
+            );
         });
 
         it('should return getSortedReportData result when type is expense-report', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, '', transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getSortedReportData result when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getSortedReportData result when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc')).toStrictEqual(
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getSortedMemberData result when type is EXPENSE and groupBy is member', () => {
             expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionMemberGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.FROM),
+                SearchUIUtils.getSortedSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    '',
+                    transactionMemberGroupListItems,
+                    localeCompare,
+                    translateLocal,
+                    'date',
+                    'asc',
+                    CONST.SEARCH.GROUP_BY.FROM,
+                ),
             ).toStrictEqual(transactionMemberGroupListItemsSorted);
         });
 
         it('should return getSortedCardData result when type is EXPENSE and groupBy is card', () => {
             expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionCardGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.CARD),
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionCardGroupListItems, localeCompare, translateLocal, 'date', 'asc', CONST.SEARCH.GROUP_BY.CARD),
             ).toStrictEqual(transactionCardGroupListItemsSorted);
         });
 
@@ -1915,6 +2128,7 @@ describe('SearchUIUtils', () => {
                     '',
                     transactionWithdrawalIDGroupListItems,
                     localeCompare,
+                    translateLocal,
                     'date',
                     'asc',
                     CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
@@ -2319,6 +2533,7 @@ describe('SearchUIUtils', () => {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactions_1805965960759424086: {
                         amount: 0,
+                        canDelete: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
                         comment: {
                             comment: '',
@@ -2441,6 +2656,7 @@ describe('SearchUIUtils', () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactions_1805965960759424086: {
                     amount: 0,
+                    canDelete: false,
                     cardID: undefined,
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
@@ -2564,16 +2780,24 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getColumnsToShow', () => {
-        test('Should show all columns when no custom columns are saved & viewing expense reports', () => {
+        test('Should show all default columns when no custom columns are saved & viewing expense reports', () => {
             expect(SearchUIUtils.getColumnsToShow(1, [], [], false, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual({
                 [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
             });
         });
 
@@ -2584,13 +2808,21 @@ describe('SearchUIUtils', () => {
                 // Avatar should always be visible
                 [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
                 // Total should always be visible
                 [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
             });
         });
 
@@ -2745,10 +2977,10 @@ describe('SearchUIUtils', () => {
             const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], [], true);
 
             // These columns should be shown based on data
-            expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]).toBe(true);
-            expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]).toBe(true);
-            expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]).toBe(true);
-            expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(true);
+            expect(columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]).toBe(true);
 
             // From/To columns should not exist in expense report view
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBeUndefined();

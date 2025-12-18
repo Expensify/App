@@ -92,6 +92,7 @@ function SettlementButton({
     wrapperStyle,
     shouldUseShortForm = false,
     hasOnlyHeldExpenses = false,
+    sentryLabel,
 }: SettlementButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Cash', 'Wallet']);
     const styles = useThemeStyles();
@@ -627,12 +628,11 @@ function SettlementButton({
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     useKeyboardShortcuts={useKeyboardShortcuts}
                     shouldUseModalPaddingStyle={paymentButtonOptions.length <= 5}
+                    sentryLabel={sentryLabel}
                 />
             )}
         </KYCWall>
     );
 }
-
-SettlementButton.displayName = 'SettlementButton';
 
 export default SettlementButton;
