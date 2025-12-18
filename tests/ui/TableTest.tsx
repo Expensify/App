@@ -46,6 +46,11 @@ jest.mock('@hooks/useThemeStyles', () =>
         pr1: {},
         ml1: {},
         lh16: {},
+        ph5: {},
+        pt3: {},
+        pb5: {},
+        textNormal: {},
+        colorMuted: {},
     })),
 );
 
@@ -77,15 +82,23 @@ jest.mock('@components/Icon', () => {
 // Mock TextInput component
 jest.mock('@components/TextInput', () => {
     // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-    const {TextInput: RNTextInput} = jest.requireActual<typeof import('react-native')>('react-native');
-    function MockTextInput(props: {accessibilityLabel: string; value: string; onChangeText: (text: string) => void}) {
+    const {TextInput: RNTextInput, View: RNView} = jest.requireActual<typeof import('react-native')>('react-native');
+    function MockTextInput(props: {accessibilityLabel: string; value: string; onChangeText: (text: string) => void; onClearInput?: () => void}) {
         return (
-            <RNTextInput
-                testID="search-input"
-                accessibilityLabel={props.accessibilityLabel}
-                value={props.value}
-                onChangeText={props.onChangeText}
-            />
+            <RNView>
+                <RNTextInput
+                    testID="search-input"
+                    accessibilityLabel={props.accessibilityLabel}
+                    value={props.value}
+                    onChangeText={props.onChangeText}
+                />
+                {!!props.onClearInput && (
+                    <RNTextInput
+                        testID="clear-button"
+                        onPress={props.onClearInput}
+                    />
+                )}
+            </RNView>
         );
     }
     return MockTextInput;
@@ -113,42 +126,56 @@ type TestItem = {
     id: string;
     name: string;
     category: string;
+    value: number;
 };
 
-type TestColumnKey = 'name' | 'category';
+type TestColumnKey = 'name' | 'category' | 'value';
 
 // Sample test data
 const mockData: TestItem[] = [
-    {id: '1', name: 'Apple', category: 'fruit'},
-    {id: '2', name: 'Banana', category: 'fruit'},
-    {id: '3', name: 'Carrot', category: 'vegetable'},
-    {id: '4', name: 'Date', category: 'fruit'},
-    {id: '5', name: 'Eggplant', category: 'vegetable'},
+    {id: '1', name: 'Apple', category: 'fruit', value: 100},
+    {id: '2', name: 'Banana', category: 'fruit', value: 200},
+    {id: '3', name: 'Carrot', category: 'vegetable', value: 50},
+    {id: '4', name: 'Date', category: 'fruit', value: 150},
+    {id: '5', name: 'Eggplant', category: 'vegetable', value: 75},
 ];
 
 const mockColumns: Array<TableColumn<TestColumnKey>> = [
     {key: 'name', label: 'Name'},
     {key: 'category', label: 'Category'},
+    {key: 'value', label: 'Value'},
 ];
 
 // Helper function to create default test props
 function createDefaultProps() {
     const renderItem = ({item}: ListRenderItemInfo<TestItem>) => (
         <View testID={`row-${item.id}`}>
-            <Text>{item.name}</Text>
+            <Text testID={`name-${item.id}`}>{item.name}</Text>
+            <Text testID={`category-${item.id}`}>{item.category}</Text>
+            <Text testID={`value-${item.id}`}>{item.value}</Text>
         </View>
     );
 
     const keyExtractor = (item: TestItem) => item.id;
 
-    const isItemInSearch: IsItemInSearchCallback<TestItem> = (item, searchString) => item.name.toLowerCase().includes(searchString.toLowerCase());
+    const isItemInSearch: IsItemInSearchCallback<TestItem> = (item, searchString) => {
+        const searchLower = searchString.toLowerCase();
+        return item.name.toLowerCase().includes(searchLower) || item.category.toLowerCase().includes(searchLower);
+    };
 
     const compareItems: CompareItemsCallback<TestItem, TestColumnKey> = (a, b, {columnKey, order}) => {
         const multiplier = order === 'asc' ? 1 : -1;
+
         if (columnKey === 'name') {
             return a.name.localeCompare(b.name) * multiplier;
         }
-        return a.category.localeCompare(b.category) * multiplier;
+        if (columnKey === 'category') {
+            return a.category.localeCompare(b.category) * multiplier;
+        }
+        if (columnKey === 'value') {
+            return (a.value - b.value) * multiplier;
+        }
+        return 0;
     };
 
     return {
@@ -204,6 +231,7 @@ describe('Table', () => {
 
             expect(screen.getByText('Name')).toBeTruthy();
             expect(screen.getByText('Category')).toBeTruthy();
+            expect(screen.getByText('Value')).toBeTruthy();
         });
 
         it('should render empty state when no data', () => {
@@ -223,6 +251,50 @@ describe('Table', () => {
             );
 
             expect(screen.getByTestId('empty-state')).toBeTruthy();
+        });
+
+        it('should render with undefined data gracefully', () => {
+            const props = createDefaultProps();
+            const EmptyState = <Text testID="empty-state">No items found</Text>;
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={undefined}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    ListEmptyComponent={EmptyState}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(screen.getByTestId('empty-state')).toBeTruthy();
+        });
+
+        it('should render column headers with custom styling', () => {
+            const props = createDefaultProps();
+            const customColumns: Array<TableColumn<TestColumnKey>> = [
+                {key: 'name', label: 'Name', styling: {flex: 2}},
+                {key: 'category', label: 'Category', styling: {flex: 1}},
+                {key: 'value', label: 'Value', styling: {flex: 1}},
+            ];
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={customColumns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(screen.getByText('Name')).toBeTruthy();
+            expect(screen.getByText('Category')).toBeTruthy();
+            expect(screen.getByText('Value')).toBeTruthy();
         });
     });
 
@@ -290,6 +362,105 @@ describe('Table', () => {
             fireEvent.changeText(searchInput, '');
             expect(screen.getByTestId('row-2')).toBeTruthy();
         });
+
+        it('should search by multiple fields when isItemInSearch checks multiple properties', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.SearchBar />
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+
+            // Search by category should match all items in that category
+            fireEvent.changeText(searchInput, 'vegetable');
+
+            expect(screen.getByTestId('row-3')).toBeTruthy(); // Carrot
+            expect(screen.getByTestId('row-5')).toBeTruthy(); // Eggplant
+            expect(screen.queryByTestId('row-1')).toBeNull(); // Apple (fruit)
+        });
+
+        it('should handle case-insensitive search', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.SearchBar />
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+
+            // Test uppercase search
+            fireEvent.changeText(searchInput, 'APPLE');
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+
+            // Test mixed case
+            fireEvent.changeText(searchInput, 'ApPlE');
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+        });
+
+        it('should show no results when search matches nothing', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.SearchBar />
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+            fireEvent.changeText(searchInput, 'xyz123nonexistent');
+
+            expect(screen.queryByTestId('row-1')).toBeNull();
+            expect(screen.queryByTestId('row-2')).toBeNull();
+            expect(screen.queryByTestId('row-3')).toBeNull();
+            expect(screen.queryByTestId('row-4')).toBeNull();
+            expect(screen.queryByTestId('row-5')).toBeNull();
+        });
+
+        it('should keep all data if isItemInSearch is not provided', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.SearchBar />
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+            fireEvent.changeText(searchInput, 'apple');
+
+            // Without isItemInSearch, all items should remain visible
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+            expect(screen.getByTestId('row-2')).toBeTruthy();
+            expect(screen.getByTestId('row-3')).toBeTruthy();
+        });
     });
 
     describe('filter functionality', () => {
@@ -332,6 +503,28 @@ describe('Table', () => {
             expect(screen.getByTestId('row-1')).toBeTruthy();
             expect(screen.getByTestId('row-3')).toBeTruthy();
         });
+
+        it('should show all items when no filters are configured', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // Without filter configuration, all items should be visible
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+            expect(screen.getByTestId('row-2')).toBeTruthy();
+            expect(screen.getByTestId('row-3')).toBeTruthy();
+            expect(screen.getByTestId('row-4')).toBeTruthy();
+            expect(screen.getByTestId('row-5')).toBeTruthy();
+        });
     });
 
     describe('sorting functionality', () => {
@@ -356,6 +549,9 @@ describe('Table', () => {
 
             const categoryHeader = screen.getByText('Category');
             expect(categoryHeader).toBeTruthy();
+
+            const valueHeader = screen.getByText('Value');
+            expect(valueHeader).toBeTruthy();
         });
 
         it('should toggle sort order when column header is pressed', () => {
@@ -378,6 +574,58 @@ describe('Table', () => {
 
             // After pressing, the sort should be applied (visual feedback tested via icon)
             expect(nameHeader).toBeTruthy();
+        });
+
+        it('should allow pressing different column headers', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    compareItems={props.compareItems}
+                >
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            // Press Name column
+            fireEvent.press(screen.getByLabelText('Name'));
+
+            // Then press Category column
+            fireEvent.press(screen.getByLabelText('Category'));
+
+            // Then press Value column
+            fireEvent.press(screen.getByLabelText('Value'));
+
+            // All columns should still be pressable
+            expect(screen.getByLabelText('Name')).toBeTruthy();
+            expect(screen.getByLabelText('Category')).toBeTruthy();
+            expect(screen.getByLabelText('Value')).toBeTruthy();
+        });
+
+        it('should keep data unsorted when compareItems is not provided', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            // Press header
+            fireEvent.press(screen.getByLabelText('Name'));
+
+            // Data should still be in original order (unsorted)
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+            expect(screen.getByTestId('row-2')).toBeTruthy();
         });
     });
 
@@ -415,6 +663,43 @@ describe('Table', () => {
             expect(screen.getByTestId('row-1')).toBeTruthy();
         });
 
+        it('should work with Header and Body', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(screen.getByText('Name')).toBeTruthy();
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+        });
+
+        it('should work with SearchBar and Body', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.SearchBar />
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(screen.getByTestId('search-input')).toBeTruthy();
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+        });
+
         it('should work with all compositional components together', () => {
             const props = createDefaultProps();
 
@@ -446,6 +731,157 @@ describe('Table', () => {
             expect(screen.getByTestId('search-input')).toBeTruthy();
             expect(screen.getByText('Name')).toBeTruthy();
             expect(screen.getByTestId('row-1')).toBeTruthy();
+        });
+
+        it('should allow custom component ordering', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.Header />
+                    <Table.SearchBar />
+                    <Table.Body />
+                </Table>,
+            );
+
+            // All components should still render regardless of order
+            expect(screen.getByText('Name')).toBeTruthy();
+            expect(screen.getByTestId('search-input')).toBeTruthy();
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+        });
+    });
+
+    describe('combined search and filter', () => {
+        it('should apply both search and filter together', () => {
+            const props = createDefaultProps();
+
+            const filterConfig: FilterConfig = {
+                category: {
+                    filterType: 'single-select',
+                    options: [
+                        {label: 'All', value: 'all'},
+                        {label: 'Fruit', value: 'fruit'},
+                    ],
+                    default: 'fruit',
+                },
+            };
+
+            const isItemInFilter: IsItemInFilterCallback<TestItem> = (item, filterValues) => {
+                if (!filterValues || filterValues.length === 0 || filterValues.includes('all')) {
+                    return true;
+                }
+                return filterValues.includes(item.category);
+            };
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    filters={filterConfig}
+                    isItemInFilter={isItemInFilter}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.SearchBar />
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+
+            // With 'fruit' filter and 'an' search, should match Banana
+            fireEvent.changeText(searchInput, 'an');
+
+            // Banana (fruit, contains 'an') should be visible
+            expect(screen.getByTestId('row-2')).toBeTruthy();
+
+            // Carrot (vegetable) should not be visible (filtered out)
+            expect(screen.queryByTestId('row-3')).toBeNull();
+
+            // Eggplant (vegetable, contains 'an') should not be visible (filtered out)
+            expect(screen.queryByTestId('row-5')).toBeNull();
+        });
+    });
+
+    describe('performance and edge cases', () => {
+        it('should handle large datasets', () => {
+            const largeData: TestItem[] = Array.from({length: 100}, (_, i) => ({
+                id: String(i + 1),
+                name: `Item ${i + 1}`,
+                category: i % 2 === 0 ? 'fruit' : 'vegetable',
+                value: i * 10,
+            }));
+
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={largeData}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // First item should be rendered
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+        });
+
+        it('should handle special characters in search', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.SearchBar />
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+
+            // Search with special characters should not crash
+            fireEvent.changeText(searchInput, '!@#$%^&*()');
+
+            // No items should match, but app should not crash
+            expect(screen.queryByTestId('row-1')).toBeNull();
+        });
+
+        it('should handle whitespace-only search', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.SearchBar />
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+
+            // Whitespace-only search should be treated as empty (all items visible)
+            fireEvent.changeText(searchInput, '   ');
+
+            // All items should remain visible with whitespace-only search
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+            expect(screen.getByTestId('row-2')).toBeTruthy();
         });
     });
 });

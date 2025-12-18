@@ -10,10 +10,62 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import buildFilterItems from './buildFilterItems';
 import type {FilterButtonItem} from './buildFilterItems';
 
+/**
+ * Props for the TableFilterButtons component.
+ */
 type TableFilterButtonsProps = ViewProps & {
+    /** Optional custom styles for the horizontal FlatList content container. */
     contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
+/**
+ * Renders dropdown filter buttons for the table.
+ *
+ * This component displays filter buttons based on the `filters` configuration passed
+ * to the parent `<Table>` component. Each filter becomes a dropdown button that shows
+ * either a single-select or multi-select popup.
+ *
+ * The filtering logic is defined by the `isItemInFilter` callback on the parent Table.
+ *
+ * Supports:
+ * - Single-select filters (one value at a time)
+ * - Multi-select filters (multiple values)
+ * - Responsive layout adjustments for narrow screens
+ *
+ * @example
+ * ```tsx
+ * const filterConfig: FilterConfig = {
+ *   status: {
+ *     filterType: 'single-select',
+ *     options: [
+ *       { label: 'All', value: 'all' },
+ *       { label: 'Active', value: 'active' },
+ *     ],
+ *     default: 'all',
+ *   },
+ *   categories: {
+ *     filterType: 'multi-select',
+ *     options: [
+ *       { label: 'Food', value: 'food' },
+ *       { label: 'Travel', value: 'travel' },
+ *     ],
+ *   },
+ * };
+ *
+ * <Table
+ *   data={items}
+ *   columns={columns}
+ *   renderItem={renderItem}
+ *   filters={filterConfig}
+ *   isItemInFilter={(item, filterValues) =>
+ *     filterValues.includes(item.status)
+ *   }
+ * >
+ *   <Table.FilterButtons />
+ *   <Table.Body />
+ * </Table>
+ * ```
+ */
 function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -45,10 +97,17 @@ function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButton
     );
 }
 
+/**
+ * Props for the FilterItemRenderer component.
+ */
 type FilterItemRendererProps = {
+    /** The filter button configuration to render. */
     item: FilterButtonItem;
 };
 
+/**
+ * Renders a single filter dropdown button.
+ */
 function FilterItemRenderer({item}: FilterItemRendererProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -67,6 +126,9 @@ function FilterItemRenderer({item}: FilterItemRendererProps) {
     );
 }
 
+/**
+ * Custom cell renderer for responsive layout adjustments.
+ */
 function CellRendererComponent({children, style, ...props}: {children: ReactNode; style: StyleProp<ViewStyle>}) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();

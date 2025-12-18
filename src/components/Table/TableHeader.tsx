@@ -11,12 +11,40 @@ import variables from '@styles/variables';
 import {useTableContext} from './TableContext';
 import type {TableColumn} from './types';
 
-// We want to allow the user to switch once between ascending and descending order.
-// After that, sorting for a specific column will be reset.
+/**
+ * Number of times a column can be toggled before sorting is reset.
+ * Allows user to cycle through: asc -> desc -> reset.
+ */
 const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
 
+/**
+ * Props for the TableHeader component.
+ */
 type TableHeaderProps = ViewProps;
 
+/**
+ * Renders the table header row with sortable column headers.
+ *
+ * This component displays all configured columns as pressable headers.
+ * Clicking a column header toggles sorting: ascending -> descending -> reset.
+ * The currently sorted column displays an arrow icon indicating sort direction.
+ *
+ * @template T - The type of items in the table's data array.
+ * @template ColumnKey - A string literal type representing the valid column keys.
+ *
+ * @example
+ * ```tsx
+ * <Table
+ *   data={items}
+ *   columns={columns}
+ *   renderItem={renderItem}
+ *   compareItems={compareItems}
+ * >
+ *   <Table.Header />
+ *   <Table.Body />
+ * </Table>
+ * ```
+ */
 function TableHeader<T, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
     const styles = useThemeStyles();
     const {columns} = useTableContext<T, ColumnKey>();
@@ -39,6 +67,12 @@ function TableHeader<T, ColumnKey extends string = string>({style, ...props}: Ta
     );
 }
 
+/**
+ * Renders a single sortable column header.
+ *
+ * @template T - The type of items in the table's data array.
+ * @template ColumnKey - A string literal type representing the valid column keys.
+ */
 function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {column: TableColumn<ColumnKey>}) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -49,6 +83,11 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
     const sortIcon = activeSorting.order === 'asc' ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
 
     const toggleCount = useRef(0);
+
+    /**
+     * Handles column header press for sorting.
+     * Cycles through: first toggle (asc), second toggle (desc), third toggle (reset).
+     */
     const toggleSorting = (columnKey: ColumnKey) => {
         if (toggleCount.current >= NUMBER_OF_TOGGLES_BEFORE_RESET) {
             toggleCount.current = 0;

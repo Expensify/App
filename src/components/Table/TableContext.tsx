@@ -11,20 +11,51 @@ import type {
     UpdateSortingCallback,
 } from './types';
 
+/**
+ * The shape of the Table context value.
+ * This context is provided by the `<Table>` component and consumed by its sub-components.
+ *
+ * @template T - The type of items in the table's data array.
+ * @template ColumnKey - A string literal type representing the valid column keys.
+ */
 type TableContextValue<T, ColumnKey extends string = string> = {
+    /** Reference to the underlying FlashList for programmatic control. */
     listRef: React.RefObject<FlashListRef<T> | null>;
+
+    /** FlashList props passed through from the Table component. */
     listProps: SharedListProps<T>;
+
+    /** The data array after filtering, searching, and sorting have been applied. */
     processedData: T[];
+
+    /** The original length of the data array before any processing. */
     originalDataLength: number;
+
+    /** Column configuration for the table. */
     columns: Array<TableColumn<ColumnKey>>;
+
+    /** Filter configuration for dropdown filters. */
     filterConfig: FilterConfig | undefined;
+
+    /** Currently active filter values. */
     activeFilters: Record<string, unknown>;
+
+    /** Currently active sorting configuration. */
     activeSorting: ActiveSorting<ColumnKey>;
+
+    /** Currently active search string. */
     activeSearchString: string;
 
+    /** Callback to update a filter value. */
     updateFilter: UpdateFilterCallback;
+
+    /** Callback to update the sorting configuration. */
     updateSorting: UpdateSortingCallback<ColumnKey>;
+
+    /** Callback to toggle sorting for a specific column. */
     toggleColumnSorting: ToggleColumnSortingCallback<ColumnKey>;
+
+    /** Callback to update the search string. */
     updateSearchString: UpdateSearchStringCallback;
 };
 
@@ -49,6 +80,23 @@ const defaultTableContextValue: TableContextValue<unknown, string> = {
 
 const TableContext = createContext(defaultTableContextValue);
 
+/**
+ * Hook to access the Table context.
+ * Must be used within a `<Table>` provider.
+ *
+ * @template T - The type of items in the table's data array.
+ * @template ColumnKey - A string literal type representing the valid column keys.
+ *
+ * @throws {Error} If used outside of a Table provider.
+ *
+ * @example
+ * ```tsx
+ * function CustomTableComponent<T>() {
+ *   const { processedData, activeSorting } = useTableContext<T>();
+ *   // Use context data...
+ * }
+ * ```
+ */
 function useTableContext<T, ColumnKey extends string = string>() {
     const context = useContext(TableContext);
 
