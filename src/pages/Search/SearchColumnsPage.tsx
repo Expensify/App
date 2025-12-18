@@ -118,6 +118,10 @@ function SearchColumnsPage() {
         columns.length === defaultColumns.length &&
         columns.every((col, index) => col.columnId === defaultColumns.at(index)?.columnId && col.isSelected === defaultColumns.at(index)?.isSelected);
 
+    const missingTypeSelection = typeColumnsList.every((column) => !column.isSelected);
+    const missingGroupSelection = !!groupBy && groupColumnsList.every((column) => !column.isSelected);
+    const hasMissingSelectionError = missingTypeSelection || missingGroupSelection;
+
     const onSelectItem = (item: ListItem) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
 
@@ -241,11 +245,11 @@ function SearchColumnsPage() {
                 </ScrollView>
             </View>
             <View style={[styles.ph5, styles.pb5]}>
-                {!selectedColumnIds.length && (
+                {hasMissingSelectionError && (
                     <DotIndicatorMessage
                         type="error"
-                        style={styles.mb3}
-                        messages={{error: translate('search.noColumnsError')}}
+                        style={styles.mv3}
+                        messages={{error: missingGroupSelection ? translate('search.noGroupColumnsError') : translate('search.noColumnsError')}}
                     />
                 )}
                 <Button
