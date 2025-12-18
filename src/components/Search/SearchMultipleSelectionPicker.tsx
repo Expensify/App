@@ -106,6 +106,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             footerContent={footerContent}
             shouldStopPropagation
             shouldUpdateFocusedIndex
+            shouldClearInputOnSelect={false}
             showLoadingPlaceholder={!noResultsFound}
             shouldShowTooltips
             canSelectMultiple
