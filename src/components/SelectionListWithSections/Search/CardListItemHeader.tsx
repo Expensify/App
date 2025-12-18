@@ -128,7 +128,7 @@ function CardListItemHeader<TItem extends ListItem>({
                             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
                                 <ExpensesCell count={cardItem.count} />
                             </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, true)}>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}>
                                 <TotalCell
                                     total={cardItem.total}
                                     currency={cardItem.currency}

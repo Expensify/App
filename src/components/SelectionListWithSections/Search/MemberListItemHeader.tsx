@@ -125,7 +125,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
                                 <ExpensesCell count={memberItem.count} />
                             </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, true)}>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}>
                                 <TotalCell
                                     total={memberItem.total}
                                     currency={memberItem.currency}

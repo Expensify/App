@@ -159,7 +159,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
                                 <ExpensesCell count={withdrawalIDItem.count} />
                             </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, true)}>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}>
                                 <TotalCell
                                     total={withdrawalIDItem.total}
                                     currency={withdrawalIDItem.currency}
