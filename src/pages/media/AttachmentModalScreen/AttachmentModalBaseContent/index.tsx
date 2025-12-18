@@ -54,9 +54,6 @@ function AttachmentModalBaseContent({
     shouldShowCarousel = true,
     shouldDisableSendButton = false,
     shouldDisplayHelpButton = false,
-    shouldShowRotateButton = false,
-    onRotateButtonPress,
-    isRotating = false,
     submitRef,
     onDownloadAttachment,
     onClose,
@@ -297,9 +294,6 @@ function AttachmentModalBaseContent({
                 title={headerTitle ?? translate('common.attachment')}
                 shouldShowBorderBottom
                 shouldShowDownloadButton={shouldShowDownloadButton}
-                shouldShowRotateButton={shouldShowRotateButton}
-                onRotateButtonPress={onRotateButtonPress}
-                isRotating={isRotating}
                 shouldDisplayHelpButton={shouldDisplayHelpButton}
                 onDownloadButtonPress={() => onDownloadAttachment?.({file: fileToDisplay, source})}
                 shouldShowCloseButton={!shouldUseNarrowLayout}
@@ -349,6 +343,7 @@ function AttachmentModalBaseContent({
                                 onPress={submitAndClose}
                                 isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
                                 pressOnEnter
+                                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_MODAL.SEND_BUTTON}
                             />
                         </Animated.View>
                     )}
