@@ -63,6 +63,7 @@ function WorkspaceCompanyCardsList({selectedFeed, policyID, onAssignCard, isAssi
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const isLoadingPersonalDetails = !isOffline && isLoadingOnyxValue(personalDetailsMetadata);
     const isLoadingCardsTableData = isLoadingCardsList || isLoadingPersonalDetails;
+
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
 
@@ -214,7 +215,7 @@ function WorkspaceCompanyCardsList({selectedFeed, policyID, onAssignCard, isAssi
         </>
     );
 
-    // Show empty state when there are no cards (but not when loading)
+    // Show empty state when there are no cards
     if (!cards?.length && !isLoadingCardsTableData) {
         return (
             <WorkspaceCompanyCardsFeedAddedEmptyPage
