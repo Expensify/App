@@ -31,6 +31,9 @@ type ExportWithDropdownMenuProps = {
     dropdownAnchorAlignment?: AnchorAlignment;
 
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Label for Sentry tracking */
+    sentryLabel?: string;
 };
 
 function ExportWithDropdownMenu({
@@ -42,6 +45,7 @@ function ExportWithDropdownMenu({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
     wrapperStyle,
+    sentryLabel,
 }: ExportWithDropdownMenuProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
@@ -135,6 +139,7 @@ function ExportWithDropdownMenu({
             style={[shouldUseNarrowLayout && styles.flexGrow1]}
             wrapperStyle={flattenedWrapperStyle}
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+            sentryLabel={sentryLabel}
         />
     );
 }

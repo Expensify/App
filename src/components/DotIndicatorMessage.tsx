@@ -79,7 +79,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                 });
             });
         } else if (href.endsWith('download')) {
-            fileDownload(receiptError.source, receiptError.filename).finally(() => dismissError());
+            fileDownload(translate, receiptError.source, receiptError.filename).finally(() => dismissError());
         }
     };
 
@@ -121,7 +121,5 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         </View>
     );
 }
-
-DotIndicatorMessage.displayName = 'DotIndicatorMessage';
 
 export default DotIndicatorMessage;

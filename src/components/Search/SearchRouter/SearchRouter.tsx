@@ -496,7 +496,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     return (
         <View
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
-            testID={SearchRouter.displayName}
+            testID="SearchRouter"
             ref={ref}
         >
             {shouldUseNarrowLayout && (
@@ -561,7 +561,5 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         </View>
     );
 }
-
-SearchRouter.displayName = 'SearchRouter';
 
 export default SearchRouter;

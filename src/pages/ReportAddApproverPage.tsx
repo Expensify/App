@@ -125,7 +125,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
 
     return (
         <ApproverSelectionList
-            testID={ReportAddApproverPage.displayName}
+            testID="ReportAddApproverPage"
             headerTitle={translate('iou.changeApprover.actions.addApprover')}
             onBackButtonPress={() => {
                 Navigation.goBack(ROUTES.REPORT_CHANGE_APPROVER.getRoute(report.reportID), {compareParams: false});
@@ -144,7 +144,5 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         />
     );
 }
-
-ReportAddApproverPage.displayName = 'ReportAddApproverPage';
 
 export default withReportOrNotFound()(ReportAddApproverPage);
