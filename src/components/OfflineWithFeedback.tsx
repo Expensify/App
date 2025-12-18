@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
@@ -107,30 +107,27 @@ function OfflineWithFeedback({
     /**
      * This method applies the strikethrough to all the children passed recursively
      */
-    const applyStrikeThrough = useCallback(
-        (childrenProp: React.ReactNode): React.ReactNode => {
-            const strikeThroughChildren = mapChildrenFlat(childrenProp, (child) => {
-                if (!React.isValidElement(child) || child.type === ImageSVG) {
-                    return child;
-                }
+    const applyStrikeThrough = (childrenProp: React.ReactNode): React.ReactNode => {
+        const strikeThroughChildren = mapChildrenFlat(childrenProp, (child) => {
+            if (!React.isValidElement(child) || child.type === ImageSVG) {
+                return child;
+            }
 
-                type ChildComponentProps = ChildrenProps & {style?: AllStyles};
-                const childProps = child.props as ChildComponentProps;
-                const props: StrikethroughProps = {
-                    style: StyleUtils.combineStyles(childProps.style ?? [], styles.offlineFeedbackDeleted, styles.userSelectNone),
-                };
+            type ChildComponentProps = ChildrenProps & {style?: AllStyles};
+            const childProps = child.props as ChildComponentProps;
+            const props: StrikethroughProps = {
+                style: StyleUtils.combineStyles(childProps.style ?? [], styles.offlineFeedbackDeleted, styles.userSelectNone),
+            };
 
-                if (childProps.children) {
-                    props.children = applyStrikeThrough(childProps.children);
-                }
+            if (childProps.children) {
+                props.children = applyStrikeThrough(childProps.children);
+            }
 
-                return React.cloneElement(child, props);
-            });
+            return React.cloneElement(child, props);
+        });
 
-            return strikeThroughChildren;
-        },
-        [StyleUtils, styles],
-    );
+        return strikeThroughChildren;
+    };
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
     if (hasChildren && needsStrikeThrough && !hideChildren) {
