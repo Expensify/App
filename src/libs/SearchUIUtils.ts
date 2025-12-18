@@ -3030,7 +3030,7 @@ function getColumnsToShow(
         const columnsToShow = filteredVisibleColumns.length ? filteredVisibleColumns : defaultCustomColumns;
 
         if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
-            const columns = {
+            const columns: ColumnVisibility = {
                 [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: false,
@@ -3038,22 +3038,30 @@ function getColumnsToShow(
             };
 
             for (const column of columnsToShow) {
-                columns[column] = true;
+                columns[column as keyof ColumnVisibility] = true;
             }
+
+            return columns;
         }
 
         if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
-            const columns = {
+            const columns: ColumnVisibility = {
                 [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: false,
             };
+
+            for (const column of columnsToShow) {
+                columns[column as keyof ColumnVisibility] = true;
+            }
+
+            return columns;
         }
 
         if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
-            const columns = {
+            const columns: ColumnVisibility = {
                 [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: false,
@@ -3061,6 +3069,12 @@ function getColumnsToShow(
                 [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: false,
             };
+
+            for (const column of columnsToShow) {
+                columns[column as keyof ColumnVisibility] = true;
+            }
+
+            return columns;
         }
     }
 
