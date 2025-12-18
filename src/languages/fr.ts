@@ -174,6 +174,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     SpreadCategoriesParams,
@@ -1383,6 +1384,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: 'La quantité doit être supérieure à zéro',
             invalidSubrateLength: 'Il doit y avoir au moins un sous-taux',
             invalidRate: 'Taux non valide pour cet espace de travail. Veuillez sélectionner un taux disponible dans l’espace de travail.',
+            endDateBeforeStartDate: 'La date de fin ne peut pas être antérieure à la date de début',
+            endDateSameAsStartDate: 'La date de fin ne peut pas être identique à la date de début',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera entièrement votre reçu téléchargé. Êtes-vous sûr ?',
@@ -1528,6 +1531,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Choisir un espace de travail',
+        date: 'Date',
+        splitDates: 'Diviser les dates',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `Du ${startDate} au ${endDate} (${count} jours)`,
+        splitByDate: 'Scinder par date',
     },
     transactionMerge: {
         listPage: {

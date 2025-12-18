@@ -8,6 +8,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
@@ -49,6 +50,7 @@ import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SplitAmountList from './SplitAmountList';
@@ -59,7 +61,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'MoneyCircle', 'Percent', 'Plus'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'MoneyCircle', 'Percent', 'Plus', 'CalendarSolid'] as const);
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -111,6 +113,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
 
     const isPercentageMode = selectedTab === CONST.IOU.SPLIT_TYPE.PERCENTAGE;
+    const isDateMode = selectedTab === CONST.IOU.SPLIT_TYPE.DATE;
     const childTransactions = useMemo(() => getChildTransactions(allTransactions, allReports, transactionID), [allReports, allTransactions, transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
@@ -240,7 +243,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const onSplitExpenseValueChange = useCallback(
         (id: string, value: number, mode: ValueOf<typeof CONST.IOU.SPLIT_TYPE>) => {
-            if (mode === CONST.IOU.SPLIT_TYPE.AMOUNT) {
+            if (mode === CONST.IOU.SPLIT_TYPE.AMOUNT || mode === CONST.IOU.SPLIT_TYPE.DATE) {
                 const amountInCents = convertToBackendAmount(value);
                 updateSplitExpenseAmountField(draftTransaction, id, amountInCents);
             } else {
@@ -399,6 +402,34 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         onSaveSplitExpense,
     ]);
 
+    const splitDatesTitle = useMemo(() => {
+        const startDate = draftTransaction?.comment?.splitsStartDate;
+        const endDate = draftTransaction?.comment?.splitsEndDate;
+        return DateUtils.getFormattedSplitDateRange(translate, startDate, endDate);
+    }, [draftTransaction?.comment?.splitsStartDate, draftTransaction?.comment?.splitsEndDate, translate]);
+
+    const handleDatePress = useCallback(() => {
+        Navigation.navigate(ROUTES.SPLIT_EXPENSE_CREATE_DATE_RANGE.getRoute(reportID, transactionID, Navigation.getActiveRoute()));
+    }, [reportID, transactionID]);
+
+    const headerDateContent = useMemo(() => {
+        return (
+            <View style={styles.pb3}>
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon
+                    shouldRenderAsHTML
+                    key={translate('iou.splitDates')}
+                    description={translate('iou.splitDates')}
+                    title={splitDatesTitle}
+                    onPress={handleDatePress}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleWrapperStyle={styles.flex1}
+                    numberOfLinesTitle={2}
+                />
+            </View>
+        );
+    }, [styles.pb3, styles.moneyRequestMenuItem, styles.flex1, translate, splitDatesTitle, handleDatePress]);
+
     const initiallyFocusedOptionKey = useMemo(
         () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
         [sections, splitExpenseTransactionID],
@@ -408,8 +439,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (splitExpenseTransactionID) {
             return translate('iou.editSplits');
         }
-        return isPercentageMode ? translate('iou.splitByPercentage') : translate('iou.split');
-    }, [splitExpenseTransactionID, isPercentageMode, translate]);
+        if (isPercentageMode) {
+            return translate('iou.splitByPercentage');
+        }
+        if (isDateMode) {
+            return translate('iou.splitByDate');
+        }
+        return translate('iou.split');
+    }, [splitExpenseTransactionID, isDateMode, isPercentageMode, translate]);
 
     const onSelectRow = useCallback(
         (item: SplitListItemType) => {
@@ -475,6 +512,21 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                                     initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
                                                     onSelectRow={onSelectRow}
                                                     listFooterContent={listFooterContent}
+                                                />
+                                                {footerContent}
+                                            </View>
+                                        </TabScreenWithFocusTrapWrapper>
+                                    )}
+                                </TopTab.Screen>
+                                <TopTab.Screen name={CONST.IOU.SPLIT_TYPE.DATE}>
+                                    {() => (
+                                        <TabScreenWithFocusTrapWrapper>
+                                            <View style={styles.flex1}>
+                                                {headerDateContent}
+                                                <SplitAmountList
+                                                    sections={sections}
+                                                    initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
+                                                    onSelectRow={onSelectRow}
                                                 />
                                                 {footerContent}
                                             </View>
