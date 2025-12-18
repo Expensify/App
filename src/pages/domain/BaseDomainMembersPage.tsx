@@ -9,7 +9,6 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import SelectionList from '@components/SelectionListWithSections';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -22,6 +21,7 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import IconAsset from '@src/types/utils/IconAsset';
 
 type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
     accountID: number;
@@ -44,8 +44,7 @@ type BaseDomainMembersPageProps = {
     /** Callback fired when a row is selected */
     onSelectRow: (item: MemberOption) => void;
 
-    /** Whether to show the Not Found View (e.g. if user is not admin, or data is missing) */
-    shouldShowNotFoundView?: boolean;
+    hederIcon:  IconAsset;
 };
 
 function BaseDomainMembersPage({
@@ -54,11 +53,10 @@ function BaseDomainMembersPage({
                                    searchPlaceholder,
                                    headerContent,
                                    onSelectRow,
-                                   shouldShowNotFoundView = false,
+                                   hederIcon
                                }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Members']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
@@ -120,15 +118,10 @@ function BaseDomainMembersPage({
             shouldShowOfflineIndicatorInWideScreen
             testID={BaseDomainMembersPage.displayName}
         >
-            <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                shouldShow={shouldShowNotFoundView}
-                shouldForceFullScreen
-            >
                 <HeaderWithBackButton
                     title={headerTitle}
                     onBackButtonPress={Navigation.popToSidebar}
-                    icon={illustrations.Members}
+                    icon={hederIcon}
                     shouldShowBackButton={shouldUseNarrowLayout}
                 >
                     {!shouldUseNarrowLayout && !!headerContent && (
@@ -155,7 +148,6 @@ function BaseDomainMembersPage({
                     customListHeader={getCustomListHeader()}
                     containerStyle={[styles.flex1]}
                 />
-            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

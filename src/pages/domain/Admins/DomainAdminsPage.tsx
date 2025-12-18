@@ -32,16 +32,13 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isUserAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
-    const handleSelectRow = (item: MemberOption) => {
-        Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID));
-    };
 
     return (
         <BaseDomainMembersPage
             accountIDs={adminAccountIDs ?? []}
             headerTitle={translate('domain.admins.title')}
             searchPlaceholder={translate('domain.admins.findAdmin')}
-            onSelectRow={handleSelectRow}
+            onSelectRow={(item: MemberOption)=>Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
             shouldShowNotFoundView={!isUserAdmin}
         />
     );
