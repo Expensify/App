@@ -19,6 +19,7 @@ import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation'
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -31,6 +32,7 @@ import {generateReportID} from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {getTransactionID} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -73,20 +75,32 @@ function Confirmation() {
         [duplicates, reviewDuplicates, newTransaction],
     );
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
+    const childReportID = reportAction?.childReportID;
+    const reviewDuplicatesReportID = reviewDuplicates?.reportID;
+
+    const navigateAfterMerge = useCallback((reportID: string | undefined) => {
+        if (reportID) {
+            // Navigate to search page or regular report based on where user came from
+            if (isSearchTopmostFullScreenRoute()) {
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}), {forceReplace: true});
+            } else {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), {forceReplace: true});
+            }
+        }
+        Navigation.dismissModal();
+    }, []);
 
     const mergeDuplicates = useCallback(() => {
-        const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
-        if (!reportAction?.childReportID) {
-            transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
-        }
-        IOU.mergeDuplicates(transactionsMergeParams);
-        Navigation.dismissModal();
-    }, [reportAction?.childReportID, transactionsMergeParams]);
+        const transactionThreadReportID = childReportID ?? generateReportID();
+        const params = childReportID ? transactionsMergeParams : {...transactionsMergeParams, transactionThreadReportID};
+        IOU.mergeDuplicates(params);
+        Navigation.setNavigationActionToMicrotaskQueue(() => navigateAfterMerge(reviewDuplicatesReportID));
+    }, [childReportID, transactionsMergeParams, reviewDuplicatesReportID, navigateAfterMerge]);
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-        Navigation.dismissModal();
-    }, [transactionsMergeParams]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => navigateAfterMerge(reviewDuplicatesReportID));
+    }, [transactionsMergeParams, reviewDuplicatesReportID, navigateAfterMerge]);
 
     const contextValue = useMemo(
         () => ({
