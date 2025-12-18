@@ -111,6 +111,8 @@ import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
+import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
@@ -124,6 +126,7 @@ import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
 import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
+import TrinetSquare from '@assets/images/integrationicons/trinet-icon-square.svg';
 import Uber from '@assets/images/integrationicons/uber.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
@@ -248,6 +251,7 @@ const Expensicons = {
     Bank,
     CircularArrowBackwards,
     Bill,
+    BillComSquare,
     Bell,
     Binoculars,
     Bolt,
@@ -259,6 +263,7 @@ const Expensicons = {
     Camera,
     Car,
     Cash,
+    CertiniaSquare,
     ChatBubble,
     ChatBubbles,
     Checkbox,
@@ -391,6 +396,7 @@ const Expensicons = {
     ThreeDots,
     Transfer,
     Trashcan,
+    TrinetSquare,
     Uber,
     Unlock,
     UpArrow,
