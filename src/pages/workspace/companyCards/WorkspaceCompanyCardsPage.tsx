@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import DecisionModal from '@components/DecisionModal';
 import useAssignCard from '@hooks/useAssignCard';
@@ -20,7 +20,7 @@ import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActio
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
 import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
@@ -39,10 +39,10 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
-    const [cardFeeds, , defaultFeed] = useCardFeeds(policyID);
+    const [cardFeeds] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
-    const [cardsList] = useCardsList(selectedFeed);
+    const [cardsList, cardsListMetadata] = useCardsList(selectedFeed);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const hasNoAssignedCard = Object.keys(cardsList ?? {}).length === 0;
 
@@ -53,18 +53,17 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const isFeedAdded = !isPending && !isNoFeed;
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
-    const fetchCompanyCards = useCallback(() => {
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
-    }, [policyID, domainOrWorkspaceAccountID]);
 
-    const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
-    const isLoading = !isOffline && (!cardFeeds || (!!defaultFeed?.isLoading && isEmptyObject(cardsList)));
+    const {isOffline} = useNetwork({
+        onReconnect: () => openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID),
+    });
+    const isLoading = !isOffline && (!cardFeeds || (isFeedAdded && isLoadingOnyxValue(cardsListMetadata)));
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
 
     useEffect(() => {
-        fetchCompanyCards();
-    }, [fetchCompanyCards]);
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
+    }, [policyID, domainOrWorkspaceAccountID]);
 
     useEffect(() => {
         if (isLoading || !feed || isPending) {
@@ -113,7 +112,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     {isFeedAdded && !isPending && (
                         <WorkspaceCompanyCardsList
                             selectedFeed={selectedFeed}
-                            cardsList={cardsList}
                             shouldShowGBDisclaimer={shouldShowGBDisclaimer}
                             policyID={policyID}
                             onAssignCard={assignCard}

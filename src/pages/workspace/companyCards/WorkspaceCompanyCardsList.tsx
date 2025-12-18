@@ -2,13 +2,15 @@ import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import SearchBar from '@components/SearchBar';
+import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -29,16 +31,14 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsListRow from './WorkspaceCompanyCardsListRow';
 
 type WorkspaceCompanyCardsListProps = {
     /** Selected feed */
     selectedFeed: CompanyCardFeedWithDomainID;
-
-    /** List of company cards */
-    cardsList: OnyxEntry<WorkspaceCardsList>;
 
     /** Current policy id */
     policyID: string;
@@ -53,17 +53,24 @@ type WorkspaceCompanyCardsListProps = {
     shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer}: WorkspaceCompanyCardsListProps) {
+function WorkspaceCompanyCardsList({selectedFeed, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const listRef = useRef<FlashListRef<string>>(null);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [cardsList, cardsListMetadata] = useCardsList(selectedFeed);
+    const isLoadingCardsList = !isOffline && isLoadingOnyxValue(cardsListMetadata);
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const isLoadingPersonalDetails = !isOffline && isLoadingOnyxValue(personalDetailsMetadata);
+    const isLoadingCardsTableData = isLoadingCardsList || isLoadingPersonalDetails;
+
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
 
-    const {cardList, ...assignedCards} = cardsList ?? {};
+    const cardListTyped: Record<string, string> | undefined = (cardsList as {cardList?: Record<string, string>})?.cardList ?? {};
+    const assignedCards = Object.fromEntries(Object.entries(cardsList ?? {}).filter(([key]) => key !== 'cardList')) as Record<string, Card>;
     const [cardFeeds] = useCardFeeds(policyID);
 
     const companyFeeds = getCompanyFeeds(cardFeeds);
@@ -89,7 +96,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
     const renderItem = ({item: cardName, index}: ListRenderItemInfo<string>) => {
         const assignedCard = Object.values(assignedCards ?? {}).find((card) => card.cardName === cardName);
 
-        const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID];
+        const customCardName = assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined;
 
         const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -101,7 +108,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
             if (isPlaid) {
                 cardIdentifier = cardName;
             } else if (isCommercial) {
-                const cardValue = cardList?.[cardName] ?? cardName;
+                const cardValue = cardListTyped?.[cardName] ?? cardName;
                 const digitsOnly = cardValue.replaceAll(/\D/g, '');
                 if (digitsOnly.length >= 10) {
                     const first6 = digitsOnly.substring(0, 6);
@@ -111,7 +118,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
                     cardIdentifier = cardValue;
                 }
             } else {
-                cardIdentifier = cardList?.[cardName] ?? cardName;
+                cardIdentifier = cardListTyped?.[cardName] ?? cardName;
             }
         }
 
@@ -149,7 +156,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
                 >
                     {({hovered}) => (
                         <WorkspaceCompanyCardsListRow
-                            cardholder={personalDetails?.[assignedCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]}
+                            cardholder={assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined}
                             cardName={cardName}
                             selectedFeed={selectedFeed}
                             plaidIconUrl={plaidIconUrl}
@@ -213,7 +220,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
     );
 
     // Show empty state when there are no cards
-    if (!cards?.length) {
+    if (!cards?.length && !isLoadingCardsTableData) {
         return (
             <WorkspaceCompanyCardsFeedAddedEmptyPage
                 shouldShowGBDisclaimer={shouldShowGBDisclaimer}
@@ -227,10 +234,11 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
         <View style={styles.flex1}>
             <FlashList
                 ref={listRef}
-                data={cards}
+                data={isLoadingCardsTableData ? [] : (cards ?? [])}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 ListHeaderComponent={ListHeaderComponent}
+                ListEmptyComponent={!isOffline && isLoadingCardsTableData ? <TableRowSkeleton fixedNumItems={5} /> : undefined}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={styles.flexGrow1}
