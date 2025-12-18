@@ -1489,12 +1489,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                             },
                         },
-                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
-                            path: ROUTES.SPLIT_EXPENSE_EDIT.route,
-                            exact: true,
-                        },
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE]: {
                             path: ROUTES.SPLIT_EXPENSE_CREATE_DATE_RANGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
+                            path: ROUTES.SPLIT_EXPENSE_EDIT.route,
                             exact: true,
                         },
                         [SCREENS.SET_DEFAULT_WORKSPACE]: ROUTES.SET_DEFAULT_WORKSPACE.route,
