@@ -40,10 +40,9 @@ function SearchColumnsPage() {
     const allCustomColumns = getCustomColumns(queryType);
     const defaultCustomColumns = getCustomColumnDefault(queryType);
 
-    // Columns that cannot be deselected (always required)
+    // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns since it makes sense for them to show up in an expense management App and it fixes the layout issues.
     const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
 
-    // Helper function to sort columns: selected at top (in order), unselected at bottom (alphabetically)
     const sortColumns = (columnsToSort: ColumnItem[]): ColumnItem[] => {
         const selected = columnsToSort.filter((col) => col.isSelected);
         const unselected = columnsToSort
@@ -59,7 +58,6 @@ function SearchColumnsPage() {
     const [columns, setColumns] = useState<ColumnItem[]>(() => {
         const savedColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
 
-        // If no saved columns, use default order and selection
         if (!savedColumnIds.length) {
             const initialColumns = allCustomColumns.map((columnId) => ({
                 columnId,
@@ -68,7 +66,6 @@ function SearchColumnsPage() {
             return sortColumns(initialColumns);
         }
 
-        // Build columns with saved selection state, maintaining saved order for selected items
         const selected = savedColumnIds.map((columnId) => ({columnId, isSelected: true}));
         const unselected = allCustomColumns
             .filter((columnId) => !savedColumnIds.includes(columnId))
@@ -114,7 +111,6 @@ function SearchColumnsPage() {
     const onSelectItem = (item: ListItem) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
 
-        // Don't allow toggling required columns
         if (requiredColumns.has(updatedColumnId)) {
             return;
         }
@@ -128,7 +124,6 @@ function SearchColumnsPage() {
             const newIsSelected = !columnToUpdate.isSelected;
 
             if (newIsSelected) {
-                // When selecting an unselected column, move it to the bottom of selected columns
                 const selected = prevColumns.filter((col) => col.isSelected);
                 const unselected = prevColumns.filter((col) => !col.isSelected && col.columnId !== updatedColumnId);
                 const unselectedSorted = unselected.sort((a, b) => {
@@ -138,14 +133,13 @@ function SearchColumnsPage() {
                 });
                 return [...selected, {columnId: updatedColumnId, isSelected: true}, ...unselectedSorted];
             }
-            // When deselecting, update and re-sort
+
             const updatedColumns = prevColumns.map((col) => (col.columnId === updatedColumnId ? {...col, isSelected: false} : col));
             return sortColumns(updatedColumns);
         });
     };
 
     const onDragEnd = ({data}: {data: typeof columnsList}) => {
-        // Only allow reordering within selected columns - maintain selected/unselected separation
         const newColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         setColumns(sortColumns(newColumns));
     };

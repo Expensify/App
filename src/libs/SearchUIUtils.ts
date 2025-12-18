@@ -2996,12 +2996,7 @@ function getColumnsToShow(
     if (!isExpenseReportView && groupBy) {
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.FROM:
-                return [
-                    CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-                    CONST.SEARCH.TABLE_COLUMNS.FROM,
-                    CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
-                    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
-                ];
+                return [CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.FROM, CONST.SEARCH.TABLE_COLUMNS.EXPENSES, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
             case CONST.SEARCH.GROUP_BY.CARD:
                 return [
                     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
