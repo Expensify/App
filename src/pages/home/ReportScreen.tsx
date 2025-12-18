@@ -152,7 +152,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
@@ -226,7 +226,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             const displayName = getDisplayNameOrDefault(participantPersonalDetail);
             const login = participantPersonalDetail?.login;
             if (displayName && login) {
-                return translate('common.chatWithAccountManager', {accountManagerDisplayName: `${displayName} (${login})`});
+                return translate('common.chatWithAccountManager', `${displayName} (${login})`);
             }
         }
         return '';
@@ -1034,5 +1034,5 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 }
 
-ReportScreen.displayName = 'ReportScreen';
+// eslint-disable-next-line rulesdir/no-deep-equal-in-memo
 export default memo(ReportScreen, (prevProps, nextProps) => deepEqual(prevProps.route, nextProps.route));

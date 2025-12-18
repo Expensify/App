@@ -28,8 +28,10 @@ import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
+    getHarvestOriginalReportID,
     getSourceIDFromReportAction,
     isArchivedNonExpenseReport,
+    isHarvestCreatedExpenseReport,
     isInvoiceReport as ReportUtilsIsInvoiceReport,
     isMoneyRequest as ReportUtilsIsMoneyRequest,
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
@@ -131,7 +133,23 @@ function BaseReportActionContextMenu({
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Pencil', 'ThreeDots'] as const);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'Download',
+        'ThreeDots',
+        'ChatBubbleReply',
+        'ChatBubbleUnread',
+        'Mail',
+        'Pencil',
+        'Stopwatch',
+        'Bell',
+        'Copy',
+        'LinkCopy',
+        'Pin',
+        'Flag',
+        'Bug',
+        'Trashcan',
+        'Checkmark',
+    ] as const);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -158,6 +176,10 @@ function BaseReportActionContextMenu({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
+    const [harvestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID))}`, {
+        canBeMissing: true,
+    });
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
@@ -224,6 +246,8 @@ function BaseReportActionContextMenu({
         !isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, transactionThreadReportID ? isChildReportArchived : isParentReportArchived);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
+    const isHarvestReport = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
+
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
             !disabledActions.includes(contextAction) &&
@@ -249,6 +273,7 @@ function BaseReportActionContextMenu({
                 isDebugModeEnabled,
                 iouTransaction,
                 transactions,
+                isHarvestReport,
             }),
     );
 
@@ -367,6 +392,7 @@ function BaseReportActionContextMenu({
                             interceptAnonymousUser,
                             openOverflowMenu,
                             setIsEmojiPickerActive,
+                            isHarvestReport,
                             moneyRequestAction,
                             card,
                             originalReport,
@@ -378,6 +404,7 @@ function BaseReportActionContextMenu({
                             policy,
                             policyTags,
                             translate,
+                            harvestReport,
                         };
 
                         if ('renderContent' in contextAction) {
@@ -418,6 +445,7 @@ function BaseReportActionContextMenu({
                                 onBlur={() => (index === filteredContextMenuActions.length - 1 || index === 1) && setFocusedIndex(-1)}
                                 disabled={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
                                 shouldShowLoadingSpinnerIcon={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
+                                sentryLabel={contextAction.sentryLabel}
                             />
                         );
                     })}
@@ -427,6 +455,7 @@ function BaseReportActionContextMenu({
     );
 }
 
+// eslint-disable-next-line rulesdir/no-deep-equal-in-memo
 export default memo(BaseReportActionContextMenu, deepEqual);
 
 export type {BaseReportActionContextMenuProps};

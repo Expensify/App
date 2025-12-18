@@ -49,13 +49,13 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
             shouldBeBlocked={!policy?.shouldShowAutoReimbursementLimitOption || autoPayApprovedReportsUnavailable}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesAutoPayReportsUnderPage.displayName}
+                testID="RulesAutoPayReportsUnderPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
@@ -92,7 +92,5 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesAutoPayReportsUnderPage.displayName = 'RulesAutoPayReportsUnderPage';
 
 export default RulesAutoPayReportsUnderPage;
