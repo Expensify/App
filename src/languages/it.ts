@@ -596,7 +596,7 @@ const translations: TranslationDeepObject<typeof en> = {
         filterLogs: 'Filtra registri',
         network: 'Rete',
         reportID: 'ID rapporto',
-        longID: 'ID lungo',
+        longReportID: 'ID rapporto lungo',
         withdrawalID: 'ID prelievo',
         bankAccounts: 'Conti bancari',
         chooseFile: 'Scegli file',
@@ -6813,6 +6813,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             title: 'Crea esportazione',
             description: 'Wow, sono davvero tanti elementi! Li raggrupperemo e Concierge ti invierà un file a breve.',
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Seleziona tutti gli elementi corrispondenti',
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
@@ -7971,6 +7972,11 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             addPrimaryContact: 'Aggiungi contatto principale',
             settings: 'Impostazioni',
         },
+    },
+    desktopAppRetiredPage: {
+        title: "L'app desktop è stata dismessa",
+        body: 'La nuova app desktop Expensify per Mac è stata ritirata. D’ora in avanti, usa l’app web per accedere al tuo account.',
+        goToWeb: 'Vai al sito web',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

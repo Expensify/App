@@ -596,7 +596,7 @@ const translations: TranslationDeepObject<typeof en> = {
         filterLogs: 'Filtrer les journaux',
         network: 'Réseau',
         reportID: 'ID du rapport',
-        longID: 'Identifiant long',
+        longReportID: 'ID de rapport long',
         withdrawalID: 'ID de retrait',
         bankAccounts: 'Comptes bancaires',
         chooseFile: 'Choisir un fichier',
@@ -6840,6 +6840,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             title: 'Créer une exportation',
             description: 'Ouah, ça fait beaucoup d’éléments ! Nous allons les regrouper, et Concierge vous enverra bientôt un fichier.',
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Sélectionner tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
@@ -7989,6 +7990,11 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             enable: 'Activer',
         },
         admins: {title: 'Admins', findAdmin: 'Trouver un admin', primaryContact: 'Contact principal', addPrimaryContact: 'Ajouter un contact principal', settings: 'Paramètres'},
+    },
+    desktopAppRetiredPage: {
+        title: 'L’application de bureau a été retirée',
+        body: 'La nouvelle application de bureau Expensify pour Mac a été retirée. À l’avenir, veuillez utiliser l’application web pour accéder à votre compte.',
+        goToWeb: 'Aller sur le web',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

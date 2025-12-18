@@ -596,7 +596,7 @@ const translations: TranslationDeepObject<typeof en> = {
         filterLogs: 'ログをフィルター',
         network: 'ネットワーク',
         reportID: 'レポート ID',
-        longID: '長いID',
+        longReportID: '長いレポート ID',
         withdrawalID: '出金ID',
         bankAccounts: '銀行口座',
         chooseFile: 'ファイルを選択',
@@ -6759,6 +6759,7 @@ ${reportName}
             title: 'エクスポートを作成',
             description: 'おっと、かなり多くのアイテムがありますね！まとめて整理してから、まもなくConciergeがファイルをお送りします。',
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: '一致する項目をすべて選択',
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
@@ -7904,6 +7905,11 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             enable: '有効にする',
         },
         admins: {title: '管理者', findAdmin: '管理者を検索', primaryContact: '主要連絡先', addPrimaryContact: '主要連絡先を追加', settings: '設定'},
+    },
+    desktopAppRetiredPage: {
+        title: 'デスクトップアプリは廃止されました',
+        body: 'New Expensify の Mac デスクトップアプリは廃止されました。今後は、アカウントへアクセスする際に Web アプリをご利用ください。',
+        goToWeb: 'Web を開く',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

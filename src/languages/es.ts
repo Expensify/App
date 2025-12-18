@@ -291,7 +291,7 @@ const translations: TranslationDeepObject<typeof en> = {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
-        longID: 'ID largo',
+        longReportID: 'ID de informe largo',
         withdrawalID: 'ID de retiro',
         bankAccounts: 'Cuentas bancarias',
         chooseFile: 'Elegir archivo',
@@ -6366,6 +6366,7 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Crear exportación',
             description: '¡Wow, esos son muchos elementos! Los agruparemos y Concierge te enviará un archivo en breve.',
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
@@ -6379,6 +6380,11 @@ ${amount} para ${merchant} - ${date}`,
             helpTextConcierge: 'Si el problema persiste, comunícate con',
         },
         refresh: 'Actualizar',
+    },
+    desktopAppRetiredPage: {
+        title: 'La aplicación de escritorio ha sido retirada',
+        body: 'La nueva aplicación de escritorio Expensify para Mac ha sido retirada. En adelante, utiliza la aplicación web para acceder a tu cuenta.',
+        goToWeb: 'Ir a la web',
     },
     fileDownload: {
         success: {
