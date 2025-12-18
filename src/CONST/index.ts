@@ -1671,6 +1671,9 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
         TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
+        TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
+        TAG_AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
+        TAG_AUTHENTICATION_JSON_CODE: 'authentication_json_code',
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
@@ -2908,6 +2911,10 @@ const CONST = {
             DELETE: 'delete',
             APPROVE: 'approve',
             TRACK: 'track',
+        },
+        SPLIT_TYPE: {
+            AMOUNT: 'amount',
+            PERCENTAGE: 'percentage',
         },
         AMOUNT_MAX_LENGTH: 8,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
@@ -5441,6 +5448,7 @@ const CONST = {
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
+        SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
         SHARE: {
             NAVIGATOR_ID: 'ShareNavigatorID',
             SHARE: 'ShareTab',
@@ -6701,6 +6709,7 @@ const CONST = {
                     POSTED: this.TABLE_COLUMNS.POSTED,
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     MERCHANT: this.TABLE_COLUMNS.MERCHANT,
+                    DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
                     POLICY_NAME: this.TABLE_COLUMNS.POLICY_NAME,

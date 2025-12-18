@@ -16,6 +16,7 @@ import type {
 } from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -580,8 +581,16 @@ type SplitListItemType = ListItem &
         /** Indicates whether a split wasn't approved, paid etc. when report.statusNum < CONST.REPORT.STATUS_NUM.CLOSED */
         isEditable: boolean;
 
-        /** Function for updating amount */
-        onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
+        /** Current mode for the split editor: amount or percentage */
+        mode: ValueOf<typeof CONST.IOU.SPLIT_TYPE>;
+
+        /** Percentage value to show when in percentage mode (0-100) */
+        percentage: number;
+
+        /**
+         * Function for updating value (amount or percentage based on mode)
+         */
+        onSplitExpenseValueChange: (transactionID: string, value: number, mode: ValueOf<typeof CONST.IOU.SPLIT_TYPE>) => void;
     };
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
@@ -1064,6 +1073,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** Whether the list is percentage mode (for scroll offset calculation) */
+    isPercentageMode?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
