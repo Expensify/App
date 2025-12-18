@@ -781,7 +781,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
-    if (isMergeAction(report, reportTransactions, policy)) {
+    if (reportTransactions?.length === 1 && isMergeAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
