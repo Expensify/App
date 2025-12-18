@@ -4738,13 +4738,15 @@ const translations = {
             feedName: (feedName: string) => `${feedName} cards`,
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
+            chooseTheCardholder: 'Choose the cardholder',
             chooseCard: 'Choose a card',
             chooseCardFor: (assignee: string) => `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
             noActiveCards: 'No active cards on this feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Or something might be broken. Either way, if you have any questions, just <concierge-link>contact Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Choose a transaction start date',
-            startDateDescription: "We'll import all transactions from this date onwards. If no date is specified, we’ll go as far back as your bank allows.",
+            startDateDescription: "Choose your import start date. We'll sync all transactions from this date onwards.",
+
             fromTheBeginning: 'From the beginning',
             customStartDate: 'Custom start date',
             customCloseDate: 'Custom close date',

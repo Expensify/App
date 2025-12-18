@@ -1,6 +1,6 @@
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -22,6 +22,8 @@ import {
     getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
     getPlaidInstitutionIconUrl,
+    getPlaidInstitutionId,
+    isCustomFeed,
     sortCardsByCardholderName,
 } from '@libs/CardUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -42,7 +44,7 @@ type WorkspaceCompanyCardsListProps = {
     policyID: string;
 
     /** On assign card callback */
-    onAssignCard: () => void;
+    onAssignCard: (cardID?: string) => void;
 
     /** Whether to disable assign card button */
     isAssigningCardDisabled?: boolean;
@@ -67,7 +69,8 @@ function WorkspaceCompanyCardsList({selectedFeed, policyID, onAssignCard, isAssi
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
 
-    const {cardList, ...assignedCards} = cardsList ?? {};
+    const cardListTyped: Record<string, string> | undefined = (cardsList as {cardList?: Record<string, string>})?.cardList;
+    const assignedCards = Object.fromEntries(Object.entries(cardsList ?? {}).filter(([key]) => key !== 'cardList')) as Record<string, Card>;
     const [cardFeeds] = useCardFeeds(policyID);
 
     const companyFeeds = getCompanyFeeds(cardFeeds);
@@ -76,14 +79,12 @@ function WorkspaceCompanyCardsList({selectedFeed, policyID, onAssignCard, isAssi
     const plaidIconUrl = getPlaidInstitutionIconUrl(selectedFeed);
 
     // Get all cards sorted by cardholder name
-    const allCards = useMemo(() => {
-        const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
-        return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
-    }, [cardsList, policy?.employeeList]);
+    const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
+    const allCards = getCardsByCardholderName(cardsList, policyMembersAccountIDs);
 
     // Filter and sort cards based on search input
-    const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
-    const sortCards = useCallback((cardsToSort: Card[]) => sortCardsByCardholderName(cardsToSort, personalDetails, localeCompare), [personalDetails, localeCompare]);
+    const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
+    const sortCards = (cardsToSort: Card[]) => sortCardsByCardholderName(cardsToSort, personalDetails, localeCompare);
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
@@ -92,84 +93,87 @@ function WorkspaceCompanyCardsList({selectedFeed, policyID, onAssignCard, isAssi
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
     const shouldUseNarrowTableRowLayout = isMediumScreenWidth || shouldUseNarrowLayout;
 
-    const renderItem = useCallback(
-        ({item: cardName, index}: ListRenderItemInfo<string>) => {
-            const assignedCard = Object.values(assignedCards ?? {}).find((card) => card.cardName === cardName);
+    const renderItem = ({item: cardName, index}: ListRenderItemInfo<string>) => {
+        const assignedCard = Object.values(assignedCards ?? {}).find((card) => card.cardName === cardName);
 
-            const customCardName = assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined;
+        const customCardName = assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined;
 
-            const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-            return (
-                <OfflineWithFeedback
-                    key={`${cardName}_${index}`}
-                    errorRowStyles={styles.ph5}
-                    errors={assignedCard?.errors}
-                    pendingAction={assignedCard?.pendingAction}
+        let cardIdentifier: string | undefined;
+        if (!assignedCard) {
+            const isPlaid = !!getPlaidInstitutionId(selectedFeed);
+            const isCommercial = isCustomFeed(selectedFeed);
+
+            if (isPlaid) {
+                cardIdentifier = cardName;
+            } else if (isCommercial) {
+                const cardValue = cardListTyped?.[cardName] ?? cardName;
+                const digitsOnly = cardValue.replaceAll(/\D/g, '');
+                if (digitsOnly.length >= 10) {
+                    const first6 = digitsOnly.substring(0, 6);
+                    const last4 = digitsOnly.substring(digitsOnly.length - 4);
+                    cardIdentifier = `${first6}${last4}`;
+                } else {
+                    cardIdentifier = cardValue;
+                }
+            } else {
+                cardIdentifier = cardListTyped?.[cardName] ?? cardName;
+            }
+        }
+
+        return (
+            <OfflineWithFeedback
+                key={`${cardName}_${index}`}
+                errorRowStyles={styles.ph5}
+                errors={assignedCard?.errors}
+                pendingAction={assignedCard?.pendingAction}
+            >
+                <PressableWithFeedback
+                    role={CONST.ROLE.BUTTON}
+                    style={[styles.mh5, styles.br3, styles.mb3, styles.highlightBG]}
+                    accessibilityLabel="row"
+                    hoverStyle={styles.hoveredComponentBG}
+                    disabled={isCardDeleted}
+                    onPress={() => {
+                        if (!assignedCard) {
+                            onAssignCard(cardIdentifier);
+                            return;
+                        }
+
+                        if (!assignedCard?.accountID || !assignedCard?.fundID) {
+                            return;
+                        }
+
+                        return Navigation.navigate(
+                            ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
+                                policyID,
+                                assignedCard.cardID.toString(),
+                                getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID),
+                            ),
+                        );
+                    }}
                 >
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        style={[styles.mh5, styles.br3, styles.mb3, styles.highlightBG]}
-                        accessibilityLabel="row"
-                        hoverStyle={styles.hoveredComponentBG}
-                        disabled={isCardDeleted}
-                        onPress={() => {
-                            if (!assignedCard) {
-                                onAssignCard();
-                                return;
-                            }
+                    {({hovered}) => (
+                        <WorkspaceCompanyCardsListRow
+                            cardholder={assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined}
+                            cardName={cardName}
+                            selectedFeed={selectedFeed}
+                            plaidIconUrl={plaidIconUrl}
+                            customCardName={customCardName}
+                            isHovered={hovered}
+                            isAssigned={!!assignedCard}
+                            onAssignCard={() => onAssignCard(cardIdentifier)}
+                            isAssigningCardDisabled={isAssigningCardDisabled}
+                            shouldUseNarrowTableRowLayout={shouldUseNarrowTableRowLayout}
+                        />
+                    )}
+                </PressableWithFeedback>
+            </OfflineWithFeedback>
+        );
+    };
 
-                            if (!assignedCard?.accountID || !assignedCard?.fundID) {
-                                return;
-                            }
-
-                            return Navigation.navigate(
-                                ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
-                                    policyID,
-                                    assignedCard.cardID.toString(),
-                                    getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID),
-                                ),
-                            );
-                        }}
-                    >
-                        {({hovered}) => (
-                            <WorkspaceCompanyCardsListRow
-                                cardholder={assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined}
-                                cardName={cardName}
-                                selectedFeed={selectedFeed}
-                                plaidIconUrl={plaidIconUrl}
-                                customCardName={customCardName}
-                                isHovered={hovered}
-                                isAssigned={!!assignedCard}
-                                onAssignCard={onAssignCard}
-                                isAssigningCardDisabled={isAssigningCardDisabled}
-                                shouldUseNarrowTableRowLayout={shouldUseNarrowTableRowLayout}
-                            />
-                        )}
-                    </PressableWithFeedback>
-                </OfflineWithFeedback>
-            );
-        },
-        [
-            assignedCards,
-            customCardNames,
-            isAssigningCardDisabled,
-            onAssignCard,
-            personalDetails,
-            plaidIconUrl,
-            policyID,
-            selectedFeed,
-            shouldUseNarrowTableRowLayout,
-            styles.br3,
-            styles.highlightBG,
-            styles.hoveredComponentBG,
-            styles.mb3,
-            styles.mh5,
-            styles.ph5,
-        ],
-    );
-
-    const keyExtractor = useCallback((item: string, index: number) => `${item}_${index}`, []);
+    const keyExtractor = (item: string, index: number) => `${item}_${index}`;
 
     const ListHeaderComponent = shouldUseNarrowTableRowLayout ? (
         <View style={styles.h7} />

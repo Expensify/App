@@ -4858,6 +4858,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             feedName: (feedName: string) => `Cartes ${feedName}`,
             directFeed: 'Flux direct',
             whoNeedsCardAssigned: 'Qui a besoin d’une carte attribuée ?',
+            chooseTheCardholder: 'Choisissez le titulaire de la carte',
             chooseCard: 'Choisissez une carte',
             chooseCardFor: (assignee: string) =>
                 `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous recherchez ? <concierge-link>Faites-le-nous savoir.</concierge-link>`,
