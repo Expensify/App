@@ -596,7 +596,7 @@ const translations: TranslationDeepObject<typeof en> = {
         filterLogs: '筛选日志',
         network: '网络',
         reportID: '报告 ID',
-        longID: '长 ID',
+        longReportID: '长报表 ID',
         withdrawalID: '提款 ID',
         bankAccounts: '银行账户',
         chooseFile: '选择文件',
