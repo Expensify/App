@@ -8,6 +8,7 @@ import type {SearchCustomColumnIds} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionList from '@components/SelectionListWithSections';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
+import DraggableList from '@components/DraggableList';
 import type {SectionListDataType} from '@components/SelectionListWithSections/types';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -43,17 +44,12 @@ function SearchColumnsPage() {
         return columnIds;
     });
 
-    const sections: Array<SectionListDataType<ListItem>> = [
-        {
-            title: undefined,
-            data: allCustomColumns.map((columnId) => ({
-                text: translate(getSearchColumnTranslationKey(columnId)),
-                value: columnId,
-                keyForList: columnId,
-                isSelected: selectedColumnIds?.includes(columnId),
-            })),
-        },
-    ];
+    const columnsList = selectedColumnIds.map((columnId) => ({
+        text: translate(getSearchColumnTranslationKey(columnId)),
+        value: columnId,
+        keyForList: columnId,
+        isSelected: true,
+    }));
 
     const sortedDefaultColumns = [...defaultCustomColumns].sort();
     const sortedSelectedColumnIds = [...selectedColumnIds].sort();
@@ -67,6 +63,10 @@ function SearchColumnsPage() {
         } else {
             setSelectedColumnIds([...selectedColumnIds, updatedColumnId]);
         }
+    };
+
+    const onDragEnd = ({data}: {data: typeof columnsList}) => {
+        setSelectedColumnIds(data.map((item) => item.value));
     };
 
     const resetColumns = () => {
@@ -84,6 +84,16 @@ function SearchColumnsPage() {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
     };
 
+    const renderItem = ({item}: {item: ListItem}) => {
+        return (
+            <MultiSelectListItem
+                item={item}
+                isSelected={item.isSelected}
+                onSelectRow={onSelectItem}
+            />
+        );
+    };
+
     return (
         <ScreenWrapper
             testID="SearchColumnsPage"
@@ -95,14 +105,12 @@ function SearchColumnsPage() {
                 {shouldShowResetColumns && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
             </HeaderWithBackButton>
             <View style={[styles.flex1]}>
-                <SelectionList
-                    sections={sections}
-                    onSelectRow={onSelectItem}
-                    shouldStopPropagation
-                    shouldShowTooltips
-                    canSelectMultiple
-                    ListItem={MultiSelectListItem}
-                    footerContent={
+                <DraggableList
+                    data={columnsList}
+                    keyExtractor={(item) => item.value}
+                    onDragEnd={onDragEnd}
+                    renderItem={renderItem}
+                    ListFooterComponent={
                         <View style={[styles.gap2]}>
                             {!selectedColumnIds.length && (
                                 <DotIndicatorMessage
