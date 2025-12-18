@@ -354,7 +354,7 @@
     "react-refresh": "^0.14.2",
     "react-test-renderer": "19.1.0",
     "reassure": "^1.0.0-rc.4",
-    "rock": "github:LukasMod/rock#feat/adhoc-android-dist-6",
+    "rock": "github:LukasMod/rock#680efe800c850cd1d84fec4e93a546c637881cf9",
     "semver": "7.5.2",
     "setimmediate": "^1.0.5",
     "shellcheck": "^1.1.0",
