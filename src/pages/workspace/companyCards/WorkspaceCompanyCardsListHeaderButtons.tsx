@@ -22,13 +22,16 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {
     checkIfFeedConnectionIsBroken,
+    flatAllCardsList,
     getBankName,
     getCardFeedIcon,
     getCompanyCardFeed,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
+    getDomainOrWorkspaceAccountID,
     getPlaidCountry,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
@@ -65,8 +68,10 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
+    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
@@ -77,6 +82,9 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
     const bankName = plaidUrl && formattedFeedName ? formattedFeedName : getBankName(feed);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeedData);
+    const hasFeedError = !!cardFeeds?.[selectedFeed]?.errors;
+    const hasAnyFeedConnectionBroken = checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed) || hasFeedError;
     const [cardsList] = useCardsList(selectedFeed);
     const {cardList, ...cards} = cardsList ?? {};
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(cards);
@@ -135,6 +143,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                     shouldChangeLayout={shouldChangeLayout}
                     feedName={formattedFeedName}
                     supportingText={supportingText}
+                    shouldShowRBR={hasAnyFeedConnectionBroken}
                 />
                 <View style={[styles.flexRow, styles.gap2]}>
                     {!!shouldShowAssignCardButton && (

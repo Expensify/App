@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -37,6 +38,7 @@ type Props = {
 function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, supportingText, shouldShowRBR = false, plaidUrl = null}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <PressableWithFeedback
@@ -57,7 +59,7 @@ function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, sup
             )}
             <View style={styles.flex1}>
                 <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
-                    <CaretWrapper style={styles.flex1}>
+                    <CaretWrapper style={[shouldUseNarrowLayout && styles.flex1]}>
                         <Text
                             numberOfLines={1}
                             style={[styles.textStrong, styles.flexShrink1]}
