@@ -9,7 +9,6 @@ import {
     getMergeFieldUpdatedValues,
     getMergeFieldValue,
     getRateFromMerchant,
-    getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
