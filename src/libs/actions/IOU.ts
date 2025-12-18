@@ -6017,7 +6017,7 @@ function convertBulkTrackedExpensesToIOU(
         const actionableWhisperReportActionID = getTrackExpenseActionableWhisper(transactionID, selfDMReportID)?.reportActionID;
 
         const commentText = typeof transaction.comment === 'string' ? transaction.comment : (transaction.comment?.comment ?? '');
-        const parsedComment = getParsedComment(commentText);
+        const parsedComment = getParsedComment(Parser.htmlToMarkdown(commentText));
 
         const attendees = transaction.comment?.attendees;
 
@@ -7071,13 +7071,13 @@ function duplicateExpenseTransaction(
             ...transaction,
             ...transactionDetails,
             attendees: transactionDetails?.attendees as Attendee[] | undefined,
-            comment: transactionDetails?.comment,
+            comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
             created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             customUnitRateID: transaction?.comment?.customUnit?.customUnitRateID,
             isTestDrive: transaction?.receipt?.isTestDriveReceipt,
             merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
             modifiedAmount: undefined,
-            originalTransactionID: transaction?.comment?.originalTransactionID,
+            originalTransactionID: undefined,
             receipt: undefined,
             source: undefined,
             waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
@@ -7092,12 +7092,6 @@ function duplicateExpenseTransaction(
 
     // If no workspace is provided the expense should be unreported
     if (!targetPolicy) {
-        const selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`];
-
-        if (!selfDMReport) {
-            return;
-        }
-
         const trackExpenseParams: CreateTrackExpenseParams = {
             ...params,
             participantParams: {
@@ -7108,7 +7102,7 @@ function duplicateExpenseTransaction(
                 ...(params.transactionParams ?? {}),
                 validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
             },
-            report: selfDMReport,
+            report: undefined,
             isDraftPolicy: false,
         };
         return trackExpense(trackExpenseParams);
@@ -10849,6 +10843,10 @@ function canIOUBePaid(
         !isPayAtEndExpenseReport &&
         (!isExpenseReport(iouReport) || arePaymentsEnabled(policy as OnyxEntry<OnyxTypes.Policy>))
     );
+}
+
+function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxEntry<OnyxTypes.Session>) {
+    return isPayerReportUtils(session, iouReport) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
 }
 
 function canSubmitReport(
@@ -15333,6 +15331,7 @@ export {
     canUnapproveIOU,
     cancelPayment,
     canIOUBePaid,
+    canCancelPayment,
     cleanUpMoneyRequest,
     clearMoneyRequest,
     completeSplitBill,
