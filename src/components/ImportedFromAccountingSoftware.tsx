@@ -10,7 +10,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import EmployeesSeeTagsAsText from './EmployeesSeeTagsAsText';
+import EmployeesSeeTagsAsText from './EmployeesSeeTagsAsText/index';
 import Icon from './Icon';
 import Text from './Text';
 import TextBlock from './TextBlock';

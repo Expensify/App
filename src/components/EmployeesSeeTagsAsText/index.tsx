@@ -1,7 +1,7 @@
 import React from 'react';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Text from '@components/Text';
 
 type EmployeesSeeTagsAsTextProps = {
     customTagName: string;
