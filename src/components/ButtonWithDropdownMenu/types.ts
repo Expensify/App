@@ -6,6 +6,7 @@ import type CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
 
@@ -21,7 +22,7 @@ type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
 type OnboardingHelpType = DeepValueOf<typeof CONST.ONBOARDING_HELP>;
 
-type DropdownOption<TValueType> = {
+type DropdownOption<TValueType> = WithSentryLabel & {
     value: TValueType;
     text: string;
     icon?: IconAsset;
@@ -49,11 +50,9 @@ type DropdownOption<TValueType> = {
     shouldShow?: boolean;
     /** Whether to show a loading spinner for this option */
     shouldShowLoadingSpinnerIcon?: boolean;
-    /** Label for sentry to identify the dropdown option */
-    sentryLabel?: string;
 };
 
-type ButtonWithDropdownMenuProps<TValueType> = {
+type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** The custom text to display on the main button instead of selected option */
     customText?: string;
 
@@ -162,9 +161,6 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Reference to the outer element */
     ref?: React.Ref<ButtonWithDropdownMenuRef>;
-
-    /** Label for the sentry to identify the button */
-    sentryLabel?: string;
 };
 
 type ButtonWithDropdownMenuRef = {
