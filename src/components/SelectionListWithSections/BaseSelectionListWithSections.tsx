@@ -883,6 +883,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 return;
             }
         }
+        // Avoid clearing focus on initial render
+        if (isInitialSectionListRender) {
+            return;
+        }
 
         // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)
         // else focus on the first non disabled item
