@@ -878,7 +878,7 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, policy?: OnyxEntry<Policy>): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean): boolean {
     if (!reportAction) {
         return false;
     }
@@ -934,10 +934,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     if (!isVisiblePreviewOrMoneyRequest(reportAction)) {
-        return false;
-    }
-
-    if (isConciergeCategoryOptions(reportAction) && policy && !policy.areCategoriesEnabled) {
         return false;
     }
 
@@ -2556,7 +2552,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
                     return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.always');
                 }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.default', {defaultAmount: formatAmount()});
+                return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.default', formatAmount());
             };
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal('workspaceActions.updateCategoryMaxAmountNoReceipt', {
@@ -3311,7 +3307,7 @@ function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.T
     // If mentionedAccountIDs exists and has values, use the first one
     if (mentionedAccountIDs?.length) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.changeApprover.changedApproverMessage', {managerID: mentionedAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID});
+        return translateLocal('iou.changeApprover.changedApproverMessage', mentionedAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID);
     }
 
     // Fallback: If mentionedAccountIDs is missing (common with OldDot take control actions),
@@ -3321,7 +3317,7 @@ function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.T
         return '';
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.changeApprover.changedApproverMessage', {managerID: actorAccountID});
+    return translateLocal('iou.changeApprover.changedApproverMessage', actorAccountID);
 }
 
 function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate) {
@@ -3411,20 +3407,20 @@ function getCardIssuedMessage({
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED: {
             if (cardIssuedActionOriginalMessage?.hadMissingAddress) {
-                return translate('workspace.expensifyCard.addedShippingDetails', {assignee});
+                return translate('workspace.expensifyCard.addedShippingDetails', assignee);
             }
-            return translate('workspace.expensifyCard.issuedCard', {assignee});
+            return translate('workspace.expensifyCard.issuedCard', assignee);
         }
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
             return translate('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink(translate('workspace.expensifyCard.card'))});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
             return translate('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-            return translate('workspace.expensifyCard.issuedCardNoShippingDetails', {assignee});
+            return translate('workspace.expensifyCard.issuedCardNoShippingDetails', assignee);
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL:
             return translate('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink(translate('workspace.expensifyCard.replacementCard'))});
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED:
-            return translate('workspace.expensifyCard.replacedCard', {assignee});
+            return translate('workspace.expensifyCard.replacedCard', assignee);
         default:
             return '';
     }

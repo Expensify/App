@@ -66,6 +66,7 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
                         success={hasNewMessages}
                         small
                         onPress={onClick}
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.FLOATING_MESSAGE_COUNTER}
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <Icon
@@ -87,7 +88,5 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
         </Animated.View>
     );
 }
-
-FloatingMessageCounter.displayName = 'FloatingMessageCounter';
 
 export default React.memo(FloatingMessageCounter);
