@@ -1,8 +1,9 @@
 import {renderHook} from '@testing-library/react-native';
+import type {SearchQueryJSON} from '@components/Search/types';
 import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import {clearAllFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -217,6 +218,42 @@ describe('useSuggestedSearchDefaultNavigation', () => {
             shouldSkipNavigation: true,
         });
 
+        expect(clearAllFilters).not.toHaveBeenCalled();
+        expect(clearSelectedTransactions).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate to Approve for inline-context query without rawFilterList when skeleton hides', () => {
+        const clearSelectedTransactions = jest.fn();
+        const approveMenuItem = createApproveMenuItem();
+        const submitMenuItem = createSubmitMenuItem();
+        const inlineContextQueryJSON = {
+            flatFilters: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, filters: []}],
+            rawFilterList: undefined,
+            inputQuery: 'in:general',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        } as SearchQueryJSON;
+        const shouldSkipNavigation = shouldSkipSuggestedSearchNavigationForQuery(inlineContextQueryJSON);
+
+        const {rerender} = renderHook((props: Parameters<typeof useSuggestedSearchDefaultNavigation>[0]) => useSuggestedSearchDefaultNavigation(props), {
+            initialProps: {
+                shouldShowSkeleton: true,
+                flattenedMenuItems: [approveMenuItem, submitMenuItem],
+                similarSearchHash: undefined,
+                clearSelectedTransactions,
+                shouldSkipNavigation,
+            },
+        });
+
+        rerender({
+            shouldShowSkeleton: false,
+            flattenedMenuItems: [approveMenuItem, submitMenuItem],
+            similarSearchHash: undefined,
+            clearSelectedTransactions,
+            shouldSkipNavigation,
+        });
+
+        expect(shouldSkipNavigation).toBe(true);
         expect(clearAllFilters).not.toHaveBeenCalled();
         expect(clearSelectedTransactions).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();

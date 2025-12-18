@@ -10,7 +10,7 @@ import {clearAllFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -32,16 +32,10 @@ import useWindowDimensions from './useWindowDimensions';
 
 export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {hash, similarSearchHash} = queryJSON;
-    const shouldSkipSuggestedSearchNavigation = useMemo(() => {
-        const hasKeywordFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
-        const hasContextFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN);
-        const inputQuery = queryJSON.inputQuery?.toLowerCase() ?? '';
-        const hasInlineKeywordFilter = inputQuery.includes(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD.toLowerCase()}:`);
-        const hasInlineContextFilter = inputQuery.includes(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN.toLowerCase()}:`);
-        const isChatSearch = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
-
-        return !!queryJSON.rawFilterList || hasKeywordFilter || hasContextFilter || hasInlineKeywordFilter || hasInlineContextFilter || isChatSearch;
-    }, [queryJSON.flatFilters, queryJSON.rawFilterList, queryJSON.inputQuery, queryJSON.type]);
+    const shouldSkipSuggestedSearchNavigation = useMemo(
+        () => shouldSkipSuggestedSearchNavigationForQuery(queryJSON),
+        [queryJSON.flatFilters, queryJSON.rawFilterList, queryJSON.inputQuery, queryJSON.type],
+    );
 
     const theme = useTheme();
     const styles = useThemeStyles();
