@@ -149,7 +149,6 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                         shouldDisplayErrorAbove
                         errors={assignCard?.errors}
                         errorRowStyles={styles.mv2}
-                        canDismissError={false}
                     >
                         <Button
                             isDisabled={isOffline}

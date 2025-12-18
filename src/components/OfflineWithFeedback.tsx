@@ -22,7 +22,7 @@ import ImageSVG from './ImageSVG';
  * care of adding the appropriate styles for pending actions and displaying the dismissible error.
  */
 
-type OfflineWithFeedbackProps = ChildrenProps & {
+type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction | null;
 
@@ -59,9 +59,6 @@ type OfflineWithFeedbackProps = ChildrenProps & {
     /** Whether to apply needsOffscreenAlphaCompositing prop to the children */
     needsOffscreenAlphaCompositing?: boolean;
 
-    /** Whether we can dismiss the error message */
-    canDismissError?: boolean;
-
     /** Whether we should render the error message above the children */
     shouldDisplayErrorAbove?: boolean;
 
@@ -76,12 +73,11 @@ type StrikethroughProps = Partial<ChildrenProps> & {style: AllStyles[]};
 
 function OfflineWithFeedback({
     pendingAction,
-    canDismissError = true,
     contentContainerStyle,
     errorRowStyles,
     errors,
     needsOffscreenAlphaCompositing = false,
-    onClose = () => {},
+    onClose: onDismiss,
     shouldDisableOpacity = false,
     shouldDisableStrikeThrough = false,
     shouldHideOnDelete = true,
@@ -91,7 +87,7 @@ function OfflineWithFeedback({
     shouldForceOpacity = false,
     dismissError = () => {},
     errorRowTextStyles,
-    ...rest
+    ...restProps
 }: OfflineWithFeedbackProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -105,7 +101,8 @@ function OfflineWithFeedback({
     const needsOpacity = (!shouldDisableOpacity && ((isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError)) || shouldForceOpacity;
     const needsStrikeThrough = !shouldDisableStrikeThrough && isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const hideChildren = shouldHideOnDelete && !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !hasErrors;
-    let children = rest.children;
+    let children = restProps.children;
+    const hasChildren = !!children;
 
     /**
      * This method applies the strikethrough to all the children passed recursively
@@ -136,7 +133,7 @@ function OfflineWithFeedback({
     );
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
-    if (needsStrikeThrough && !hideChildren) {
+    if (hasChildren && needsStrikeThrough && !hideChildren) {
         children = applyStrikeThrough(children);
     }
     return (
@@ -145,13 +142,12 @@ function OfflineWithFeedback({
                 <ErrorMessageRow
                     errors={errors}
                     errorRowStyles={errorRowStyles}
-                    onClose={onClose}
-                    canDismissError={canDismissError}
+                    onDismiss={onDismiss}
                     errorRowTextStyles={errorRowTextStyles}
                     dismissError={dismissError}
                 />
             )}
-            {!hideChildren && (
+            {hasChildren && !hideChildren && (
                 <View
                     style={[needsOpacity ? styles.offlineFeedbackPending : styles.offlineFeedbackDefault, contentContainerStyle]}
                     needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOpacity && needsOffscreenAlphaCompositing : undefined}
@@ -164,8 +160,7 @@ function OfflineWithFeedback({
                     errors={errors}
                     errorRowStyles={errorRowStyles}
                     errorRowTextStyles={errorRowTextStyles}
-                    onClose={onClose}
-                    canDismissError={canDismissError}
+                    onDismiss={onDismiss}
                     dismissError={dismissError}
                 />
             )}

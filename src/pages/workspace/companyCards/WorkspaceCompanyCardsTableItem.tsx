@@ -85,6 +85,12 @@ function WorkspaceCompanyCardTableItem({
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
+    if (assignedCard) {
+        assignedCard.errors = {
+            test: 'test',
+        };
+    }
+
     let cardFeedIcon = null;
     if (!plaidIconUrl) {
         cardFeedIcon = getCardFeedIcon(selectedFeed as CompanyCardFeed, illustrations, companyCardFeedIcons);
@@ -95,37 +101,33 @@ function WorkspaceCompanyCardTableItem({
     const alternateLoginText = shouldUseNarrowTableRowLayout ? `${customCardName}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : (cardholder?.login ?? '');
 
     return (
-        <OfflineWithFeedback
-            errorRowStyles={styles.ph5}
-            errors={assignedCard?.errors}
-            pendingAction={assignedCard?.pendingAction}
+        <PressableWithFeedback
+            role={CONST.ROLE.BUTTON}
+            style={[styles.mh5, styles.br3, styles.mb2, styles.highlightBG]}
+            accessibilityLabel="row"
+            hoverStyle={styles.hoveredComponentBG}
+            disabled={isCardDeleted}
+            onPress={() => {
+                if (!assignedCard) {
+                    onAssignCard();
+                    return;
+                }
+
+                if (!assignedCard?.accountID || !assignedCard?.fundID) {
+                    return;
+                }
+
+                return Navigation.navigate(
+                    ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
+                        policyID,
+                        assignedCard.cardID.toString(),
+                        getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID),
+                    ),
+                );
+            }}
         >
-            <PressableWithFeedback
-                role={CONST.ROLE.BUTTON}
-                style={[styles.mh5, styles.br3, styles.mb2, styles.highlightBG]}
-                accessibilityLabel="row"
-                hoverStyle={styles.hoveredComponentBG}
-                disabled={isCardDeleted}
-                onPress={() => {
-                    if (!assignedCard) {
-                        onAssignCard();
-                        return;
-                    }
-
-                    if (!assignedCard?.accountID || !assignedCard?.fundID) {
-                        return;
-                    }
-
-                    return Navigation.navigate(
-                        ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
-                            policyID,
-                            assignedCard.cardID.toString(),
-                            getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID),
-                        ),
-                    );
-                }}
-            >
-                {({hovered}) => (
+            {({hovered}) => (
+                <View style={styles.flexColumn}>
                     <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.br3, styles.p4]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             {isAssigned ? (
@@ -216,9 +218,14 @@ function WorkspaceCompanyCardTableItem({
                             )}
                         </View>
                     </View>
-                )}
-            </PressableWithFeedback>
-        </OfflineWithFeedback>
+                    <OfflineWithFeedback
+                        errorRowStyles={styles.ph5}
+                        errors={assignedCard?.errors}
+                        pendingAction={assignedCard?.pendingAction}
+                    />
+                </View>
+            )}
+        </PressableWithFeedback>
     );
 }
 
