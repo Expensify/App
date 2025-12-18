@@ -35,6 +35,7 @@ type SearchTableHeaderProps = {
     shouldShowColumn: (columnName: SearchColumnType) => boolean;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
     areAllOptionalColumnsHidden?: boolean;
+    shouldRemoveTotalColumnFlex?: boolean;
 };
 
 function SortableTableHeader({
@@ -53,6 +54,7 @@ function SortableTableHeader({
     amountColumnSize,
     taxAmountColumnSize,
     areAllOptionalColumnsHidden,
+    shouldRemoveTotalColumnFlex,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -89,6 +91,7 @@ function SortableTableHeader({
                                     approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    shouldRemoveTotalColumnFlex,
                                 ),
                             ]}
                             isSortable={isSortable}
