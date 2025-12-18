@@ -19,7 +19,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
-import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {canSendInvoice, canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
@@ -288,9 +288,13 @@ function MoneyRequestConfirmationListFooter({
 
         return outstandingReports.filter((report) => {
             const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-            return !isArchivedReport(reportNameValuePair) && isReportOutstanding(report, report?.policyID, reportNameValuePairs, false);
+            return (
+                !isArchivedReport(reportNameValuePair) &&
+                isReportOutstanding(report, report?.policyID, reportNameValuePairs, false) &&
+                (isPerDiemRequest ? report?.policyID === policy?.id && canSubmitPerDiemExpenseFromWorkspace(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]) : true)
+            );
         });
-    }, [outstandingReportsByPolicyID, reportNameValuePairs]);
+    }, [outstandingReportsByPolicyID, reportNameValuePairs, isPerDiemRequest, allPolicies, policy?.id]);
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const shouldShowTags = useMemo(
