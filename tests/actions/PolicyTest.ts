@@ -290,6 +290,7 @@ describe('actions/Policy', () => {
                     invoices: true,
                     exportLayouts: true,
                 },
+                localCurrency: 'USD',
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
