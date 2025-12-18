@@ -2172,7 +2172,7 @@ const ROUTES = {
         getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/select-feed` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
-        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID?',
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID',
 
         getRoute: (params: WorkspaceCompanyCardsAssignCardParams, backTo?: string) =>
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
