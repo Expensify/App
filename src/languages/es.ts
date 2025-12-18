@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {BeginningOfChatHistoryParams, HarvestCreatedExpenseReportParams, TagSelectionParams, ViolationsRterParams} from './params';
+import type {BeginningOfChatHistoryParams, HarvestCreatedExpenseReportParams, SplitDateRangeParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -378,6 +378,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Acción requerida',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
+        exchangeRate: 'Tipo de cambio',
         reimbursableTotal: 'Total reembolsable',
         nonReimbursableTotal: 'Total no reembolsable',
     },
@@ -799,6 +800,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Importe',
+        percent: 'Porcentaje',
+        date: 'Fecha',
         taxAmount: 'Importe del impuesto',
         taxRate: 'Tasa de impuesto',
         approve: ({formattedAmount} = {}) => (formattedAmount ? `Aprobar ${formattedAmount}` : 'Aprobar'),
@@ -808,7 +811,11 @@ const translations: TranslationDeepObject<typeof en> = {
         original: 'Original',
         split: 'Dividir',
         splitExpense: 'Dividir gasto',
+        splitDates: 'Fechas de división',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} al ${endDate} (${count} días)`,
         splitExpenseSubtitle: ({amount, merchant}) => `${amount} de ${merchant}`,
+        splitByPercentage: 'Dividir por porcentaje',
+        splitByDate: 'Dividir por fecha',
         addSplit: 'Añadir división',
         makeSplitsEven: 'Igualar divisiones',
         editSplits: 'Editar divisiones',
@@ -1000,8 +1007,6 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}) => `movió el gasto desde su espacio personal a ${workspaceName ?? `un chat con ${reportName}`}`,
         movedToPersonalSpace: 'movió el gasto a su espacio personal',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `Selecciona ${policyTagListName ?? 'una etiqueta'} para organizar mejor tus gastos.`,
-        categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
         error: {
             invalidCategoryLength: 'La longitud de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
             invalidTagLength: 'La longitud de la etiqueta escogida excede el máximo permitido (255). Por favor, escoge otra etiqueta o acorta la etiqueta primero.',
@@ -1033,6 +1038,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: 'La cantidad debe ser mayor que cero',
             invalidSubrateLength: 'Debe haber al menos una subtasa',
             invalidRate: 'Tasa no válida para este espacio de trabajo. Por favor, selecciona una tasa disponible en el espacio de trabajo.',
+            endDateBeforeStartDate: 'La fecha de finalización no puede ser anterior a la fecha de inicio',
+            endDateSameAsStartDate: 'La fecha de finalización no puede ser la misma que la fecha de inicio',
         },
         dismissReceiptError: 'Descartar error',
         dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',

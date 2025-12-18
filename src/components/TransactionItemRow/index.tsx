@@ -27,6 +27,7 @@ import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
+    getExchangeRate,
     getMerchant,
     getOriginalAmount,
     getOriginalCurrency,
@@ -63,6 +64,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** The personal details of the user paying the request */
     to?: PersonalDetails;
+
+    /** The date the report was exported */
+    exported?: string;
 
     /** formatted "to" value used for displaying and sorting on Reports page */
     formattedTo?: string;
@@ -102,6 +106,7 @@ type TransactionItemRowProps = {
     submittedColumnSize?: TableColumnSize;
     approvedColumnSize?: TableColumnSize;
     postedColumnSize?: TableColumnSize;
+    exportedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     onCheckboxPress?: (transactionID: string) => void;
@@ -147,6 +152,7 @@ function TransactionItemRow({
     submittedColumnSize,
     approvedColumnSize,
     postedColumnSize,
+    exportedColumnSize,
     amountColumnSize,
     taxAmountColumnSize,
     onCheckboxPress = () => {},
@@ -181,6 +187,7 @@ function TransactionItemRow({
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isApprovedColumnWide = approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isPostedColumnWide = postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isExportedColumnWide = exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
@@ -236,6 +243,8 @@ function TransactionItemRow({
             return error;
         }
     }, [transactionItem, translate, report]);
+
+    const exchangeRateMessage = getExchangeRate(transactionItem);
 
     const columnComponent = useMemo(
         () => ({
@@ -318,6 +327,30 @@ function TransactionItemRow({
                 >
                     <DateCell
                         date={transactionItem.posted ?? ''}
+                        showTooltip={shouldShowTooltip}
+                        isLargeScreenWidth={!shouldUseNarrowLayout}
+                    />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
+                <View
+                    key={CONST.SEARCH.TABLE_COLUMNS.EXPORTED}
+                    style={[
+                        StyleUtils.getReportTableColumnStyles(
+                            CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+                            false,
+                            false,
+                            false,
+                            areAllOptionalColumnsHidden,
+                            false,
+                            false,
+                            false,
+                            isExportedColumnWide,
+                        ),
+                    ]}
+                >
+                    <DateCell
+                        date={transactionItem.exported ?? ''}
                         showTooltip={shouldShowTooltip}
                         isLargeScreenWidth={!shouldUseNarrowLayout}
                     />
@@ -448,6 +481,11 @@ function TransactionItemRow({
                     />
                 </View>
             ),
+            [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE)]}>
+                    <TextCell text={exchangeRateMessage} />
+                </View>
+            ),
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}
@@ -526,7 +564,6 @@ function TransactionItemRow({
             ),
         }),
         [
-            translate,
             StyleUtils,
             transactionItem,
             shouldShowTooltip,
@@ -542,16 +579,19 @@ function TransactionItemRow({
             report?.total,
             isApprovedColumnWide,
             isPostedColumnWide,
+            translate,
+            isExportedColumnWide,
             isReportItemChild,
             onButtonPress,
             isActionLoading,
             merchant,
             description,
             isInSingleTransactionReport,
+            exchangeRateMessage,
             isAmountColumnWide,
+            formattedTaxRate,
             isTaxAmountColumnWide,
             isLargeScreenWidth,
-            formattedTaxRate,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {

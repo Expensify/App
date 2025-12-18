@@ -174,6 +174,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     SpreadCategoriesParams,
@@ -191,7 +192,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -688,6 +688,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: '需要操作',
         duplicate: '复制',
         duplicated: '已重复',
+        exchangeRate: '汇率',
         reimbursableTotal: '可报销总额',
         nonReimbursableTotal: '不可报销总额',
         originalAmount: '原始金额',
@@ -1117,6 +1118,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: '金额',
+        percent: '百分比',
         taxAmount: '税额',
         taxRate: '税率',
         approve: ({
@@ -1131,6 +1133,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: '拆分',
         splitExpense: '拆分报销',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `来自 ${merchant} 的 ${amount}`,
+        splitByPercentage: '按百分比拆分',
         addSplit: '添加拆分',
         makeSplitsEven: '平均分配',
         editSplits: '编辑拆分',
@@ -1321,12 +1324,6 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `已发送 ${formattedAmount}${comment ? `为 ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `已将报销从个人空间移动到 ${workspaceName ?? `与 ${reportName} 聊天`}`,
         movedToPersonalSpace: '已将报销移动到个人空间',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? '一个' : 'a';
-            const tag = policyTagListName ?? '标签';
-            return `选择${article} ${tag}，以更好地整理您的支出。`;
-        },
-        categorySelection: '选择一个类别，以便更好地整理您的支出。',
         error: {
             invalidCategoryLength: '类别名称超过 255 个字符。请缩短名称或选择其他类别。',
             invalidTagLength: '标签名称超过了255个字符。请缩短它或选择其他标签。',
@@ -1358,6 +1355,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: '数量必须大于零',
             invalidSubrateLength: '必须至少有一个子费率',
             invalidRate: '此汇率对该工作区无效。请选择此工作区中的可用汇率。',
+            endDateBeforeStartDate: '结束日期不能早于开始日期',
+            endDateSameAsStartDate: '结束日期不能与开始日期相同',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒！关闭此错误会完全删除你上传的收据。确定要继续吗？',
@@ -1500,6 +1499,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: '选择一个工作区',
+        date: '日期',
+        splitDates: '拆分日期',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} 至 ${endDate}（${count} 天）`,
+        splitByDate: '按日期拆分',
     },
     transactionMerge: {
         listPage: {

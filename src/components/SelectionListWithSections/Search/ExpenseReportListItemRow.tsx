@@ -1,4 +1,4 @@
-import React, {Fragment, useMemo} from 'react';
+import React, {Fragment} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
@@ -13,6 +13,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -64,24 +65,8 @@ function ExpenseReportListItemRow({
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const {total, currency} = useMemo(() => {
-        let reportTotal = item.total ?? 0;
-
-        if (reportTotal) {
-            if (item.type === CONST.REPORT.TYPE.IOU) {
-                reportTotal = Math.abs(reportTotal ?? 0);
-            } else {
-                reportTotal *= item.type === CONST.REPORT.TYPE.EXPENSE || item.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
-            }
-        }
-
-        const reportCurrency = item.currency ?? CONST.CURRENCY.USD;
-
-        return {total: reportTotal, currency: reportCurrency};
-    }, [item.type, item.total, item.currency]);
-
-    const nonReimbursableTotal = item.nonReimbursableTotal ?? 0;
-    const reimbursableTotal = total - nonReimbursableTotal;
+    const currency = item.currency ?? CONST.CURRENCY.USD;
+    const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(item);
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
@@ -106,6 +91,15 @@ function ExpenseReportListItemRow({
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, false, item.shouldShowYearApproved)]}>
                 <DateCell
                     date={item.approved ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, false, item.shouldShowYearExported)]}>
+                <DateCell
+                    date={item.exported ?? ''}
                     showTooltip
                     isLargeScreenWidth
                 />
@@ -152,7 +146,7 @@ function ExpenseReportListItemRow({
         [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
                 <TotalCell
-                    total={reimbursableTotal}
+                    total={reimbursableSpend}
                     currency={currency}
                 />
             </View>
@@ -160,7 +154,7 @@ function ExpenseReportListItemRow({
         [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
                 <TotalCell
-                    total={nonReimbursableTotal}
+                    total={nonReimbursableSpend}
                     currency={currency}
                 />
             </View>
@@ -168,7 +162,7 @@ function ExpenseReportListItemRow({
         [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
                 <TotalCell
-                    total={total}
+                    total={totalDisplaySpend}
                     currency={currency}
                 />
             </View>
@@ -250,7 +244,7 @@ function ExpenseReportListItemRow({
                     </View>
                     <View style={[styles.flexShrink0, styles.flexColumn, styles.alignItemsEnd, styles.gap1]}>
                         <TotalCell
-                            total={total}
+                            total={totalDisplaySpend}
                             currency={currency}
                         />
                     </View>
