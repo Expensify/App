@@ -143,9 +143,9 @@ function SearchColumnsPage() {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
     };
 
-    const hasSelectedTypeColumns = selectedColumnIds.some((columnId) => allTypeCustomColumns.includes(columnId));
-    const hasSelectedGroupByColumns = selectedColumnIds.some((columnId) => allGroupByCustomColumns.includes(columnId));
-    const showMissingColumnError = !hasSelectedTypeColumns || (!!groupBy && !hasSelectedGroupByColumns);
+    const hasTypeError = selectedColumnIds.some((columnId) => allTypeCustomColumns.includes(columnId));
+    const hasGroupByColumnsError = !!groupBy && selectedColumnIds.some((columnId) => allGroupByCustomColumns.includes(columnId));
+    const showMissingColumnError = hasTypeError || hasGroupByColumnsError;
 
     return (
         <ScreenWrapper
@@ -173,7 +173,7 @@ function SearchColumnsPage() {
                                 <DotIndicatorMessage
                                     type="error"
                                     style={[styles.mt3]}
-                                    messages={{error: translate('search.noColumnsError')}}
+                                    messages={{error: hasGroupByColumnsError ? translate('search.noGroupColumnsError') : translate('search.noColumnsError')}}
                                 />
                             )}
 
