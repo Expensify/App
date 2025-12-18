@@ -35,16 +35,22 @@ jobs:
         id: cpu-cores
         uses: SimenB/github-actions-cpu-cores@31e91de0f8654375a21e8e83078be625380e2b18
 
-      - name: Cache Jest cache
+      - name: Remove E/App version from package-lock.json (For cache invalidation)
+        shell: bash
+        run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
+
+      - name: Restore Jest cache
         id: cache-jest-cache
         # v4
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: .jest-cache
-          key: ${{ runner.os }}-jest
+          key: ${{ runner.os }}-jest-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-jest-
 
       - name: Jest tests
-        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=2 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
+        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=${{ steps.cpu-cores.outputs.count }} --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
 
       - name: Upload coverage to Codecov (PRs - tokenless)
         if: ${{ github.event_name == 'pull_request' }}
@@ -80,6 +86,14 @@ jobs:
           name: jest-${{ matrix.chunk }}
           disable_search: true
           fail_ci_if_error: true
+
+      - name: Save Jest cache
+        # v4
+        uses: actions/cache/save@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        if: always()
+        with:
+          path: .jest-cache
+          key: ${{ runner.os }}-jest-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}-${{ github.run_id }}-${{ matrix.chunk }}
 
   storybookTests:
     if: ${{ github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
