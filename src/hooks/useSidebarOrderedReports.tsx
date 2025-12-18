@@ -80,7 +80,7 @@ function SidebarOrderedReportsContextProvider({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
-    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
+    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);

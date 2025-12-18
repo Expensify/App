@@ -203,7 +203,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
 
     return (
         <ScreenWrapper
-            testID={PlaidConnectionStep.displayName}
+            testID="PlaidConnectionStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -220,7 +220,5 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
         </ScreenWrapper>
     );
 }
-
-PlaidConnectionStep.displayName = 'PlaidConnectionStep';
 
 export default PlaidConnectionStep;
