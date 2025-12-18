@@ -38,6 +38,4 @@ function HelpOverlay({isRHPVisible, onBackdropPress}: HelpOverlayProps) {
     );
 }
 
-HelpOverlay.displayName = 'HelpOverlay';
-
 export default HelpOverlay;
