@@ -288,10 +288,15 @@ function MoneyRequestConfirmationListFooter({
 
         return outstandingReports.filter((report) => {
             const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+
+            if (isPerDiemRequest && report?.policyID !== policy?.id) {
+                return false;
+            }
+
             return (
                 !isArchivedReport(reportNameValuePair) &&
                 isReportOutstanding(report, report?.policyID, reportNameValuePairs, false) &&
-                (isPerDiemRequest ? report?.policyID === policy?.id && canSubmitPerDiemExpenseFromWorkspace(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]) : true)
+                (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]))
             );
         });
     }, [outstandingReportsByPolicyID, reportNameValuePairs, isPerDiemRequest, allPolicies, policy?.id]);
