@@ -272,7 +272,7 @@ Onyx.connect({
             const isReportArchived = !!reportNameValuePairs?.private_isArchived;
             const isWriteActionAllowed = canUserPerformWriteAction(report, isReportArchived);
             const reportActionsArray = Object.values(reportActions[1] ?? {});
-            let sortedReportActions = getSortedReportActionsForDisplay(reportActionsArray, isWriteActionAllowed);
+            let sortedReportActions = getSortedReportActionsForDisplay(reportActionsArray, isWriteActionAllowed, true);
             allSortedReportActions[reportID] = sortedReportActions;
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
 
@@ -294,8 +294,9 @@ Onyx.connect({
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
             const reportActionsForDisplay = sortedReportActions.filter(
-                (reportAction) =>
+                (reportAction, actionKey) =>
                     (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
+                    shouldReportActionBeVisible(reportAction, actionKey, isWriteActionAllowed) &&
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
