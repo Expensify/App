@@ -16,6 +16,7 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
+import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import StatusCell from './StatusCell';
@@ -65,22 +66,7 @@ function ExpenseReportListItemRow({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
-
-    let reportTotal = item.total ?? 0;
-    let nonReimbursableReportTotal = item.nonReimbursableTotal ?? 0;
-    let reimbursableReportTotal = reportTotal - nonReimbursableReportTotal;
-
-    if (reportTotal) {
-        if (item.type === CONST.REPORT.TYPE.IOU) {
-            reportTotal = Math.abs(reportTotal ?? 0);
-            reimbursableReportTotal = Math.abs(reimbursableReportTotal ?? 0);
-            nonReimbursableReportTotal = Math.abs(nonReimbursableReportTotal ?? 0);
-        } else {
-            reportTotal *= item.type === CONST.REPORT.TYPE.EXPENSE || item.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
-            reimbursableReportTotal *= item.type === CONST.REPORT.TYPE.EXPENSE || item.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
-            nonReimbursableReportTotal *= item.type === CONST.REPORT.TYPE.EXPENSE || item.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
-        }
-    }
+    const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(item);
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
@@ -160,7 +146,7 @@ function ExpenseReportListItemRow({
         [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
                 <TotalCell
-                    total={reimbursableReportTotal}
+                    total={reimbursableSpend}
                     currency={currency}
                 />
             </View>
@@ -168,7 +154,7 @@ function ExpenseReportListItemRow({
         [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
                 <TotalCell
-                    total={nonReimbursableReportTotal}
+                    total={nonReimbursableSpend}
                     currency={currency}
                 />
             </View>
@@ -176,7 +162,7 @@ function ExpenseReportListItemRow({
         [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
                 <TotalCell
-                    total={reportTotal}
+                    total={totalDisplaySpend}
                     currency={currency}
                 />
             </View>
