@@ -44,8 +44,8 @@ type DropdownButtonProps = {
     /** Button label style */
     labelStyle?: StyleProp<TextStyle>;
 
-    /** Carret wrapper style */
-    carretWrapperStyle?: StyleProp<ViewStyle>;
+    /** Caret wrapper style */
+    caretWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Wrapper style for the outer view */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -58,7 +58,7 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medium = false, labelStyle, innerStyles, carretWrapperStyle, wrapperStyle}: DropdownButtonProps) {
+function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medium = false, labelStyle, innerStyles, caretWrapperStyle, wrapperStyle}: DropdownButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -138,7 +138,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
                 {...(medium ? {medium: true} : {small: true})}
             >
                 <CaretWrapper
-                    style={[styles.flex1, styles.mw100, carretWrapperStyle]}
+                    style={[styles.flex1, styles.mw100, caretWrapperStyle]}
                     caretWidth={variables.iconSizeSmall}
                     caretHeight={variables.iconSizeSmall}
                 >
