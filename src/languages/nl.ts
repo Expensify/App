@@ -191,7 +191,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -692,6 +691,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Actie vereist',
         duplicate: 'Dupliceren',
         duplicated: 'Gedupliceerd',
+        reimbursableTotal: 'Totaal te vergoeden',
+        nonReimbursableTotal: 'Niet-vergoedbaar totaal',
         originalAmount: 'Oorspronkelijk bedrag',
     },
     supportalNoAccess: {
@@ -1034,6 +1035,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Handmatig',
         scan: 'Scannen',
         map: 'Kaart',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Een spreadsheet uploaden',
@@ -1129,6 +1131,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Bedrag',
+        percent: 'Procent',
         taxAmount: 'Belastingbedrag',
         taxRate: 'Belastingtarief',
         approve: ({
@@ -1143,6 +1146,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Splitsen',
         splitExpense: 'Uitgave splitsen',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} van ${merchant}`,
+        splitByPercentage: 'Splitsen op percentage',
         addSplit: 'Splits toevoegen',
         makeSplitsEven: 'Verdeel bedragen gelijk',
         editSplits: 'Splits bewerken',
@@ -1340,12 +1344,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `heeft uitgave verplaatst van persoonlijke ruimte naar ${workspaceName ?? `chat met ${reportName}`}`,
         movedToPersonalSpace: 'uitgave verplaatst naar persoonlijke ruimte',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'een' : 'een';
-            const tag = policyTagListName ?? 'label';
-            return `Selecteer ${article} ${tag} om je uitgaven beter te organiseren.`;
-        },
-        categorySelection: 'Selecteer een categorie om je uitgaven beter te organiseren.',
         error: {
             invalidCategoryLength: 'De categorienaam bevat meer dan 255 tekens. Verkort deze of kies een andere categorie.',
             invalidTagLength: 'De namen van tags mogen niet langer zijn dan 255 tekens. Verkort de tagnaam of kies een andere tag.',
@@ -5050,6 +5048,9 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 cardNumber: 'Kaartnummer',
                 cardholder: 'Kaarthouder',
                 cardName: 'Kaartnaam',
+                allCards: 'Alle kaarten',
+                assignedCards: 'Toegewezen',
+                unassignedCards: 'Niet toegewezen',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration}-export`),
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Kies de ${integration}-account waarnaar transacties moeten worden geëxporteerd.`,
                 integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>

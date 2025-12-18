@@ -191,7 +191,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -691,6 +690,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Ação necessária',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
+        reimbursableTotal: 'Total reembolsável',
+        nonReimbursableTotal: 'Total não reembolsável',
         originalAmount: 'Valor original',
     },
     supportalNoAccess: {
@@ -1033,6 +1034,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Manual',
         scan: 'Escanear',
         map: 'Mapa',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Enviar uma planilha',
@@ -1128,6 +1130,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Valor',
+        percent: 'Porcentagem',
         taxAmount: 'Valor do imposto',
         taxRate: 'Alíquota de imposto',
         approve: ({
@@ -1142,6 +1145,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Dividir',
         splitExpense: 'Dividir despesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
+        splitByPercentage: 'Dividir por porcentagem',
         addSplit: 'Adicionar divisão',
         makeSplitsEven: 'Dividir igualmente',
         editSplits: 'Editar divisões',
@@ -1338,12 +1342,6 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? `para ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `despesa movida do espaço pessoal para ${workspaceName ?? `conversar com ${reportName}`}`,
         movedToPersonalSpace: 'despesa movida para o espaço pessoal',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'um' : 'a';
-            const tag = policyTagListName ?? 'Tag';
-            return `Selecione ${article} ${tag} para organizar melhor seus gastos.`;
-        },
-        categorySelection: 'Selecione uma categoria para organizar melhor seus gastos.',
         error: {
             invalidCategoryLength: 'O nome da categoria excede 255 caracteres. Reduza-o ou escolha uma categoria diferente.',
             invalidTagLength: 'O nome da tag excede 255 caracteres. Reduza-o ou escolha uma tag diferente.',
@@ -5041,6 +5039,9 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 cardNumber: 'Número do cartão',
                 cardholder: 'Titular do cartão',
                 cardName: 'Nome do cartão',
+                allCards: 'Todos os cartões',
+                assignedCards: 'Atribuído',
+                unassignedCards: 'Não atribuído',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `exportação de ${integration} ${type.toLowerCase()}` : `Exportação de ${integration}`,
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Escolha a conta do ${integration} para a qual as transações devem ser exportadas.`,

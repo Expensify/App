@@ -1,4 +1,5 @@
 import {format} from 'date-fns';
+import {Str} from 'expensify-common';
 import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -74,7 +75,7 @@ function AssigneeStep({policy, route}: AssigneeStepProps) {
     const submit = (assignee: ListItem) => {
         let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
         const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
-        const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
+        const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
         const data: Partial<AssignCardData> = {
             email: assignee?.login ?? '',
             cardName: getDefaultCardName(memberName),

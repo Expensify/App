@@ -2,6 +2,7 @@ import {PermissionsAndroid, Platform} from 'react-native';
 import type {FetchBlobResponse} from 'react-native-blob-util';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import {appendTimeToFileName, getFileName, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
 import type {FileDownload} from './types';
@@ -35,7 +36,7 @@ function hasAndroidPermission(): Promise<boolean> {
 /**
  * Handling the download
  */
-function handleDownload(url: string, fileName?: string, successMessage?: string, shouldUnlink = true): Promise<void> {
+function handleDownload(translate: LocalizedTranslate, url: string, fileName?: string, successMessage?: string, shouldUnlink = true): Promise<void> {
     return new Promise((resolve) => {
         const dirs = RNFetchBlob.fs.dirs;
 
@@ -87,16 +88,16 @@ function handleDownload(url: string, fileName?: string, successMessage?: string,
                 if (attachmentPath && shouldUnlink) {
                     RNFetchBlob.fs.unlink(attachmentPath);
                 }
-                showSuccessAlert(successMessage);
+                showSuccessAlert(translate, successMessage);
             })
             .catch(() => {
-                showGeneralErrorAlert();
+                showGeneralErrorAlert(translate);
             })
             .finally(() => resolve());
     });
 }
 
-const postDownloadFile = (url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void): Promise<void> => {
+const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void): Promise<void> => {
     const fetchOptions: RequestInit = {
         method: 'POST',
         body: formData,
@@ -131,11 +132,11 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
         )
         .then((downloadPath) => {
             RNFetchBlob.fs.unlink(downloadPath);
-            showSuccessAlert();
+            showSuccessAlert(translate);
         })
         .catch(() => {
             if (!onDownloadFailed) {
-                showGeneralErrorAlert();
+                showGeneralErrorAlert(translate);
             }
             onDownloadFailed?.();
         });
@@ -144,20 +145,20 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
 /**
  * Checks permission and downloads the file for Android
  */
-const fileDownload: FileDownload = (url, fileName, successMessage, _, formData, requestType, onDownloadFailed, shouldUnlink) =>
+const fileDownload: FileDownload = (translate, url, fileName, successMessage, _, formData, requestType, onDownloadFailed, shouldUnlink) =>
     new Promise((resolve) => {
         hasAndroidPermission()
             .then((hasPermission) => {
                 if (hasPermission) {
                     if (requestType === CONST.NETWORK.METHOD.POST) {
-                        return postDownloadFile(url, fileName, formData, onDownloadFailed);
+                        return postDownloadFile(translate, url, fileName, formData, onDownloadFailed);
                     }
-                    return handleDownload(url, fileName, successMessage, shouldUnlink);
+                    return handleDownload(translate, url, fileName, successMessage, shouldUnlink);
                 }
-                showPermissionErrorAlert();
+                showPermissionErrorAlert(translate);
             })
             .catch(() => {
-                showPermissionErrorAlert();
+                showPermissionErrorAlert(translate);
             })
             .finally(() => resolve());
     });

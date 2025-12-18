@@ -191,7 +191,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -691,6 +690,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Aktion erforderlich',
         duplicate: 'Duplizieren',
         duplicated: 'Dupliziert',
+        reimbursableTotal: 'Erstattungsfähiger Gesamtbetrag',
+        nonReimbursableTotal: 'Nicht erstattungsfähiger Gesamtbetrag',
         originalAmount: 'Ursprünglicher Betrag',
     },
     supportalNoAccess: {
@@ -1036,6 +1037,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Manuell',
         scan: 'Scannen',
         map: 'Karte',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Eine Tabellenkalkulation hochladen',
@@ -1134,6 +1136,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Betrag',
+        percent: 'Prozent',
         taxAmount: 'Steuerbetrag',
         taxRate: 'Steuersatz',
         approve: ({
@@ -1148,6 +1151,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Aufteilen',
         splitExpense: 'Ausgabe aufteilen',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} von ${merchant}`,
+        splitByPercentage: 'Nach Prozentsatz aufteilen',
         addSplit: 'Aufteilung hinzufügen',
         makeSplitsEven: 'Aufteilungen gleichmäßig machen',
         editSplits: 'Aufteilungen bearbeiten',
@@ -1344,12 +1348,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `Ausgabe von persönlichem Bereich nach ${workspaceName ?? `Chat mit ${reportName}`} verschoben`,
         movedToPersonalSpace: 'Ausgabe in den persönlichen Bereich verschoben',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'ein' : 'a';
-            const tag = policyTagListName ?? 'Tag';
-            return `Wähle ${article} ${tag}, um deine Ausgaben besser zu organisieren.`;
-        },
-        categorySelection: 'Wähle eine Kategorie aus, um deine Ausgaben besser zu organisieren.',
         error: {
             invalidCategoryLength: 'Der Kategoriename überschreitet 255 Zeichen. Bitte kürze ihn oder wähle eine andere Kategorie.',
             invalidTagLength: 'Der Tagname überschreitet 255 Zeichen. Bitte verkürze ihn oder wähle einen anderen Tag.',
@@ -5074,6 +5072,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 cardNumber: 'Kartennummer',
                 cardholder: 'Karteninhaber',
                 cardName: 'Kartenname',
+                allCards: 'Alle Karten',
+                assignedCards: 'Zugewiesen',
+                unassignedCards: 'Nicht zugewiesen',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} Export` : `${integration}-Export`),
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Wählen Sie das ${integration}-Konto, in das die Transaktionen exportiert werden sollen.`,
                 integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>

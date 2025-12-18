@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
@@ -53,7 +54,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
 
     const data = assignCard?.data;
     const cardholderDetails = getPersonalDetailByEmail(data?.email ?? '');
-    const cardholderName = cardholderDetails?.displayName ?? '';
+    const cardholderName = Str.removeSMSDomain(cardholderDetails?.displayName ?? '');
     const cardholderEmail = data?.email ?? '';
     const cardholderAccountID = cardholderDetails?.accountID;
 

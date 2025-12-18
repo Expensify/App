@@ -23,8 +23,8 @@ import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
-import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
-import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
+import WorkspaceCompanyCardsTable from './WorkspaceCompanyCardsTable';
+import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
@@ -36,23 +36,23 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['CompanyCard']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
+
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [cardFeeds] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const selectedFeedData = selectedFeed && companyFeeds[selectedFeed];
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
     const [cardsList, cardsListMetadata] = useCardsList(selectedFeed);
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const hasNoAssignedCard = Object.keys(cardsList ?? {}).length === 0;
-
-    const companyCards = getCompanyFeeds(cardFeeds);
-    const selectedFeedData = selectedFeed && companyCards[selectedFeed];
     const isNoFeed = !selectedFeedData;
-    const isPending = !!selectedFeedData?.pending;
-    const isFeedAdded = !isPending && !isNoFeed;
+    const isFeedPending = !!selectedFeedData?.pending;
+    const isFeedAdded = !isFeedPending && !isNoFeed;
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData)
 
     const {isOffline} = useNetwork({
         onReconnect: () => openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID),
@@ -66,12 +66,12 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     }, [policyID, domainOrWorkspaceAccountID]);
 
     useEffect(() => {
-        if (isLoading || !feed || isPending) {
+        if (isLoading || !feed || isFeedPending) {
             return;
         }
 
         openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, feed);
-    }, [feed, isLoading, policyID, isPending, domainOrWorkspaceAccountID]);
+    }, [feed, isLoading, policyID, isFeedPending, domainOrWorkspaceAccountID]);
 
     const {assignCard, isAssigningCardDisabled} = useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal});
 
@@ -96,21 +96,24 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     showLoadingAsFirstRender={false}
                     addBottomSafeAreaPadding
                 >
-                    {(isFeedAdded || isPending) && !!selectedFeed && (
-                        <WorkspaceCompanyCardsListHeaderButtons
+                    {isFeedPending && !!selectedFeed && (
+                        <WorkspaceCompanyCardsTableHeaderButtons
                             policyID={policyID}
                             selectedFeed={selectedFeed}
                         />
                     )}
+
                     {isNoFeed && (
                         <WorkspaceCompanyCardPageEmptyState
                             route={route}
                             shouldShowGBDisclaimer={shouldShowGBDisclaimer}
                         />
                     )}
-                    {isPending && <WorkspaceCompanyCardsFeedPendingPage />}
-                    {isFeedAdded && !isPending && (
-                        <WorkspaceCompanyCardsList
+
+                    {isFeedPending && <WorkspaceCompanyCardsFeedPendingPage />}
+
+                    {isFeedAdded && !isFeedPending && (
+                        <WorkspaceCompanyCardsTable
                             selectedFeed={selectedFeed}
                             shouldShowGBDisclaimer={shouldShowGBDisclaimer}
                             policyID={policyID}
