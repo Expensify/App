@@ -2115,6 +2115,14 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO) {
+        return data.sort((a, b) => {
+            const aValue = `${!!a.exported}`;
+            const bValue = `${!!b.exported}`;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     const sortingProperty = transactionColumnNamesToSortingProperty[sortBy];
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
@@ -2271,6 +2279,14 @@ function getSortedReportData(
             const aValue = a.reportID;
             const bValue = b.reportID;
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO) {
+        return data.sort((a, b) => {
+            const aValue = `${!!a.exported}`;
+            const bValue = `${!!b.exported}`;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
 
