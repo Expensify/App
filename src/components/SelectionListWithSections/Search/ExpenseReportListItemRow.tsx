@@ -64,14 +64,11 @@ function ExpenseReportListItemRow({
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const initialTotal = item.total ?? 0;
-    const nonReimbursableTotal = item.nonReimbursableTotal ?? 0;
-    const reimbursableTotal = initialTotal - nonReimbursableTotal;
     const currency = item.currency ?? CONST.CURRENCY.USD;
 
-    let reportTotal = initialTotal;
-    let reimbursableReportTotal = reimbursableTotal;
-    let nonReimbursableReportTotal = nonReimbursableTotal;
+    let reportTotal = item.total ?? 0;
+    let nonReimbursableReportTotal = item.nonReimbursableTotal ?? 0;
+    let reimbursableReportTotal = reportTotal - nonReimbursableReportTotal;
 
     if (reportTotal) {
         if (item.type === CONST.REPORT.TYPE.IOU) {
