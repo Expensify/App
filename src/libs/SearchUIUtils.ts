@@ -2986,23 +2986,13 @@ function getColumnsToShow(
     groupBy?: SearchGroupBy,
 ): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        const defaultReportColumns: SearchColumnType[] = [
-            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-            CONST.SEARCH.TABLE_COLUMNS.DATE,
-            CONST.SEARCH.TABLE_COLUMNS.STATUS,
-            CONST.SEARCH.TABLE_COLUMNS.TITLE,
-            CONST.SEARCH.TABLE_COLUMNS.FROM,
-            CONST.SEARCH.TABLE_COLUMNS.TO,
-            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
-            CONST.SEARCH.TABLE_COLUMNS.ACTION,
-        ];
+        const filteredVisibleColumns = visibleColumns.filter((column) => {
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>);
+        });
 
-        // If there are no visible columns, everything should be visible
-        const filteredVisibleColumns = visibleColumns.filter((column) =>
-            Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT>),
-        );
+        // If there are no visible columns, everything from the defaults should be visible
         if (!filteredVisibleColumns.length) {
-            return defaultReportColumns;
+            return Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
         }
 
         // If the user has set custom columns, use their order then add required columns
@@ -3010,12 +3000,12 @@ function getColumnsToShow(
         const result: SearchColumnType[] = [];
 
         for (const col of requiredColumns) {
-            if (!visibleColumns.includes(col as SearchCustomColumnIds)) {
+            if (!filteredVisibleColumns.includes(col as SearchCustomColumnIds)) {
                 result.push(col);
             }
         }
 
-        for (const col of visibleColumns) {
+        for (const col of filteredVisibleColumns) {
             result.push(col);
         }
 
@@ -3035,28 +3025,49 @@ function getColumnsToShow(
     }
 
     if (!isExpenseReportView && groupBy) {
-        switch (groupBy) {
-            case CONST.SEARCH.GROUP_BY.FROM:
-                return [CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.FROM, CONST.SEARCH.TABLE_COLUMNS.EXPENSES, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
-            case CONST.SEARCH.GROUP_BY.CARD:
-                return [
-                    CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-                    CONST.SEARCH.TABLE_COLUMNS.CARD,
-                    CONST.SEARCH.TABLE_COLUMNS.FEED,
-                    CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
-                    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
-                ];
-            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-                return [
-                    CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-                    CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT,
-                    CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN,
-                    CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
-                    CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
-                    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
-                ];
-            default:
-                return [];
+        const customColumns = {
+            [CONST.SEARCH.GROUP_BY.CARD]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD,
+            [CONST.SEARCH.GROUP_BY.FROM]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM,
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID,
+        }[groupBy];
+
+        const defaultCustomColumns = {
+            [CONST.SEARCH.GROUP_BY.CARD]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CARD,
+            [CONST.SEARCH.GROUP_BY.FROM]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.FROM,
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID,
+        }[groupBy];
+
+        const filteredVisibleColumns = visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>));
+        const columnsToShow = filteredVisibleColumns.length ? filteredVisibleColumns : defaultCustomColumns;
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+            const result: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.AVATAR];
+
+            for (const col of columnsToShow) {
+                result.push(col);
+            }
+
+            return result;
+        }
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
+            const result: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.AVATAR];
+
+            for (const col of columnsToShow) {
+                result.push(col);
+            }
+
+            return result;
+        }
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
+            const result: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.AVATAR];
+
+            for (const col of columnsToShow) {
+                result.push(col);
+            }
+
+            return result;
         }
     }
 
@@ -3103,7 +3114,7 @@ function getColumnsToShow(
           };
 
     // If the user has set custom columns for the search, we need to respect their preference and order
-    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
+    if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
         const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
         const result: SearchColumnType[] = [];
 

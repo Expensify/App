@@ -1,4 +1,4 @@
-import React, {Fragment, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -36,16 +36,9 @@ function SearchColumnsPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
-    const groupBy = searchAdvancedFiltersForm?.groupBy;
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-
-    const allTypeCustomColumns = getCustomColumns(queryType);
+    const allCustomColumns = getCustomColumns(queryType);
     const defaultCustomColumns = getCustomColumnDefault(queryType);
-
-    const allGroupByCustomColumns = getCustomColumns(groupBy);
-    const groupByDefaultColumns = getCustomColumnDefault(groupBy);
-
-    const allDefaultColumns = [...defaultCustomColumns, ...groupByDefaultColumns];
 
     // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns since it makes sense for them to show up in an expense management App and it fixes the layout issues.
     const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
