@@ -398,7 +398,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     }, [draftTransaction?.comment?.splitsStartDate, draftTransaction?.comment?.splitsEndDate, translate]);
 
     const handleDatePress = useCallback(() => {
-        Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT_DATES.getRoute(reportID, transactionID, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.SPLIT_EXPENSE_CREATE_DATE_RANGE.getRoute(reportID, transactionID, Navigation.getActiveRoute()));
     }, [reportID, transactionID]);
 
     const headerDateContent = useMemo(() => {

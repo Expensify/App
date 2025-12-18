@@ -769,15 +769,15 @@ const ROUTES = {
             return getUrlWithBackToParam(`edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
         },
     },
-    SPLIT_EXPENSE_EDIT_DATES: {
-        route: 'create/split-expense/edit-dates/:reportID/:transactionID/:splitExpenseTransactionID?',
+    SPLIT_EXPENSE_CREATE_DATE_RANGE: {
+        route: 'create/split-expense/create-date-range/:reportID/:transactionID/:splitExpenseTransactionID?',
         getRoute: (reportID: string | undefined, transactionID: string | undefined, backTo?: string) => {
             if (!reportID || !transactionID) {
-                Log.warn(`Invalid ${reportID}(reportID) or ${transactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT_DATES route`);
+                Log.warn(`Invalid ${reportID}(reportID) or ${transactionID}(transactionID) is used to build the SPLIT_EXPENSE_CREATE_DATE_RANGE route`);
             }
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`create/split-expense/edit-dates/${reportID}/${transactionID}`, backTo);
+            return getUrlWithBackToParam(`create/split-expense/create-date-range/${reportID}/${transactionID}`, backTo);
         },
     },
     MONEY_REQUEST_HOLD_REASON: {

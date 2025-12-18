@@ -26,7 +26,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SplitExpenseEditDateForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type SplitExpenseEditDatesPageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT_DATES>;
+type SplitExpenseEditDatesPageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE>;
 
 function SplitExpenseEditDatesPage({route}: SplitExpenseEditDatesPageProps) {
     const styles = useThemeStyles();
@@ -87,7 +87,7 @@ function SplitExpenseEditDatesPage({route}: SplitExpenseEditDatesPageProps) {
     };
 
     return (
-        <ScreenWrapper testID={SplitExpenseEditDatesPage.displayName}>
+        <ScreenWrapper testID="SplitExpenseEditDatesPage">
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
@@ -126,6 +126,5 @@ function SplitExpenseEditDatesPage({route}: SplitExpenseEditDatesPageProps) {
         </ScreenWrapper>
     );
 }
-SplitExpenseEditDatesPage.displayName = 'SplitExpenseEditDatesPage';
 
 export default SplitExpenseEditDatesPage;
