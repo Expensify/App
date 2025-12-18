@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -25,13 +25,13 @@ function SearchEditMultipleDescriptionPage() {
 
     const currentDescription = draftTransaction?.comment?.comment ?? '';
 
-    const saveDescription = useCallback((value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM>) => {
+    const saveDescription = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM>) => {
         const newDescription = value.description?.trim() ?? '';
         updateBulkEditDraftTransaction({
             comment: {comment: newDescription},
         });
         Navigation.goBack();
-    }, []);
+    };
 
     return (
         <ScreenWrapper

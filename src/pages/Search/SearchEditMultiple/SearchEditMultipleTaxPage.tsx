@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -7,7 +7,7 @@ import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
+import {OPTIMISTIC_BULK_EDIT_TRANSACTION_ID, updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {getTaxName} from '@libs/TransactionUtils';
@@ -19,35 +19,30 @@ function SearchEditMultipleTaxPage() {
     const {translate} = useLocalize();
     const {selectedTransactions} = useSearchContext();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
 
     // Determine policyID based on context
-    const policyID = useMemo(() => {
-        const transactionValues = Object.values(selectedTransactions);
-        if (transactionValues.length === 0) {
-            return activePolicyID;
-        }
-
+    const transactionValues = Object.values(selectedTransactions);
+    let policyID = activePolicyID;
+    if (transactionValues.length > 0) {
         const firstPolicyID = transactionValues.at(0)?.policyID;
         const allSamePolicy = transactionValues.every((t) => t.policyID === firstPolicyID);
 
         if (allSamePolicy && firstPolicyID) {
-            return firstPolicyID;
+            policyID = firstPolicyID;
         }
-
-        return activePolicyID;
-    }, [selectedTransactions, activePolicyID]);
+    }
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
 
     const selectedTaxRate = getTaxName(policy, draftTransaction);
 
-    const onSubmit = useCallback((taxes: TaxRatesOption) => {
+    const onSubmit = (taxes: TaxRatesOption) => {
         updateBulkEditDraftTransaction({
             taxCode: taxes.code,
         });
         Navigation.goBack();
-    }, []);
+    };
 
     return (
         <ScreenWrapper

@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -25,30 +25,27 @@ function SearchEditMultipleMerchantPage() {
 
     const currentMerchant = draftTransaction?.merchant ?? '';
 
-    const validate = useCallback(
-        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM> = {};
-            const {isValid, byteLength} = isValidInputLength(value.merchant ?? '', CONST.MERCHANT_NAME_MAX_BYTES);
+    const validate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM> = {};
+        const {isValid, byteLength} = isValidInputLength(value.merchant ?? '', CONST.MERCHANT_NAME_MAX_BYTES);
 
-            if (!isValid) {
-                errors.merchant = translate('common.error.characterLimitExceedCounter', {
-                    length: byteLength,
-                    limit: CONST.MERCHANT_NAME_MAX_BYTES,
-                });
-            }
+        if (!isValid) {
+            errors.merchant = translate('common.error.characterLimitExceedCounter', {
+                length: byteLength,
+                limit: CONST.MERCHANT_NAME_MAX_BYTES,
+            });
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
-    const saveMerchant = useCallback((value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM>) => {
+    const saveMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM>) => {
         const newMerchant = value.merchant?.trim() ?? '';
         updateBulkEditDraftTransaction({
             merchant: newMerchant,
         });
         Navigation.goBack();
-    }, []);
+    };
 
     return (
         <ScreenWrapper

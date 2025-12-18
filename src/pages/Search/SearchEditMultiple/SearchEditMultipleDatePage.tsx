@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -23,25 +23,22 @@ function SearchEditMultipleDatePage() {
 
     const currentDate = draftTransaction?.created ?? '';
 
-    const validate = useCallback(
-        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM> = {};
-            const dateValue = value.date;
-            if (dateValue && !isValidDate(dateValue)) {
-                errors.date = translate('common.error.dateInvalid');
-            }
-            return errors;
-        },
-        [translate],
-    );
+    const validate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM> = {};
+        const dateValue = value.date;
+        if (dateValue && !isValidDate(dateValue)) {
+            errors.date = translate('common.error.dateInvalid');
+        }
+        return errors;
+    };
 
-    const saveDate = useCallback((value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM>) => {
+    const saveDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM>) => {
         const newDate = value.date;
         updateBulkEditDraftTransaction({
             created: newDate,
         });
         Navigation.goBack();
-    }, []);
+    };
 
     return (
         <ScreenWrapper

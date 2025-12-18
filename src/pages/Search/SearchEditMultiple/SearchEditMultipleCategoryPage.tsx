@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import CategoryPicker from '@components/CategoryPicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,25 +18,20 @@ function SearchEditMultipleCategoryPage() {
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
 
     // Determine policyID based on context
-    const policyID = useMemo(() => {
-        const transactionValues = Object.values(selectedTransactions);
-        if (transactionValues.length === 0) {
-            return activePolicyID;
-        }
-
+    const transactionValues = Object.values(selectedTransactions);
+    let policyID = activePolicyID;
+    if (transactionValues.length > 0) {
         const firstPolicyID = transactionValues.at(0)?.policyID;
         const allSamePolicy = transactionValues.every((t) => t.policyID === firstPolicyID);
 
         if (allSamePolicy && firstPolicyID) {
-            return firstPolicyID;
+            policyID = firstPolicyID;
         }
-
-        return activePolicyID;
-    }, [selectedTransactions, activePolicyID]);
+    }
 
     const currentCategory = draftTransaction?.category ?? '';
 
-    const saveCategory = useCallback((item: ListItem) => {
+    const saveCategory = (item: ListItem) => {
         if (!item.searchText) {
             return;
         }
@@ -44,7 +39,7 @@ function SearchEditMultipleCategoryPage() {
             category: item.searchText,
         });
         Navigation.goBack();
-    }, []);
+    };
 
     return (
         <ScreenWrapper
@@ -57,7 +52,7 @@ function SearchEditMultipleCategoryPage() {
                 onBackButtonPress={Navigation.goBack}
             />
             <CategoryPicker
-                policyID={policyID ?? undefined}
+                policyID={policyID}
                 selectedCategory={currentCategory}
                 onSubmit={saveCategory}
             />

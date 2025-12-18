@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -18,41 +18,34 @@ function SearchEditMultipleTagPage() {
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
 
     // Determine policyID based on context
-    const policyID = useMemo(() => {
-        const transactionValues = Object.values(selectedTransactions);
-        if (transactionValues.length === 0) {
-            return activePolicyID;
-        }
-
+    const transactionValues = Object.values(selectedTransactions);
+    let policyID = activePolicyID;
+    if (transactionValues.length > 0) {
         const firstPolicyID = transactionValues.at(0)?.policyID;
         const allSamePolicy = transactionValues.every((t) => t.policyID === firstPolicyID);
 
         if (allSamePolicy && firstPolicyID) {
-            return firstPolicyID;
+            policyID = firstPolicyID;
         }
-
-        return activePolicyID;
-    }, [selectedTransactions, activePolicyID]);
+    }
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
 
     const currentTag = draftTransaction?.tag ?? '';
 
     // Get the first tag list name
-    const tagListName = useMemo(() => {
-        if (!policyTags) {
-            return '';
-        }
+    let tagListName = '';
+    if (policyTags) {
         const tagListKeys = Object.keys(policyTags);
-        return tagListKeys.at(0) ?? '';
-    }, [policyTags]);
+        tagListName = tagListKeys.at(0) ?? '';
+    }
 
-    const saveTag = useCallback((item: Partial<OptionData>) => {
+    const saveTag = (item: Partial<OptionData>) => {
         updateBulkEditDraftTransaction({
             tag: item.searchText,
         });
         Navigation.goBack();
-    }, []);
+    };
 
     return (
         <ScreenWrapper
@@ -65,7 +58,7 @@ function SearchEditMultipleTagPage() {
                 onBackButtonPress={Navigation.goBack}
             />
             <TagPicker
-                policyID={policyID ?? undefined}
+                policyID={policyID}
                 selectedTag={currentTag}
                 tagListName={tagListName}
                 tagListIndex={0}

@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -37,21 +37,16 @@ function SearchEditMultiplePage() {
     // Determine policyID based on context:
     // - If all selected transactions belong to the same policy, use that policy
     // - Otherwise, fall back to the user's active workspace policy
-    const policyID = useMemo(() => {
-        const transactionValues = Object.values(selectedTransactions);
-        if (transactionValues.length === 0) {
-            return activePolicyID;
-        }
-
+    const transactionValues = Object.values(selectedTransactions);
+    let policyID = activePolicyID;
+    if (transactionValues.length > 0) {
         const firstPolicyID = transactionValues.at(0)?.policyID;
         const allSamePolicy = transactionValues.every((t) => t.policyID === firstPolicyID);
 
         if (allSamePolicy && firstPolicyID) {
-            return firstPolicyID;
+            policyID = firstPolicyID;
         }
-
-        return activePolicyID;
-    }, [selectedTransactions, activePolicyID]);
+    }
 
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
 
@@ -175,47 +170,43 @@ function SearchEditMultiplePage() {
         updateBulkEditDraftTransaction({reimbursable});
     };
 
-    const fields = useMemo(() => {
-        const allFields = [
-            {
-                description: translate('iou.amount'),
-                title: draftTransaction?.amount ? convertToDisplayString(Math.abs(draftTransaction.amount), displayCurrency) : '',
-                route: ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP,
-            },
-            {
-                description: translate('common.description'),
-                title: draftTransaction?.comment?.comment ?? '',
-                route: ROUTES.SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP,
-            },
-            {
-                description: translate('common.merchant'),
-                title: draftTransaction?.merchant ?? '',
-                route: ROUTES.SEARCH_EDIT_MULTIPLE_MERCHANT_RHP,
-            },
-            {
-                description: translate('common.date'),
-                title: draftTransaction?.created ?? '',
-                route: ROUTES.SEARCH_EDIT_MULTIPLE_DATE_RHP,
-            },
-            {
-                description: translate('common.category'),
-                title: draftTransaction?.category ?? '',
-                route: ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP,
-            },
-            {
-                description: translate('common.tag'),
-                title: draftTransaction?.tag ?? '',
-                route: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP,
-            },
-            {
-                description: translate('iou.taxRate'),
-                title: draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : '',
-                route: ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP,
-            },
-        ];
-
-        return allFields;
-    }, [translate, draftTransaction, displayCurrency, policy]);
+    const fields = [
+        {
+            description: translate('iou.amount'),
+            title: draftTransaction?.amount ? convertToDisplayString(Math.abs(draftTransaction.amount), displayCurrency) : '',
+            route: ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP,
+        },
+        {
+            description: translate('common.description'),
+            title: draftTransaction?.comment?.comment ?? '',
+            route: ROUTES.SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP,
+        },
+        {
+            description: translate('common.merchant'),
+            title: draftTransaction?.merchant ?? '',
+            route: ROUTES.SEARCH_EDIT_MULTIPLE_MERCHANT_RHP,
+        },
+        {
+            description: translate('common.date'),
+            title: draftTransaction?.created ?? '',
+            route: ROUTES.SEARCH_EDIT_MULTIPLE_DATE_RHP,
+        },
+        {
+            description: translate('common.category'),
+            title: draftTransaction?.category ?? '',
+            route: ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP,
+        },
+        {
+            description: translate('common.tag'),
+            title: draftTransaction?.tag ?? '',
+            route: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP,
+        },
+        {
+            description: translate('iou.taxRate'),
+            title: draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : '',
+            route: ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP,
+        },
+    ];
 
     return (
         <ScreenWrapper testID={SearchEditMultiplePage.displayName}>
