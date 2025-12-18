@@ -722,7 +722,7 @@ function MoneyRequestReportPreviewContent({
                                                                     <Text style={[styles.reportStatusText, {color: reportStatusColorStyle?.textColor}]}>{reportStatus}</Text>
                                                                 </View>
                                                             )}
-                                                            {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}
+                                                            {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting]}>{expenseCount}</Text>}
                                                         </View>
                                                     )
                                                 )}
