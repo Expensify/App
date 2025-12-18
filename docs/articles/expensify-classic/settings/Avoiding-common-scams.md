@@ -1,3 +1,4 @@
+---
 title: Avoiding common scams
 description: Learn how to recognize and avoid common phishing scams that pretend to be from Expensify, including fake phone calls and emails asking for your Magic Code.
 keywords: [Expensify scam, phishing, Magic Code, security, login code, avoid fraud, suspicious email, fake call, fraud prevention]
@@ -24,9 +25,9 @@ The **Magic Code** is a one-time login code Expensify emails or texts to you whe
 
 Here are the most common types of scams we've seen targeting Expensify members:
 
-### 1. Fake phone calls pretending to be Expensify
+### 1. Phone call scams requesting your Magic Code
 
-- The scammer says they’re from Expensify and needs your Magic Code to verify your account.
+- The scammer claims to be from Expensify and needs your Magic Code to verify your account.
 - They may spoof a legitimate phone number to make it seem more convincing.
 - Some scammers may create a sense of urgency (e.g., “We detected suspicious activity on your account.”)
 
@@ -34,10 +35,10 @@ Here are the most common types of scams we've seen targeting Expensify members:
 
 ---
 
-### 2. Phishing emails/text messages that look like Expensify
+### 2. Phishing emails and texts requesting you use their link to login to Expensify
 
-- These emails and text messages often look like they’re from Expensify or Visa, but the sender address is fake.
-- They may include links that lead to a fake login page, prompt you to reset your password, or ask you to reply with your Magic Code.
+- Emails and text messages often look like they’re from Expensify or Visa, but the sender address is likely not from an expensify.com email address.
+- These emails and text messages may have links that lead to a fake login page, prompt you to reset your password, or ask you to reply with your Magic Code.
 - Scammers sometimes use urgent language like “Your account will be closed if you don’t respond.”
 
 **Don’t click suspicious links, and never share your Magic Code in email. Expensify will only generate a magic code for you when you take an action in the app, such as logging in or making a high-risk change.**
@@ -118,9 +119,9 @@ The **Magic Code** is a one-time login code Expensify emails or texts to you whe
 
 Here are the most common types of scams we've seen targeting Expensify members:
 
-### 1. Fake phone calls pretending to be Expensify
+### 1. Phone call scams requesting your Magic Code
 
-- The scammer says they’re from Expensify and needs your Magic Code to verify your account.
+- The scammer claims to be from Expensify and needs your Magic Code to verify your account.
 - They may spoof a legitimate phone number to make it seem more convincing.
 - Some scammers may create a sense of urgency (e.g., “We detected suspicious activity on your account.”)
 
@@ -128,10 +129,10 @@ Here are the most common types of scams we've seen targeting Expensify members:
 
 ---
 
-### 2. Phishing emails/text messages that look like Expensify
+### 2. Phishing emails and texts requesting you use their link to login to Expensify
 
-- These emails and text messages often look like they’re from Expensify or Visa, but the sender address is fake.
-- They may include links that lead to a fake login page, prompt you to reset your password, or ask you to reply with your Magic Code.
+- Emails and text messages often look like they’re from Expensify or Visa, but the sender address is likely not from an expensify.com email address.
+- These emails and text messages may have links that lead to a fake login page, prompt you to reset your password, or ask you to reply with your Magic Code.
 - Scammers sometimes use urgent language like “Your account will be closed if you don’t respond.”
 
 **Don’t click suspicious links, and never share your Magic Code in email. Expensify will only generate a magic code for you when you take an action in the app, such as logging in or making a high-risk change.**
