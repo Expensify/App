@@ -10,7 +10,7 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -65,7 +65,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import MoneyRequestReportGroupHeader from './MoneyRequestReportGroupHeader';
@@ -184,7 +183,6 @@ function MoneyRequestReportTransactionList({
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
@@ -267,10 +265,10 @@ function MoneyRequestReportTransactionList({
             }));
     }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, report]);
 
+    // Always use default columns for money request report view (don't use user-customized search columns)
     const columnsToShow = useMemo(() => {
-        const columns = getColumnsToShow(currentUserDetails?.accountID, transactions, visibleColumns, true);
-        return (Object.keys(columns) as SearchColumnType[]).filter((column) => columns[column]);
-    }, [transactions, currentUserDetails?.accountID, visibleColumns]);
+        return getColumnsToShow(currentUserDetails?.accountID, transactions, [], true);
+    }, [transactions, currentUserDetails?.accountID]);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 

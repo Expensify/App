@@ -327,17 +327,49 @@ function SearchTableHeader({
 
     const columnConfig = useMemo(() => getSearchColumns(type, groupBy, icons.Profile), [type, groupBy, icons.Profile]);
 
+    // Reorder columnConfig based on the columns prop order
+    const orderedColumnConfig = useMemo(() => {
+        if (!columnConfig) {
+            return null;
+        }
+
+        // Create a map for quick lookup
+        const configMap = new Map(columnConfig.map((config) => [config.columnName, config]));
+
+        // Build ordered config: first add columns in the order specified by `columns` prop,
+        // then add any remaining columns from columnConfig that weren't in columns
+        const orderedConfig: SearchColumnConfig[] = [];
+        const addedColumns = new Set<SearchColumnType>();
+
+        for (const col of columns) {
+            const config = configMap.get(col);
+            if (config) {
+                orderedConfig.push(config);
+                addedColumns.add(col);
+            }
+        }
+
+        // Add remaining columns that weren't in the columns prop (in their original order)
+        for (const config of columnConfig) {
+            if (!addedColumns.has(config.columnName)) {
+                orderedConfig.push(config);
+            }
+        }
+
+        return orderedConfig;
+    }, [columnConfig, columns]);
+
     if (displayNarrowVersion) {
         return;
     }
 
-    if (!columnConfig) {
+    if (!orderedColumnConfig) {
         return;
     }
 
     return (
         <SortableTableHeader
-            columns={columnConfig}
+            columns={orderedColumnConfig}
             areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
             shouldShowColumn={shouldShowColumn}
             dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}

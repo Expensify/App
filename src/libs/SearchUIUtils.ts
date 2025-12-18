@@ -2828,6 +2828,7 @@ function getActionOptions(translate: LocaleContextProps['translate']) {
 /**
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
+ * @returns An ordered array of visible column IDs
  */
 function getColumnsToShow(
     currentAccountID: number | undefined,
@@ -2835,69 +2836,53 @@ function getColumnsToShow(
     visibleColumns: SearchCustomColumnIds[] = [],
     isExpenseReportView = false,
     type?: SearchDataTypes,
-): ColumnVisibility {
+): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        const reportColumns: ColumnVisibility = {
-            [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-        };
+        const defaultReportColumns: SearchColumnType[] = [
+            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.STATUS,
+            CONST.SEARCH.TABLE_COLUMNS.TITLE,
+            CONST.SEARCH.TABLE_COLUMNS.FROM,
+            CONST.SEARCH.TABLE_COLUMNS.TO,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        ];
 
-        // If there are no visible columns, everything should be visible
+        // If there are no visible columns, return default columns
         if (!visibleColumns.length) {
-            return reportColumns;
+            return defaultReportColumns;
         }
 
-        // If the user has set custom columns, toggle the visible columns on, with all other
-        // columns hidden by default
-        const columns: ColumnVisibility = {};
-        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
-        const columnsToShow = visibleColumns.length ? visibleColumns : CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT;
+        // If the user has set custom columns, use their order with required columns
+        const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+        const result: SearchColumnType[] = [];
 
-        for (const columnId of Object.keys(reportColumns) as SearchColumnType[]) {
-            columns[columnId] = requiredColumns.has(columnId);
+        // Add required columns that aren't in visibleColumns at the start
+        for (const col of requiredColumns) {
+            if (!visibleColumns.includes(col as SearchCustomColumnIds)) {
+                result.push(col);
+            }
         }
 
-        for (const column of columnsToShow) {
-            columns[column as keyof ColumnVisibility] = true;
+        // Add visible columns in their order
+        for (const col of visibleColumns) {
+            result.push(col);
         }
 
-        return columns;
+        return result;
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return {
-            [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.IN]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TYPE]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: false,
-        };
+        return [
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.TITLE,
+            CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+            CONST.SEARCH.TABLE_COLUMNS.FROM,
+            CONST.SEARCH.TABLE_COLUMNS.IN,
+            CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE,
+            CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        ];
     }
 
     const columns: ColumnVisibility = isExpenseReportView
@@ -2941,16 +2926,24 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
           };
 
-    // If the user has set custom columns for the search, we need to respect their preference, and only show
-    // them what they want to see
+    // If the user has set custom columns for the search, we need to respect their preference and order
     if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
-        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
+        const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
+        const result: SearchColumnType[] = [];
 
-        for (const column of Object.keys(columns) as SearchCustomColumnIds[]) {
-            columns[column] = visibleColumns.includes(column) || requiredColumns.has(column);
+        // Add required columns that aren't in visibleColumns at the start
+        for (const col of requiredColumns) {
+            if (!visibleColumns.includes(col as SearchCustomColumnIds)) {
+                result.push(col);
+            }
         }
 
-        return columns;
+        // Add visible columns in their order
+        for (const col of visibleColumns) {
+            result.push(col);
+        }
+
+        return result;
     }
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
@@ -3013,7 +3006,8 @@ function getColumnsToShow(
         }
     }
 
-    return columns;
+    // Return columns in default order, filtered to only visible ones
+    return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
 }
 
 /**

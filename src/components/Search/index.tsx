@@ -831,9 +831,7 @@ function Search({
         if (!searchResults?.data) {
             return [];
         }
-        const columns = getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchResults?.search?.type);
-
-        return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
+        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchResults?.search?.type);
     }, [accountID, searchResults?.data, searchResults?.search?.type, visibleColumns]);
 
     const opacity = useSharedValue(1);

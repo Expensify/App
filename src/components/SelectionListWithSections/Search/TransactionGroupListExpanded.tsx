@@ -80,9 +80,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             return [];
         }
-        const columnsToShow = getColumnsToShow(accountID, transactionsSnapshot?.data, visibleColumns, false, transactionsSnapshot?.search.type);
-
-        return (Object.keys(columnsToShow) as SearchColumnType[]).filter((col) => columnsToShow[col]);
+        return getColumnsToShow(accountID, transactionsSnapshot?.data, visibleColumns, false, transactionsSnapshot?.search.type);
     }, [accountID, columns, isExpenseReportType, transactionsSnapshot?.data, transactionsSnapshot?.search.type, visibleColumns]);
 
     const areAllOptionalColumnsHidden = useMemo(() => {
