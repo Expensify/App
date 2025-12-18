@@ -297,7 +297,7 @@ type FailedCompanyCardAssignment = {
     cardholder?: PersonalDetails;
 
     /** The name of the card */
-    customCardName: string;
+    cardName: string;
 
     /** The card number */
     cardNumber: string;

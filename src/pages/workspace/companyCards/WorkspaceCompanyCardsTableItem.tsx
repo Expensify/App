@@ -108,7 +108,7 @@ function WorkspaceCompanyCardTableItem({
 
     if (failedCompanyCardAssignment) {
         cardName = failedCompanyCardAssignment.cardNumber;
-        customCardName = failedCompanyCardAssignment.customCardName;
+        customCardName = failedCompanyCardAssignment.cardName;
         cardholder = failedCompanyCardAssignment.cardholder;
         assignedCard = undefined;
         isAssigned = true;

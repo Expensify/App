@@ -312,13 +312,13 @@ function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspace
     if (!data || !policy?.id) {
         return;
     }
-    const {bankName = '', email = '', encryptedCardNumber = '', startDate = '', cardName: customCardName = '', cardNumber = '', cardholder} = data;
+    const {bankName = '', email = '', encryptedCardNumber = '', startDate = '', cardName = '', cardNumber = '', cardholder} = data;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
     const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID);
 
     const failedCardAssignment: FailedCompanyCardAssignment = {
         cardholder,
-        customCardName,
+        cardName,
         cardNumber,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         errors: {
@@ -330,7 +330,7 @@ function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspace
         policyID: policy.id,
         bankName,
         encryptedCardNumber,
-        cardName: customCardName,
+        cardName,
         email,
         startDate,
         reportActionID: optimisticCardAssignedReportAction.reportActionID,
