@@ -175,6 +175,4 @@ function WorkspaceCompanyCardsListRow({
     );
 }
 
-WorkspaceCompanyCardsListRow.displayName = 'WorkspaceCompanyCardsListRow';
-
 export default WorkspaceCompanyCardsListRow;

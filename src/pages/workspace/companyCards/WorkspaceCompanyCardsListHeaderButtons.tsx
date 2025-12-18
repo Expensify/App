@@ -58,7 +58,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const {translate} = useLocalize();
     const theme = useTheme();
     const illustrations = useThemeIllustrations();
-    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
 
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
@@ -174,7 +174,5 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
         </View>
     );
 }
-
-WorkspaceCompanyCardsListHeaderButtons.displayName = 'WorkspaceCompanyCardsListHeaderButtons';
 
 export default WorkspaceCompanyCardsListHeaderButtons;
