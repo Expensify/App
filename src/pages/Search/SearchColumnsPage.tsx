@@ -42,11 +42,11 @@ function SearchColumnsPage() {
         return columnIds;
     });
 
-    const columnsList = selectedColumnIds.map((columnId) => ({
+    const columnsList = allCustomColumns.map((columnId) => ({
         text: translate(getSearchColumnTranslationKey(columnId)),
         value: columnId,
         keyForList: columnId,
-        isSelected: true,
+        isSelected: selectedColumnIds.includes(columnId),
     }));
 
     const sortedDefaultColumns = [...defaultCustomColumns].sort();
@@ -102,30 +102,30 @@ function SearchColumnsPage() {
             <HeaderWithBackButton title={translate('search.columns')}>
                 {shouldShowResetColumns && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
             </HeaderWithBackButton>
-            <DraggableList
-                data={columnsList}
-                keyExtractor={(item) => item.value}
-                onDragEnd={onDragEnd}
-                renderItem={renderItem}
-                ListFooterComponent={
-                    <View style={[styles.ph5, styles.pb5, styles.mtAuto, styles.flex1, styles.justifyContentEnd]}>
-                        {!selectedColumnIds.length && (
-                            <DotIndicatorMessage
-                                type="error"
-                                style={styles.mb3}
-                                messages={{error: translate('search.noColumnsError')}}
-                            />
-                        )}
-                        <Button
-                            large
-                            success
-                            pressOnEnter
-                            text={translate('common.save')}
-                            onPress={applyChanges}
-                        />
-                    </View>
-                }
-            />
+            <View style={styles.flex1}>
+                <DraggableList
+                    data={columnsList}
+                    keyExtractor={(item) => item.value}
+                    onDragEnd={onDragEnd}
+                    renderItem={renderItem}
+                />
+            </View>
+            <View style={[styles.ph5, styles.pb5]}>
+                {!selectedColumnIds.length && (
+                    <DotIndicatorMessage
+                        type="error"
+                        style={styles.mb3}
+                        messages={{error: translate('search.noColumnsError')}}
+                    />
+                )}
+                <Button
+                    large
+                    success
+                    pressOnEnter
+                    text={translate('common.save')}
+                    onPress={applyChanges}
+                />
+            </View>
         </ScreenWrapper>
     );
 }
