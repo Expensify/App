@@ -247,20 +247,22 @@ function IOURequestEditReportCommon({
         [transactionIDs, allPolicies, allTransactions],
     );
 
-    const validatePerDiemMove = (policyID: string | undefined): boolean => {
-        if (transactionIDs?.length === 0) {
-            return false;
-        }
-        if (isPerDiemRequest) {
-            const canTransactionsBeMoved = checkIfPerDiemTransactionsCanBeMoved(policyID);
-            if (canTransactionsBeMoved) {
-                return true;
+    const validatePerDiemMove = useCallback(
+        (policyID: string | undefined): boolean => {
+            if (transactionIDs?.length === 0) {
+                return false;
             }
-            setPerDiemWarningModalVisible(true);
-            return false;
-        }
-        return true;
-    };
+            if (isPerDiemRequest) {
+                if (checkIfPerDiemTransactionsCanBeMoved(policyID)) {
+                    return true;
+                }
+                setPerDiemWarningModalVisible(true);
+                return false;
+            }
+            return true;
+        },
+        [transactionIDs?.length, isPerDiemRequest, checkIfPerDiemTransactionsCanBeMoved],
+    );
 
     const handleSelectReport = (item: TransactionGroupListItem) => {
         if (!validatePerDiemMove(item.policyID)) {
