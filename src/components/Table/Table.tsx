@@ -5,7 +5,7 @@ import useSearching from './middlewares/searching';
 import useSorting from './middlewares/sorting';
 import TableContext from './TableContext';
 import type {TableContextValue} from './TableContext';
-import type {GetActiveFiltersCallback, GetActiveSearchStringCallback, TableHandle, TableMethods, TableProps, UpdateFilterCallback} from './types';
+import type {TableHandle, TableMethods, TableProps} from './types';
 
 /**
  * A composable table component that provides filtering, search, and sorting functionality.
@@ -144,36 +144,27 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
     }
 
     const {middleware: filterMiddleware, currentFilters, methods: filterMethods} = useFiltering<T, FilterKey>({filters, isItemInFilter});
-    const {updateFilter} = filterMethods;
 
-    const {middleware: searchMiddleware, activeSearchString, updateSearchString} = useSearching<T>({isItemInSearch});
+    const {middleware: searchMiddleware, activeSearchString, methods: searchMethods} = useSearching<T>({isItemInSearch});
 
     const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<T, ColumnKey>({compareItems});
-    const {updateSorting, toggleColumnSorting, getActiveSorting} = sortMethods;
 
     const processedData = [filterMiddleware, searchMiddleware, sortMiddleware].reduce((acc, middleware) => middleware(acc), data);
 
     const listRef = useRef<FlashListRef<T>>(null);
+
+    const tableMethods: TableMethods<ColumnKey, FilterKey> = {
+        ...filterMethods,
+        ...sortMethods,
+        ...searchMethods,
+    };
 
     /**
      * Exposes table control methods through the ref.
      * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
      */
     useImperativeHandle(ref, () => {
-        const getActiveFilters: GetActiveFiltersCallback<FilterKey> = () => currentFilters;
-        const getActiveSearchString: GetActiveSearchStringCallback = () => activeSearchString;
-
-        const customMethods: TableMethods<ColumnKey, FilterKey> = {
-            updateSorting,
-            toggleColumnSorting,
-            updateFilter,
-            updateSearchString,
-            getActiveSorting,
-            getActiveFilters,
-            getActiveSearchString,
-        };
-
-        return new Proxy(customMethods, {
+        return new Proxy(tableMethods, {
             get: (target, property) => {
                 if (property in target) {
                     return target[property as keyof typeof target];
@@ -184,19 +175,8 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         }) as TableHandle<T, ColumnKey, FilterKey>;
     });
 
-    /**
-     * Wrapper that widens FilterKey to string for the context.
-     * The assertion is safe here because:
-     * 1. The context needs to work with any filter key at runtime (widened to string)
-     * 2. The filtering middleware validates keys against the filterConfig at runtime
-     * 3. This is the boundary between the generic Table<FilterKey> and the non-generic context
-     */
-    const handleUpdateFilter: UpdateFilterCallback = ({key, value}) => {
-        updateFilter({key: key as FilterKey, value});
-    };
-
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const contextValue: TableContextValue<T, ColumnKey> = {
+    const contextValue: TableContextValue<T, ColumnKey, FilterKey> = {
         listRef,
         listProps,
         processedData,
@@ -206,10 +186,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         activeFilters: currentFilters,
         activeSorting,
         activeSearchString,
-        updateFilter: handleUpdateFilter,
-        updateSorting,
-        toggleColumnSorting,
-        updateSearchString,
+        tableMethods,
     };
 
     return <TableContext.Provider value={contextValue as unknown as TableContextValue<unknown, string>}>{children}</TableContext.Provider>;

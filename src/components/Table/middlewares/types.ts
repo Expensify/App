@@ -13,12 +13,12 @@ type Middleware<T> = (data: T[]) => T[];
  *
  * @template T - The type of items in the data array.
  */
-type MiddlewareHookResult<T> = {
+type MiddlewareHookResult<T, Methods> = {
     /** The middleware function to apply to data. */
     middleware: Middleware<T>;
 
     /** Optional methods exposed by the middleware for external control. */
-    methods?: Record<string, unknown>;
+    methods: Methods;
 };
 
 export type {Middleware, MiddlewareHookResult};

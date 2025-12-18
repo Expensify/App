@@ -3,26 +3,28 @@ import type {ReactNode} from 'react';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import type {FilterConfig, FilterConfigEntry} from '@components/Table/types';
+import type {FilterConfig, FilterConfigEntry} from '@components/Table/middlewares/filtering';
 
-type FilterButtonItem = {
-    key: string;
+type FilterButtonItem<FilterKey extends string = string> = {
+    key: FilterKey;
     label: string;
     value: string | string[] | null;
     PopoverComponent: (props: PopoverComponentProps) => React.ReactNode;
 };
 
-function buildFilterItems(
-    filterConfigs: FilterConfig | undefined,
+function buildFilterItems<FilterKey extends string = string>(
+    filterConfigs: FilterConfig<FilterKey> | undefined,
     filters: Record<string, unknown>,
     setFilter: (key: string, value: unknown) => void,
     filtersLabel: string,
-): FilterButtonItem[] {
+): Array<FilterButtonItem<FilterKey>> {
     if (!filterConfigs) {
         return [];
     }
 
-    return Object.keys(filterConfigs).map((filterKey) => {
+    const filterKeys = Object.keys(filterConfigs) as FilterKey[];
+
+    return filterKeys.map((filterKey) => {
         const filterConfig = filterConfigs[filterKey];
         const currentFilterValue = filters[filterKey];
         const displayValue = getDisplayValue(filterConfig, currentFilterValue);
@@ -67,8 +69,8 @@ function buildFilterItems(
     });
 }
 
-function createPopoverComponent(
-    filterKey: string,
+function createPopoverComponent<FilterKey extends string = string>(
+    filterKey: FilterKey,
     filterConfig: FilterConfigEntry,
     currentFilterValue: unknown,
     setFilter: (key: string, value: unknown) => void,
@@ -80,14 +82,14 @@ function createPopoverComponent(
     return createSingleSelectPopover({filterKey, filterConfig, currentFilterValue, setFilter});
 }
 
-type MultiSelectPopoverFactoryProps = {
-    filterKey: string;
+type MultiSelectPopoverFactoryProps<FilterKey extends string = string> = {
+    filterKey: FilterKey;
     filterConfig: FilterConfigEntry;
     currentFilterValue: unknown;
-    setFilter: (key: string, value: unknown) => void;
+    setFilter: (key: FilterKey, value: unknown) => void;
 };
 
-function createMultiSelectPopover({filterKey, filterConfig, currentFilterValue, setFilter}: MultiSelectPopoverFactoryProps) {
+function createMultiSelectPopover<FilterKey extends string = string>({filterKey, filterConfig, currentFilterValue, setFilter}: MultiSelectPopoverFactoryProps<FilterKey>) {
     return ({closeOverlay}: PopoverComponentProps) => {
         const currentValueArray = Array.isArray(currentFilterValue) ? currentFilterValue : [];
         const selectedItems = filterConfig.options
@@ -115,20 +117,20 @@ function createMultiSelectPopover({filterKey, filterConfig, currentFilterValue, 
     };
 }
 
-type SingleSelectPopoverFactoryProps = {
-    filterKey: string;
+type SingleSelectPopoverFactoryProps<FilterKey extends string = string> = {
+    filterKey: FilterKey;
     filterConfig: FilterConfigEntry;
     currentFilterValue: unknown;
     setFilter: (key: string, value: unknown) => void;
 };
 
-function createSingleSelectPopover({filterKey, filterConfig, currentFilterValue, setFilter}: SingleSelectPopoverFactoryProps) {
+function createSingleSelectPopover<FilterKey extends string = string>({filterKey, filterConfig, currentFilterValue, setFilter}: SingleSelectPopoverFactoryProps<FilterKey>) {
     return ({closeOverlay}: PopoverComponentProps) => {
         const foundOption = filterConfig.options.find((option) => option.value === currentFilterValue);
         const selectedItem = foundOption
             ? {
                   text: foundOption.label,
-                  value: currentFilterValue as string,
+                  value: currentFilterValue as FilterKey,
               }
             : null;
 

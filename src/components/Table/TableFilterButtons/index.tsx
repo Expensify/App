@@ -69,7 +69,11 @@ type TableFilterButtonsProps = ViewProps & {
 function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {filterConfig: filterConfigs, activeFilters: filters, updateFilter} = useTableContext();
+    const {
+        filterConfig: filterConfigs,
+        activeFilters: filters,
+        tableMethods: {updateFilter},
+    } = useTableContext();
 
     const setFilter = (key: string, value: unknown) => {
         updateFilter({key, value});

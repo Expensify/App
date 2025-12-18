@@ -78,7 +78,10 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong'] as const);
 
-    const {activeSorting, updateSorting, toggleColumnSorting} = useTableContext<T, ColumnKey>();
+    const {
+        activeSorting,
+        tableMethods: {updateSorting, toggleColumnSorting},
+    } = useTableContext<T, ColumnKey>();
     const isSortingByColumn = column.key === activeSorting.columnKey;
     const sortIcon = activeSorting.order === 'asc' ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
 

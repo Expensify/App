@@ -12,7 +12,10 @@ type FilterConfig<FilterKey extends string = string> = Record<FilterKey, FilterC
 type IsItemInFilterCallback<T> = (item: T, filters: string[]) => boolean;
 
 type FilteringMethods<FilterKey extends string = string> = {
+    /** Callback to update a filter value. */
     updateFilter: (params: {key: FilterKey; value: unknown}) => void;
+
+    /** Callback to get the active filters. */
     getActiveFilters: () => Record<FilterKey, unknown>;
 };
 
@@ -21,9 +24,8 @@ type UseFilteringProps<T, FilterKey extends string = string> = {
     isItemInFilter?: IsItemInFilterCallback<T>;
 };
 
-type UseFilteringResult<T, FilterKey extends string = string> = MiddlewareHookResult<T> & {
+type UseFilteringResult<T, FilterKey extends string = string> = MiddlewareHookResult<T, FilteringMethods<FilterKey>> & {
     currentFilters: Record<FilterKey, unknown>;
-    methods: FilteringMethods<FilterKey>;
 };
 
 function useFiltering<T, FilterKey extends string = string>({filters, isItemInFilter}: UseFilteringProps<T, FilterKey>): UseFilteringResult<T, FilterKey> {
@@ -39,6 +41,13 @@ function useFiltering<T, FilterKey extends string = string>({filters, isItemInFi
         return initialFilters;
     });
 
+    /**
+     * Wrapper that widens FilterKey to string for the context.
+     * The assertion is safe here because:
+     * 1. The context needs to work with any filter key at runtime (widened to string)
+     * 2. The filtering middleware validates keys against the filterConfig at runtime
+     * 3. This is the boundary between the generic Table<FilterKey> and the non-generic context
+     */
     const updateFilter: FilteringMethods<FilterKey>['updateFilter'] = ({key, value}) => {
         setCurrentFilters((previousFilters) => ({
             ...previousFilters,

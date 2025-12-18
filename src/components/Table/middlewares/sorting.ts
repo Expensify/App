@@ -12,8 +12,13 @@ type ActiveSorting<ColumnKey extends string = string> = {
 type CompareItemsCallback<T, ColumnKey extends string = string> = (a: T, b: T, sortingConfig: ActiveSorting<ColumnKey>) => number;
 
 type SortingMethods<ColumnKey extends string = string> = {
+    /** Callback to update the sorting configuration. */
     updateSorting: (value: SetStateAction<ActiveSorting<ColumnKey>>) => void;
+
+    /** Callback to toggle sorting for a specific column. */
     toggleColumnSorting: (columnKey?: ColumnKey) => void;
+
+    /** Callback to get the active sorting configuration. */
     getActiveSorting: () => {
         columnKey: ColumnKey | undefined;
         order: SortOrder;
@@ -24,10 +29,8 @@ type UseSortingProps<T, ColumnKey extends string = string> = {
     compareItems?: CompareItemsCallback<T, ColumnKey>;
 };
 
-type UseSortingResult<T, ColumnKey extends string = string> = MiddlewareHookResult<T> & {
+type UseSortingResult<T, ColumnKey extends string = string> = MiddlewareHookResult<T, SortingMethods<ColumnKey>> & {
     activeSorting: ActiveSorting<ColumnKey>;
-    compareItems?: CompareItemsCallback<T, ColumnKey>;
-    methods: SortingMethods<ColumnKey>;
 };
 
 function useSorting<T, ColumnKey extends string = string>({compareItems}: UseSortingProps<T, ColumnKey>): UseSortingResult<T, ColumnKey> {

@@ -1,5 +1,4 @@
 import {useState} from 'react';
-import type {GetActiveSearchStringCallback} from '@components/Table/types';
 import type {Middleware, MiddlewareHookResult} from './types';
 
 type IsItemInSearchCallback<T> = (item: T, searchString: string) => boolean;
@@ -9,14 +8,15 @@ type UseSearchingProps<T> = {
 };
 
 type SearchingMethods = {
+    /** Callback to update the search string. */
     updateSearchString: (value: string) => void;
+
+    /** Callback to get the active search string. */
     getActiveSearchString: () => string;
 };
 
-type UseSearchingResult<T> = MiddlewareHookResult<T> & {
+type UseSearchingResult<T> = MiddlewareHookResult<T, SearchingMethods> & {
     activeSearchString: string;
-    updateSearchString: (searchString: string) => void;
-    getActiveSearchString: GetActiveSearchStringCallback;
 };
 
 function useSearching<T>({isItemInSearch}: UseSearchingProps<T>): UseSearchingResult<T> {
@@ -24,11 +24,16 @@ function useSearching<T>({isItemInSearch}: UseSearchingProps<T>): UseSearchingRe
 
     const middleware: Middleware<T> = (data) => search({data, activeSearchString, isItemInSearch});
 
-    const getActiveSearchString: GetActiveSearchStringCallback = () => {
+    const getActiveSearchString: SearchingMethods['getActiveSearchString'] = () => {
         return activeSearchString;
     };
 
-    return {middleware, activeSearchString, updateSearchString, getActiveSearchString};
+    const methods: SearchingMethods = {
+        updateSearchString,
+        getActiveSearchString,
+    };
+
+    return {middleware, activeSearchString, methods};
 }
 
 type SearchingMiddlewareParams<T> = {

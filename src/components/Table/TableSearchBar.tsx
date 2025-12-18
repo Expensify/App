@@ -35,7 +35,10 @@ import {useTableContext} from './TableContext';
 function TableSearchBar() {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
-    const {activeSearchString, updateSearchString} = useTableContext();
+    const {
+        activeSearchString,
+        tableMethods: {updateSearchString},
+    } = useTableContext();
 
     return (
         <View>

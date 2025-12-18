@@ -1,15 +1,8 @@
 import type {FlashListRef} from '@shopify/flash-list';
 import React, {createContext, useContext} from 'react';
-import type {
-    ActiveSorting,
-    FilterConfig,
-    SharedListProps,
-    TableColumn,
-    ToggleSortingCallback as ToggleColumnSortingCallback,
-    UpdateFilterCallback,
-    UpdateSearchStringCallback,
-    UpdateSortingCallback,
-} from './types';
+import type {FilterConfig} from './middlewares/filtering';
+import type {ActiveSorting} from './middlewares/sorting';
+import type {SharedListProps, TableColumn, TableMethods} from './types';
 
 /**
  * The shape of the Table context value.
@@ -18,7 +11,7 @@ import type {
  * @template T - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  */
-type TableContextValue<T, ColumnKey extends string = string> = {
+type TableContextValue<T, ColumnKey extends string = string, FilterKey extends string = string> = {
     /** Reference to the underlying FlashList for programmatic control. */
     listRef: React.RefObject<FlashListRef<T> | null>;
 
@@ -35,10 +28,10 @@ type TableContextValue<T, ColumnKey extends string = string> = {
     columns: Array<TableColumn<ColumnKey>>;
 
     /** Filter configuration for dropdown filters. */
-    filterConfig: FilterConfig | undefined;
+    filterConfig: FilterConfig<FilterKey> | undefined;
 
     /** Currently active filter values. */
-    activeFilters: Record<string, unknown>;
+    activeFilters: Record<FilterKey, unknown>;
 
     /** Currently active sorting configuration. */
     activeSorting: ActiveSorting<ColumnKey>;
@@ -46,17 +39,8 @@ type TableContextValue<T, ColumnKey extends string = string> = {
     /** Currently active search string. */
     activeSearchString: string;
 
-    /** Callback to update a filter value. */
-    updateFilter: UpdateFilterCallback;
-
-    /** Callback to update the sorting configuration. */
-    updateSorting: UpdateSortingCallback<ColumnKey>;
-
-    /** Callback to toggle sorting for a specific column. */
-    toggleColumnSorting: ToggleColumnSortingCallback<ColumnKey>;
-
-    /** Callback to update the search string. */
-    updateSearchString: UpdateSearchStringCallback;
+    /** Methods exposed by the Table component for programmatic control. */
+    tableMethods: TableMethods<ColumnKey, FilterKey>;
 };
 
 const defaultTableContextValue: TableContextValue<unknown, string> = {
@@ -70,10 +54,7 @@ const defaultTableContextValue: TableContextValue<unknown, string> = {
         order: 'asc',
     },
     activeSearchString: '',
-    updateFilter: () => {},
-    updateSorting: () => {},
-    toggleColumnSorting: () => {},
-    updateSearchString: () => {},
+    tableMethods: {} as TableMethods<string, string>,
     filterConfig: undefined,
     listProps: {} as SharedListProps<unknown>,
 };
@@ -109,4 +90,4 @@ function useTableContext<T, ColumnKey extends string = string>() {
 
 export default TableContext;
 export {useTableContext};
-export type {TableContextValue, UpdateSortingCallback, UpdateSearchStringCallback, UpdateFilterCallback};
+export type {TableContextValue};
