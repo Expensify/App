@@ -59,8 +59,8 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy));
 
     const goBack = useCallback(() => {
-        if (isReportFieldTitle) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '', backTo));
+        if (isReportFieldTitle && report?.reportID) {
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
             return;
         }
         Navigation.goBack(backTo);

@@ -5,12 +5,11 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import useConfirmModal from '@hooks/useConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
@@ -18,6 +17,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
