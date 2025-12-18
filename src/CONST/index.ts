@@ -2913,6 +2913,7 @@ const CONST = {
         SPLIT_TYPE: {
             AMOUNT: 'amount',
             PERCENTAGE: 'percentage',
+            DATE: 'date',
         },
         AMOUNT_MAX_LENGTH: 8,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,

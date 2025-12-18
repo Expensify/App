@@ -174,6 +174,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     SpreadCategoriesParams,
@@ -1376,6 +1377,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: 'Hoeveelheid moet groter zijn dan nul',
             invalidSubrateLength: 'Er moet ten minste één subtarief zijn',
             invalidRate: 'Tarief is niet geldig voor deze workspace. Selecteer een beschikbaar tarief uit de workspace.',
+            endDateBeforeStartDate: 'De einddatum kan niet vóór de startdatum liggen',
+            endDateSameAsStartDate: 'De einddatum mag niet hetzelfde zijn als de startdatum',
         },
         dismissReceiptError: 'Foutmelding sluiten',
         dismissReceiptErrorConfirmation: 'Let op! Als je deze foutmelding negeert, wordt je geüploade bon volledig verwijderd. Weet je het zeker?',
@@ -1521,6 +1524,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Kies een workspace',
+        date: 'Datum',
+        splitDates: 'Datums splitsen',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} tot ${endDate} (${count} dagen)`,
+        splitByDate: 'Splitsen op datum',
     },
     transactionMerge: {
         listPage: {
