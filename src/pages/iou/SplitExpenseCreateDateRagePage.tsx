@@ -25,7 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SplitExpenseEditDateForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import DateUtils from '@libs/DateUtils';
 
 type SplitExpenseCreateDateRagePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE>;
 
@@ -33,7 +32,6 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const searchContext = useSearchContext();
-    const todayDate = DateUtils.extractDate(new Date().toISOString());
 
     const {reportID, transactionID, backTo} = route.params;
 
@@ -112,7 +110,6 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                             minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                             defaultValue={draftTransaction?.comment?.splitsStartDate}
-                            currentDate={todayDate}
                             autoFocus
                         />
                         <InputWrapper
@@ -122,7 +119,6 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                             minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                             defaultValue={draftTransaction?.comment?.splitsEndDate}
-                            currentDate={todayDate}
                         />
                     </FormProvider>
                 </View>

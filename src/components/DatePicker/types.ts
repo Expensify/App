@@ -17,9 +17,6 @@ type DatePickerBaseProps = ForwardedFSClassProps & {
      */
     defaultValue?: string;
 
-    /** Current date to highlight (e.g., today or initial date) */
-    currentDate?: string;
-
     inputID: string;
 
     /** A minimum date of calendar to select */
@@ -77,9 +74,6 @@ type DatePickerProps = {
      * `onInputChange` would always be called with a Date (or null)
      */
     defaultValue?: string;
-
-    /** Current date to highlight (e.g., today or initial date) */
-    currentDate?: string;
 
     inputID: string;
 

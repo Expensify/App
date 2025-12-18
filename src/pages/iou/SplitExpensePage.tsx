@@ -517,6 +517,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                                     sections={sections}
                                                     initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
                                                     onSelectRow={onSelectRow}
+                                                    listFooterContent={<View style={[shouldUseNarrowLayout && styles.mb3]} />}
                                                 />
                                                 {footerContent}
                                             </View>
