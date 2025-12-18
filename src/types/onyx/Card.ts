@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
+import type PersonalDetails from './PersonalDetails';
 
 /** Model of Expensify card status changes */
 type CardStatusChanges = {
@@ -290,8 +291,48 @@ type WorkspaceCardsList = Record<string, Card> & {
     cardList?: Record<string, string>;
 };
 
+/**
+ * Pending action for a company card assignment
+ */
+type FailedCompanyCardAssignment = {
+    /** Cardholder personal details */
+    cardholder?: PersonalDetails;
+
+    /** The name of the card */
+    customCardName: string;
+
+    /** The card number */
+    cardNumber: string;
+
+    /** Card related error messages */
+    errors?: OnyxCommon.Errors;
+
+    /** Collection of form field errors  */
+    errorFields?: OnyxCommon.ErrorFields;
+
+    /**
+     * The type of action that's pending
+     */
+    pendingAction?: OnyxCommon.PendingAction;
+};
+
+/** Pending action for a company card assignment */
+type FailedCompanyCardAssignments = Record<string, FailedCompanyCardAssignment>;
+
 /** Card list with only available card */
 type FilteredCardList = Record<string, string>;
 
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType, FilteredCardList, ProvisioningCardData};
+export type {
+    ExpensifyCardDetails,
+    CardList,
+    IssueNewCard,
+    IssueNewCardStep,
+    IssueNewCardData,
+    WorkspaceCardsList,
+    CardLimitType,
+    FilteredCardList,
+    ProvisioningCardData,
+    FailedCompanyCardAssignment,
+    FailedCompanyCardAssignments,
+};
