@@ -120,6 +120,7 @@ import type {
     PolicyCategories,
     PolicyCategory,
     Report,
+    ReportAction,
     ReportActions,
     Request,
     TaxRatesWithDefault,
@@ -3492,7 +3493,12 @@ function buildOptimisticRecentlyUsedCurrencies(currency?: string) {
  * @returns policyID of the workspace we have created
  */
 // eslint-disable-next-line rulesdir/no-call-actions-from-actions
-function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceFromIOUCreationData | undefined {
+function createWorkspaceFromIOUPayment(
+    iouReport: OnyxEntry<Report>,
+    reportPreviewAction: ReportAction | undefined,
+    currentUserEmail: string,
+    iouReportOwnerEmail: string,
+): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
         return;
@@ -3500,7 +3506,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
 
     // Generate new variables for the policy
     const policyID = generatePolicyID();
-    const workspaceName = generateDefaultWorkspaceName(deprecatedSessionEmail);
+    const workspaceName = generateDefaultWorkspaceName(currentUserEmail);
     const employeeAccountID = iouReport?.ownerAccountID;
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency);
     const oldPersonalPolicyID = iouReport?.policyID;
@@ -3522,10 +3528,8 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         return;
     }
 
-    const employeeEmail = deprecatedAllPersonalDetails?.[employeeAccountID]?.login ?? '';
-
     // Create the expense chat for the employee whose IOU is being paid
-    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: employeeAccountID}, true);
+    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[iouReportOwnerEmail]: employeeAccountID}, true);
     const newWorkspace = {
         id: policyID,
 
@@ -3533,7 +3537,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         type: CONST.POLICY.TYPE.TEAM,
         name: workspaceName,
         role: CONST.POLICY.ROLE.ADMIN,
-        owner: deprecatedSessionEmail,
+        owner: currentUserEmail,
         ownerAccountID: deprecatedSessionAccountID,
         isPolicyExpenseChatEnabled: true,
 
@@ -3543,7 +3547,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         autoReporting: true,
         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-        approver: deprecatedSessionEmail,
+        approver: currentUserEmail,
         harvesting: {
             enabled: false,
         },
@@ -3557,17 +3561,17 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         areConnectionsEnabled: false,
         areExpensifyCardsEnabled: false,
         employeeList: {
-            [deprecatedSessionEmail]: {
-                email: deprecatedSessionEmail,
-                submitsTo: deprecatedSessionEmail,
+            [currentUserEmail]: {
+                email: currentUserEmail,
+                submitsTo: currentUserEmail,
                 role: CONST.POLICY.ROLE.ADMIN,
                 errors: {},
             },
-            ...(employeeEmail
+            ...(iouReportOwnerEmail
                 ? {
-                      [employeeEmail]: {
-                          email: employeeEmail,
-                          submitsTo: deprecatedSessionEmail,
+                      [iouReportOwnerEmail]: {
+                          email: iouReportOwnerEmail,
+                          submitsTo: currentUserEmail,
                           role: CONST.POLICY.ROLE.USER,
                           errors: {},
                       },
@@ -3750,9 +3754,9 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     // optimistically create the expense chat for them.
     const memberData = {
         accountID: Number(employeeAccountID),
-        email: employeeEmail,
-        workspaceChatReportID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportID,
-        workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[employeeEmail].reportActionID,
+        email: iouReportOwnerEmail,
+        workspaceChatReportID: employeeWorkspaceChat.reportCreationData[iouReportOwnerEmail].reportID,
+        workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[iouReportOwnerEmail].reportActionID,
     };
 
     const oldChatReportID = iouReport?.chatReportID;
@@ -3809,21 +3813,16 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         value: transactionFailureData,
     });
 
-    // We need to move the report preview action from the DM to the expense chat.
-    const parentReport = deprecatedAllReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.parentReportID}`];
-    const parentReportActionID = iouReport?.parentReportActionID;
-    const reportPreview = iouReport?.parentReportID && parentReportActionID ? parentReport?.[parentReportActionID] : undefined;
-
-    if (reportPreview?.reportActionID) {
+    if (reportPreviewAction?.reportActionID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-            value: {[reportPreview.reportActionID]: null},
+            value: {[reportPreviewAction.reportActionID]: null},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-            value: {[reportPreview.reportActionID]: reportPreview},
+            value: {[reportPreviewAction.reportActionID]: reportPreviewAction},
         });
     }
 
@@ -3843,14 +3842,14 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         },
     });
 
-    if (reportPreview?.reportActionID) {
+    if (reportPreviewAction?.reportActionID) {
         // Update the created timestamp of the report preview action to be after the expense chat created timestamp.
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
             value: {
-                [reportPreview.reportActionID]: {
-                    ...reportPreview,
+                [reportPreviewAction.reportActionID]: {
+                    ...reportPreviewAction,
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -3864,7 +3863,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
-            value: {[reportPreview.reportActionID]: null},
+            value: {[reportPreviewAction.reportActionID]: null},
         });
     }
 
@@ -3958,7 +3957,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT, params, {optimisticData, successData, failureData});
 
-    return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreview?.reportActionID, adminsChatReportID};
+    return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreviewAction?.reportActionID, adminsChatReportID};
 }
 
 function enablePolicyConnections(policyID: string, enabled: boolean) {

@@ -22,6 +22,4 @@ function MiniReportActionContextMenu({displayAsGroup = false, ...rest}: MiniRepo
     );
 }
 
-MiniReportActionContextMenu.displayName = 'MiniReportActionContextMenu';
-
 export default MiniReportActionContextMenu;

@@ -142,7 +142,7 @@ function TextSelectorModal({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 includePaddingTop
-                testID={TextSelectorModal.displayName}
+                testID="TextSelectorModal"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -182,7 +182,5 @@ function TextSelectorModal({
         </Modal>
     );
 }
-
-TextSelectorModal.displayName = 'TextSelectorModal';
 
 export default TextSelectorModal;
