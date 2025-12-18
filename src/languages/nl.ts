@@ -6698,7 +6698,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         noColumnsError: 'Selecteer minstens één kolom voordat je opslaat',
         noGroupColumnsError: 'Please select at least one group column before saving',
         groupColumns: 'Group columns',
-        expenseColumns: 'Expenses',
+        expenseColumns: 'Expense Columns',
         statements: 'Afschriften',
         unapprovedCash: 'Niet-goedgekeurde contanten',
         unapprovedCard: 'Niet-goedgekeurde kaart',

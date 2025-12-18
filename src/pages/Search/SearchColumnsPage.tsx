@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import type {SearchCustomColumnIds} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
+import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -201,13 +202,28 @@ function SearchColumnsPage() {
                     style={styles.flex1}
                     contentContainerStyle={styles.flex1}
                 >
-                    <DraggableList
-                        disableScroll
-                        data={groupColumnsList}
-                        keyExtractor={(item) => item.value}
-                        onDragEnd={onDragEnd}
-                        renderItem={renderItem}
-                    />
+                    {!!groupBy && (
+                        <>
+                            <View style={[styles.ph5, styles.pb3]}>
+                                <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
+                            </View>
+
+                            <DraggableList
+                                disableScroll
+                                data={groupColumnsList}
+                                keyExtractor={(item) => item.value}
+                                onDragEnd={onDragEnd}
+                                renderItem={renderItem}
+                            />
+
+                            <View style={styles.dividerLine} />
+
+                            <View style={[styles.ph5, styles.pv3]}>
+                                <Text style={styles.textLabelSupporting}>{translate('search.expenseColumns')}</Text>
+                            </View>
+                        </>
+                    )}
+
                     <DraggableList
                         disableScroll
                         data={typeColumnsList}

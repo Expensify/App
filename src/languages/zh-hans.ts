@@ -6557,7 +6557,7 @@ ${reportName}
         noColumnsError: '请在保存前至少选择一列',
         noGroupColumnsError: 'Please select at least one group column before saving',
         groupColumns: 'Group columns',
-        expenseColumns: 'Expenses',
+        expenseColumns: 'Expense Columns',
         statements: '对账单',
         unapprovedCash: '未批准的现金',
         unapprovedCard: '未批准的卡片',

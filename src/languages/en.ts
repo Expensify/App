@@ -6584,7 +6584,7 @@ const translations = {
         noColumnsError: 'Please select at least one column before saving',
         noGroupColumnsError: 'Please select at least one group column before saving',
         groupColumns: 'Group columns',
-        expenseColumns: 'Expenses',
+        expenseColumns: 'Expense Columns',
         statements: 'Statements',
         unapprovedCash: 'Unapproved cash',
         unapprovedCard: 'Unapproved card',

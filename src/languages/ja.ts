@@ -6657,7 +6657,7 @@ ${reportName}
         noColumnsError: '保存する前に、少なくとも 1 つの列を選択してください',
         noGroupColumnsError: 'Please select at least one group column before saving',
         groupColumns: 'Group columns',
-        expenseColumns: 'Expenses',
+        expenseColumns: 'Expense Columns',
         statements: 'ステートメント',
         unapprovedCash: '未承認の現金',
         unapprovedCard: '未承認のカード',

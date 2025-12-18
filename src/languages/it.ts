@@ -6711,7 +6711,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         noColumnsError: 'Seleziona almeno una colonna prima di salvare',
         noGroupColumnsError: 'Please select at least one group column before saving',
         groupColumns: 'Group columns',
-        expenseColumns: 'Expenses',
+        expenseColumns: 'Expense Columns',
         statements: 'Estratti conto',
         unapprovedCash: 'Contanti non approvati',
         unapprovedCard: 'Carta non approvata',

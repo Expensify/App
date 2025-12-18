@@ -6738,7 +6738,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         noColumnsError: 'Veuillez sélectionner au moins une colonne avant d’enregistrer',
         noGroupColumnsError: 'Please select at least one group column before saving',
         groupColumns: 'Group columns',
-        expenseColumns: 'Expenses',
+        expenseColumns: 'Expense Columns',
         statements: 'Relevés',
         unapprovedCash: 'Espèces non approuvées',
         unapprovedCard: 'Carte non approuvée',

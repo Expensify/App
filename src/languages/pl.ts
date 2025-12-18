@@ -6687,7 +6687,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         noColumnsError: 'Proszę wybrać co najmniej jedną kolumnę przed zapisaniem',
         noGroupColumnsError: 'Please select at least one group column before saving',
         groupColumns: 'Group columns',
-        expenseColumns: 'Expenses',
+        expenseColumns: 'Expense Columns',
         statements: 'Wyciągi',
         unapprovedCash: 'Niezaakceptowana gotówka',
         unapprovedCard: 'Niezatwierdzona karta',
