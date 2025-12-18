@@ -9,6 +9,7 @@ import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -38,9 +39,6 @@ type WorkspaceCompanyCardsListProps = {
     /** Selected feed */
     selectedFeed: CompanyCardFeedWithDomainID;
 
-    /** List of company cards */
-    cardsList: OnyxEntry<WorkspaceCardsList>;
-
     /** Current policy id */
     policyID: string;
 
@@ -52,18 +50,17 @@ type WorkspaceCompanyCardsListProps = {
 
     /** Whether to show GB disclaimer */
     shouldShowGBDisclaimer?: boolean;
-
-    /** Whether the cards list is loading */
-    isLoadingCardsList?: boolean;
 };
 
-function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer, isLoadingCardsList = false}: WorkspaceCompanyCardsListProps) {
+function WorkspaceCompanyCardsList({selectedFeed, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const listRef = useRef<FlashListRef<string>>(null);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
+    const [cardsList, cardsListMetadata] = useCardsList(selectedFeed);
+    const isLoadingCardsList = !isOffline && isLoadingOnyxValue(cardsListMetadata);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const isLoadingPersonalDetails = !isOffline && isLoadingOnyxValue(personalDetailsMetadata);
     const isLoadingCardsTableData = isLoadingCardsList || isLoadingPersonalDetails;
