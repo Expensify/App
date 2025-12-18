@@ -52,11 +52,13 @@ function SplitExpenseEditDatesPage({route}: SplitExpenseEditDatesPageProps) {
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
 
-    const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
-        resetSplitExpensesByDateRange(transaction, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE]);
-
-        Navigation.goBack(backTo);
-    };
+    const updateDate = useCallback(
+        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
+            resetSplitExpensesByDateRange(transaction, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE]);
+            Navigation.goBack(backTo);
+        },
+        [transaction, backTo],
+    );
 
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentPolicy);
 
@@ -86,13 +88,17 @@ function SplitExpenseEditDatesPage({route}: SplitExpenseEditDatesPageProps) {
         [translate],
     );
 
+    const handleBackPress = useCallback(() => {
+        Navigation.goBack(backTo);
+    }, [backTo]);
+
     return (
         <ScreenWrapper testID={SplitExpenseEditDatesPage.displayName}>
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={translate('iou.splitDates')}
-                        onBackButtonPress={() => Navigation.goBack(backTo)}
+                        onBackButtonPress={handleBackPress}
                     />
                     <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}

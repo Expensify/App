@@ -397,6 +397,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         return DateUtils.getFormattedSplitDateRange(translate, startDate, endDate);
     }, [draftTransaction?.comment?.splitsStartDate, draftTransaction?.comment?.splitsEndDate, translate]);
 
+    const handleDatePress = useCallback(() => {
+        Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT_DATES.getRoute(reportID, transactionID, Navigation.getActiveRoute()));
+    }, [reportID, transactionID]);
+
     const headerDateContent = useMemo(() => {
         return (
             <View style={styles.pb3}>
@@ -406,16 +410,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     key={translate('iou.splitDates')}
                     description={translate('iou.splitDates')}
                     title={splitDatesTitle}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT_DATES.getRoute(reportID, transactionID, Navigation.getActiveRoute()));
-                    }}
+                    onPress={handleDatePress}
                     style={[styles.moneyRequestMenuItem]}
                     titleWrapperStyle={styles.flex1}
                     numberOfLinesTitle={2}
                 />
             </View>
         );
-    }, [styles.pb3, styles.moneyRequestMenuItem, styles.flex1, translate, reportID, transactionID, splitDatesTitle]);
+    }, [styles.pb3, styles.moneyRequestMenuItem, styles.flex1, translate, splitDatesTitle, handleDatePress]);
 
     const initiallyFocusedOptionKey = useMemo(
         () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
