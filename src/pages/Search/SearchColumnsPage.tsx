@@ -6,10 +6,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchCustomColumnIds} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
-import SelectionList from '@components/SelectionListWithSections';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import DraggableList from '@components/DraggableList';
-import type {SectionListDataType} from '@components/SelectionListWithSections/types';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -87,8 +85,8 @@ function SearchColumnsPage() {
     const renderItem = ({item}: {item: ListItem}) => {
         return (
             <MultiSelectListItem
-                item={item}
-                isSelected={item.isSelected}
+                item={item} 
+                showTooltip={false}
                 onSelectRow={onSelectItem}
             />
         );
@@ -104,33 +102,30 @@ function SearchColumnsPage() {
             <HeaderWithBackButton title={translate('search.columns')}>
                 {shouldShowResetColumns && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
             </HeaderWithBackButton>
-            <View style={[styles.flex1]}>
-                <DraggableList
-                    data={columnsList}
-                    keyExtractor={(item) => item.value}
-                    onDragEnd={onDragEnd}
-                    renderItem={renderItem}
-                    ListFooterComponent={
-                        <View style={[styles.gap2]}>
-                            {!selectedColumnIds.length && (
-                                <DotIndicatorMessage
-                                    type="error"
-                                    messages={{error: translate('search.noColumnsError')}}
-                                />
-                            )}
-
-                            <Button
-                                large
-                                success
-                                pressOnEnter
-                                style={[styles.mt3]}
-                                text={translate('common.save')}
-                                onPress={applyChanges}
+            <DraggableList
+                data={columnsList}
+                keyExtractor={(item) => item.value}
+                onDragEnd={onDragEnd}
+                renderItem={renderItem}
+                ListFooterComponent={
+                    <View style={[styles.ph5, styles.pb5, styles.mtAuto, styles.flex1, styles.justifyContentEnd]}>
+                        {!selectedColumnIds.length && (
+                            <DotIndicatorMessage
+                                type="error"
+                                style={styles.mb3}
+                                messages={{error: translate('search.noColumnsError')}}
                             />
-                        </View>
-                    }
-                />
-            </View>
+                        )}
+                        <Button
+                            large
+                            success
+                            pressOnEnter
+                            text={translate('common.save')}
+                            onPress={applyChanges}
+                        />
+                    </View>
+                }
+            />
         </ScreenWrapper>
     );
 }
