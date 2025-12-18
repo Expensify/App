@@ -82,6 +82,7 @@ const EmptyParentReportActionForTransactionThread = undefined;
 // Amount of time to wait until all list items should be rendered and scrollToEnd will behave well
 const DELAY_FOR_SCROLLING_TO_END = 100;
 
+
 type MoneyRequestReportListProps = {
     /** The report */
     report: OnyxTypes.Report;
