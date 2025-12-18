@@ -197,6 +197,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         columns={currentColumns}
                         areAllOptionalColumnsHidden={areAllOptionalColumnsHidden ?? false}
                         groupBy={groupBy}
+                        isExpenseReportView
                     />
                 </View>
             )}
