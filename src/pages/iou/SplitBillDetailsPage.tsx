@@ -93,7 +93,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, transactionViolations]);
 
     return (
-        <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
+        <ScreenWrapper testID="SplitBillDetailsPage">
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
@@ -157,7 +157,5 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
         </ScreenWrapper>
     );
 }
-
-SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 
 export default withReportAndReportActionOrNotFound(SplitBillDetailsPage);
