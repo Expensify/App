@@ -23,6 +23,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
+type ColumnItem = {
+    columnId: SearchCustomColumnIds;
+    isSelected: boolean;
+};
+
 function SearchColumnsPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -37,11 +42,6 @@ function SearchColumnsPage() {
 
     // Columns that cannot be deselected (always required)
     const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
-
-    type ColumnItem = {
-        columnId: SearchCustomColumnIds;
-        isSelected: boolean;
-    };
 
     const [columns, setColumns] = useState<ColumnItem[]>(() => {
         const savedColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
@@ -91,7 +91,7 @@ function SearchColumnsPage() {
             text: translate(getSearchColumnTranslationKey(columnId)),
             value: columnId,
             keyForList: columnId,
-            isSelected: isRequired ? true : isSelected,
+            isSelected: isRequired || isSelected,
             isDisabled: isRequired,
             leftElement: (
                 <Icon
@@ -127,14 +127,7 @@ function SearchColumnsPage() {
         setColumns(data.map((item) => ({columnId: item.value, isSelected: item.isSelected})));
     };
 
-    const resetColumns = () => {
-        setColumns(
-            allCustomColumns.map((columnId) => ({
-                columnId,
-                isSelected: defaultCustomColumns.includes(columnId),
-            })),
-        );
-    };
+    const resetColumns = () => setColumns(defaultColumns);
 
     const applyChanges = () => {
         if (!selectedColumnIds.length) {
