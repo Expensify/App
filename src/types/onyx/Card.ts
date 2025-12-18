@@ -220,11 +220,9 @@ type ExpensifyCardDetails = {
     cvv: string;
 };
 
-/** Record of Expensify cards, indexed by cardID */
+/** Record of Company or Expensify cards, indexed by cardID */
 type CardList = Record<string, Card> & {
-    /**
-     * List of assignable cards
-     */
+    /** List of assignable cards */
     cardList?: Record<string, string>;
 };
 

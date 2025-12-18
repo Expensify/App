@@ -44,6 +44,9 @@ type WorkspaceCompanyCardTableItemData = {
 
     /** Whether the card is assigned */
     isAssigned: boolean;
+
+    /** Card identifier for unassigned cards */
+    cardIdentifier?: string;
 };
 
 type WorkspaceCompanyCardTableItemProps = {

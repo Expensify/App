@@ -3,6 +3,7 @@ import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
@@ -14,9 +15,10 @@ import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
 import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -57,10 +59,11 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCardFeedData);
 
     const data = assignCard?.data;
-    const cardholder = getPersonalDetailByEmail(data?.email ?? '');
 
-    console.log('cardholder', cardholder);
+    const cardholder = getPersonalDetailByEmail(data?.email ?? '');
     const cardholderName = Str.removeSMSDomain(cardholder?.displayName ?? '');
+    const cardholderEmail = data?.email ?? '';
+    const cardholderAccountID = cardholder?.accountID;
 
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
 
@@ -107,17 +110,14 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     };
 
     const handleBackButtonPress = () => {
-        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
+        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
     };
 
     return (
         <InteractiveStepWrapper
             wrapperID="ConfirmationStep"
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={3}
-            stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
-            headerSubtitle={cardholderName}
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -129,17 +129,19 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.letsDoubleCheck')}</Text>
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
                 <MenuItemWithTopDescription
-                    description={translate('workspace.companyCards.cardholder')}
-                    title={cardholderName}
+                    description={translate('workspace.companyCards.card')}
+                    title={data?.encryptedCardNumber ?? maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
+                    interactive={false}
+                />
+                <MenuItem
+                    label={translate('workspace.companyCards.cardholder')}
+                    labelStyle={styles.mb3}
+                    title={cardholderName && cardholderName !== cardholderEmail ? cardholderName : cardholderEmail}
+                    description={cardholderName && cardholderName !== cardholderEmail ? cardholderEmail : undefined}
+                    icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
+                    iconType={CONST.ICON_TYPE_AVATAR}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
-                />
-                <MenuItemWithTopDescription
-                    description={translate('workspace.companyCards.card')}
-                    title={maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
-                    hintText={lastFourNumbersFromCardName(data?.cardNumber)}
-                    shouldShowRightIcon
-                    onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD)}
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}

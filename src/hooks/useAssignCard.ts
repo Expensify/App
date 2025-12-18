@@ -74,7 +74,11 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
 
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
 
-    const assignCard = () => {
+    const assignCard = (cardID?: string) => {
+        if (isAssigningCardDisabled) {
+            return;
+        }
+
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
             return;
@@ -97,6 +101,10 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
             bankName: feed,
         };
 
+        if (cardID) {
+            data.encryptedCardNumber = cardID;
+        }
+
         let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
         const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
         const isFeedExpired = isSelectedFeedExpired(selectedFeedData);
@@ -108,7 +116,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
             importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', undefined, undefined, plaidAccessToken);
         }
 
-        if (employeeList.length === 1) {
+        if (!cardID && employeeList.length === 1) {
             const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
             data.email = userEmail;
             const personalDetails = getPersonalDetailByEmail(userEmail);
@@ -138,7 +146,9 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
 
         clearAddNewCardFlow();
         setAssignCardStepAndData({data, currentStep});
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed)));
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed: selectedFeed, cardID}));
+        });
     };
 
     return {

@@ -27,7 +27,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
 
     const data = assignCard?.data;
 
@@ -69,7 +69,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
                 <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM}
-                    submitButtonText={translate('common.confirm')}
+                    submitButtonText={translate('common.save')}
                     onSubmit={submit}
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline

@@ -1,19 +1,21 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Table from '@components/Table';
 import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardDefaultName} from '@libs/actions/Card';
-import {getCompanyFeeds, getPlaidInstitutionIconUrl, isMaskedCardNumberEqual} from '@libs/CardUtils';
+import {getCompanyFeeds, getPlaidInstitutionIconUrl, getPlaidInstitutionId, isCustomFeed, isMaskedCardNumberEqual} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CompanyCardFeedWithDomainID, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableItem';
@@ -25,9 +27,6 @@ type WorkspaceCompanyCardsTableProps = {
     /** Selected feed */
     selectedFeed: CompanyCardFeedWithDomainID;
 
-    /** List of company cards */
-    cardsList: OnyxEntry<WorkspaceCardsList>;
-
     /** Current policy id */
     policyID: string;
 
@@ -35,7 +34,7 @@ type WorkspaceCompanyCardsTableProps = {
     domainOrWorkspaceAccountID: number;
 
     /** On assign card callback */
-    onAssignCard: () => void;
+    onAssignCard: (cardID?: string) => void;
 
     /** Whether to disable assign card button */
     isAssigningCardDisabled?: boolean;
@@ -44,20 +43,18 @@ type WorkspaceCompanyCardsTableProps = {
     shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardsTable({
-    selectedFeed,
-    cardsList,
-    policyID,
-    domainOrWorkspaceAccountID,
-    onAssignCard,
-    isAssigningCardDisabled,
-    shouldShowGBDisclaimer,
-}: WorkspaceCompanyCardsTableProps) {
+function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer, domainOrWorkspaceAccountID}: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [cardsList, cardsListMetadata] = useCardsList(selectedFeed);
+    const isLoadingCardsList = !isOffline && isLoadingOnyxValue(cardsListMetadata);
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const isLoadingPersonalDetails = !isOffline && isLoadingOnyxValue(personalDetailsMetadata);
+    const isLoadingCardsTableData = isLoadingCardsList || isLoadingPersonalDetails;
+
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}`, {canBeMissing: true});
 
@@ -83,15 +80,38 @@ function WorkspaceCompanyCardsTable({
 
             const failedCompanyCardAssignment = failedCompanyCardAssignments?.[cardName];
 
-            const cardholder = personalDetails?.[assignedCard?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+            const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
 
-            const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID] ?? getCardDefaultName(cardholder?.displayName);
+            const customCardName = assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined;
 
             const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             const isAssigned = !!assignedCard;
 
-            return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, failedCompanyCardAssignment: failedCompanyCardAssignment, cardholder};
+            // Calculate cardIdentifier for unassigned cards
+            let cardIdentifier: string | undefined;
+            if (!assignedCard) {
+                const isPlaid = !!getPlaidInstitutionId(selectedFeed);
+                const isCommercial = isCustomFeed(selectedFeed);
+
+                if (isPlaid) {
+                    cardIdentifier = cardName;
+                } else if (isCommercial) {
+                    const cardValue = cardList?.[cardName] ?? cardName;
+                    const digitsOnly = cardValue.replaceAll(/\D/g, '');
+                    if (digitsOnly.length >= 10) {
+                        const first6 = digitsOnly.substring(0, 6);
+                        const last4 = digitsOnly.substring(digitsOnly.length - 4);
+                        cardIdentifier = `${first6}${last4}`;
+                    } else {
+                        cardIdentifier = cardValue;
+                    }
+                } else {
+                    cardIdentifier = cardList?.[cardName] ?? cardName;
+                }
+            }
+
+            return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder, cardIdentifier, failedCompanyCardAssignment};
         }) ?? [];
 
     const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceCompanyCardTableItemData>) => (
@@ -103,7 +123,7 @@ function WorkspaceCompanyCardsTable({
             selectedFeed={selectedFeed}
             plaidIconUrl={getPlaidInstitutionIconUrl(selectedFeed)}
             isPlaidCardFeed={isPlaidCardFeed}
-            onAssignCard={onAssignCard}
+            onAssignCard={() => onAssignCard(item.cardIdentifier)}
             isAssigningCardDisabled={isAssigningCardDisabled}
             shouldUseNarrowTableRowLayout={shouldShowNarrowLayout}
         />
@@ -238,7 +258,7 @@ function WorkspaceCompanyCardsTable({
     }, [activeSortingInWideLayout, shouldShowNarrowLayout]);
 
     // Show empty state when there are no cards
-    if (!data.length) {
+    if (!data.length && !isLoadingCardsTableData) {
         return (
             <View>
                 <WorkspaceCompanyCardsTableHeaderButtons
@@ -247,7 +267,7 @@ function WorkspaceCompanyCardsTable({
                 />
                 <WorkspaceCompanyCardsFeedAddedEmptyPage
                     shouldShowGBDisclaimer={shouldShowGBDisclaimer}
-                    handleAssignCard={onAssignCard}
+                    handleAssignCard={() => onAssignCard()}
                     isAssigningCardDisabled={isAssigningCardDisabled}
                 />
             </View>
@@ -257,7 +277,7 @@ function WorkspaceCompanyCardsTable({
     return (
         <Table
             ref={tableRef}
-            data={data}
+            data={isLoadingCardsTableData ? [] : data}
             columns={columns}
             renderItem={renderItem}
             keyExtractor={keyExtractor}
@@ -265,6 +285,7 @@ function WorkspaceCompanyCardsTable({
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
             filters={filterConfig}
+            ListEmptyComponent={!isOffline && isLoadingCardsTableData ? <TableRowSkeleton fixedNumItems={5} /> : undefined}
         >
             <View style={shouldShowNarrowLayout && styles.mb5}>
                 <WorkspaceCompanyCardsTableHeaderButtons
