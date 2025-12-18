@@ -1,11 +1,11 @@
 import {renderHook} from '@testing-library/react-native';
-import {ReactNode} from 'react';
+import type {ReactNode} from 'react';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 
 describe('useOriginalReportID', () => {
     beforeAll(() => {
