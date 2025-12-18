@@ -1882,6 +1882,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
                 /** Default hourly rate */
                 rate?: number;
+            };
         };
 
         /** A set of rules related to the workspace */
