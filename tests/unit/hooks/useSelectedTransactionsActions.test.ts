@@ -614,6 +614,8 @@ describe('useSelectedTransactionsActions', () => {
         const transactionID = '123';
         const report = createRandomReport(1, undefined);
         report.type = CONST.REPORT.TYPE.EXPENSE;
+        report.statusNum = 0;
+        report.stateNum = 0;
         const policy = createRandomPolicy(1);
         const reportActions: ReportAction[] = [];
         const transaction = createRandomTransaction(1);
@@ -625,6 +627,7 @@ describe('useSelectedTransactionsActions', () => {
 
         jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeAction').mockReturnValue(true);
 
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
         const {result} = renderHook(() =>
             useSelectedTransactionsActions({
                 report,

@@ -310,7 +310,7 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const canMergeTransaction = selectedTransactionsList.length < 3 && report && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy]);
+        const canMergeTransaction = selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy]);
         if (canMergeTransaction) {
             options.push({
                 text: translate('common.merge'),
