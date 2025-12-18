@@ -14,8 +14,6 @@ jobs:
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          fetch-depth: 0
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -27,9 +25,8 @@ jobs:
 
       - name: Get common ancestor commit
         run: |
-            git fetch origin main
-            common_ancestor=$(git merge-base "${{ github.sha }}" origin/main)
-            echo "COMMIT_HASH=$common_ancestor" >> "$GITHUB_ENV"
+            git fetch origin main --depth=1
+            echo "COMMIT_HASH=$(git rev-parse origin/main)" >> "$GITHUB_ENV"
 
       - name: Clean up deleted files
         run: |
@@ -45,12 +42,16 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         run: echo "PR_SHA=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
 
+      - name: Remove E/App version from package-lock.json
+        shell: bash
+        run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
+
       - name: Restore Jest cache
         # v4
         uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: .jest-cache
-          key: ${{ runner.os }}-jest-perf-${{ hashFiles('jest.config.js', 'babel.config.js', 'package-lock.json') }}
+          key: ${{ runner.os }}-jest-perf-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-jest-perf-
 
@@ -83,4 +84,4 @@ jobs:
         if: always()
         with:
           path: .jest-cache
-          key: ${{ runner.os }}-jest-perf-${{ hashFiles('jest.config.js', 'babel.config.js', 'package-lock.json') }}
+          key: ${{ runner.os }}-jest-perf-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}
