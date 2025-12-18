@@ -814,6 +814,67 @@ function getCompanyCardFeed(feedWithDomainID: string): CompanyCardFeed {
     return feed as CompanyCardFeed;
 }
 
+type SplitMaskedCardNumberResult = {
+    firstDigits?: string;
+    lastDigits?: string;
+};
+
+/**
+ * Split masked card number into first and last digits
+ *
+ * @param cardNumber the card number to split
+ * @param maskChar the character used to mask the card number
+ * @returns the first and last digits of the card number
+ */
+function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string = CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR): SplitMaskedCardNumberResult {
+    if (!cardNumber) {
+        return {
+            firstDigits: undefined,
+            lastDigits: undefined,
+        };
+    }
+    const parts = cardNumber.split(maskChar);
+    return {
+        firstDigits: parts.at(0),
+        lastDigits: parts.at(-1),
+    };
+}
+
+/**
+ * Check if two masked card numbers (PAN) are equal.
+ * This function compares the first and last digits of the masked card numbers.
+ * If the number of revealed digits do not match, it will compare the the number of revealed digits.
+ *
+ * @param a the first masked card number
+ * @param b the second masked card number
+ * @param maskChar the character used to mask the card number
+ * @returns true if the two masked card numbers are equal, false otherwise
+ */
+function isMaskedCardNumberEqual(a: string | undefined, b: string | undefined, maskChar: string = CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR, compareIfPatternDoesNotMatch = true) {
+    if (!a || !b) {
+        return false;
+    }
+
+    const aParts = splitMaskedCardNumber(a, maskChar);
+    const bParts = splitMaskedCardNumber(b, maskChar);
+
+    const aFirstDigitsCount = aParts.firstDigits?.length ?? 0;
+    const bFirstDigitsCount = bParts.firstDigits?.length ?? 0;
+    const aLastDigitsCount = aParts.lastDigits?.length ?? 0;
+    const bLastDigitsCount = bParts.lastDigits?.length ?? 0;
+
+    if (!compareIfPatternDoesNotMatch) {
+        return aFirstDigitsCount === bFirstDigitsCount && aLastDigitsCount === bLastDigitsCount;
+    }
+
+    const firstDigitsCount = Math.min(aFirstDigitsCount, bFirstDigitsCount);
+    const lastDigitsCount = Math.min(aLastDigitsCount, bLastDigitsCount);
+
+    const areFirstDigitsEqual = aParts.firstDigits?.slice(0, firstDigitsCount) === bParts.firstDigits?.slice(0, firstDigitsCount);
+    const areLastDigitsEqual = aParts.lastDigits?.slice(-lastDigitsCount) === bParts.lastDigits?.slice(-lastDigitsCount);
+    return areFirstDigitsEqual && areLastDigitsEqual;
+}
+
 export {
     getAssignedCardSortKey,
     isExpensifyCard,
@@ -878,6 +939,8 @@ export {
     getEligibleBankAccountsForUkEuCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
+    isMaskedCardNumberEqual,
+    splitMaskedCardNumber,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};

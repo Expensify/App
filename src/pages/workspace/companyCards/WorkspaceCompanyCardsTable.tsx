@@ -10,10 +10,10 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardDefaultName} from '@libs/actions/Card';
-import {getCompanyFeeds, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
+import {getCompanyFeeds, getPlaidInstitutionIconUrl, isMaskedCardNumberEqual} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeedWithDomainID, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CompanyCardFeedWithDomainID, WorkspaceCardsList} from '@src/types/onyx';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableItem';
@@ -51,9 +51,10 @@ function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssign
 
     const {cardList, ...assignedCards} = cardsList ?? {};
     const [cardFeeds] = useCardFeeds(policyID);
-
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const cards = companyFeeds?.[selectedFeed]?.accountList;
+
+    const isPlaidCardFeed = !!companyFeeds?.[selectedFeed]?.accountList;
+    const cards = isPlaidCardFeed ? (companyFeeds?.[selectedFeed]?.accountList ?? []) : Object.keys(cardList ?? {});
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
@@ -63,7 +64,9 @@ function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssign
 
     const data: WorkspaceCompanyCardTableItemData[] =
         cards?.map((cardName) => {
-            const assignedCard = Object.values(assignedCards ?? {}).find((card) => card.cardName === cardName);
+            const assignedCardPredicate = (card: Card) => (isPlaidCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
+
+            const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
 
             const cardholder = personalDetails?.[assignedCard?.accountID ?? CONST.DEFAULT_NUMBER_ID];
 
@@ -83,6 +86,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, cardsList, policyID, onAssign
             policyID={policyID}
             selectedFeed={selectedFeed}
             plaidIconUrl={getPlaidInstitutionIconUrl(selectedFeed)}
+            isPlaidCardFeed={isPlaidCardFeed}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
             shouldUseNarrowTableRowLayout={shouldShowNarrowLayout}
