@@ -16,12 +16,17 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
+type TabCollectionKey = typeof ONYXKEYS.COLLECTION.SELECTED_TAB | typeof ONYXKEYS.COLLECTION.SPLIT_SELECTED_TAB;
+
 type OnyxTabNavigatorProps = ChildrenProps & {
     /** ID of the tab component to be saved in onyx */
     id: string;
 
     /** Name of the selected tab */
     defaultSelectedTab?: SelectedTabRequest | SplitSelectedTabRequest;
+
+    /** Onyx collection key to use for storing selected tab. Defaults to SELECTED_TAB */
+    collectionKey?: TabCollectionKey;
 
     /** A function triggered when a tab has been selected */
     onTabSelected?: (newIouType: IOURequestType) => void;
@@ -92,6 +97,7 @@ const getTabNames = (children: React.ReactNode): string[] => {
 function OnyxTabNavigator({
     id,
     defaultSelectedTab,
+    collectionKey = ONYXKEYS.COLLECTION.SELECTED_TAB,
     tabBar: TabBar,
     children,
     onTabBarFocusTrapContainerElementChanged,
@@ -108,7 +114,7 @@ function OnyxTabNavigator({
 }: OnyxTabNavigatorProps) {
     // Mapping of tab name to focus trap container element
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`, {canBeMissing: true});
+    const [selectedTab, selectedTabResult] = useOnyx(`${collectionKey}${id}`, {canBeMissing: true});
 
     const tabNames = useMemo(() => getTabNames(children), [children]);
 
@@ -182,7 +188,7 @@ function OnyxTabNavigator({
                         if (selectedTab === newSelectedTab) {
                             return;
                         }
-                        Tab.setSelectedTab(id, newSelectedTab as SelectedTabRequest);
+                        Tab.setSelectedTab(id, newSelectedTab as SelectedTabRequest | SplitSelectedTabRequest, collectionKey);
                         onTabSelected(newSelectedTab as IOURequestType);
                     },
                     ...(screenListeners ?? {}),

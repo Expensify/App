@@ -21,6 +21,7 @@ const popoverDimensions = {
 function DatePickerModal({
     value,
     defaultValue,
+    currentDate,
     inputID,
     minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
     maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
@@ -81,6 +82,7 @@ function DatePickerModal({
                 minDate={minDate}
                 maxDate={maxDate}
                 value={selectedDate}
+                currentDate={currentDate}
                 onSelected={handleDateSelection}
             />
         </PopoverWithMeasuredContent>

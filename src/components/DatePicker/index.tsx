@@ -17,6 +17,7 @@ const PADDING_MODAL_DATE_PICKER = 8;
 
 function DatePicker({
     defaultValue,
+    currentDate,
     disabled,
     errorText,
     inputID,
@@ -113,8 +114,7 @@ function DatePicker({
 
     const getValidDateForCalendar = useMemo(() => {
         if (!selectedDate) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            return defaultValue || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+            return defaultValue;
         }
         return selectedDate;
     }, [selectedDate, defaultValue]);
@@ -153,6 +153,7 @@ function DatePicker({
                 minDate={minDate}
                 maxDate={maxDate}
                 value={getValidDateForCalendar}
+                currentDate={currentDate}
                 onSelected={handleDateSelected}
                 isVisible={isModalVisible}
                 onClose={closeDatePicker}

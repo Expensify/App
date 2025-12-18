@@ -21,6 +21,9 @@ type CalendarPickerProps = {
     /** An initial value of date string */
     value?: Date | string;
 
+    /** Current date to highlight (e.g., today or initial date) */
+    currentDate?: Date | string;
+
     /** A minimum date (oldest) allowed to select */
     minDate?: Date;
 
@@ -50,7 +53,8 @@ function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate:
 }
 
 function CalendarPicker({
-    value = new Date(),
+    value,
+    currentDate,
     minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
     maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onSelected,
@@ -63,7 +67,7 @@ function CalendarPicker({
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const pressableRef = useRef<View>(null);
-    const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
+    const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value ?? new Date(), minDate, maxDate));
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
     const isFirstRender = useRef(true);
 
@@ -255,12 +259,13 @@ function CalendarPicker({
                         style={[themeStyles.flexRow, themeStyles.calendarWeekContainer]}
                     >
                         {week.map((day, index) => {
-                            const currentDate = new Date(currentYearView, currentMonthView, day);
-                            const isBeforeMinDate = currentDate < startOfDay(new Date(minDate));
-                            const isAfterMaxDate = currentDate > startOfDay(new Date(maxDate));
-                            const isSelectable = selectableDates ? selectableDates?.some((date) => isSameDay(parseISO(date), currentDate)) : true;
+                            const dayDate = new Date(currentYearView, currentMonthView, day);
+                            const isBeforeMinDate = dayDate < startOfDay(new Date(minDate));
+                            const isAfterMaxDate = dayDate > startOfDay(new Date(maxDate));
+                            const isSelectable = selectableDates ? selectableDates?.some((date) => isSameDay(parseISO(date), dayDate)) : true;
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate || !isSelectable;
-                            const isSelected = !!day && isSameDay(parseISO(value.toString()), new Date(currentYearView, currentMonthView, day));
+                            const isSelected = !!day && !!value && isSameDay(typeof value === 'string' ? parseISO(value) : value, new Date(currentYearView, currentMonthView, day));
+                            const isCurrent = !!day && !!currentDate && isSameDay(typeof currentDate === 'string' ? parseISO(currentDate) : currentDate, new Date(currentYearView, currentMonthView, day));
                             const handleOnPress = () => {
                                 if (!day || isDisabled) {
                                     return;
@@ -283,6 +288,8 @@ function CalendarPicker({
                                     {({hovered, pressed}) => (
                                         <DayComponent
                                             selected={isSelected}
+                                            isCurrent={isCurrent}
+                                            hasCurrentDate={!!currentDate}
                                             disabled={isDisabled}
                                             hovered={hovered}
                                             pressed={pressed}

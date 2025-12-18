@@ -475,6 +475,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             <OnyxTabNavigator
                                 id={CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}
                                 defaultSelectedTab={CONST.IOU.SPLIT_TYPE.AMOUNT}
+                                collectionKey={ONYXKEYS.COLLECTION.SPLIT_SELECTED_TAB}
                                 tabBar={TabSelector}
                             >
                                 <TopTab.Screen name={CONST.IOU.SPLIT_TYPE.AMOUNT}>
