@@ -73,14 +73,20 @@ function CardListItemHeader<TItem extends ListItem>({
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD]: (
-            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)}>
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)}
+            >
                 <View style={[styles.gapHalf, styles.flexShrink1]}>
                     <TextWithTooltip text={cardItem.formattedCardName ?? ''} />
                 </View>
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED]: (
-            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FEED)}>
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FEED)}
+            >
                 <TextWithTooltip
                     text={cardItem.formattedFeedName ?? ''}
                     style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
@@ -88,12 +94,18 @@ function CardListItemHeader<TItem extends ListItem>({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: (
-            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
+            >
                 <ExpensesCell count={cardItem.count} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
-            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}>
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}
+            >
                 <TotalCell
                     total={cardItem.total}
                     currency={cardItem.currency}
