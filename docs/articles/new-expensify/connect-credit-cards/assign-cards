@@ -18,7 +18,7 @@ Admins can assign and manage all corporate cards — both assigned and unassigne
 5. Select which employee you want to assign the card to.
   - **Note:** If you're assigning a card to a new employee, or one without an Expensify account, you can invite them during card assignment. Please note that this may result in an increase in your bill depending on the number of available seats you have.
 6. Review the details to ensure it looks correct.
-  - **Note:** You can choose a custom transaction start date if you need to import historical transactions. By default, we will use today's date.
+  - **Note:** You can choose to either import cards using a custom transaction start date or from the beginning, which imports transactions as far back as available. Most company card feeds can import 30-90 days of historical transactions, depending on the bank.
 7. Select `Confirm` to finalize the assignment.
 
 # Manage Assigned Cards
