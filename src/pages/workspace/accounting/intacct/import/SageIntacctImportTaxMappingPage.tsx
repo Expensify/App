@@ -57,7 +57,7 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctImportTaxMappingPage.displayName}
+            displayName="SageIntacctImportTaxMappingPage"
             sections={[{data: selectionOptions}]}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
@@ -72,7 +72,5 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
         />
     );
 }
-
-SageIntacctImportTaxMappingPage.displayName = 'SageIntacctImportTaxMappingPage';
 
 export default SageIntacctImportTaxMappingPage;

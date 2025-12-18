@@ -61,6 +61,4 @@ function AppleSignIn({onPress = () => {}}: AppleSignInProps) {
     );
 }
 
-AppleSignIn.displayName = 'AppleSignIn';
-
 export default AppleSignIn;
