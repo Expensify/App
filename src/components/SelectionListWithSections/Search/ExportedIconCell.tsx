@@ -46,7 +46,7 @@ function ExportedIconCell({reportID}: ExportedIconCellProps) {
             isExportedToQuickbooksDesktop = isExportedToQuickbooksDesktop || label === CONST.EXPORT_LABELS.QBD;
             isExportedToZenefits = isExportedToZenefits || label === CONST.EXPORT_LABELS.ZENEFITS;
             isExportedToBillCom = isExportedToBillCom || label === CONST.EXPORT_LABELS.BILLCOM;
-            isExportedToCertinia = isExportedToCertinia || label === CONST.EXPORT_LABELS.FINANCIALFORCE;
+            isExportedToCertinia = isExportedToCertinia || label === CONST.EXPORT_LABELS.CERTINIA;
         }
     }
 
