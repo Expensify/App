@@ -437,6 +437,7 @@ function WorkspaceTaxesPage({
                     onCheckboxPress={toggleTax}
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress
+                    shouldHeaderBeInsideList
                     shouldShowRightCaret
                 />
                 <ConfirmModal

@@ -428,6 +428,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         onSelectRow={navigateToTagSettings}
                         showListEmptyContent={false}
                         onCheckboxPress={toggleTag}
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                         showScrollIndicator
                     />

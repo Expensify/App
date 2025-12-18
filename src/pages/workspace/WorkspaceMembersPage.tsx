@@ -741,7 +741,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const textInputOptions = useMemo(
         () => ({
             headerMessage: shouldUseNarrowLayout ? headerMessage : undefined,
-
             ref: textInputRef,
         }),
         [headerMessage, shouldUseNarrowLayout],
@@ -833,6 +832,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         showListEmptyContent={false}
                         showScrollIndicator={false}
                         shouldUseUserSkeletonView
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 </>
