@@ -23,7 +23,6 @@ import {
     isMaskedCardNumberEqual,
     sortCardsByCardholderName,
 } from '@libs/CardUtils';
-import Log from '@libs/Log';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -67,18 +66,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
 
-    const hasCommercialCompanyCards = !!cardList;
-    const hasPlaidCompanyCards = !!companyFeeds?.[selectedFeed]?.accountList;
-
-    if (hasCommercialCompanyCards && hasPlaidCompanyCards) {
-        Log.warn('Both commercial and Plaidcards found');
-    }
-
-    if (!hasCommercialCompanyCards && !hasPlaidCompanyCards) {
-        Log.warn('No commercial nor Plaid cards found');
-    }
-
-    const isPlaidCardFeed = hasPlaidCompanyCards;
+    const isPlaidCardFeed = !!companyFeeds?.[selectedFeed]?.accountList;
     const cards = isPlaidCardFeed ? (companyFeeds?.[selectedFeed]?.accountList ?? []) : Object.keys(cardList ?? {});
 
     const plaidIconUrl = getPlaidInstitutionIconUrl(selectedFeed);
