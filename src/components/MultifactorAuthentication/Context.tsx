@@ -178,12 +178,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         return merged;
     };
 
-    const allowedMethods = <T extends MultifactorAuthenticationScenario>(scenario: T) => {
+    const allowedMethods = <T extends MultifactorAuthenticationScenario>(scenario: T, softPromptAccepted?: boolean) => {
         const {allowedAuthentication} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
         const canUseBiometrics = shouldAllowBiometrics(allowedAuthentication);
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const isBiometricsAllowed = canUseBiometrics && (NativeBiometrics.setup.isLocalPublicKeyInAuth || softStorePromptAccepted.current);
-
+        const isBiometricsAllowed = canUseBiometrics && (NativeBiometrics.setup.isLocalPublicKeyInAuth || softPromptAccepted);
         return {
             // passkeys: shouldAllowPasskeys(allowedAuthentication),
             biometrics: isBiometricsAllowed,
@@ -196,8 +195,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         },
         scenario: T,
         notificationPaths?: NotificationPaths,
+        softPromptAccepted?: boolean,
     ) => {
-        if (!allowedMethods(scenario).biometrics) {
+        if (!allowedMethods(scenario, softPromptAccepted).biometrics) {
             return setStatus(...MergedHooksStatus.createBiometricsNotAllowedStatus(scenario, params));
         }
 
@@ -214,7 +214,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
         return mergedResult;
     }) as Register<MultifactorAuthenticationScenarioStatus>;
-    // ) as Register<MultifactorAuthenticationScenarioStatus>;
 
     const authorize = async <T extends MultifactorAuthenticationScenario>(
         scenario: T,
@@ -222,8 +221,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             chainedPrivateKeyStatus?: MultifactorAuthenticationPartialStatus<string | null> | undefined;
         },
         notificationPaths?: NotificationPaths,
+        softPromptAccepted?: boolean,
     ) => {
-        if (!allowedMethods(scenario).biometrics) {
+        if (!allowedMethods(scenario, softPromptAccepted).biometrics) {
             return setStatus(...MergedHooksStatus.createBiometricsNotAllowedStatus(scenario, params, true, notificationPaths));
         }
         return setStatus(
@@ -265,6 +265,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         params?: MultifactorAuthenticationScenarioParams<T> & NotificationPaths,
     ): Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>> => {
         const {successNotification, failureNotification} = params ?? {};
+        const softPromptAccepted = !!softStorePromptAccepted.current;
 
         const notificationPaths = {
             successNotification,
@@ -276,7 +277,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             await NativeBiometrics.setup.refresh();
         }
 
-        const shouldNavigateToSoftPrompt = !NativeBiometrics.setup.isLocalPublicKeyInAuth && softStorePromptAccepted.current === undefined && NativeBiometrics.setup.deviceSupportBiometrics;
+        const shouldNavigateToSoftPrompt = !NativeBiometrics.setup.isLocalPublicKeyInAuth && softPromptAccepted === undefined && NativeBiometrics.setup.deviceSupportBiometrics;
 
         if (shouldNavigateToSoftPrompt) {
             const validateCode = params?.validateCode ?? storedValidateCode.current;
@@ -314,7 +315,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return setStatus((prevStatus) => MergedHooksStatus.badRequestStatus(prevStatus, notificationPaths));
             }
 
-            const requestStatus = await register({...params, chainedWithAuthorization: true}, scenario, notificationPaths);
+            const requestStatus = await register({...params, chainedWithAuthorization: true}, scenario, notificationPaths, softPromptAccepted);
 
             if (!requestStatus.step.wasRecentStepSuccessful) {
                 return setStatus(
@@ -322,7 +323,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 );
             }
 
-            return authorize(scenario, {...params, chainedPrivateKeyStatus: requestStatus}, notificationPaths);
+            return authorize(scenario, {...params, chainedPrivateKeyStatus: requestStatus}, notificationPaths, softPromptAccepted);
         }
 
         const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
@@ -333,7 +334,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         /** Multifactor authentication is configured already, let's do the challenge logic */
-        const result = await authorize(scenario, {...(params as MultifactorAuthenticationScenarioParams<T>), chainedPrivateKeyStatus: undefined}, notificationPaths);
+        const result = await authorize(scenario, {...(params as MultifactorAuthenticationScenarioParams<T>), chainedPrivateKeyStatus: undefined}, notificationPaths, softPromptAccepted);
 
         if (result.reason === 'multifactorAuthentication.reason.error.keyMissingOnTheBE') {
             await NativeBiometrics.setup.revoke();

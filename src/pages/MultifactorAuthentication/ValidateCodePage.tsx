@@ -45,7 +45,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const errorMessages = {
         empty: 'validateCodeForm.error.pleaseFillMagicCode',
         invalid: 'validateCodeForm.error.incorrectMagicCode',
-    } as const satisfies Record<string, TranslationPaths>;
+    } as const;
 
     // Local state
     const [inputCode, setInputCode] = useState('');
