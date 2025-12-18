@@ -392,6 +392,7 @@ function SearchPage({route}: SearchPageProps) {
                             () => {
                                 setIsDownloadErrorModalVisible(true);
                             },
+                            translate,
                         );
                         clearSelectedTransactions(undefined, true);
                     },

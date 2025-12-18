@@ -406,6 +406,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         }
                         startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, allTransactionDrafts);
                     }),
+                sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE,
             },
         ];
     }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID]);
@@ -459,6 +460,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     onSelected,
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     rightIconReportID: quickActionReport?.reportID,
+                    sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION,
                 },
             ];
         }
@@ -485,6 +487,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected,
                     rightIconReportID: policyChatForActivePolicy?.reportID,
+                    sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION,
                 },
             ];
         }
@@ -550,6 +553,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, lastDistanceExpenseType);
                 });
             },
+            sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.TRACK_DISTANCE,
         },
         ...(shouldShowCreateReportOption
             ? [
@@ -585,6 +589,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                               Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
                           });
                       },
+                      sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.CREATE_REPORT,
                   },
               ]
             : []),
@@ -593,6 +598,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             text: translate('sidebarScreen.fabNewChat'),
             shouldCallAfterModalHide: shouldUseNarrowLayout,
             onSelected: () => interceptAnonymousUser(startNewChat),
+            sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.START_CHAT,
         },
         ...(canSendInvoice
             ? [
@@ -609,6 +615,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
                               startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts);
                           }),
+                      sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE,
                   },
               ]
             : []),
@@ -619,6 +626,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                       text: translate('travel.bookTravel'),
                       rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? icons.NewWindow : undefined,
                       onSelected: () => interceptAnonymousUser(() => openTravel()),
+                      sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.BOOK_TRAVEL,
                   },
               ]
             : []),
@@ -630,6 +638,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
                       onSelected: () => interceptAnonymousUser(() => startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember)),
+                      sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.TEST_DRIVE,
                   },
               ]
             : []),
@@ -645,6 +654,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                       description: translate('workspace.new.getTheExpensifyCardAndMore'),
                       shouldCallAfterModalHide: shouldUseNarrowLayout,
                       onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))),
+                      sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.NEW_WORKSPACE,
                   },
               ]
             : []),
@@ -697,6 +707,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
                     role={CONST.ROLE.BUTTON}
                     onPress={startQuickScan}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_RECEIPT_BUTTON}
                 />
             )}
             <FloatingActionButton
@@ -706,6 +717,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 ref={fabRef}
                 onPress={toggleCreateMenu}
                 onLongPress={startScan}
+                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_ACTION_BUTTON}
             />
         </View>
     );

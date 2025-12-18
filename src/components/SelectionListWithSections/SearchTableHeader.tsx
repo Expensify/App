@@ -35,16 +35,20 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.date',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.POSTED,
+        translationKey: 'search.filters.posted',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+        translationKey: 'search.filters.exported',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
         translationKey: 'common.submitted',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.APPROVED,
         translationKey: 'search.filters.approved',
-    },
-    {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.POSTED,
-        translationKey: 'search.filters.posted',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
@@ -67,6 +71,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canBeMissing: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME,
+        translationKey: 'workspace.common.workspace',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CARD,
         translationKey: 'common.card',
     },
@@ -79,6 +87,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
         canBeMissing: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+        translationKey: 'common.originalAmount',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
@@ -95,14 +107,26 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.withdrawalID',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
+        translationKey: 'iou.taxRate',
+        canBeMissing: true,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
-        isColumnSortable: false,
         canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
         translationKey: groupBy ? 'common.total' : 'iou.amount',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
+        translationKey: 'common.reportID',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
+        translationKey: 'common.longID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
@@ -181,6 +205,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'search.filters.approved',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+        translationKey: 'search.filters.exported',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
         translationKey: 'common.status',
     },
@@ -197,8 +225,28 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'common.to',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME,
+        translationKey: 'workspace.common.workspace',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL,
+        translationKey: 'common.reimbursableTotal',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
+        translationKey: 'common.nonReimbursableTotal',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
         translationKey: 'common.total',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
+        translationKey: 'common.reportID',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
+        translationKey: 'common.longID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -235,6 +283,7 @@ type SearchTableHeaderProps = {
     shouldShowYearSubmitted?: boolean;
     shouldShowYearApproved?: boolean;
     shouldShowYearPosted?: boolean;
+    shouldShowYearExported?: boolean;
     isAmountColumnWide: boolean;
     isTaxAmountColumnWide: boolean;
     shouldShowSorting: boolean;
@@ -253,6 +302,7 @@ function SearchTableHeader({
     shouldShowYearSubmitted,
     shouldShowYearApproved,
     shouldShowYearPosted,
+    shouldShowYearExported,
     shouldShowSorting,
     canSelectMultiple,
     isAmountColumnWide,
@@ -294,6 +344,7 @@ function SearchTableHeader({
             submittedColumnSize={shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             approvedColumnSize={shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             postedColumnSize={shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+            exportedColumnSize={shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             taxAmountColumnSize={isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             shouldShowSorting={shouldShowSorting}
