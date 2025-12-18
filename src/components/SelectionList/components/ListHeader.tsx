@@ -64,6 +64,7 @@ function ListHeader<TItem extends ListItem>({
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Checkbox
+                    testID="selection-list-select-all-checkbox"
                     accessibilityLabel={translate('workspace.people.selectAll')}
                     isChecked={dataDetails.allSelected}
                     isIndeterminate={dataDetails.someSelected}
