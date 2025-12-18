@@ -5155,7 +5155,7 @@ const translations = {
             invalidTagNameError: 'Tag name cannot be 0. Please choose a different value.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again',
             importedFromAccountingSoftware: 'Tags are managed in your',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => `<muted-text>Employees see tags as <strong>${customTagName}</strong>.</muted-text>`,
+            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => `Employees see tags as ${customTagName}.`,
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again',
             tagRules: 'Tag rules',

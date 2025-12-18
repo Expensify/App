@@ -5277,7 +5277,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             invalidTagNameError: 'Tag-Name kann nicht 0 sein. Bitte wählen Sie einen anderen Wert.',
             genericFailureMessage: 'Beim Aktualisieren des Tags ist ein Fehler aufgetreten. Bitte versuche es erneut.',
             importedFromAccountingSoftware: 'Tags werden in deiner',
-            employeesSeeTagsAs: ({customTagName}) => ` <muted-text>Mitarbeiter sehen Tags als <strong>${customTagName}</strong>.</muted-text>`,
+            employeesSeeTagsAs: ({customTagName}) => `Mitarbeiter sehen Tags als ${customTagName}.`,
             glCode: 'Sachkontocode',
             updateGLCodeFailureMessage: 'Beim Aktualisieren des Sachkontos ist ein Fehler aufgetreten. Bitte versuche es erneut.',
             tagRules: 'Tag-Regeln',

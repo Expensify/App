@@ -5244,7 +5244,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             invalidTagNameError: 'O nome da tag não pode ser 0. Escolha um valor diferente.',
             genericFailureMessage: 'Ocorreu um erro ao atualizar a tag, tente novamente',
             importedFromAccountingSoftware: 'As tags são gerenciadas no seu',
-            employeesSeeTagsAs: ({customTagName}) => `<muted-text>Os funcionários veem as tags como <strong>${customTagName}</strong>.</muted-text>`,
+            employeesSeeTagsAs: ({customTagName}) => `Os funcionários veem as tags como ${customTagName}.`,
             glCode: 'Código contábil',
             updateGLCodeFailureMessage: 'Ocorreu um erro ao atualizar o código GL, tente novamente',
             tagRules: 'Regras de tags',

@@ -5243,7 +5243,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             invalidTagNameError: 'Nazwa taga nie może wynosić 0. Wybierz inną wartość.',
             genericFailureMessage: 'Wystąpił błąd podczas aktualizowania tagu, spróbuj ponownie',
             importedFromAccountingSoftware: 'Tagi są zarządzane w Twoim',
-            employeesSeeTagsAs: ({customTagName}) => `<muted-text>Pracownicy widzą tagi jako <strong>${customTagName}</strong>.</muted-text>`,
+            employeesSeeTagsAs: ({customTagName}) => `Pracownicy widzą tagi jako ${customTagName}.`,
             glCode: 'Kod GL',
             updateGLCodeFailureMessage: 'Wystąpił błąd podczas aktualizowania kodu GL, spróbuj ponownie',
             tagRules: 'Reguły tagów',

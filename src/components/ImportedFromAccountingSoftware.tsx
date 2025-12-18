@@ -10,8 +10,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import EmployeesSeeTagsAsText from './EmployeesSeeTagsAsText';
 import Icon from './Icon';
-import RenderHTML from './RenderHTML';
 import Text from './Text';
 import TextBlock from './TextBlock';
 import TextLinkBlock from './TextLinkBlock';
@@ -54,27 +54,36 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
                 textStyles={[styles.textNormal, styles.colorMuted]}
                 text={`${translatedText} `}
             />
-            <TextLinkBlock
-                style={[styles.textNormal, styles.link]}
-                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                text={`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                prefixIcon={
-                    icon ? (
-                        <Icon
-                            src={icon}
-                            height={variables.iconSizeMedium}
-                            width={variables.iconSizeMedium}
-                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALLER, ''), styles.appBG]}
-                        />
-                    ) : undefined
-                }
-            />
-            <Text style={[styles.textNormal, styles.colorMuted]}>. </Text>
-            {shouldShow && !!customTagName && (
-                <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML html={translate('workspace.tags.employeesSeeTagsAs', {customTagName})} />
-                </View>
-            )}
+            {[
+                <TextLinkBlock
+                    key="settingsLink"
+                    style={[styles.textNormal, styles.link]}
+                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                    text={`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                    prefixIcon={
+                        icon ? (
+                            <Icon
+                                src={icon}
+                                height={variables.iconSizeMedium}
+                                width={variables.iconSizeMedium}
+                                additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALLER, ''), styles.appBG]}
+                            />
+                        ) : undefined
+                    }
+                />,
+                <Text
+                    key="period"
+                    style={[styles.textNormal, styles.colorMuted]}
+                >
+                    .{' '}
+                </Text>,
+                shouldShow && !!customTagName ? (
+                    <EmployeesSeeTagsAsText
+                        key="employeesSeeTagsAs"
+                        customTagName={customTagName}
+                    />
+                ) : null,
+            ]}
         </View>
     );
 }

@@ -6,6 +6,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
+import EmployeesSeeTagsAsText from '@components/EmployeesSeeTagsAsText';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
@@ -625,9 +626,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>
                         {!hasDependentTags && !hasIndependentTags && !!policyTagLists.at(0)?.name ? (
-                            <View style={[styles.renderHTML, styles.flexRow]}>
-                                <RenderHTML html={translate('workspace.tags.employeesSeeTagsAs', {customTagName: policyTagLists.at(0)?.name ?? ''})} />
-                            </View>
+                            <EmployeesSeeTagsAsText customTagName={policyTagLists.at(0)?.name ?? ''} />
                         ) : (
                             translate('workspace.tags.subtitle')
                         )}

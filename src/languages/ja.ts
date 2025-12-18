@@ -5228,7 +5228,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             invalidTagNameError: 'タグ名を 0 にすることはできません。別の値を選択してください。',
             genericFailureMessage: 'タグの更新中にエラーが発生しました。もう一度お試しください。',
             importedFromAccountingSoftware: 'タグは次で管理されています:',
-            employeesSeeTagsAs: ({customTagName}) => ` <muted-text>従業員にはタグが次のように表示されます: <strong>${customTagName}</strong>.</muted-text>`,
+            employeesSeeTagsAs: ({customTagName}) => `従業員にはタグが次のように表示されます: ${customTagName}.`,
             glCode: 'GLコード',
             updateGLCodeFailureMessage: 'GLコードの更新中にエラーが発生しました。もう一度お試しください。',
             tagRules: 'タグのルール',

@@ -5284,7 +5284,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             invalidTagNameError: 'Le nom du tag ne peut pas être 0. Veuillez choisir une autre valeur.',
             genericFailureMessage: 'Une erreur s’est produite lors de la mise à jour du tag, veuillez réessayer',
             importedFromAccountingSoftware: 'Les étiquettes sont gérées dans votre',
-            employeesSeeTagsAs: ({customTagName}) => ` <muted-text>Les employés voient les étiquettes comme <strong>${customTagName}</strong>.</muted-text>`,
+            employeesSeeTagsAs: ({customTagName}) => `Les employés voient les étiquettes comme ${customTagName}.`,
             glCode: 'Code du grand livre',
             updateGLCodeFailureMessage: 'Une erreur s’est produite lors de la mise à jour du code GL, veuillez réessayer',
             tagRules: 'Règles de tags',

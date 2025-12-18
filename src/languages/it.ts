@@ -5260,7 +5260,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             invalidTagNameError: 'Il nome del tag non può essere 0. Scegli un valore diverso.',
             genericFailureMessage: 'Si è verificato un errore durante l’aggiornamento dell’etichetta, riprova',
             importedFromAccountingSoftware: 'I tag sono gestiti nel tuo',
-            employeesSeeTagsAs: ({customTagName}) => ` <muted-text>I dipendenti vedono i tag come <strong>${customTagName}</strong>.</muted-text>`,
+            employeesSeeTagsAs: ({customTagName}) => `I dipendenti vedono i tag come ${customTagName}.`,
             glCode: 'Codice conto contabile',
             updateGLCodeFailureMessage: 'Si è verificato un errore durante l’aggiornamento del codice GL, riprova.',
             tagRules: 'Regole tag',
