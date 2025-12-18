@@ -1533,7 +1533,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseWorkspace: 'Choisir un espace de travail',
         date: 'Date',
         splitDates: 'Diviser les dates',
-        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `Du ${startDate} au ${endDate} (${count} jours)`,
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `Du ${startDate} au ${endDate} (${count} jours)`,
         splitByDate: 'Scinder par date',
     },
     transactionMerge: {
