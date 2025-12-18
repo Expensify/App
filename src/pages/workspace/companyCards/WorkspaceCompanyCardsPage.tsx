@@ -49,6 +49,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
     const [cardsList] = useCardsList(selectedFeed);
 
+    const {cardList, ...assignedCards} = cardsList ?? {};
+
     const isNoFeed = !selectedFeedData;
     const isFeedPending = !!selectedFeedData?.pending;
     const isFeedAdded = !isFeedPending && !isNoFeed;
@@ -57,7 +59,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
-    const hasNoAssignedCard = Object.keys(cardsList ?? {}).length === 0;
+    const hasNoAssignedCard = Object.keys(assignedCards).length === 0;
     const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
 
     const fetchCompanyCards = useCallback(() => {
