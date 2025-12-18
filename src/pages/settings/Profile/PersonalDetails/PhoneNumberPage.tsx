@@ -78,7 +78,7 @@ function PhoneNumberPage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={PhoneNumberPage.displayName}
+            testID="PhoneNumberPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -127,7 +127,5 @@ function PhoneNumberPage() {
         </ScreenWrapper>
     );
 }
-
-PhoneNumberPage.displayName = 'PhoneNumberPage';
 
 export default PhoneNumberPage;

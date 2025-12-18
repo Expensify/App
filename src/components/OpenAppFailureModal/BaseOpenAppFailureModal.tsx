@@ -64,6 +64,4 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
     );
 }
 
-BaseOpenAppFailureModal.displayName = 'BaseOpenAppFailureModal';
-
 export default BaseOpenAppFailureModal;

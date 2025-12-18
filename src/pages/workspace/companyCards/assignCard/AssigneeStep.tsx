@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -81,7 +82,7 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
     const submit = (assignee: ListItem) => {
         let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
         const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
-        const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
+        const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
         const data: Partial<AssignCardData> = {
             email: assignee?.login ?? '',
             cardName: getDefaultCardName(memberName),
@@ -226,7 +227,7 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={AssigneeStep.displayName}
+            wrapperID="AssigneeStep"
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={0}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
@@ -250,7 +251,5 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-AssigneeStep.displayName = 'AssigneeStep';
 
 export default AssigneeStep;

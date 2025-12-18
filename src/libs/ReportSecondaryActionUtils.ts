@@ -57,6 +57,7 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
+    hasSmartScanFailedViolation,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
@@ -140,6 +141,9 @@ function isSubmitAction(
     reportActions?: ReportAction[],
     isChatReportArchived = false,
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
+    violations?: OnyxCollection<TransactionViolation[]>,
+    currentUserEmail?: string,
+    currentUserAccountID?: number,
 ): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -149,6 +153,18 @@ function isSubmitAction(
 
     if (!transactionAreComplete) {
         return false;
+    }
+
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    if (violations && currentUserEmail && currentUserAccountID !== undefined) {
+        if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+            return false;
+        }
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED) {
@@ -707,7 +723,7 @@ function getSecondaryReportActions({
         isChatReportArchived,
     });
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction, violations, currentUserEmail, currentUserAccountID)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
@@ -751,8 +767,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
-    // Disabled for now to fix deploy blockers. Will be re-enabled in https://github.com/Expensify/App/pull/77343
-    if (isDuplicateAction(report, reportTransactions) && false) {
+    if (isDuplicateAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
     }
 
@@ -832,8 +847,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
     }
 
-    // Disabled for now to fix deploy blockers. Will be re-enabled in https://github.com/Expensify/App/pull/77343
-    if (isDuplicateAction(parentReport, [reportTransaction]) && false) {
+    if (isDuplicateAction(parentReport, [reportTransaction])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
     }
 
