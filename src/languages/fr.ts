@@ -1533,7 +1533,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         moveExpenses: () => ({one: 'Déplacer la dépense', other: 'Déplacer des dépenses'}),
-        moveExpensesError: "Vous ne pouvez pas déplacer les dépenses de per diem vers des rapports sur d'autres espaces de travail, car les taux de per diem peuvent différer entre les espaces de travail.",
+        moveExpensesError:
+            "Vous ne pouvez pas déplacer les dépenses de per diem vers des rapports sur d'autres espaces de travail, car les taux de per diem peuvent différer entre les espaces de travail.",
         changeApprover: {
             title: 'Changer d’approbateur',
             subtitle: 'Choisissez une option pour changer l’approbateur de ce rapport.',

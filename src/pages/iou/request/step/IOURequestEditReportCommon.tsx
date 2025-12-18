@@ -34,7 +34,7 @@ import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 
@@ -239,7 +239,7 @@ function IOURequestEditReportCommon({
                     return false;
                 }
                 const customUnitID = detail.customUnitID;
-                return !customUnitID || !Object.keys(destinationPolicy?.customUnits ?? {}).includes(customUnitID);
+                return !customUnitID || !destinationPolicy?.customUnits?.[customUnitID];
             });
 
             if (invalidPerDiemTransaction) {
@@ -255,13 +255,7 @@ function IOURequestEditReportCommon({
         if (transactionIDs?.length === 0) {
             return false;
         }
-        if (isPerDiemRequest) {
-            const canTransactionsBeMoved = checkIfPerDiemTransactionsCanBeMoved(policyID);
-            if (!canTransactionsBeMoved) {
-                setPerDiemWarningModalVisible(true);
-                return false;
-            }
-        }
+
         return true;
     };
 
@@ -272,12 +266,12 @@ function IOURequestEditReportCommon({
         selectReport(item);
     };
 
-    const handleCreateReport = () => {
+    const handleCreateReport = useCallback(() => {
         if (!validatePerDiemMove(policyForMovingExpenses?.id)) {
             return;
         }
         createReport?.();
-    };
+    }, [validatePerDiemMove, policyForMovingExpenses?.id, createReport]);
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 
@@ -316,6 +310,8 @@ function IOURequestEditReportCommon({
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
     }, [createReportOption, expenseReports.length, shouldShowNotFoundPageFromProps, selectedReport, reportPolicy]);
+
+    const hidePerDiemWarningModal = () => setPerDiemWarningModalVisible(false);
 
     return (
         <StepScreenWrapper
@@ -356,7 +352,7 @@ function IOURequestEditReportCommon({
             />
             <ConfirmModal
                 isVisible={perDiemWarningModalVisible}
-                onConfirm={() => setPerDiemWarningModalVisible(false)}
+                onConfirm={hidePerDiemWarningModal}
                 title={translate('iou.moveExpenses', {count: transactionIDs?.length ?? 1})}
                 prompt={translate('iou.moveExpensesError')}
                 confirmText={translate('common.buttonConfirm')}
