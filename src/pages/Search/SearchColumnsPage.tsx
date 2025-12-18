@@ -36,9 +36,17 @@ function SearchColumnsPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
+    const groupBy = searchAdvancedFiltersForm?.groupBy;
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-    const allCustomColumns = getCustomColumns(queryType);
-    const defaultCustomColumns = getCustomColumnDefault(queryType);
+
+    const allTypeCustomColumns = getCustomColumns(queryType);
+    const defaultTypeCustomColumns = getCustomColumnDefault(queryType);
+
+    const allGroupCustomColumns = getCustomColumns(groupBy);
+    const defaultGroupCustomColumns = getCustomColumnDefault(groupBy);
+
+    const allCustomColumns = [...allGroupCustomColumns, ...allTypeCustomColumns];
+    const defaultCustomColumns = [...defaultGroupCustomColumns, ...defaultTypeCustomColumns];
 
     // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns since it makes sense for them to show up in an expense management App and it fixes the layout issues.
     const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
@@ -98,9 +106,9 @@ function SearchColumnsPage() {
     });
 
     const defaultColumns = sortColumns(
-        allCustomColumns.map((columnId) => ({
+        allTypeCustomColumns.map((columnId) => ({
             columnId,
-            isSelected: defaultCustomColumns.includes(columnId),
+            isSelected: defaultTypeCustomColumns.includes(columnId),
         })),
     );
 
