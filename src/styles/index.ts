@@ -938,8 +938,8 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.activeComponentBG,
         },
 
-        touchableButtonImageHeight: {
-            height: variables.componentSizeNormal,
+        messagesRowHeight: {
+            height: variables.componentSizeXSmall,
         },
 
         touchableButtonImage: {
