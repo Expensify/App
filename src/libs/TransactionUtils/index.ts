@@ -2253,6 +2253,31 @@ function hasSmartScanFailedViolation(
     return !!violations?.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
 }
 
+/**
+ * Check if the initial transaction should be reused for the current file being processed.
+ */
+function shouldReuseInitialTransaction(
+    initialTransaction: OnyxEntry<Transaction>,
+    shouldAcceptMultipleFiles: boolean,
+    index: number,
+    isMultiScanEnabled: boolean,
+    transactions: Transaction[],
+): boolean {
+    if (!initialTransaction) {
+        return false;
+    }
+
+    if (!shouldAcceptMultipleFiles) {
+        return true;
+    }
+
+    if (index !== 0) {
+        return false;
+    }
+
+    return !isMultiScanEnabled || (transactions.length === 1 && (!initialTransaction.receipt?.source || initialTransaction.receipt?.isTestReceipt === true));
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -2372,6 +2397,7 @@ export {
     mergeProhibitedViolations,
     getOriginalAttendees,
     getReportOwnerAsAttendee,
+    shouldReuseInitialTransaction,
 };
 
 export type {TransactionChanges};
