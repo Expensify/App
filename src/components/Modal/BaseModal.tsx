@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import type {LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
-import {Animated, View} from 'react-native';
+import {Animated, DeviceEventEmitter, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
@@ -123,6 +123,10 @@ function BaseModal({
         [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
     );
 
+    const handleDismissModal = useCallback(() => {
+        ComposerFocusManager.setReadyToFocus(uniqueModalId);
+    }, [uniqueModalId]);
+
     useEffect(() => {
         let removeOnCloseListener: () => void;
         if (isVisible) {
@@ -134,13 +138,18 @@ function BaseModal({
             }
         }
 
+        // When the modal becomes not visible, run dismiss logic to setReadyToFocus after it fully closes.
+        if (!isVisible && wasVisible) {
+            handleDismissModal();
+        }
+
         return () => {
             if (!removeOnCloseListener) {
                 return;
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type]);
+    }, [isVisible, wasVisible, onClose, type, handleDismissModal]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
@@ -156,6 +165,8 @@ function BaseModal({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
+
+    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
@@ -174,10 +185,6 @@ function BaseModal({
         } else {
             onClose?.();
         }
-    };
-
-    const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus(uniqueModalId);
     };
 
     // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
@@ -374,7 +381,5 @@ function BaseModal({
         </ModalContext.Provider>
     );
 }
-
-BaseModal.displayName = 'BaseModalWithRef';
 
 export default BaseModal;

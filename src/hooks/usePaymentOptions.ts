@@ -61,7 +61,7 @@ function usePaymentOptions({
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
@@ -135,7 +135,7 @@ function usePaymentOptions({
         };
         const approveButtonOption = {
             text: translate('iou.approve', {formattedAmount}),
-            icon: Expensicons.ThumbsUp,
+            icon: icons.ThumbsUp,
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
@@ -248,6 +248,7 @@ function usePaymentOptions({
         chatReport,
         onPress,
         onlyShowPayElsewhere,
+        icons,
     ]);
 
     return paymentButtonOptions;

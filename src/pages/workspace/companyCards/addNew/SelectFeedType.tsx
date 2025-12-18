@@ -105,7 +105,7 @@ function SelectFeedType() {
 
     return (
         <ScreenWrapper
-            testID={SelectFeedType.displayName}
+            testID="SelectFeedType"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -147,7 +147,5 @@ function SelectFeedType() {
         </ScreenWrapper>
     );
 }
-
-SelectFeedType.displayName = 'SelectFeedType';
 
 export default SelectFeedType;

@@ -89,6 +89,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
     const prevPolicyCurrency = usePrevious(policyCurrency);
+    const achContractValuesRef = useRef<{
+        isAuthorizedToUseBankAccount?: boolean;
+        certifyTrueInformation?: boolean;
+        acceptTermsAndConditions?: boolean;
+    }>({});
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const hasUnsupportedCurrency =
         isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && isNonUSDWorkspace
@@ -131,6 +136,22 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [isResettingBankAccount, setIsResettingBankAccount] = useState(false);
+
+    useEffect(() => {
+        const achContractValues = lodashPick(reimbursementAccountDraft, ['isAuthorizedToUseBankAccount', 'certifyTrueInformation', 'acceptTermsAndConditions']);
+
+        if (!isEmptyObject(achContractValues)) {
+            achContractValuesRef.current = achContractValues;
+        }
+    }, [reimbursementAccountDraft]);
+
+    useEffect(() => {
+        if (reimbursementAccountDraft || isEmptyObject(achContractValuesRef.current) || currentStep !== CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT) {
+            return;
+        }
+
+        updateReimbursementAccountDraft(achContractValuesRef.current);
+    }, [reimbursementAccountDraft, currentStep]);
 
     function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
         return {
@@ -432,7 +453,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     if ((!isLoading && (isEmptyObject(policy) || !isPolicyAdmin(policy))) || isPendingDeletePolicy(policy)) {
         return (
-            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+            <ScreenWrapper testID="ReimbursementAccountPage">
                 <FullPageNotFoundView
                     shouldShow
                     onBackButtonPress={goBackFromInvalidPolicy}
@@ -448,7 +469,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
 
     if (userHasPhonePrimaryEmail) {
-        errorText = <RenderHTML html={translate('bankAccount.hasPhoneLoginError', {contactMethodRoute})} />;
+        errorText = <RenderHTML html={translate('bankAccount.hasPhoneLoginError', contactMethodRoute)} />;
     } else if (throttledDate) {
         errorText = <Text>{translate('bankAccount.hasBeenThrottledError')}</Text>;
     } else if (hasUnsupportedCurrency) {
@@ -457,7 +478,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     if (errorText) {
         return (
-            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+            <ScreenWrapper testID="ReimbursementAccountPage">
                 <HeaderWithBackButton
                     title={translate('bankAccount.addBankAccount')}
                     subtitle={policyNameToDisplay}
@@ -471,7 +492,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     if (shouldShowConnectedVerifiedBankAccount) {
         if (topmostFullScreenRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
             return (
-                <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+                <ScreenWrapper testID="ReimbursementAccountPage">
                     <HeaderWithBackButton
                         title={translate('bankAccount.addBankAccount')}
                         onBackButtonPress={() => Navigation.dismissModal()}
@@ -543,7 +564,5 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         />
     );
 }
-
-ReimbursementAccountPage.displayName = 'ReimbursementAccountPage';
 
 export default withPolicy(ReimbursementAccountPage);

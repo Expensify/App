@@ -337,6 +337,4 @@ function ReportActionsView({
     );
 }
 
-ReportActionsView.displayName = 'ReportActionsView';
-
 export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'})(ReportActionsView);

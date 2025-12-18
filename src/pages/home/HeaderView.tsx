@@ -145,6 +145,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
     // Use sorted display names for the title for group chats on native small screen widths
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived);
     const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
@@ -154,6 +155,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const policyDescription = getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
+    // This is used to ensure that we display the text exactly as the user entered it when displaying thread header text, instead of parsing their text to HTML.
+    const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
     const subscriptionPlan = useSubscriptionPlan();
     const ancestors = useAncestors(report);
 
@@ -184,7 +187,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
-    const canJoin = canJoinChat(report, parentReportAction, policy, isReportArchived);
+    const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 
     const joinButton = (
         <Button
@@ -269,6 +272,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
                                     accessibilityLabel={translate('common.back')}
                                     role={CONST.ROLE.BUTTON}
+                                    sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.BACK_BUTTON}
                                 >
                                     <Tooltip
                                         text={translate('common.back')}
@@ -290,6 +294,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     disabled={shouldDisableDetailPage}
                                     accessibilityLabel={title}
                                     role={CONST.ROLE.BUTTON}
+                                    sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.DETAILS_BUTTON}
                                 >
                                     {shouldShowSubscript ? multipleAvatars : <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>{multipleAvatars}</OfflineWithFeedback>}
                                     <View
@@ -300,6 +305,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                             <DisplayNames
                                                 fullTitle={title}
                                                 displayNamesWithTooltips={displayNamesWithTooltips}
+                                                shouldParseFullTitle={shouldParseFullTitle && !isGroupChat}
                                                 tooltipEnabled
                                                 numberOfLines={1}
                                                 textStyles={[styles.headerText, styles.pre]}
@@ -427,7 +433,5 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         </>
     );
 }
-
-HeaderView.displayName = 'HeaderView';
 
 export default memo(HeaderView);

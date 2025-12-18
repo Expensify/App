@@ -236,6 +236,4 @@ function SuggestionEmoji({
     );
 }
 
-SuggestionEmoji.displayName = 'SuggestionEmoji';
-
 export default SuggestionEmoji;
