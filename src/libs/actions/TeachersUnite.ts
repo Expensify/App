@@ -99,7 +99,9 @@ function addSchoolPrincipal(
         reportActionID: expenseReportCreatedAction.reportActionID,
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,
@@ -147,7 +149,15 @@ function addSchoolPrincipal(
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,
@@ -188,7 +198,9 @@ function addSchoolPrincipal(
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,

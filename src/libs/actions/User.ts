@@ -1104,7 +1104,9 @@ function generateStatementPDF(period: string) {
  */
 function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], backTo?: string) {
     const oldDefaultContactMethod = currentEmail;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.POLICY>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1157,7 +1159,9 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
             },
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.POLICY>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
