@@ -85,7 +85,6 @@ const SCREENS = {
         ADVANCED_FILTERS_REIMBURSABLE_RHP: 'Search_Advanced_Filters_Reimbursable_RHP',
         ADVANCED_FILTERS_BILLABLE_RHP: 'Search_Advanced_Filters_Billable_RHP',
         ADVANCED_FILTERS_WORKSPACE_RHP: 'Search_Advanced_Filters_Workspace_RHP',
-        ADVANCED_FILTERS_ACTION_RHP: 'Search_Advanced_Filters_Action_RHP',
         ADVANCED_FILTERS_PURCHASE_CURRENCY_RHP: 'Search_Advanced_Filters_Purchase_Currency_RHP',
         ADVANCED_FILTERS_PURCHASE_AMOUNT_RHP: 'Search_Advanced_Filters_Purchase_Amount_RHP',
         ADVANCED_FILTERS_ATTENDEE_RHP: 'Search_Advanced_Filters_Attendee_RHP',
