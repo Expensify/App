@@ -33,7 +33,6 @@ We’ve made it easier to filter, search, and sort cards — especially helpful 
   - Note: you can choose a custom start date for the feed to begin by selecting `Start transaction date`, otherwise we default to today's date. 
   - Note: you can also choose to update the card name by selecting `Card name`, inputting the new name, and selecting `Save`
 7. Select `Confirm` to finalize the assignment.
-8. The card will show as "Assigned" right away (optimistic UI).
 9. If there’s an error, the row will display an alert icon and error message.
 
 ## What's Improved
