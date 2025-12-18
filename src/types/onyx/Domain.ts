@@ -1,5 +1,6 @@
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from './OnyxCommon';
+import SecurityGroup from '@src/types/onyx/SecurityGroup';
 
 /**
  * A utility type that creates a record where all keys are strings that start with a specified prefix.
@@ -47,8 +48,8 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether setting SAML required setting has failed and why */
     samlRequiredError?: OnyxCommon.Errors;
 }> &
-    PrefixedRecord<typeof ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX, number>;
-
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX, number> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX, number>;
 /** Model of SAML metadata */
 type SamlMetadata = {
     /**
@@ -95,16 +96,7 @@ type SamlMetadata = {
 };
 
 /** Model of Security Group data */
-type SecurityGroup = {
-    /** Name of the security group (e.g. "Employees") */
-    name: string;
-
-    /** Whether the security group restricts policy creation */
-    enableRestrictedPolicyCreation: boolean;
-
-    /** Whether strict policy rules are enabled for this group */
-    enableStrictPolicyRules: boolean;
-
+type DomainSecurityGroup = SecurityGroup & {
     /**
      * A map of member account IDs to their permission level within the group.
      * Key: The accountID of the member.
@@ -113,6 +105,6 @@ type SecurityGroup = {
     shared: Record<string, string>;
 };
 
-export {type SamlMetadata, type SecurityGroup};
+export {type SamlMetadata, type DomainSecurityGroup};
 
 export default Domain;

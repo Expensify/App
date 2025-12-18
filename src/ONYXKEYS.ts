@@ -739,7 +739,7 @@ const ONYXKEYS = {
         EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
 
         /** Stores domain security group */
-        DOMAIN_SECURITY_GROUP: 'expensify_securityGroup',
+        DOMAIN_SECURITY_GROUP_PREFIX: 'expensify_securityGroup_',
     },
 
     /** List of Form ids */
@@ -1127,7 +1127,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS]: boolean;
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
     [ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX]: number;
-    [ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP] : OnyxTypes.DomainSecurityGroup;
+    [ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX] : OnyxTypes.DomainSecurityGroup;
 };
 
 type OnyxValuesMapping = {

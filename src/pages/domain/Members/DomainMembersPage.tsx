@@ -14,15 +14,10 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
 
-    const [domain, fetchStatus] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false});
-
     const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: selectMemberIDs,
     });
-
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundView = fetchStatus.status !== 'loading' && !domain;
 
     return (
         <BaseDomainMembersPage
@@ -30,7 +25,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             headerTitle={translate('domain.members.title')}
             searchPlaceholder={translate('domain.members.findMember')}
             onSelectRow={()=>{}}
-            shouldShowNotFoundView={shouldShowNotFoundView}
         />
     );
 }

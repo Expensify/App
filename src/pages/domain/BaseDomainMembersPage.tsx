@@ -1,8 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
@@ -20,8 +18,8 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 
 type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
     accountID: number;
@@ -44,7 +42,8 @@ type BaseDomainMembersPageProps = {
     /** Callback fired when a row is selected */
     onSelectRow: (item: MemberOption) => void;
 
-    hederIcon:  IconAsset;
+    /** Icon displayed in the header of the tab */
+    headerIcon?:  IconAsset;
 };
 
 function BaseDomainMembersPage({
@@ -53,27 +52,32 @@ function BaseDomainMembersPage({
                                    searchPlaceholder,
                                    headerContent,
                                    onSelectRow,
-                                   hederIcon
+                                   headerIcon
                                }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+
 
     const data: MemberOption[] = useMemo(() => {
         const options: MemberOption[] = [];
+
         for (const accountID of accountIDs) {
             const details = personalDetails?.[accountID];
+            const login = details?.login ?? '';
+
             options.push({
                 keyForList: String(accountID),
                 accountID,
-                login: details?.login ?? '',
+                login,
                 text: formatPhoneNumber(getDisplayNameOrDefault(details)),
-                alternateText: formatPhoneNumber(details?.login ?? ''),
+                alternateText: formatPhoneNumber(login),
                 icons: [
                     {
-                        source: details?.avatar ?? FallbackAvatar,
-                        name: formatPhoneNumber(details?.login ?? ''),
+                        source: details?.avatar ?? icons.FallbackAvatar,
+                        name: formatPhoneNumber(login),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
                     },
@@ -83,10 +87,10 @@ function BaseDomainMembersPage({
         return options;
     }, [accountIDs, personalDetails, formatPhoneNumber]);
 
-    const filterMember = useCallback((option: MemberOption, searchQuery: string) => {
+    const filterMember = (option: MemberOption, searchQuery: string) => {
         const results = tokenizedSearch([option], searchQuery, (item) => [item.text ?? '', item.alternateText ?? '']);
         return results.length > 0;
-    }, []);
+    };
 
     const sortMembers = useCallback(
         (options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare),
@@ -121,7 +125,7 @@ function BaseDomainMembersPage({
                 <HeaderWithBackButton
                     title={headerTitle}
                     onBackButtonPress={Navigation.popToSidebar}
-                    icon={hederIcon}
+                    icon={headerIcon}
                     shouldShowBackButton={shouldUseNarrowLayout}
                 >
                     {!shouldUseNarrowLayout && !!headerContent && (
@@ -142,11 +146,11 @@ function BaseDomainMembersPage({
                     ListItem={TableListItem}
                     onSelectRow={onSelectRow}
                     shouldShowListEmptyContent={false}
-                    listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
+                    listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : styles.pr3}
                     showScrollIndicator={false}
                     addBottomSafeAreaPadding
                     customListHeader={getCustomListHeader()}
-                    containerStyle={[styles.flex1]}
+                    containerStyle={styles.flex1}
                 />
         </ScreenWrapper>
     );

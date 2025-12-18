@@ -60,7 +60,7 @@ function selectMemberIDs(domain: Domain | undefined): number[] {
     }
 
     const memberIDs = Object.entries(domain)
-        .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP))
+        .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX))
         .flatMap(([, value]) => {
             const groupData = value as {shared?: Record<string, string>};
             if (!groupData?.shared) {
