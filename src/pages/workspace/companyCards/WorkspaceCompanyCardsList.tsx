@@ -69,7 +69,7 @@ function WorkspaceCompanyCardsList({selectedFeed, policyID, onAssignCard, isAssi
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
 
-    const cardListTyped: Record<string, string> | undefined = (cardsList as {cardList?: Record<string, string>})?.cardList;
+    const cardListTyped: Record<string, string> | undefined = (cardsList as {cardList?: Record<string, string>})?.cardList ?? {};
     const assignedCards = Object.fromEntries(Object.entries(cardsList ?? {}).filter(([key]) => key !== 'cardList')) as Record<string, Card>;
     const [cardFeeds] = useCardFeeds(policyID);
 
