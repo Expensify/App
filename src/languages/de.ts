@@ -7977,6 +7977,28 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         },
         admins: {title: 'Admins', findAdmin: 'Admin finden', primaryContact: 'Hauptansprechpartner', addPrimaryContact: 'Primären Kontakt hinzufügen', settings: 'Einstellungen'},
     },
+    gps: {
+        tooltip: 'GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.',
+        disclaimer: 'Benutze GPS, um eine Ausgabe von deiner Reise zu erstellen. Tippe unten auf „Start“, um mit der Aufzeichnung zu beginnen.',
+        error: {failedToStart: 'Standortverfolgung konnte nicht gestartet werden.', failedToGetPermissions: 'Die erforderlichen Standortberechtigungen konnten nicht abgerufen werden.'},
+        trackingDistance: 'Strecke wird verfolgt...',
+        stopped: 'Angehalten',
+        start: 'Start',
+        stop: 'Stopp',
+        discard: 'Verwerfen',
+        stopGpsTrackingModal: {
+            title: 'GPS-Tracking stoppen',
+            prompt: 'Bist du sicher? Dadurch wird deine aktuelle Reise beendet.',
+            cancel: 'Verfolgung fortsetzen',
+            confirm: 'GPS-Tracking stoppen',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Entfernungsverfolgung verwerfen',
+            prompt: 'Bist du sicher? Dadurch wird deine aktuelle Reise verworfen und kann nicht rückgängig gemacht werden.',
+            confirm: 'Entfernungsverfolgung verwerfen',
+        },
+        zeroDistanceTripModal: {title: 'Ausgabe kann nicht erstellt werden', prompt: 'Sie können keine Ausgabe mit demselben Start- und Zielort erstellen.'},
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
