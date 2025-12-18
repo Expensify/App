@@ -2956,7 +2956,7 @@ function getColumnsToShow(
     groupBy?: SearchGroupBy,
 ): ColumnVisibility {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        const reportColumns: ColumnVisibility = {
+        const columns: ColumnVisibility = {
             // Avatar is always visible & is not configurable
             [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
             [CONST.SEARCH.TABLE_COLUMNS.DATE]: false,
@@ -2977,14 +2977,11 @@ function getColumnsToShow(
             [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
         };
 
-        // If there are no visible columns, everything should be visible
-        const filteredVisibleColumns = visibleColumns.filter((column) =>
-            Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>),
-        );
+        const filteredVisibleColumns = visibleColumns.filter((column) => {
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>);
+        });
 
-        // If the user has set custom columns, toggle the visible columns on, with all other
-        // columns hidden by default
-        const columns: ColumnVisibility = {};
+        // If the user has set custom columns, toggle the visible columns on, with all other columns hidden by default
         const columnsToShow = filteredVisibleColumns.length ? filteredVisibleColumns : CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT;
 
         for (const column of columnsToShow) {
@@ -3023,37 +3020,46 @@ function getColumnsToShow(
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID,
         }[groupBy];
 
+        const defaultCustomColumns = {
+            [CONST.SEARCH.GROUP_BY.CARD]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CARD,
+            [CONST.SEARCH.GROUP_BY.FROM]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.FROM,
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID,
+        }[groupBy];
+
         const filteredVisibleColumns = visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>));
+        const columnsToShow = filteredVisibleColumns.length ? filteredVisibleColumns : defaultCustomColumns;
 
         if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
             const columns = {
                 [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: false,
             };
+
+            for (const column of columnsToShow) {
+                columns[column] = true;
+            }
         }
 
         if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
             const columns = {
                 [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.FEED]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: false,
             };
-            }
-
         }
-        
+
         if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
-            return {
+            const columns = {
                 [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: false,
             };
         }
     }
