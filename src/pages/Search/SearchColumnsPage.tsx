@@ -42,12 +42,42 @@ function SearchColumnsPage() {
 
     const [columns, setColumns] = useState<ColumnItem[]>(() => {
         const savedColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
-        const selectedIds = savedColumnIds.length ? savedColumnIds : defaultCustomColumns;
 
-        return allCustomColumns.map((columnId) => ({
-            columnId,
-            isSelected: selectedIds.includes(columnId),
-        }));
+        // If no saved columns, use default order and selection
+        if (!savedColumnIds.length) {
+            return allCustomColumns.map((columnId) => ({
+                columnId,
+                isSelected: defaultCustomColumns.includes(columnId),
+            }));
+        }
+
+        // Build the list: start with default order, but place selected columns in saved order
+        // Selected columns appear in their saved order positions, unselected stay in default order
+        const unselectedColumns = allCustomColumns.filter((columnId) => !savedColumnIds.includes(columnId));
+        const result: ColumnItem[] = [];
+        let savedIndex = 0;
+        let unselectedIndex = 0;
+
+        // Go through default order and reconstruct the list
+        for (const columnId of allCustomColumns) {
+            if (savedColumnIds.includes(columnId)) {
+                // This position had a selected column - use the next saved column in order
+                result.push({
+                    columnId: savedColumnIds.at(savedIndex) ?? columnId,
+                    isSelected: true,
+                });
+                savedIndex++;
+            } else {
+                // This position has an unselected column - keep it
+                result.push({
+                    columnId: unselectedColumns.at(unselectedIndex) ?? columnId,
+                    isSelected: false,
+                });
+                unselectedIndex++;
+            }
+        }
+
+        return result;
     });
 
     const selectedColumnIds = columns.filter((col) => col.isSelected).map((col) => col.columnId);
@@ -100,7 +130,10 @@ function SearchColumnsPage() {
             return;
         }
 
-        const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {...searchAdvancedFiltersForm, columns: selectedColumnIds};
+        const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {
+            ...searchAdvancedFiltersForm,
+            columns: selectedColumnIds,
+        };
         const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters);
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
