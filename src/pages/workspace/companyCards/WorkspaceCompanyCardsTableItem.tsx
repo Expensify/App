@@ -40,9 +40,6 @@ type WorkspaceCompanyCardTableItemData = {
 
     /** Whether the card is assigned */
     isAssigned: boolean;
-
-    /** Card identifier for unassigned cards */
-    cardIdentifier?: string;
 };
 
 type WorkspaceCompanyCardTableItemProps = {
@@ -68,7 +65,7 @@ type WorkspaceCompanyCardTableItemProps = {
     shouldUseNarrowTableRowLayout?: boolean;
 
     /** On assign card callback */
-    onAssignCard: () => void;
+    onAssignCard: (cardID?: string) => void;
 };
 
 function WorkspaceCompanyCardTableItem({
@@ -97,6 +94,8 @@ function WorkspaceCompanyCardTableItem({
 
     const alternateLoginText = shouldUseNarrowTableRowLayout ? `${customCardName}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : (cardholder?.login ?? '');
 
+    const assignCard = () => onAssignCard(cardName);
+
     return (
         <OfflineWithFeedback
             errorRowStyles={styles.ph5}
@@ -111,7 +110,7 @@ function WorkspaceCompanyCardTableItem({
                 disabled={isCardDeleted}
                 onPress={() => {
                     if (!assignedCard) {
-                        onAssignCard();
+                        assignCard();
                         return;
                     }
 
@@ -213,7 +212,7 @@ function WorkspaceCompanyCardTableItem({
                             {!isAssigned && (
                                 <Button
                                     text={shouldUseNarrowTableRowLayout ? translate('workspace.companyCards.assign') : translate('workspace.companyCards.assignCard')}
-                                    onPress={onAssignCard}
+                                    onPress={assignCard}
                                     isDisabled={isAssigningCardDisabled}
                                 />
                             )}

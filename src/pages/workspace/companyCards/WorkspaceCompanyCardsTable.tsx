@@ -11,7 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyFeeds, getPlaidInstitutionIconUrl, getPlaidInstitutionId, isCustomFeed, isMaskedCardNumberEqual} from '@libs/CardUtils';
+import {getCompanyFeeds, getPlaidInstitutionIconUrl, getPlaidInstitutionId, isMaskedCardNumberEqual} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
@@ -58,7 +58,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
 
-    const isPlaidCardFeed = !!companyFeeds?.[selectedFeed]?.accountList;
+    const isPlaidCardFeed = !!getPlaidInstitutionId(selectedFeed);
     const cards = isPlaidCardFeed ? (companyFeeds?.[selectedFeed]?.accountList ?? []) : Object.keys(cardList ?? {});
 
     // When we reach the medium screen width or the narrow layout is active,
@@ -81,30 +81,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
 
             const isAssigned = !!assignedCard;
 
-            // Calculate cardIdentifier for unassigned cards
-            let cardIdentifier: string | undefined;
-            if (!assignedCard) {
-                const isPlaid = !!getPlaidInstitutionId(selectedFeed);
-                const isCommercial = isCustomFeed(selectedFeed);
-
-                if (isPlaid) {
-                    cardIdentifier = cardName;
-                } else if (isCommercial) {
-                    const cardValue = cardList?.[cardName] ?? cardName;
-                    const digitsOnly = cardValue.replaceAll(/\D/g, '');
-                    if (digitsOnly.length >= 10) {
-                        const first6 = digitsOnly.substring(0, 6);
-                        const last4 = digitsOnly.substring(digitsOnly.length - 4);
-                        cardIdentifier = `${first6}${last4}`;
-                    } else {
-                        cardIdentifier = cardValue;
-                    }
-                } else {
-                    cardIdentifier = cardList?.[cardName] ?? cardName;
-                }
-            }
-
-            return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder, cardIdentifier};
+            return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder};
         }) ?? [];
 
     const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceCompanyCardTableItemData>) => (
@@ -115,7 +92,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
             selectedFeed={selectedFeed}
             plaidIconUrl={getPlaidInstitutionIconUrl(selectedFeed)}
             isPlaidCardFeed={isPlaidCardFeed}
-            onAssignCard={() => onAssignCard(item.cardIdentifier)}
+            onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
             shouldUseNarrowTableRowLayout={shouldShowNarrowLayout}
         />
