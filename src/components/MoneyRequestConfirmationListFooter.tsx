@@ -288,18 +288,9 @@ function MoneyRequestConfirmationListFooter({
 
         return outstandingReports.filter((report) => {
             const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-
-            if (isPerDiemRequest && report?.policyID !== policy?.id) {
-                return false;
-            }
-
-            return (
-                !isArchivedReport(reportNameValuePair) &&
-                isReportOutstanding(report, report?.policyID, reportNameValuePairs, false) &&
-                (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]))
-            );
+            return !isArchivedReport(reportNameValuePair) && isReportOutstanding(report, report?.policyID, reportNameValuePairs, false);
         });
-    }, [outstandingReportsByPolicyID, reportNameValuePairs, isPerDiemRequest, allPolicies, policy?.id]);
+    }, [outstandingReportsByPolicyID, reportNameValuePairs]);
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const shouldShowTags = useMemo(
@@ -366,8 +357,8 @@ function MoneyRequestConfirmationListFooter({
 
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = (isFromGlobalCreate ? shouldReportBeEditableFromFAB : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
-
+    const shouldReportBeEditable =
+        (isFromGlobalCreate && !isPerDiemRequest ? shouldReportBeEditableFromFAB : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
     const taxRates = policy?.taxRates ?? null;
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
