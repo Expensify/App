@@ -104,6 +104,8 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         return <NotFoundPage />;
     }
 
+    const shouldShowLastUpdated = !!lastScrape || card?.isLoadingLastUpdated;
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -196,13 +198,15 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                         </OfflineWithFeedback>
                     ) : null}
-                    <MenuItemWithTopDescription
-                        shouldShowRightComponent={card?.isLoadingLastUpdated}
-                        rightComponent={<ActivityIndicator style={[styles.popoverMenuIcon]} />}
-                        description={translate('workspace.moreFeatures.companyCards.lastUpdated')}
-                        title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
-                        interactive={false}
-                    />
+                    {shouldShowLastUpdated && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightComponent={card?.isLoadingLastUpdated}
+                            rightComponent={<ActivityIndicator style={[styles.popoverMenuIcon]} />}
+                            description={translate('workspace.moreFeatures.companyCards.lastUpdated')}
+                            title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
+                            interactive={false}
+                        />
+                    )}
                     <MenuItemWithTopDescription
                         description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
                         title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
