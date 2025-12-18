@@ -172,7 +172,7 @@ function SearchColumnsPage() {
     };
 
     const applyChanges = () => {
-        if (!selectedColumnIds.length) {
+        if (hasMissingSelectionError) {
             return;
         }
 
