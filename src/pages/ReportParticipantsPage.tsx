@@ -85,6 +85,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = useMemo(() => isGroupChatUtils(report), [report]);
+    const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
@@ -395,16 +396,13 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}`
         : translate('roomMembersPage.memberNotFound');
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('selectionList.findMember'),
-            value: searchValue,
-            onChangeText: setSearchValue,
-            headerMessage: searchValue.trim() && !participants.length ? memberNotFoundMessage : '',
-            ref: textInputRef,
-        }),
-        [memberNotFoundMessage, participants.length, searchValue, translate],
-    );
+    const textInputOptions = {
+        label: translate('selectionList.findMember'),
+        value: searchValue,
+        onChangeText: setSearchValue,
+        headerMessage: searchValue.trim() && !participants.length ? memberNotFoundMessage : '',
+        ref: textInputRef,
+    };
 
     return (
         <ScreenWrapper
@@ -461,12 +459,12 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                         onSelectRow={openMemberDetails}
                         textInputOptions={textInputOptions}
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={isCurrentUserAdmin && isGroupChat}
-                        shouldSingleExecuteRowSelect={!(isGroupChat && isCurrentUserAdmin)}
+                        turnOnSelectionModeOnLongPress={isCurrentUserGroupChatAdmin}
+                        shouldSingleExecuteRowSelect={!isCurrentUserGroupChatAdmin}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         style={{listHeaderWrapperStyle: [styles.ph9, styles.mt3]}}
                         onSelectAll={() => toggleAllUsers(participants)}
-                        onCheckboxPress={(item) => toggleUser(item)}
+                        onCheckboxPress={toggleUser}
                         shouldShowTextInput={shouldShowTextInput}
                         customListHeader={customListHeader}
                         showScrollIndicator

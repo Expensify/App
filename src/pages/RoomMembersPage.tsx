@@ -450,7 +450,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         style={{listHeaderWrapperStyle: [styles.ph9, styles.mt3]}}
-                        onCheckboxPress={(item) => toggleUser(item)}
+                        onCheckboxPress={toggleUser}
                         onSelectAll={() => toggleAllUsers(data)}
                         canSelectMultiple={canSelectMultiple}
                         customListHeader={customListHeader}

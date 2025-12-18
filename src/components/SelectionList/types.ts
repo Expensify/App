@@ -145,6 +145,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to stop automatic propagation on pressing enter key */
     shouldStopPropagation?: boolean;
 
+    /** Whether to place customListHeader in the list so it scrolls with data */
     shouldHeaderBeInsideList?: boolean;
 
     /** Whether to scroll to the focused item */

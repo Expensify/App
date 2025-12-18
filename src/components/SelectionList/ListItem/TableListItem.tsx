@@ -57,14 +57,12 @@ function TableListItem<TItem extends ListItem>({
         <BaseListItem
             item={item}
             pressableStyle={[
-                [
-                    styles.selectionListPressableItemWrapper,
-                    styles.mh0,
-                    // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
-                    item.shouldAnimateInHighlight ? styles.bgTransparent : undefined,
-                    item.isSelected && styles.activeComponentBG,
-                    item.cursorStyle,
-                ],
+                styles.selectionListPressableItemWrapper,
+                styles.mh0,
+                // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+                item.shouldAnimateInHighlight ? styles.bgTransparent : undefined,
+                item.isSelected && styles.activeComponentBG,
+                item.cursorStyle,
             ]}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
