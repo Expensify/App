@@ -174,6 +174,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     SpreadCategoriesParams,
@@ -191,7 +192,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -596,7 +596,7 @@ const translations: TranslationDeepObject<typeof en> = {
         filterLogs: 'Filtra registri',
         network: 'Rete',
         reportID: 'ID rapporto',
-        longID: 'ID lungo',
+        longReportID: 'ID rapporto lungo',
         withdrawalID: 'ID prelievo',
         bankAccounts: 'Conti bancari',
         chooseFile: 'Scegli file',
@@ -692,6 +692,9 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Azione richiesta',
         duplicate: 'Duplica',
         duplicated: 'Duplicato',
+        exchangeRate: 'Tasso di cambio',
+        reimbursableTotal: 'Totale rimborsabile',
+        nonReimbursableTotal: 'Totale non rimborsabile',
         originalAmount: 'Importo originale',
     },
     supportalNoAccess: {
@@ -1034,6 +1037,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Manuale',
         scan: 'Scannerizza',
         map: 'Mappa',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Carica un foglio di calcolo',
@@ -1129,6 +1133,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Importo',
+        percent: 'Percentuale',
         taxAmount: 'Importo imposta',
         taxRate: 'Aliquota fiscale',
         approve: ({
@@ -1143,6 +1148,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Dividi',
         splitExpense: 'Dividi spesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} da ${merchant}`,
+        splitByPercentage: 'Ripartisci per percentuale',
         addSplit: 'Aggiungi ripartizione',
         makeSplitsEven: 'Rendi le suddivisioni uguali',
         editSplits: 'Modifica suddivisioni',
@@ -1340,12 +1346,6 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} inviato${comment ? `per ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `ha spostato la spesa dallo spazio personale a ${workspaceName ?? `chatta con ${reportName}`}`,
         movedToPersonalSpace: 'spesa spostata nello spazio personale',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'un' : 'a';
-            const tag = policyTagListName ?? 'etichetta';
-            return `Seleziona ${article} ${tag} per organizzare meglio le tue spese.`;
-        },
-        categorySelection: 'Seleziona una categoria per organizzare meglio le tue spese.',
         error: {
             invalidCategoryLength: "Il nome della categoria supera i 255 caratteri. Accorcialo o scegli un'altra categoria.",
             invalidTagLength: 'Il nome dell’etichetta supera i 255 caratteri. Accorcialo o scegli un’etichetta diversa.',
@@ -1378,6 +1378,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: 'La quantità deve essere maggiore di zero',
             invalidSubrateLength: 'Deve esserci almeno un sottotariffa',
             invalidRate: 'Tariffa non valida per questo workspace. Seleziona una tariffa disponibile dal workspace.',
+            endDateBeforeStartDate: 'La data di fine non può essere precedente alla data di inizio',
+            endDateSameAsStartDate: 'La data di fine non può essere uguale alla data di inizio',
         },
         dismissReceiptError: 'Ignora errore',
         dismissReceiptErrorConfirmation: 'Attenzione! Se ignori questo errore, la ricevuta caricata verrà rimossa completamente. Sei sicuro?',
@@ -1523,6 +1525,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Scegli uno spazio di lavoro',
+        date: 'Data',
+        splitDates: 'Dividi date',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} giorni)`,
+        splitByDate: 'Dividi per data',
     },
     transactionMerge: {
         listPage: {
@@ -7962,6 +7968,11 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             addPrimaryContact: 'Aggiungi contatto principale',
             settings: 'Impostazioni',
         },
+    },
+    desktopAppRetiredPage: {
+        title: "L'app desktop è stata dismessa",
+        body: 'La nuova app desktop Expensify per Mac è stata ritirata. D’ora in avanti, usa l’app web per accedere al tuo account.',
+        goToWeb: 'Vai al sito web',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
