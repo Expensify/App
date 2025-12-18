@@ -492,9 +492,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           IS_HYBRID_APP: true
-           # Forces React Native to build from source to include our custom patches
-          RCT_USE_RN_DEP: 0
-          RCT_USE_PREBUILT_RNCORE: 0
         with:
           destination: device
           re-sign: true
