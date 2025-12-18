@@ -1126,7 +1126,7 @@ function getDynamicExternalWorkflowRoutedAction(
 
 function withDEWRoutedActionsArray(reportActions: ReportAction[]): ReportAction[] {
     return reportActions.flatMap((reportAction) => {
-        if (isDynamicExternalWorkflowSubmitAction(reportAction) || isDynamicExternalWorkflowForwardedAction(reportAction)) {
+        if ((isDynamicExternalWorkflowSubmitAction(reportAction) || isDynamicExternalWorkflowForwardedAction(reportAction)) && getOriginalMessage(reportAction)?.to) {
             return [reportAction, getDynamicExternalWorkflowRoutedAction(reportAction)];
         }
         return reportAction;
@@ -1138,7 +1138,7 @@ function withDEWRoutedActionsObject(reportActions: OnyxEntry<ReportActions>): On
         const [reportActionID, reportAction] = value;
         acc[reportActionID] = reportAction;
 
-        if (isDynamicExternalWorkflowSubmitAction(reportAction) || isDynamicExternalWorkflowForwardedAction(reportAction)) {
+        if ((isDynamicExternalWorkflowSubmitAction(reportAction) || isDynamicExternalWorkflowForwardedAction(reportAction)) && getOriginalMessage(reportAction)?.to) {
             const dynamicExternalWorkflowRoutedAction = getDynamicExternalWorkflowRoutedAction(reportAction);
             acc[dynamicExternalWorkflowRoutedAction.reportActionID] = dynamicExternalWorkflowRoutedAction;
         }
