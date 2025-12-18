@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import {SearchColumnType} from '@components/Search/types';
+import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -72,10 +72,34 @@ function CardListItemHeader<TItem extends ListItem>({
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     const columnComponents = {
-        [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD]: <Fragment></Fragment>,
-        [CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED]: <Fragment></Fragment>,
-        [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: <Fragment></Fragment>,
-        [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: <Fragment></Fragment>,
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD]: (
+            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)}>
+                <View style={[styles.gapHalf, styles.flexShrink1]}>
+                    <TextWithTooltip text={cardItem.formattedCardName ?? ''} />
+                </View>
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED]: (
+            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FEED)}>
+                <TextWithTooltip
+                    text={cardItem.formattedFeedName ?? ''}
+                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: (
+            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
+                <ExpensesCell count={cardItem.count} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
+            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}>
+                <TotalCell
+                    total={cardItem.total}
+                    currency={cardItem.currency}
+                />
+            </View>
+        ),
     };
 
     return (
@@ -126,26 +150,8 @@ function CardListItemHeader<TItem extends ListItem>({
                                     </View>
                                 </UserDetailsTooltip>
                             </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)}>
-                                <View style={[styles.gapHalf, styles.flexShrink1]}>
-                                    <TextWithTooltip text={cardItem.formattedCardName ?? ''} />
-                                </View>
-                            </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FEED)}>
-                                <TextWithTooltip
-                                    text={cardItem.formattedFeedName ?? ''}
-                                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
-                                />
-                            </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
-                                <ExpensesCell count={cardItem.count} />
-                            </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}>
-                                <TotalCell
-                                    total={cardItem.total}
-                                    currency={cardItem.currency}
-                                />
-                            </View>
+
+                            {columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
                         </>
                     )}
                 </View>
