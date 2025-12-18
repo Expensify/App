@@ -956,6 +956,7 @@ const ONYXKEYS = {
         CREATE_DOMAIN_FORM: 'createDomainForm',
         CREATE_DOMAIN_FORM_DRAFT: 'createDomainFormDraft',
         SPLIT_EXPENSE_EDIT_DATES: 'splitExpenseEditDates',
+        SPLIT_EXPENSE_EDIT_DATES_DRAFT: 'splitExpenseEditDatesDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
