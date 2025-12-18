@@ -958,13 +958,6 @@ function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ON
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
-/**
- * Clears all values for the advanced filters search form.
- */
-function clearAllFilters() {
-    Onyx.set(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, null);
-}
-
 function clearAdvancedFilters() {
     const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
     for (const key of Object.values(FILTER_KEYS)) {
@@ -1216,7 +1209,6 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     updateAdvancedFilters,
-    clearAllFilters,
     clearAdvancedFilters,
     deleteSavedSearch,
     payMoneyRequestOnSearch,

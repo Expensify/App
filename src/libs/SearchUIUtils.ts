@@ -934,7 +934,8 @@ function shouldShowYear(
     for (const key of Object.keys(data)) {
         if (!checkOnlyReports && isTransactionEntry(key)) {
             const item = data[key];
-            if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+            const transactionCreated = getTransactionCreatedDate(item);
+            if (transactionCreated && DateUtils.doesDateBelongToAPastYear(transactionCreated)) {
                 result.shouldShowYearCreated = true;
             }
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
@@ -2027,12 +2028,8 @@ function getSortedTransactionData(
             const aReport = a.report;
             const bReport = b.report;
 
-            if (!aReport || !bReport) {
-                return 0;
-            }
-
-            const aValue = getReportStatusTranslation({stateNum: aReport.stateNum, statusNum: aReport.statusNum, translate});
-            const bValue = getReportStatusTranslation({stateNum: bReport.stateNum, statusNum: bReport.statusNum, translate});
+            const aValue = getReportStatusTranslation({stateNum: aReport?.stateNum, statusNum: aReport?.statusNum, translate});
+            const bValue = getReportStatusTranslation({stateNum: bReport?.stateNum, statusNum: bReport?.statusNum, translate});
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -2236,6 +2233,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'search.filters.posted';
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return 'common.merchant';
+        case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+            return 'common.description';
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
             return 'common.from';
         case CONST.SEARCH.TABLE_COLUMNS.TO:
@@ -2643,7 +2642,10 @@ function getColumnsToShow(
         };
 
         // If there are no visible columns, everything should be visible
-        if (!visibleColumns.length) {
+        const filteredVisibleColumns = visibleColumns.filter((column) =>
+            Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT>),
+        );
+        if (!filteredVisibleColumns.length) {
             return reportColumns;
         }
 
@@ -2767,7 +2769,10 @@ function getColumnsToShow(
 
     // If the user has set custom columns for the search, we need to respect their preference, and only show
     // them what they want to see
-    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
+    const filteredVisibleColumns = visibleColumns.filter((column) =>
+        Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE).includes(column as ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE>),
+    );
+    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
         const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
 
         for (const column of Object.keys(columns) as SearchCustomColumnIds[]) {
