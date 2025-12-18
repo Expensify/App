@@ -54,7 +54,7 @@ import {
     getRetractedMessage,
     getRoomAvatarUpdatedMessage,
     getRoomChangeLogMessage,
-    getSortedReportActionsForDisplay,
+    getSortedReportActions,
     getTravelUpdateMessage,
     getUpdateRoomDescriptionMessage,
     isActionableAddPaymentCard,
@@ -82,6 +82,7 @@ import {
     isUnapprovedAction,
     isWhisperAction,
     shouldReportActionBeVisible,
+    withDEWRoutedActionsArray,
 } from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -267,13 +268,10 @@ Onyx.connect({
                 continue;
             }
 
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-            const isReportArchived = !!reportNameValuePairs?.private_isArchived;
-            const isWriteActionAllowed = canUserPerformWriteAction(report, isReportArchived);
             const reportActionsArray = Object.values(reportActions[1] ?? {});
-            let sortedReportActions = getSortedReportActionsForDisplay(reportActionsArray, isWriteActionAllowed, true);
+            let sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
             allSortedReportActions[reportID] = sortedReportActions;
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
 
             // If the report is a one-transaction report and has , we need to return the combined reportActions so that the LHN can display modifications
@@ -290,6 +288,10 @@ Onyx.connect({
             } else {
                 lastReportActions[reportID] = firstReportAction;
             }
+
+            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+            const isReportArchived = !!reportNameValuePairs?.private_isArchived;
+            const isWriteActionAllowed = canUserPerformWriteAction(report, isReportArchived);
 
             // The report is only visible if it is the last action not deleted that
             // does not match a closed or created state.
