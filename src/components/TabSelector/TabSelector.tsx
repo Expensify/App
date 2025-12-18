@@ -77,6 +77,8 @@ function getIconTitleAndTestID(
             return {icon: icons.MoneyCircle, title: translate('iou.amount'), testID: 'split-amount'};
         case CONST.IOU.SPLIT_TYPE.PERCENTAGE:
             return {icon: icons.Percent, title: translate('iou.percent'), testID: 'split-percentage'};
+        case CONST.IOU.SPLIT_TYPE.DATE:
+            return {icon: icons.CalendarSolid, title: translate('iou.date'), testID: 'split-date'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
