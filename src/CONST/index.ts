@@ -6874,11 +6874,8 @@ const CONST = {
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
             TAX: 'tax',
-<<<<<<< HEAD
             EXPORTED_TO: 'exportedto',
-=======
             EXCHANGE_RATE: 'exchangeRate',
->>>>>>> main
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
             NON_REIMBURSABLE_TOTAL: 'nonReimbursableTotal',
         },
