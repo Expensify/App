@@ -147,6 +147,7 @@ function WorkspacesListPage() {
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
+    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, {canBeMissing: false});
     const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS, {canBeMissing: false});
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
@@ -588,7 +589,6 @@ function WorkspacesListPage() {
             if (!domain) {
                 return domainItems;
             }
-
             const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`];
             domainItems.push({
                 listItemType: 'domain',
@@ -598,11 +598,12 @@ function WorkspacesListPage() {
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
+                errors: allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`],
             });
 
             return domainItems;
         }, []);
-    }, [navigateToDomain, allDomains, adminAccess]);
+    }, [allDomains, allDomainErrors, adminAccess, navigateToDomain]);
 
     useEffect(() => {
         const duplicatedWSPolicyID = duplicateWorkspace?.policyID;

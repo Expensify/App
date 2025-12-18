@@ -7827,6 +7827,11 @@ const translations = {
             addPrimaryContact: 'Add primary contact',
             settings: 'Settings',
             revokeAdminAccess: 'Revoke admin access',
+            resetDomain: 'Reset domain',
+            resetDomainExplanation: ({domainName}: {domainName?: string}) => `Please type <strong>${domainName}</strong> to confirm the domain reset.`,
+            enterDomainName: 'Enter your domain name here',
+            resetDomainInfo: ({contactMethodRoute}: {contactMethodRoute?: string}) =>
+                `This action is <strong>permanent</strong> and the following data will be deleted: <br/> <ul><li>Company card connections and any unreported expenses from those cards</li> <li>SAML and group settings</li> </ul> All accounts, workspaces, reports, expenses, and other data will remain. <br/><br/> Note: You can clear this domain from your domains list by removing the associated email from your <a href="${contactMethodRoute}">contact methods</a>.`,
         },
     },
 };

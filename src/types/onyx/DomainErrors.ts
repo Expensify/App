@@ -23,6 +23,11 @@ type DomainErrors = {
      * Errors related to the technical contact email
      */
     technicalContactEmailErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors returned when attempting to remove the domain
+     */
+    removeDomainError?: OnyxCommon.Errors;
 };
 
 export default DomainErrors;

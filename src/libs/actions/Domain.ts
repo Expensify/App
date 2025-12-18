@@ -501,6 +501,91 @@ function clearRemoveAdminError(domainAccountID: number, accountID: number) {
     });
 }
 
+/**
+ *  Removes the domain
+ */
+function resetDomain(domainAccountID: number) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: null,
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                removeDomainError: null,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                pendingAction: null,
+            },
+        },
+
+        // TODO update after BE is ready: DEV stuff only below this line
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                removeDomainError: {[Date.now()]: 'Unable to remove this Domain. Please try again.'},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                accountID: 666,
+                email: '+@test.com',
+                expensify_adminPermissions_564986: 792,
+                validated: true,
+            },
+        },
+    ];
+
+    // applyUpdatesWithDelay(optimisticData, successData);
+    applyUpdatesWithDelay(optimisticData, failureData);
+}
+
+/**
+ *  Removes an error after trying to remove the domain
+ */
+function clearResetDomainErrors(domainAccountID: number, accountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        adminErrors: {
+            [accountID]: null,
+        },
+    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        admin: {
+            [accountID]: {
+                pendingAction: null,
+            },
+        },
+    });
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -519,4 +604,6 @@ export {
     clearSetPrimaryContactError,
     revokeDomainAdminAccess,
     clearRemoveAdminError,
+    resetDomain,
+    clearResetDomainErrors,
 };

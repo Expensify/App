@@ -1,3 +1,4 @@
+import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
@@ -26,7 +27,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@src/selectors/Domain';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
@@ -115,6 +115,15 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                                 interactive={false}
                                 copyable
                             />
+                            {domainHasOnlyOneAdmin && (
+                                <MenuItem
+                                    disabled={isCurrentUserPrimaryContact}
+                                    style={styles.mb5}
+                                    title={translate('domain.admins.resetDomain')}
+                                    icon={icons.ClosedSign}
+                                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}
+                                />
+                            )}
                             {!domainHasOnlyOneAdmin && (
                                 <MenuItem
                                     disabled={isCurrentUserPrimaryContact}
