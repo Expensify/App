@@ -113,7 +113,6 @@ function SearchColumnsPage() {
     const typeColumnsList = allColumnsList.filter((column) => allTypeCustomColumns.includes(column.keyForList));
     const groupColumnsList = allColumnsList.filter((column) => allGroupCustomColumns.includes(column.keyForList));
 
-    // TODO
     const isDefaultState =
         columns.length === defaultColumns.length &&
         columns.every((col, index) => col.columnId === defaultColumns.at(index)?.columnId && col.isSelected === defaultColumns.at(index)?.isSelected);
