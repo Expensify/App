@@ -7,7 +7,54 @@ on:
     paths-ignore: [docs/**, help/**, .github/**, contributingGuides/**, tests/**, '**.md', '**.sh']
 
 jobs:
-  perf-tests:
+  perf-tests-baseline:
+    if: ${{ github.actor != 'OSBotify' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Setup NodeJS
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Remove E/App version from package-lock.json
+        shell: bash
+        run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
+
+      - name: Restore Jest cache (baseline)
+        # v4
+        uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        with:
+          path: .jest-cache
+          key: ${{ runner.os }}-jest-perf-baseline-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-jest-perf-baseline-
+
+      - name: Run baseline performance tests
+        shell: bash
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+
+      - name: Save Jest cache (baseline)
+        # v4
+        uses: actions/cache/save@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        if: always()
+        with:
+          path: .jest-cache
+          key: ${{ runner.os }}-jest-perf-baseline-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}
+
+      - name: Upload baseline results
+        # v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+        with:
+          name: reassure-baseline
+          path: .reassure/baseline.perf
+          retention-days: 1
+
+  perf-tests-branch:
     if: ${{ github.actor != 'OSBotify' }}
     runs-on: ubuntu-latest
     steps:
@@ -22,61 +69,99 @@ jobs:
 
       - name: Set dummy git credentials
         run: |
-            git config --global user.email "test@test.com"
-            git config --global user.name "Test"
+          git config --global user.email "test@test.com"
+          git config --global user.name "Test"
 
       - name: Get common ancestor commit
         run: |
-            git fetch origin main
-            common_ancestor=$(git merge-base "${{ github.sha }}" origin/main)
-            echo "COMMIT_HASH=$common_ancestor" >> "$GITHUB_ENV"
+          git fetch origin main
+          common_ancestor=$(git merge-base "${{ github.sha }}" origin/main)
+          echo "COMMIT_HASH=$common_ancestor" >> "$GITHUB_ENV"
 
       - name: Clean up deleted files
         run: |
-            DELETED_FILES=$(git diff --name-only --diff-filter=D "$COMMIT_HASH" "${{ github.sha }}")
-            for file in $DELETED_FILES; do
-              if [ -n "$file" ]; then
-                rm -f "$file"
-                echo "Deleted file: $file"
-              fi
-            done
+          DELETED_FILES=$(git diff --name-only --diff-filter=D "$COMMIT_HASH" "${{ github.sha }}")
+          for file in $DELETED_FILES; do
+            if [ -n "$file" ]; then
+              rm -f "$file"
+              echo "Deleted file: $file"
+            fi
+          done
 
-      - name: Capture PR head SHA
-        if: ${{ github.event_name == 'pull_request' }}
-        run: echo "PR_SHA=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
+      - name: Checkout PR and merge with main
+        run: |
+          git fetch origin main --no-tags --depth=1
+          git checkout --force --detach "${{ github.event.pull_request.head.sha || github.sha }}" --no-recurse-submodules
+          if ! git merge --no-commit --allow-unrelated-histories main -X ours; then
+            git checkout --ours .
+          fi
+
+      - name: Install dependencies
+        shell: bash
+        run: npm install --force || (rm -rf node_modules && npm install --force)
 
       - name: Remove E/App version from package-lock.json
         shell: bash
         run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
 
-      - name: Restore Jest cache
+      - name: Restore Jest cache (branch)
         # v4
         uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: .jest-cache
-          key: ${{ runner.os }}-jest-perf-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}
+          key: ${{ runner.os }}-jest-perf-branch-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-jest-perf-
+            ${{ runner.os }}-jest-perf-branch-
 
-      - name: Run performance testing script
+      - name: Run branch performance tests
         shell: bash
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+
+      - name: Save Jest cache (branch)
+        # v4
+        uses: actions/cache/save@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        if: always()
+        with:
+          path: .jest-cache
+          key: ${{ runner.os }}-jest-perf-branch-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}
+
+      - name: Upload branch results
+        # v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+        with:
+          name: reassure-branch
+          path: .reassure/baseline.perf
+          retention-days: 1
+
+  compare-results:
+    needs: [perf-tests-baseline, perf-tests-branch]
+    if: ${{ github.actor != 'OSBotify' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Setup NodeJS
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Download baseline results
+        # v4
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+        with:
+          name: reassure-baseline
+          path: .reassure/
+
+      - name: Download branch results
+        # v4
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+        with:
+          name: reassure-branch
+          path: .reassure-branch/
+
+      - name: Prepare perf files for comparison
         run: |
-          set -e
-          BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
-          git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
-          
-          git checkout --force --detach "origin/$BASELINE_BRANCH" --no-recurse-submodules
-          npm install --force || (rm -rf node_modules && npm install --force)
-          NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
-          
-          git checkout --force --detach "${PR_SHA:-${GITHUB_SHA}}" --no-recurse-submodules
-          
-          if ! git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours; then
-            git checkout --ours .
-          fi
-          
-          npm install --force || (rm -rf node_modules && npm install --force)
-          NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
+          mv .reassure-branch/baseline.perf .reassure/current.perf
 
       - name: Validate output.json
         id: validateReassureOutput
@@ -84,11 +169,3 @@ jobs:
         with:
           DURATION_DEVIATION_PERCENTAGE: 20
           COUNT_DEVIATION: 0
-
-      - name: Save Jest cache
-        # v4
-        uses: actions/cache/save@1bd1e32a3bdc45362d1e726936510720a7c30a57
-        if: always()
-        with:
-          path: .jest-cache
-          key: ${{ runner.os }}-jest-perf-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}
