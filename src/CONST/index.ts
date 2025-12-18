@@ -6700,6 +6700,7 @@ const CONST = {
                     POSTED: this.TABLE_COLUMNS.POSTED,
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     MERCHANT: this.TABLE_COLUMNS.MERCHANT,
+                    DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
                     POLICY_NAME: this.TABLE_COLUMNS.POLICY_NAME,
