@@ -44,13 +44,13 @@ function TableListItem<TItem extends ListItem>({
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    const handleCheckboxPress = useCallback(() => {
+    const handleCheckboxPress = () => {
         if (onCheckboxPress) {
             onCheckboxPress(item);
         } else {
             onSelectRow(item);
         }
-    }, [item, onCheckboxPress, onSelectRow]);
+    };
 
     return (
         <BaseListItem
