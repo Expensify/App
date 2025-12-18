@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {Linking, View} from 'react-native';
 import PDF from 'react-native-pdf';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -104,6 +104,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldAttemptPDFLoad(true);
         setShouldShowLoadingIndicator(true);
     };
+
     /**
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
@@ -116,6 +117,13 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setSuccessToLoadPDF(true);
         onLoadComplete(path);
     };
+
+    /**
+     * Handle press link event on native apps.
+     */
+    const handlePressLink = useCallback((url: string) => {
+        Linking.openURL(url);
+    }, []);
 
     function renderPDFView() {
         const pdfWidth = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth;
@@ -142,7 +150,11 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                     <PDF
                         fitPolicy={0}
                         trustAllCerts={false}
-                        renderActivityIndicator={() => <FullScreenLoadingIndicator style={loadingIndicatorStyles} />}
+                        renderActivityIndicator={() => (
+                            <View style={loadingIndicatorStyles}>
+                                <ActivityIndicator size="large" />
+                            </View>
+                        )}
                         source={{uri: sourceURL, cache: true, expiration: 864000}}
                         style={pdfStyles}
                         onError={handleFailureToLoadPDF}
@@ -150,6 +162,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                         onLoadComplete={finishPDFLoad}
                         onPageSingleTap={onPress}
                         onScaleChanged={onScaleChanged}
+                        onPressLink={handlePressLink}
                     />
                 )}
                 {shouldRequestPassword && (
@@ -182,7 +195,5 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         renderPDFView()
     );
 }
-
-PDFView.displayName = 'PDFView';
 
 export default PDFView;

@@ -119,12 +119,9 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
             onSelectRow={handleSelectRow}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            isRowMultilineSupported
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />
     );
 }
-
-TaxPicker.displayName = 'TaxPicker';
 
 export default TaxPicker;

@@ -6,11 +6,11 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
@@ -23,6 +23,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -36,6 +37,7 @@ import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {AnchorPosition} from '@styles/index';
+import colors from '@styles/theme/colors';
 import {close as modalClose} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -44,6 +46,7 @@ import ROUTES from '@src/ROUTES';
 import type {Delegate} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import useSecuritySettingsSectionIllustration from './useSecuritySettingsSectionIllustration';
 
 type BaseMenuItemType = {
     translationKey: TranslationPaths;
@@ -55,6 +58,9 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus', 'Shield']);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
+    const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
@@ -124,7 +130,7 @@ function SecuritySettingsPage() {
         const baseMenuItems: BaseMenuItemType[] = [
             {
                 translationKey: 'twoFactorAuth.headerTitle',
-                icon: Expensicons.Shield,
+                icon: icons.Shield,
                 action: () => {
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
@@ -168,13 +174,13 @@ function SecuritySettingsPage() {
         if (isAccountLocked) {
             baseMenuItems.push({
                 translationKey: 'lockAccountPage.unlockAccount',
-                icon: Expensicons.UserLock,
+                icon: icons.UserLock,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
             });
         } else {
             baseMenuItems.push({
                 translationKey: 'lockAccountPage.reportSuspiciousActivity',
-                icon: Expensicons.UserLock,
+                icon: icons.UserLock,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
             });
         }
@@ -205,6 +211,8 @@ function SecuritySettingsPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
     }, [
+        icons.UserLock,
+        icons.Shield,
         isAccountLocked,
         isDelegateAccessRestricted,
         isUserValidated,
@@ -292,7 +300,7 @@ function SecuritySettingsPage() {
     const delegatePopoverMenuItems: PopoverMenuItem[] = [
         {
             text: translate('delegate.changeAccessLevel'),
-            icon: Expensicons.Pencil,
+            icon: icons.Pencil,
             onPress: () => {
                 if (isDelegateAccessRestricted) {
                     modalClose(() => showDelegateNoAccessModal());
@@ -335,7 +343,7 @@ function SecuritySettingsPage() {
 
     return (
         <ScreenWrapper
-            testID={SecuritySettingsPage.displayName}
+            testID="SecuritySettingsPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
@@ -346,7 +354,7 @@ function SecuritySettingsPage() {
                         title={translate('initialSettingsPage.security')}
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={Navigation.popToSidebar}
-                        icon={Illustrations.LockClosed}
+                        icon={illustrations.LockClosed}
                         shouldUseHeadlineHeader
                         shouldDisplaySearchRouter
                     />
@@ -357,9 +365,12 @@ function SecuritySettingsPage() {
                                 subtitle={translate('securityPage.subtitle')}
                                 isCentralPane
                                 subtitleMuted
-                                illustration={LottieAnimations.Safe}
+                                illustrationContainerStyle={styles.cardSectionIllustrationContainer}
+                                illustrationBackgroundColor={colors.ice500}
                                 titleStyles={styles.accountSettingsSectionTitle}
                                 childrenStyles={styles.pt5}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...securitySettingsIllustration}
                             >
                                 <MenuItemList
                                     menuItems={securityMenuItems}
@@ -395,7 +406,7 @@ function SecuritySettingsPage() {
                                     {!isDelegateAccessRestricted && (
                                         <MenuItem
                                             title={translate('delegate.addCopilot')}
-                                            icon={Expensicons.UserPlus}
+                                            icon={icons.UserPlus}
                                             onPress={() => {
                                                 if (!isUserValidated) {
                                                     Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);
@@ -461,7 +472,5 @@ function SecuritySettingsPage() {
         </ScreenWrapper>
     );
 }
-
-SecuritySettingsPage.displayName = 'SettingSecurityPage';
 
 export default SecuritySettingsPage;

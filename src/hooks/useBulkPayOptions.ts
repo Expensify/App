@@ -1,10 +1,11 @@
 import truncate from 'lodash/truncate';
 import {useCallback, useMemo} from 'react';
 import type {TupleToUnion} from 'type-fest';
-import {Bank, Building, Cash, User, Wallet} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {Bank, Cash, Wallet} from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
-import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
+import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
@@ -20,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AccountData, Policy} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
@@ -53,6 +55,7 @@ function useBulkPayOptions({
     currency,
     formattedAmount,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -128,7 +131,7 @@ function useBulkPayOptions({
 
     const bulkPayButtonOptions = useMemo(() => {
         const buttonOptions = [];
-        const paymentMethods = getSettlementButtonPaymentMethods(hasActivatedWallet, translate);
+        const paymentMethods = getSettlementButtonPaymentMethods(icons, hasActivatedWallet, translate);
 
         if (!selectedReportID || !selectedPolicyID) {
             return undefined;
@@ -159,7 +162,7 @@ function useBulkPayOptions({
                 const policyName = activePolicy.name;
                 buttonOptions.push({
                     text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
-                    icon: Building,
+                    icon: icons.Building,
                     key: activePolicy.id,
                     shouldUpdateSelectedIndex: false,
                 });
@@ -171,7 +174,7 @@ function useBulkPayOptions({
         }
 
         if (isInvoiceReport) {
-            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
+            const isCurrencySupported = isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
@@ -198,13 +201,13 @@ function useBulkPayOptions({
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
-                    icon: User,
+                    icon: icons.User,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: getInvoicesOptions(false),
                 });
                 buttonOptions.push({
                     text: translate('iou.settleBusiness', {formattedAmount}),
-                    icon: Building,
+                    icon: icons.Building,
                     backButtonText: translate('iou.business'),
                     subMenuItems: getInvoicesOptions(true),
                 });
@@ -217,6 +220,7 @@ function useBulkPayOptions({
         return buttonOptions;
     }, [
         hasActivatedWallet,
+        icons,
         translate,
         selectedReportID,
         selectedPolicyID,

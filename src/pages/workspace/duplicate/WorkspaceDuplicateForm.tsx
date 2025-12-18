@@ -5,11 +5,11 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,7 +31,9 @@ type WorkspaceDuplicateFormProps = {
 };
 
 function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask']);
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera']);
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(policyID);
@@ -110,12 +112,12 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                     }}
                     size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
-                    editIcon={Expensicons.Camera}
+                    editIcon={expensifyIcons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     type={CONST.ICON_TYPE_WORKSPACE}
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}
                     DefaultAvatar={DefaultAvatar}
-                    editorMaskImage={Expensicons.ImageCropSquareMask}
+                    editorMaskImage={icons.ImageCropSquareMask}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_DUPLICATE_FORM}
@@ -155,7 +157,5 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
         </>
     );
 }
-
-WorkspaceDuplicateForm.displayName = 'WorkspaceDuplicateForm';
 
 export default WorkspaceDuplicateForm;

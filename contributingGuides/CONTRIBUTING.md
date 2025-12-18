@@ -180,8 +180,8 @@ Additionally, if you want to discuss an idea with the open source community with
 	3. Lint - All code must pass lint checks before a merge of a pull request
 15. Please never force push when a PR review has already started (because this messes with the PR review history)
 16. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use GitHub keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
-17. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
-18. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web).
+17. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
+18. Please add a screenshot of the app running on each platform (Web, iOS, Android, Mobile Web).
 
 ### Completing the final checklist
 19. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.

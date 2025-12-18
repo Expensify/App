@@ -16,13 +16,17 @@ function useModalStackScreenOptions() {
     // https://github.com/Expensify/App/issues/63747
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useContext(WideRHPContext);
 
     return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
         ({route}) => {
             let cardStyleInterpolator;
 
-            if (wideRHPRouteKeys.includes(route.key) && !isSmallScreenWidth) {
+            if (superWideRHPRouteKeys.includes(route.key) && !isSmallScreenWidth) {
+                cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                    cardStyle: styles.superWideRHPExtendedCardInterpolatorStyles,
+                });
+            } else if (wideRHPRouteKeys.includes(route.key) && !isSmallScreenWidth) {
                 // We need to use interpolator styles instead of regular card styles so we can use animated value for width.
                 // It is necessary to have responsive width of the wide RHP for range 800px to 840px.
                 cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
@@ -45,7 +49,7 @@ function useModalStackScreenOptions() {
                 },
             };
         },
-        [isSmallScreenWidth, styles.navigationScreenCardStyle, styles.wideRHPExtendedCardInterpolatorStyles, wideRHPRouteKeys],
+        [isSmallScreenWidth, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
     );
 }
 

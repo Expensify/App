@@ -1,5 +1,5 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -27,6 +27,9 @@ type MessagesRowProps = {
     /** Additional style object for the container */
     containerStyles?: StyleProp<ViewStyle>;
 
+    /** Additional style object for the error text */
+    errorTextStyles?: StyleProp<TextStyle>;
+
     /** Whether we can dismiss the messages */
     canDismiss?: boolean;
 
@@ -34,7 +37,7 @@ type MessagesRowProps = {
     dismissError?: () => void;
 };
 
-function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, canDismiss = true, dismissError = () => {}}: MessagesRowProps) {
+function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, canDismiss = true, dismissError = () => {}, errorTextStyles}: MessagesRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -48,6 +51,7 @@ function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, 
             <DotIndicatorMessage
                 dismissError={dismissError}
                 style={styles.flex1}
+                textStyles={errorTextStyles}
                 messages={messages}
                 type={type}
             />
@@ -69,7 +73,5 @@ function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, 
         </View>
     );
 }
-
-MessagesRow.displayName = 'MessagesRow';
 
 export default MessagesRow;

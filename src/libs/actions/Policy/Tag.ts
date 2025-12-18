@@ -1,6 +1,7 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
@@ -1147,12 +1148,13 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
 }
 
-function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = PolicyUtils.getPolicy(policyID);
+function setPolicyTagApprover(policy: OnyxEntry<Policy>, tag: string, approver: string) {
+    if (!policy?.id) {
+        return;
+    }
+    const policyID = policy.id;
     const prevApprovalRules = policy?.rules?.approvalRules ?? [];
-    const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);
+    const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policy, tag);
     const filteredApprovalRules = approverRuleToUpdate ? prevApprovalRules.filter((rule) => rule.id !== approverRuleToUpdate.id) : prevApprovalRules;
     const toBeUnselected = approverRuleToUpdate?.approver === approver;
 
@@ -1217,7 +1219,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_TAG_APPROVER, parameters, onyxData);
 }
 
-function downloadTagsCSV(policyID: string, onDownloadFailed: () => void) {
+function downloadTagsCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_TAGS_CSV, {
         policyID,
     });
@@ -1228,10 +1230,10 @@ function downloadTagsCSV(policyID: string, onDownloadFailed: () => void) {
         formData.append(key, String(value));
     }
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function downloadMultiLevelTagsCSV(policyID: string, onDownloadFailed: () => void, hasDependentTags: boolean) {
+function downloadMultiLevelTagsCSV(policyID: string, onDownloadFailed: () => void, hasDependentTags: boolean, translate: LocalizedTranslate) {
     const command = hasDependentTags ? WRITE_COMMANDS.EXPORT_MULTI_LEVEL_DEPENDENT_TAGS_CSV : WRITE_COMMANDS.EXPORT_MULTI_LEVEL_INDEPENDENT_TAGS_CSV;
 
     const finalParameters = enhanceParameters(command, {
@@ -1244,7 +1246,7 @@ function downloadMultiLevelTagsCSV(policyID: string, onDownloadFailed: () => voi
         formData.append(key, String(value));
     }
 
-    fileDownload(ApiUtils.getCommandURL({command}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, ApiUtils.getCommandURL({command}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function getPolicyTagsData(policyID: string | undefined) {

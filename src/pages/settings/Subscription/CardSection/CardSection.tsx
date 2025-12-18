@@ -8,6 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -45,6 +46,8 @@ function CardSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History']);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
@@ -69,6 +72,7 @@ function CardSection() {
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const [billingStatusOnyx] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
     const requestRefund = useCallback(() => {
         requestRefundByUser();
         setIsRequestRefundModalVisible(false);
@@ -89,6 +93,9 @@ function CardSection() {
             retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
             billingDisputePending,
             retryBillingFailed: subscriptionRetryBillingStatusFailed,
+            billingStatus: billingStatusOnyx,
+            creditCardEyesIcon: illustrations.CreditCardEyes,
+            fundList,
         }),
     );
 
@@ -110,6 +117,9 @@ function CardSection() {
                 retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
                 billingDisputePending,
                 retryBillingFailed: subscriptionRetryBillingStatusFailed,
+                billingStatus: billingStatusOnyx,
+                creditCardEyesIcon: illustrations.CreditCardEyes,
+                fundList,
             }),
         );
     }, [
@@ -121,6 +131,9 @@ function CardSection() {
         privateStripeCustomerID,
         purchaseList,
         billingDisputePending,
+        billingStatusOnyx,
+        illustrations.CreditCardEyes,
+        fundList,
     ]);
 
     const handleRetryPayment = () => {
@@ -225,7 +238,7 @@ function CardSection() {
                 {!!account?.hasPurchases && (
                     <MenuItem
                         shouldShowRightIcon
-                        icon={Expensicons.History}
+                        icon={expensifyIcons.History}
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
@@ -263,7 +276,5 @@ function CardSection() {
         </>
     );
 }
-
-CardSection.displayName = 'CardSection';
 
 export default CardSection;

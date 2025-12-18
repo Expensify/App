@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -85,6 +85,7 @@ function FullPageNotFoundView({
     const styles = useThemeStyles();
     const {isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
 
     if (shouldShow) {
         StatsCounter('FullPageNotFoundView');
@@ -100,7 +101,7 @@ function FullPageNotFoundView({
                     testID={testID}
                 >
                     <BlockingView
-                        icon={Illustrations.ToddBehindCloud}
+                        icon={illustrations.ToddBehindCloud}
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
                         title={translate(titleKey)}
@@ -111,7 +112,7 @@ function FullPageNotFoundView({
                         subtitleStyle={subtitleStyle}
                         addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                         addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
-                        testID={FullPageNotFoundView.displayName}
+                        testID="FullPageNotFoundView"
                     />
                 </View>
             </ForceFullScreenView>
@@ -120,8 +121,6 @@ function FullPageNotFoundView({
 
     return children;
 }
-
-FullPageNotFoundView.displayName = 'FullPageNotFoundView';
 
 export type {FullPageNotFoundViewProps};
 export default FullPageNotFoundView;

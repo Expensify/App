@@ -63,7 +63,7 @@ export default {
     fontSizeHeroXL: 72,
     fontSizeH1: 19,
     fontSizeH2: 19,
-    fontSizeXLarge: 22,
+    fontSizeXLarge: getValueUsingPixelRatio(22, 28),
     fontSizeXXLarge: 28,
     fontSizeXXXLarge: getValueUsingPixelRatio(32, 37),
     fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
@@ -103,6 +103,7 @@ export default {
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     receiptPaneRHPMaxWidth: 465,
+    superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
@@ -340,6 +341,7 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
+    w200: 200,
     // Transaction item row heights based on layout types
     // Wide screen (desktop) layout
     optionRowWideItemHeight: 64,
@@ -381,4 +383,7 @@ export default {
     uberEmployeeInviteButtonWidth: 62,
     uberEmptyListIconWidth: 190,
     uberEmptyListIconHeight: 136,
+
+    // Report search header max width
+    reportSearchHeaderMaxWidth: 700,
 } as const;

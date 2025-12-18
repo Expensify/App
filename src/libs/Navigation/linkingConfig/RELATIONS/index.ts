@@ -20,9 +20,9 @@ function createInverseRelation<T extends string, K extends string>(relations: Pa
 
     for (const [key, values] of Object.entries(relations)) {
         const valuesWithType = (Array.isArray(values) ? values : [values]) as K[];
-        valuesWithType.forEach((value: K) => {
+        for (const value of valuesWithType) {
             reversedRelations[value] = key as T;
-        });
+        }
     }
     return reversedRelations;
 }

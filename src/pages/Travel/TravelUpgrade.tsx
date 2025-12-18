@@ -39,19 +39,19 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
     }, [groupPaidPolicies.length]);
 
     const openWorkspaceConfirmation = () => {
-        Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_CONFIRMATION);
+        Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()));
     };
 
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator
-            testID={TravelUpgrade.displayName}
+            testID="TravelUpgrade"
             offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
-                onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {isUpgraded ? (
@@ -73,7 +73,5 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
         </ScreenWrapper>
     );
 }
-
-TravelUpgrade.displayName = 'TravelUpgrade';
 
 export default TravelUpgrade;

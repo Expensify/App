@@ -37,6 +37,8 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const {inputCallbackRef} = useAutoFocusInput();
 
     const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT, {canBeMissing: true});
@@ -72,6 +74,12 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
                       currency,
                       file: undefined,
                       shouldAddOnboardingTasks: false,
+                      introSelectedParam: introSelected,
+                      activePolicyIDParam: activePolicyID,
+                      currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                      currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                      shouldAddGuideWelcomeMessage: false,
+                      onboardingPurposeSelected,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -82,7 +90,16 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
             clearWorkspaceDetailsDraft();
             Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_INVITE.getRoute());
         },
-        [onboardingPurposeSelected, onboardingPolicyID, paidGroupPolicy, onboardingAdminsChatReportID],
+        [
+            onboardingPurposeSelected,
+            onboardingPolicyID,
+            paidGroupPolicy,
+            onboardingAdminsChatReportID,
+            activePolicyID,
+            currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.email,
+            introSelected,
+        ],
     );
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM>) => {
@@ -112,7 +129,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={BaseOnboardingWorkspaceConfirmation.displayName}
+            testID="BaseOnboardingWorkspaceConfirmation"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton progressBarPercentage={100} />
@@ -158,7 +175,5 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingWorkspaceConfirmation.displayName = 'BaseOnboardingWorkspaceConfirmation';
 
 export default BaseOnboardingWorkspaceConfirmation;

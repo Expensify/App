@@ -143,15 +143,12 @@ function TagPicker({
             textInputValue={searchValue}
             headerMessage={headerMessage}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-            isRowMultilineSupported
             initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
         />
     );
 }
-
-TagPicker.displayName = 'TagPicker';
 
 export default TagPicker;
 

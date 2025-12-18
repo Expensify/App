@@ -1,6 +1,7 @@
 import {createPoliciesSelector} from '@selectors/Policy';
 import React, {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -9,14 +10,26 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSubmitPerDiemExpenseFromWorkspace, getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {canAddTransaction, getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, getPersonalPolicy, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
+import {
+    canAddTransaction,
+    getOutstandingReportsForUser,
+    getPolicyName,
+    getReportName,
+    isIOUReport,
+    isOpenReport,
+    isReportOwner,
+    isSelfDM,
+    sortOutstandingReportsBySelected,
+} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -41,7 +54,7 @@ type Props = {
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
-    isPerDiemRequest?: boolean;
+    isPerDiemRequest: boolean;
 };
 
 const policyIdSelector = (policy: OnyxEntry<Policy>) => policy?.id;
@@ -62,10 +75,12 @@ function IOURequestEditReportCommon({
     createReport,
     isPerDiemRequest,
 }: Props) {
+    const icons = useMemoizedLazyExpensifyIcons(['Document']);
     const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [firstTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionIDs?.at(0))}`, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
     const resolvedReportOwnerAccountID = useMemo(() => {
@@ -78,10 +93,11 @@ function IOURequestEditReportCommon({
         }
 
         return currentUserPersonalDetails.accountID;
-    }, [targetOwnerAccountID, selectedReport, currentUserPersonalDetails.accountID]);
+    }, [targetOwnerAccountID, selectedReport?.ownerAccountID, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest);
 
+    const perDiemOriginalPolicy = getPolicyByCustomUnitID(firstTransaction, allPolicies);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
@@ -101,8 +117,8 @@ function IOURequestEditReportCommon({
         }
 
         return reportTransactions
-            .filter((transaction) => transactionIDs.includes(transaction.transactionID))
-            .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
+            .filter((reportTransaction) => transactionIDs.includes(reportTransaction.transactionID))
+            .some((reportTransaction) => reportTransaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
     }, [transactionIDs, selectedReport, reportTransactions]);
 
     const shouldShowRemoveFromReport =
@@ -151,6 +167,9 @@ function IOURequestEditReportCommon({
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .filter((report) => {
+                if (isPerDiemRequest && report?.policyID !== perDiemOriginalPolicy?.id) {
+                    return false;
+                }
                 if (isPerDiemRequest && report?.policyID && selectedReportID !== report?.reportID) {
                     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                     return canSubmitPerDiemExpenseFromWorkspace(policy);
@@ -158,7 +177,7 @@ function IOURequestEditReportCommon({
                 return true;
             })
             .filter((report) => {
-                if (canAddTransaction(report)) {
+                if (canAddTransaction(report, undefined, true)) {
                     return true;
                 }
 
@@ -170,11 +189,13 @@ function IOURequestEditReportCommon({
             .map((report) => {
                 const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
                 return {
-                    ...matchingOption,
+                    ...(matchingOption ?? report),
                     // We are shallow copying properties from matchingOption, so if it has a brickRoadIndicator, it will display RBR.
                     // We set it to null here to prevent showing RBR for reports https://github.com/Expensify/App/issues/65960.
                     brickRoadIndicator: null,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    text: getReportName(report),
                     value: report.reportID,
                     keyForList: report.reportID,
                     isSelected: report.reportID === selectedReportID,
@@ -191,13 +212,14 @@ function IOURequestEditReportCommon({
         allPolicies,
         isPerDiemRequest,
         currentUserPersonalDetails.accountID,
+        perDiemOriginalPolicy?.id,
     ]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
-    const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
+    const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 
     const createReportOption = useMemo(() => {
         if (!createReport || (isEditing && !isOwner)) {
@@ -208,11 +230,11 @@ function IOURequestEditReportCommon({
             <MenuItem
                 onPress={createReport}
                 title={translate('report.newReport.createReport')}
-                description={policyForMovingExpenses?.name}
-                icon={Expensicons.Document}
+                description={isPerDiemRequest ? perDiemOriginalPolicy?.name : policyForMovingExpenses?.name}
+                icon={icons.Document}
             />
         );
-    }, [createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name]);
+    }, [icons.Document, createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name, perDiemOriginalPolicy?.name, isPerDiemRequest]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {

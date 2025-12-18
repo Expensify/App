@@ -33,6 +33,8 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
         taskReport: setupCategoryTaskReport,
         taskParentReport: setupCategoryTaskParentReport,
         isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+        hasOutstandingChildTask,
+        parentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const createCategory = useCallback(
@@ -44,6 +46,8 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
                 currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
             );
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
@@ -55,6 +59,8 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
             currentUserPersonalDetails.accountID,
             isQuickSettingsFlow,
             backTo,
+            hasOutstandingChildTask,
+            parentReportAction,
         ],
     );
 
@@ -67,7 +73,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CreateCategoryPage.displayName}
+                testID="CreateCategoryPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -82,7 +88,5 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-CreateCategoryPage.displayName = 'CreateCategoryPage';
 
 export default CreateCategoryPage;

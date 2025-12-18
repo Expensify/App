@@ -18,7 +18,6 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {isMobile} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
@@ -27,8 +26,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabled} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates, getPerDiemCustomUnit, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
 import {initMoneyRequest} from '@userActions/IOU';
@@ -81,6 +81,7 @@ function IOURequestStartPage({
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -96,15 +97,19 @@ function IOURequestStartPage({
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const policiesWithPerDiemEnabled = useMemo(
-        () => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserPersonalDetails.login),
+    const policiesWithPerDiemEnabledAndHasRates = useMemo(
+        () => getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(allPolicies, currentUserPersonalDetails.login),
         [allPolicies, currentUserPersonalDetails.login],
     );
-    const doesPerDiemPolicyExist = policiesWithPerDiemEnabled.length > 0;
-    const moreThanOnePerDiemExist = policiesWithPerDiemEnabled.length > 1;
+    const doesPerDiemPolicyExist = policiesWithPerDiemEnabledAndHasRates.length > 0;
+    const moreThanOnePerDiemExist = policiesWithPerDiemEnabledAndHasRates.length > 1;
     const hasCurrentPolicyPerDiemEnabled = !!policy?.arePerDiemRatesEnabled;
+    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+    const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);
     const shouldShowPerDiemOption =
-        iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled) || (isFromGlobalCreate && doesPerDiemPolicyExist));
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        iouType !== CONST.IOU.TYPE.TRACK &&
+        ((!isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled && hasPolicyPerDiemRates) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
     const transactionRequestType = useMemo(() => {
         if (!transaction?.iouRequestType) {
@@ -124,6 +129,7 @@ function IOURequestStartPage({
     const prevTransactionReportID = usePrevious(transaction?.reportID);
 
     useEffect(() => {
+        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE);
     }, []);
 
@@ -147,6 +153,7 @@ function IOURequestStartPage({
             currentDate,
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
         });
         // eslint-disable-next-line
     }, []);
@@ -169,6 +176,7 @@ function IOURequestStartPage({
                 currentDate,
                 lastSelectedDistanceRates,
                 currentUserPersonalDetails,
+                hasOnlyPersonalPolicies,
             });
         },
         [
@@ -182,6 +190,7 @@ function IOURequestStartPage({
             currentDate,
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
         ],
     );
 
@@ -243,7 +252,7 @@ function IOURequestStartPage({
                 shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 headerGapStyles={isDraggingOver ? styles.dropWrapper : []}
-                testID={IOURequestStartPage.displayName}
+                testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
                 <DragAndDropProvider
@@ -273,8 +282,6 @@ function IOURequestStartPage({
                                 shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                                 renderProductTrainingTooltip={renderProductTrainingTooltip}
                                 lazyLoadEnabled
-                                // We're disabling swipe on mWeb fo the Per Diem tab because the keyboard will hang on the other tab after switching
-                                disableSwipe={(isMultiScanEnabled && selectedTab === CONST.TAB_REQUEST.SCAN) || (selectedTab === CONST.TAB_REQUEST.PER_DIEM && isMobile())}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
@@ -327,7 +334,7 @@ function IOURequestStartPage({
                                                 ) : (
                                                     <IOURequestStepDestination
                                                         openedFromStartPage
-                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabled.at(0)?.id}
+                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabledAndHasRates.at(0)?.id}
                                                         route={route}
                                                         navigation={navigation}
                                                     />
@@ -355,7 +362,5 @@ function IOURequestStartPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-IOURequestStartPage.displayName = 'IOURequestStartPage';
 
 export default IOURequestStartPage;

@@ -2,6 +2,7 @@ import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
@@ -15,8 +16,9 @@ import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
+import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
-import type {AddNewCompanyCardFeed, CompanyCardFeed, FundID} from './CardFeeds';
+import type {AddNewCompanyCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID, DomainSettings, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
@@ -29,6 +31,9 @@ import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedVa
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
+import type {SamlMetadata} from './Domain';
+import type DomainErrors from './DomainErrors';
+import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
@@ -37,6 +42,7 @@ import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
@@ -89,6 +95,7 @@ import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
+import type {GroupedTransactions, ReportLayoutGroupBy} from './ReportLayout';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
@@ -161,10 +168,13 @@ export type {
     Fund,
     FundID,
     FundList,
+    GpsDraftDetails,
     IntroSelected,
     IssueNewCard,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
+    CardContinuousReconciliation,
+    CompanyCardFeedWithDomainID,
     LastExportMethod,
     Locale,
     LockAccountDetails,
@@ -212,6 +222,8 @@ export type {
     ReportViolationName,
     ReportViolations,
     ReportFieldsViolations,
+    ReportLayoutGroupBy,
+    GroupedTransactions,
     Request,
     Response,
     ScreenShareRequest,
@@ -260,6 +272,7 @@ export type {
     CancellationDetails,
     ApprovalWorkflowOnyx,
     CardFeeds,
+    DomainSettings,
     SaveSearch,
     RecentSearchItem,
     ImportedSpreadsheet,
@@ -285,4 +298,8 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
+    AppReview,
+    SamlMetadata,
+    DomainErrors,
+    DomainPendingActions,
 };

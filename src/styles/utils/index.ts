@@ -1718,28 +1718,48 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false, isAmountColumnWide = false, isTaxAmountColumnWide = false, isDateColumnFullWidth = false): ViewStyle => {
+    getReportTableColumnStyles: (
+        columnName: string,
+        isDateColumnWide = false,
+        isAmountColumnWide = false,
+        isTaxAmountColumnWide = false,
+        isDateColumnFullWidth = false,
+        isSubmittedColumnWide = false,
+        isApprovedColumnWide = false,
+        isPostedColumnWide = false,
+        isExportedColumnWide = false,
+    ): ViewStyle => {
         let columnWidth;
         switch (columnName) {
-            case CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS:
+            case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
             case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
+                columnWidth = {...getWidthStyle(variables.w40), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
+                columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w92 : variables.w72)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
+                columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w92 : variables.w72)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.POSTED:
+                columnWidth = {...getWidthStyle(isPostedColumnWide ? variables.w92 : variables.w72)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
+                columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w92 : variables.w72)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
+                // We will remove this variable & param, but in a follow up PR. We are duplicating the logic here to "use" the variable
+                // to prevent eslint errors. This will be removed
                 if (isDateColumnFullWidth) {
-                    columnWidth = styles.flex1;
-                    break;
+                    columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52)};
                 }
                 columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52)};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
-            case CONST.SEARCH.TABLE_COLUMNS.FROM:
-            case CONST.SEARCH.TABLE_COLUMNS.TO:
-            case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
-            case CONST.SEARCH.TABLE_COLUMNS.TITLE:
-            case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
-            case CONST.SEARCH.TABLE_COLUMNS.IN:
-                columnWidth = styles.flex1;
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             case CONST.SEARCH.TABLE_COLUMNS.TAG:
@@ -1748,15 +1768,37 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
                 columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
+            case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
+            case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
-                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
+                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...styles.flex1, ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
                 columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
+            case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+                columnWidth = {...getWidthStyle(variables.w92)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
+                columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
+            case CONST.SEARCH.TABLE_COLUMNS.CARD:
+            case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            case CONST.SEARCH.TABLE_COLUMNS.FROM:
+            case CONST.SEARCH.TABLE_COLUMNS.TO:
+            case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
+            case CONST.SEARCH.TABLE_COLUMNS.TITLE:
+            case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+            case CONST.SEARCH.TABLE_COLUMNS.IN:
             default:
                 columnWidth = styles.flex1;
         }

@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import {Encryption} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +34,7 @@ const is2FARequiredBecauseOfXeroSelector = (email?: string) => {
 };
 
 function RequireTwoFactorAuthenticationPage() {
+    const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -49,11 +50,11 @@ function RequireTwoFactorAuthenticationPage() {
     }, [isUserValidated]);
 
     return (
-        <ScreenWrapper testID={RequireTwoFactorAuthenticationPage.displayName}>
+        <ScreenWrapper testID="RequireTwoFactorAuthenticationPage">
             <View style={styles.twoFARequiredContainer}>
                 <View style={[styles.twoFAIllustration, styles.alignItemsCenter]}>
                     <Icon
-                        src={Encryption}
+                        src={illustrations.Encryption}
                         width={variables.twoFAIconHeight}
                         height={variables.twoFAIconHeight}
                     />
@@ -77,7 +78,5 @@ function RequireTwoFactorAuthenticationPage() {
         </ScreenWrapper>
     );
 }
-
-RequireTwoFactorAuthenticationPage.displayName = 'RequireTwoFactorAuthenticationPage';
 
 export default RequireTwoFactorAuthenticationPage;

@@ -338,7 +338,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceViewTagsPage.displayName}
+                testID="WorkspaceViewTagsPage"
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : currentTagListName}
@@ -464,7 +464,5 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceViewTagsPage.displayName = 'WorkspaceViewTagsPage';
 
 export default WorkspaceViewTagsPage;

@@ -43,7 +43,8 @@ Which of our officially supported platforms is this issue occurring on? Please o
 - [ ] iOS: mWeb Chrome
 - [ ] Windows: Chrome
 - [ ] MacOS: Chrome / Safari
-- [ ] MacOS: Desktop
+
+## Screenshots/Videos
 
 **Version Number:**
 **Reproducible in staging?:**

@@ -231,6 +231,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
                             path: ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT,
                             exact: true,
@@ -267,6 +271,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
                             path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
                             exact: true,
@@ -284,7 +292,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT,
+                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
@@ -714,6 +722,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.route,
                         },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.route,
                         },
@@ -834,6 +845,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
+                            path: ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.route,
+                        },
                         [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
                             path: ROUTES.WORKSPACE_CUSTOM_FIELDS.route,
                         },
@@ -876,8 +890,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: {
                             path: ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.route,
                         },
+                        [SCREENS.WORKSPACE.CATEGORY_REQUIRED_FIELDS]: {
+                            path: ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.route,
+                        },
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
                             path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
+                        },
+                        [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE_UPGRADE]: {
+                            path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.route,
                         },
                         [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.route,
@@ -995,6 +1015,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,
                         },
+                        [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: {
+                            path: ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.route,
+                            exact: true,
+                        },
                         [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.route,
                         [SCREENS.KEYBOARD_SHORTCUTS]: {
                             path: ROUTES.KEYBOARD_SHORTCUTS.route,
@@ -1004,10 +1028,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
                         [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON.route,
-                        },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
                         },
                         [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
@@ -1090,6 +1111,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.VERIFIED]: {
                             path: ROUTES.DOMAIN_VERIFIED.route,
                         },
+                        [SCREENS.DOMAIN.ADMIN_DETAILS]: {
+                            path: ROUTES.DOMAIN_ADMIN_DETAILS.route,
+                        },
+                        [SCREENS.DOMAIN.ADMINS_SETTINGS]: {
+                            path: ROUTES.DOMAIN_ADMINS_SETTINGS.route,
+                        },
+                        [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
+                            path: ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
@@ -1138,6 +1168,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_DETAILS.EXPORT]: ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.REPORT_CARD_ACTIVATE]: {
+                    screens: {
+                        [SCREENS.REPORT_CARD_ACTIVATE]: ROUTES.REPORT_CARD_ACTIVATE.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE]: {
                     screens: {
                         [SCREENS.REPORT_CHANGE_WORKSPACE.ROOT]: ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.route,
@@ -1159,6 +1194,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
                             path: ROUTES.REPORT_SETTINGS_VISIBILITY.route,
+                        },
+                        [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: {
+                            path: ROUTES.REPORT_SETTINGS_REPORT_LAYOUT.route,
                         },
                     },
                 },
@@ -1388,6 +1426,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 'distance-manual': {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route,
                                 },
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'distance-gps': {
+                                    path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route,
+                                },
                             },
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
@@ -1561,18 +1603,29 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TRAVEL.DOMAIN_SELECTOR]: ROUTES.TRAVEL_DOMAIN_SELECTOR.route,
                         [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.route,
                         [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.route,
-                        [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: ROUTES.TRAVEL_WORKSPACE_CONFIRMATION,
+                        [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.route,
                         [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: ROUTES.TRAVEL_WORKSPACE_ADDRESS.route,
                         [SCREENS.TRAVEL.VERIFY_ACCOUNT]: ROUTES.TRAVEL_VERIFY_ACCOUNT.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: {
+                    screens: {
+                        [SCREENS.SEARCH.COLUMNS_RHP]: ROUTES.SEARCH_COLUMNS,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
                     screens: {
-                        [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: ROUTES.SEARCH_ROOT_VERIFY_ACCOUNT,
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: {
+                    screens: {
+                        [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: ROUTES.SEARCH_ROOT_VERIFY_ACCOUNT,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.route,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.route,
+                        [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.route,
                         [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: ROUTES.TRANSACTION_HOLD_REASON_RHP,
+                        [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: ROUTES.SEARCH_REJECT_REASON_RHP,
                         [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP,
                     },
                 },
@@ -1756,6 +1809,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACES_DOMAIN_VERIFIED.route,
                             exact: true,
                         },
+                        [SCREENS.WORKSPACES_ADD_DOMAIN]: ROUTES.WORKSPACES_ADD_DOMAIN,
+                        [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: ROUTES.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT,
+                        [SCREENS.WORKSPACES_DOMAIN_ADDED]: {
+                            path: ROUTES.WORKSPACES_DOMAIN_ADDED.route,
+                            exact: true,
+                        },
+                        [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: {
+                            path: ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.route,
+                            exact: true,
+                        },
                     },
                 },
             },
@@ -1879,6 +1942,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.DOMAIN.SAML]: {
                     path: ROUTES.DOMAIN_SAML.route,
+                },
+                [SCREENS.DOMAIN.ADMINS]: {
+                    path: ROUTES.DOMAIN_ADMINS.route,
                 },
             },
         },

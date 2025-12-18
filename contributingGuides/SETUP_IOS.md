@@ -2,26 +2,13 @@
 
 ## Running the mobile application using Rock 🪨
 
-This project uses [Rock](https://rockjs.dev/) to manage native builds. Rather than compiling native code locally when running commands like `npm run ios`, Rock first attempts to download remote builds (artifacts prebuilt on CI) from GitHub. If a matching remote build isn’t available, it automatically falls back to building locally.
+This project uses [Rock](https://rockjs.dev/) to manage native builds. Rather than compiling native code locally when running commands like `npm run ios`, Rock first attempts to download remote builds (artifacts prebuilt on CI) from S3. If a matching remote build isn’t available, it automatically falls back to building locally.
 
 By storing complete native build artifacts remotely, Rock reduces the need for local compilation and simplifies setup through automated downloads.
 
 **Note:** Any changes to files involved in generating a fingerprint (e.g., `package.json`) will trigger a local build.
 
 The following steps describe how to configure the project to fully utilize Rock.
-
-### Generating GitHub Personal Access Token
-
-To take advantage of remote builds, setup your GitHub Personal Access Token (PAT) in your `.env` file:
-
-1. Create a GitHub Personal Access Token:
-   - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
-   - Click "Generate new token (classic)"
-   - Select the following scope:
-     - `repo`
-   - Copy the generated token
-
-2. Add `GITHUB_TOKEN` to `.env` file with your generated token
 
 ### Running the mobile application 📱
 * To install project dependencies run: `npm install`

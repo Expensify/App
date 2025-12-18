@@ -72,7 +72,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
 
             return errors;
         },
-        [report, reports, translate],
+        [report?.reportName, report?.policyID, reports, translate],
     );
 
     const updatePolicyRoomName = useCallback(
@@ -87,7 +87,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
         <ScreenWrapper
             onEntryTransitionEnd={() => roomNameInputRef.current?.focus()}
             includeSafeAreaPaddingBottom
-            testID={RoomNamePage.displayName}
+            testID="RoomNamePage"
         >
             <FullPageNotFoundView shouldShow={shouldDisableRename(report, isReportArchived)}>
                 <HeaderWithBackButton
@@ -117,7 +117,5 @@ function RoomNamePage({report}: RoomNamePageProps) {
         </ScreenWrapper>
     );
 }
-
-RoomNamePage.displayName = 'RoomNamePage';
 
 export default RoomNamePage;

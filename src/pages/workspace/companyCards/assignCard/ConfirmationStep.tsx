@@ -12,7 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCompanyCardFeed, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed, CurrencyList} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -34,7 +34,7 @@ type ConfirmationStepProps = {
     backTo?: Route;
 
     /** Selected feed */
-    feed: CompanyCardFeed;
+    feed: CompanyCardFeedWithDomainID;
 };
 
 function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
@@ -46,7 +46,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const bankName = (assignCard?.data?.bankName as CompanyCardFeed | undefined) ?? feed;
+    const bankName = assignCard?.data?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
     const data = assignCard?.data;
@@ -67,14 +67,14 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard, backTo, policyID, currentFullScreenRoute?.state?.routes]);
+    }, [assignCard?.isAssigned, backTo, policyID, currentFullScreenRoute?.state?.routes]);
 
     const submit = () => {
         if (!policyID) {
             return;
         }
 
-        const isFeedExpired = isSelectedFeedExpired(bankName ? cardFeeds?.settings?.oAuthAccountDetails?.[bankName] : undefined);
+        const isFeedExpired = isSelectedFeedExpired(cardFeeds?.[feed]);
         const institutionId = !!getPlaidInstitutionId(bankName);
 
         if (isFeedExpired) {
@@ -89,7 +89,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
             setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             return;
         }
-        assignWorkspaceCompanyCard(policyID, {...data, bankName});
+        assignWorkspaceCompanyCard(policy, {...data, bankName});
     };
 
     const editStep = (step: AssignCardStep) => {
@@ -102,7 +102,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={ConfirmationStep.displayName}
+            wrapperID="ConfirmationStep"
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={3}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
@@ -166,7 +166,5 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default ConfirmationStep;

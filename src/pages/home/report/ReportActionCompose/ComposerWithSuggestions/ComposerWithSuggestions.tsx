@@ -25,8 +25,9 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getPreferredSkinToneIndex, replaceAndExtractEmojis} from '@libs/EmojiUtils';
+import {containsOnlyEmojis, extractEmojis, getAddedEmojis, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
@@ -60,85 +61,86 @@ type SyncSelection = {
 
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
-type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
-    /** Report ID */
-    reportID: string;
+type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
+    ForwardedFSClassProps & {
+        /** Report ID */
+        reportID: string;
 
-    /** Callback to focus composer */
-    onFocus: () => void;
+        /** Callback to focus composer */
+        onFocus: () => void;
 
-    /** Callback to blur composer */
-    onBlur: (event: BlurEvent) => void;
+        /** Callback to blur composer */
+        onBlur: (event: BlurEvent) => void;
 
-    /** Callback when layout of composer changes */
-    onLayout?: (event: LayoutChangeEvent) => void;
+        /** Callback when layout of composer changes */
+        onLayout?: (event: LayoutChangeEvent) => void;
 
-    /** Callback to update the value of the composer */
-    onValueChange: (value: string) => void;
+        /** Callback to update the value of the composer */
+        onValueChange: (value: string) => void;
 
-    /** Callback when the composer got cleared on the UI thread */
-    onCleared?: (text: string) => void;
+        /** Callback when the composer got cleared on the UI thread */
+        onCleared?: (text: string) => void;
 
-    /** Whether the composer is full size */
-    isComposerFullSize: boolean;
+        /** Whether the composer is full size */
+        isComposerFullSize: boolean;
 
-    /** Function to set whether the full composer is available */
-    setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
+        /** Function to set whether the full composer is available */
+        setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
 
-    /** Whether the menu is visible */
-    isMenuVisible: boolean;
+        /** Whether the menu is visible */
+        isMenuVisible: boolean;
 
-    /** The placeholder for the input */
-    inputPlaceholder: string;
+        /** The placeholder for the input */
+        inputPlaceholder: string;
 
-    /** Callback when a file is pasted */
-    onPasteFile: (file: FileObject | FileObject[]) => void;
+        /** Callback when a file is pasted */
+        onPasteFile: (file: FileObject | FileObject[]) => void;
 
-    /** Whether the input is disabled, defaults to false */
-    disabled?: boolean;
+        /** Whether the input is disabled, defaults to false */
+        disabled?: boolean;
 
-    /** Function to set whether the comment is empty */
-    setIsCommentEmpty: (isCommentEmpty: boolean) => void;
+        /** Function to set whether the comment is empty */
+        setIsCommentEmpty: (isCommentEmpty: boolean) => void;
 
-    /** Function to handle sending a message */
-    handleSendMessage: () => void;
+        /** Function to handle sending a message */
+        handleSendMessage: () => void;
 
-    /** Whether the compose input should show */
-    shouldShowComposeInput: OnyxEntry<boolean>;
+        /** Whether the compose input should show */
+        shouldShowComposeInput: OnyxEntry<boolean>;
 
-    /** Function to measure the parent container */
-    measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
+        /** Function to measure the parent container */
+        measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
 
-    /** Whether the scroll is likely to trigger a layout */
-    isScrollLikelyLayoutTriggered: RefObject<boolean>;
+        /** Whether the scroll is likely to trigger a layout */
+        isScrollLikelyLayoutTriggered: RefObject<boolean>;
 
-    /** Function to raise the scroll is likely layout triggered */
-    raiseIsScrollLikelyLayoutTriggered: () => void;
+        /** Function to raise the scroll is likely layout triggered */
+        raiseIsScrollLikelyLayoutTriggered: () => void;
 
-    /** The ref to the suggestions */
-    suggestionsRef: React.RefObject<SuggestionsRef | null>;
+        /** The ref to the suggestions */
+        suggestionsRef: React.RefObject<SuggestionsRef | null>;
 
-    /** The ref to the next modal will open */
-    isNextModalWillOpenRef: RefObject<boolean | null>;
+        /** The ref to the next modal will open */
+        isNextModalWillOpenRef: RefObject<boolean | null>;
 
-    /** The last report action */
-    lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
+        /** The last report action */
+        lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** Whether to include chronos */
-    includeChronos?: boolean;
+        /** Whether to include chronos */
+        includeChronos?: boolean;
 
-    /** Whether report is from group policy */
-    isGroupPolicyReport: boolean;
+        /** Whether report is from group policy */
+        isGroupPolicyReport: boolean;
 
-    /** policy ID of the report */
-    policyID?: string;
+        /** policy ID of the report */
+        policyID?: string;
 
-    /** Whether the main composer was hidden */
-    didHideComposerInput?: boolean;
+        /** Whether the main composer was hidden */
+        didHideComposerInput?: boolean;
 
-    /** Reference to the outer element */
-    ref?: ForwardedRef<ComposerRef>;
-};
+        /** Reference to the outer element */
+        ref?: ForwardedRef<ComposerRef>;
+    };
 
 type SwitchToCurrentReportProps = {
     preexistingReportID: string;
@@ -225,6 +227,9 @@ function ComposerWithSuggestions({
     // For testing
     children,
     didHideComposerInput,
+
+    // Fullstory
+    forwardedFSClass,
 }: ComposerWithSuggestionsProps) {
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
@@ -249,7 +254,7 @@ function ComposerWithSuggestions({
     const commentRef = useRef(value);
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: getPreferredSkinToneIndex, canBeMissing: true});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
 
     const lastTextRef = useRef(value);
@@ -259,8 +264,7 @@ function ComposerWithSuggestions({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-
-    const shouldAutoFocus = shouldFocusInputOnScreenFocus && !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -608,7 +612,7 @@ function ComposerWithSuggestions({
         // Checking whether the screen is focused or not, helps avoid `modal.isVisible` false when popups are closed, even if the modal is opened.
         const isComposerCoveredUp = !isFocused || isEmojiPickerVisible() || isMenuVisible || !!modal?.isVisible || modal?.willAlertModalBecomeVisible;
         return !isComposerCoveredUp;
-    }, [isMenuVisible, modal, isFocused]);
+    }, [isMenuVisible, modal?.isVisible, modal?.willAlertModalBecomeVisible, isFocused]);
 
     const focusComposerOnKeyPress = useCallback(
         (e: KeyboardEvent) => {
@@ -812,6 +816,21 @@ function ComposerWithSuggestions({
         onFocus();
     }, [onFocus, setUpComposeFocusManager]);
 
+    // When using the suggestions box (Suggestions) we need to imperatively
+    // set the cursor to the end of the suggestion/mention after it's selected.
+    const onSuggestionSelected = useCallback((suggestionSelection: TextSelection) => {
+        const endOfSuggestionSelection = suggestionSelection.end;
+        setSelection(suggestionSelection);
+
+        if (endOfSuggestionSelection === undefined) {
+            return;
+        }
+
+        queueMicrotask(() => {
+            textInputRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
+        });
+    }, []);
+
     return (
         <>
             <View
@@ -852,6 +871,7 @@ function ComposerWithSuggestions({
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
+                    forwardedFSClass={forwardedFSClass}
                 />
             </View>
 
@@ -865,7 +885,7 @@ function ComposerWithSuggestions({
                 // Input
                 value={value}
                 selection={selection}
-                setSelection={setSelection}
+                setSelection={onSuggestionSelected}
                 resetKeyboardInput={resetKeyboardInput}
             />
 
@@ -884,8 +904,6 @@ function ComposerWithSuggestions({
         </>
     );
 }
-
-ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
 export default memo(ComposerWithSuggestions);
 
