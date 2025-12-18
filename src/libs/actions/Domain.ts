@@ -573,16 +573,10 @@ function resetDomain(domainAccountID: number) {
  */
 function clearResetDomainErrors(domainAccountID: number, accountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
-        adminErrors: {
-            [accountID]: null,
-        },
+        removeDomainError: null,
     });
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        admin: {
-            [accountID]: {
-                pendingAction: null,
-            },
-        },
+        pendingAction: null,
     });
 }
 
