@@ -107,7 +107,7 @@ function SplitListItem<TItem extends ListItem>({
     const canUseTouchScreen = useMemo(() => canUseTouchScreenUtil(), [canUseTouchScreenUtil]);
     const displayedAmount = useMemo(() => Math.abs(splitItem.amount), [splitItem.amount]);
 
-    const handleToogleNegative = useCallback(() => {
+    const handleToggleNegative = useCallback(() => {
         const isCurrentlyNegative = !isNegativeAmount;
         const currentAbsAmount = Math.abs(convertToFrontendAmountAsInteger(splitItem.amount, splitItem.currency));
         if (currentAbsAmount === 0) {
@@ -233,7 +233,7 @@ function SplitListItem<TItem extends ListItem>({
                             shouldWrapInputInContainer={false}
                             onFocus={focusHandler}
                             onBlur={onInputBlur}
-                            toggleNegative={handleToogleNegative}
+                            toggleNegative={handleToggleNegative}
                             clearNegative={handleClearNegative}
                             isNegative={isNegativeAmount}
                             allowFlippingAmount
