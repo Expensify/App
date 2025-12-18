@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -14,6 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
 import {getTaxName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +29,10 @@ function SearchEditMultiplePage() {
     const {selectedTransactions, selectedTransactionIDs} = useSearchContext();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: true});
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     // Determine policyID based on context:
     // - If all selected transactions belong to the same policy, use that policy
@@ -59,7 +65,7 @@ function SearchEditMultiplePage() {
         return () => {
             clearBulkEditDraftTransaction();
         };
-    }, []);
+    }, [currency, draftTransaction]);
 
     const save = () => {
         if (!draftTransaction) {
@@ -103,7 +109,58 @@ function SearchEditMultiplePage() {
             return;
         }
 
-        updateMultipleMoneyRequests(selectedTransactionIDs, changes, policy);
+        const transactionChanges: TransactionChanges = {};
+
+        selectedTransactionIDs.forEach((transactionID) => {
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            if (!transaction) {
+                return;
+            }
+
+            const transactionThreadReportID = transaction.reportID;
+            const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+            const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
+
+            const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
+            const reportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
+
+            const canEditField = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
+                return canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, iouReport, policy);
+            };
+
+            if (changes.merchant && canEditField(CONST.EDIT_REQUEST_FIELD.MERCHANT)) {
+                transactionChanges.merchant = changes.merchant;
+            }
+            if (changes.created && canEditField(CONST.EDIT_REQUEST_FIELD.DATE)) {
+                transactionChanges.created = changes.created;
+            }
+            if (changes.amount && canEditField(CONST.EDIT_REQUEST_FIELD.AMOUNT)) {
+                transactionChanges.amount = changes.amount;
+            }
+            if (changes.currency && canEditField(CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
+                transactionChanges.currency = changes.currency;
+            }
+            if (changes.category && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
+                transactionChanges.category = changes.category;
+            }
+            if (changes.tag && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
+                transactionChanges.tag = changes.tag;
+            }
+            if (changes.comment && canEditField(CONST.EDIT_REQUEST_FIELD.DESCRIPTION)) {
+                transactionChanges.comment = changes.comment;
+            }
+            if (changes.taxCode && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
+                transactionChanges.taxCode = changes.taxCode;
+            }
+            if (changes.billable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
+                transactionChanges.billable = changes.billable;
+            }
+            if (changes.reimbursable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
+                transactionChanges.reimbursable = changes.reimbursable;
+            }
+        });
+
+        updateMultipleMoneyRequests(selectedTransactionIDs, transactionChanges, policy, allReports, allTransactions);
 
         Navigation.dismissModal();
     };
@@ -158,18 +215,7 @@ function SearchEditMultiplePage() {
         ];
 
         return allFields;
-    }, [
-        draftTransaction?.amount,
-        draftTransaction?.comment?.comment,
-        draftTransaction?.merchant,
-        draftTransaction?.created,
-        draftTransaction?.category,
-        draftTransaction?.tag,
-        draftTransaction?.taxCode,
-        policy,
-        translate,
-        displayCurrency,
-    ]);
+    }, [translate, draftTransaction, displayCurrency, policy]);
 
     return (
         <ScreenWrapper testID={SearchEditMultiplePage.displayName}>

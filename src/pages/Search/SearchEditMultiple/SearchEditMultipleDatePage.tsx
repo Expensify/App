@@ -19,7 +19,7 @@ import INPUT_IDS from '@src/types/form/SearchEditMultipleDateForm';
 function SearchEditMultipleDatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: true});
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
 
     const currentDate = draftTransaction?.created ?? '';
 
@@ -32,7 +32,7 @@ function SearchEditMultipleDatePage() {
             }
             return errors;
         },
-        [translate, isValidDate],
+        [translate],
     );
 
     const saveDate = useCallback((value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM>) => {

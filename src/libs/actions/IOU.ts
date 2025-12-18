@@ -99,7 +99,6 @@ import {
 import {
     getAllReportActions,
     getIOUActionForReportID,
-    getIOUActionForTransactionID,
     getLastVisibleAction,
     getLastVisibleMessage,
     getOriginalMessage,
@@ -147,7 +146,6 @@ import {
     buildOptimisticUnHoldReportAction,
     buildTransactionThread,
     canBeAutoReimbursed,
-    canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     doesReportReceiverMatchParticipant,
     findSelfDMReportID,
@@ -15180,56 +15178,53 @@ function addReportApprover(
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
 }
 
-function updateMultipleMoneyRequests(transactionIDs: string[], transactionChanges: TransactionChanges, policy: OnyxEntry<OnyxTypes.Policy>) {
+function updateMultipleMoneyRequests(
+    transactionIDs: string[],
+    transactionChanges: TransactionChanges,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    transactions: OnyxCollection<OnyxTypes.Transaction>,
+) {
     for (const transactionID of transactionIDs) {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
             return;
         }
 
         const transactionThreadReportID = transaction.reportID;
-        const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
-        const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
+        const transactionThread = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+        const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
         const isFromExpenseReport = isExpenseReport(iouReport);
 
-        // Get the report action to check if field is editable
-        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
-        const reportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
-
-        // Helper function to check if a field can be edited for this transaction
-        const canEditField = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
-            return canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, iouReport, policy);
-        };
-
         const updates: Record<string, string | number> = {};
-        if (transactionChanges.merchant && canEditField(CONST.EDIT_REQUEST_FIELD.MERCHANT)) {
+        if (transactionChanges.merchant) {
             updates.merchant = transactionChanges.merchant;
         }
-        if (transactionChanges.created && canEditField(CONST.EDIT_REQUEST_FIELD.DATE)) {
+        if (transactionChanges.created) {
             updates.created = transactionChanges.created;
         }
-        if (transactionChanges.amount && canEditField(CONST.EDIT_REQUEST_FIELD.AMOUNT)) {
-            updates.amount = isFromExpenseReport ? -Math.abs(transactionChanges.amount) : transactionChanges.amount;
-        }
-        if (transactionChanges.currency && canEditField(CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
+        if (transactionChanges.currency) {
             updates.currency = transactionChanges.currency;
         }
-        if (transactionChanges.category && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
+        if (transactionChanges.category) {
             updates.category = transactionChanges.category;
         }
-        if (transactionChanges.tag && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
+        if (transactionChanges.tag) {
             updates.tag = transactionChanges.tag;
         }
-        if (transactionChanges.comment && canEditField(CONST.EDIT_REQUEST_FIELD.DESCRIPTION)) {
+        if (transactionChanges.comment) {
             updates.comment = transactionChanges.comment;
         }
-        if (transactionChanges.taxCode && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
+        if (transactionChanges.taxCode) {
             updates.taxCode = transactionChanges.taxCode;
         }
-        if (transactionChanges.billable && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
+        if (transactionChanges.amount) {
+            updates.amount = isFromExpenseReport ? -Math.abs(transactionChanges.amount) : transactionChanges.amount;
+        }
+        if (transactionChanges.billable) {
             updates.state = transactionChanges.billable ? 3 : 4;
         }
-        if (transactionChanges.reimbursable && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
+        if (transactionChanges.reimbursable) {
             updates.state = transactionChanges.reimbursable ? 4 : 3;
         }
 
@@ -15339,8 +15334,8 @@ function updateMultipleMoneyRequests(transactionIDs: string[], transactionChange
  * Initializes the draft transaction for bulk editing multiple expenses
  */
 function initBulkEditDraftTransaction(currency: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
-        transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {
+        transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID,
         currency,
     });
 }
@@ -15349,14 +15344,14 @@ function initBulkEditDraftTransaction(currency: string) {
  * Clears the draft transaction used for bulk editing
  */
 function clearBulkEditDraftTransaction() {
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, null);
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, null);
 }
 
 /**
  * Updates the draft transaction for bulk editing multiple expenses
  */
 function updateBulkEditDraftTransaction(transactionChanges: Partial<OnyxTypes.Transaction>) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, transactionChanges);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, transactionChanges);
 }
 
 export {

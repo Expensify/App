@@ -14,7 +14,7 @@ type CurrentMoney = {amount: string; currency: string};
 
 function SearchEditMultipleAmountPage() {
     const {translate} = useLocalize();
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: true});
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
 
     const currency = draftTransaction?.currency ?? CONST.CURRENCY.USD;
     const amount = draftTransaction?.amount ?? 0;
