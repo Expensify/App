@@ -13,8 +13,8 @@ Admins can assign and manage all corporate cards — both assigned and unassigne
 
 1. Go to your workspaces.
 2. Select **[Workspace Name] > Company cards**.
-3. Locate the card you want to assign.
-4. Select the `Assign` option in the row.
+3. If you have multiple card feeds in your workspace, click the feed name at the top left to select the correct one.
+4. Click **Assign card** next to the card you want to assign. You can filter by card number or name above the card list to make it easier to find a specific card.
 5. Select which employee you want to assign the card to.
   - **Note:** If you're assigning a card to a new employee, or one without an Expensify account, you can invite them during card assignment. Please note that this may result in an increase in your bill depending on the number of available seats you have.
 6. Review the details to ensure it looks correct.
