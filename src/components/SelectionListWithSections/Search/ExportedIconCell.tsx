@@ -39,14 +39,14 @@ function ExportedIconCell({reportID}: ExportedIconCellProps) {
 
         if (isExportedToIntegrationAction(action)) {
             const label = getOriginalMessage(action)?.label;
-            isExportedToXero ||= label === CONST.EXPORT_LABELS.XERO;
-            isExportedToIntacct ||= label === CONST.EXPORT_LABELS.INTACCT;
-            isExportedToNetsuite ||= label === CONST.EXPORT_LABELS.NETSUITE;
-            isExportedToQuickbooksOnline ||= label === CONST.EXPORT_LABELS.QBO;
-            isExportedToQuickbooksDesktop ||= label === CONST.EXPORT_LABELS.QBD;
-            isExportedToZenefits ||= label === CONST.EXPORT_LABELS.ZENEFITS;
-            isExportedToBillCom ||= label === CONST.EXPORT_LABELS.BILLCOM;
-            isExportedToCertinia ||= label === CONST.EXPORT_LABELS.FINANCIALFORCE;
+            isExportedToXero = isExportedToXero || label === CONST.EXPORT_LABELS.XERO;
+            isExportedToIntacct = isExportedToIntacct || label === CONST.EXPORT_LABELS.INTACCT;
+            isExportedToNetsuite = isExportedToNetsuite || label === CONST.EXPORT_LABELS.NETSUITE;
+            isExportedToQuickbooksOnline = isExportedToQuickbooksOnline || label === CONST.EXPORT_LABELS.QBO;
+            isExportedToQuickbooksDesktop = isExportedToQuickbooksDesktop || label === CONST.EXPORT_LABELS.QBD;
+            isExportedToZenefits = isExportedToZenefits || label === CONST.EXPORT_LABELS.ZENEFITS;
+            isExportedToBillCom = isExportedToBillCom || label === CONST.EXPORT_LABELS.BILLCOM;
+            isExportedToCertinia = isExportedToCertinia || label === CONST.EXPORT_LABELS.FINANCIALFORCE;
         }
     }
 
