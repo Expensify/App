@@ -712,6 +712,10 @@ type BaseOptimisticMoneyRequestEntities = {
     linkedTrackedExpenseReportAction?: ReportAction;
     optimisticCreatedReportActionID?: string;
     reportActionID?: string;
+    /** Whether this is a selfDM split transaction */
+    isSelfDMSplit?: boolean;
+    /** The selfDM report ID for split transactions */
+    selfDMReportID?: string;
 };
 
 type OptimisticMoneyRequestEntities = BaseOptimisticMoneyRequestEntities & {shouldGenerateTransactionThreadReport?: boolean};
@@ -8874,6 +8878,8 @@ function buildOptimisticMoneyRequestEntities({
     optimisticCreatedReportActionID,
     shouldGenerateTransactionThreadReport = true,
     reportActionID,
+    isSelfDMSplit,
+    selfDMReportID,
 }: OptimisticMoneyRequestEntities): [
     OptimisticCreatedReportAction,
     OptimisticCreatedReportAction,
@@ -8911,6 +8917,20 @@ function buildOptimisticMoneyRequestEntities({
 
     // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
     iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread?.reportID;
+
+    // For selfDM split, modify iouAction and transaction thread
+    if (isSelfDMSplit && selfDMReportID) {
+        // Change type from "create" to "track" and update IOUReportID
+        if (iouAction.originalMessage && 'type' in iouAction.originalMessage) {
+            (iouAction.originalMessage as {type: string; IOUReportID: string}).type = CONST.IOU.REPORT_ACTION_TYPE.TRACK;
+            (iouAction.originalMessage as {type: string; IOUReportID: string}).IOUReportID = CONST.REPORT.UNREPORTED_REPORT_ID;
+        }
+        // Update transaction thread to point to selfDM report
+        if (transactionThread) {
+            transactionThread.parentReportID = selfDMReportID;
+            transactionThread.chatReportID = selfDMReportID;
+        }
+    }
 
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }

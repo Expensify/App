@@ -79,7 +79,13 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return canAddTransaction(report, isReportArchived);
 }
 
-function isSplitAction(report: OnyxEntry<Report>, reportTransactions: Array<OnyxEntry<Transaction>>, originalTransaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>): boolean {
+function isSplitAction(
+    report: OnyxEntry<Report>,
+    reportTransactions: Array<OnyxEntry<Transaction>>,
+    originalTransaction: OnyxEntry<Transaction>,
+    policy?: OnyxEntry<Policy>,
+    parentReport?: OnyxEntry<Report>,
+): boolean {
     if (Number(reportTransactions?.length) !== 1 || !report) {
         return false;
     }
@@ -101,7 +107,7 @@ function isSplitAction(report: OnyxEntry<Report>, reportTransactions: Array<Onyx
         return false;
     }
 
-    if (!isExpenseReportUtils(report)) {
+    if (!isExpenseReportUtils(report) && !(isSelfDMReportUtils(report) || isSelfDMReportUtils(parentReport))) {
         return false;
     }
 
@@ -111,6 +117,10 @@ function isSplitAction(report: OnyxEntry<Report>, reportTransactions: Array<Onyx
 
     if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
         return false;
+    }
+
+    if (isSelfDMReportUtils(report) || isSelfDMReportUtils(parentReport)) {
+        return true;
     }
 
     const isSubmitter = isCurrentUserSubmitter(report);
