@@ -6,12 +6,12 @@ import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import type BackgroundLocationPermissionsFlowProps from './types';
 
-async function requestForegroundPermissions(onSuccess: () => void, onError: () => void) {
+async function requestForegroundPermissions(onSuccess: () => Promise<void>, onError: () => void) {
     try {
         const {status, android} = await requestForegroundPermissionsAsync();
 
         if (status === PermissionStatus.GRANTED && android?.accuracy === 'fine') {
-            onSuccess();
+            await onSuccess();
         }
     } catch (e) {
         console.error('[GPS distance request] Failed to request foreground location permissions: ', e);
@@ -73,6 +73,19 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
 
     const onError = useCallback(() => setShouldShowPermissionsError(true), [setShouldShowPermissionsError]);
 
+    const onForegroundPermissionsGranted = async () => {
+        const {granted} = await getBackgroundPermissionsAsync();
+
+        // possible when foreground permissions request was to grant precise location and
+        // bg permissions were already granted
+        if (granted) {
+            onGrant();
+            return;
+        }
+
+        setShowBgPermissionsModal(true);
+    };
+
     useEffect(() => {
         if (!startPermissionsFlow) {
             return;
@@ -90,7 +103,7 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
                 onCancel={() => setShowFirstAskModal(false)}
                 onConfirm={() => {
                     setShowFirstAskModal(false);
-                    requestForegroundPermissions(() => setShowBgPermissionsModal(true), onError);
+                    requestForegroundPermissions(onForegroundPermissionsGranted, onError);
                 }}
                 confirmText={translate('gps.locationRequiredModal.allow')}
                 cancelText={translate('common.dismiss')}
