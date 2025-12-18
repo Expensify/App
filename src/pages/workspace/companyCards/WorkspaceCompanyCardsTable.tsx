@@ -11,7 +11,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardDefaultName} from '@libs/actions/Card';
 import {getCompanyFeeds, getPlaidInstitutionIconUrl, getPlaidInstitutionId, isCustomFeed, isMaskedCardNumberEqual} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,8 +54,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
 
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
 
-    const cardListTyped: Record<string, string> | undefined = (cardsList as {cardList?: Record<string, string>})?.cardList ?? {};
-    const assignedCards = Object.fromEntries(Object.entries(cardsList ?? {}).filter(([key]) => key !== 'cardList')) as Record<string, Card>;
+    const {cardList, ...assignedCards} = cardsList ?? {};
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
 
@@ -92,7 +90,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
                 if (isPlaid) {
                     cardIdentifier = cardName;
                 } else if (isCommercial) {
-                    const cardValue = cardListTyped?.[cardName] ?? cardName;
+                    const cardValue = cardList?.[cardName] ?? cardName;
                     const digitsOnly = cardValue.replaceAll(/\D/g, '');
                     if (digitsOnly.length >= 10) {
                         const first6 = digitsOnly.substring(0, 6);
@@ -102,7 +100,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
                         cardIdentifier = cardValue;
                     }
                 } else {
-                    cardIdentifier = cardListTyped?.[cardName] ?? cardName;
+                    cardIdentifier = cardList?.[cardName] ?? cardName;
                 }
             }
 
