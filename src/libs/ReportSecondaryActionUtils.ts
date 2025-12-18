@@ -1,4 +1,3 @@
-import {log} from 'console';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -590,7 +589,6 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
 
 function isMergeActionForSelectedTransactions(transactions: Transaction[], reports: Report[], policies: Policy[]) {
     if ([transactions, reports, policies].some((collection) => collection?.length > 2)) {
-        log('noppe');
         return false;
     }
 
@@ -602,7 +600,6 @@ function isMergeActionForSelectedTransactions(transactions: Transaction[], repor
         }
         const policy = policies.find((p) => p?.id === report?.policyID);
         if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
-            log('yes');
             return false;
         }
 
