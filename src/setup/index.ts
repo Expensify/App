@@ -6,6 +6,7 @@ import intlPolyfill from '@libs/IntlPolyfill';
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import addUtilsToWindow from './addUtilsToWindow';
 import platformSetup from './platformSetup';
@@ -15,6 +16,8 @@ const enableDevTools = Config?.USE_REDUX_DEVTOOLS ? Config.USE_REDUX_DEVTOOLS ==
 
 export default function () {
     telemetry();
+
+    IntlStore.init();
 
     toSortedPolyfill.shim();
 

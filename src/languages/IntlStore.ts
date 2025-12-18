@@ -1,5 +1,7 @@
 import {setDefaultOptions} from 'date-fns';
 import type {Locale as DateUtilsLocale} from 'date-fns';
+import {enGB} from 'date-fns/locale/en-GB';
+import {es as esDateLocale} from 'date-fns/locale/es';
 import Onyx from 'react-native-onyx';
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
 import {LOCALES} from '@src/CONST/LOCALES';
@@ -7,8 +9,8 @@ import type {Locale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type DynamicModule from '@src/types/utils/DynamicModule';
 import type de from './de';
-import type en from './en';
-import type es from './es';
+import en from './en';
+import es from './es';
 import flattenObject from './flattenObject';
 import type fr from './fr';
 import type it from './it';
@@ -44,6 +46,11 @@ class IntlStore {
      * Note that this can't be trivially DRYed up because dynamic imports must use string literals in metro: https://github.com/facebook/metro/issues/52
      */
     private static loaders: Record<Locale, () => Promise<[void, void]>> = {
+        // EN and ES are already in cache from static initializer
+        [LOCALES.EN]: () => Promise.all([Promise.resolve(), Promise.resolve()]),
+        [LOCALES.ES]: () => Promise.all([Promise.resolve(), Promise.resolve()]),
+
+        // Lazy-loaded locales
         [LOCALES.DE]: () =>
             this.cache.has(LOCALES.DE)
                 ? Promise.all([Promise.resolve(), Promise.resolve()])
@@ -53,28 +60,6 @@ class IntlStore {
                       }),
                       import('date-fns/locale/de').then((module) => {
                           this.dateUtilsCache.set(LOCALES.DE, module.de);
-                      }),
-                  ]),
-        [LOCALES.EN]: () =>
-            this.cache.has(LOCALES.EN)
-                ? Promise.all([Promise.resolve(), Promise.resolve()])
-                : Promise.all([
-                      import('./en').then((module: DynamicModule<typeof en>) => {
-                          this.cache.set(LOCALES.EN, flattenObject(extractModuleDefaultExport(module)));
-                      }),
-                      import('date-fns/locale/en-GB').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.EN, module.enGB);
-                      }),
-                  ]),
-        [LOCALES.ES]: () =>
-            this.cache.has(LOCALES.ES)
-                ? Promise.all([Promise.resolve(), Promise.resolve()])
-                : Promise.all([
-                      import('./es').then((module: DynamicModule<typeof es>) => {
-                          this.cache.set(LOCALES.ES, flattenObject(extractModuleDefaultExport(module)));
-                      }),
-                      import('date-fns/locale/es').then((module) => {
-                          this.dateUtilsCache.set(LOCALES.ES, module.es);
                       }),
                   ]),
         [LOCALES.FR]: () =>
@@ -160,24 +145,43 @@ class IntlStore {
         return this.currentLocale;
     }
 
+    /**
+     * Initialize EN and ES translations.
+     */
+    public static init() {
+        if (this.cache.has(LOCALES.EN)) {
+            return;
+        }
+        this.cache.set(LOCALES.EN, flattenObject(en));
+        this.cache.set(LOCALES.ES, flattenObject(es));
+        this.dateUtilsCache.set(LOCALES.EN, enGB);
+        this.dateUtilsCache.set(LOCALES.ES, esDateLocale);
+    }
+
     public static load(locale: Locale) {
         if (this.currentLocale === locale) {
             return Promise.resolve();
         }
-        const loaderPromise = this.loaders[locale];
+
+        const applyLocale = () => {
+            this.currentLocale = locale;
+            const dateUtilsLocale = this.dateUtilsCache.get(locale);
+            if (dateUtilsLocale) {
+                setDefaultOptions({locale: dateUtilsLocale});
+            }
+        };
+
+        if (this.cache.has(locale)) {
+            applyLocale();
+            setAreTranslationsLoading(false);
+            return Promise.resolve();
+        }
+
         setAreTranslationsLoading(true);
-        return loaderPromise()
-            .then(() => {
-                this.currentLocale = locale;
-                // Set the default date-fns locale
-                const dateUtilsLocale = this.dateUtilsCache.get(locale);
-                if (dateUtilsLocale) {
-                    setDefaultOptions({locale: dateUtilsLocale});
-                }
-            })
-            .then(() => {
-                setAreTranslationsLoading(false);
-            });
+        return this.loaders[locale]().then(() => {
+            applyLocale();
+            setAreTranslationsLoading(false);
+        });
     }
 
     public static get<TPath extends TranslationPaths>(key: TPath, locale?: Locale) {
