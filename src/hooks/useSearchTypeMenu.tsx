@@ -34,7 +34,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {hash, similarSearchHash} = queryJSON;
     const shouldSkipSuggestedSearchNavigation = useMemo(
         () => shouldSkipSuggestedSearchNavigationForQuery(queryJSON),
-        [queryJSON.flatFilters, queryJSON.rawFilterList, queryJSON.inputQuery, queryJSON.type],
+        [queryJSON],
     );
 
     const theme = useTheme();
