@@ -242,11 +242,7 @@ function IOURequestEditReportCommon({
                 return !customUnitID || !destinationPolicy?.customUnits?.[customUnitID];
             });
 
-            if (invalidPerDiemTransaction) {
-                return false;
-            }
-
-            return true;
+            return !invalidPerDiemTransaction;
         },
         [transactionIDs, allPolicies, allTransactions],
     );
@@ -255,7 +251,14 @@ function IOURequestEditReportCommon({
         if (transactionIDs?.length === 0) {
             return false;
         }
-
+        if (isPerDiemRequest) {
+            const canTransactionsBeMoved = checkIfPerDiemTransactionsCanBeMoved(policyID);
+            if (canTransactionsBeMoved) {
+                return true;
+            }
+            setPerDiemWarningModalVisible(true);
+            return false;
+        }
         return true;
     };
 
