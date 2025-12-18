@@ -683,6 +683,8 @@ const translations = {
         actionRequired: 'Action required',
         duplicate: 'Duplicate',
         duplicated: 'Duplicated',
+        reimbursableTotal: 'Reimbursable total',
+        nonReimbursableTotal: 'Non-reimbursable total',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1019,6 +1021,7 @@ const translations = {
         manual: 'Manual',
         scan: 'Scan',
         map: 'Map',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Upload a spreadsheet',

@@ -692,6 +692,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: '対応が必要',
         duplicate: '複製',
         duplicated: '重複',
+        reimbursableTotal: '経費精算対象の合計',
+        nonReimbursableTotal: '非払い戻し合計',
         originalAmount: '元の金額',
     },
     supportalNoAccess: {
@@ -1035,6 +1037,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: '手動',
         scan: 'スキャン',
         map: '地図',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'スプレッドシートをアップロード',

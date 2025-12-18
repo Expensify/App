@@ -693,6 +693,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Wymagane działanie',
         duplicate: 'Duplikat',
         duplicated: 'Zduplikowano',
+        reimbursableTotal: 'Łączna kwota podlegająca zwrotowi',
+        nonReimbursableTotal: 'Suma niepodlegająca zwrotowi',
         originalAmount: 'Kwota pierwotna',
     },
     supportalNoAccess: {
@@ -1035,6 +1037,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Ręczny',
         scan: 'Skanuj',
         map: 'Mapa',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Prześlij arkusz kalkulacyjny',

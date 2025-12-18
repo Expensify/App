@@ -151,6 +151,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
@@ -243,7 +244,7 @@ type ContextMenuActionWithContent = {
     renderContent: RenderContent;
 };
 
-type ContextMenuActionWithIcon = {
+type ContextMenuActionWithIcon = WithSentryLabel & {
     textTranslateKey: TranslationPaths;
     icon:
         | IconAsset
@@ -274,7 +275,6 @@ type ContextMenuActionWithIcon = {
           >;
     onPress: OnPress;
     getDescription: GetDescription;
-    sentryLabel?: string;
 };
 
 type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIcon) & {
@@ -993,7 +993,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isUploading = html.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE);
             return isAttachment && !isUploading && !!reportAction?.reportActionID && !isMessageDeleted(reportAction) && !isOffline;
         },
-        onPress: (closePopover, {reportAction}) => {
+        onPress: (closePopover, {reportAction, translate}) => {
             const html = getActionHtml(reportAction);
             const {originalFileName, sourceURL} = getAttachmentDetails(html);
             const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '');
@@ -1001,7 +1001,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             setDownload(sourceID, true);
             const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
             const isAnchorTag = anchorRegex.test(html);
-            fileDownload(sourceURLWithAuth, originalFileName ?? '', '', isAnchorTag && isMobileSafari()).then(() => setDownload(sourceID, false));
+            fileDownload(translate, sourceURLWithAuth, originalFileName ?? '', '', isAnchorTag && isMobileSafari()).then(() => setDownload(sourceID, false));
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
