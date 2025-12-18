@@ -43,5 +43,4 @@ function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseEr
     );
 }
 
-BaseErrorBoundary.displayName = 'BaseErrorBoundary';
 export default BaseErrorBoundary;

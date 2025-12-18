@@ -46,8 +46,8 @@ function CardSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History']);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
@@ -276,7 +276,5 @@ function CardSection() {
         </>
     );
 }
-
-CardSection.displayName = 'CardSection';
 
 export default CardSection;

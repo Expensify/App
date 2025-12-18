@@ -90,7 +90,5 @@ function QRCode({
     );
 }
 
-QRCode.displayName = 'QRCode';
-
 export default QRCode;
 export type {QRCodeLogoMarginRatio, QRCodeLogoRatio};
