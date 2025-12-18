@@ -13,10 +13,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import StatusCell from './StatusCell';
@@ -244,7 +244,7 @@ function ExpenseReportListItemRow({
                     </View>
                     <View style={[styles.flexShrink0, styles.flexColumn, styles.alignItemsEnd, styles.gap1]}>
                         <TotalCell
-                            total={reportTotal}
+                            total={totalDisplaySpend}
                             currency={currency}
                         />
                     </View>
