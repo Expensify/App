@@ -28,7 +28,9 @@ function SearchColumnsPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
+    const groupBy = searchAdvancedFiltersForm?.groupBy;
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+
     const allCustomColumns = getCustomColumns(queryType);
     const defaultCustomColumns = getCustomColumnDefault(queryType);
 

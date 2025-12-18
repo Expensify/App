@@ -2471,9 +2471,9 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
-function getCustomColumns(type: SearchDataTypes): SearchCustomColumnIds[] {
+function getCustomColumns(value: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     // eslint-disable-next-line default-case
-    switch (type) {
+    switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
@@ -2486,12 +2486,18 @@ function getCustomColumns(type: SearchDataTypes): SearchCustomColumnIds[] {
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TRIP);
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.CHAT);
+        case CONST.SEARCH.GROUP_BY.CARD:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD);
+        case CONST.SEARCH.GROUP_BY.FROM:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM);
+        case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID);
     }
 }
 
-function getCustomColumnDefault(type: SearchDataTypes): SearchCustomColumnIds[] {
+function getCustomColumnDefault(value: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     // eslint-disable-next-line default-case
-    switch (type) {
+    switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE;
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
@@ -2504,6 +2510,12 @@ function getCustomColumnDefault(type: SearchDataTypes): SearchCustomColumnIds[] 
             return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.TRIP;
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.CHAT;
+        case CONST.SEARCH.GROUP_BY.CARD:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CARD;
+        case CONST.SEARCH.GROUP_BY.FROM:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.FROM;
+        case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID;
     }
 }
 
