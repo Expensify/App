@@ -14,6 +14,8 @@ jobs:
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          fetch-depth: 0
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -25,8 +27,9 @@ jobs:
 
       - name: Get common ancestor commit
         run: |
-            git fetch origin main --depth=1
-            echo "COMMIT_HASH=$(git rev-parse origin/main)" >> "$GITHUB_ENV"
+            git fetch origin main
+            common_ancestor=$(git merge-base "${{ github.sha }}" origin/main)
+            echo "COMMIT_HASH=$common_ancestor" >> "$GITHUB_ENV"
 
       - name: Clean up deleted files
         run: |
@@ -61,14 +64,17 @@ jobs:
           set -e
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
-
-          # Run baseline tests on main FIRST (reassure requires this order)
+          
           git checkout --force --detach "origin/$BASELINE_BRANCH" --no-recurse-submodules
           npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
-
-          # Run branch tests SECOND - this generates output.json with comparison
+          
           git checkout --force --detach "${PR_SHA:-${GITHUB_SHA}}" --no-recurse-submodules
+          
+          if ! git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours; then
+            git checkout --ours .
+          fi
+          
           npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
 
