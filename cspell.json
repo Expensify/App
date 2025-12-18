@@ -1,5 +1,10 @@
 {
     "language": "en",
+    "enableGlobDot": false,
+    "cache": {
+        "useCache": true,
+        "cacheLocation": ".cspellcache"
+    },
     "words": [
         "--longpress",
         "abytes",
