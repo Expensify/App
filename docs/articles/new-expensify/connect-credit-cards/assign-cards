@@ -8,18 +8,6 @@ keywords: [New Expensify, corporate cards, bulk assignment, card feed, workspace
 
 Admins can assign and manage all corporate cards — both assigned and unassigned — from a single streamlined view in New Expensify. Updating in bulk makes it easier and faster to assign cards, especially when managing dozens or hundreds at once.
 
-# Manage Cards from a Central Table (Release 1)
-
-We've redesigned the **Workspace cards** page to reduce manual work and improve visibility.
-
-## What’s New
-
-We’ve made it easier to filter, search, and sort cards — especially helpful for large card programs.
-
-- **Unified view**: See all corporate cards (assigned and unassigned) in one table.
-- **Quick individual assignment**: Assign cards directly from each card’s row.
-- **Streamlined flow**: The card assignment process now takes fewer steps.
-- **Assignment feedback**: Real-time feedback if a card fails to assign properly.
 
 ## How to assign a card
 
