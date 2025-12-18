@@ -2502,7 +2502,7 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 /**
- * @deprecated Use isTrackExpenseReportNew function instead
+ * @warning Use isTrackExpenseReportNew function instead
  *
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
@@ -2869,6 +2869,7 @@ function getAddExpenseDropdownOptions(
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             text: translateLocal('iou.createExpense'),
             icon: Expensicons.Plus,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
             onSelected: () => {
                 if (!iouReportID) {
                     return;
@@ -2885,6 +2886,7 @@ function getAddExpenseDropdownOptions(
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             text: translateLocal('iou.trackDistance'),
             icon: icons.Location,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
             onSelected: () => {
                 if (!iouReportID) {
                     return;
@@ -2901,6 +2903,7 @@ function getAddExpenseDropdownOptions(
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             text: translateLocal('iou.addUnreportedExpense'),
             icon: Expensicons.ReceiptPlus,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED,
             onSelected: () => {
                 if (policy && shouldRestrictUserBillableActions(policy.id)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -4974,10 +4977,6 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
 };
 
 const rejectMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void => {
-    if (!Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_REJECT, allBetas)) {
-        return;
-    }
-
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -6366,6 +6365,19 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
     const rootState = navigationRef.current?.getRootState();
     const lastFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
     if (lastFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+        const searchFullScreenRoutes = rootState?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+        const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
+        if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
+            const lastRouteParams = lastRoute?.params;
+            const newBackRoute = lastRouteParams && 'backTo' in lastRouteParams ? lastRouteParams?.backTo : undefined;
+            if (isFromRHP) {
+                Navigation.dismissModal();
+            }
+            Navigation.isNavigationReady().then(() => {
+                Navigation.goBack(newBackRoute as Route);
+            });
+            return;
+        }
         Navigation.dismissModal();
         return;
     }
@@ -10223,12 +10235,7 @@ function getOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
  */
 function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): ReportOfflinePendingActionAndErrors {
     // It shouldn't be possible for all of these actions to be pending (or to have errors) for the same report at the same time, so just take the first that exists
-    const reportPendingAction =
-        report?.pendingFields?.addWorkspaceRoom ??
-        report?.pendingFields?.createChat ??
-        report?.pendingFields?.reimbursed ??
-        report?.pendingFields?.createReport ??
-        report?.pendingFields?.reportName;
+    const reportPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat ?? report?.pendingFields?.createReport ?? report?.pendingFields?.reportName;
     const reportErrors = getCreationReportErrors(report);
     return {reportPendingAction, reportErrors};
 }
@@ -10797,16 +10804,18 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonR
  * - The action is a whisper action and it's neither a report preview nor IOU action
  * - The action is the thread's first chat
  */
-function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string, isThreadReportParentAction: boolean, isReportArchived = false): boolean {
+function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, isThreadReportParentAction: boolean, isReportArchived = false): boolean {
     const isSplitBillAction = isSplitBillReportAction(reportAction);
     const isDeletedActionLocal = isDeletedAction(reportAction);
     const isReportPreviewActionLocal = isReportPreviewAction(reportAction);
     const isIOUAction = isMoneyRequestAction(reportAction);
     const isWhisperActionLocal = isWhisperAction(reportAction) || isActionableTrackExpense(reportAction);
     const isActionDisabled = CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName);
+    const isManagerMcTestOwner = reportAction?.actorAccountID === CONST.ACCOUNT_ID.MANAGER_MCTEST;
 
     return (
         isActionDisabled ||
+        isManagerMcTestOwner ||
         isSplitBillAction ||
         (isDeletedActionLocal && !reportAction?.childVisibleActionCount) ||
         (isReportArchived && !reportAction?.childVisibleActionCount) ||
@@ -12660,10 +12669,6 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
 }
 
 function canRejectReportAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
-    if (!Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_REJECT, allBetas)) {
-        return false;
-    }
-
     const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const isReportBeingProcessed = isProcessingReport(report);
     const isIOU = isIOUReport(report);

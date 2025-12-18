@@ -43,6 +43,4 @@ function RNMaskedTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS
     );
 }
 
-RNMaskedTextInputWithRef.displayName = 'RNMaskedTextInputWithRef';
-
 export default RNMaskedTextInputWithRef;

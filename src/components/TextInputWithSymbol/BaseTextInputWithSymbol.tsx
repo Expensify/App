@@ -90,6 +90,4 @@ function BaseTextInputWithSymbol({
     );
 }
 
-BaseTextInputWithSymbol.displayName = 'BaseTextInputWithSymbol';
-
 export default BaseTextInputWithSymbol;

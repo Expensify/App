@@ -17,7 +17,7 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
 
     useEffect(() => {
         if (hasDeniedContactImportPrompt) {
@@ -87,7 +87,5 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
         />
     );
 }
-
-ContactPermissionModal.displayName = 'ContactPermissionModal';
 
 export default ContactPermissionModal;

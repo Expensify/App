@@ -53,7 +53,7 @@ import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} fro
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getDefaultTaxCode} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -189,7 +189,7 @@ function IOURequestStepScan({
                 setCameraPermissionStatus(status);
 
                 if (status === RESULTS.BLOCKED) {
-                    showCameraPermissionsAlert();
+                    showCameraPermissionsAlert(translate);
                 }
             })
             .catch(() => {
@@ -615,15 +615,18 @@ function IOURequestStepScan({
             return;
         }
 
+        if (!isMultiScanEnabled) {
+            removeDraftTransactions(true);
+        }
+
         for (const [index, file] of files.entries()) {
-            const transaction =
-                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && (!initialTransaction?.receipt?.source || initialTransaction?.receipt?.isTestReceipt))
-                    ? (initialTransaction as Partial<Transaction>)
-                    : buildOptimisticTransactionAndCreateDraft({
-                          initialTransaction: initialTransaction as Partial<Transaction>,
-                          currentUserPersonalDetails,
-                          reportID,
-                      });
+            const transaction = shouldReuseInitialTransaction(initialTransaction, shouldAcceptMultipleFiles, index, isMultiScanEnabled, transactions)
+                ? (initialTransaction as Partial<Transaction>)
+                : buildOptimisticTransactionAndCreateDraft({
+                      initialTransaction: initialTransaction as Partial<Transaction>,
+                      currentUserPersonalDetails,
+                      reportID,
+                  });
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
             newReceiptFiles.push({file, source: file.uri ?? '', transactionID});
@@ -799,7 +802,7 @@ function IOURequestStepScan({
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper={!!backTo || isEditing}
-            testID={IOURequestStepScan.displayName}
+            testID="IOURequestStepScan"
         >
             <View
                 style={styles.flex1}
@@ -998,8 +1001,6 @@ function IOURequestStepScan({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepScan.displayName = 'IOURequestStepScan';
 
 const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScan);
 // eslint-disable-next-line rulesdir/no-negated-variables

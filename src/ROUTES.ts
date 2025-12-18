@@ -1256,6 +1256,11 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-manual` as const,
     },
+    DISTANCE_REQUEST_CREATE_TAB_GPS: {
+        route: 'distance-gps',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-gps` as const,
+    },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
     IOU_SEND_ENABLE_PAYMENTS: 'pay/new/enable-payments',
@@ -1922,6 +1927,10 @@ const ROUTES = {
     WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
         route: 'workspaces/:policyID/category/:categoryName/require-receipts-over',
         getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
+    },
+    WORKSPACE_CATEGORY_REQUIRED_FIELDS: {
+        route: 'workspaces/:policyID/category/:categoryName/required-fields',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/required-fields` as const,
     },
     WORKSPACE_CATEGORY_APPROVER: {
         route: 'workspaces/:policyID/category/:categoryName/approver',
@@ -3451,6 +3460,18 @@ const ROUTES = {
     DOMAIN_ADMINS: {
         route: 'domain/:domainAccountID/admins',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins` as const,
+    },
+    DOMAIN_ADMIN_DETAILS: {
+        route: 'domain/:domainAccountID/admins/:accountID',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}` as const,
+    },
+    DOMAIN_ADMINS_SETTINGS: {
+        route: 'domain/:domainAccountID/admins/settings',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings` as const,
+    },
+    DOMAIN_ADD_PRIMARY_CONTACT: {
+        route: 'domain/:domainAccountID/admins/settings/primary-contact',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings/primary-contact` as const,
     },
 } as const;
 

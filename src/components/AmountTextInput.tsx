@@ -113,6 +113,4 @@ function AmountTextInput({
     );
 }
 
-AmountTextInput.displayName = 'AmountTextInput';
-
 export default AmountTextInput;

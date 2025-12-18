@@ -73,12 +73,11 @@ function MoneyReportHeaderKYCDropdown({
                     isSplitButton={false}
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
                     shouldUseModalPaddingStyle
+                    sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
                 />
             )}
         </KYCWall>
     );
 }
-
-MoneyReportHeaderKYCDropdown.displayName = 'MoneyReportHeaderKYCDropdown';
 
 export default memo(MoneyReportHeaderKYCDropdown);

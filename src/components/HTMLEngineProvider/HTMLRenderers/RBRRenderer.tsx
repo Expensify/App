@@ -32,6 +32,4 @@ function RBRRenderer({tnode, style}: CustomRendererProps<TText | TPhrasing>) {
     );
 }
 
-RBRRenderer.displayName = 'RBRRenderer';
-
 export default RBRRenderer;
