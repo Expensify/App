@@ -169,13 +169,6 @@ function IOURequestEditReportCommon({
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .filter((report) => {
-                if (isPerDiemRequest && report?.policyID && selectedReportID !== report?.reportID) {
-                    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                    return canSubmitPerDiemExpenseFromWorkspace(policy);
-                }
-                return true;
-            })
-            .filter((report) => {
                 if (canAddTransaction(report, undefined, true)) {
                     return true;
                 }
