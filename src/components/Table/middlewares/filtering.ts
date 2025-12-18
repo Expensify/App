@@ -1,16 +1,39 @@
 import {useState} from 'react';
 import type {Middleware, MiddlewareHookResult} from './types';
 
+/**
+ * Configuration for a single table filter.
+ *
+ * @template FilterKey - The type of filter keys.
+ */
 type FilterConfigEntry = {
     filterType?: 'multi-select' | 'single-select';
     options: Array<{label: string; value: string}>;
     default?: string;
 };
 
+/**
+ * Configuration for table filters.
+ *
+ * @template FilterKey - The type of filter keys.
+ */
 type FilterConfig<FilterKey extends string = string> = Record<FilterKey, FilterConfigEntry>;
 
+/**
+ * Callback to check if an item matches a filter.
+ *
+ * @template T - The type of items in the data array.
+ * @param item - The item to check.
+ * @param filters - The filters to check against.
+ * @returns True if the item matches the filters, false otherwise.
+ */
 type IsItemInFilterCallback<T> = (item: T, filters: string[]) => boolean;
 
+/**
+ * Methods exposed by the table to control filtering.
+ *
+ * @template FilterKey - The type of filter keys.
+ */
 type FilteringMethods<FilterKey extends string = string> = {
     /** Callback to update a filter value. */
     updateFilter: (params: {key: FilterKey; value: unknown}) => void;
@@ -19,15 +42,36 @@ type FilteringMethods<FilterKey extends string = string> = {
     getActiveFilters: () => Record<FilterKey, unknown>;
 };
 
+/**
+ * Props for the filtering middleware.
+ *
+ * @template T - The type of items in the data array.
+ * @template FilterKey - The type of filter keys.
+ */
 type UseFilteringProps<T, FilterKey extends string = string> = {
     filters?: FilterConfig<FilterKey>;
     isItemInFilter?: IsItemInFilterCallback<T>;
 };
 
+/**
+ * Result returned by the filtering middleware.
+ *
+ * @template T - The type of items in the data array.
+ * @template FilterKey - The type of filter keys.
+ */
 type UseFilteringResult<T, FilterKey extends string = string> = MiddlewareHookResult<T, FilteringMethods<FilterKey>> & {
     currentFilters: Record<FilterKey, unknown>;
 };
 
+/**
+ * Provides functionality to filter table data.
+ *
+ * @template T - The type of items in the data array.
+ * @template FilterKey - The type of filter keys.
+ * @param filters - The filters to use.
+ * @param isItemInFilter - The callback to check if an item matches a filter.
+ * @returns The result of the filtering middleware.
+ */
 function useFiltering<T, FilterKey extends string = string>({filters, isItemInFilter}: UseFilteringProps<T, FilterKey>): UseFilteringResult<T, FilterKey> {
     const [currentFilters, setCurrentFilters] = useState<Record<FilterKey, unknown>>(() => {
         const initialFilters = {} as Record<FilterKey, unknown>;
@@ -41,13 +85,6 @@ function useFiltering<T, FilterKey extends string = string>({filters, isItemInFi
         return initialFilters;
     });
 
-    /**
-     * Wrapper that widens FilterKey to string for the context.
-     * The assertion is safe here because:
-     * 1. The context needs to work with any filter key at runtime (widened to string)
-     * 2. The filtering middleware validates keys against the filterConfig at runtime
-     * 3. This is the boundary between the generic Table<FilterKey> and the non-generic context
-     */
     const updateFilter: FilteringMethods<FilterKey>['updateFilter'] = ({key, value}) => {
         setCurrentFilters((previousFilters) => ({
             ...previousFilters,
@@ -69,6 +106,12 @@ function useFiltering<T, FilterKey extends string = string>({filters, isItemInFi
     return {middleware, currentFilters, methods};
 }
 
+/**
+ * Parameters for the filtering middleware.
+ *
+ * @template T - The type of items in the data array.
+ * @template FilterKey - The type of filter keys.
+ */
 type FilteringMiddlewareParams<T, FilterKey extends string = string> = {
     data: T[];
     filters?: FilterConfig<FilterKey>;
@@ -76,6 +119,17 @@ type FilteringMiddlewareParams<T, FilterKey extends string = string> = {
     isItemInFilter?: IsItemInFilterCallback<T>;
 };
 
+/**
+ * Filters table data based on the current filters.
+ *
+ * @template T - The type of items in the data array.
+ * @template FilterKey - The type of filter keys.
+ * @param data - The data to filter.
+ * @param filters - The filters to use.
+ * @param currentFilters - The current filters.
+ * @param isItemInFilter - The callback to check if an item matches a filter.
+ * @returns The filtered data.
+ */
 function filter<T, FilterKey extends string = string>({data, filters, currentFilters, isItemInFilter}: FilteringMiddlewareParams<T, FilterKey>): T[] {
     if (!filters) {
         // No filters configured, return original data.

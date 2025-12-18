@@ -5,6 +5,11 @@ import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopu
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {FilterConfig, FilterConfigEntry} from '@components/Table/middlewares/filtering';
 
+/**
+ * A single filter button item.
+ *
+ * @template FilterKey - The type of filter keys.
+ */
 type FilterButtonItem<FilterKey extends string = string> = {
     key: FilterKey;
     label: string;
@@ -12,6 +17,16 @@ type FilterButtonItem<FilterKey extends string = string> = {
     PopoverComponent: (props: PopoverComponentProps) => React.ReactNode;
 };
 
+/**
+ * Builds filter button items from a filter configuration.
+ *
+ * @template FilterKey - The type of filter keys.
+ * @param filterConfigs - The filter configuration.
+ * @param filters - The current filters.
+ * @param setFilter - The function to set a filter.
+ * @param filtersLabel - The label to display for the filters.
+ * @returns The filter button items.
+ */
 function buildFilterItems<FilterKey extends string = string>(
     filterConfigs: FilterConfig<FilterKey> | undefined,
     filters: Record<string, unknown>,
@@ -69,6 +84,16 @@ function buildFilterItems<FilterKey extends string = string>(
     });
 }
 
+/**
+ * Creates a popover component for a filter.
+ *
+ * @template FilterKey - The type of filter keys.
+ * @param filterKey - The key of the filter.
+ * @param filterConfig - The filter configuration.
+ * @param currentFilterValue - The current filter value.
+ * @param setFilter - The function to set a filter.
+ * @returns The popover component.
+ */
 function createPopoverComponent<FilterKey extends string = string>(
     filterKey: FilterKey,
     filterConfig: FilterConfigEntry,
@@ -82,6 +107,11 @@ function createPopoverComponent<FilterKey extends string = string>(
     return createSingleSelectPopover({filterKey, filterConfig, currentFilterValue, setFilter});
 }
 
+/**
+ * Props for the multi-select popover factory.
+ *
+ * @template FilterKey - The type of filter keys.
+ */
 type MultiSelectPopoverFactoryProps<FilterKey extends string = string> = {
     filterKey: FilterKey;
     filterConfig: FilterConfigEntry;
@@ -89,6 +119,16 @@ type MultiSelectPopoverFactoryProps<FilterKey extends string = string> = {
     setFilter: (key: FilterKey, value: unknown) => void;
 };
 
+/**
+ * Creates a multi-select popover component.
+ *
+ * @template FilterKey - The type of filter keys.
+ * @param filterKey - The key of the filter.
+ * @param filterConfig - The filter configuration.
+ * @param currentFilterValue - The current filter value.
+ * @param setFilter - The function to set a filter.
+ * @returns The multi-select popover component.
+ */
 function createMultiSelectPopover<FilterKey extends string = string>({filterKey, filterConfig, currentFilterValue, setFilter}: MultiSelectPopoverFactoryProps<FilterKey>) {
     return ({closeOverlay}: PopoverComponentProps) => {
         const currentValueArray = Array.isArray(currentFilterValue) ? currentFilterValue : [];
@@ -117,6 +157,11 @@ function createMultiSelectPopover<FilterKey extends string = string>({filterKey,
     };
 }
 
+/**
+ * Props for the single-select popover factory.
+ *
+ * @template FilterKey - The type of filter keys.
+ */
 type SingleSelectPopoverFactoryProps<FilterKey extends string = string> = {
     filterKey: FilterKey;
     filterConfig: FilterConfigEntry;
@@ -124,6 +169,16 @@ type SingleSelectPopoverFactoryProps<FilterKey extends string = string> = {
     setFilter: (key: string, value: unknown) => void;
 };
 
+/**
+ * Creates a single-select popover component.
+ *
+ * @template FilterKey - The type of filter keys.
+ * @param filterKey - The key of the filter.
+ * @param filterConfig - The filter configuration.
+ * @param currentFilterValue - The current filter value.
+ * @param setFilter - The function to set a filter.
+ * @returns The single-select popover component.
+ */
 function createSingleSelectPopover<FilterKey extends string = string>({filterKey, filterConfig, currentFilterValue, setFilter}: SingleSelectPopoverFactoryProps<FilterKey>) {
     return ({closeOverlay}: PopoverComponentProps) => {
         const foundOption = filterConfig.options.find((option) => option.value === currentFilterValue);
@@ -149,6 +204,13 @@ function createSingleSelectPopover<FilterKey extends string = string>({filterKey
     };
 }
 
+/**
+ * Gets the display value for a filter.
+ *
+ * @param filterConfig - The filter configuration.
+ * @param currentFilterValue - The current filter value.
+ * @returns The display value.
+ */
 function getDisplayValue(filterConfig: FilterConfigEntry, currentFilterValue: unknown): string | string[] | null {
     if (currentFilterValue === undefined || currentFilterValue === null) {
         return null;

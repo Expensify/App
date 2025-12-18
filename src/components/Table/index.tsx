@@ -54,12 +54,16 @@ import TableSearchBar from './TableSearchBar';
 const Table = Object.assign(TableComponent, {
     /** The React context for accessing table state directly. */
     Context: TableContext,
+
     /** Renders sortable column headers. */
     Header: TableHeader,
+
     /** Renders data rows using FlashList. */
     Body: TableBody,
+
     /** Renders dropdown filter buttons. */
     FilterButtons: TableFilterButtons,
+
     /** Renders a search input. */
     SearchBar: TableSearchBar,
 });
