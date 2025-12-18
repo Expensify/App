@@ -12,16 +12,18 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getBase62ReportID from '@libs/getBase62ReportID';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import StatusCell from './StatusCell';
-import TitleCell from './TitleCell';
+import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 import UserInfoCell from './UserInfoCell';
+import WorkspaceCell from './WorkspaceCell';
 
 type ExpenseReportListItemRowProps = {
     item: ExpenseReportListItemType;
@@ -60,7 +62,7 @@ function ExpenseReportListItemRow({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const {total, currency} = useMemo(() => {
         let reportTotal = item.total ?? 0;
@@ -78,11 +80,41 @@ function ExpenseReportListItemRow({
         return {total: reportTotal, currency: reportCurrency};
     }, [item.type, item.total, item.currency]);
 
+    const nonReimbursableTotal = item.nonReimbursableTotal ?? 0;
+    const reimbursableTotal = total - nonReimbursableTotal;
+
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                 <DateCell
                     date={item.created ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, false, false, false, false, item.shouldShowYearSubmitted)]}>
+                <DateCell
+                    date={item.submitted ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, false, item.shouldShowYearApproved)]}>
+                <DateCell
+                    date={item.approved ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, false, item.shouldShowYearExported)]}>
+                <DateCell
+                    date={item.exported ?? ''}
                     showTooltip
                     isLargeScreenWidth
                 />
@@ -98,7 +130,7 @@ function ExpenseReportListItemRow({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
-                <TitleCell
+                <TextCell
                     text={item.reportName ?? ''}
                     isLargeScreenWidth={isLargeScreenWidth}
                 />
@@ -126,12 +158,38 @@ function ExpenseReportListItemRow({
                 )}
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+                <TotalCell
+                    total={reimbursableTotal}
+                    currency={currency}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+                <TotalCell
+                    total={nonReimbursableTotal}
+                    currency={currency}
+                />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
                 <TotalCell
                     total={total}
                     currency={currency}
                 />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
+                <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : item.reportID} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}>
+                <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(item.reportID))} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
@@ -145,6 +203,14 @@ function ExpenseReportListItemRow({
                     reportID={item.reportID}
                     hash={item.hash}
                     amount={item.total}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}>
+                <WorkspaceCell
+                    policyID={item.policyID}
+                    report={item}
                 />
             </View>
         ),
@@ -244,7 +310,5 @@ function ExpenseReportListItemRow({
         </View>
     );
 }
-
-ExpenseReportListItemRow.displayName = 'ExpenseReportListItemRow';
 
 export default ExpenseReportListItemRow;
