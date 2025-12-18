@@ -6,7 +6,7 @@ keywords: [New Expensify, tax rates, VAT, GST, QST, PST, expense tax codes, fore
 
 Workspaces on **Collect** and **Control** plans can add tax rates to track VAT, GST, or other regional taxes. Tax rates are applied by default based on currency, but can also be manually selected per expense.
 
-**Note:** You can only manage tax rates directly in Expensify if your workspace does not use a direct accounting integration (like QuickBooks, Xero, or NetSuite). If your workspace is connected to an integration, tax rates must be managed within that system.
+**Note:** If your workspace uses a direct accounting integration (like QuickBooks, Xero, or NetSuite), you must manage tax rates within that system, not in Expensify.
 
 ---
 
@@ -93,7 +93,7 @@ If your receipt includes more than one tax rate, there are two ways you can hand
 
 You'll have the option to change the tax rate from within the expense as needed.
 
-## What should I do if the tax amount for my expense does not show up, or is it showing as a different amount than what I expected? 
+## What should I do if the tax amount on my expense is missing or incorrect?
 
 In Expensify, tax is *inclusive*, meaning it's already part of the total amount shown. If the tax amount doesn't show up on your receipt or is different from the calculated amount, you can manually type in the correct amount.
 
