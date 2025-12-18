@@ -2858,18 +2858,16 @@ function getColumnsToShow(
             return defaultReportColumns;
         }
 
-        // If the user has set custom columns, use their order with required columns
+        // If the user has set custom columns, use their order then add required columns
         const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
         const result: SearchColumnType[] = [];
 
-        // Add required columns that aren't in visibleColumns at the start
         for (const col of requiredColumns) {
             if (!visibleColumns.includes(col as SearchCustomColumnIds)) {
                 result.push(col);
             }
         }
 
-        // Add visible columns in their order
         for (const col of visibleColumns) {
             result.push(col);
         }
@@ -2942,7 +2940,6 @@ function getColumnsToShow(
             }
         }
 
-        // Add visible columns in their order
         for (const col of visibleColumns) {
             result.push(col);
         }
@@ -3010,7 +3007,6 @@ function getColumnsToShow(
         }
     }
 
-    // Return columns in default order, filtered to only visible ones
     return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
 }
 

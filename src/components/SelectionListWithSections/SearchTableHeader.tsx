@@ -327,17 +327,16 @@ function SearchTableHeader({
 
     const columnConfig = useMemo(() => getSearchColumns(type, groupBy, icons.Profile), [type, groupBy, icons.Profile]);
 
-    // Reorder columnConfig based on the columns prop order
     const orderedColumnConfig = useMemo(() => {
         if (!columnConfig) {
             return null;
         }
 
-        // Create a map for quick lookup
         const configMap = new Map(columnConfig.map((config) => [config.columnName, config]));
 
-        // Build ordered config: first add columns in the order specified by `columns` prop,
-        // then add any remaining columns from columnConfig that weren't in columns
+        // Users can customize column order via the Search Columns page.
+        // We respect their preferred order by placing user-selected columns first,
+        // then appending any remaining columns (which will be filtered out by shouldShowColumn).
         const orderedConfig: SearchColumnConfig[] = [];
         const addedColumns = new Set<SearchColumnType>();
 
@@ -349,7 +348,6 @@ function SearchTableHeader({
             }
         }
 
-        // Add remaining columns that weren't in the columns prop (in their original order)
         for (const config of columnConfig) {
             if (!addedColumns.has(config.columnName)) {
                 orderedConfig.push(config);
