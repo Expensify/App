@@ -20,6 +20,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 
 type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
     accountID: number;
@@ -27,6 +29,9 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 };
 
 type BaseDomainMembersPageProps = {
+    /** The ID of the domain used for the not found wrapper */
+    domainAccountID: number;
+
     /** The list of accountIDs to display */
     accountIDs: number[];
 
@@ -43,23 +48,31 @@ type BaseDomainMembersPageProps = {
     onSelectRow: (item: MemberOption) => void;
 
     /** Icon displayed in the header of the tab */
-    headerIcon?:  IconAsset;
+    headerIcon?: IconAsset;
+
+    /** Function to render a custom right element for a row */
+    getCustomRightElement?: (accountID: number) => React.ReactNode;
+
+    /** Whether the data is still loading */
+    isLoading?: boolean;
 };
 
 function BaseDomainMembersPage({
+                                   domainAccountID,
                                    accountIDs,
                                    headerTitle,
                                    searchPlaceholder,
                                    headerContent,
                                    onSelectRow,
-                                   headerIcon
+                                   headerIcon,
+                                   getCustomRightElement,
+                                   isLoading = false,
                                }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-
 
     const data: MemberOption[] = useMemo(() => {
         const options: MemberOption[] = [];
@@ -82,20 +95,18 @@ function BaseDomainMembersPage({
                         id: accountID,
                     },
                 ],
+                rightElement: getCustomRightElement?.(accountID),
             });
         }
         return options;
-    }, [accountIDs, personalDetails, formatPhoneNumber]);
+    }, [accountIDs, personalDetails, formatPhoneNumber, icons.FallbackAvatar, getCustomRightElement]);
 
     const filterMember = (option: MemberOption, searchQuery: string) => {
         const results = tokenizedSearch([option], searchQuery, (item) => [item.text ?? '', item.alternateText ?? '']);
         return results.length > 0;
     };
 
-    const sortMembers = useCallback(
-        (options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare),
-        [localeCompare],
-    );
+    const sortMembers = useCallback((options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare), [localeCompare]);
 
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
@@ -106,36 +117,28 @@ function BaseDomainMembersPage({
         return <CustomListHeader canSelectMultiple={false} leftHeaderText={headerTitle} />;
     };
 
-    const listHeaderContent = data.length > CONST.SEARCH_ITEM_LIMIT ? (
-        <SearchBar
-            inputValue={inputValue}
-            onChangeText={setInputValue}
-            label={searchPlaceholder}
-            shouldShowEmptyState={!filteredData.length}
-        />
-    ) : null;
+    const listHeaderContent =
+        data.length > CONST.SEARCH_ITEM_LIMIT ? (
+            <SearchBar inputValue={inputValue} onChangeText={setInputValue} label={searchPlaceholder} shouldShowEmptyState={!filteredData.length} />
+        ) : null;
+
+    if (isLoading) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            shouldEnableMaxHeight
-            shouldShowOfflineIndicatorInWideScreen
-            testID={BaseDomainMembersPage.displayName}
-        >
-                <HeaderWithBackButton
-                    title={headerTitle}
-                    onBackButtonPress={Navigation.popToSidebar}
-                    icon={headerIcon}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                >
-                    {!shouldUseNarrowLayout && !!headerContent && (
-                        <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>
-                    )}
+        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
+                shouldShowOfflineIndicatorInWideScreen
+                testID={BaseDomainMembersPage.displayName}
+            >
+                <HeaderWithBackButton title={headerTitle} onBackButtonPress={Navigation.popToSidebar} icon={headerIcon} shouldShowBackButton={shouldUseNarrowLayout}>
+                    {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
 
-                {shouldUseNarrowLayout && !!headerContent && (
-                    <View style={[styles.pl5, styles.pr5, styles.flexRow, styles.gap2]}>{headerContent}</View>
-                )}
+                {shouldUseNarrowLayout && !!headerContent && <View style={[styles.pl5, styles.pr5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
 
                 <SelectionList
                     sections={[{data: filteredData}]}
@@ -146,13 +149,14 @@ function BaseDomainMembersPage({
                     ListItem={TableListItem}
                     onSelectRow={onSelectRow}
                     shouldShowListEmptyContent={false}
-                    listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : styles.pr3}
+                    listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
                     showScrollIndicator={false}
                     addBottomSafeAreaPadding
                     customListHeader={getCustomListHeader()}
                     containerStyle={styles.flex1}
                 />
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </DomainNotFoundPageWrapper>
     );
 }
 
