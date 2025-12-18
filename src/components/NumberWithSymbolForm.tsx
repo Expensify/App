@@ -358,20 +358,21 @@ function NumberWithSymbolForm({
 
     const formattedNumber = replaceAllDigits(currentNumber, toLocaleDigit);
     const flipButtonNextToInput = props.flipButtonPlacement === 'nextToInput';
+    const shouldShowFlipButton =  allowFlippingAmount && canUseTouchScreen
 
     const flipButton = (
         <Button
             shouldShowRightIcon
             small
+            shouldBlendOpacity={flipButtonNextToInput ? true : false} 
             iconRight={Expensicons.PlusMinus}
             style={flipButtonNextToInput ? [styles.minWidth18, styles.mt2, styles.ml3] : styles.minWidth18}
+            innerStyles={flipButtonNextToInput && styles.bgTransparent}
             onPress={toggleNegative}
             isContentCentered
             text={translate('iou.flip')}
         />
     );
-
-    const shouldShowFlipButton = allowFlippingAmount && canUseTouchScreen;
 
     if (displayAsTextInput) {
         return (

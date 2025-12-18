@@ -90,6 +90,22 @@ function SplitListItem<TItem extends ListItem>({
         inputRef.current = ref;
     };
 
+    /*
+    const flipButton = (
+        <Button
+            shouldShowRightIcon
+            small
+            iconRight={Expensicons.PlusMinus}
+            shouldBlendOpacity
+            style={true ? [styles.minWidth18, styles.mt2, styles.ml3] : styles.minWidth18}
+            innerStyles={[styles.bgTransparent]}
+            onPress={toggleNegative}
+            isContentCentered
+            text={translate('iou.flip')}
+        />
+    );
+    */
+
     const canUseTouchScreen = canUseTouchScreenUtil();
 
     const handleToogleNegative = useCallback(() => {
