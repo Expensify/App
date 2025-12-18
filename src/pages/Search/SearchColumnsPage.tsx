@@ -37,6 +37,8 @@ function SearchColumnsPage() {
     const allGroupByCustomColumns = getCustomColumns(groupBy);
     const groupByDefaultColumns = getCustomColumnDefault(groupBy);
 
+    const allDefaultColumns = [...defaultCustomColumns, ...groupByDefaultColumns];
+
     const [selectedColumnIds, setSelectedColumnIds] = useState<SearchCustomColumnIds[]>(() => {
         const typeColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allTypeCustomColumns.includes(columnId)) ?? [];
         const groupByColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allGroupByCustomColumns.includes(columnId)) ?? [];
@@ -64,13 +66,18 @@ function SearchColumnsPage() {
 
     if (groupBy) {
         sections.push({
-            title: undefined,
-            data: [],
+            title: translate('search.groupColumns'),
+            data: allGroupByCustomColumns.map((columnId) => ({
+                text: translate(getSearchColumnTranslationKey(columnId)),
+                value: columnId,
+                keyForList: columnId,
+                isSelected: selectedColumnIds?.includes(columnId),
+            })),
         });
     }
 
     sections.push({
-        title: undefined,
+        title: groupBy ? translate('search.expenseColumns') : undefined,
         data: allTypeCustomColumns.map((columnId) => ({
             text: translate(getSearchColumnTranslationKey(columnId)),
             value: columnId,
@@ -79,7 +86,7 @@ function SearchColumnsPage() {
         })),
     });
 
-    const sortedDefaultColumns = [...defaultCustomColumns].sort();
+    const sortedDefaultColumns = [...allDefaultColumns].sort();
     const sortedSelectedColumnIds = [...selectedColumnIds].sort();
     const isDefaultColumns = arraysEqual(sortedSelectedColumnIds, sortedDefaultColumns);
 
@@ -94,7 +101,7 @@ function SearchColumnsPage() {
     };
 
     const resetColumns = () => {
-        setSelectedColumnIds(defaultCustomColumns);
+        setSelectedColumnIds(allDefaultColumns);
     };
 
     const applyChanges = () => {
