@@ -2458,6 +2458,10 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'iou.taxRate';
         case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
             return 'common.longID';
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
+            return 'iou.amount';
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
+            return 'common.total';
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             return 'common.reportID';
     }
@@ -2918,11 +2922,11 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
           };
 
