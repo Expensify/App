@@ -36,22 +36,28 @@ function SearchColumnsPage() {
     const allCustomColumns = getCustomColumns(queryType);
     const defaultCustomColumns = getCustomColumnDefault(queryType);
 
-    const [selectedColumnIds, setSelectedColumnIds] = useState<SearchCustomColumnIds[]>(() => {
-        const columnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
+    type ColumnItem = {
+        columnId: SearchCustomColumnIds;
+        isSelected: boolean;
+    };
 
-        // We dont allow the user to unselect all columns, so we can assume that no columns = default columns
-        if (!columnIds.length) {
-            return defaultCustomColumns;
-        }
+    const [columns, setColumns] = useState<ColumnItem[]>(() => {
+        const savedColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
+        const selectedIds = savedColumnIds.length ? savedColumnIds : defaultCustomColumns;
 
-        return columnIds;
+        return allCustomColumns.map((columnId) => ({
+            columnId,
+            isSelected: selectedIds.includes(columnId),
+        }));
     });
 
-    const columnsList = allCustomColumns.map((columnId) => ({
+    const selectedColumnIds = columns.filter((col) => col.isSelected).map((col) => col.columnId);
+
+    const columnsList = columns.map(({columnId, isSelected}) => ({
         text: translate(getSearchColumnTranslationKey(columnId)),
         value: columnId,
         keyForList: columnId,
-        isSelected: selectedColumnIds.includes(columnId),
+        isSelected,
         leftElement: (
             <Icon
                 src={icons.DragHandles}
@@ -68,19 +74,20 @@ function SearchColumnsPage() {
     const onSelectItem = (item: ListItem) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
 
-        if (item.isSelected) {
-            setSelectedColumnIds(selectedColumnIds.filter((columnId) => columnId !== updatedColumnId));
-        } else {
-            setSelectedColumnIds([...selectedColumnIds, updatedColumnId]);
-        }
+        setColumns(columns.map((col) => (col.columnId === updatedColumnId ? {...col, isSelected: !col.isSelected} : col)));
     };
 
     const onDragEnd = ({data}: {data: typeof columnsList}) => {
-        setSelectedColumnIds(data.map((item) => item.value));
+        setColumns(data.map((item) => ({columnId: item.value, isSelected: item.isSelected})));
     };
 
     const resetColumns = () => {
-        setSelectedColumnIds(defaultCustomColumns);
+        setColumns(
+            allCustomColumns.map((columnId) => ({
+                columnId,
+                isSelected: defaultCustomColumns.includes(columnId),
+            })),
+        );
     };
 
     const applyChanges = () => {
