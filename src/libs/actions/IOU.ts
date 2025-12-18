@@ -108,10 +108,15 @@ import {
     getReportActionText,
     getTrackExpenseActionableWhisper,
     isActionableTrackExpense,
+    isApprovedAction,
     isCreatedAction,
     isDeletedAction,
+    isForwardedAction,
     isMoneyRequestAction,
     isReportPreviewAction,
+    isRetractedAction,
+    isSubmittedAction,
+    isUnapprovedAction,
 } from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
 import {
@@ -10091,6 +10096,59 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
     return {holdReportActions, holdTransactions};
 }
 
+/**
+ * Copies submission/approval related report actions from a source report to a target report.
+ * This includes actions like SUBMITTED, APPROVED, FORWARDED, UNAPPROVED, RETRACTED, and REJECTED.
+ *
+ * @param sourceReportID - The ID of the report to copy actions from
+ * @param targetReportID - The ID of the report to copy actions to
+ * @returns An object containing the copied actions with their optimistic, success, and failure states
+ */
+function copySubmissionApprovalActionsForReport(
+    sourceReportID: string | undefined,
+    targetReportID: string | undefined,
+): {
+    copiedActions: Record<string, OnyxTypes.ReportAction>;
+    copiedActionsSuccess: OnyxCollection<NullishDeep<ReportAction>>;
+    copiedActionsFailure: Record<string, null>;
+} {
+    const copiedActions: Record<string, OnyxTypes.ReportAction> = {};
+    const copiedActionsSuccess: OnyxCollection<NullishDeep<ReportAction>> = {};
+    const copiedActionsFailure: Record<string, null> = {};
+
+    if (!sourceReportID || !targetReportID) {
+        return {copiedActions, copiedActionsSuccess, copiedActionsFailure};
+    }
+
+    const sourceReportActions = getAllReportActions(sourceReportID);
+    
+    for (const action of Object.values(sourceReportActions)) {
+        if (
+            action &&
+            (isSubmittedAction(action) ||
+                isApprovedAction(action) ||
+                isForwardedAction(action) ||
+                isUnapprovedAction(action) ||
+                isRetractedAction(action) ||
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED)
+        ) {
+            const newActionID = NumberUtils.rand64();
+            copiedActions[newActionID] = {
+                ...action,
+                reportActionID: newActionID,
+                reportID: targetReportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+            copiedActionsSuccess[newActionID] = {
+                pendingAction: null,
+            };
+            copiedActionsFailure[newActionID] = null;
+        }
+    }
+
+    return {copiedActions, copiedActionsSuccess, copiedActionsFailure};
+}
+
 function getReportFromHoldRequestsOnyxData(
     chatReport: OnyxTypes.Report,
     iouReport: OnyxEntry<OnyxTypes.Report>,
@@ -10193,6 +10251,13 @@ function getReportFromHoldRequestsOnyxData(
         };
     }
 
+    // Copy submission/approval actions to the new report
+    const {
+        copiedActions: copiedSubmissionApprovalActions,
+        copiedActionsSuccess: copiedSubmissionApprovalActionsSuccess,
+        copiedActionsFailure: copiedSubmissionApprovalActionsFailure,
+    } = copySubmissionApprovalActionsForReport(iouReport?.reportID, optimisticExpenseReport.reportID);
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -10230,7 +10295,7 @@ function getReportFromHoldRequestsOnyxData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
-            value: addHoldReportActions,
+            value: {...addHoldReportActions, ...copiedSubmissionApprovalActions},
         },
         // update held reports with new parentReportActionID
         {
@@ -10269,7 +10334,7 @@ function getReportFromHoldRequestsOnyxData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
-            value: addHoldReportActionsSuccess,
+            value: {...addHoldReportActionsSuccess, ...copiedSubmissionApprovalActionsSuccess},
         },
     ];
 
@@ -10306,7 +10371,7 @@ function getReportFromHoldRequestsOnyxData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
-            value: null,
+            value: {...copiedSubmissionApprovalActionsFailure},
         },
         // add hold transactions back to old iou report
         {
