@@ -23,6 +23,7 @@ import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 import UserInfoCell from './UserInfoCell';
+import WorkspaceCell from './WorkspaceCell';
 
 type ExpenseReportListItemRowProps = {
     item: ExpenseReportListItemType;
@@ -105,6 +106,15 @@ function ExpenseReportListItemRow({
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, false, item.shouldShowYearApproved)]}>
                 <DateCell
                     date={item.approved ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, false, item.shouldShowYearExported)]}>
+                <DateCell
+                    date={item.exported ?? ''}
                     showTooltip
                     isLargeScreenWidth
                 />
@@ -193,6 +203,14 @@ function ExpenseReportListItemRow({
                     reportID={item.reportID}
                     hash={item.hash}
                     amount={item.total}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}>
+                <WorkspaceCell
+                    policyID={item.policyID}
+                    report={item}
                 />
             </View>
         ),

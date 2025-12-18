@@ -1208,6 +1208,10 @@ function buildUserReadableQueryString(
                 continue;
             }
 
+            if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS) {
+                continue;
+            }
+
             if (rawFilter.isDefault) {
                 const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies, reports);
                 if (defaultSegment) {

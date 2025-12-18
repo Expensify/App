@@ -24,6 +24,10 @@ function SearchAdvancedFiltersPage() {
                 return false;
             }
 
+            if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS) {
+                return false;
+            }
+
             if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE) {
                 return value !== CONST.SEARCH.DATA_TYPES.EXPENSE;
             }

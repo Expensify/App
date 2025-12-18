@@ -191,7 +191,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -1137,6 +1136,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Betrag',
+        percent: 'Prozent',
         taxAmount: 'Steuerbetrag',
         taxRate: 'Steuersatz',
         approve: ({
@@ -1151,6 +1151,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Aufteilen',
         splitExpense: 'Ausgabe aufteilen',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} von ${merchant}`,
+        splitByPercentage: 'Nach Prozentsatz aufteilen',
         addSplit: 'Aufteilung hinzufügen',
         makeSplitsEven: 'Aufteilungen gleichmäßig machen',
         editSplits: 'Aufteilungen bearbeiten',
@@ -1348,12 +1349,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `Ausgabe von persönlichem Bereich nach ${workspaceName ?? `Chat mit ${reportName}`} verschoben`,
         movedToPersonalSpace: 'Ausgabe in den persönlichen Bereich verschoben',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'ein' : 'a';
-            const tag = policyTagListName ?? 'Tag';
-            return `Wähle ${article} ${tag}, um deine Ausgaben besser zu organisieren.`;
-        },
-        categorySelection: 'Wähle eine Kategorie aus, um deine Ausgaben besser zu organisieren.',
         error: {
             invalidCategoryLength: 'Der Kategoriename überschreitet 255 Zeichen. Bitte kürze ihn oder wähle eine andere Kategorie.',
             invalidTagLength: 'Der Tagname überschreitet 255 Zeichen. Bitte verkürze ihn oder wähle einen anderen Tag.',

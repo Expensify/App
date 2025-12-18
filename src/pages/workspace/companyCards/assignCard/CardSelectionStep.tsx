@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -50,7 +51,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
     const isEditing = assignCard?.isEditing;
-    const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
+    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '');
     const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');

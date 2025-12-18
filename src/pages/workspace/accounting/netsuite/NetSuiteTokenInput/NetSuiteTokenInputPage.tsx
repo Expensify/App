@@ -66,6 +66,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={handleBackButtonPress}
             shouldLoadForEmptyConnection={isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE])}
             shouldBeBlocked={shouldPageBeBlocked}
+            shouldUseScrollView={SubStep !== NetSuiteTokenInputForm}
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
@@ -74,15 +75,13 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
                     stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_NAMES}
                 />
             </View>
-            <View style={[styles.flexGrow1, styles.mt3]}>
-                <SubStep
-                    isEditing={isEditing}
-                    onNext={handleNextScreen}
-                    onMove={moveTo}
-                    screenIndex={screenIndex}
-                    policyID={policyID}
-                />
-            </View>
+            <SubStep
+                isEditing={isEditing}
+                onNext={handleNextScreen}
+                onMove={moveTo}
+                screenIndex={screenIndex}
+                policyID={policyID}
+            />
         </ConnectionLayout>
     );
 }

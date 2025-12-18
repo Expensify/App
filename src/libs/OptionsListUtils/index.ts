@@ -933,7 +933,7 @@ function createOption(
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
 
         const personalDetailsForCompute: PersonalDetailsList | undefined = personalDetails ?? undefined;
-        const computedReportName = computeReportName(report, undefined, undefined, undefined, allReportNameValuePairs, personalDetailsForCompute, undefined);
+        const computedReportName = computeReportName(report, allReports, allPolicies, undefined, allReportNameValuePairs, personalDetailsForCompute, allReportActions);
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
             : computedReportName;

@@ -191,7 +191,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -1131,6 +1130,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Kwota',
+        percent: 'Procent',
         taxAmount: 'Kwota podatku',
         taxRate: 'Stawka podatku',
         approve: ({
@@ -1145,6 +1145,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Podziel',
         splitExpense: 'Podziel wydatki',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} od ${merchant}`,
+        splitByPercentage: 'Podziel procentowo',
         addSplit: 'Dodaj podział',
         makeSplitsEven: 'Podziel równo',
         editSplits: 'Edytuj podziały',
@@ -1342,12 +1343,6 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} wysłano${comment ? `dla ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `przeniósł wydatek z przestrzeni osobistej do ${workspaceName ?? `czat z ${reportName}`}`,
         movedToPersonalSpace: 'przeniesiono wydatek do przestrzeni osobistej',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'jeden' : 'a';
-            const tag = policyTagListName ?? 'tag';
-            return `Wybierz ${article} ${tag}, aby lepiej zorganizować swoje wydatki.`;
-        },
-        categorySelection: 'Wybierz kategorię, aby lepiej uporządkować swoje wydatki.',
         error: {
             invalidCategoryLength: 'Nazwa kategorii przekracza 255 znaków. Skróć ją lub wybierz inną kategorię.',
             invalidTagLength: 'Nazwa tagu przekracza 255 znaków. Skróć ją lub wybierz inny tag.',
