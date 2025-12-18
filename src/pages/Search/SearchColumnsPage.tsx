@@ -196,25 +196,27 @@ function SearchColumnsPage() {
             <HeaderWithBackButton title={translate('search.columns')}>
                 {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
             </HeaderWithBackButton>
-            <ScrollView
-                style={styles.flex1}
-                contentContainerStyle={styles.flex1}
-            >
-                <DraggableList
-                    disableScroll
-                    data={groupColumnsList}
-                    keyExtractor={(item) => item.value}
-                    onDragEnd={onDragEnd}
-                    renderItem={renderItem}
-                />
-                <DraggableList
-                    disableScroll
-                    data={typeColumnsList}
-                    keyExtractor={(item) => item.value}
-                    onDragEnd={onDragEnd}
-                    renderItem={renderItem}
-                />
-            </ScrollView>
+            <View style={styles.flex1}>
+                <ScrollView
+                    style={styles.flex1}
+                    contentContainerStyle={styles.flex1}
+                >
+                    <DraggableList
+                        disableScroll
+                        data={groupColumnsList}
+                        keyExtractor={(item) => item.value}
+                        onDragEnd={onDragEnd}
+                        renderItem={renderItem}
+                    />
+                    <DraggableList
+                        disableScroll
+                        data={typeColumnsList}
+                        keyExtractor={(item) => item.value}
+                        onDragEnd={onDragEnd}
+                        renderItem={renderItem}
+                    />
+                </ScrollView>
+            </View>
             <View style={[styles.ph5, styles.pb5]}>
                 {!selectedColumnIds.length && (
                     <DotIndicatorMessage
