@@ -220,10 +220,13 @@ type ExpensifyCardDetails = {
     cvv: string;
 };
 
+/** List of assignable cards */
+type AssignableCardsList = Record<string, string>;
+
 /** Record of Company or Expensify cards, indexed by cardID */
 type CardList = Record<string, Card> & {
     /** List of assignable cards */
-    cardList?: Record<string, string>;
+    cardList?: AssignableCardsList;
 };
 
 /** Issue new card flow steps */
@@ -331,6 +334,7 @@ export type {
     CardLimitType,
     FilteredCardList,
     ProvisioningCardData,
+    AssignableCardsList,
     FailedCompanyCardAssignment,
     FailedCompanyCardAssignments,
 };
