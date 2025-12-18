@@ -109,7 +109,8 @@ function SearchColumnsPage() {
     }));
 
     const isDefaultState =
-        columns.length === defaultColumns.length && columns.every((col, index) => col.columnId === defaultColumns.at(index)?.columnId && col.isSelected === defaultColumns.at(index)?.isSelected);
+        columns.length === defaultColumns.length &&
+        columns.every((col, index) => col.columnId === defaultColumns.at(index)?.columnId && col.isSelected === defaultColumns.at(index)?.isSelected);
 
     const shouldShowResetColumns = !isDefaultState;
 
