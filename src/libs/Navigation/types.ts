@@ -1342,6 +1342,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
         domainAccountID: number;
     };
+    [SCREENS.DOMAIN.MEMBER_DETAILS]: {
+        domainAccountID: number;
+        accountID: number;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {
@@ -2440,6 +2444,10 @@ type DomainSplitNavigatorParamList = {
     [SCREENS.DOMAIN.MEMBERS]: {
         domainAccountID: number;
     };
+    [SCREENS.DOMAIN.MEMBER_DETAILS]: {
+        domainAccountID: number;
+        accountID: number;
+    }
 };
 
 type OnboardingModalNavigatorParamList = {

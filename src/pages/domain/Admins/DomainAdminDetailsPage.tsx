@@ -1,100 +1,37 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Avatar from '@components/Avatar';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
+import React, {useMemo} from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
+import type {MemberDetailsMenuItem} from '@pages/domain/BaseDomainMemberDetailsComponent';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
 
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
 
 function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
-    const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info'] as const);
 
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
-    const [adminPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
-        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
-    });
-
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(adminPersonalDetails));
-    const memberLogin = adminPersonalDetails?.login ?? '';
-    const isSMSLogin = Str.isSMSLogin(memberLogin);
-    const phoneNumber = getPhoneNumber(adminPersonalDetails);
-    const fallbackIcon = adminPersonalDetails?.fallbackIcon ?? '';
+    const menuItems = useMemo((): MemberDetailsMenuItem[] => [
+        {
+            key: 'profile',
+            title: translate('common.profile'),
+            icon: icons.Info,
+            onPress: () => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute())),
+            shouldShowRightIcon: true,
+        },
+    ], [accountID, icons.Info, translate]);
 
     return (
-        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
-            <ScreenWrapper
-                enableEdgeToEdgeBottomSafeAreaPadding
-                testID={DomainAdminDetailsPage.displayName}
-            >
-                <HeaderWithBackButton title={displayName} />
-                <ScrollView addBottomSafeAreaPadding>
-                    <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
-                        <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                            <OfflineWithFeedback pendingAction={adminPersonalDetails?.pendingFields?.avatar}>
-                                <Avatar
-                                    containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
-                                    imageStyles={[styles.avatarXLarge]}
-                                    source={adminPersonalDetails?.avatar}
-                                    avatarID={accountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.X_LARGE}
-                                    fallbackIcon={fallbackIcon}
-                                />
-                            </OfflineWithFeedback>
-                            {!!displayName && (
-                                <Text
-                                    style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
-                                    numberOfLines={1}
-                                >
-                                    {displayName}
-                                </Text>
-                            )}
-                        </View>
-                        <View style={styles.w100}>
-                            <MenuItemWithTopDescription
-                                title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                                copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                interactive={false}
-                                copyable
-                            />
-                            <MenuItem
-                                style={styles.mb5}
-                                title={translate('common.profile')}
-                                icon={icons.Info}
-                                onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
-                                shouldShowRightIcon
-                            />
-                        </View>
-                    </View>
-                </ScrollView>
-            </ScreenWrapper>
-        </DomainNotFoundPageWrapper>
+        <BaseDomainMemberDetailsComponent
+            domainAccountID={domainAccountID}
+            accountID={accountID}
+            menuItems={menuItems}
+        />
     );
 }
 
