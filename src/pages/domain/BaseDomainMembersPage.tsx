@@ -102,7 +102,7 @@ function BaseDomainMembersPage({
     }, [accountIDs, personalDetails, formatPhoneNumber, icons.FallbackAvatar, getCustomRightElement]);
 
     const filterMember = (option: MemberOption, searchQuery: string) => {
-        const results = tokenizedSearch([option], searchQuery, (item) => [item.text ?? '', item.alternateText ?? '']);
+        const results = tokenizedSearch([option], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
         return results.length > 0;
     };
 
