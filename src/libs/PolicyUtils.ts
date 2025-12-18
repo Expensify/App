@@ -606,13 +606,13 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
-function isTaxTrackingEnabled(isPolicyExpenseChatOrUnreportedExpense: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false): boolean {
+function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false): boolean {
     if (isPerDiemRequest) {
         return false;
     }
     const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? CONST.DEFAULT_NUMBER_ID;
-    const isPolicyTaxTrackingEnabled = isPolicyExpenseChatOrUnreportedExpense && policy?.tax?.trackingEnabled;
+    const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
     const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && !!customUnitID && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
 
     return !!(isDistanceRequest ? isTaxEnabledForDistance : isPolicyTaxTrackingEnabled);
@@ -1400,22 +1400,12 @@ function getWorkspaceAccountID(policyID?: string) {
     return policy.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 }
 
-function hasVBBA(policyID: string | undefined) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
-    return !!policy?.achAccount?.bankAccountID;
-}
-
-function getTagApproverRule(policyOrID: string | OnyxEntry<Policy>, tagName: string) {
-    if (!policyOrID) {
+function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
+    if (!policy) {
         return;
     }
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = typeof policyOrID === 'string' ? getPolicy(policyOrID) : policyOrID;
 
-    const approvalRules = policy?.rules?.approvalRules ?? [];
+    const approvalRules = policy.rules?.approvalRules ?? [];
     const approverRule = approvalRules.find((rule) =>
         rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.TAG && value === tagName),
     );
@@ -1677,7 +1667,6 @@ export {
     canSubmitPerDiemExpenseFromWorkspace,
     canSendInvoice,
     hasDependentTags,
-    hasVBBA,
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,

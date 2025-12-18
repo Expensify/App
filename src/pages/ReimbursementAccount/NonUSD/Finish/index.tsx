@@ -22,8 +22,8 @@ function Finish() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Shield'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Shield']);
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow']);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -35,7 +35,7 @@ function Finish() {
 
     return (
         <ScreenWrapper
-            testID={Finish.displayName}
+            testID="Finish"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -86,7 +86,5 @@ function Finish() {
         </ScreenWrapper>
     );
 }
-
-Finish.displayName = 'Finish';
 
 export default Finish;

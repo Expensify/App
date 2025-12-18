@@ -185,8 +185,6 @@ function ApproverSelectionList({
     );
 }
 
-ApproverSelectionList.displayName = 'ApproverSelectionList';
-
 export default ApproverSelectionList;
 
 export type {SelectionListApprover};

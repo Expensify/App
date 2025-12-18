@@ -61,6 +61,4 @@ function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
     );
 }
 
-BackgroundImage.displayName = 'BackgroundImage';
-
 export default BackgroundImage;

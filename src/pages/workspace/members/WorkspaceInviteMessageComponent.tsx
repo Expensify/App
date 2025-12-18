@@ -219,7 +219,7 @@ function WorkspaceInviteMessageComponent({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceInviteMessageComponent.displayName}
+                testID="WorkspaceInviteMessageComponent"
                 shouldEnableMaxHeight
                 style={{marginTop: viewportOffsetTop}}
             >
@@ -326,7 +326,5 @@ function WorkspaceInviteMessageComponent({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceInviteMessageComponent.displayName = 'WorkspaceInviteMessageComponent';
 
 export default WorkspaceInviteMessageComponent;
