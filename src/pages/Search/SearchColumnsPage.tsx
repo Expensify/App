@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {Fragment, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -9,6 +9,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionList from '@components/SelectionListWithSections';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import type {SectionListDataType} from '@components/SelectionListWithSections/types';
+import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -66,7 +67,18 @@ function SearchColumnsPage() {
 
     if (groupBy) {
         sections.push({
-            title: translate('search.groupColumns'),
+            title: undefined,
+            CustomSectionHeader() {
+                if (!groupBy) {
+                    return null;
+                }
+
+                return (
+                    <View style={[styles.ph5, styles.pv2]}>
+                        <Text style={[styles.labelStrong]}>{translate('search.groupColumns')}</Text>
+                    </View>
+                );
+            },
             data: allGroupByCustomColumns.map((columnId) => ({
                 text: translate(getSearchColumnTranslationKey(columnId)),
                 value: columnId,
@@ -77,7 +89,23 @@ function SearchColumnsPage() {
     }
 
     sections.push({
-        title: groupBy ? translate('search.expenseColumns') : undefined,
+        title: undefined,
+        CustomSectionHeader() {
+            if (!groupBy) {
+                return null;
+            }
+
+            return (
+                <Fragment>
+                    <View>
+                        <View style={styles.dividerLine} />
+                    </View>
+                    <View style={[styles.ph5, styles.pv2]}>
+                        <Text style={[styles.labelStrong]}>{translate('search.expenseColumns')}</Text>
+                    </View>
+                </Fragment>
+            );
+        },
         data: allTypeCustomColumns.map((columnId) => ({
             text: translate(getSearchColumnTranslationKey(columnId)),
             value: columnId,
@@ -115,6 +143,10 @@ function SearchColumnsPage() {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
     };
 
+    const hasSelectedTypeColumns = selectedColumnIds.some((columnId) => allTypeCustomColumns.includes(columnId));
+    const hasSelectedGroupByColumns = selectedColumnIds.some((columnId) => allGroupByCustomColumns.includes(columnId));
+    const showMissingColumnError = !hasSelectedTypeColumns || (!!groupBy && !hasSelectedGroupByColumns);
+
     return (
         <ScreenWrapper
             testID="SearchColumnsPage"
@@ -133,11 +165,14 @@ function SearchColumnsPage() {
                     shouldShowTooltips
                     canSelectMultiple
                     ListItem={MultiSelectListItem}
+                    headerMessageStyle={[styles.labelStrong]}
+                    sectionTitleStyles={[styles.labelStrong]}
                     footerContent={
                         <View style={[styles.gap2]}>
-                            {!selectedColumnIds.length && (
+                            {!showMissingColumnError && (
                                 <DotIndicatorMessage
                                     type="error"
+                                    style={[styles.mt3]}
                                     messages={{error: translate('search.noColumnsError')}}
                                 />
                             )}
