@@ -15188,7 +15188,7 @@ function updateMultipleMoneyRequests(
     for (const transactionID of transactionIDs) {
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
-            return;
+            continue;
         }
 
         const transactionThreadReportID = transaction.reportID;
@@ -15230,7 +15230,7 @@ function updateMultipleMoneyRequests(
 
         // Skip if no updates
         if (Object.keys(updates).length === 0) {
-            return;
+            continue;
         }
 
         // Generate optimistic report action ID
