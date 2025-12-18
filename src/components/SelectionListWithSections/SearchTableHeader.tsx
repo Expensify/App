@@ -35,16 +35,20 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.date',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.POSTED,
+        translationKey: 'search.filters.posted',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+        translationKey: 'search.filters.exported',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
         translationKey: 'common.submitted',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.APPROVED,
         translationKey: 'search.filters.approved',
-    },
-    {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.POSTED,
-        translationKey: 'search.filters.posted',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
@@ -201,6 +205,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'search.filters.approved',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+        translationKey: 'search.filters.exported',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
         translationKey: 'common.status',
     },
@@ -275,6 +283,7 @@ type SearchTableHeaderProps = {
     shouldShowYearSubmitted?: boolean;
     shouldShowYearApproved?: boolean;
     shouldShowYearPosted?: boolean;
+    shouldShowYearExported?: boolean;
     isAmountColumnWide: boolean;
     isTaxAmountColumnWide: boolean;
     shouldShowSorting: boolean;
@@ -293,6 +302,7 @@ function SearchTableHeader({
     shouldShowYearSubmitted,
     shouldShowYearApproved,
     shouldShowYearPosted,
+    shouldShowYearExported,
     shouldShowSorting,
     canSelectMultiple,
     isAmountColumnWide,
@@ -334,6 +344,7 @@ function SearchTableHeader({
             submittedColumnSize={shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             approvedColumnSize={shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             postedColumnSize={shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+            exportedColumnSize={shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             taxAmountColumnSize={isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             shouldShowSorting={shouldShowSorting}

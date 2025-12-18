@@ -776,6 +776,7 @@ const transactionsListItems = [
         submitted: undefined,
         approved: undefined,
         posted: '',
+        exported: '',
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
@@ -803,6 +804,7 @@ const transactionsListItems = [
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearPosted: false,
+        shouldShowYearExported: false,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -834,6 +836,7 @@ const transactionsListItems = [
         submitted: '2024-12-21 13:05:20',
         approved: undefined,
         posted: '',
+        exported: '',
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
@@ -860,6 +863,7 @@ const transactionsListItems = [
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearPosted: false,
+        shouldShowYearExported: false,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -902,6 +906,7 @@ const transactionsListItems = [
         submitted: '2025-03-05',
         approved: undefined,
         posted: '',
+        exported: '',
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
@@ -935,6 +940,7 @@ const transactionsListItems = [
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearPosted: false,
+        shouldShowYearExported: false,
         keyForList: '3',
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -965,6 +971,7 @@ const transactionsListItems = [
         submitted: '2025-03-05',
         approved: undefined,
         posted: '',
+        exported: '',
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
@@ -998,6 +1005,7 @@ const transactionsListItems = [
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearPosted: false,
+        shouldShowYearExported: false,
         keyForList: '4',
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -1041,9 +1049,11 @@ const transactionReportGroupListItems = [
         policyID: 'A1B2C3',
         reportID: '123456789',
         reportName: 'Expense Report #123',
+        exported: '',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearExported: false,
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -1066,6 +1076,7 @@ const transactionReportGroupListItems = [
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
+                exported: '',
                 formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
                 formattedTo: '',
@@ -1091,6 +1102,7 @@ const transactionReportGroupListItems = [
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
                 shouldShowYearPosted: false,
+                shouldShowYearExported: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -1118,6 +1130,7 @@ const transactionReportGroupListItems = [
         created: '2024-12-21 13:05:20',
         submitted: '2024-12-21 13:05:20',
         approved: undefined,
+        exported: '',
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
@@ -1141,6 +1154,7 @@ const transactionReportGroupListItems = [
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearExported: false,
         stateNum: 1,
         statusNum: 1,
         to: {
@@ -1166,6 +1180,7 @@ const transactionReportGroupListItems = [
                 category: '',
                 comment: {comment: ''},
                 created: '2024-12-21',
+                exported: '',
                 currency: 'USD',
                 date: '2024-12-21',
                 formattedFrom: 'Admin',
@@ -1198,6 +1213,7 @@ const transactionReportGroupListItems = [
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
                 shouldShowYearPosted: false,
+                shouldShowYearExported: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -1229,6 +1245,7 @@ const transactionReportGroupListItems = [
         created: '2025-03-05 16:34:27',
         submitted: '2025-03-05',
         approved: undefined,
+        exported: '',
         currency: 'VND',
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
@@ -1248,6 +1265,7 @@ const transactionReportGroupListItems = [
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearExported: false,
         stateNum: 1,
         statusNum: 1,
         total: 4400,
@@ -1284,6 +1302,7 @@ const transactionReportGroupListItems = [
                 category: '',
                 comment: {comment: ''},
                 created: '2025-03-05',
+                exported: '',
                 currency: 'VND',
                 hasEReceipt: false,
                 merchant: '(none)',
@@ -1317,6 +1336,7 @@ const transactionReportGroupListItems = [
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
                 shouldShowYearPosted: false,
+                shouldShowYearExported: false,
                 keyForList: '3',
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1344,6 +1364,7 @@ const transactionReportGroupListItems = [
                 category: '',
                 comment: {comment: ''},
                 created: '2025-03-05',
+                exported: '',
                 currency: 'VND',
                 hasEReceipt: false,
                 merchant: '(none)',
@@ -1377,6 +1398,7 @@ const transactionReportGroupListItems = [
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
                 shouldShowYearPosted: false,
+                shouldShowYearExported: false,
                 keyForList: '4',
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1399,6 +1421,7 @@ const transactionReportGroupListItems = [
         allActions: ['view'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
+        exported: '',
         currency: 'USD',
         formattedFrom: 'Admin',
         formattedStatus: 'Draft',
@@ -1422,6 +1445,7 @@ const transactionReportGroupListItems = [
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
+        shouldShowYearExported: false,
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -1873,7 +1897,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 52;
+            const expectedPropertyCount = 54;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1906,7 +1930,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 49;
+            const expectedPropertyCount = 51;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2764,6 +2788,7 @@ describe('SearchUIUtils', () => {
                 [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
@@ -2787,6 +2812,7 @@ describe('SearchUIUtils', () => {
                 [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: false,
                 [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
                 [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
