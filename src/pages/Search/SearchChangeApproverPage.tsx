@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -48,20 +48,17 @@ function SearchChangeApproverPage() {
     const {isOffline} = useNetwork();
     const [isSaving, setIsSaving] = useState(false);
 
-    const getOnyxReports = useCallback(
-        (allReports: OnyxCollection<Report>) => {
-            const reports = new Map<string, Report>();
-            for (const selectedReport of selectedReports) {
-                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
-                if (!report?.reportID) {
-                    continue;
-                }
-                reports.set(selectedReport.reportID, report);
+    const getOnyxReports = (allReports: OnyxCollection<Report>) => {
+        const reports = new Map<string, Report>();
+        for (const selectedReport of selectedReports) {
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
+            if (!report?.reportID) {
+                continue;
             }
-            return reports;
-        },
-        [selectedReports],
-    );
+            reports.set(selectedReport.reportID, report);
+        }
+        return reports;
+    };
 
     const [onyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getOnyxReports, canBeMissing: true});
     const isLoadingOnyxReports = useRef(false);
@@ -92,7 +89,7 @@ function SearchChangeApproverPage() {
         }
     }, [hasLoadedApp, onyxReports, selectedReports]);
 
-    const selectedPolicies = useMemo(() => {
+    const getSelectedPolicies = () => {
         const policies = new Map<string, Policy>();
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
@@ -101,9 +98,10 @@ function SearchChangeApproverPage() {
             }
         }
         return Array.from(policies.values());
-    }, [selectedReports, allPolicies]);
+    };
+    const selectedPolicies = getSelectedPolicies();
 
-    const changeApprover = useCallback(() => {
+    const changeApprover = () => {
         if (!selectedApproverType) {
             setHasError(true);
             return;
@@ -144,21 +142,9 @@ function SearchChangeApproverPage() {
 
         // This actually clears selected reports as well
         clearSelectedTransactions();
-    }, [
-        allPolicies,
-        allReportNextSteps,
-        clearSelectedTransactions,
-        currentUserDetails.accountID,
-        currentUserDetails.email,
-        isASAPSubmitBetaEnabled,
-        onyxReports,
-        selectedApproverType,
-        selectedPolicies,
-        selectedReports,
-        transactionViolations,
-    ]);
+    };
 
-    const approverTypes = useMemo(() => {
+    const getApproverTypes = () => {
         const data: Array<ListItem<ApproverType>> = [
             {
                 text: translate('iou.changeApprover.actions.addApprover'),
@@ -201,7 +187,8 @@ function SearchChangeApproverPage() {
         }
 
         return data;
-    }, [allPolicies, currentUserDetails.accountID, onyxReports, selectedApproverType, selectedReports, translate]);
+    };
+    const approverTypes = getApproverTypes();
 
     useEffect(() => {
         if (selectedReports.length && approverTypes.at(0)) {
@@ -213,31 +200,25 @@ function SearchChangeApproverPage() {
         });
     }, [approverTypes, selectedReports.length]);
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('iou.changeApprover.title'),
-            onConfirm: changeApprover,
-        }),
-        [changeApprover, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('iou.changeApprover.title'),
+        onConfirm: changeApprover,
+    };
 
-    const listHeader = useMemo(
-        () => (
-            <>
-                <Text style={[styles.ph5, styles.mb5]}>{translate(selectedReports.length === 1 ? 'iou.changeApprover.subtitle' : 'iou.changeApprover.bulkSubtitle')}</Text>
-                {selectedPolicies.length === 1 && (
-                    <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML
-                            html={translate('iou.changeApprover.description', {
-                                workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`,
-                            })}
-                        />
-                    </View>
-                )}
-            </>
-        ),
-        [environmentURL, selectedPolicies, selectedReports.length, styles.flexRow, styles.mb5, styles.ph5, styles.renderHTML, translate],
+    const listHeader = (
+        <>
+            <Text style={[styles.ph5, styles.mb5]}>{translate(selectedReports.length === 1 ? 'iou.changeApprover.subtitle' : 'iou.changeApprover.bulkSubtitle')}</Text>
+            {selectedPolicies.length === 1 && (
+                <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML
+                        html={translate('iou.changeApprover.description', {
+                            workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`,
+                        })}
+                    />
+                </View>
+            )}
+        </>
     );
 
     if ((!isOffline && onyxReports?.size !== selectedReports.length) || isSaving) {

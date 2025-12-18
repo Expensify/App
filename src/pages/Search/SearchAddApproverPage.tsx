@@ -1,6 +1,6 @@
 import lodashIntersection from 'lodash/intersection';
 import lodashPick from 'lodash/pick';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
@@ -40,7 +40,7 @@ function SearchAddApproverPage() {
 
     // Get all possible approvers from all selected reports' policies
     // An approver must be able to approve ALL selected reports
-    const allApprovers = useMemo(() => {
+    const getAllApprovers = () => {
         if (selectedReports.length === 0) {
             return [];
         }
@@ -112,9 +112,10 @@ function SearchAddApproverPage() {
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [allPolicies, allReports, formatPhoneNumber, icons.FallbackAvatar, personalDetails, selectedApproverEmail, selectedReports, translate]);
+    };
+    const allApprovers = getAllApprovers();
 
-    const addApprover = useCallback(() => {
+    const addApprover = () => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;
         if (!selectedApproverEmail || !employeeAccountID) {
             return;
@@ -146,36 +147,22 @@ function SearchAddApproverPage() {
 
         // This actually clears selected reports as well
         clearSelectedTransactions();
-    }, [
-        allApprovers,
-        allPolicies,
-        allReports,
-        allReportNextSteps,
-        clearSelectedTransactions,
-        currentUserDetails.accountID,
-        currentUserDetails.email,
-        isASAPSubmitBetaEnabled,
-        selectedApproverEmail,
-        selectedReports,
-        transactionViolations,
-    ]);
+    };
 
-    const button = useMemo(() => {
-        return (
-            <FormAlertWithSubmitButton
-                isDisabled={!selectedApproverEmail}
-                buttonText={translate('common.save')}
-                onSubmit={addApprover}
-                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                enabledWhenOffline
-                shouldBlendOpacity
-            />
-        );
-    }, [addApprover, selectedApproverEmail, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
+    const button = (
+        <FormAlertWithSubmitButton
+            isDisabled={!selectedApproverEmail}
+            buttonText={translate('common.save')}
+            onSubmit={addApprover}
+            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+            enabledWhenOffline
+            shouldBlendOpacity
+        />
+    );
 
-    const toggleApprover = useCallback((approvers: SelectionListApprover[]) => {
+    const toggleApprover = (approvers: SelectionListApprover[]) => {
         setSelectedApproverEmail(approvers.at(0)?.login ?? undefined);
-    }, []);
+    };
 
     useEffect(() => {
         if (selectedReports.length) {
