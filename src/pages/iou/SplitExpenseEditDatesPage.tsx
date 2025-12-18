@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DatePicker from '@components/DatePicker';
@@ -52,45 +52,39 @@ function SplitExpenseEditDatesPage({route}: SplitExpenseEditDatesPageProps) {
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
 
-    const updateDate = useCallback(
-        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
-            resetSplitExpensesByDateRange(transaction, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE]);
-            Navigation.goBack(backTo);
-        },
-        [transaction, backTo],
-    );
+    const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
+        resetSplitExpensesByDateRange(transaction, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE]);
+        Navigation.goBack(backTo);
+    };
 
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentPolicy);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES> = {};
-            if (!values[INPUT_IDS.START_DATE]) {
-                errors[INPUT_IDS.START_DATE] = translate('common.error.fieldRequired');
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES> = {};
+        if (!values[INPUT_IDS.START_DATE]) {
+            errors[INPUT_IDS.START_DATE] = translate('common.error.fieldRequired');
+        }
+        if (!values[INPUT_IDS.END_DATE]) {
+            errors[INPUT_IDS.END_DATE] = translate('common.error.fieldRequired');
+        }
+
+        if (values[INPUT_IDS.START_DATE] && values[INPUT_IDS.END_DATE]) {
+            const startDate = new Date(values[INPUT_IDS.START_DATE]);
+            const endDate = new Date(values[INPUT_IDS.END_DATE]);
+
+            if (endDate < startDate) {
+                errors[INPUT_IDS.END_DATE] = translate('iou.error.endDateBeforeStartDate');
+            } else if (endDate.getTime() === startDate.getTime()) {
+                errors[INPUT_IDS.END_DATE] = translate('iou.error.endDateSameAsStartDate');
             }
-            if (!values[INPUT_IDS.END_DATE]) {
-                errors[INPUT_IDS.END_DATE] = translate('common.error.fieldRequired');
-            }
+        }
 
-            if (values[INPUT_IDS.START_DATE] && values[INPUT_IDS.END_DATE]) {
-                const startDate = new Date(values[INPUT_IDS.START_DATE]);
-                const endDate = new Date(values[INPUT_IDS.END_DATE]);
+        return errors;
+    };
 
-                if (endDate < startDate) {
-                    errors[INPUT_IDS.END_DATE] = translate('iou.error.endDateBeforeStartDate');
-                } else if (endDate.getTime() === startDate.getTime()) {
-                    errors[INPUT_IDS.END_DATE] = translate('iou.error.endDateSameAsStartDate');
-                }
-            }
-
-            return errors;
-        },
-        [translate],
-    );
-
-    const handleBackPress = useCallback(() => {
+    const handleBackPress = () => {
         Navigation.goBack(backTo);
-    }, [backTo]);
+    };
 
     return (
         <ScreenWrapper testID={SplitExpenseEditDatesPage.displayName}>
