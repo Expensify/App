@@ -505,7 +505,8 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
                 >
                     <AmountCell
-                        total={isExpenseReport(transactionItem.report) ? -(transactionItem.originalAmount ?? 0) : getOriginalAmount(transactionItem)}
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        total={(isExpenseReport(transactionItem.report) ? -((transactionItem.originalAmount || transactionItem.amount) ?? 0) : (getOriginalAmount(transactionItem) || Math.abs(transactionItem.amount ?? 0)))}
                         currency={getOriginalCurrency(transactionItem)}
                     />
                 </View>
