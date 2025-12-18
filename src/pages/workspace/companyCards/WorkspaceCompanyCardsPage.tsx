@@ -122,10 +122,11 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
                     {isFeedAdded && !isFeedPending && (
                         <WorkspaceCompanyCardsTable
+                            policyID={policyID}
+                            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                             selectedFeed={selectedFeed}
                             cardsList={cardsList}
                             shouldShowGBDisclaimer={shouldShowGBDisclaimer}
-                            policyID={policyID}
                             onAssignCard={assignCard}
                             isAssigningCardDisabled={isAssigningCardDisabled}
                         />
