@@ -64,7 +64,7 @@ import {
     isReportApproved,
     isReportInGroupPolicy,
     isSettled as isSettledReportUtils,
-    isTrackExpenseReport,
+    isTrackExpenseReportNew,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -224,7 +224,7 @@ function MoneyRequestView({
     const moneyRequestReport = parentReport;
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
-    const isTrackExpense = isTrackExpenseReport(report);
+    const isTrackExpense = isTrackExpenseReportNew(report, parentReport, parentReportAction);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
@@ -580,11 +580,6 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit) {
-                            initSplitExpense(allTransactions, allReports, transaction);
-                            return;
-                        }
-
                         if (isManualDistanceRequest) {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
@@ -609,11 +604,6 @@ function MoneyRequestView({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         if (!transaction?.transactionID || !report?.reportID) {
-                            return;
-                        }
-
-                        if (isExpenseSplit) {
-                            initSplitExpense(allTransactions, allReports, transaction);
                             return;
                         }
 

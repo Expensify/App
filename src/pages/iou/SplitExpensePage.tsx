@@ -7,7 +7,6 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -17,6 +16,7 @@ import useAllTransactions from '@hooks/useAllTransactions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -46,7 +46,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getChildTransactions, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -57,6 +57,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'ArrowsLeftRight']);
     const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
@@ -102,6 +103,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const isPerDiem = isPerDiemRequest(transaction);
     const isCard = isManagedCardTransaction(transaction);
+    const isDistance = isDistanceRequest(transaction);
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
@@ -161,7 +163,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        if (sumOfSplitExpenses > transactionDetailsAmount) {
+        if (sumOfSplitExpenses > transactionDetailsAmount && !isDistance) {
             const difference = sumOfSplitExpenses - transactionDetailsAmount;
             setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
             return;
@@ -214,6 +216,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionDetailsAmount,
         isPerDiem,
         isCard,
+        isDistance,
         splitFieldDataFromChildTransactions,
         allTransactions,
         allReports,
@@ -313,26 +316,49 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 <MenuItem
                     onPress={onAddSplitExpense}
                     title={translate('iou.addSplit')}
-                    icon={Expensicons.Plus}
+                    icon={icons.Plus}
                     style={[styles.ph4]}
                 />
                 {shouldShowMakeSplitsEven && (
                     <MenuItem
                         onPress={onMakeSplitsEven}
                         title={translate('iou.makeSplitsEven')}
-                        icon={Expensicons.ArrowsLeftRight}
+                        icon={icons.ArrowsLeftRight}
                         style={[styles.ph4]}
                     />
                 )}
             </View>
         );
-    }, [onAddSplitExpense, onMakeSplitsEven, translate, childTransactions.length, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
+    }, [
+        onAddSplitExpense,
+        onMakeSplitsEven,
+        translate,
+        childTransactions.length,
+        shouldUseNarrowLayout,
+        styles.w100,
+        styles.ph4,
+        styles.flexColumn,
+        styles.mt1,
+        styles.mb3,
+        icons.Plus,
+        icons.ArrowsLeftRight,
+    ]);
 
     const footerContent = useMemo(() => {
-        const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
-        const warningMessage = shouldShowWarningMessage
-            ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency)})
-            : '';
+        // Show warning when sum differs from original for distance expenses (both directions) or when sum < original for other types
+        const shouldShowWarningMessage = sumOfSplitExpenses !== transactionDetailsAmount && (isDistance || sumOfSplitExpenses < transactionDetailsAmount);
+        const getWarningMessage = () => {
+            if (!shouldShowWarningMessage) {
+                return '';
+            }
+            const difference = Math.abs(sumOfSplitExpenses - transactionDetailsAmount);
+            const formattedDifference = convertToDisplayString(difference, transactionDetails.currency);
+            if (sumOfSplitExpenses < transactionDetailsAmount) {
+                return translate('iou.totalAmountLessThanOriginal', {amount: formattedDifference});
+            }
+            return translate('iou.totalAmountGreaterThanOriginal', {amount: formattedDifference});
+        };
+        const warningMessage = getWarningMessage();
         return (
             <View ref={footerRef}>
                 {(!!errorMessage || !!warningMessage) && (
@@ -354,7 +380,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             </View>
         );
-    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, footerRef]);
+    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, footerRef, isDistance]);
 
     const initiallyFocusedOptionKey = useMemo(
         () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
