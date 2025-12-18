@@ -116,7 +116,7 @@ function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<Settin
                             success
                             large
                             pressOnEnter
-                            text={translate(isEditing ? 'common.confirm' : 'common.next')}
+                            text={translate(isEditing ? 'common.save' : 'common.next')}
                             onPress={submit}
                         />
                     }
