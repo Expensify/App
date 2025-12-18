@@ -20,7 +20,6 @@ Admins can assign and manage all corporate cards — both assigned and unassigne
 6. Review the details to ensure it looks correct.
   - **Note:** You can choose a custom transaction start date if you need to import historical transactions. By default, we will use today's date.
 7. Select `Confirm` to finalize the assignment.
-9. If there’s an error, the row will display an alert icon and error message.
 
 # Manage Assigned Cards
 
