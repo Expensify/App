@@ -28,9 +28,9 @@ function ExportedIconCell({reportID}: ExportedIconCellProps) {
     let isExportedToIntacct = false;
     let isExportedToQuickbooksOnline = false;
     let isExportedToQuickbooksDesktop = false;
-    let isExportedToCertinia = true;
-    let isExportedToBillCom = true;
-    let isExportedToZenefits = true;
+    let isExportedToCertinia = false;
+    let isExportedToBillCom = false;
+    let isExportedToZenefits = false;
 
     for (const action of actions) {
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV) {
