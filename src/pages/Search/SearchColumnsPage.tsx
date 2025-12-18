@@ -112,8 +112,6 @@ function SearchColumnsPage() {
         columns.length === defaultColumns.length &&
         columns.every((col, index) => col.columnId === defaultColumns.at(index)?.columnId && col.isSelected === defaultColumns.at(index)?.isSelected);
 
-    const shouldShowResetColumns = !isDefaultState;
-
     const onSelectItem = (item: ListItem) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
 
@@ -171,7 +169,7 @@ function SearchColumnsPage() {
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.columns')}>
-                {shouldShowResetColumns && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
+                {!isDefaultColumns && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
             </HeaderWithBackButton>
             <View style={styles.flex1}>
                 <DraggableList

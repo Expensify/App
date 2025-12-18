@@ -15,9 +15,10 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {createAndOpenSearchTransactionThread, getColumnsToShow} from '@libs/SearchUIUtils';
+import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -49,6 +50,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 }: TransactionGroupListExpandedProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
@@ -171,8 +173,11 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         openReportInRHP(transaction);
     };
 
-    return (
-        <>
+    const minTableWidth = getTableMinWidth(columns ?? []);
+    const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
+
+    const content = (
+        <View style={[styles.flexColumn, styles.flex1]}>
             {isLargeScreenWidth && (
                 <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl9, styles.pr11]}>
                     <SearchTableHeader
@@ -188,6 +193,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         columns={currentColumns}
                         areAllOptionalColumnsHidden={areAllOptionalColumnsHidden ?? false}
                         groupBy={groupBy}
+                        isExpenseReportView
                     />
                 </View>
             )}
@@ -267,7 +273,20 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                     />
                 </View>
             )}
-        </>
+        </View>
+    );
+
+    return shouldScrollHorizontally ? (
+        <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator
+            style={styles.flex1}
+            contentContainerStyle={{width: minTableWidth}}
+        >
+            {content}
+        </ScrollView>
+    ) : (
+        content
     );
 }
 
