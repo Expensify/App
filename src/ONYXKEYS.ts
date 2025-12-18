@@ -280,7 +280,7 @@ const ONYXKEYS = {
     /** The NVP containing the user's account level in-app export templates */
     NVP_CSV_EXPORT_LAYOUTS: 'nvp_expensify_csvExportLayouts',
 
-    /** If the user has ever created a GPS distance expense */
+    /** A timestamp of when the user created a GPS expense for the first time */
     NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT: 'nvp_firstCreatedGpsExpenseDateNewDot',
 
     /** Plaid data (access tokens, bank accounts ...) */
