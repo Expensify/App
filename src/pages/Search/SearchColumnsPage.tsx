@@ -67,9 +67,7 @@ function SearchColumnsPage() {
         }
 
         const selected = savedColumnIds.map((columnId) => ({columnId, isSelected: true}));
-        const unselected = allCustomColumns
-            .filter((columnId) => !savedColumnIds.includes(columnId))
-            .map((columnId) => ({columnId, isSelected: false}));
+        const unselected = allCustomColumns.filter((columnId) => !savedColumnIds.includes(columnId)).map((columnId) => ({columnId, isSelected: false}));
 
         return sortColumns([...selected, ...unselected]);
     });
