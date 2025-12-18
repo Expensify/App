@@ -65,7 +65,7 @@ type WorkspaceCompanyCardTableItemProps = {
     shouldUseNarrowTableRowLayout?: boolean;
 
     /** On assign card callback */
-    onAssignCard: (cardID?: string) => void;
+    onAssignCard: (cardID: string) => void;
 };
 
 function WorkspaceCompanyCardTableItem({
