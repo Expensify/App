@@ -24,10 +24,11 @@ function BaseTextInputWithSymbol({
     hideSymbol = false,
     style,
     symbolTextStyle,
+    flipButton,
     isNegative = false,
     ref,
     disabled,
-    ...props
+    ...rest
 }: BaseTextInputWithSymbolProps) {
     const {fromLocaleDigit} = useLocalize();
     const styles = useThemeStyles();
@@ -45,7 +46,7 @@ function BaseTextInputWithSymbol({
     return (
         <View style={[styles.flexRow]}>
             {isNegative && (
-                <View style={[styles.flexRow, props.flipButton ? styles.alignItemsStart : styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, flipButton ? styles.alignItemsStart : styles.alignItemsCenter]}>
                     <Text style={styles.iouAmountText}>-</Text>
                 </View>
             )}
@@ -70,7 +71,7 @@ function BaseTextInputWithSymbol({
                 onKeyPress={onKeyPress}
                 style={[styles.pr1, style]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...rest}
             />
             {!hideSymbol && symbolPosition === CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX && (
                 <SymbolButton
