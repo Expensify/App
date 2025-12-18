@@ -18,12 +18,12 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {computeReportName} from '@libs/ReportNameUtils';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {computeReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
@@ -506,7 +506,11 @@ function TransactionItemRow({
                 >
                     <AmountCell
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        total={(isExpenseReport(transactionItem.report) ? -((transactionItem.originalAmount || transactionItem.amount) ?? 0) : (getOriginalAmount(transactionItem) || Math.abs(transactionItem.amount ?? 0)))}
+                        total={
+                            isExpenseReport(transactionItem.report)
+                                ? -((transactionItem.originalAmount || transactionItem.amount) ?? 0)
+                                : getOriginalAmount(transactionItem) || Math.abs(transactionItem.amount ?? 0)
+                        }
                         currency={getOriginalCurrency(transactionItem)}
                     />
                 </View>
