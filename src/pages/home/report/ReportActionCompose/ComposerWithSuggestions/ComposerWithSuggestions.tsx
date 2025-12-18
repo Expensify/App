@@ -20,12 +20,12 @@ import useSidePanel from '@hooks/useSidePanel';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileSafari, isSafari} from '@libs/Browser';
+import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import {containsOnlyEmojis, extractEmojis, getAddedEmojis, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
+import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getZWNJCursorOffset, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
@@ -398,16 +398,7 @@ function ComposerWithSuggestions({
             const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
 
             const newComment = insertZWNJBetweenDigitAndEmoji(emojiConvertedText);
-
-            // Calculate how many ZWNJ characters were inserted before the cursor position
-            // This is needed to adjust cursor position calculation
-            let zwnjOffset = 0;
-            if (isSafari() && cursorPosition !== undefined && cursorPosition !== null) {
-                // Count ZWNJ characters inserted before the cursor position
-                const textBeforeCursor = emojiConvertedText.substring(0, cursorPosition);
-                const textWithZWNJBeforeCursor = insertZWNJBetweenDigitAndEmoji(textBeforeCursor);
-                zwnjOffset = textWithZWNJBeforeCursor.length - textBeforeCursor.length;
-            }
+            const zwnjOffset = getZWNJCursorOffset(emojiConvertedText, cursorPosition);
 
             if (emojis.length) {
                 const newEmojis = getAddedEmojis(emojis, emojisPresentBefore.current);
@@ -430,8 +421,6 @@ function ComposerWithSuggestions({
 
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
-                // Adjust cursor position to account for ZWNJ insertion
-                // If cursorPosition is provided, use it and add ZWNJ offset; otherwise use length difference
                 const adjustedCursorPosition = cursorPosition !== undefined && cursorPosition !== null ? cursorPosition + zwnjOffset : undefined;
                 const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), adjustedCursorPosition ?? 0);
 

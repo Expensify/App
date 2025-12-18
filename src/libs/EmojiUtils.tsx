@@ -673,6 +673,19 @@ function insertZWNJBetweenDigitAndEmoji(input: string): string {
     return input.replaceAll(/(\d)([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu, '$1\u200C$2');
 }
 
+/**
+ * Calculate the ZWNJ offset for cursor position adjustment.
+ * Returns the number of ZWNJ characters inserted before the cursor position.
+ */
+function getZWNJCursorOffset(text: string, cursorPosition: number | undefined | null): number {
+    if (!isSafari() || cursorPosition === undefined || cursorPosition === null) {
+        return 0;
+    }
+    const textBeforeCursor = text.substring(0, cursorPosition);
+    const textWithZWNJBeforeCursor = insertZWNJBetweenDigitAndEmoji(textBeforeCursor);
+    return textWithZWNJBeforeCursor.length - textBeforeCursor.length;
+}
+
 export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 
 export {
@@ -701,4 +714,5 @@ export {
     containsOnlyCustomEmoji,
     processFrequentlyUsedEmojis,
     insertZWNJBetweenDigitAndEmoji,
+    getZWNJCursorOffset,
 };

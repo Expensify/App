@@ -33,10 +33,10 @@ import {setShouldShowComposeInput} from '@libs/actions/Composer';
 import {clearActive, isActive as isEmojiPickerActive, isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
 import {deleteReportActionDraft, editReportComment, saveReportActionDraft} from '@libs/actions/Report';
-import {isMobileChrome, isSafari} from '@libs/Browser/index.website';
+import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
-import {extractEmojis, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
+import {extractEmojis, getZWNJCursorOffset, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
@@ -244,13 +244,7 @@ function ReportActionItemMessageEdit({
             raiseIsScrollLayoutTriggered();
             const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
             const newDraft = insertZWNJBetweenDigitAndEmoji(emojiConvertedText);
-
-            let zwnjOffset = 0;
-            if (isSafari() && cursorPosition !== undefined && cursorPosition !== null) {
-                const textBeforeCursor = emojiConvertedText.substring(0, cursorPosition);
-                const textWithZWNJBeforeCursor = insertZWNJBetweenDigitAndEmoji(textBeforeCursor);
-                zwnjOffset = textWithZWNJBeforeCursor.length - textBeforeCursor.length;
-            }
+            const zwnjOffset = getZWNJCursorOffset(emojiConvertedText, cursorPosition);
 
             emojisPresentBefore.current = emojis;
 
