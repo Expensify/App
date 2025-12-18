@@ -96,7 +96,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const requestorStepRef = useRef<View>(null);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
-    const policyCurrency = policy ? policy?.outputCurrency : reimbursementAccountDraft?.currency;
+    const policyCurrency = policy ? policy.outputCurrency : reimbursementAccountDraft?.currency;
     const prevPolicyCurrency = usePrevious(policyCurrency);
     const achContractValuesRef = useRef<{
         isAuthorizedToUseBankAccount?: boolean;

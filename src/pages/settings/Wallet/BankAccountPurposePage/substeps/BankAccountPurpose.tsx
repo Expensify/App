@@ -1,14 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-// eslint-disable-next-line no-restricted-imports
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 
 type BankAccountPurposeProps = {
     /** Callback to call when the user selects a purpose */
@@ -18,13 +17,14 @@ type BankAccountPurposeProps = {
 function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['BankCoin', 'WalletAlt2']);
 
     return (
         <FullPageOfflineBlockingView>
             <View style={styles.mh5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankAccount.bankAccountPurposeTitle')}</Text>
                 <MenuItem
-                    icon={Illustrations.WalletAlt2}
+                    icon={illustrations.WalletAlt2}
                     title={translate('bankAccount.getReimbursed')}
                     description={translate('bankAccount.getReimbursedDescription')}
                     shouldShowRightIcon
@@ -36,7 +36,7 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
                     wrapperStyle={styles.purposeMenuItem}
                 />
                 <MenuItem
-                    icon={Illustrations.BankCoin}
+                    icon={illustrations.BankCoin}
                     title={translate('bankAccount.makePayments')}
                     description={translate('bankAccount.makePaymentsDescription')}
                     shouldShowRightIcon

@@ -143,11 +143,9 @@ function WalletPage() {
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
         const accountPolicyID = accountData?.additionalData?.policyID;
 
-        if (accountPolicyID) {
-            if (isAccountLocked) {
-                showLockedAccountModal();
-                return;
-            }
+        if (accountPolicyID && isAccountLocked) {
+            showLockedAccountModal();
+            return;
         }
         navigateToBankAccountRoute(accountPolicyID, ROUTES.SETTINGS_WALLET);
     };
