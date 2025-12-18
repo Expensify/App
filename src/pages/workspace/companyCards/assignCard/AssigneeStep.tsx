@@ -1,15 +1,14 @@
+import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import useCardFeeds from '@hooks/useCardFeeds';
-import useCardsList from '@hooks/useCardsList';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -17,7 +16,7 @@ import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftInviteAccountID} from '@libs/actions/Card';
 import {searchInServer} from '@libs/actions/Report';
-import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
+import {getDefaultCardName} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
@@ -36,24 +35,18 @@ type AssigneeStepProps = {
     /** The policy that the card will be issued under */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Selected feed */
-    feed: OnyxTypes.CompanyCardFeedWithDomainID;
-
     /** Route params */
     route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD>;
 };
 
-function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
+function AssigneeStep({policy, route}: AssigneeStepProps) {
     const policyID = route.params.policyID;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [list] = useCardsList(feed);
-    const [cardFeeds] = useCardFeeds(policyID);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
@@ -89,9 +82,18 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         };
 
         Keyboard.dismiss();
+
         if (assignee?.login === assignCard?.data?.email) {
+            if (assignCard?.data?.encryptedCardNumber) {
+                nextStep = CONST.COMPANY_CARD.STEP.CONFIRMATION;
+                data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
+                data.cardNumber = assignCard.data.cardNumber;
+                data.startDate = data.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+                data.dateOption = data.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+            }
             setAssignCardStepAndData({
                 currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
+                data,
                 isEditing: false,
             });
             return;
@@ -109,10 +111,12 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
             return;
         }
 
-        if (hasOnlyOneCardToAssign(filteredCardList)) {
-            nextStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
-            data.cardNumber = Object.keys(filteredCardList).at(0);
-            data.encryptedCardNumber = Object.values(filteredCardList).at(0);
+        if (assignCard?.data?.encryptedCardNumber) {
+            nextStep = CONST.COMPANY_CARD.STEP.CONFIRMATION;
+            data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
+            data.cardNumber = assignCard.data.cardNumber;
+            data.startDate = data.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+            data.dateOption = data.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
         }
 
         setAssignCardStepAndData({
@@ -154,7 +158,7 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
                 isSelected: assignCard?.data?.email === email,
                 icons: [
                     {
-                        source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                        source: personalDetail?.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(email),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
@@ -166,7 +170,7 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, assignCard?.data?.email, formatPhoneNumber, localeCompare]);
+    }, [isOffline, policy?.employeeList, assignCard?.data?.email, formatPhoneNumber, localeCompare, icons.FallbackAvatar]);
 
     const assignees = useMemo(() => {
         if (!debouncedSearchTerm) {
@@ -229,13 +233,11 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         <InteractiveStepWrapper
             wrapperID="AssigneeStep"
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={0}
-            stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
             enableEdgeToEdgeBottomSafeAreaPadding
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.chooseTheCardholder')}</Text>
             <SelectionList
                 data={assignees}
                 onSelectRow={submit}

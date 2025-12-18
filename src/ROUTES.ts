@@ -20,6 +20,12 @@ import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
+type WorkspaceCompanyCardsAssignCardParams = {
+    policyID: string;
+    feed: string;
+    cardID?: string;
+};
+
 // This is a file containing constants for all the routes we want to be able to go to
 
 /**
@@ -2171,10 +2177,14 @@ const ROUTES = {
         getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/select-feed` as const,
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
-        route: 'workspaces/:policyID/company-cards/:feed/assign-card',
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/assign-card`, backTo),
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams, backTo?: string) =>
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            getUrlWithBackToParam(
+                `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card${params.cardID ? `/${encodeURIComponent(params.cardID)}` : ''}`,
+                backTo,
+            ),
     },
     WORKSPACE_COMPANY_CARD_DETAILS: {
         route: 'workspaces/:policyID/company-cards/:bank/:cardID',

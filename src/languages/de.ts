@@ -4851,6 +4851,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             feedName: (feedName: string) => `${feedName}-Karten`,
             directFeed: 'Direkt-Feed',
             whoNeedsCardAssigned: 'Wer braucht eine zugewiesene Karte?',
+            chooseTheCardholder: 'Wähle den Karteninhaber',
             chooseCard: 'Wähle eine Karte',
             chooseCardFor: (assignee: string) =>
                 `Wähle eine Karte für <strong>${assignee}</strong>. Du findest die Karte, die du suchst, nicht? <concierge-link>Teile es uns mit.</concierge-link>`,
