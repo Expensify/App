@@ -2586,6 +2586,17 @@ function getFirstKeyForList(data?: Option[] | null) {
     return firstNonEmptyDataObj?.keyForList ? firstNonEmptyDataObj?.keyForList : '';
 }
 
+/**
+ * Helper method to get the `keyForList` for the first selected item
+ */
+function getFirstSelectedItemKey(data?: Option[] | null) {
+    if (!data?.length) {
+        return '';
+    }
+
+    return data.find((item) => item.isSelected)?.keyForList ?? '';
+}
+
 function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>) {
     if (item.accountID === currentUserAccountID) {
         return getCurrentUserSearchTerms(item);
@@ -2942,6 +2953,8 @@ export {
     getCurrentUserSearchTerms,
     getEmptyOptions,
     getFirstKeyForList,
+    getFirstSelectedItemKey
+,
     getHeaderMessage,
     getHeaderMessageForNonUserList,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
