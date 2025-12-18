@@ -1426,6 +1426,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 'distance-manual': {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route,
                                 },
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'distance-gps': {
+                                    path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route,
+                                },
                             },
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
@@ -1473,6 +1477,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
                             path: ROUTES.SPLIT_EXPENSE.route,
                             exact: true,
+                            screens: {
+                                [CONST.IOU.SPLIT_TYPE.AMOUNT]: {
+                                    path: CONST.IOU.SPLIT_TYPE.AMOUNT,
+                                },
+                                [CONST.IOU.SPLIT_TYPE.PERCENTAGE]: {
+                                    path: CONST.IOU.SPLIT_TYPE.PERCENTAGE,
+                                },
+                            },
                         },
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
                             path: ROUTES.SPLIT_EXPENSE_EDIT.route,

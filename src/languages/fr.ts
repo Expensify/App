@@ -191,7 +191,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -693,6 +692,8 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Action requise',
         duplicate: 'Dupliquer',
         duplicated: 'Dupliqué',
+        reimbursableTotal: 'Total remboursable',
+        nonReimbursableTotal: 'Total non remboursable',
         originalAmount: 'Montant d’origine',
     },
     supportalNoAccess: {
@@ -1038,6 +1039,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Manuel',
         scan: 'Scanner',
         map: 'Carte',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Téléverser une feuille de calcul',
@@ -1134,6 +1136,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Montant',
+        percent: 'Pourcentage',
         taxAmount: 'Montant de la taxe',
         taxRate: 'Taux de taxe',
         approve: ({
@@ -1148,6 +1151,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Fractionner',
         splitExpense: 'Fractionner la dépense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
+        splitByPercentage: 'Répartir par pourcentage',
         addSplit: 'Ajouter une ventilation',
         makeSplitsEven: 'Rendre les répartitions égales',
         editSplits: 'Modifier les répartitions',
@@ -1347,12 +1351,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `dépense déplacée de l’espace personnel vers ${workspaceName ?? `discuter avec ${reportName}`}`,
         movedToPersonalSpace: 'dépense déplacée vers l’espace personnel',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'un' : 'a';
-            const tag = policyTagListName ?? 'étiquette';
-            return `Sélectionnez ${article} ${tag} pour mieux organiser vos dépenses.`;
-        },
-        categorySelection: 'Sélectionnez une catégorie pour mieux organiser vos dépenses.',
         error: {
             invalidCategoryLength: 'Le nom de la catégorie dépasse 255 caractères. Veuillez le raccourcir ou choisir une autre catégorie.',
             invalidTagLength: 'Le nom de l’étiquette dépasse 255 caractères. Veuillez le raccourcir ou choisir une autre étiquette.',
