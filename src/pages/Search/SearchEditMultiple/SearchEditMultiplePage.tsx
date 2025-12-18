@@ -17,6 +17,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
+import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {getTaxName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,16 +38,7 @@ function SearchEditMultiplePage() {
     // Determine policyID based on context:
     // - If all selected transactions belong to the same policy, use that policy
     // - Otherwise, fall back to the user's active workspace policy
-    const transactionValues = Object.values(selectedTransactions);
-    let policyID = activePolicyID;
-    if (transactionValues.length > 0) {
-        const firstPolicyID = transactionValues.at(0)?.policyID;
-        const allSamePolicy = transactionValues.every((t) => t.policyID === firstPolicyID);
-
-        if (allSamePolicy && firstPolicyID) {
-            policyID = firstPolicyID;
-        }
-    }
+    const policyID = getSearchBulkEditPolicyID(selectedTransactions, activePolicyID);
 
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
 

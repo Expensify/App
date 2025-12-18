@@ -15,6 +15,7 @@ import type {
     SearchQueryJSON,
     SearchStatus,
     SearchWithdrawalType,
+    SelectedTransactions,
     SingularSearchStatus,
     SortOrder,
 } from '@components/Search/types';
@@ -2775,7 +2776,29 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+/**
+ * Determine policyID based on selected transactions:
+ * - If all selected transactions belong to the same policy, use that policy
+ * - Otherwise, fall back to the user's active workspace policy
+ */
+function getSearchBulkEditPolicyID(selectedTransactions: SelectedTransactions, activePolicyID: string | undefined): string | undefined {
+    const transactionValues = Object.values(selectedTransactions);
+    if (transactionValues.length === 0) {
+        return activePolicyID;
+    }
+
+    const firstPolicyID = transactionValues.at(0)?.policyID;
+    const allSamePolicy = transactionValues.every((t) => t.policyID === firstPolicyID);
+
+    if (allSamePolicy && firstPolicyID) {
+        return firstPolicyID;
+    }
+
+    return activePolicyID;
+}
+
 export {
+    getSearchBulkEditPolicyID,
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
     getListItem,

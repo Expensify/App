@@ -7,8 +7,9 @@ import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {OPTIMISTIC_BULK_EDIT_TRANSACTION_ID, updateBulkEditDraftTransaction} from '@libs/actions/IOU';
+import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
+import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {getTaxName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -19,19 +20,10 @@ function SearchEditMultipleTaxPage() {
     const {translate} = useLocalize();
     const {selectedTransactions} = useSearchContext();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
 
     // Determine policyID based on context
-    const transactionValues = Object.values(selectedTransactions);
-    let policyID = activePolicyID;
-    if (transactionValues.length > 0) {
-        const firstPolicyID = transactionValues.at(0)?.policyID;
-        const allSamePolicy = transactionValues.every((t) => t.policyID === firstPolicyID);
-
-        if (allSamePolicy && firstPolicyID) {
-            policyID = firstPolicyID;
-        }
-    }
+    const policyID = getSearchBulkEditPolicyID(selectedTransactions, activePolicyID);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
 

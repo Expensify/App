@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
+import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -18,16 +19,7 @@ function SearchEditMultipleTagPage() {
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
 
     // Determine policyID based on context
-    const transactionValues = Object.values(selectedTransactions);
-    let policyID = activePolicyID;
-    if (transactionValues.length > 0) {
-        const firstPolicyID = transactionValues.at(0)?.policyID;
-        const allSamePolicy = transactionValues.every((t) => t.policyID === firstPolicyID);
-
-        if (allSamePolicy && firstPolicyID) {
-            policyID = firstPolicyID;
-        }
-    }
+    const policyID = getSearchBulkEditPolicyID(selectedTransactions, activePolicyID);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
 
