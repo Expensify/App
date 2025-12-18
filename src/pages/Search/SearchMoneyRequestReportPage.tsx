@@ -203,7 +203,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             <ActionListContext.Provider value={actionListValue}>
                 <ReactionListWrapper>
                     <ScreenWrapper
-                        testID={SearchMoneyRequestReportPage.displayName}
+                        testID="SearchMoneyRequestReportPage"
                         shouldEnableMaxHeight
                         offlineIndicatorStyle={styles.mtAuto}
                         headerGapStyles={styles.searchHeaderGap}
@@ -237,7 +237,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListWrapper>
                 <ScreenWrapper
-                    testID={SearchMoneyRequestReportPage.displayName}
+                    testID="SearchMoneyRequestReportPage"
                     shouldEnableMaxHeight
                     offlineIndicatorStyle={styles.mtAuto}
                     headerGapStyles={[styles.searchHeaderGap, styles.h0]}
@@ -271,7 +271,5 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         </ActionListContext.Provider>
     );
 }
-
-SearchMoneyRequestReportPage.displayName = 'SearchMoneyRequestReportPage';
 
 export default SearchMoneyRequestReportPage;
