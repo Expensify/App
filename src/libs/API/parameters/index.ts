@@ -343,6 +343,7 @@ export type {default as AddDelegateParams} from './AddDelegateParams';
 export type {default as UpdateDelegateRoleParams} from './UpdateDelegateRoleParams';
 export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPageParams';
 export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetPolicyCategoryDescriptionRequiredParams';
+export type {default as SetPolicyCategoryAttendeesRequiredParams} from './SetPolicyCategoryAttendeesRequiredParams';
 export type {default as SetPolicyCategoryApproverParams} from './SetPolicyCategoryApproverParams';
 export type {default as SetWorkspaceCategoryDescriptionHintParams} from './SetWorkspaceCategoryDescriptionHintParams';
 export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTaxParams';
@@ -449,3 +450,4 @@ export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
+export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';

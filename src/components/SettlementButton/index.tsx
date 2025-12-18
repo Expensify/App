@@ -94,6 +94,7 @@ function SettlementButton({
     wrapperStyle,
     shouldUseShortForm = false,
     hasOnlyHeldExpenses = false,
+    sentryLabel,
 }: SettlementButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp']);
     const styles = useThemeStyles();
@@ -638,6 +639,7 @@ function SettlementButton({
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     useKeyboardShortcuts={useKeyboardShortcuts}
                     shouldUseModalPaddingStyle={paymentButtonOptions.length <= 5}
+                    sentryLabel={sentryLabel}
                 />
             )}
         </KYCWall>
