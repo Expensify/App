@@ -5,6 +5,7 @@ import React, {useCallback, useContext, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 // eslint-disable-next-line no-restricted-imports
@@ -26,7 +27,7 @@ import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType} from '@libs/PaymentUtils';
-import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getPersonalPolicy, getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -93,13 +94,14 @@ function SettlementButton({
     wrapperStyle,
     shouldUseShortForm = false,
     hasOnlyHeldExpenses = false,
+    sentryLabel,
 }: SettlementButtonProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp']);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
-    const {accountID, email, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const {accountID, email} = useCurrentUserPersonalDetails();
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -131,6 +133,7 @@ function SettlementButton({
     const activePolicy = usePolicy(activePolicyID);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const reportID = iouReport?.reportID;
+    const personalPolicy = usePolicy(getPersonalPolicy()?.id);
 
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
@@ -236,7 +239,7 @@ function SettlementButton({
     const latestBankItem = getLatestBankAccountItem();
 
     const paymentButtonOptions = useMemo(() => {
-        const buttonOptions = [];
+        const buttonOptions: Array<DropdownOption<string>> = [];
         const paymentMethods = getSettlementButtonPaymentMethods(icons, hasActivatedWallet, translate);
 
         const shortFormPayElsewhereButton = {
@@ -248,7 +251,7 @@ function SettlementButton({
 
         const approveButtonOption = {
             text: translate('iou.approve', {formattedAmount}),
-            icon: Expensicons.ThumbsUp,
+            icon: icons.ThumbsUp,
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
@@ -293,7 +296,7 @@ function SettlementButton({
                 buttonOptions.push({
                     text: latestBankItem.at(0)?.text ?? '',
                     icon: latestBankItem.at(0)?.icon,
-                    iconStyles: latestBankItem.at(0)?.iconStyles,
+                    additionalIconStyles: latestBankItem.at(0)?.iconStyles,
                     iconWidth: latestBankItem.at(0)?.iconSize,
                     iconHeight: latestBankItem.at(0)?.iconSize,
                     value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
@@ -305,8 +308,7 @@ function SettlementButton({
         }
 
         if ((hasMultiplePolicies || hasSinglePolicy) && canUseWallet && !isPersonalOnlyOption) {
-            // eslint-disable-next-line unicorn/no-array-for-each
-            activeAdminPolicies.forEach((p) => {
+            for (const p of activeAdminPolicies) {
                 const policyName = p.name;
                 buttonOptions.push({
                     text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
@@ -314,7 +316,7 @@ function SettlementButton({
                     value: p.id,
                     shouldUpdateSelectedIndex: false,
                 });
-            });
+            }
         }
 
         if (shouldShowPayElsewhereOption) {
@@ -329,7 +331,7 @@ function SettlementButton({
             const hasActivePolicyAsAdmin = !!activePolicy && isPolicyAdmin(activePolicy) && isPaidGroupPolicy(activePolicy);
 
             const isActivePolicyCurrencySupported = isCurrencySupportedForDirectReimbursement(activePolicy?.outputCurrency ?? '');
-            const isUserCurrencySupported = isCurrencySupportedForDirectReimbursement(localCurrencyCode ?? '');
+            const isUserCurrencySupported = isCurrencySupportedForDirectReimbursement(personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD);
             const isInvoiceReceiverPolicyCurrencySupported = isCurrencySupportedForDirectReimbursement(invoiceReceiverPolicy?.outputCurrency ?? '');
 
             const canUseActivePolicy = hasActivePolicyAsAdmin && isActivePolicyCurrencySupported;
@@ -431,6 +433,7 @@ function SettlementButton({
         latestBankItem,
         activeAdminPolicies,
         checkForNecessaryAction,
+        icons,
     ]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => {
@@ -538,11 +541,7 @@ function SettlementButton({
         return undefined;
     };
 
-    const handlePaymentSelection = (
-        event: GestureResponderEvent | KeyboardEvent | undefined,
-        selectedOption: PaymentMethodType | PaymentMethod,
-        triggerKYCFlow: (params: ContinueActionParams) => void,
-    ) => {
+    const handlePaymentSelection = (event: GestureResponderEvent | KeyboardEvent | undefined, selectedOption: string, triggerKYCFlow: (params: ContinueActionParams) => void) => {
         if (checkForNecessaryAction()) {
             return;
         }
@@ -595,7 +594,7 @@ function SettlementButton({
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
             {(triggerKYCFlow, buttonRef) => (
-                <ButtonWithDropdownMenu<PaymentMethodType | PaymentMethod>
+                <ButtonWithDropdownMenu<string>
                     onOptionsMenuShow={onPaymentOptionsShow}
                     onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
@@ -622,7 +621,7 @@ function SettlementButton({
                     }}
                     style={style}
                     shouldUseShortForm={shouldUseShortForm}
-                    shouldPopoverUseScrollView={paymentButtonOptions.length > 5}
+                    shouldPopoverUseScrollView={paymentButtonOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                     containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
                     wrapperStyle={[wrapperStyle, shouldLimitWidth ? styles.settlementButtonShortFormWidth : {}]}
                     disabledStyle={disabledStyle}
@@ -631,12 +630,11 @@ function SettlementButton({
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     useKeyboardShortcuts={useKeyboardShortcuts}
                     shouldUseModalPaddingStyle={paymentButtonOptions.length <= 5}
+                    sentryLabel={sentryLabel}
                 />
             )}
         </KYCWall>
     );
 }
-
-SettlementButton.displayName = 'SettlementButton';
 
 export default SettlementButton;

@@ -53,6 +53,4 @@ function AmountPicker({value, description, title, errorText = '', onInputChange,
     );
 }
 
-AmountPicker.displayName = 'AmountPicker';
-
 export default AmountPicker;

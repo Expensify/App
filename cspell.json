@@ -1,5 +1,10 @@
 {
     "language": "en",
+    "enableGlobDot": false,
+    "cache": {
+        "useCache": true,
+        "cacheLocation": ".cspellcache"
+    },
     "words": [
         "--longpress",
         "Accelo",
@@ -96,6 +101,7 @@
         "buildscript",
         "Buildscript",
         "Bushwick",
+        "BYOC",
         "capitalone",
         "CAROOT",
         "Carta",
@@ -794,7 +800,8 @@
         "setuptools",
         "DYNAMICEXTERNAL",
         "RNCORE",
-        "Wooo"
+        "Wooo",
+        "Splittable"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

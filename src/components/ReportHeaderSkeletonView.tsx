@@ -22,7 +22,7 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['BackArrow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     useSkeletonSpan('ReportHeaderSkeletonView');
     const height = styles.headerBarHeight.height;
     const radius = 20;
@@ -73,7 +73,5 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
         </View>
     );
 }
-
-ReportHeaderSkeletonView.displayName = 'ReportHeaderSkeletonView';
 
 export default ReportHeaderSkeletonView;

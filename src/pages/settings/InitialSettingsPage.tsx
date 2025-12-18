@@ -88,7 +88,7 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'Lightbulb', 'Lock', 'ExpensifyLogoNew', 'TreasureChest', 'Exit'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'Heart', 'Info', 'QuestionMark', 'ExpensifyLogoNew', 'TreasureChest', 'Exit', 'Lightbulb', 'Lock']);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -317,7 +317,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 ...(classicRedirectMenuItem && tryNewDot?.nudgeMigration ? [classicRedirectMenuItem] : []),
                 {
                     translationKey: 'initialSettingsPage.help',
-                    icon: Expensicons.QuestionMark,
+                    icon: icons.QuestionMark,
                     iconRight: icons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.NEWHELP_URL,
@@ -337,7 +337,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
                 {
                     translationKey: 'initialSettingsPage.about',
-                    icon: Expensicons.Info,
+                    icon: icons.Info,
                     screenName: SCREENS.SETTINGS.ABOUT,
                     action: () => Navigation.navigate(ROUTES.SETTINGS_ABOUT),
                 },
@@ -349,7 +349,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
                 {
                     translationKey: 'sidebarScreen.saveTheWorld',
-                    icon: Expensicons.Heart,
+                    icon: icons.Heart,
                     screenName: SCREENS.SETTINGS.SAVE_THE_WORLD,
                     action: () => Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD),
                 },
@@ -362,7 +362,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, icons.TreasureChest, icons.Exit, icons.NewWindow, icons.Lightbulb, signOut]);
+    }, [icons, styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, signOut]);
 
     /**
      * Return JSX.Element with menu items
@@ -497,7 +497,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={InitialSettingsPage.displayName}
+            testID="InitialSettingsPage"
             bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
         >
@@ -535,7 +535,5 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         </ScreenWrapper>
     );
 }
-
-InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default withCurrentUserPersonalDetails(InitialSettingsPage);
