@@ -265,7 +265,7 @@ function MoneyRequestReportTransactionList({
     }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, report]);
 
     const columnsToShow = useMemo(() => {
-        const columns = getColumnsToShow(currentUserDetails?.accountID, transactions, [], true, undefined, isIOUReport(report));
+        const columns = getColumnsToShow(currentUserDetails?.accountID, transactions, [], true, undefined, undefined, isIOUReport(report));
         return (Object.keys(columns) as SearchColumnType[]).filter((column) => columns[column]);
     }, [transactions, currentUserDetails?.accountID, report]);
 
