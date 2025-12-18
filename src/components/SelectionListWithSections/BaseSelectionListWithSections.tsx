@@ -408,7 +408,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             if (tempPropShouldStopScrollAndJump) {
                 pendingScrollIndexRef.current = null;
             }
-            scrollToIndex(indexToScroll, true);
+            scrollToIndex(indexToScroll, false);
         }
     }, [currentPage, scrollToIndex, flattenedSections.allOptions]);
 
