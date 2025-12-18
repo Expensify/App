@@ -7,6 +7,7 @@ import {getFirstSelectedItemKey} from '@libs/OptionsListUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
