@@ -127,6 +127,7 @@ import {
     isPending,
     isScanning,
     isViolationDismissed,
+    getTaxName,
 } from './TransactionUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
 
@@ -2232,8 +2233,8 @@ function getSortedTransactionData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TAX_RATE) {
         return data.sort((a, b) => {
-            const aValue = `${a.policy?.taxRates?.taxes?.[a.taxCode ?? '']?.name ?? ''} (${a.policy?.taxRates?.taxes?.[a.taxCode ?? '']?.value ?? ''})`;
-            const bValue = `${b.policy?.taxRates?.taxes?.[b.taxCode ?? '']?.name ?? ''} (${b.policy?.taxRates?.taxes?.[b.taxCode ?? '']?.value ?? ''})`;
+            const aValue = getTaxName(a.policy, a);
+            const bValue = getTaxName(b.policy, b);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }

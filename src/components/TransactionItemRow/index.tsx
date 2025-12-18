@@ -38,6 +38,7 @@ import {
     isMerchantMissing,
     isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
+    getTaxName,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -201,21 +202,6 @@ function TransactionItemRow({
 
     const merchant = useMemo(() => getMerchantName(transactionItem, translate), [transactionItem, translate]);
     const description = getDescription(transactionItem);
-
-    const formattedTaxRate = useMemo(() => {
-        const taxRateName = transactionItem?.policy?.taxRates?.taxes?.[transactionItem.taxCode ?? '']?.name ?? '';
-        const taxRateValue = transactionItem?.policy?.taxRates?.taxes?.[transactionItem.taxCode ?? '']?.value ?? '';
-
-        if (!taxRateName && !taxRateValue) {
-            return '';
-        }
-
-        if (!taxRateValue) {
-            return taxRateName;
-        }
-
-        return `${taxRateName} (${taxRateValue})`;
-    }, [transactionItem?.policy?.taxRates?.taxes, transactionItem.taxCode]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const merchantOrDescription = merchant || description;
@@ -530,7 +516,7 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.TAX_RATE}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                 >
-                    <TextCell text={formattedTaxRate} />
+                    <TextCell text={getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? ''} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (
@@ -595,7 +581,6 @@ function TransactionItemRow({
             isInSingleTransactionReport,
             exchangeRateMessage,
             isAmountColumnWide,
-            formattedTaxRate,
             isTaxAmountColumnWide,
             isLargeScreenWidth,
         ],
