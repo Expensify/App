@@ -98,7 +98,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
 
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
@@ -110,7 +110,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
-    const illustrations = useMemoizedLazyIllustrations(['Tag'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Tag']);
 
     const tagsList = useMemo(() => {
         if (isMultiLevelTags) {
@@ -431,11 +431,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                     setIsDownloadFailureModalVisible(true);
                                 },
                                 hasDependentTags,
+                                translate,
                             );
                         } else {
-                            downloadTagsCSV(policyID, () => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
+                            downloadTagsCSV(
+                                policyID,
+                                () => {
+                                    setIsDownloadFailureModalVisible(true);
+                                },
+                                translate,
+                            );
                         }
                     });
                 },
@@ -598,7 +603,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedTags.length}
-                testID={`${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`}
+                testID="WorkspaceTagsPage-header-dropdown-menu-button"
             />
         );
     };
@@ -630,11 +635,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         {hasDependentTags && (
                             <View style={[styles.renderHTML]}>
                                 <RenderHTML
-                                    html={translate('workspace.tags.dependentMultiLevelTagsSubtitle', {
-                                        importSpreadsheetLink: isQuickSettingsFlow
+                                    html={translate(
+                                        'workspace.tags.dependentMultiLevelTagsSubtitle',
+                                        isQuickSettingsFlow
                                             ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
                                             : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`,
-                                    })}
+                                    )}
                                 />
                             </View>
                         )}
@@ -675,7 +681,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding
                     style={[styles.defaultModalContainer]}
-                    testID={WorkspaceTagsPage.displayName}
+                    testID="WorkspaceTagsPage"
                     shouldShowOfflineIndicatorInWideScreen
                     offlineIndicatorStyle={styles.mtAuto}
                 >
@@ -817,7 +823,5 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         </>
     );
 }
-
-WorkspaceTagsPage.displayName = 'WorkspaceTagsPage';
 
 export default WorkspaceTagsPage;

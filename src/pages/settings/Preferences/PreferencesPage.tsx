@@ -28,7 +28,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import usePreferencesSectionIllustration from './usePreferencesSectionIllustration';
 
 function PreferencesPage() {
-    const illustrations = useMemoizedLazyIllustrations(['Gears'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Gears']);
     const preferencesIllustration = usePreferencesSectionIllustration();
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
 
@@ -51,7 +51,7 @@ function PreferencesPage() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={PreferencesPage.displayName}
+            testID="PreferencesPage"
         >
             <HeaderWithBackButton
                 title={translate('common.preferences')}
@@ -133,7 +133,5 @@ function PreferencesPage() {
         </ScreenWrapper>
     );
 }
-
-PreferencesPage.displayName = 'PreferencesPage';
 
 export default PreferencesPage;

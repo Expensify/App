@@ -484,7 +484,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     return (
         <ScreenWrapper
-            testID={WorkspaceInitialPage.displayName}
+            testID="WorkspaceInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={
                 shouldShowNavigationTabBar &&
@@ -569,7 +569,5 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         </ScreenWrapper>
     );
 }
-
-WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceInitialPage);
