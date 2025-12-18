@@ -79,7 +79,7 @@ function CategoryRequireReceiptsOverPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryRequireReceiptsOverPage.displayName}
+                testID="CategoryRequireReceiptsOverPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -106,7 +106,5 @@ function CategoryRequireReceiptsOverPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryRequireReceiptsOverPage.displayName = 'CategoryRequireReceiptsOverPage';
 
 export default CategoryRequireReceiptsOverPage;

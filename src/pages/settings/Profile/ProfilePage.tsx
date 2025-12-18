@@ -154,7 +154,7 @@ function ProfilePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={ProfilePage.displayName}
+            testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -261,7 +261,5 @@ function ProfilePage() {
         </ScreenWrapper>
     );
 }
-
-ProfilePage.displayName = 'ProfilePage';
 
 export default ProfilePage;

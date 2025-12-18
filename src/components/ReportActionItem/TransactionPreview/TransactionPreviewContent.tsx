@@ -378,7 +378,15 @@ function TransactionPreviewContent({
                                         />
                                         <Text
                                             numberOfLines={1}
-                                            style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}]}
+                                            style={[
+                                                isDeleted && styles.lineThrough,
+                                                styles.textMicroSupporting,
+                                                styles.lhUndefined,
+                                                styles.textMicroSupportingPadding,
+                                                styles.pre,
+                                                styles.flexShrink1,
+                                                styles.textDanger,
+                                            ]}
                                         >
                                             {RBRMessage}
                                         </Text>
@@ -400,7 +408,5 @@ function TransactionPreviewContent({
         </View>
     );
 }
-
-TransactionPreviewContent.displayName = 'TransactionPreviewContent';
 
 export default TransactionPreviewContent;

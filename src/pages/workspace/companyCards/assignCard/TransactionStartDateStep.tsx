@@ -1,4 +1,5 @@
 import {format, subDays} from 'date-fns';
+import {Str} from 'expensify-common';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -23,7 +24,7 @@ function TransactionStartDateStep() {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
-    const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '');
 
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const [errorText, setErrorText] = useState('');
@@ -87,7 +88,7 @@ function TransactionStartDateStep() {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={TransactionStartDateStep.displayName}
+            wrapperID="TransactionStartDateStep"
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={2}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
@@ -143,7 +144,5 @@ function TransactionStartDateStep() {
         </InteractiveStepWrapper>
     );
 }
-
-TransactionStartDateStep.displayName = 'TransactionStartDateStep';
 
 export default TransactionStartDateStep;
