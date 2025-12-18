@@ -174,6 +174,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     SpreadCategoriesParams,
@@ -191,7 +192,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -692,6 +692,9 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: '対応が必要',
         duplicate: '複製',
         duplicated: '重複',
+        exchangeRate: '為替レート',
+        reimbursableTotal: '経費精算対象の合計',
+        nonReimbursableTotal: '非払い戻し合計',
         originalAmount: '元の金額',
     },
     supportalNoAccess: {
@@ -1035,6 +1038,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: '手動',
         scan: 'スキャン',
         map: '地図',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'スプレッドシートをアップロード',
@@ -1132,6 +1136,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: '金額',
+        percent: 'パーセント',
         taxAmount: '税額',
         taxRate: '税率',
         approve: ({
@@ -1146,6 +1151,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: '分割',
         splitExpense: '経費を分割',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${merchant} からの ${amount}`,
+        splitByPercentage: '割合で分割',
         addSplit: '分割を追加',
         makeSplitsEven: '分割を均等にする',
         editSplits: '分割を編集',
@@ -1343,12 +1349,6 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} を送信済み${comment ? `${comment} 用` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `経費を個人スペースから${workspaceName ?? `${reportName} とチャット`}に移動しました`,
         movedToPersonalSpace: '経費を個人スペースに移動しました',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? '1つの' : 'a';
-            const tag = policyTagListName ?? 'タグ';
-            return `支出をより適切に整理するために、${article} ${tag} を選択してください。`;
-        },
-        categorySelection: '支出をより整理しやすくするためにカテゴリを選択してください。',
         error: {
             invalidCategoryLength: 'カテゴリ名が255文字を超えています。短くするか、別のカテゴリを選択してください。',
             invalidTagLength: 'タグ名が255文字を超えています。短くするか、別のタグを選択してください。',
@@ -1380,6 +1380,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: '数量は0より大きくなければなりません',
             invalidSubrateLength: '少なくとも 1 つのサブレートが必要です',
             invalidRate: 'このワークスペースでは無効なレートです。ワークスペースから利用可能なレートを選択してください。',
+            endDateBeforeStartDate: '終了日は開始日より前にはできません',
+            endDateSameAsStartDate: '終了日は開始日と同じにはできません',
         },
         dismissReceiptError: 'エラーを閉じる',
         dismissReceiptErrorConfirmation: '注意！このエラーを無視すると、アップロードした領収書が完全に削除されます。本当に実行しますか？',
@@ -1525,6 +1527,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'ワークスペースを選択',
+        date: '日付',
+        splitDates: '日付を分割',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} から ${endDate} まで（${count} 日間）`,
+        splitByDate: '日付で分割',
     },
     transactionMerge: {
         listPage: {

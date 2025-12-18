@@ -174,6 +174,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     SpreadCategoriesParams,
@@ -191,7 +192,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -693,6 +693,9 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Actie vereist',
         duplicate: 'Dupliceren',
         duplicated: 'Gedupliceerd',
+        exchangeRate: 'Wisselkoers',
+        reimbursableTotal: 'Totaal te vergoeden',
+        nonReimbursableTotal: 'Niet-vergoedbaar totaal',
         originalAmount: 'Oorspronkelijk bedrag',
     },
     supportalNoAccess: {
@@ -1035,6 +1038,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Handmatig',
         scan: 'Scannen',
         map: 'Kaart',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Een spreadsheet uploaden',
@@ -1130,6 +1134,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Bedrag',
+        percent: 'Procent',
         taxAmount: 'Belastingbedrag',
         taxRate: 'Belastingtarief',
         approve: ({
@@ -1144,6 +1149,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Splitsen',
         splitExpense: 'Uitgave splitsen',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} van ${merchant}`,
+        splitByPercentage: 'Splitsen op percentage',
         addSplit: 'Splits toevoegen',
         makeSplitsEven: 'Verdeel bedragen gelijk',
         editSplits: 'Splits bewerken',
@@ -1341,12 +1347,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `heeft uitgave verplaatst van persoonlijke ruimte naar ${workspaceName ?? `chat met ${reportName}`}`,
         movedToPersonalSpace: 'uitgave verplaatst naar persoonlijke ruimte',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'een' : 'een';
-            const tag = policyTagListName ?? 'label';
-            return `Selecteer ${article} ${tag} om je uitgaven beter te organiseren.`;
-        },
-        categorySelection: 'Selecteer een categorie om je uitgaven beter te organiseren.',
         error: {
             invalidCategoryLength: 'De categorienaam bevat meer dan 255 tekens. Verkort deze of kies een andere categorie.',
             invalidTagLength: 'De namen van tags mogen niet langer zijn dan 255 tekens. Verkort de tagnaam of kies een andere tag.',
@@ -1378,6 +1378,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: 'Hoeveelheid moet groter zijn dan nul',
             invalidSubrateLength: 'Er moet ten minste één subtarief zijn',
             invalidRate: 'Tarief is niet geldig voor deze workspace. Selecteer een beschikbaar tarief uit de workspace.',
+            endDateBeforeStartDate: 'De einddatum kan niet vóór de startdatum liggen',
+            endDateSameAsStartDate: 'De einddatum mag niet hetzelfde zijn als de startdatum',
         },
         dismissReceiptError: 'Foutmelding sluiten',
         dismissReceiptErrorConfirmation: 'Let op! Als je deze foutmelding negeert, wordt je geüploade bon volledig verwijderd. Weet je het zeker?',
@@ -1523,6 +1525,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Kies een workspace',
+        date: 'Datum',
+        splitDates: 'Datums splitsen',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} tot ${endDate} (${count} dagen)`,
+        splitByDate: 'Splitsen op datum',
     },
     transactionMerge: {
         listPage: {

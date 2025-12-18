@@ -1235,7 +1235,7 @@ function MoneyReportHeader({
 
                 duplicateExpenseTransaction([transaction]);
             },
-            shouldCloseModalOnSelect: false,
+            shouldCloseModalOnSelect: activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
             text: translate('iou.changeWorkspace'),
@@ -1404,6 +1404,7 @@ function MoneyReportHeader({
         [CONST.REPORT.SECONDARY_ACTIONS.PAY]: {
             text: translate('iou.settlePayment', {formattedAmount: totalAmount}),
             icon: expensifyIcons.Cash,
+            rightIcon: expensifyIcons.ArrowRight,
             value: CONST.REPORT.SECONDARY_ACTIONS.PAY,
             backButtonText: translate('iou.settlePayment', {formattedAmount: totalAmount}),
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.PAY,
