@@ -20,6 +20,7 @@ import {
     getCompanyCardFeedWithDomainID,
     getCompanyFeeds,
     getPlaidInstitutionIconUrl,
+    isMaskedCardNumberEqual,
     sortCardsByCardholderName,
 } from '@libs/CardUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -63,9 +64,10 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
 
     const {cardList, ...assignedCards} = cardsList ?? {};
     const [cardFeeds] = useCardFeeds(policyID);
-
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const cards = companyFeeds?.[selectedFeed]?.accountList;
+
+    const isPlaidCardFeed = !!companyFeeds?.[selectedFeed]?.accountList;
+    const cards = isPlaidCardFeed ? (companyFeeds?.[selectedFeed]?.accountList ?? []) : Object.keys(cardList ?? {});
 
     const plaidIconUrl = getPlaidInstitutionIconUrl(selectedFeed);
 
@@ -88,7 +90,9 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
 
     const renderItem = useCallback(
         ({item: cardName, index}: ListRenderItemInfo<string>) => {
-            const assignedCard = Object.values(assignedCards ?? {}).find((card) => card.cardName === cardName);
+            const assignedCardPredicate = (card: Card) => (isPlaidCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
+
+            const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
 
             const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID];
 
@@ -135,6 +139,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
                                 customCardName={customCardName}
                                 isHovered={hovered}
                                 isAssigned={!!assignedCard}
+                                isPlaidCardFeed={isPlaidCardFeed}
                                 onAssignCard={onAssignCard}
                                 isAssigningCardDisabled={isAssigningCardDisabled}
                                 shouldUseNarrowTableRowLayout={shouldUseNarrowTableRowLayout}
@@ -148,6 +153,7 @@ function WorkspaceCompanyCardsList({selectedFeed, cardsList, policyID, onAssignC
             assignedCards,
             customCardNames,
             isAssigningCardDisabled,
+            isPlaidCardFeed,
             onAssignCard,
             personalDetails,
             plaidIconUrl,
