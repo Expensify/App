@@ -481,7 +481,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     )}
                 </View>
             </View>
-            <SidePanelButton style={[styles.mt1Half]} />
+            <SidePanelButton style={styles.mt1Half} />
         </View>
     );
 }
