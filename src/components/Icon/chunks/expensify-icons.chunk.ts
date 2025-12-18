@@ -126,10 +126,10 @@ import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
 import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
-import TrinetSquare from '@assets/images/integrationicons/trinet-icon-square.svg';
 import Uber from '@assets/images/integrationicons/uber.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
+import ZenefitsSquare from '@assets/images/integrationicons/zenefits-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
@@ -396,7 +396,7 @@ const Expensicons = {
     ThreeDots,
     Transfer,
     Trashcan,
-    TrinetSquare,
+    ZenefitsSquare,
     Uber,
     Unlock,
     UpArrow,

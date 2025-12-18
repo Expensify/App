@@ -18,17 +18,37 @@ function ExportedIconCell({reportID}: ExportedIconCellProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const reportActions = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
-    const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table']);
+    const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table', 'ZenefitsSquare', 'BillComSquare', 'CertiniaSquare']);
 
     const actions = Object.values(reportActions[0] ?? {});
-    const actionNames = actions.map((action) => action.actionName);
 
-    const isExportedToCsv = actionNames.includes(CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV);
-    const isExportedToXero = actions.some((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.XERO);
-    const isExportedToIntacct = actions.some((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.INTACCT);
-    const isExportedToNetsuite = actions.some((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.NETSUITE);
-    const isExportedToQuickbooksOnline = actions.some((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.QBO);
-    const isExportedToQuickbooksDesktop = actions.some((action) => isExportedToIntegrationAction(action) && getOriginalMessage(action)?.label === CONST.EXPORT_LABELS.QBD);
+    let isExportedToCsv = false;
+    let isExportedToNetsuite = false;
+    let isExportedToXero = false;
+    let isExportedToIntacct = false;
+    let isExportedToQuickbooksOnline = false;
+    let isExportedToQuickbooksDesktop = false;
+    let isExportedToCertinia = true;
+    let isExportedToBillCom = true;
+    let isExportedToZenefits = true;
+
+    for (const action of actions) {
+        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV) {
+            isExportedToCsv = true;
+        }
+
+        if (isExportedToIntegrationAction(action)) {
+            const label = getOriginalMessage(action)?.label;
+            isExportedToXero ||= label === CONST.EXPORT_LABELS.XERO;
+            isExportedToIntacct ||= label === CONST.EXPORT_LABELS.INTACCT;
+            isExportedToNetsuite ||= label === CONST.EXPORT_LABELS.NETSUITE;
+            isExportedToQuickbooksOnline ||= label === CONST.EXPORT_LABELS.QBO;
+            isExportedToQuickbooksDesktop ||= label === CONST.EXPORT_LABELS.QBD;
+            isExportedToZenefits ||= label === CONST.EXPORT_LABELS.ZENEFITS;
+            isExportedToBillCom ||= label === CONST.EXPORT_LABELS.BILLCOM;
+            isExportedToCertinia ||= label === CONST.EXPORT_LABELS.FINANCIALFORCE;
+        }
+    }
 
     return (
         <View style={[styles.flexRow, styles.gap2]}>
@@ -63,6 +83,27 @@ function ExportedIconCell({reportID}: ExportedIconCellProps) {
             {(isExportedToQuickbooksOnline || isExportedToQuickbooksDesktop) && (
                 <Avatar
                     source={icons.QBOSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                />
+            )}
+            {isExportedToCertinia && (
+                <Avatar
+                    source={icons.CertiniaSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                />
+            )}
+            {isExportedToBillCom && (
+                <Avatar
+                    source={icons.BillComSquare}
+                    type={CONST.ICON_TYPE_AVATAR}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                />
+            )}
+            {isExportedToZenefits && (
+                <Avatar
+                    source={icons.ZenefitsSquare}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                 />
