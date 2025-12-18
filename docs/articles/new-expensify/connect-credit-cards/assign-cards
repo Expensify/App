@@ -37,13 +37,6 @@ After assigning cards to users, you can manage those assigned cards from the sam
 **Note:** Unassigning a card will delete unsubmitted expenses from draft reports for that cardholder.
 
 
-## Example Use Cases
-
-- Filter unassigned cards to quickly complete setup for new employees.
-- Search for a specific card using the last four digits.
-- Sort by employee to review card distribution across the team.
-
-
 # FAQ
 
 ## What happens if a card fails to assign?
