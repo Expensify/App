@@ -1370,7 +1370,6 @@ const translations: TranslationDeepObject<typeof en> = {
             genericDeleteFailureMessage: 'Nieoczekiwany błąd podczas usuwania tego wydatku. Spróbuj ponownie później.',
             genericEditFailureMessage: 'Nieoczekiwany błąd podczas edytowania tego wydatku. Spróbuj ponownie później.',
             genericSmartscanFailureMessage: 'Transakcji brakuje pól',
-            genericDEWSubmitFailureMessage: 'Przesyłanie dynamicznego zewnętrznego przepływu pracy nie powiodło się',
             duplicateWaypointsErrorMessage: 'Usuń zduplikowane punkty pośrednie',
             atLeastTwoDifferentWaypoints: 'Wprowadź co najmniej dwa różne adresy',
             splitExpenseMultipleParticipantsErrorMessage: 'Wydatek nie może zostać podzielony między przestrzeń roboczą a innych członków. Proszę zaktualizować swój wybór.',

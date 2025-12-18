@@ -1372,7 +1372,6 @@ const translations: TranslationDeepObject<typeof en> = {
             genericDeleteFailureMessage: 'Onverwachte fout bij het verwijderen van deze uitgave. Probeer het later opnieuw.',
             genericEditFailureMessage: 'Onverwachte fout bij het bewerken van deze uitgave. Probeer het later opnieuw.',
             genericSmartscanFailureMessage: 'Transactie mist velden',
-            genericDEWSubmitFailureMessage: 'Dynamische externe workflow indienen mislukt',
             duplicateWaypointsErrorMessage: 'Verwijder dubbele tussenpunten alstublieft',
             atLeastTwoDifferentWaypoints: 'Voer ten minste twee verschillende adressen in',
             splitExpenseMultipleParticipantsErrorMessage: 'Een uitgave kan niet worden gesplitst tussen een werkruimte en andere leden. Werk uw selectie alstublieft bij.',

@@ -1374,7 +1374,6 @@ const translations: TranslationDeepObject<typeof en> = {
             genericDeleteFailureMessage: 'この経費の削除中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericEditFailureMessage: 'この経費の編集中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericSmartscanFailureMessage: '取引に不足している項目があります',
-            genericDEWSubmitFailureMessage: '動的外部ワークフローの送信に失敗しました',
             duplicateWaypointsErrorMessage: '重複する経路ポイントを削除してください',
             atLeastTwoDifferentWaypoints: '少なくとも 2 つの異なる住所を入力してください',
             splitExpenseMultipleParticipantsErrorMessage: '経費はワークスペースと他のメンバーで分割できません。選択内容を更新してください。',

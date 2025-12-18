@@ -1369,7 +1369,6 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptFailureMessageShort: 'Ocorreu um erro ao fazer upload do seu recibo.',
             genericDeleteFailureMessage: 'Erro inesperado ao excluir esta despesa. Tente novamente mais tarde.',
             genericEditFailureMessage: 'Erro inesperado ao editar esta despesa. Tente novamente mais tarde.',
-            genericDEWSubmitFailureMessage: 'Falha no envio do fluxo de trabalho externo dinâmico',
             genericSmartscanFailureMessage: 'A transação está com campos ausentes',
             duplicateWaypointsErrorMessage: 'Remova pontos de passagem duplicados',
             atLeastTwoDifferentWaypoints: 'Insira pelo menos dois endereços diferentes',

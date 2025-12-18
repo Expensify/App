@@ -1350,7 +1350,6 @@ const translations: TranslationDeepObject<typeof en> = {
             genericDeleteFailureMessage: '删除此报销时发生意外错误。请稍后重试。',
             genericEditFailureMessage: '编辑此报销时出现意外错误。请稍后重试。',
             genericSmartscanFailureMessage: '交易缺少字段',
-            genericDEWSubmitFailureMessage: '动态外部工作流提交失败',
             duplicateWaypointsErrorMessage: '请移除重复的航路点',
             atLeastTwoDifferentWaypoints: '请输入至少两个不同的地址',
             splitExpenseMultipleParticipantsErrorMessage: '一笔报销不能在一个工作区和其他成员之间拆分。请更新你的选择。',

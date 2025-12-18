@@ -717,13 +717,15 @@ function getLastMessageTextForReport({
     ) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? (getOriginalMessage(lastReportAction)?.harvesting ?? false) : false;
         const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+        const isPendingAdd = lastReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
         if (wasSubmittedViaHarvesting) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = Parser.htmlToText(translateLocal('iou.automaticallySubmitted'));
-        } else if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
+        } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
+            // When DEW submit is pending: show "queued" message if offline, otherwise show nothing
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            lastMessageTextFromReport = translateLocal('iou.queuedToSubmitViaDEW');
+            lastMessageTextFromReport = isOffline ? translateLocal('iou.queuedToSubmitViaDEW') : '';
         } else {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.submitted', {memo: getOriginalMessage(lastReportAction)?.message});
@@ -739,7 +741,7 @@ function getLastMessageTextForReport({
         }
     } else if (isDynamicExternalWorkflowSubmitFailedAction(lastReportAction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        lastMessageTextFromReport = getOriginalMessage(lastReportAction)?.message ?? translateLocal('iou.error.genericDEWSubmitFailureMessage');
+        lastMessageTextFromReport = getOriginalMessage(lastReportAction)?.message ?? translateLocal('iou.error.genericCreateFailureMessage');
     } else if (isUnapprovedAction(lastReportAction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('iou.unapproved');
