@@ -1,6 +1,7 @@
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from './OnyxCommon';
 import SecurityGroup from '@src/types/onyx/SecurityGroup';
+import type * as OnyxTypes from '@src/types/onyx/index';
 
 /**
  * A utility type that creates a record where all keys are strings that start with a specified prefix.
@@ -49,7 +50,7 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     samlRequiredError?: OnyxCommon.Errors;
 }> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX, number> &
-    PrefixedRecord<typeof ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX, number>;
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX, OnyxTypes.DomainSecurityGroup>;
 /** Model of SAML metadata */
 type SamlMetadata = {
     /**

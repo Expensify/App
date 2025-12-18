@@ -54,23 +54,19 @@ function adminAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
  * @param domain - The domain object from Onyx
  * @returns An array of unique member account IDs
  */
-function selectMemberIDs(domain: Domain | undefined): number[] {
+function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
     if (!domain) {
         return [];
     }
 
-    const memberIDs = Object.entries(domain)
-        .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX))
-        .flatMap(([, value]) => {
-            const groupData = value as {shared?: Record<string, string>};
-            if (!groupData?.shared) {
-                return [];
-            }
-            return Object.keys(groupData.shared);
-        })
-        .map((id) => Number(id))
-        .filter((id) => !Number.isNaN(id));
-    return [...new Set(memberIDs)];
+    const memberIDs = Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
+        if (key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX)) {
+            Object.keys((value as any)?.shared ?? {}).forEach((id) => acc.push(Number(id)));
+        }
+        return acc;
+    }, []);
+
+    return [...new Set(memberIDs)].filter((id) => !Number.isNaN(id)) ?? getEmptyArray<number>();
 }
 
 const technicalContactEmailSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => domainMemberSharedNVP?.settings?.technicalContactEmail;
