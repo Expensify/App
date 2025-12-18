@@ -2957,41 +2957,35 @@ function getColumnsToShow(
 ): ColumnVisibility {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const reportColumns: ColumnVisibility = {
+            // Avatar is always visible & is not configurable
             [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.DATE]: false,
             [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
             [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
             [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
+            [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
             [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
             [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: false,
             [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
+            // Total is always visible & is not configurable
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
             [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
             [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
         };
 
         // If there are no visible columns, everything should be visible
         const filteredVisibleColumns = visibleColumns.filter((column) =>
             Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>),
         );
-        if (!filteredVisibleColumns.length) {
-            return reportColumns;
-        }
 
         // If the user has set custom columns, toggle the visible columns on, with all other
         // columns hidden by default
         const columns: ColumnVisibility = {};
-        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
-        const columnsToShow = visibleColumns.length ? visibleColumns : CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT;
-
-        for (const columnId of Object.keys(reportColumns) as SearchColumnType[]) {
-            columns[columnId] = requiredColumns.has(columnId);
-        }
+        const columnsToShow = filteredVisibleColumns.length ? filteredVisibleColumns : CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT;
 
         for (const column of columnsToShow) {
             columns[column as keyof ColumnVisibility] = true;
@@ -3023,33 +3017,44 @@ function getColumnsToShow(
     }
 
     if (!isExpenseReportView && groupBy) {
-        switch (groupBy) {
-            case CONST.SEARCH.GROUP_BY.FROM:
-                return {
-                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-                };
-            case CONST.SEARCH.GROUP_BY.CARD:
-                return {
-                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.CARD]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.FEED]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-                };
-            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-                return {
-                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-                };
-            default:
-                return {};
+        const customColumns = {
+            [CONST.SEARCH.GROUP_BY.CARD]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD,
+            [CONST.SEARCH.GROUP_BY.FROM]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM,
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID,
+        }[groupBy];
+
+        const filteredVisibleColumns = visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>));
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+            const columns = {
+                [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: false,
+            };
+        }
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
+            const columns = {
+                [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.FEED]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: false,
+                [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: false,
+            };
+            }
+
+        }
+        
+        if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
+            return {
+                [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
+                [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
+            };
         }
     }
 
