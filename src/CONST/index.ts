@@ -1670,6 +1670,9 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
         TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
+        TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
+        TAG_AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
+        TAG_AUTHENTICATION_JSON_CODE: 'authentication_json_code',
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
