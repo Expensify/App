@@ -6087,7 +6087,7 @@ describe('actions/IOU', () => {
             // When the user sends a new invoice to an individual
             sendInvoice({
                 currentUserAccountID,
-                transaction: transaction as unknown as OnyxEntry<Transaction>,
+                transaction,
                 policyRecentlyUsedCurrencies: [],
                 policy,
                 companyName,
@@ -6106,33 +6106,41 @@ describe('actions/IOU', () => {
         });
 
         it('should not clear transaction pending action when send invoice fails', async () => {
-            // Given a send invoice request
+            const testCurrency = CONST.CURRENCY.EUR;
+            const transaction = {
+                ...createRandomTransaction(1),
+                currency: testCurrency,
+            } as unknown as OnyxEntry<Transaction>;
+            const initialCurrencies: string[] = [];
+            await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
+
             mockFetch?.pause?.();
             sendInvoice({
                 currentUserAccountID: 1,
-                transaction: createRandomTransaction(1) as unknown as OnyxEntry<Transaction>,
-                policyRecentlyUsedCurrencies: [],
+                transaction,
+                policyRecentlyUsedCurrencies: initialCurrencies,
             });
 
-            // When the request fails
             mockFetch?.fail?.();
             mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
-            // Then the pending action of the optimistic transaction shouldn't be cleared
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     waitForCollectionCallback: true,
                     callback: (allTransactions) => {
                         Onyx.disconnect(connection);
-                        const transaction = Object.values(allTransactions).at(0);
-                        expect(transaction?.errors).not.toBeUndefined();
-                        expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                        const transactionValue = Object.values(allTransactions).at(0);
+                        expect(transactionValue?.errors).not.toBeUndefined();
+                        expect(transactionValue?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                         resolve();
                     },
                 });
             });
+
+            const recentlyUsedCurrencies = await getOnyxValue(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+            expect(recentlyUsedCurrencies).toEqual([testCurrency]);
         });
 
         it('should handle policyRecentlyUsedCategories when provided', () => {
@@ -9609,10 +9617,11 @@ describe('actions/IOU', () => {
 
     describe('getPerDiemExpenseInformation', () => {
         it('should include policyRecentlyUsedCurrencies when provided', () => {
-            // Given: Minimal per diem data with policyRecentlyUsedCurrencies
+            const testCurrency = CONST.CURRENCY.GBP;
+            const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.EUR];
             const mockTransactionParams: PerDiemExpenseTransactionParams = {
                 comment: '',
-                currency: 'USD',
+                currency: testCurrency,
                 created: '2024-02-02',
                 category: 'Meals',
                 tag: 'PerDiem',
@@ -9652,12 +9661,17 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'payee@example.com',
                 hasViolations: false,
-                policyRecentlyUsedCurrencies: ['USD', 'EUR'],
+                policyRecentlyUsedCurrencies: initialCurrencies,
             });
 
-            // Then: Verify onyxData is generated when policyRecentlyUsedCurrencies are provided
             expect(result.onyxData).toBeDefined();
             expect(result.onyxData.optimisticData).toBeDefined();
+
+            const optimisticData = result.onyxData?.optimisticData;
+            expect(optimisticData).toBeDefined();
+            const currencyUpdate = optimisticData?.find((update) => update.key === ONYXKEYS.RECENTLY_USED_CURRENCIES && update.onyxMethod === Onyx.METHOD.SET);
+            expect(currencyUpdate).toBeDefined();
+            expect(currencyUpdate?.value).toEqual([testCurrency, ...initialCurrencies]);
         });
 
         it('should return correct per diem expense information with new chat report', () => {
@@ -10012,6 +10026,58 @@ describe('actions/IOU', () => {
             expect(result.onyxData.optimisticData).toBeDefined();
         });
 
+        it('should merge policyRecentlyUsedCurrencies when currency is provided in transaction', () => {
+            const testCurrency = CONST.CURRENCY.EUR;
+            const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.GBP];
+            const mockTransaction = {
+                transactionID: 'transaction_currency',
+                reportID: 'report_currency',
+                amount: 200,
+                currency: testCurrency,
+                created: '2024-02-01',
+                merchant: 'Currency Test',
+                category: 'Meals',
+                comment: {
+                    comment: 'Invoice with currency',
+                },
+                participants: [
+                    {
+                        accountID: 123,
+                        isSender: true,
+                        policyID: 'workspace_currency',
+                    },
+                    {
+                        accountID: 456,
+                        isSender: false,
+                    },
+                ],
+            };
+
+            const currentUserAccountID = 123;
+
+            const result = getSendInvoiceInformation({
+                transaction: mockTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: initialCurrencies,
+                invoiceChatReport: undefined,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: undefined,
+            });
+
+            expect(result.onyxData.optimisticData).toBeDefined();
+
+            const optimisticData = result.onyxData?.optimisticData;
+            expect(optimisticData).toBeDefined();
+            const currencyUpdate = optimisticData?.find((update) => update.key === ONYXKEYS.RECENTLY_USED_CURRENCIES && update.onyxMethod === Onyx.METHOD.SET);
+            expect(currencyUpdate).toBeDefined();
+            expect(currencyUpdate?.value).toEqual([testCurrency, ...initialCurrencies]);
+        });
+
         it('should return correct invoice information with new chat report', () => {
             // Given: Mock transaction data
             const mockTransaction = {
@@ -10078,7 +10144,7 @@ describe('actions/IOU', () => {
                 policyCategories: mockPolicyCategories,
                 companyName: 'Test Company Inc.',
                 companyWebsite: 'https://testcompany.com',
-                policyRecentlyUsedCategories: [],
+                policyRecentlyUsedCategories: ['Services', 'Consulting'],
             });
 
             // Then: Verify the result structure and key values
@@ -10235,7 +10301,7 @@ describe('actions/IOU', () => {
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
-                receiptFile: mockReceipt as never,
+                receiptFile: mockReceipt,
                 policy: undefined,
                 policyTagList: undefined,
                 policyCategories: undefined,

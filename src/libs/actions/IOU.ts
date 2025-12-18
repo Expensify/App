@@ -498,7 +498,7 @@ type PerDiemExpenseInformationParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
-    policyRecentlyUsedCurrencies: string[]; 
+    policyRecentlyUsedCurrencies: string[];
 };
 
 type RequestMoneyInformation = {
