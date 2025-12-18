@@ -154,8 +154,17 @@ function SearchColumnsPage() {
         });
     };
 
-    const onDragEnd = ({data}: {data: typeof allColumnsList}) => {
-        const newColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+    const onGroupDragEnd = ({data}: {data: typeof allColumnsList}) => {
+        const newGroupColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+        const existingTypeColumns = typeColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+        const newColumns = [...existingTypeColumns, ...newGroupColumns];
+        setColumns(sortColumns(newColumns));
+    };
+
+    const onTypeDragEnd = ({data}: {data: typeof allColumnsList}) => {
+        const newTypeColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+        const existingGroupColumns = groupColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+        const newColumns = [...existingGroupColumns, ...newTypeColumns];
         setColumns(sortColumns(newColumns));
     };
 
@@ -212,7 +221,7 @@ function SearchColumnsPage() {
                                 disableScroll
                                 data={groupColumnsList}
                                 keyExtractor={(item) => item.value}
-                                onDragEnd={onDragEnd}
+                                onDragEnd={onGroupDragEnd}
                                 renderItem={renderItem}
                             />
 
@@ -228,7 +237,7 @@ function SearchColumnsPage() {
                         disableScroll
                         data={typeColumnsList}
                         keyExtractor={(item) => item.value}
-                        onDragEnd={onDragEnd}
+                        onDragEnd={onTypeDragEnd}
                         renderItem={renderItem}
                     />
                 </ScrollView>
