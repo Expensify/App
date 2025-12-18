@@ -1251,6 +1251,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
+        removeSpacing: {
+            marginVertical: 0,
+            paddingHorizontal: 0,
+        },
+
         outlinedButton: {
             backgroundColor: 'transparent',
             borderColor: theme.border,
@@ -1259,6 +1264,20 @@ const staticStyles = (theme: ThemeColors) =>
 
         optionRowAmountInput: {
             textAlign: 'right',
+        },
+
+        optionRowAmountMobileInputContainer: {
+            width: variables.splitExpenseAmountMobileWidth,
+        },
+
+        optionRowPercentInputContainer: {
+            width: variables.splitExpensePercentageMobileWidth,
+        },
+
+        optionRowPercentInput: {
+            width: variables.splitExpensePercentageWidth,
+            textAlign: 'right',
+            marginRight: 2,
         },
 
         textInputLabelContainer: {
@@ -5602,7 +5621,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             paddingBottom: bottomSafeAreaOffset,
         }),
 
-        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,
             marginRight: 4,

@@ -174,6 +174,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     SpreadCategoriesParams,
@@ -1137,6 +1138,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Betrag',
+        percent: 'Prozent',
         taxAmount: 'Steuerbetrag',
         taxRate: 'Steuersatz',
         approve: ({
@@ -1151,6 +1153,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Aufteilen',
         splitExpense: 'Ausgabe aufteilen',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} von ${merchant}`,
+        splitByPercentage: 'Nach Prozentsatz aufteilen',
         addSplit: 'Aufteilung hinzufügen',
         makeSplitsEven: 'Aufteilungen gleichmäßig machen',
         editSplits: 'Aufteilungen bearbeiten',
@@ -1379,6 +1382,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: 'Die Menge muss größer als Null sein',
             invalidSubrateLength: 'Es muss mindestens einen Untertarif geben',
             invalidRate: 'Satz für diesen Workspace ungültig. Bitte wählen Sie einen verfügbaren Satz aus dem Workspace aus.',
+            endDateBeforeStartDate: 'Das Enddatum darf nicht vor dem Startdatum liegen',
+            endDateSameAsStartDate: 'Das Enddatum darf nicht mit dem Startdatum identisch sein',
         },
         dismissReceiptError: 'Fehler ausblenden',
         dismissReceiptErrorConfirmation: 'Achtung! Wenn du diesen Fehler verwirfst, wird dein hochgeladener Beleg vollständig entfernt. Bist du sicher?',
@@ -1524,6 +1529,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Arbeitsbereich auswählen',
+        date: 'Datum',
+        splitDates: 'Datumsangaben aufteilen',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} bis ${endDate} (${count} Tage)`,
+        splitByDate: 'Nach Datum aufteilen',
     },
     transactionMerge: {
         listPage: {

@@ -703,6 +703,12 @@ type SplitExpenseEditTitleParams = {
     merchant: string;
 };
 
+type SplitDateRangeParams = {
+    startDate: string;
+    endDate: string;
+    count: number;
+};
+
 type TotalAmountGreaterOrLessThanOriginalParams = {
     amount: string;
 };
@@ -841,6 +847,7 @@ export type {
     ToggleImportTitleParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
+    SplitDateRangeParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportedTagsMessageParams,

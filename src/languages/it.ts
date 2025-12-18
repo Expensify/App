@@ -174,6 +174,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     SpreadCategoriesParams,
@@ -1132,6 +1133,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Importo',
+        percent: 'Percentuale',
         taxAmount: 'Importo imposta',
         taxRate: 'Aliquota fiscale',
         approve: ({
@@ -1146,6 +1148,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Dividi',
         splitExpense: 'Dividi spesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} da ${merchant}`,
+        splitByPercentage: 'Ripartisci per percentuale',
         addSplit: 'Aggiungi ripartizione',
         makeSplitsEven: 'Rendi le suddivisioni uguali',
         editSplits: 'Modifica suddivisioni',
@@ -1375,6 +1378,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: 'La quantità deve essere maggiore di zero',
             invalidSubrateLength: 'Deve esserci almeno un sottotariffa',
             invalidRate: 'Tariffa non valida per questo workspace. Seleziona una tariffa disponibile dal workspace.',
+            endDateBeforeStartDate: 'La data di fine non può essere precedente alla data di inizio',
+            endDateSameAsStartDate: 'La data di fine non può essere uguale alla data di inizio',
         },
         dismissReceiptError: 'Ignora errore',
         dismissReceiptErrorConfirmation: 'Attenzione! Se ignori questo errore, la ricevuta caricata verrà rimossa completamente. Sei sicuro?',
@@ -1520,6 +1525,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Scegli uno spazio di lavoro',
+        date: 'Data',
+        splitDates: 'Dividi date',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} giorni)`,
+        splitByDate: 'Dividi per data',
     },
     transactionMerge: {
         listPage: {

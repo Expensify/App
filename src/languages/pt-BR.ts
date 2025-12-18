@@ -174,6 +174,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     SpreadCategoriesParams,
@@ -1131,6 +1132,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Valor',
+        percent: 'Porcentagem',
         taxAmount: 'Valor do imposto',
         taxRate: 'Alíquota de imposto',
         approve: ({
@@ -1145,6 +1147,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Dividir',
         splitExpense: 'Dividir despesa',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
+        splitByPercentage: 'Dividir por porcentagem',
         addSplit: 'Adicionar divisão',
         makeSplitsEven: 'Dividir igualmente',
         editSplits: 'Editar divisões',
@@ -1372,6 +1375,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: 'A quantidade deve ser maior que zero',
             invalidSubrateLength: 'Deve haver pelo menos uma subtarifa',
             invalidRate: 'Taxa inválida para este workspace. Selecione uma taxa disponível do workspace.',
+            endDateBeforeStartDate: 'A data de término não pode ser anterior à data de início',
+            endDateSameAsStartDate: 'A data de término não pode ser igual à data de início',
         },
         dismissReceiptError: 'Dispensar erro',
         dismissReceiptErrorConfirmation: 'Atenção! Ignorar este erro removerá completamente o seu recibo enviado. Tem certeza?',
@@ -1517,6 +1522,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Escolha um workspace',
+        date: 'Data',
+        splitDates: 'Dividir datas',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} dias)`,
+        splitByDate: 'Dividir por data',
     },
     transactionMerge: {
         listPage: {
