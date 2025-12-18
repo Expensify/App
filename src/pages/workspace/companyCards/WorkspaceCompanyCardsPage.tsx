@@ -63,7 +63,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     useEffect(() => {
         fetchCompanyCards();
-    }, [fetchCompanyCards]);
+    }, [policyID, domainOrWorkspaceAccountID]);
 
     useEffect(() => {
         if (isLoading || !feed || isPending) {

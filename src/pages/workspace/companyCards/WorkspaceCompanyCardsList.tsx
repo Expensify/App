@@ -96,7 +96,7 @@ function WorkspaceCompanyCardsList({selectedFeed, policyID, onAssignCard, isAssi
         ({item: cardName, index}: ListRenderItemInfo<string>) => {
             const assignedCard = Object.values(assignedCards ?? {}).find((card) => card.cardName === cardName);
 
-            const customCardName = customCardNames?.[assignedCard?.cardID ?? CONST.DEFAULT_NUMBER_ID];
+            const customCardName = assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined;
 
             const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -134,7 +134,7 @@ function WorkspaceCompanyCardsList({selectedFeed, policyID, onAssignCard, isAssi
                     >
                         {({hovered}) => (
                             <WorkspaceCompanyCardsListRow
-                                cardholder={personalDetails?.[assignedCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]}
+                                cardholder={assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined}
                                 cardName={cardName}
                                 selectedFeed={selectedFeed}
                                 plaidIconUrl={plaidIconUrl}
