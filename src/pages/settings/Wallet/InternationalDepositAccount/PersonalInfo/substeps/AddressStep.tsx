@@ -23,6 +23,7 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
     const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: true});
     const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
+    // eslint-disable-next-line react-compiler/react-compiler -- we need this to be memoized because it's used in the useEffect below
     const address = useMemo(() => {
         const normalizedAddress = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address;
         return {
