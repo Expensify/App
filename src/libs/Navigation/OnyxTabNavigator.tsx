@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {IOURequestType} from '@libs/actions/IOU';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SelectedTabRequest} from '@src/types/onyx';
+import type {SelectedTabRequest, SplitSelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
@@ -21,7 +21,7 @@ type OnyxTabNavigatorProps = ChildrenProps & {
     id: string;
 
     /** Name of the selected tab */
-    defaultSelectedTab?: SelectedTabRequest;
+    defaultSelectedTab?: SelectedTabRequest | SplitSelectedTabRequest;
 
     /** A function triggered when a tab has been selected */
     onTabSelected?: (newIouType: IOURequestType) => void;
@@ -45,9 +45,6 @@ type OnyxTabNavigatorProps = ChildrenProps & {
 
     /** Whether to show the label when the tab is inactive */
     shouldShowLabelWhenInactive?: boolean;
-
-    /** Disable swipe between tabs */
-    disableSwipe?: boolean;
 
     /** Determines whether the product training tooltip should be displayed to the user. */
     shouldShowProductTrainingTooltip?: boolean;
@@ -102,7 +99,6 @@ function OnyxTabNavigator({
     onTabSelected = () => {},
     screenListeners,
     shouldShowLabelWhenInactive = true,
-    disableSwipe = false,
     shouldShowProductTrainingTooltip,
     renderProductTrainingTooltip,
     lazyLoadEnabled = false,
@@ -193,7 +189,7 @@ function OnyxTabNavigator({
                 }}
                 screenOptions={{
                     ...defaultScreenOptions,
-                    swipeEnabled: !disableSwipe,
+                    swipeEnabled: false,
                     lazy: lazyLoadEnabled,
                     lazyPlaceholder: LazyPlaceholder,
                 }}
@@ -241,8 +237,6 @@ function TabScreenWithFocusTrapWrapper({children}: {children?: React.ReactNode})
         </FocusTrapContainerElement>
     );
 }
-
-OnyxTabNavigator.displayName = 'OnyxTabNavigator';
 
 export default OnyxTabNavigator;
 

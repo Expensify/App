@@ -189,7 +189,7 @@ function IOURequestStepScan({
                 setCameraPermissionStatus(status);
 
                 if (status === RESULTS.BLOCKED) {
-                    showCameraPermissionsAlert();
+                    showCameraPermissionsAlert(translate);
                 }
             })
             .catch(() => {
@@ -805,7 +805,7 @@ function IOURequestStepScan({
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper={!!backTo || isEditing}
-            testID={IOURequestStepScan.displayName}
+            testID="IOURequestStepScan"
         >
             <View
                 style={styles.flex1}
@@ -1004,8 +1004,6 @@ function IOURequestStepScan({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepScan.displayName = 'IOURequestStepScan';
 
 const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScan);
 // eslint-disable-next-line rulesdir/no-negated-variables

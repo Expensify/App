@@ -535,7 +535,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper
-                testID={PolicyAccountingPage.displayName}
+                testID="PolicyAccountingPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
@@ -656,7 +656,5 @@ function PolicyAccountingPageWrapper(props: PolicyAccountingPageProps) {
         </AccountingContextProvider>
     );
 }
-
-PolicyAccountingPage.displayName = 'PolicyAccountingPage';
 
 export default withPolicyConnections(PolicyAccountingPageWrapper);

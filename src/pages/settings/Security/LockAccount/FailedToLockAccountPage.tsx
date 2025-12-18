@@ -16,7 +16,7 @@ function FailedToLockAccountPage() {
 
     return (
         <ScreenWrapper
-            testID={FailedToLockAccountPage.displayName}
+            testID="FailedToLockAccountPage"
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton
@@ -38,7 +38,5 @@ function FailedToLockAccountPage() {
         </ScreenWrapper>
     );
 }
-
-FailedToLockAccountPage.displayName = 'FailedToLockAccountPage';
 
 export default FailedToLockAccountPage;

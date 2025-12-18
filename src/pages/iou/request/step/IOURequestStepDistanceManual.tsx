@@ -342,7 +342,7 @@ function IOURequestStepDistanceManual({
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
-            testID={IOURequestStepDistanceManual.displayName}
+            testID="IOURequestStepDistanceManual"
             shouldShowNotFoundPage={false}
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
@@ -384,8 +384,6 @@ function IOURequestStepDistanceManual({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepDistanceManual.displayName = 'IOURequestStepDistanceManual';
 
 const IOURequestStepDistanceManualWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceManual);
 // eslint-disable-next-line rulesdir/no-negated-variables

@@ -1085,7 +1085,7 @@ function IOURequestStepScan({
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper={!!backTo || isEditing}
-            testID={IOURequestStepScan.displayName}
+            testID="IOURequestStepScan"
         >
             {(isDraggingOverWrapper) => (
                 <View
@@ -1128,8 +1128,6 @@ function IOURequestStepScan({
         </StepScreenDragAndDropWrapper>
     );
 }
-
-IOURequestStepScan.displayName = 'IOURequestStepScan';
 
 const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScan);
 // eslint-disable-next-line rulesdir/no-negated-variables

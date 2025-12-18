@@ -60,7 +60,7 @@ function IOURequestStepCurrency({
             headerTitle={translate('common.selectCurrency')}
             onBackButtonPress={() => navigateBack()}
             shouldShowWrapper
-            testID={IOURequestStepCurrency.displayName}
+            testID="IOURequestStepCurrency"
             includeSafeAreaPaddingBottom
         >
             {({didScreenTransitionEnd}) => (
@@ -79,8 +79,6 @@ function IOURequestStepCurrency({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepCurrency.displayName = 'IOURequestStepCurrency';
 
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepCurrencyWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCurrency);

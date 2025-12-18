@@ -26,6 +26,9 @@ type SearchTableHeaderProps = {
     shouldShowSorting: boolean;
     dateColumnSize: TableColumnSize;
     submittedColumnSize?: TableColumnSize;
+    approvedColumnSize?: TableColumnSize;
+    postedColumnSize?: TableColumnSize;
+    exportedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     containerStyles?: StyleProp<ViewStyle>;
@@ -41,6 +44,9 @@ function SortableTableHeader({
     shouldShowColumn,
     dateColumnSize,
     submittedColumnSize,
+    approvedColumnSize,
+    postedColumnSize,
+    exportedColumnSize,
     containerStyles,
     shouldShowSorting,
     onSortPress,
@@ -80,6 +86,9 @@ function SortableTableHeader({
                                     taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     !!areAllOptionalColumnsHidden,
                                     submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                 ),
                             ]}
                             isSortable={isSortable}
@@ -91,7 +100,5 @@ function SortableTableHeader({
         </View>
     );
 }
-
-SortableTableHeader.displayName = 'SortableTableHeader';
 
 export default SortableTableHeader;
