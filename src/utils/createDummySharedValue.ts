@@ -7,13 +7,13 @@ import type {SharedValue} from 'react-native-reanimated';
  * @returns
  */
 const createDummySharedValue = <T>(value?: T): SharedValue<T> =>
-    ({
+    (({
         value,
         get: () => value,
         set: () => {},
         addListener: () => value,
         removeListener: () => {},
-        modify: () => {},
-    }) as SharedValue<T>;
+        modify: () => {}
+    }) as SharedValue<T>);
 
 export default createDummySharedValue;

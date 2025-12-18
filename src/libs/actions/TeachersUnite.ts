@@ -31,7 +31,7 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
         policyID,
     });
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${publicRoomReportID}`,
@@ -99,7 +99,7 @@ function addSchoolPrincipal(
         reportActionID: expenseReportCreatedAction.reportActionID,
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,
@@ -147,7 +147,7 @@ function addSchoolPrincipal(
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,
@@ -188,7 +188,7 @@ function addSchoolPrincipal(
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,

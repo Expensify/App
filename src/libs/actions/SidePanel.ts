@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * @param shouldOpenOnNarrowScreen - Whether to open the side panel on narrow screen
  */
 function openSidePanel(shouldOpenOnNarrowScreen: boolean) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_SIDE_PANEL>> = [
         {
             key: ONYXKEYS.NVP_SIDE_PANEL,
             onyxMethod: Onyx.METHOD.MERGE,
@@ -30,7 +30,7 @@ function openSidePanel(shouldOpenOnNarrowScreen: boolean) {
  * @param shouldCloseOnNarrowScreen - Whether to close the side panel on narrow screen
  */
 function closeSidePanel(shouldCloseOnNarrowScreen: boolean) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_SIDE_PANEL>> = [
         {
             key: ONYXKEYS.NVP_SIDE_PANEL,
             onyxMethod: Onyx.METHOD.MERGE,
