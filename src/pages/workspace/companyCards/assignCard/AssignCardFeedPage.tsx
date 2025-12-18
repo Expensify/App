@@ -4,7 +4,9 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useInitial from '@hooks/useInitial';
 import useOnyx from '@hooks/useOnyx';
+import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 import {getCompanyCardFeed} from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import PlaidConnectionStep from '@pages/workspace/companyCards/addNew/PlaidConnectionStep';
@@ -37,6 +39,16 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
     const firstAssigneeEmail = useInitial(assignCard?.data?.email);
     const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === assignCard?.data?.email;
+
+    const {isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
+
+    // Dismiss Assign card RHP if broken connection is detected
+    useEffect(() => {
+        if (!isFeedConnectionBroken) {
+            return;
+        }
+        Navigation.closeRHPFlow();
+    }, [isFeedConnectionBroken]);
 
     useEffect(() => {
         return () => {

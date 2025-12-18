@@ -24,6 +24,7 @@ import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {CombinedCardFeed} from './useCardFeeds';
 import useCardFeeds from './useCardFeeds';
 import useCardsList from './useCardsList';
@@ -38,7 +39,7 @@ type UseAssignCardProps = {
 };
 
 function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseAssignCardProps) {
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
+    const [allFeedsCards, allFeedsCardsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = selectedFeed ? companyFeeds?.[selectedFeed] : ({} as CombinedCardFeed);
@@ -70,9 +71,12 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
+    // Disable assigning while card feed is loading to prevent actions connection state is determined
+    const isLoadingFeedCards = !isOffline && isLoadingOnyxValue(allFeedsCardsMetadata);
+
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
-    const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
+    const isAssigningCardDisabled = isLoadingFeedCards || !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
 
     const assignCard = (cardID?: string) => {
         if (isAssigningCardDisabled) {

@@ -1308,8 +1308,9 @@ describe('CardUtils', () => {
                 11: {cardID: 11, bank: 'chase'}, // non-Expensify
             } as unknown as CardList;
 
-            const sorted = lodashSortBy(Object.values(cardList), getAssignedCardSortKey);
-            expect(sorted.map((r: Card) => r.cardID)).toEqual([10, 11]);
+            const cards = Object.values(cardList) as Card[];
+            const sorted = lodashSortBy(cards, getAssignedCardSortKey);
+            expect(sorted.map((r) => r.cardID)).toEqual([10, 11]);
         });
 
         it('places physical Expensify card before its virtual sibling', () => {
@@ -1319,8 +1320,9 @@ describe('CardUtils', () => {
                 99: {cardID: 99, bank: 'chase'}, // non-Expensify
             } as unknown as CardList;
 
-            const sorted = lodashSortBy(Object.values(cardList), getAssignedCardSortKey);
-            expect(sorted.map((r: Card) => r.cardID)).toEqual([11, 10, 99]);
+            const cards = Object.values(cardList) as Card[];
+            const sorted = lodashSortBy(cards, getAssignedCardSortKey);
+            expect(sorted.map((r) => r.cardID)).toEqual([11, 10, 99]);
         });
     });
 

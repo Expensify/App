@@ -49,7 +49,7 @@ import {endSpan} from '@libs/telemetry/activeSpans';
 import Timing from '@userActions/Timing';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
@@ -510,10 +510,11 @@ function SearchAutocompleteList({
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
                 const filteredCards = cardAutocompleteList
-                    .filter((card) => isCard(card) && !isCardHiddenFromSearch(card))
                     .filter(
-                        (card) =>
-                            (card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) || card.lastFourPAN?.includes(autocompleteValue)) &&
+                        (card): card is Card =>
+                            isCard(card) &&
+                            !isCardHiddenFromSearch(card) &&
+                            (card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) || (card.lastFourPAN?.includes(autocompleteValue) ?? false)) &&
                             !alreadyAutocompletedKeys.has(getCardDescription(card).toLowerCase()),
                     )
                     .sort()

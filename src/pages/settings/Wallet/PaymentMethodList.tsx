@@ -394,6 +394,7 @@ function PaymentMethodList({
         actionPaymentMethodType,
         expensifyIcons.ThreeDots,
         onThreeDotsMenuPress,
+        companyCardFeedIcons,
     ]);
 
     const onPressItem = useCallback(() => {
