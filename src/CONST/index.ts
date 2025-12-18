@@ -702,7 +702,6 @@ const CONST = {
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
-        NEWDOT_REJECT: 'newDotReject',
         CUSTOM_RULES: 'customRules',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
