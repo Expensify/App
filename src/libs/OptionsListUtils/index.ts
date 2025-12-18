@@ -2953,8 +2953,7 @@ export {
     getCurrentUserSearchTerms,
     getEmptyOptions,
     getFirstKeyForList,
-    getFirstSelectedItemKey
-,
+    getFirstSelectedItemKey,
     getHeaderMessage,
     getHeaderMessageForNonUserList,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
