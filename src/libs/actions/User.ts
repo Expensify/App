@@ -51,6 +51,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
+import {Errors} from '@src/types/onyx/OnyxCommon';
 import type {OnyxServerUpdate, OnyxUpdatesFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
@@ -1613,8 +1614,15 @@ function verifyAddSecondaryLoginCode(validateCode: string) {
     API.write(WRITE_COMMANDS.VERIFY_ADD_SECONDARY_LOGIN_CODE, parameters, {optimisticData, successData, failureData});
 }
 
+function setServerErrorsOnForm(errors: Errors) {
+    Onyx.set(ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM, {
+        errors,
+    });
+}
+
 export {
     closeAccount,
+    setServerErrorsOnForm,
     dismissReferralBanner,
     dismissASAPSubmitExplanation,
     resendValidateCode,
