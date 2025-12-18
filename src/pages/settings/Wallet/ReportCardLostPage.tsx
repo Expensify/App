@@ -122,7 +122,7 @@ function ReportCardLostPage({
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={ReportCardLostPage.displayName}
+            testID="ReportCardLostPage"
         >
             <HeaderWithBackButton
                 title={translate('reportCardLostOrDamaged.screenTitle')}
@@ -181,7 +181,5 @@ function ReportCardLostPage({
         </ScreenWrapper>
     );
 }
-
-ReportCardLostPage.displayName = 'ReportCardLostPage';
 
 export default ReportCardLostPage;

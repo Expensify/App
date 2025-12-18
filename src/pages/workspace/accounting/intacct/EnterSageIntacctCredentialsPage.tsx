@@ -54,7 +54,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={EnterSageIntacctCredentialsPage.displayName}
+            testID="EnterSageIntacctCredentialsPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -95,7 +95,5 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
         </ScreenWrapper>
     );
 }
-
-EnterSageIntacctCredentialsPage.displayName = 'EnterSageIntacctCredentialsPage';
 
 export default EnterSageIntacctCredentialsPage;

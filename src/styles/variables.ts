@@ -109,7 +109,6 @@ export default {
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
-    popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
     gutterWidth: 12,
@@ -342,6 +341,7 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
+    w200: 200,
     // Transaction item row heights based on layout types
     // Wide screen (desktop) layout
     optionRowWideItemHeight: 64,

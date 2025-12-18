@@ -68,6 +68,4 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     );
 }
 
-IssueCardMessage.displayName = 'IssueCardMessage';
-
 export default IssueCardMessage;

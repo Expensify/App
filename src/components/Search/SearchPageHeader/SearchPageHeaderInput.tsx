@@ -25,7 +25,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
-import {clearAllFilters} from '@libs/actions/Search';
 import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -57,7 +56,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -214,7 +213,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             hideSearchRouterList?.();
             setIsAutocompleteListVisible(false);
             if (updatedQuery !== originalInputQuery) {
-                clearAllFilters();
                 setTextInputValue('');
                 setAutocompleteQueryValue('');
             }
@@ -485,7 +483,5 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         </View>
     );
 }
-
-SearchPageHeaderInput.displayName = 'SearchPageHeaderInput';
 
 export default SearchPageHeaderInput;

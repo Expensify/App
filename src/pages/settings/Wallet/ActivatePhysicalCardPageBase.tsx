@@ -107,7 +107,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhy
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}
             childrenContainerStyles={[styles.flex1]}
-            testID={ActivatePhysicalCardPageBase.displayName}
+            testID="ActivatePhysicalCardPageBase"
             shouldShowOfflineIndicatorInWideScreen
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
@@ -137,7 +137,5 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhy
         </IllustratedHeaderPageLayout>
     );
 }
-
-ActivatePhysicalCardPageBase.displayName = 'ActivatePhysicalCardPageBase';
 
 export default ActivatePhysicalCardPageBase;
