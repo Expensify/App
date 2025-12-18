@@ -32,10 +32,7 @@ import useWindowDimensions from './useWindowDimensions';
 
 export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {hash, similarSearchHash} = queryJSON;
-    const shouldSkipSuggestedSearchNavigation = useMemo(
-        () => shouldSkipSuggestedSearchNavigationForQuery(queryJSON),
-        [queryJSON],
-    );
+    const shouldSkipSuggestedSearchNavigation = useMemo(() => shouldSkipSuggestedSearchNavigationForQuery(queryJSON), [queryJSON]);
 
     const theme = useTheme();
     const styles = useThemeStyles();
