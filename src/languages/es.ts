@@ -17,7 +17,6 @@ const translations: TranslationDeepObject<typeof en> = {
         ok: 'OK',
         notNow: 'Ahora no',
         noThanks: 'No, gracias',
-        noLimit: 'Sin límite',
         learnMore: 'Más información',
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',

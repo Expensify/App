@@ -296,7 +296,6 @@ const translations = {
         ok: 'OK',
         notNow: 'Not now',
         noThanks: 'No thanks',
-        noLimit: 'No limit',
         learnMore: 'Learn more',
         buttonConfirm: 'Got it',
         name: 'Name',
