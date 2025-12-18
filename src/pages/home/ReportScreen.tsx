@@ -1066,5 +1066,4 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     );
 }
 
-// eslint-disable-next-line rulesdir/no-deep-equal-in-memo
 export default memo(ReportScreen, (prevProps, nextProps) => deepEqual(prevProps.route, nextProps.route));
