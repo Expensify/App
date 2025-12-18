@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getCompanyCardFeedWithDomainID, lastFourNumbersFromCardName} from '@libs/CardUtils';
+import {getCardFeedIcon, getCompanyCardFeedWithDomainID, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
@@ -58,6 +58,9 @@ type WorkspaceCompanyCardTableItemProps = {
     /** Whether to disable assign card button */
     isAssigningCardDisabled?: boolean;
 
+    /** Whether the card is a Plaid card feed */
+    isPlaidCardFeed: boolean;
+
     /** Whether to use narrow table row layout */
     shouldUseNarrowTableRowLayout?: boolean;
 
@@ -69,10 +72,11 @@ function WorkspaceCompanyCardTableItem({
     item: {cardName, customCardName, assignedCard, isAssigned, cardholder, isCardDeleted},
     policyID,
     selectedFeed,
-    onAssignCard,
     plaidIconUrl,
-    isAssigningCardDisabled,
+    isPlaidCardFeed,
     shouldUseNarrowTableRowLayout,
+    isAssigningCardDisabled,
+    onAssignCard,
 }: WorkspaceCompanyCardTableItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -86,9 +90,9 @@ function WorkspaceCompanyCardTableItem({
         cardFeedIcon = getCardFeedIcon(selectedFeed as CompanyCardFeed, illustrations, companyCardFeedIcons);
     }
 
-    const lastFourCardNameNumbers = lastFourNumbersFromCardName(cardName);
+    const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
 
-    const alternateLoginText = shouldUseNarrowTableRowLayout ? `${customCardName} - ${lastFourCardNameNumbers}` : (cardholder?.login ?? '');
+    const alternateLoginText = shouldUseNarrowTableRowLayout ? `${customCardName}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : (cardholder?.login ?? '');
 
     return (
         <OfflineWithFeedback

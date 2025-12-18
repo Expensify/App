@@ -3411,6 +3411,7 @@ const CONST = {
             CSV: 'ccupload',
         },
         FEED_KEY_SEPARATOR: '#',
+        CARD_NUMBER_MASK_CHAR: 'X',
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             BANK_CONNECTION: 'BankConnection',
