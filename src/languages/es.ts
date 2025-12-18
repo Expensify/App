@@ -6261,7 +6261,7 @@ ${amount} para ${merchant} - ${date}`,
         bulkActions: {
             editMultiple: 'Editar múltiples',
             editMultipleTitle: 'Editar múltiples gastos',
-            editMultipleDescription: 'Los cambios se aplicarán a todos los gastos seleccionados y anularán cualquier valor previamente establecido. Solo digo.',
+            editMultipleDescription: 'Los cambios se aplicarán a todos los gastos seleccionados y anularán cualquier valor previamente establecido.',
             approve: 'Aprobar',
             pay: 'Pagar',
             delete: 'Eliminar',
