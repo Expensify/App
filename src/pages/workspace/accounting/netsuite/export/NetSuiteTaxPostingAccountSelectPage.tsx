@@ -66,7 +66,7 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteTaxPostingAccountSelectPage.displayName}
+            displayName="NetSuiteTaxPostingAccountSelectPage"
             sections={netsuiteTaxAccountOptions.length ? [{data: netsuiteTaxAccountOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateTaxAccount}
@@ -83,7 +83,5 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
         />
     );
 }
-
-NetSuiteTaxPostingAccountSelectPage.displayName = 'NetSuiteTaxPostingAccountSelectPage';
 
 export default withPolicyConnections(NetSuiteTaxPostingAccountSelectPage);

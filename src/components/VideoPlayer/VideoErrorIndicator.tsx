@@ -36,6 +36,4 @@ function VideoErrorIndicator({isPreview = false}: VideoErrorIndicatorProps) {
     );
 }
 
-VideoErrorIndicator.displayName = 'VideoErrorIndicator';
-
 export default VideoErrorIndicator;
