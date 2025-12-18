@@ -23,7 +23,7 @@ jobs:
         uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: .cspellcache
-          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-${{ github.event.pull_request.number }}
           restore-keys: |
             cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-
             cspell-${{ runner.os }}-
@@ -52,4 +52,4 @@ jobs:
         if: always()
         with:
           path: .cspellcache
-          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: cspell-${{ runner.os }}-${{ hashFiles('cspell.json', 'normalized-package-lock.json') }}-${{ github.event.pull_request.number }}

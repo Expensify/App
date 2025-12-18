@@ -30,8 +30,9 @@ jobs:
         uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: .jest-cache
-          key: ${{ runner.os }}-jest-perf-baseline-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}
+          key: ${{ runner.os }}-jest-perf-baseline-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}-${{ github.event.pull_request.number }}
           restore-keys: |
+            ${{ runner.os }}-jest-perf-baseline-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}-
             ${{ runner.os }}-jest-perf-baseline-
 
       - name: Run baseline performance tests
@@ -44,7 +45,7 @@ jobs:
         if: always()
         with:
           path: .jest-cache
-          key: ${{ runner.os }}-jest-perf-baseline-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}
+          key: ${{ runner.os }}-jest-perf-baseline-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}-${{ github.event.pull_request.number }}
 
       - name: Upload baseline results
         # v4
@@ -77,8 +78,9 @@ jobs:
         uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: .jest-cache
-          key: ${{ runner.os }}-jest-perf-branch-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}
+          key: ${{ runner.os }}-jest-perf-branch-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}-${{ github.event.pull_request.number }}
           restore-keys: |
+            ${{ runner.os }}-jest-perf-branch-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}-
             ${{ runner.os }}-jest-perf-branch-
 
       - name: Run branch performance tests
@@ -91,7 +93,7 @@ jobs:
         if: always()
         with:
           path: .jest-cache
-          key: ${{ runner.os }}-jest-perf-branch-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}
+          key: ${{ runner.os }}-jest-perf-branch-${{ hashFiles('jest.config.js', 'babel.config.js', 'normalized-package-lock.json') }}-${{ github.event.pull_request.number }}
 
       - name: Upload branch results
         # v4
