@@ -980,7 +980,14 @@ function MoneyReportHeader({
                     let threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
                     if (!threadID) {
                         const duplicateTransaction = transactions.find((reportTransaction) =>
-                            isDuplicate(reportTransaction, email ?? '', accountID, moneyRequestReport, policy, transactionViolations),
+                            isDuplicate(
+                                reportTransaction,
+                                email ?? '',
+                                accountID,
+                                moneyRequestReport,
+                                policy,
+                                allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + reportTransaction.transactionID],
+                            ),
                         );
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
