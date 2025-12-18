@@ -27,6 +27,7 @@ import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
+    getExchangeRate,
     getMerchant,
     getOriginalAmount,
     getOriginalCurrency,
@@ -242,6 +243,8 @@ function TransactionItemRow({
             return error;
         }
     }, [transactionItem, translate, report]);
+
+    const exchangeRateMessage = getExchangeRate(transactionItem);
 
     const columnComponent = useMemo(
         () => ({
@@ -478,6 +481,11 @@ function TransactionItemRow({
                     />
                 </View>
             ),
+            [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE)]}>
+                    <TextCell text={exchangeRateMessage} />
+                </View>
+            ),
             [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}
@@ -556,7 +564,6 @@ function TransactionItemRow({
             ),
         }),
         [
-            translate,
             StyleUtils,
             transactionItem,
             shouldShowTooltip,
@@ -572,6 +579,7 @@ function TransactionItemRow({
             report?.total,
             isApprovedColumnWide,
             isPostedColumnWide,
+            translate,
             isExportedColumnWide,
             isReportItemChild,
             onButtonPress,
@@ -579,10 +587,11 @@ function TransactionItemRow({
             merchant,
             description,
             isInSingleTransactionReport,
+            exchangeRateMessage,
             isAmountColumnWide,
+            formattedTaxRate,
             isTaxAmountColumnWide,
             isLargeScreenWidth,
-            formattedTaxRate,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {

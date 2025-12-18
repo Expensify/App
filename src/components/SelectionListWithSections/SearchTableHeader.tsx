@@ -115,6 +115,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canBeMissing: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
+        translationKey: 'common.exchangeRate',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
         translationKey: 'common.originalAmount',
     },
