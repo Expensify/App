@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -19,14 +19,14 @@ function SearchEditMultipleAmountPage() {
     const currency = draftTransaction?.currency ?? CONST.CURRENCY.USD;
     const amount = draftTransaction?.amount ?? 0;
 
-    const saveAmount = useCallback((currentMoney: CurrentMoney) => {
+    const saveAmount = (currentMoney: CurrentMoney) => {
         const newAmount = convertToBackendAmount(Number.parseFloat(currentMoney.amount));
         updateBulkEditDraftTransaction({
             amount: newAmount,
             currency: currentMoney.currency,
         });
         Navigation.goBack();
-    }, []);
+    };
 
     return (
         <ScreenWrapper
