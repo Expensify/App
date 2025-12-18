@@ -196,10 +196,6 @@ function SubmitDetailsPage({
                     Log.info('[SubmitDetailsPage] getCurrentPosition failed', false, errorData);
                     finishRequestAndNavigate(participant, receipt);
                 },
-                {
-                    maximumAge: CONST.GPS.MAX_AGE,
-                    timeout: CONST.GPS.TIMEOUT,
-                },
             );
             return;
         }
@@ -231,7 +227,7 @@ function SubmitDetailsPage({
     };
 
     return (
-        <ScreenWrapper testID={SubmitDetailsPage.displayName}>
+        <ScreenWrapper testID="SubmitDetailsPage">
             <FullPageNotFoundView shouldShow={!reportOrAccountID}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
@@ -283,7 +279,5 @@ function SubmitDetailsPage({
         </ScreenWrapper>
     );
 }
-
-SubmitDetailsPage.displayName = 'SubmitDetailsPage';
 
 export default SubmitDetailsPage;

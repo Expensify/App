@@ -31,6 +31,7 @@ import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS}
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import arraysEqual from '@src/utils/arraysEqual';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
@@ -373,6 +374,8 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
+    orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${Array.isArray(query.columns) ? query.columns.join(',') : query.columns}`;
+
     if (query.policyID) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${Array.isArray(query.policyID) ? query.policyID.join(',') : query.policyID} `;
     }
@@ -560,7 +563,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, groupBy, ...otherFilters} = supportedFilterValues;
+    const {type, status, groupBy, columns, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
@@ -584,6 +587,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (status && Array.isArray(status)) {
         const filterValueArray = [...new Set<string>(status)];
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
+    }
+
+    if (columns?.length) {
+        const filterValueArray = [...new Set<string>(columns)];
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -678,7 +686,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.HAS ||
                     filterKey === FILTER_KEYS.IS ||
                     filterKey === FILTER_KEYS.EXPORTER ||
-                    filterKey === FILTER_KEYS.ATTENDEE) &&
+                    filterKey === FILTER_KEYS.ATTENDEE ||
+                    filterKey === FILTER_KEYS.COLUMNS) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
@@ -964,7 +973,35 @@ function buildFilterFormValuesFromQuery(
         filtersForm[FILTER_KEYS.GROUP_BY] = queryJSON.groupBy;
     }
 
+    if (queryJSON.columns) {
+        const columns = [queryJSON.columns].flat();
+        filtersForm[FILTER_KEYS.COLUMNS] = columns;
+    }
+
     return filtersForm;
+}
+
+/**
+ * Returns the policy name for a given policy ID.
+ * First checks the policies collection, then falls back to cached names in reports (policyName or oldPolicyName).
+ * This ensures workspace names remain visible even after a user is removed from the workspace.
+ */
+function getPolicyNameWithFallback(policyID: string, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>): string {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+    const policy = policies?.[policyKey];
+
+    if (policy?.name) {
+        return policy.name;
+    }
+
+    // Fallback: find cached name from reports that reference this policy
+    if (!reports) {
+        return policyID;
+    }
+
+    const reportWithPolicyName = Object.values(reports).find((report) => report?.policyID === policyID && (report?.policyName ?? report?.oldPolicyName));
+
+    return reportWithPolicyName?.policyName ?? reportWithPolicyName?.oldPolicyName ?? policyID;
 }
 
 /**
@@ -1013,7 +1050,7 @@ function getFilterDisplayValue(
         return cardFeedsForDisplay[filterValue]?.name ?? filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
-        return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${filterValue}`]?.name ?? filterValue;
+        return getPolicyNameWithFallback(filterValue, policies, reports);
     }
     return filterValue;
 }
@@ -1091,7 +1128,7 @@ function getDisplayQueryFiltersForKey(
     }));
 }
 
-function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: OnyxCollection<OnyxTypes.Policy>) {
+function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
     const rawValues = Array.isArray(rawFilter.value) ? rawFilter.value : [rawFilter.value];
     const cleanedValues = rawValues.map((val) => (typeof val === 'string' ? val.trim() : '')).filter((val) => val.length > 0);
 
@@ -1101,7 +1138,7 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
 
     if (rawFilter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         const workspaceValues = cleanedValues.map((id) => {
-            const policyName = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id;
+            const policyName = getPolicyNameWithFallback(id, policies, reports);
             return sanitizeSearchValue(policyName);
         });
 
@@ -1126,6 +1163,9 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
             break;
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
             userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY);
+            break;
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
+            userFriendlyKey = getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS);
             break;
         default:
             userFriendlyKey = getUserFriendlyKey(rawFilter.key as SearchFilterKey);
@@ -1158,7 +1198,7 @@ function buildUserReadableQueryString(
     currentUserAccountID: number,
     autoCompleteWithSpace = false,
 ) {
-    const {type, status, groupBy, policyID, rawFilterList, flatFilters: filters} = queryJSON;
+    const {type, status, groupBy, policyID, rawFilterList, flatFilters: filters = []} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
@@ -1168,8 +1208,12 @@ function buildUserReadableQueryString(
                 continue;
             }
 
+            if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS) {
+                continue;
+            }
+
             if (rawFilter.isDefault) {
-                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies);
+                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies, reports);
                 if (defaultSegment) {
                     segments.push(defaultSegment);
                 }
@@ -1216,7 +1260,7 @@ function buildUserReadableQueryString(
     }
 
     if (policyID && policyID.length > 0) {
-        title += ` workspace:${policyID.map((id) => sanitizeSearchValue(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id)).join(',')}`;
+        title += ` workspace:${policyID.map((id) => sanitizeSearchValue(getPolicyNameWithFallback(id, policies, reports))).join(',')}`;
     }
 
     for (const filterObject of filters) {
@@ -1280,7 +1324,10 @@ function buildCannedSearchQuery({
  * For example: "type:trip" is a canned query.
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status;
+    const selectedColumns = queryJSON.columns ?? [];
+    const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
+    const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
+    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !hasCustomColumns;
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
@@ -1418,6 +1465,7 @@ export {
     buildSearchQueryString,
     buildUserReadableQueryString,
     getFilterDisplayValue,
+    getPolicyNameWithFallback,
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     buildCannedSearchQuery,

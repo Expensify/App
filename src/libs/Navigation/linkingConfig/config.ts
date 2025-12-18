@@ -845,6 +845,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
+                            path: ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.route,
+                        },
                         [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
                             path: ROUTES.WORKSPACE_CUSTOM_FIELDS.route,
                         },
@@ -886,6 +889,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: {
                             path: ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.route,
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_REQUIRED_FIELDS]: {
+                            path: ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.route,
                         },
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
                             path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
@@ -1104,6 +1110,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.DOMAIN.VERIFIED]: {
                             path: ROUTES.DOMAIN_VERIFIED.route,
+                        },
+                        [SCREENS.DOMAIN.ADMIN_DETAILS]: {
+                            path: ROUTES.DOMAIN_ADMIN_DETAILS.route,
+                        },
+                        [SCREENS.DOMAIN.ADMINS_SETTINGS]: {
+                            path: ROUTES.DOMAIN_ADMINS_SETTINGS.route,
+                        },
+                        [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
+                            path: ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.route,
                         },
                     },
                 },
@@ -1411,6 +1426,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 'distance-manual': {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route,
                                 },
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'distance-gps': {
+                                    path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route,
+                                },
                             },
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
@@ -1589,6 +1608,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TRAVEL.VERIFY_ACCOUNT]: ROUTES.TRAVEL_VERIFY_ACCOUNT.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: {
+                    screens: {
+                        [SCREENS.SEARCH.COLUMNS_RHP]: ROUTES.SEARCH_COLUMNS,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
                     screens: {
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
@@ -1599,11 +1623,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: ROUTES.SEARCH_ROOT_VERIFY_ACCOUNT,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.route,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.route,
+                        [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.route,
                         [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: ROUTES.TRANSACTION_HOLD_REASON_RHP,
                         [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: ROUTES.SEARCH_REJECT_REASON_RHP,
                         [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP,
-                        [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: ROUTES.CHANGE_APPROVER_SEARCH_RHP,
-                        [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: ROUTES.CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
@@ -1919,6 +1942,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.DOMAIN.SAML]: {
                     path: ROUTES.DOMAIN_SAML.route,
+                },
+                [SCREENS.DOMAIN.ADMINS]: {
+                    path: ROUTES.DOMAIN_ADMINS.route,
                 },
             },
         },
