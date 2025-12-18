@@ -15,7 +15,6 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayStringWithoutCurrency, convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
-import sizing from '@styles/utils/sizing';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
@@ -40,7 +39,6 @@ function SplitListItem<TItem extends ListItem>({
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
 
     const splitItem = item as unknown as SplitListItemType;
-    const shouldSkipHandleAmountChange = useRef(false);
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
 
@@ -48,12 +46,13 @@ function SplitListItem<TItem extends ListItem>({
 
     const onSplitExpenseAmountChange = useCallback(
         (amount: string) => {
-            // Negative is flipped, amount change will be handled by handleToogleNegative
-            if (shouldSkipHandleAmountChange.current) {
-                shouldSkipHandleAmountChange.current = false;
+            const realAmount = isNegativeAmount ? -1 * Number(amount) : Number(amount);
+
+            // Skip handling amount changes to prevent a race condition when the user toggles the negative sign,
+            // which could cause an incorrect amount update.
+            if (convertToBackendAmount(realAmount) === splitItem.amount) {
                 return;
             }
-            const realAmount = isNegativeAmount ? -1 * Number(amount) : Number(amount);
             splitItem.onSplitExpenseAmountChange(splitItem.transactionID, realAmount);
         },
         [splitItem.onSplitExpenseAmountChange, isNegativeAmount, splitItem.amount],
@@ -86,6 +85,9 @@ function SplitListItem<TItem extends ListItem>({
     }, [onInputFocus, index]);
 
     useEffect(() => {
+        if (splitItem.amount === 0) {
+            return;
+        }
         setIsNegativeAmount(splitItem.amount < 0);
     }, [splitItem.amount]);
 
@@ -114,7 +116,6 @@ function SplitListItem<TItem extends ListItem>({
         }
 
         const realAmount = isCurrentlyNegative ? -1 * currentAbsAmount : currentAbsAmount;
-        shouldSkipHandleAmountChange.current = true;
         splitItem.onSplitExpenseAmountChange(splitItem.transactionID, realAmount);
     }, [splitItem.amount, isNegativeAmount, splitItem.transactionID]);
 
@@ -221,7 +222,7 @@ function SplitListItem<TItem extends ListItem>({
                             formatAmountOnBlur
                             onAmountChange={onSplitExpenseAmountChange}
                             prefixContainerStyle={[styles.pv0, styles.h100]}
-                            prefixStyle={[styles.lineHeightUndefined]}
+                            prefixStyle={styles.lineHeightUndefined}
                             inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
                             containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                             touchableInputWrapperStyle={[styles.ml3]}
@@ -236,7 +237,6 @@ function SplitListItem<TItem extends ListItem>({
                             clearNegative={handleClearNegative}
                             isNegative={isNegativeAmount}
                             allowFlippingAmount
-                            symbolTextStyle={[styles.flexRow]}
                             isSplitItemInput
                         />
                     </View>

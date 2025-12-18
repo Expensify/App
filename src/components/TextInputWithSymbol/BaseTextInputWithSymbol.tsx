@@ -45,7 +45,7 @@ function BaseTextInputWithSymbol({
     return (
         <View style={[styles.flexRow]}>
             {isNegative && (
-                <View style={[styles.flexRow, !!props.flipButton ? styles.alignItemsStart : styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, props.flipButton ? styles.alignItemsStart : styles.alignItemsCenter]}>
                     <Text style={styles.iouAmountText}>-</Text>
                 </View>
             )}

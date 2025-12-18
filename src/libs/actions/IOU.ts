@@ -14465,11 +14465,9 @@ function updateSplitExpenseField(
 
 function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number) {
     if (!draftTransaction?.transactionID || !currentItemTransactionID) {
-        console.log("early return dazoooo");
         return;
     }
 
-    console.log("emrgin with amount ", amount);
     const updatedSplitExpenses = draftTransaction.comment?.splitExpenses?.map((splitExpense) => {
         if (splitExpense.transactionID === currentItemTransactionID) {
             return {
@@ -14479,8 +14477,6 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
         }
         return splitExpense;
     });
-
-    console.log("mergin with ", updatedSplitExpenses)
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${draftTransaction?.comment?.originalTransactionID}`, {
         comment: {

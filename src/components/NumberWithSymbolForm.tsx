@@ -70,6 +70,9 @@ type NumberWithSymbolFormProps = {
     /** Whether the amount is negative */
     isNegative?: boolean;
 
+    /** Whether the text input is on a split list item or not */
+    isSplitItemInput?: boolean;
+
     /** Function to toggle the amount to negative */
     toggleNegative?: () => void;
 
@@ -468,8 +471,7 @@ function NumberWithSymbolForm({
             isNegative={isNegative}
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
-            flipButton={shouldShowFlipButton && isSplitItemInput && flipButton}
-            flipButtonContainerStyles={[styles.flexColumn]}
+            flipButton={shouldShowFlipButton && isSplitItemInput ? flipButton : undefined}
         />
     );
 

@@ -1,5 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
+import type {ReactElement} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,7 +34,7 @@ type AmountTextInputProps = {
     /** Whether to disable keyboard */
     disableKeyboard?: boolean;
 
-    /** Display the flip (negative) button inside the amount text input container */
+    /** The flip (negative) button element to display inside the amount text input container */
     flipButton?: ReactElement;
 
     /** Function to call to handle key presses in the text input */

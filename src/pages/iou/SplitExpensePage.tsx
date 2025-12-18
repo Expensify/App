@@ -235,7 +235,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {
-            console.log("change amoun to ", value);
+            console.log('change amoun to ', value);
             const amountInCents = convertToBackendAmount(value);
             updateSplitExpenseAmountField(draftTransaction, currentItemTransactionID, amountInCents);
         },
