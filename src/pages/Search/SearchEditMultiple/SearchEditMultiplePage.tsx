@@ -98,10 +98,10 @@ function SearchEditMultiplePage() {
 
         const transactionChanges: TransactionChanges = {};
 
-        selectedTransactionIDs.forEach((transactionID) => {
+        for (const transactionID of selectedTransactionIDs) {
             const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             if (!transaction) {
-                return;
+                continue;
             }
 
             const transactionThreadReportID = transaction.reportID;
@@ -145,7 +145,7 @@ function SearchEditMultiplePage() {
             if (changes.reimbursable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
                 transactionChanges.reimbursable = changes.reimbursable;
             }
-        });
+        }
 
         updateMultipleMoneyRequests(selectedTransactionIDs, transactionChanges, policy, allReports, allTransactions);
 
