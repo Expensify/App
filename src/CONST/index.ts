@@ -6697,7 +6697,7 @@ const CONST = {
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
         },
-        get CUSTOM_COLUMNS() {
+        get TYPE_CUSTOM_COLUMNS() {
             return {
                 EXPENSE: {
                     RECEIPT: this.TABLE_COLUMNS.RECEIPT,
@@ -6747,7 +6747,10 @@ const CONST = {
                 CHAT: {},
             };
         },
-        get DEFAULT_COLUMNS() {
+        get GROUP_CUSTOM_COLUMNS() {
+            return {};
+        },
+        get TYPE_DEFAULT_COLUMNS() {
             return {
                 EXPENSE: [
                     this.TABLE_COLUMNS.RECEIPT,
@@ -6765,6 +6768,9 @@ const CONST = {
                 TRIP: [],
                 CHAT: [],
             };
+        },
+        get GROUP_DEFAULT_COLUMNS() {
+            return {};
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6849,6 +6855,14 @@ const CONST = {
             TAX: 'tax',
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
             NON_REIMBURSABLE_TOTAL: 'nonReimbursableTotal',
+            GROUP_FROM: 'groupFrom',
+            GROUP_EXPENSES: 'groupExpenses',
+            GROUP_TOTAL: 'groupTotal',
+            GROUP_CARD: 'groupCard',
+            GROUP_FEED: 'groupFeed',
+            GROUP_BANK_ACCOUNT: 'groupBankAccount',
+            GROUP_WITHDRAWN: 'groupWithdrawn',
+            GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',

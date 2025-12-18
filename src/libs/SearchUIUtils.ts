@@ -2475,17 +2475,17 @@ function getCustomColumns(type: SearchDataTypes): SearchCustomColumnIds[] {
     // eslint-disable-next-line default-case
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE);
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT);
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT);
         case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.INVOICE);
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.INVOICE);
         case CONST.SEARCH.DATA_TYPES.TASK:
-            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.TASK);
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TASK);
         case CONST.SEARCH.DATA_TYPES.TRIP:
-            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.TRIP);
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TRIP);
         case CONST.SEARCH.DATA_TYPES.CHAT:
-            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.CHAT);
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.CHAT);
     }
 }
 
@@ -2493,17 +2493,17 @@ function getCustomColumnDefault(type: SearchDataTypes): SearchCustomColumnIds[] 
     // eslint-disable-next-line default-case
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE;
+            return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE;
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-            return CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT;
+            return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return CONST.SEARCH.DEFAULT_COLUMNS.INVOICE;
+            return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.INVOICE;
         case CONST.SEARCH.DATA_TYPES.TASK:
-            return CONST.SEARCH.DEFAULT_COLUMNS.TASK;
+            return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.TASK;
         case CONST.SEARCH.DATA_TYPES.TRIP:
-            return CONST.SEARCH.DEFAULT_COLUMNS.TRIP;
+            return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.TRIP;
         case CONST.SEARCH.DATA_TYPES.CHAT:
-            return CONST.SEARCH.DEFAULT_COLUMNS.CHAT;
+            return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.CHAT;
     }
 }
 
@@ -2961,7 +2961,7 @@ function getColumnsToShow(
 
         // If there are no visible columns, everything should be visible
         const filteredVisibleColumns = visibleColumns.filter((column) =>
-            Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT>),
+            Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>),
         );
         if (!filteredVisibleColumns.length) {
             return reportColumns;
@@ -2971,7 +2971,7 @@ function getColumnsToShow(
         // columns hidden by default
         const columns: ColumnVisibility = {};
         const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
-        const columnsToShow = visibleColumns.length ? visibleColumns : CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT;
+        const columnsToShow = visibleColumns.length ? visibleColumns : CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT;
 
         for (const columnId of Object.keys(reportColumns) as SearchColumnType[]) {
             columns[columnId] = requiredColumns.has(columnId);
@@ -3128,9 +3128,9 @@ function getColumnsToShow(
     // If the user has set custom columns for the search, we need to respect their preference, and only show
     // them what they want to see
     const filteredVisibleColumns = visibleColumns.filter((column) =>
-        Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE).includes(column as ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE>),
+        Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE).includes(column as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>),
     );
-    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
+    if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
         const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
 
         for (const column of Object.keys(columns) as SearchCustomColumnIds[]) {

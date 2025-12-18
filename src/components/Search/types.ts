@@ -110,7 +110,7 @@ type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 type SearchAction = ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
-type SearchCustomColumnIds = ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE> | ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT>;
+type SearchCustomColumnIds = ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE> | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>;
 
 type SearchContextData = {
     currentSearchHash: number;
