@@ -23,7 +23,7 @@ Admins can assign and manage all corporate cards — both assigned and unassigne
 7. Select `Confirm` to finalize the assignment.
 9. If there’s an error, the row will display an alert icon and error message.
 
-## What's Improved
+# Manage Assigned Cards
 
 - **Filter cards** by status: assigned vs. unassigned.
 - **Search** by:
