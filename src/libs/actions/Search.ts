@@ -964,8 +964,6 @@ function clearAdvancedFilters() {
         switch (key) {
             case FILTER_KEYS.GROUP_BY:
                 continue;
-            case FILTER_KEYS.COLUMNS:
-                continue;
             case FILTER_KEYS.TYPE:
                 values[key] = CONST.SEARCH.DATA_TYPES.EXPENSE;
                 continue;
