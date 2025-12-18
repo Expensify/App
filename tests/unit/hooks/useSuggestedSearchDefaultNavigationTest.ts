@@ -3,7 +3,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import {clearAllFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildQueryStringFromFilterFormValues, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -227,12 +227,9 @@ describe('useSuggestedSearchDefaultNavigation', () => {
         const clearSelectedTransactions = jest.fn();
         const approveMenuItem = createApproveMenuItem();
         const submitMenuItem = createSubmitMenuItem();
-        const inlineContextQueryJSON = {
-            flatFilters: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, filters: []}],
-            rawFilterList: undefined,
-            inputQuery: 'in:general',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        } as SearchQueryJSON;
+        const parsedQueryJSON = buildSearchQueryJSON('in:checking');
+        expect(parsedQueryJSON).toBeTruthy();
+        const inlineContextQueryJSON = {...(parsedQueryJSON as SearchQueryJSON), rawFilterList: undefined};
         const shouldSkipNavigation = shouldSkipSuggestedSearchNavigationForQuery(inlineContextQueryJSON);
 
         const {rerender} = renderHook((props: Parameters<typeof useSuggestedSearchDefaultNavigation>[0]) => useSuggestedSearchDefaultNavigation(props), {
