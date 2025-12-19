@@ -682,6 +682,15 @@ const CONST = {
             },
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
+        STATE: {
+            VERIFYING: 'VERIFYING',
+            VALIDATING: 'VALIDATING',
+            SETUP: 'SETUP',
+            PENDING: 'PENDING',
+            OPEN: 'OPEN',
+            DELETED: 'DELETED',
+            LOCKED: 'LOCKED',
+        },
     },
     ENABLE_GLOBAL_REIMBURSEMENTS: {
         STEP_NAMES: ['1', '2', '3'],
@@ -5746,7 +5755,6 @@ const CONST = {
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
-        MISSING_ATTENDEES: 'missingAttendees',
         COMPANY_CARD_REQUIRED: 'companyCardRequired',
     },
     RTER_VIOLATION_TYPES: {
@@ -6843,6 +6851,7 @@ const CONST = {
                 COMPLETED: 'completed',
             },
         },
+        GROUP_COLUMN_PREFIX: 'group',
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
