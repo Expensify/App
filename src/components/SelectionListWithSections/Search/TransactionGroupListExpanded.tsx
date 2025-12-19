@@ -174,7 +174,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         openReportInRHP(transaction);
     };
 
-    const minTableWidth = getTableMinWidth(columns ?? []);
+    const minTableWidth = getTableMinWidth(currentColumns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX)) ?? []);
     const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
 
     const content = (
