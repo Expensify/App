@@ -18,7 +18,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSubmitPerDiemExpenseFromWorkspace, getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {
     canAddTransaction,
     getOutstandingReportsForUser,
@@ -202,7 +202,6 @@ function IOURequestEditReportCommon({
         options.reports,
         localeCompare,
         allPolicies,
-        isPerDiemRequest,
         currentUserPersonalDetails.accountID,
     ]);
 
