@@ -4748,6 +4748,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             ukRegulation:
                 'Expensify Limited 是 Plaid Financial Ltd. 的代理机构，Plaid Financial Ltd. 是一家在《2017 年支付服务条例》下受金融行为监管局（Financial Conduct Authority）监管并获授权的支付机构（公司参考编号：804718）。Plaid 通过其代理 Expensify Limited 向您提供受监管的账户信息服务。',
             assign: '分配',
+            assignCardFailedError: '卡片分配失败。',
         },
         expensifyCard: {
             issueAndManageCards: '发放和管理您的 Expensify 卡',

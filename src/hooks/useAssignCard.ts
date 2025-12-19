@@ -30,8 +30,11 @@ import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 
 type UseAssignCardProps = {
+    /** The currently selected card feed (includes domain ID) */
     selectedFeed: CompanyCardFeedWithDomainID | undefined;
+    /** The ID of the workspace/policy */
     policyID: string;
+    /** Callback to show/hide the offline modal */
     setShouldShowOfflineModal: (shouldShow: boolean) => void;
 };
 

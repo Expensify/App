@@ -323,7 +323,7 @@ function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspace
         cardNumber: encryptedCardNumber,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         errors: {
-            failed: 'Card assignment failed.',
+            failed: Localize.translateLocal('workspace.companyCards.assignCardFailedError'),
         },
     };
 
