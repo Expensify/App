@@ -37,8 +37,8 @@ Onyx.connect({
     },
 });
 
-let hiddenTranslation = '';
-let youTranslation = '';
+const hiddenTranslation = '';
+const youTranslation = '';
 
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
