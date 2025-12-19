@@ -175,13 +175,17 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
     const serverLabel = reportNameValuePairs?.agentZeroProcessingRequestIndicator?.trim();
     const [optimisticLabel, setOptimisticLabel] = useState<string>();
     const [displayLabel, setDisplayLabel] = useState<string>();
-
-    const baseLabel = useMemo(() => serverLabel ?? optimisticLabel ?? '', [optimisticLabel, serverLabel]);
+    const [serverLabelVersion, setServerLabelVersion] = useState(0);
+    const [waitingSessionVersion, setWaitingSessionVersion] = useState<number | null>(null);
 
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fillerIndexRef = useRef<number>(0);
     const nextDelayRef = useRef<number>(INITIAL_FILLER_DELAY_MS);
-    const baseLabelRef = useRef<string>(baseLabel);
+    const baseLabelRef = useRef<string>(serverLabel ?? '');
+
+    useEffect(() => {
+        setServerLabelVersion((version) => version + 1);
+    }, [reportNameValuePairs, reportNameValuePairs?.agentZeroProcessingRequestIndicator]);
 
     const clearTimer = useCallback(() => {
         if (!timerRef.current) {
@@ -192,35 +196,49 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
     }, []);
 
     const kickoffWaitingIndicator = useCallback(() => {
-        if (!isConciergeChat || serverLabel) {
+        if (!isConciergeChat) {
             return;
         }
 
         setOptimisticLabel(WAITING_LABEL);
-    }, [isConciergeChat, serverLabel]);
+        setWaitingSessionVersion(serverLabelVersion);
+    }, [isConciergeChat, serverLabelVersion]);
 
     useEffect(() => {
-        // Server has taken over, drop optimistic labels.
-        if (!serverLabel) {
+        const hasServerUpdatedSinceKickoff = waitingSessionVersion !== null && serverLabelVersion !== waitingSessionVersion;
+        if (!serverLabel || !hasServerUpdatedSinceKickoff) {
             return;
         }
 
         setOptimisticLabel(undefined);
-    }, [serverLabel]);
+        setWaitingSessionVersion(null);
+    }, [serverLabel, serverLabelVersion, waitingSessionVersion]);
 
     useEffect(() => {
-        baseLabelRef.current = baseLabel;
         clearTimer();
 
-        if (!isConciergeChat || !baseLabel) {
+        if (!isConciergeChat) {
             setDisplayLabel(undefined);
             return;
         }
 
-        const fillerMessages = getFillerMessagesForLabel(baseLabel);
+        if (optimisticLabel) {
+            baseLabelRef.current = '';
+            setDisplayLabel(optimisticLabel);
+            return;
+        }
+
+        if (!serverLabel) {
+            baseLabelRef.current = '';
+            setDisplayLabel(undefined);
+            return;
+        }
+
+        baseLabelRef.current = serverLabel;
+        const fillerMessages = getFillerMessagesForLabel(serverLabel);
         fillerIndexRef.current = Math.floor(Math.random() * fillerMessages.length);
         nextDelayRef.current = INITIAL_FILLER_DELAY_MS;
-        setDisplayLabel(baseLabel);
+        setDisplayLabel(serverLabel);
 
         const scheduleNextFiller = () => {
             const jitter = nextDelayRef.current * JITTER_RATIO;
@@ -230,7 +248,7 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
             clearTimer();
             timerRef.current = setTimeout(() => {
                 // A new server label arrived; abandon this filler loop.
-                if (baseLabelRef.current !== baseLabel) {
+                if (baseLabelRef.current !== serverLabel) {
                     return;
                 }
 
@@ -246,7 +264,7 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
         scheduleNextFiller();
 
         return clearTimer;
-    }, [baseLabel, clearTimer, isConciergeChat]);
+    }, [clearTimer, isConciergeChat, optimisticLabel, serverLabel]);
 
     useEffect(() => clearTimer, [clearTimer]);
 
