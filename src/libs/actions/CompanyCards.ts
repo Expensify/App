@@ -361,7 +361,7 @@ function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspace
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ASSIGN_CARD,
-                value: {isAssigned: true, isAssigning: false},
+                value: {isAssigning: false, isAssignmentFinished: true},
             },
         ],
         failureData: [
@@ -378,7 +378,7 @@ function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspace
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ASSIGN_CARD,
-                value: {isAssigning: false},
+                value: {isAssigning: false, isAssignmentFinished: true},
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,

@@ -64,8 +64,8 @@ type AssignCard = {
     /** Whether the user is editing step */
     isEditing: boolean;
 
-    /** Whether the card is successfully assigned */
-    isAssigned?: boolean;
+    /** Whether the assignment flow has finished */
+    isAssignmentFinished?: boolean;
 
     /** Whether the card is assigning */
     isAssigning?: boolean;

@@ -68,7 +68,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
 
     useEffect(() => {
-        if (!assignCard?.isAssigned) {
+        if (!assignCard?.isAssignmentFinished) {
             return;
         }
 
@@ -80,7 +80,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard?.isAssigned, backTo, policyID, currentFullScreenRoute?.state?.routes]);
+    }, [assignCard?.isAssignmentFinished, backTo, policyID, currentFullScreenRoute?.state?.routes]);
 
     const submit = () => {
         if (!policyID) {
