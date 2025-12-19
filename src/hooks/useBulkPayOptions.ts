@@ -14,7 +14,7 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {getSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
+import {useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AccountData, Policy} from '@src/types/onyx';
@@ -59,6 +59,7 @@ function useBulkPayOptions({
     const {accountID} = useCurrentUserPersonalDetails();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
+    const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const policy = usePolicy(selectedPolicyID);
@@ -129,7 +130,6 @@ function useBulkPayOptions({
 
     const bulkPayButtonOptions = useMemo(() => {
         const buttonOptions = [];
-        const paymentMethods = getSettlementButtonPaymentMethods(icons, hasActivatedWallet, translate);
 
         if (!selectedReportID || !selectedPolicyID) {
             return undefined;
@@ -217,9 +217,9 @@ function useBulkPayOptions({
 
         return buttonOptions;
     }, [
-        hasActivatedWallet,
-        icons,
         translate,
+        icons.Building,
+        icons.User,
         selectedReportID,
         selectedPolicyID,
         shouldShowBusinessBankAccountOptions,
@@ -229,6 +229,7 @@ function useBulkPayOptions({
         isPersonalOnlyOption,
         shouldShowPayElsewhereOption,
         isInvoiceReport,
+        paymentMethods,
         personalBankAccountList.length,
         canUsePersonalBankAccount,
         activeAdminPolicies,
