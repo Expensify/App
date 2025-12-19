@@ -98,7 +98,6 @@ function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<Settin
             wrapperID="TransactionStartDateStep"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('workspace.companyCards.assignCard')}
-            headerSubtitle={assigneeDisplayName}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
