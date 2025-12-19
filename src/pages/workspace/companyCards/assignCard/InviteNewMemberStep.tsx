@@ -128,4 +128,4 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
     );
 }
 
-export default withPolicyAndFullscreenLoading(withCurrentUserPersonalDetails(InviteNewMemberStep));
+export default withCurrentUserPersonalDetails(InviteNewMemberStep);
