@@ -48,11 +48,14 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Whether the feed is loading */
     isLoadingFeed?: boolean;
 
+    /** Whether to show the table controls */
+    showTableControls: boolean;
+
     /** Card feed icon */
     CardFeedIcon?: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoadingFeed, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoadingFeed, showTableControls, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -132,15 +135,16 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoadingF
                 <View
                     style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
                 >
-                    {!isLoadingFeed && (
+                    {!isLoadingFeed && showTableControls && (
                         <View style={[styles.mnw200]}>
                             <Table.SearchBar />
                         </View>
                     )}
+
                     <View style={[styles.flexRow, styles.gap3]}>
                         {!isLoadingFeed && (
                             <>
-                                <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />
+                                {showTableControls && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />}
                                 <ButtonWithDropdownMenu
                                     success={false}
                                     onPress={() => {}}

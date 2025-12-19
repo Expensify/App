@@ -13,7 +13,9 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDomainOrWorkspaceAccountID, isMaskedCardNumberEqual} from '@libs/CardUtils';
+import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
+import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -118,7 +120,8 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         },
     ];
 
-    const data: WorkspaceCompanyCardTableItemData[] = isFeedAdded
+    const showCards = !isFeedPending && !isNoFeed && isFeedAdded;
+    const data: WorkspaceCompanyCardTableItemData[] = showCards
         ? (cardNames?.map((cardName) => {
               const assignedCardPredicate = (card: Card) => (isPlaidCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
 
@@ -263,7 +266,9 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         tableRef.current?.updateSorting(activeSortingInWideLayout);
     }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
-    const ListEmptyComponent = isLoadingCardsTableData ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />;
+    const showTableControls = !(isFeedPending && !!selectedFeed);
+
+    const ListEmptyComponent = showCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />;
 
     return (
         <Table
@@ -278,17 +283,36 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             filters={filterConfig}
             ListEmptyComponent={ListEmptyComponent}
         >
-            <View style={shouldUseNarrowTableLayout && styles.mb5}>
-                <WorkspaceCompanyCardsTableHeaderButtons
-                    isLoadingFeed={isLoadingFeed}
-                    policyID={policy?.id}
-                    feedName={feedName}
-                    CardFeedIcon={cardFeedIcon}
-                />
-            </View>
-            {!shouldUseNarrowTableLayout && !isLoadingFeed && <Table.Header />}
+            {isFeedPending && (
+                <View style={styles.flex1}>
+                    <WorkspaceCompanyCardsFeedPendingPage />
+                </View>
+            )}
 
-            <Table.Body />
+            {isNoFeed && (
+                <View style={styles.flex1}>
+                    <WorkspaceCompanyCardPageEmptyState
+                        policy={policy}
+                        shouldShowGBDisclaimer={shouldShowGBDisclaimer}
+                    />
+                </View>
+            )}
+
+            {showCards && (
+                <>
+                    <View style={shouldUseNarrowTableLayout && styles.mb5}>
+                        <WorkspaceCompanyCardsTableHeaderButtons
+                            isLoadingFeed={isLoadingFeed}
+                            policyID={policy?.id}
+                            feedName={feedName}
+                            showTableControls={showTableControls}
+                            CardFeedIcon={cardFeedIcon}
+                        />
+                    </View>
+                    {!shouldUseNarrowTableLayout && !isLoadingFeed && <Table.Header />}
+                    <Table.Body />
+                </>
+            )}
         </Table>
     );
 }
