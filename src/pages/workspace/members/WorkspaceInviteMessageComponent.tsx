@@ -178,6 +178,9 @@ function WorkspaceInviteMessageComponent({
     };
 
     const policyName = policy?.name;
+    const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
+    const invitingMemberDetails = getPersonalDetailByEmail(invitingMemberEmail);
+    const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
 
     useEffect(() => {
         return () => {
@@ -232,21 +235,16 @@ function WorkspaceInviteMessageComponent({
                     </View>
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>
-                            {isInviteNewMemberStep && (() => {
-                                const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
-                                const memberDetails = getPersonalDetailByEmail(invitingMemberEmail);
-                                const memberName = Str.removeSMSDomain(memberDetails?.displayName ?? '');
-                                return (
-                                    <MenuItemWithTopDescription
-                                        title={memberName && memberName !== invitingMemberEmail ? memberName : invitingMemberEmail}
-                                        description={translate('common.member')}
-                                        shouldShowRightIcon
-                                        onPress={() => {
-                                            Navigation.goBack(backTo);
-                                        }}
-                                    />
-                                );
-                            })()}
+                        {isInviteNewMemberStep && (
+                            <MenuItemWithTopDescription
+                                  title={invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : invitingMemberEmail}
+                                  description={translate('common.member')}
+                                  shouldShowRightIcon
+                                  onPress={() => {
+                                      Navigation.goBack(backTo);
+                                  }}
+                              />
+                          )}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (
                                 <MenuItemWithTopDescription
                                     title={memberNames}
