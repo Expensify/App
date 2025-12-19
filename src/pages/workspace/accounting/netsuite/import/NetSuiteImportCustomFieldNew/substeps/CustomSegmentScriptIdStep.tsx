@@ -91,5 +91,4 @@ function CustomSegmentScriptIdStep({customSegmentType, onNext, isEditing, custom
     );
 }
 
-CustomSegmentScriptIdStep.displayName = 'CustomSegmentScriptIdStep';
 export default CustomSegmentScriptIdStep;
