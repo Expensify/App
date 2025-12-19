@@ -333,7 +333,7 @@ const config = defineConfig([
                 },
                 {
                     selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
-                    message: "forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs",
+                    message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
                 },
                 {
                     selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
