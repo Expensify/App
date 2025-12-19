@@ -1247,6 +1247,18 @@ function setMoneyRequestPendingFields(transactionID: string, pendingFields: Onyx
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
 
+function setMoneyRequestTimeRate(transactionID: string, rate: number, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {units: {rate}}});
+}
+
+function setMoneyRequestTimeCount(transactionID: string, count: number, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {units: {count}}});
+}
+
+function setMoneyRequestTimeType(transactionID: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {type: 'time', units: {unit: 'h'}}});
+}
+
 /**
  * Sets the category for a money request transaction draft.
  * @param transactionID - The transaction ID
@@ -15503,6 +15515,9 @@ export {
     getUpdateMoneyRequestParams,
     getUpdateTrackExpenseParams,
     getReportPreviewAction,
+    setMoneyRequestTimeRate,
+    setMoneyRequestTimeCount,
+    setMoneyRequestTimeType,
 };
 export type {
     GPSPoint as GpsPoint,

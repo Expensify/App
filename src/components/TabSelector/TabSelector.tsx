@@ -37,7 +37,21 @@ type IconTitleAndTestID = {
     testID?: string;
 };
 
-const MEMOIZED_LAZY_TAB_SELECTOR_ICONS = ['CalendarSolid', 'UploadAlt', 'User', 'Car', 'Hashtag', 'Map', 'Pencil', 'ReceiptScan', 'Receipt', 'MoneyCircle', 'Percent', 'Crosshair'] as const;
+const MEMOIZED_LAZY_TAB_SELECTOR_ICONS = [
+    'CalendarSolid',
+    'UploadAlt',
+    'User',
+    'Car',
+    'Hashtag',
+    'Map',
+    'Pencil',
+    'ReceiptScan',
+    'Receipt',
+    'MoneyCircle',
+    'Percent',
+    'Crosshair',
+    'Clock',
+] as const;
 
 function getIconTitleAndTestID(
     icons: Record<TupleToUnion<typeof MEMOIZED_LAZY_TAB_SELECTOR_ICONS>, IconAsset>,
@@ -79,6 +93,8 @@ function getIconTitleAndTestID(
             return {icon: icons.Percent, title: translate('iou.percent'), testID: 'split-percentage'};
         case CONST.IOU.SPLIT_TYPE.DATE:
             return {icon: icons.CalendarSolid, title: translate('iou.date'), testID: 'split-date'};
+        case CONST.TAB_REQUEST.TIME:
+            return {icon: icons.Clock, title: translate('iou.time'), testID: 'time'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }

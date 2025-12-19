@@ -1412,6 +1412,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 'per-diem': {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.route,
                                 },
+                                time: {
+                                    path: ROUTES.MONEY_REQUEST_CREATE_TAB_TIME.route,
+                                },
                             },
                         },
                         [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: {

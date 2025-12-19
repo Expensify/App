@@ -156,6 +156,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
 
+    /** Whether the expense is a time expense */
+    isTimeRequest?: boolean;
+
     /** Whether we're editing a split expense */
     isEditingSplitBill?: boolean;
 
@@ -246,6 +249,7 @@ function MoneyRequestConfirmationList({
     iouIsReimbursable = true,
     onToggleReimbursable,
     showRemoveExpenseConfirmModal,
+    isTimeRequest = false,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -344,7 +348,7 @@ function MoneyRequestConfirmationList({
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
     const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
@@ -1241,5 +1245,6 @@ export default memo(
         prevProps.hasSmartScanFailed === nextProps.hasSmartScanFailed &&
         prevProps.reportActionID === nextProps.reportActionID &&
         prevProps.action === nextProps.action &&
-        prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt,
+        prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
+        prevProps.isTimeRequest === nextProps.isTimeRequest,
 );

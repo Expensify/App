@@ -594,8 +594,8 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
-function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false): boolean {
-    if (isPerDiemRequest) {
+function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false, isTimeRequest = false): boolean {
+    if (isPerDiemRequest || isTimeRequest) {
         return false;
     }
     const distanceUnit = getDistanceRateCustomUnit(policy);
@@ -1588,6 +1588,16 @@ function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | un
     return admins.some((admin) => admin.email === memberEmail);
 }
 
+function isTimeTrackingEnabled(policy: Policy): boolean {
+    return true;
+    return !!policy.units?.time?.enabled;
+}
+
+function getDefaultTimeTrackingRate(policy: Policy): number | undefined {
+    return 20;
+    return policy.units?.time?.rate;
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -1747,6 +1757,8 @@ export {
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
+    isTimeTrackingEnabled,
+    getDefaultTimeTrackingRate,
 };
 
 export type {MemberEmailsToAccountIDs};
