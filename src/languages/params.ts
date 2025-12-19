@@ -5,10 +5,6 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
-type TagSelectionParams = {
-    policyTagListName?: string;
-};
-
 type CharacterLengthLimitParams = {
     limit: number;
     length: number;
@@ -705,6 +701,12 @@ type SplitExpenseEditTitleParams = {
     merchant: string;
 };
 
+type SplitDateRangeParams = {
+    startDate: string;
+    endDate: string;
+    count: number;
+};
+
 type TotalAmountGreaterOrLessThanOriginalParams = {
     amount: string;
 };
@@ -843,6 +845,7 @@ export type {
     ToggleImportTitleParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
+    SplitDateRangeParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportedTagsMessageParams,
@@ -1109,7 +1112,6 @@ export type {
     NextStepParams,
     ReportFieldParams,
     FocusModeUpdateParams,
-    TagSelectionParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
 };
