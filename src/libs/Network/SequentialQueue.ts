@@ -341,7 +341,7 @@ function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxReq
 
 function push(newRequest: OnyxRequest) {
     const {checkAndFixConflictingRequest} = newRequest;
-    
+
     if (checkAndFixConflictingRequest) {
         const requests = getAllPersistedRequests();
         const {conflictAction} = checkAndFixConflictingRequest(requests);

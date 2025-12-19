@@ -87,11 +87,13 @@ function save(requestToPersist: Request) {
     // If the command is not in the keepLastInstance array, add the new request as usual
     const requests = [...persistedRequests, requestToPersist];
     persistedRequests = requests;
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests).then(() => {
-        Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
-    }).catch((error) => {
-        Log.info('[SequentialQueue] Error saving request to queue', false, {error, requestToPersist});
-    });
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests)
+        .then(() => {
+            Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
+        })
+        .catch((error) => {
+            Log.info('[SequentialQueue] Error saving request to queue', false, {error, requestToPersist});
+        });
 }
 
 function endRequestAndRemoveFromQueue(requestToRemove: Request) {
