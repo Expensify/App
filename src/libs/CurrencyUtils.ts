@@ -209,6 +209,35 @@ function sanitizeCurrencyCode(currencyCode: string): string {
     return isValidCurrencyCode(currencyCode) ? currencyCode : CONST.CURRENCY.USD;
 }
 
+/**
+ * Checks if a "symbol" is effectively just the ISO currency code (e.g. "CLP").
+ */
+function isCurrencyCodeLikeSymbol(symbol?: string, currencyCode?: string): boolean {
+    if (!symbol || !currencyCode) {
+        return false;
+    }
+
+    const normalizedSymbol = symbol.trim().toUpperCase();
+    const normalizedCode = currencyCode.trim().toUpperCase();
+
+    return normalizedSymbol === normalizedCode;
+}
+
+/**
+ * Returns a preferred currency symbol for display:
+ * - Uses the symbol from CURRENCY_LIST when it exists and is not code-like.
+ * - Otherwise falls back to the localized Intl-derived currency value (existing behavior).
+ */
+function getPreferredCurrencySymbol(currencyCode: string = CONST.CURRENCY.USD): string | undefined {
+    const symbolFromList = getCurrencySymbol(currencyCode);
+
+    if (symbolFromList && !isCurrencyCodeLikeSymbol(symbolFromList, currencyCode)) {
+        return symbolFromList;
+    }
+
+    return getLocalizedCurrencySymbol(currencyCode);
+}
+
 function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {
     if (!currencies || !countryCode) {
         return CONST.CURRENCY.USD;
@@ -237,4 +266,6 @@ export {
     convertToShortDisplayString,
     getCurrency,
     sanitizeCurrencyCode,
+    isCurrencyCodeLikeSymbol,
+    getPreferredCurrencySymbol,
 };
