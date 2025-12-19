@@ -15,6 +15,7 @@ import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import type TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
@@ -191,7 +192,14 @@ function SearchList({
     }, [data, groupBy, type]);
     const flattenedItemsWithoutPendingDelete = useMemo(() => flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [flattenedItems]);
 
-    const selectedItemsLength = useMemo(() => Object.values(selectedTransactions).filter((t) => t?.isSelected).length, [selectedTransactions]);
+    const selectedItemsLength = useMemo(() => {
+        return flattenedItemsWithoutPendingDelete.reduce((acc, item) => {
+            if (item.keyForList && selectedTransactions[item.keyForList]?.isSelected) {
+                return acc + 1;
+            }
+            return acc;
+        }, 0);
+    }, [flattenedItemsWithoutPendingDelete, selectedTransactions]);
 
     const itemsWithSelection = useMemo(() => {
         return data.map((item) => {
