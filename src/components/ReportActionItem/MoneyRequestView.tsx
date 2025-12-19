@@ -51,7 +51,6 @@ import {
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
@@ -166,10 +165,11 @@ function MoneyRequestView({
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: true});
 
-    const parentReportActionSelector = useCallback(
-        (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => (transactionThreadReport?.parentReportActionID ? reportActions?.[transactionThreadReport.parentReportActionID] : undefined),
-        [transactionThreadReport?.parentReportActionID],
-    );
+    const parentReportActionSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
+        transactionThreadReport?.parentReportActionID ? reportActions?.[transactionThreadReport.parentReportActionID] : undefined;
+
+    // The parentReportActionSelector is memoized by React Compiler
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
         canBeMissing: true,
@@ -177,13 +177,7 @@ function MoneyRequestView({
     });
 
     const isFromMergeTransaction = !!mergeTransactionID;
-    const linkedTransactionID = useMemo(() => {
-        if (!parentReportAction) {
-            return undefined;
-        }
-        const originalMessage = parentReportAction && isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction) : undefined;
-        return originalMessage?.IOUTransactionID;
-    }, [parentReportAction]);
+    const linkedTransactionID = parentReportAction && isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
     let [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     if (!transaction && !!updatedTransaction) {
         transaction = updatedTransaction;
@@ -262,10 +256,7 @@ function MoneyRequestView({
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
-    } = useMemo<Partial<TransactionDetails>>(
-        () => getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {},
-        [allowNegativeAmount, currentUserPersonalDetails, transaction],
-    );
+    } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {};
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
@@ -329,7 +320,7 @@ function MoneyRequestView({
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
     const isPolicyExpenseChat = isReportInGroupPolicy(moneyRequestReport);
-    const policyTagLists = useMemo(() => getTagLists(policyTagList), [policyTagList]);
+    const policyTagLists = getTagLists(policyTagList);
 
     const category = transactionCategory ?? '';
     const categoryForDisplay = isCategoryMissing(category) ? '' : category;
@@ -353,7 +344,7 @@ function MoneyRequestView({
         !isCardTransaction &&
         !isInvoice;
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
-    const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
+    const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
@@ -385,12 +376,7 @@ function MoneyRequestView({
 
     const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
 
-    const updatedTransactionDescription = useMemo(() => {
-        if (!updatedTransaction) {
-            return undefined;
-        }
-        return getDescription(updatedTransaction ?? null);
-    }, [updatedTransaction]);
+    const updatedTransactionDescription = getDescription(updatedTransaction) || undefined;
     const isEmptyUpdatedMerchant = updatedTransaction?.modifiedMerchant === '' || updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
 
@@ -467,84 +453,53 @@ function MoneyRequestView({
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
-    const getErrorForField = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
-            // Checks applied when creating a new expense
-            // NOTE: receipt field can return multiple violations, so we need to handle it separately
-            const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
-                amount: {
-                    isError: transactionAmount === 0,
-                    translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
-                },
-                merchant: {
-                    isError: !isSettled && !isCancelled && isPolicyExpenseChat && isEmptyMerchant,
-                    translationPath: canEditMerchant ? 'common.error.enterMerchant' : 'common.error.missingMerchantName',
-                },
-                date: {
-                    isError: transactionDate === '',
-                    translationPath: canEditDate ? 'common.error.enterDate' : 'common.error.missingDate',
-                },
-            };
+    const getErrorForField = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
+        // Checks applied when creating a new expense
+        // NOTE: receipt field can return multiple violations, so we need to handle it separately
+        const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
+            amount: {
+                isError: transactionAmount === 0,
+                translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
+            },
+            merchant: {
+                isError: !isSettled && !isCancelled && isPolicyExpenseChat && isEmptyMerchant,
+                translationPath: canEditMerchant ? 'common.error.enterMerchant' : 'common.error.missingMerchantName',
+            },
+            date: {
+                isError: transactionDate === '',
+                translationPath: canEditDate ? 'common.error.enterDate' : 'common.error.missingDate',
+            },
+        };
 
-            const {isError, translationPath} = fieldChecks[field] ?? {};
+        const {isError, translationPath} = fieldChecks[field] ?? {};
 
-            if (readonly) {
-                return '';
-            }
-
-            // Return form errors if there are any
-            if (hasErrors && isError && translationPath) {
-                return translate(translationPath);
-            }
-
-            if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
-                return translate('violations.customUnitOutOfPolicy');
-            }
-
-            // Return violations if there are any
-            if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
-                const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-                return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)).join('. ')}.`;
-            }
-
+        if (readonly) {
             return '';
-        },
-        [
-            transactionAmount,
-            isSettled,
-            isCancelled,
-            isPolicyExpenseChat,
-            isEmptyMerchant,
-            transactionDate,
-            readonly,
-            hasErrors,
-            hasViolations,
-            translate,
-            getViolationsForField,
-            canEditAmount,
-            canEditDate,
-            canEditMerchant,
-            canEdit,
-            isCustomUnitOutOfPolicy,
-            companyCardPageURL,
-        ],
-    );
+        }
+
+        // Return form errors if there are any
+        if (hasErrors && isError && translationPath) {
+            return translate(translationPath);
+        }
+
+        if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
+            return translate('violations.customUnitOutOfPolicy');
+        }
+
+        // Return violations if there are any
+        if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
+            const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
+            return `${violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)).join('. ')}.`;
+        }
+
+        return '';
+    };
 
     const distanceCopyValue = !canEditDistance ? distanceToDisplay : undefined;
     const distanceRateCopyValue = !canEditDistanceRate ? rateToDisplay : undefined;
     const amountCopyValue = !canEditAmount ? amountTitle : undefined;
-    const descriptionCopyValue = useMemo(() => {
-        if (canEdit) {
-            return undefined;
-        }
-
-        const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
-        if (!descriptionHTML) {
-            return undefined;
-        }
-
-        return Parser.htmlToText(descriptionHTML);
-    }, [canEdit, transactionDescription, updatedTransactionDescription]);
+    const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
+    const descriptionCopyValue = !canEdit && descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
     const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
     const dateCopyValue = !canEditDate ? transactionDate : undefined;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
@@ -653,9 +608,7 @@ function MoneyRequestView({
         setCurrentTransactionTag(transactionTag);
     }, [transactionTag, previousTransactionTag]);
 
-    const getAttendeesTitle = useMemo(() => {
-        return Array.isArray(actualAttendees) ? actualAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
-    }, [actualAttendees]);
+    const getAttendeesTitle = Array.isArray(actualAttendees) ? actualAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
     const attendeesCopyValue = !canEdit ? getAttendeesTitle : undefined;
 
     const previousTagLength = getLengthOfTag(previousTag ?? '');
