@@ -177,7 +177,7 @@ function getMergeableDataAndConflictFields(
     targetTransaction: OnyxEntry<Transaction>,
     sourceTransaction: OnyxEntry<Transaction>,
     localeCompare: LocaleContextProps['localeCompare'],
-    searchReports: Report[] = [],
+    searchReports: Array<OnyxEntry<Report>> = [],
 ) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
@@ -418,7 +418,7 @@ function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<
  * @param translate - The translation function
  * @returns The formatted display string for the field value
  */
-function getDisplayValue(field: MergeFieldKey, transaction: Transaction, translate: LocaleContextProps['translate']): string {
+function getDisplayValue(field: MergeFieldKey, transaction: Transaction, translate: LocaleContextProps['translate'], reports: Array<OnyxEntry<Report>>): string {
     const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
 
     if (isEmptyMergeValue(fieldValue) || fieldValue === undefined) {
@@ -445,7 +445,7 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
             return translate('common.none');
         }
 
-        return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue)));
+        return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue), reports));
     }
     if (field === 'attendees') {
         return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue) : '';
@@ -468,6 +468,7 @@ function buildMergeFieldsData(
     sourceTransaction: Transaction | undefined,
     mergeTransaction: MergeTransaction | null | undefined,
     translate: LocaleContextProps['translate'],
+    reports: Array<OnyxEntry<Report>> = [],
 ): MergeFieldData[] {
     if (!targetTransaction || !sourceTransaction) {
         return [];
@@ -481,12 +482,12 @@ function buildMergeFieldsData(
         const options: MergeFieldOption[] = [
             {
                 transaction: targetTransaction,
-                displayValue: getDisplayValue(field, targetTransaction, translate),
+                displayValue: getDisplayValue(field, targetTransaction, translate, reports),
                 isSelected: selectedTransactionId === targetTransaction.transactionID,
             },
             {
                 transaction: sourceTransaction,
-                displayValue: getDisplayValue(field, sourceTransaction, translate),
+                displayValue: getDisplayValue(field, sourceTransaction, translate, reports),
                 isSelected: selectedTransactionId === sourceTransaction.transactionID,
             },
         ];
@@ -518,7 +519,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(
     }
 
     if (field === 'reportID') {
-        const reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction), searchReports));
+        const reportName = transaction?.reportName?.length ? transaction?.reportName : getReportName(getReportOrDraftReport(getReportIDForExpense(transaction), searchReports));
         updatedValues.reportName = reportName.length ? reportName : null;
     }
 

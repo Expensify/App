@@ -53,11 +53,14 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             return;
         }
 
-        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare);
+        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare, [
+            targetTransactionReport,
+            sourceTransactionReport,
+        ]);
 
         setMergeTransactionKey(transactionID, mergeableData);
         setConflictFields(detectedConflictFields as MergeFieldKey[]);
-    }, [targetTransaction, sourceTransaction, transactionID, localeCompare]);
+    }, [targetTransaction, sourceTransaction, transactionID, localeCompare, sourceTransactionReport, targetTransactionReport]);
 
     // Handle selection
     const handleSelect = useCallback(
@@ -109,8 +112,8 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(
-        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate),
-        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate],
+        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate, [targetTransactionReport, sourceTransactionReport]),
+        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionReport, sourceTransactionReport, translate],
     );
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
