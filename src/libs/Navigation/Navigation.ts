@@ -8,7 +8,7 @@ import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
-import {SUPER_WIDE_RIGHT_MODALS, WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider';
+import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -123,6 +123,10 @@ const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
  * Returns the current active route.
  */
 function getActiveRoute(): string {
+    if (!navigationRef.isReady()) {
+        return '';
+    }
+
     const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
     if (!currentRoute?.name) {
         return '';
@@ -737,16 +741,18 @@ function dismissToModalStack(modalStackNames: Set<string>) {
 /**
  * Dismiss top layer modal and go back to the Wide/Super Wide RHP.
  */
-function dismissToFirstRHP() {
-    const wideOrSuperWideModalStackNames = new Set([...SUPER_WIDE_RIGHT_MODALS, ...WIDE_RIGHT_MODALS]);
-    return dismissToModalStack(wideOrSuperWideModalStackNames);
+function dismissToPreviousRHP() {
+    return dismissToModalStack(ALL_WIDE_RIGHT_MODALS);
 }
 
-/**
- * Dismiss top layer modal and go back to the Wide RHP.
- */
-function dismissToSecondRHP() {
-    return dismissToModalStack(WIDE_RIGHT_MODALS);
+function dismissToSuperWideRHP() {
+    // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
+    if (getIsNarrowLayout()) {
+        dismissModal();
+        return;
+    }
+    // On wide layouts, dismiss back to the Super Wide RHP modal stack
+    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
 }
 
 export default {
@@ -784,8 +790,8 @@ export default {
     isOnboardingFlow,
     clearPreloadedRoutes,
     isValidateLoginFlow,
-    dismissToFirstRHP,
-    dismissToSecondRHP,
+    dismissToPreviousRHP,
+    dismissToSuperWideRHP,
 };
 
 export {navigationRef};

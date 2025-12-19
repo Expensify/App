@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -35,6 +36,7 @@ function VacationDelegatePage() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const currentVacationDelegate = vacationDelegate?.delegate;
     const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const excludeLogins = useMemo(
         () => ({
@@ -128,7 +130,7 @@ function VacationDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [vacationDelegate, delegatePersonalDetails, availableOptions.personalDetails, availableOptions.recentReports, translate, availableOptions.userToInvite, icons.FallbackAvatar]);
+    }, [vacationDelegate, delegatePersonalDetails, translate, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, icons.FallbackAvatar]);
 
     const onSelectRow = useCallback(
         (option: Participant) => {
@@ -167,7 +169,7 @@ function VacationDelegatePage() {
         <>
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                testID={VacationDelegatePage.displayName}
+                testID="VacationDelegatePage"
             >
                 <HeaderWithBackButton
                     title={translate('statusPage.vacationDelegate')}
@@ -207,7 +209,5 @@ function VacationDelegatePage() {
         </>
     );
 }
-
-VacationDelegatePage.displayName = 'VacationDelegatePage';
 
 export default VacationDelegatePage;

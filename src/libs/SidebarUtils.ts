@@ -311,6 +311,7 @@ function updateReportsToDisplayInLHN({
     for (const reportID of updatedReportsKeys) {
         const report = reports?.[reportID];
         if (!report?.reportID && report?.pendingFields?.reportID !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            delete displayedReportsCopy[reportID];
             continue;
         }
 

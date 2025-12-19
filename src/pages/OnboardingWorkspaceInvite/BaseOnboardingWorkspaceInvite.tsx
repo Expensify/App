@@ -5,6 +5,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {Section} from '@components/SelectionListWithSections/types';
@@ -245,7 +246,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
-            testID={BaseOnboardingWorkspaceInvite.displayName}
+            testID="BaseOnboardingWorkspaceInvite"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldShowOfflineIndicator={isSmallScreenWidth}
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
@@ -286,7 +287,5 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingWorkspaceInvite.displayName = 'BaseOnboardingWorkspaceInvite';
 
 export default BaseOnboardingWorkspaceInvite;
