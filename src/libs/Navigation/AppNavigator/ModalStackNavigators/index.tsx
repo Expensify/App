@@ -433,7 +433,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsPage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsRolePage').default,
     [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberCustomFieldPage').default,
-    [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberNewCardPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: () => require<ReactComponentModule>('@pages/workspace/members/WorkspaceOwnerChangeWrapperPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceOwnerChangeSuccessPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceOwnerChangeErrorPage').default,
