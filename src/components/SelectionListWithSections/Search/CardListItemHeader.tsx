@@ -12,7 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
-import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardFeedBankName} from '@src/types/onyx/CardFeeds';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import ExpensesCell from './ExpensesCell';
 import TotalCell from './TotalCell';
@@ -83,7 +83,7 @@ function CardListItemHeader<TItem extends ListItem>({
                     {!isLargeScreenWidth && (
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                             <ReportActionAvatars
-                                subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                                subscriptCardFeed={cardItem.bank as CompanyCardFeedBankName}
                                 subscriptAvatarBorderColor={backgroundColor}
                                 noRightMarginOnSubscriptContainer
                                 accountIDs={[cardItem.accountID]}
@@ -106,7 +106,7 @@ function CardListItemHeader<TItem extends ListItem>({
                                 <UserDetailsTooltip accountID={cardItem.accountID}>
                                     <View>
                                         <ReportActionAvatars
-                                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                                            subscriptCardFeed={cardItem.bank as CompanyCardFeedBankName}
                                             subscriptAvatarBorderColor={backgroundColor}
                                             noRightMarginOnSubscriptContainer
                                             accountIDs={[cardItem.accountID]}

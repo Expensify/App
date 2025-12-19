@@ -5,7 +5,7 @@ import {isCustomFeed, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed, Policy} from '@src/types/onyx';
+import type {CompanyCardFeedBankName, Policy} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
@@ -53,7 +53,7 @@ const useCardFeedsForDisplay = () => {
         // Commercial feeds don't have preferred policies, so we need to include these in the list
         const commercialFeeds = Object.values(cardFeedsByPolicy)
             .flat()
-            .filter((feed) => !isCustomFeed(feed.name as CompanyCardFeed));
+            .filter((feed) => !isCustomFeed(feed.name as CompanyCardFeedBankName));
 
         return commercialFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
     }, [eligiblePoliciesIDs, activePolicyID, cardFeedsByPolicy, localeCompare]);

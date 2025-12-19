@@ -3,14 +3,14 @@ import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import {getCardFeedIcon, getPlaidInstitutionIconUrl, getPlaidInstitutionId} from '@libs/CardUtils';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedBankName, CompanyCardFeedName} from '@src/types/onyx';
 import type {IconProps} from './Icon';
 import Icon from './Icon';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 
 type CardFeedIconProps = {
     isExpensifyCardFeed?: boolean;
-    selectedFeed?: CompanyCardFeedWithDomainID | undefined;
+    selectedFeed?: CompanyCardFeedName | undefined;
     iconProps?: Partial<IconProps>;
 };
 
@@ -43,7 +43,7 @@ function CardFeedIcon({iconProps, selectedFeed, isExpensifyCardFeed = false}: Ca
 
     return (
         <Icon
-            src={src ?? getCardFeedIcon(selectedFeed as CompanyCardFeed, illustrations, companyCardFeedIcons)}
+            src={src ?? getCardFeedIcon(selectedFeed as CompanyCardFeedBankName, illustrations, companyCardFeedIcons)}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...restIconProps}
         />

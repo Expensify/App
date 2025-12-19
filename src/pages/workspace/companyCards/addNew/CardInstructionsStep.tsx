@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {updateSelectedFeed} from '@libs/actions/Card';
 import {setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
-import {getBankName, getCompanyCardFeedWithDomainID} from '@libs/CardUtils';
+import {getBankDisplayName, getCompanyCardFeedName} from '@libs/CardUtils';
 import Parser from '@libs/Parser';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -57,7 +57,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
 
     const submit = () => {
         if (isStripeFeedProvider && policyID) {
-            updateSelectedFeed(getCompanyCardFeedWithDomainID(feedProvider, workspaceAccountID), policyID);
+            updateSelectedFeed(getCompanyCardFeedName(feedProvider, workspaceAccountID), policyID);
             Navigation.goBack();
             return;
         }
@@ -104,7 +104,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
                 addBottomSafeAreaPadding
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
-                    {translate('workspace.companyCards.addNewCard.enableFeed.title', {provider: getBankName(feedProvider)})}
+                    {translate('workspace.companyCards.addNewCard.enableFeed.title', {provider: getBankDisplayName(feedProvider)})}
                 </Text>
                 <Text style={[styles.ph5, styles.mb3]}>{translate(translationKey)}</Text>
                 <View style={[styles.ph5]}>

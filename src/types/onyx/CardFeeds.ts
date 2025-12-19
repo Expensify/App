@@ -4,14 +4,14 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Card feed */
-type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
+/** Card feed bank name */
+type CompanyCardFeedBankName = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 
-/** Company card feed with domain ID */
-type CompanyCardFeedWithDomainID = `${CompanyCardFeed}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
+/** Company card feed name (Bank name + domain ID) */
+type CompanyCardFeedName = `${CompanyCardFeedBankName}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
 
 /** Custom card feed with a number */
-type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}` | CompanyCardFeedWithDomainID;
+type CompanyCardFeedWithNumber = CompanyCardFeedBankName | `${CompanyCardFeedBankName}${number}` | CompanyCardFeedName;
 
 /** Statement period end */
 type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>, typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH>;
@@ -131,10 +131,10 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type CardFeedData = CustomCardFeedData | DirectCardFeedData;
 
 /** Both custom and direct company feeds */
-type CompanyFeeds = Partial<Record<CompanyCardFeed, CardFeedData>>;
+type CompanyFeeds = Partial<Record<CompanyCardFeedBankName, CardFeedData>>;
 
 /** Custom feed names */
-type CompanyCardNicknames = Partial<Record<CompanyCardFeed, string>>;
+type CompanyCardNicknames = Partial<Record<CompanyCardFeedBankName, string>>;
 
 /** Domain settings model */
 type DomainSettings = {
@@ -159,10 +159,10 @@ type CardFeeds = {
         companyCardNicknames?: CompanyCardNicknames;
 
         /** Company cards feeds */
-        companyCards?: Partial<Record<CompanyCardFeed, CustomCardFeedData>>;
+        companyCards?: Partial<Record<CompanyCardFeedBankName, CustomCardFeedData>>;
 
         /** Account details */
-        oAuthAccountDetails?: Partial<Record<CompanyCardFeed, DirectCardFeedData>>;
+        oAuthAccountDetails?: Partial<Record<CompanyCardFeedBankName, DirectCardFeedData>>;
 
         /** Email address of the technical contact for the domain */
         technicalContactEmail?: string;
@@ -240,13 +240,13 @@ export type {
     AddNewCardFeedStep,
     AddNewCompanyCardFeed,
     AddNewCardFeedData,
-    CompanyCardFeed,
+    CompanyCardFeedBankName,
     CardFeedDetails,
     DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
     CompanyFeeds,
-    CompanyCardFeedWithDomainID,
+    CompanyCardFeedName,
     CustomCardFeedData,
     CompanyCardNicknames,
     CompanyCardFeedWithNumber,

@@ -26,7 +26,7 @@ import {
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
     getPlaidInstitutionIconUrl,
-    getSelectedFeed,
+    getSelectedFeedName,
 } from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -39,14 +39,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedBankName} from '@src/types/onyx';
 
 type CardFeedListItem = ListItem & {
     /** Combined feed key */
     value: CompanyCardFeedWithDomainID;
 
     /** Card feed value */
-    feed: CompanyCardFeed;
+    feed: CompanyCardFeedBankName;
 };
 
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
@@ -64,7 +64,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [cardFeeds] = useCardFeeds(policyID);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
-    const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const selectedFeed = getSelectedFeedName(lastSelectedFeed, cardFeeds);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const {isBlockedToAddNewFeeds} = useIsBlockedToAddFeed(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);

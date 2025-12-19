@@ -15,7 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
+import {getBankNameFromFeedName, getDomainOrWorkspaceAccountID, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -43,7 +43,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const policy = usePolicy(policyID);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const bankName = assignCard?.cardToAssign?.bankName ?? getCompanyCardFeed(feed);
+    const bankName = assignCard?.cardToAssign?.bankName ?? getBankNameFromFeedName(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
     const companyCardFeedData = cardFeeds?.[feed];

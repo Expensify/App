@@ -14,13 +14,13 @@ import {
     getAllCardsForWorkspace,
     getAssignedCardSortKey,
     getBankCardDetailsImage,
-    getBankName,
+    getBankDisplayName,
+    getBankNameFromFeedName,
     getCardDescription,
     getCardFeedIcon,
     getCardsByCardholderName,
     getCompanyCardDescription,
-    getCompanyCardFeed,
-    getCompanyCardFeedWithDomainID,
+    getCompanyCardFeedName,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getFeedType,
@@ -29,7 +29,7 @@ import {
     getOriginalCompanyFeeds,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
-    getSelectedFeed,
+    getSelectedFeedName,
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
@@ -39,7 +39,7 @@ import {
     maskCardNumber,
     sortCardsByCardholderName,
 } from '@src/libs/CardUtils';
-import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, CompanyCardFeedBankName, CompanyCardFeedName, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare} from '../utils/TestHelper';
@@ -228,7 +228,7 @@ const customFeedCardsList = {
     },
 } as unknown as WorkspaceCardsList;
 const customFeedName = 'Custom feed name';
-const unknownFeed = 'ofx.chase.com' as CompanyCardFeed;
+const unknownFeed = 'ofx.chase.com' as CompanyCardFeedBankName;
 
 const combinedCardFeeds: CombinedCardFeeds = {
     [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#11111111`]: {
@@ -525,27 +525,27 @@ describe('CardUtils', () => {
 
     describe('getSelectedFeed', () => {
         it('Should return last selected custom feed', () => {
-            const lastSelectedCustomFeed: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`;
-            const selectedFeed = getSelectedFeed(lastSelectedCustomFeed, combinedCardFeeds);
+            const lastSelectedCustomFeed: CompanyCardFeedName = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`;
+            const selectedFeed = getSelectedFeedName(lastSelectedCustomFeed, combinedCardFeeds);
             expect(selectedFeed).toBe(lastSelectedCustomFeed);
         });
 
         it('Should return last selected direct feed', () => {
-            const lastSelectedDirectFeed: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#12345`;
-            const selectedFeed = getSelectedFeed(lastSelectedDirectFeed, combinedCardFeeds);
+            const lastSelectedDirectFeed: CompanyCardFeedName = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#12345`;
+            const selectedFeed = getSelectedFeedName(lastSelectedDirectFeed, combinedCardFeeds);
             expect(selectedFeed).toBe(lastSelectedDirectFeed);
         });
 
         it('Should return the first available feed if lastSelectedFeed is undefined', () => {
             const lastSelectedFeed = undefined;
-            const selectedFeed = getSelectedFeed(lastSelectedFeed, combinedCardFeeds);
+            const selectedFeed = getSelectedFeedName(lastSelectedFeed, combinedCardFeeds);
             expect(selectedFeed).toBe(`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#11111111`);
         });
 
         it('Should return undefined if lastSelectedFeed is undefined and there is no card feeds', () => {
             const lastSelectedFeed = undefined;
             const cardFeeds = undefined;
-            const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
+            const selectedFeed = getSelectedFeedName(lastSelectedFeed, cardFeeds);
             expect(selectedFeed).toBe(undefined);
         });
     });
@@ -643,31 +643,31 @@ describe('CardUtils', () => {
     describe('getCardFeedName', () => {
         it('Should return a valid name if a valid feed was provided', () => {
             const feed = 'vcf';
-            const feedName = getBankName(feed);
+            const feedName = getBankDisplayName(feed);
             expect(feedName).toBe('Visa');
         });
 
         it('Should return a valid name if an OldDot feed variation was provided', () => {
-            const feed = 'oauth.americanexpressfdx.com 2003' as CompanyCardFeed;
-            const feedName = getBankName(feed);
+            const feed = 'oauth.americanexpressfdx.com 2003' as CompanyCardFeedBankName;
+            const feedName = getBankDisplayName(feed);
             expect(feedName).toBe('American Express');
         });
 
         it('Should return a valid name if a CSV imported feed variation was provided', () => {
-            const feed = 'cards_2267989_ccupload666' as CompanyCardFeed;
-            const feedName = getBankName(feed);
+            const feed = 'cards_2267989_ccupload666' as CompanyCardFeedBankName;
+            const feedName = getBankDisplayName(feed);
             expect(feedName).toBe('CSV');
         });
 
         it('Should return empty string if invalid feed was provided', () => {
-            const feed = 'vvcf' as CompanyCardFeed;
-            const feedName = getBankName(feed);
+            const feed = 'vvcf' as CompanyCardFeedBankName;
+            const feedName = getBankDisplayName(feed);
             expect(feedName).toBe('');
         });
 
         it('Should return empty string if feed is not provided (instead of TypeError crashing the app)', () => {
             const feed = undefined;
-            const feedName = getBankName(feed as unknown as CompanyCardFeed);
+            const feedName = getBankDisplayName(feed as unknown as CompanyCardFeedBankName);
             expect(feedName).toBe('');
         });
     });
@@ -680,19 +680,19 @@ describe('CardUtils', () => {
         });
 
         it('Should return a valid illustration if an OldDot feed variation was provided', () => {
-            const feed = 'oauth.americanexpressfdx.com 2003' as CompanyCardFeed;
+            const feed = 'oauth.americanexpressfdx.com 2003' as CompanyCardFeedBankName;
             const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType, mockCompanyCardFeedIcons);
             expect(illustration).toBe('AmexCardCompanyCardDetailLarge');
         });
 
         it('Should return a valid illustration if a CSV imported feed variation was provided', () => {
-            const feed = 'cards_2267989_ccupload666' as CompanyCardFeed;
+            const feed = 'cards_2267989_ccupload666' as CompanyCardFeedBankName;
             const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType, mockCompanyCardFeedIcons);
             expect(illustration).toBe('GenericCSVCompanyCardLarge');
         });
 
         it('Should return valid illustration if a non-matching feed was provided', () => {
-            const feed = '666' as CompanyCardFeed;
+            const feed = '666' as CompanyCardFeedBankName;
             const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType, mockCompanyCardFeedIcons);
             expect(illustration).toBe('GenericCompanyCardLarge');
         });
@@ -1328,8 +1328,8 @@ describe('CardUtils', () => {
 
     describe('getCompanyCardFeed', () => {
         it('should extract the original feed from a combined feed key', () => {
-            const combinedKey: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#22222222`;
-            const feed = getCompanyCardFeed(combinedKey);
+            const combinedKey: CompanyCardFeedName = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#22222222`;
+            const feed = getBankNameFromFeedName(combinedKey);
             expect(feed).toBe(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE);
         });
     });
@@ -1338,7 +1338,7 @@ describe('CardUtils', () => {
         it('should combine feed name domain ID', () => {
             const feedName = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
             const domainID = 11111111;
-            const combinedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
+            const combinedKey = getCompanyCardFeedName(feedName, domainID);
             expect(combinedKey).toBe(`${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`);
         });
     });

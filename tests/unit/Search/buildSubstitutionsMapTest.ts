@@ -59,7 +59,7 @@ const cardListMock = {
     },
 } as unknown as OnyxTypes.CardList;
 
-const cardFeedMock = 'oauth.americanexpressfdx.com 1001' as OnyxTypes.CompanyCardFeed;
+const cardFeedMock = 'oauth.americanexpressfdx.com 1001' as OnyxTypes.CompanyCardFeedBankName;
 const cardFeedsMock: OnyxCollection<OnyxTypes.CardFeeds> = {
     sharedNVP_private_domain_member_1234: {
         settings: {

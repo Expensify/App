@@ -4,10 +4,10 @@ import type {AdditionalCardProps} from '@components/SelectionListWithSections/Se
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, CompanyCardFeedBankName, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
-    getBankName,
+    getBankDisplayName,
     getCardFeedIcon,
     getCustomOrFormattedFeedName,
     getOriginalCompanyFeeds,
@@ -32,7 +32,7 @@ type GetCardFeedData = {
 };
 type CardFeedForDisplay = {
     id: string;
-    feed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+    feed: CompanyCardFeedBankName | typeof CONST.EXPENSIFY_CARD.BANK;
     fundID: string;
     name: string;
 };
@@ -88,7 +88,7 @@ function createCardFilterItem(
 ): CardFilterItem {
     const personalDetails = personalDetailsList[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isSelected = selectedCards.includes(card.cardID.toString());
-    const icon = getCardFeedIcon(card?.bank as CompanyCardFeed, illustrations, companyCardIcons);
+    const icon = getCardFeedIcon(card?.bank as CompanyCardFeedBankName, illustrations, companyCardIcons);
     const cardName = card?.nameValuePairs?.cardTitle;
     const text = personalDetails?.displayName ?? cardName;
     const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
@@ -198,7 +198,7 @@ function getWorkspaceCardFeedData(cardFeed: WorkspaceCardsList | undefined, repe
     const correspondingPolicy = getPolicy(policyID?.toUpperCase());
     const cardFeedLabel = isBankRepeating ? correspondingPolicy?.name : undefined;
     const isPlaid = !!getPlaidInstitutionId(bank);
-    const companyCardBank = isPlaid && cardName ? cardName : getBankName(bank as CompanyCardFeed);
+    const companyCardBank = isPlaid && cardName ? cardName : getBankDisplayName(bank as CompanyCardFeedBankName);
 
     const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : companyCardBank;
     const fullCardName =
@@ -217,7 +217,7 @@ function getWorkspaceCardFeedData(cardFeed: WorkspaceCardsList | undefined, repe
 function getDomainCardFeedData(domainFeed: DomainFeedData, repeatingBanks: string[], translate: LocaleContextProps['translate']): CardFeedData {
     const {domainName, bank} = domainFeed;
     const isBankRepeating = repeatingBanks.includes(bank);
-    const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : getBankName(bank as CompanyCardFeed);
+    const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : getBankDisplayName(bank as CompanyCardFeedBankName);
     const cardFeedLabel = isBankRepeating ? getDescriptionForPolicyDomainCard(domainName) : undefined;
     const cardName =
         cardFeedBankName === CONST.COMPANY_CARDS.CARD_TYPE.CSV
@@ -303,7 +303,7 @@ function createCardFeedItem({
     const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
     const plaidUrl = getPlaidInstitutionIconUrl(bank);
 
-    const icon = getCardFeedIcon(bank as CompanyCardFeed, illustrations, companyCardIcons);
+    const icon = getCardFeedIcon(bank as CompanyCardFeedBankName, illustrations, companyCardIcons);
     return {
         text: cardName,
         keyForList,
@@ -438,7 +438,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
         }
 
         for (const key of Object.keys(getOriginalCompanyFeeds(cardFeeds))) {
-            const feed = key as CompanyCardFeed;
+            const feed = key as CompanyCardFeedBankName;
             const id = `${fundID}_${feed}`;
 
             if (cardFeedsForDisplay[id]) {
@@ -493,7 +493,7 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
 
         for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds))) {
             const preferredPolicy = 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
-            const feed = key as CompanyCardFeed;
+            const feed = key as CompanyCardFeedBankName;
             const id = `${fundID}_${feed}`;
 
             (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push({

@@ -24,7 +24,7 @@ import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedName} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -1145,13 +1145,13 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: {
         policyID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeedName;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
         policyID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeedName;
         cardID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
@@ -1159,12 +1159,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: {
         policyID: string;
         cardID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeedName;
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
         policyID: string;
         cardID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeedName;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -1197,14 +1197,14 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION]: {
         policyID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeedName;
 
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
         policyID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeedName;
         cardID: string;
 
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -1212,22 +1212,22 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION]: {
         policyID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeedName;
         cardID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE]: {
         policyID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeedName;
         cardID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_NAME]: {
         policyID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeedName;
         cardID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: {
         policyID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeedName;
         cardID: string;
 
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -1235,7 +1235,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER]: {
         policyID: string;
-        feed: CompanyCardFeedWithDomainID;
+        feed: CompanyCardFeedName;
         cardID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {

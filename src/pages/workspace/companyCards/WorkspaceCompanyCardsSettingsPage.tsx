@@ -16,7 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteWorkspaceCompanyCardFeed, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
+import {getBankNameFromFeedName, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeedName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedName} from '@src/types/onyx';
 
 type WorkspaceCompanyCardsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
 
@@ -44,8 +44,8 @@ function WorkspaceCompanyCardsSettingsPage({
     const [cardFeeds] = useCardFeeds(policyID);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
 
-    const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
-    const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
+    const selectedFeed = useMemo(() => getSelectedFeedName(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
+    const feed = selectedFeed ? getBankNameFromFeedName(selectedFeed) : undefined;
 
     const [cardsList] = useCardsList(selectedFeed);
     const feedName = selectedFeed ? getCustomOrFormattedFeedName(feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
@@ -81,7 +81,7 @@ function WorkspaceCompanyCardsSettingsPage({
         if (feed) {
             const {cardList, ...cards} = cardsList ?? {};
             const cardIDs = Object.keys(cards);
-            const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeedWithDomainID[]).find(
+            const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeedName[]).find(
                 (feedWithDomainID) => feedWithDomainID !== selectedFeed && companyFeeds[feedWithDomainID]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
             // eslint-disable-next-line @typescript-eslint/no-deprecated

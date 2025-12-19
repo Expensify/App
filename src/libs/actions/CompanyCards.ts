@@ -14,7 +14,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
-import {getCompanyCardFeedWithDomainID} from '@libs/CardUtils';
+import {getCompanyCardFeedName} from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -29,8 +29,8 @@ import type {
     AddNewCardFeedStep,
     CardFeedData,
     CardFeedDetails,
-    CompanyCardFeed,
-    CompanyCardFeedWithDomainID,
+    CompanyCardFeedBankName,
+    CompanyCardFeedName,
     StatementPeriodEnd,
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
@@ -72,12 +72,12 @@ function clearAddNewCardFlow() {
 
 function addNewCompanyCardsFeed(
     policyID: string | undefined,
-    cardFeed: CompanyCardFeed,
+    cardFeed: CompanyCardFeedBankName,
     feedDetails: CardFeedDetails,
     cardFeeds: OnyxEntry<CombinedCardFeeds>,
     statementPeriodEnd: StatementPeriodEnd | undefined,
     statementPeriodEndDay: StatementPeriodEndDay | undefined,
-    lastSelectedFeed?: CompanyCardFeedWithDomainID,
+    lastSelectedFeed?: CompanyCardFeedName,
 ) {
     const authToken = NetworkStore.getAuthToken();
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
@@ -87,7 +87,7 @@ function addNewCompanyCardsFeed(
     }
 
     const feedType = CardUtils.getFeedType(cardFeed, cardFeeds);
-    const newSelectedFeed = getCompanyCardFeedWithDomainID(feedType as CompanyCardFeed, workspaceAccountID);
+    const newSelectedFeed = getCompanyCardFeedName(feedType as CompanyCardFeedBankName, workspaceAccountID);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -156,7 +156,7 @@ function addNewCompanyCardsFeed(
     API.write(WRITE_COMMANDS.REQUEST_FEED_SETUP, parameters, {optimisticData, failureData, finallyData});
 }
 
-function setWorkspaceCompanyCardFeedName(policyID: string, domainOrWorkspaceAccountID: number, bankName: CompanyCardFeed, userDefinedName: string) {
+function setWorkspaceCompanyCardFeedName(policyID: string, domainOrWorkspaceAccountID: number, bankName: CompanyCardFeedBankName, userDefinedName: string) {
     const authToken = NetworkStore.getAuthToken();
     const onyxData: OnyxData = {
         optimisticData: [
@@ -185,7 +185,7 @@ function setWorkspaceCompanyCardFeedName(policyID: string, domainOrWorkspaceAcco
     API.write(WRITE_COMMANDS.SET_COMPANY_CARD_FEED_NAME, parameters, onyxData);
 }
 
-function setWorkspaceCompanyCardTransactionLiability(domainOrWorkspaceAccountID: number, policyID: string, bankName: CompanyCardFeed, liabilityType: string) {
+function setWorkspaceCompanyCardTransactionLiability(domainOrWorkspaceAccountID: number, policyID: string, bankName: CompanyCardFeedBankName, liabilityType: string) {
     const authToken = NetworkStore.getAuthToken();
     const feedUpdates = {
         [bankName]: {liabilityType},
@@ -213,7 +213,7 @@ function setWorkspaceCompanyCardTransactionLiability(domainOrWorkspaceAccountID:
     API.write(WRITE_COMMANDS.SET_COMPANY_CARD_TRANSACTION_LIABILITY, parameters, onyxData);
 }
 
-function deleteWorkspaceCompanyCardFeed(policyID: string, domainOrWorkspaceAccountID: number, bankName: CompanyCardFeed, cardIDs: string[], feedToOpen?: CompanyCardFeedWithDomainID) {
+function deleteWorkspaceCompanyCardFeed(policyID: string, domainOrWorkspaceAccountID: number, bankName: CompanyCardFeedBankName, cardIDs: string[], feedToOpen?: CompanyCardFeedName) {
     const authToken = NetworkStore.getAuthToken();
     const isCustomFeed = CardUtils.isCustomFeed(bankName);
     const optimisticFeedUpdates = {[bankName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
@@ -390,7 +390,7 @@ function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspace
     API.write(WRITE_COMMANDS.ASSIGN_COMPANY_CARD, parameters, onyxData);
 }
 
-function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankName: CompanyCardFeed, card: Card) {
+function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankName: CompanyCardFeedBankName, card: Card) {
     const authToken = NetworkStore.getAuthToken();
     const cardID = card.cardID;
 
@@ -469,7 +469,7 @@ function resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID: n
     });
 }
 
-function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeed, lastScrapeResult?: number) {
+function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeedBankName, lastScrapeResult?: number) {
     const authToken = NetworkStore.getAuthToken();
 
     const optimisticData: OnyxUpdate[] = [
@@ -579,7 +579,7 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
     API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD, parameters, {optimisticData, finallyData, failureData});
 }
 
-function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: string, newCardTitle: string, bankName: CompanyCardFeed, oldCardTitle?: string) {
+function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: string, newCardTitle: string, bankName: CompanyCardFeedBankName, oldCardTitle?: string) {
     const authToken = NetworkStore.getAuthToken();
 
     const optimisticData: OnyxUpdate[] = [
@@ -655,7 +655,7 @@ function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: strin
     API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME, parameters, {optimisticData, finallyData, failureData});
 }
 
-function setCompanyCardExportAccount(policyID: string, domainOrWorkspaceAccountID: number, cardID: string, accountKey: string, newAccount: string, bank: CompanyCardFeed) {
+function setCompanyCardExportAccount(policyID: string, domainOrWorkspaceAccountID: number, cardID: string, accountKey: string, newAccount: string, bank: CompanyCardFeedBankName) {
     const authToken = NetworkStore.getAuthToken();
 
     const optimisticData: OnyxUpdate[] = [
@@ -721,7 +721,7 @@ function setCompanyCardExportAccount(policyID: string, domainOrWorkspaceAccountI
     API.write(WRITE_COMMANDS.SET_CARD_EXPORT_ACCOUNT, parameters, {optimisticData, finallyData, failureData});
 }
 
-function clearCompanyCardErrorField(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeed, fieldName: string, isRootLevel?: boolean) {
+function clearCompanyCardErrorField(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeedBankName, fieldName: string, isRootLevel?: boolean) {
     if (isRootLevel) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`, {
             [cardID]: {
@@ -789,7 +789,7 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE, params, {optimisticData, successData, failureData});
 }
 
-function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, feed: CompanyCardFeed) {
+function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, feed: CompanyCardFeedBankName) {
     const parameters: OpenPolicyCompanyCardsFeedParams = {
         domainAccountID,
         policyID,
@@ -799,7 +799,7 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, f
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters);
 }
 
-function openAssignFeedCardPage(policyID: string, feed: CompanyCardFeed, domainOrWorkspaceAccountID: number) {
+function openAssignFeedCardPage(policyID: string, feed: CompanyCardFeedBankName, domainOrWorkspaceAccountID: number) {
     const parameters: OpenPolicyCompanyCardsFeedParams = {
         policyID,
         feed,
@@ -852,7 +852,7 @@ function openPolicyAddCardFeedPage(policyID: string | undefined) {
 
 function setFeedStatementPeriodEndDay(
     policyID: string,
-    bankName: CompanyCardFeed,
+    bankName: CompanyCardFeedBankName,
     domainAccountID: number,
     newStatementPeriodEnd: StatementPeriodEnd | undefined,
     newStatementPeriodEndDay: StatementPeriodEndDay | undefined,
@@ -934,7 +934,7 @@ function setFeedStatementPeriodEndDay(
     API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_PERIOD_END_DAY, parameters, {optimisticData, successData, failureData});
 }
 
-function clearErrorField(bankName: CompanyCardFeed, domainAccountID: number, fieldName: keyof CardFeedData) {
+function clearErrorField(bankName: CompanyCardFeedBankName, domainAccountID: number, fieldName: keyof CardFeedData) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         settings: {
             companyCards: {

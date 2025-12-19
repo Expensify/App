@@ -8,17 +8,17 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {getBankNameFromFeedName, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {enableExpensifyCard} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedName} from '@src/types/onyx';
 
 type WorkspaceCompanyCardsErrorConfirmationProps = {
     policyID?: string;
-    newFeed?: CompanyCardFeedWithDomainID;
+    newFeed?: CompanyCardFeedName;
 };
 
 function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCompanyCardsErrorConfirmationProps) {
@@ -40,10 +40,10 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
         }
         const {cardList, ...cards} = cardsList ?? {};
         const cardIDs = Object.keys(cards);
-        const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeedWithDomainID[]).find(
+        const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeedName[]).find(
             (feed) => feed !== newFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
-        deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, getCompanyCardFeed(newFeed), cardIDs, feedToOpen);
+        deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, getBankNameFromFeedName(newFeed), cardIDs, feedToOpen);
     };
 
     const onButtonPress = () => {

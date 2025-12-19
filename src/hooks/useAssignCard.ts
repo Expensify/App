@@ -4,7 +4,7 @@ import {importPlaidAccounts} from '@libs/actions/Plaid';
 import {
     checkIfFeedConnectionIsBroken,
     filterInactiveCards,
-    getCompanyCardFeed,
+    getBankNameFromFeedName,
     getCompanyFeeds,
     getDomainOrWorkspaceAccountID,
     getPlaidCountry,
@@ -19,7 +19,7 @@ import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsP
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
+import type {CompanyCardFeedName, CurrencyList} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useCardFeeds from './useCardFeeds';
@@ -30,22 +30,22 @@ import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 
 type UseAssignCardProps = {
-    selectedFeed: CompanyCardFeedWithDomainID | undefined;
+    feedName: CompanyCardFeedName | undefined;
     policyID: string;
     setShouldShowOfflineModal: (shouldShow: boolean) => void;
 };
 
-function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseAssignCardProps) {
+function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssignCardProps) {
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const currentFeedData = selectedFeed ? companyFeeds?.[selectedFeed] : ({} as CombinedCardFeed);
+    const currentFeedData = feedName ? companyFeeds?.[feedName] : ({} as CombinedCardFeed);
 
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const companyCards = getCompanyFeeds(cardFeeds);
-    const selectedFeedData = selectedFeed && companyCards[selectedFeed];
+    const selectedFeedData = feedName && companyCards[feedName];
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
 
     const fetchCompanyCards = () => {
@@ -54,10 +54,10 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
 
-    const cardList = allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`];
+    const cardList = allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${feedName}`];
 
     const filteredFeedCards = filterInactiveCards(cardList);
-    const hasFeedError = selectedFeed ? !!cardFeeds?.[selectedFeed]?.errors : false;
+    const hasFeedError = feedName ? !!cardFeeds?.[feedName]?.errors : false;
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
@@ -65,7 +65,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
 
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
 
-    const getInitialAssignCardStep = useInitialAssignCardStep({policyID, selectedFeed});
+    const getInitialAssignCardStep = useInitialAssignCardStep({policyID, selectedFeed: feedName});
 
     const assignCard = (cardID?: string) => {
         if (isAssigningCardDisabled) {
@@ -77,11 +77,11 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
             return;
         }
 
-        if (!selectedFeed || !cardID) {
+        if (!feedName || !cardID) {
             return;
         }
 
-        const isCommercialFeed = isCustomFeed(selectedFeed);
+        const isCommercialFeed = isCustomFeed(feedName);
 
         // If the feed is a direct feed (not a commercial feed) and the user is offline,
         // show the offline alert modal to inform them of the connectivity issue.
@@ -107,11 +107,11 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
             switch (initialStep) {
                 case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
                 case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, selectedFeed));
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, feedName));
                     break;
                 case CONST.COMPANY_CARD.STEP.ASSIGNEE:
                 default:
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed: selectedFeed, cardID}));
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed: feedName, cardID}));
                     break;
             }
         });
@@ -125,7 +125,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
 
 type UseInitialAssignCardStepProps = {
     policyID: string | undefined;
-    selectedFeed: CompanyCardFeedWithDomainID | undefined;
+    selectedFeed: CompanyCardFeedName | undefined;
 };
 
 function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCardStepProps) {
@@ -139,7 +139,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const [cardFeeds] = useCardFeeds(policyID);
     const companyCards = getCompanyFeeds(cardFeeds);
     const feedData = selectedFeed && companyCards[selectedFeed];
-    const bankName = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
+    const bankName = selectedFeed ? getBankNameFromFeedName(selectedFeed) : undefined;
     const isFeedExpired = isSelectedFeedExpired(feedData);
     const plaidAccessToken = feedData?.plaidAccessToken;
 

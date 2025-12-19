@@ -31,7 +31,7 @@ import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWo
 import {
     getAllCardsForWorkspace,
     getCardFeedIcon,
-    getCompanyCardFeedWithDomainID,
+    getCompanyCardFeedName,
     getCompanyFeeds,
     getPlaidInstitutionIconUrl,
     isExpensifyCardFullySetUp,
@@ -57,7 +57,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {CompanyCardFeedBankName, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -257,7 +257,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
                     policyID,
                     card.cardID.toString(),
-                    getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID),
+                    getCompanyCardFeedName(card.bank as CompanyCardFeedBankName, card.fundID),
                     Navigation.getActiveRoute(),
                 ),
             );
@@ -429,7 +429,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                             ? convertToDisplayString(unapprovedExpenseLimit)
                                                             : ''
                                                     }
-                                                    icon={getCardFeedIcon(memberCard.bank as CompanyCardFeed, illustrations, companyCardFeedIcons)}
+                                                    icon={getCardFeedIcon(memberCard.bank as CompanyCardFeedBankName, illustrations, companyCardFeedIcons)}
                                                     plaidUrl={plaidUrl}
                                                     displayInDefaultIconColor
                                                     iconStyles={styles.cardIcon}

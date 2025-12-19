@@ -1930,7 +1930,7 @@ function getCardSections(
             let customFeedName: string | undefined;
             if (cardFeeds) {
                 for (const feedData of Object.values(cardFeeds)) {
-                    const nickname = feedData?.settings?.companyCardNicknames?.[cardGroup.bank as OnyxTypes.CompanyCardFeed];
+                    const nickname = feedData?.settings?.companyCardNicknames?.[cardGroup.bank as OnyxTypes.CompanyCardFeedBankName];
                     if (nickname) {
                         customFeedName = nickname;
                         break;
@@ -1950,7 +1950,7 @@ function getCardSections(
                     cardName: cardGroup.cardName,
                     lastFourPAN: cardGroup.lastFourPAN,
                 } as OnyxTypes.Card),
-                formattedFeedName: getCustomOrFormattedFeedName(cardGroup.bank as OnyxTypes.CompanyCardFeed, customFeedName) ?? '',
+                formattedFeedName: getCustomOrFormattedFeedName(cardGroup.bank as OnyxTypes.CompanyCardFeedBankName, customFeedName) ?? '',
             };
         }
     }

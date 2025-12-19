@@ -3,7 +3,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {getCardFeedNamesWithType, getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {CardFeeds, CardList, CompanyCardFeed, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeeds, CardList, CompanyCardFeedBankName, WorkspaceCardsList} from '@src/types/onyx';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -74,10 +74,10 @@ const cardListMock = {
     },
 } as unknown as CardList;
 
-const cardFeedAmericaExpressMock = 'oauth.americanexpressfdx.com 1001' as CompanyCardFeed;
-const cardFeedVisaMock = 'vcf' as CompanyCardFeed;
-const cardFeedCitiBankMock = 'oauth.citibank.com' as CompanyCardFeed;
-const cardFeedStripeMock = 'stripe' as CompanyCardFeed;
+const cardFeedAmericaExpressMock = 'oauth.americanexpressfdx.com 1001' as CompanyCardFeedBankName;
+const cardFeedVisaMock = 'vcf' as CompanyCardFeedBankName;
+const cardFeedCitiBankMock = 'oauth.citibank.com' as CompanyCardFeedBankName;
+const cardFeedStripeMock = 'stripe' as CompanyCardFeedBankName;
 const cardFeedsMock: OnyxCollection<CardFeeds> = {
     sharedNVP_private_domain_member_1234: {
         settings: {

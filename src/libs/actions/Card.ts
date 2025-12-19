@@ -22,7 +22,7 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {Card, CompanyCardFeedName} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
@@ -960,7 +960,7 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
     });
 }
 
-function updateSelectedFeed(feed: CompanyCardFeedWithDomainID, policyID: string | undefined) {
+function updateSelectedFeed(feed: CompanyCardFeedName, policyID: string | undefined) {
     if (!policyID) {
         return;
     }
