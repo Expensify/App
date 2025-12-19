@@ -24,7 +24,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import {getExportMenuItem} from './utils';
 
 type WorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_EXPORT>;
@@ -34,12 +33,12 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const {policyID, cardID, backTo} = route.params;
-    const bank = decodeURIComponent(route.params.bank) as CompanyCardFeedWithDomainID;
+    const feed = route.params.feed;
     const policy = usePolicy(policyID);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [searchText, setSearchText] = useState('');
 
-    const [allBankCards] = useCardsList(bank);
+    const [allBankCards] = useCardsList(feed);
     const card = allBankCards?.[cardID];
     const connectedIntegration = getConnectedIntegration(policy) ?? CONST.POLICY.CONNECTIONS.NAME.QBO;
     // We need to have an unchanged active route for getExportMenuItem so the export page link is not updated incorrectly when user is in other pages
@@ -54,7 +53,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[bank]);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
 
     const searchedListOptions = useMemo(() => {
         return tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.value]);
@@ -81,11 +80,11 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             }
             const isDefaultCardSelected = value === defaultCard;
             const exportValue = isDefaultCardSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
-            setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, getCompanyCardFeed(bank));
+            setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, getCompanyCardFeed(feed));
 
-            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank));
+            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, feed));
         },
-        [exportMenuItem?.exportType, domainOrWorkspaceAccountID, cardID, policyID, bank, defaultCard],
+        [exportMenuItem?.exportType, domainOrWorkspaceAccountID, cardID, policyID, feed, defaultCard],
     );
 
     return (
@@ -118,7 +117,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             onChangeText={setSearchText}
             onSelectRow={updateExportAccount}
             initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank, backTo), {compareParams: false})}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, feed, backTo), {compareParams: false})}
             headerTitleAlreadyTranslated={exportMenuItem?.description}
             listEmptyContent={listEmptyContent}
             connectionName={connectedIntegration}

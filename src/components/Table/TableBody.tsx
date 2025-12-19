@@ -81,9 +81,9 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
     );
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <View
             style={styles.flex1}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             <FlashList<T>

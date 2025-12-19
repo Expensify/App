@@ -140,13 +140,9 @@ function WorkspaceCompanyCardTableItem({
                         return;
                     }
 
-                    return Navigation.navigate(
-                        ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
-                            policyID,
-                            assignedCard.cardID.toString(),
-                            getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID),
-                        ),
-                    );
+                    const feed = getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID);
+
+                    return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, assignedCard.cardID.toString(), feed));
                 }}
             >
                 {({hovered}) => (
