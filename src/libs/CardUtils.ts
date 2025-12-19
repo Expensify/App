@@ -638,7 +638,7 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
 }
 
 function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
-    const {cardList = {}, ...assignedCards} = cardsList ?? {};
+    const {cardList, ...assignedCards} = cardsList ?? {};
 
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
     const filteredAssignedCards = filterObject(assignedCards, (_key, card) => !closedStates.has(card.state));
