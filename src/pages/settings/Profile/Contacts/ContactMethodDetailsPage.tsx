@@ -325,7 +325,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                             clearUnvalidatedNewContactMethodAction();
                             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
                         }}
-                        canDismissError
                     />
                 )}
                 {isValidateCodeFormVisible && !!loginData && !loginData.validatedDate && (

@@ -5105,6 +5105,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 pendingBankLink: 'veuillez cliquer ici',
                 giveItNameInstruction: 'Donnez à la carte un nom qui la distingue des autres.',
                 updating: 'Mise à jour...',
+                neverUpdated: 'Jamais',
                 noAccountsFound: 'Aucun compte trouvé',
                 defaultCard: 'Carte par défaut',
                 downgradeTitle: `Impossible de rétrograder l’espace de travail`,

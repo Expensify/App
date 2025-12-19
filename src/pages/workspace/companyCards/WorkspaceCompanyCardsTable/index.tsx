@@ -99,7 +99,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
-    const shouldShowNarrowLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
@@ -116,8 +116,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             key: 'customCardName',
             label: translate('workspace.companyCards.cardName'),
             styling: {
-                containerStyles: [styles.justifyContentEnd],
-                labelStyles: [styles.pr3],
+                containerStyles: [styles.justifyContentEnd, styles.pr3],
             },
         },
     ];
@@ -152,7 +151,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             isPlaidCardFeed={isPlaidCardFeed}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
-            shouldUseNarrowTableRowLayout={shouldShowNarrowLayout}
+            shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             columnCount={columns.length}
         />
     );
@@ -242,12 +241,12 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     };
 
     const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
-    const isNarrowLayoutRef = useRef(shouldShowNarrowLayout);
+    const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
 
     // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
     // When switching back to wide layout, we want to restore the previous sorting.
     useEffect(() => {
-        if (shouldShowNarrowLayout) {
+        if (shouldUseNarrowTableLayout) {
             if (isNarrowLayoutRef.current) {
                 return;
             }
@@ -265,7 +264,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
 
         isNarrowLayoutRef.current = false;
         tableRef.current?.updateSorting(activeSortingInWideLayout);
-    }, [activeSortingInWideLayout, shouldShowNarrowLayout]);
+    }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
     const ListEmptyComponent = isLoadingCardsTableData ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />;
 
@@ -283,7 +282,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             ListEmptyComponent={ListEmptyComponent}
         >
             {!isLoadingFeed && (
-                <View style={shouldShowNarrowLayout && styles.mb5}>
+                <View style={shouldUseNarrowTableLayout && styles.mb5}>
                     <WorkspaceCompanyCardsTableHeaderButtons
                         policyID={policy.id}
                         feedName={feedName}
@@ -293,7 +292,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                 </View>
             )}
 
-            {!shouldShowNarrowLayout && <Table.Header />}
+            {!shouldUseNarrowTableLayout && <Table.Header />}
 
             <Table.Body />
         </Table>

@@ -62,7 +62,7 @@ type WorkspaceCompanyCardTableItemProps = {
     isPlaidCardFeed: boolean;
 
     /** Whether to use narrow table row layout */
-    shouldUseNarrowTableRowLayout?: boolean;
+    shouldUseNarrowTableLayout: boolean;
 
     /** Number of columns in the table */
     columnCount: number;
@@ -77,7 +77,7 @@ function WorkspaceCompanyCardTableItem({
     domainOrWorkspaceAccountID,
     CardFeedIcon,
     isPlaidCardFeed,
-    shouldUseNarrowTableRowLayout,
+    shouldUseNarrowTableLayout,
     columnCount,
     isAssigningCardDisabled,
     onAssignCard,
@@ -105,7 +105,7 @@ function WorkspaceCompanyCardTableItem({
 
     const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
 
-    const alternateLoginText = shouldUseNarrowTableRowLayout ? `${customCardName}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : (cardholder?.login ?? '');
+    const alternateLoginText = shouldUseNarrowTableLayout ? `${customCardName ?? ''}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : (cardholder?.login ?? '');
 
     const resetFailedCompanyCardAssignment = () => {
         if (!failedCompanyCardAssignment) {
@@ -155,7 +155,7 @@ function WorkspaceCompanyCardTableItem({
                             styles.flexRow,
                             styles.alignItemsCenter,
                             // Use Grid on web when available (will override flex if supported)
-                            !shouldUseNarrowTableRowLayout && [styles.dGrid, {gridTemplateColumns: `repeat(${columnCount}, 1fr)`}],
+                            !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: `repeat(${columnCount}, 1fr)`}],
                         ]}
                     >
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
@@ -187,17 +187,22 @@ function WorkspaceCompanyCardTableItem({
                             ) : (
                                 <>
                                     {CardFeedIcon}
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
-                                    >
-                                        {translate('workspace.moreFeatures.companyCards.unassignedCards')}
-                                    </Text>
+
+                                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                                        <TextWithTooltip
+                                            text={translate('workspace.moreFeatures.companyCards.unassignedCards')}
+                                            style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.justifyContentCenter]}
+                                        />
+                                        <TextWithTooltip
+                                            text={cardName}
+                                            style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
+                                        />
+                                    </View>
                                 </>
                             )}
                         </View>
 
-                        {!shouldUseNarrowTableRowLayout && (
+                        {!shouldUseNarrowTableLayout && (
                             <View style={[styles.flex1]}>
                                 <Text
                                     numberOfLines={1}
@@ -208,10 +213,10 @@ function WorkspaceCompanyCardTableItem({
                             </View>
                         )}
 
-                        <View style={[shouldUseNarrowTableRowLayout ? styles.flex0 : styles.flex1, styles.alignItemsEnd]}>
+                        <View style={[shouldUseNarrowTableLayout ? styles.flex0 : styles.flex1, styles.alignItemsEnd]}>
                             {isAssigned && (
                                 <View style={[styles.justifyContentEnd, styles.w100, styles.flexRow, styles.ml2, styles.gap3]}>
-                                    {!shouldUseNarrowTableRowLayout && (
+                                    {!shouldUseNarrowTableLayout && (
                                         <Text
                                             numberOfLines={1}
                                             style={[styles.optionDisplayName, styles.pre]}
@@ -228,10 +233,20 @@ function WorkspaceCompanyCardTableItem({
                                     />
                                 </View>
                             )}
-                            {!isAssigned && (
+                            {!isAssigned && shouldUseNarrowTableLayout && (
                                 <Button
                                     success
-                                    text={shouldUseNarrowTableRowLayout ? translate('workspace.companyCards.assign') : translate('workspace.companyCards.assignCard')}
+                                    small
+                                    text={translate('workspace.companyCards.assign')}
+                                    onPress={assignCard}
+                                    isDisabled={isAssigningCardDisabled}
+                                />
+                            )}
+
+                            {!isAssigned && !shouldUseNarrowTableLayout && (
+                                <Button
+                                    success
+                                    text={translate('workspace.companyCards.assignCard')}
                                     onPress={assignCard}
                                     isDisabled={isAssigningCardDisabled}
                                 />

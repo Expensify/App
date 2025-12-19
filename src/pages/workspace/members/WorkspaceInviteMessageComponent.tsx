@@ -255,8 +255,7 @@ function WorkspaceInviteMessageComponent({
                                 <MenuItemWithTopDescription
                                     title={invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : invitingMemberEmail}
                                     description={translate('common.member')}
-                                    shouldShowRightIcon
-                                    onPress={handleMemberPress}
+                                    interactive={false}
                                 />
                             )}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (

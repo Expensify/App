@@ -12,17 +12,18 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AssignCardFeedPage from '@pages/workspace/companyCards/BrokenCardFeedConnectionPage';
+import AssignCardFeedAssigneePage from '@pages/workspace/companyCards/assignCard/AssigneeStep';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const FEED_DOMAIN_ID = 1234;
-const FEED = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}.${FEED_DOMAIN_ID}`;
+const FEED = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}.${FEED_DOMAIN_ID}` as CompanyCardFeedWithDomainID;
 const CARD_ID = '1234';
 
 // Set up a global fetch mock for API requests in tests.
@@ -86,7 +87,7 @@ const renderPage = (
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
                             name={SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE}
-                            component={AssignCardFeedPage}
+                            component={AssignCardFeedAssigneePage}
                             initialParams={initialParams}
                         />
                     </Stack.Navigator>

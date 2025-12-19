@@ -5082,6 +5082,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 pendingBankLink: 'fai clic qui',
                 giveItNameInstruction: 'Dai alla carta un nome che la distingua dalle altre.',
                 updating: 'Aggiornamento in corso...',
+                neverUpdated: 'Mai',
                 noAccountsFound: 'Nessun account trovato',
                 defaultCard: 'Carta predefinita',
                 downgradeTitle: `Impossibile effettuare il downgrade dello spazio di lavoro`,

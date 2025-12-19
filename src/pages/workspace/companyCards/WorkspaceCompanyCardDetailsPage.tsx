@@ -95,10 +95,10 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
 
     const lastScrape = useMemo(() => {
         if (!card?.lastScrape) {
-            return '';
+            return translate('workspace.moreFeatures.companyCards.neverUpdated');
         }
         return format(getLocalDateFromDatetime(card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-    }, [getLocalDateFromDatetime, card?.lastScrape]);
+    }, [getLocalDateFromDatetime, card?.lastScrape, translate]);
 
     if (!card && !isLoadingOnyxValue(allBankCardsMetadata)) {
         return <NotFoundPage />;
