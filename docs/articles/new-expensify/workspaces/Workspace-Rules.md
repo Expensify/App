@@ -37,6 +37,10 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
   
 ---
 
+![Rules page showing all available workspace-level expense rules]({{site.url}}/assets/images/new-expensify-rules.png){:width="100%"}
+
+---
+
 # Configure the Prohibited Expenses Rule
 
 Use this AI-powered rule to flag receipts with restricted purchases.
