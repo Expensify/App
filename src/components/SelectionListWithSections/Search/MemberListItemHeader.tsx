@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
+import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem, TransactionMemberGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -39,6 +40,9 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether the down arrow is expanded */
     isExpanded?: boolean;
+
+    /** The visible columns for the header */
+    columns?: SearchColumnType[];
 };
 
 function MemberListItemHeader<TItem extends ListItem>({
@@ -50,6 +54,7 @@ function MemberListItemHeader<TItem extends ListItem>({
     isIndeterminate,
     isExpanded,
     onDownArrowClick,
+    columns,
 }: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -57,6 +62,45 @@ function MemberListItemHeader<TItem extends ListItem>({
     const {translate, formatPhoneNumber} = useLocalize();
     const formattedDisplayName = formatPhoneNumber(getDisplayNameOrDefault(memberItem));
     const formattedLogin = formatPhoneNumber(memberItem.login ?? '');
+
+    const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)}
+            >
+                <View style={[styles.gap1, styles.flexShrink1]}>
+                    <TextWithTooltip
+                        text={formattedDisplayName}
+                        style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                    />
+                    <TextWithTooltip
+                        text={formattedLogin || formattedDisplayName}
+                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                    />
+                </View>
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
+            >
+                <ExpensesCell count={memberItem.count} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}
+            >
+                <TotalCell
+                    total={memberItem.total}
+                    currency={memberItem.currency}
+                />
+            </View>
+        ),
+    };
 
     return (
         <View>
@@ -110,27 +154,8 @@ function MemberListItemHeader<TItem extends ListItem>({
                                     </View>
                                 </UserDetailsTooltip>
                             </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)}>
-                                <View style={[styles.gap1, styles.flexShrink1]}>
-                                    <TextWithTooltip
-                                        text={formattedDisplayName}
-                                        style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
-                                    />
-                                    <TextWithTooltip
-                                        text={formattedLogin || formattedDisplayName}
-                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                    />
-                                </View>
-                            </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
-                                <ExpensesCell count={memberItem.count} />
-                            </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}>
-                                <TotalCell
-                                    total={memberItem.total}
-                                    currency={memberItem.currency}
-                                />
-                            </View>
+
+                            {columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
                         </>
                     )}
                 </View>
