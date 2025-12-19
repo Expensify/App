@@ -447,6 +447,9 @@ const ONYXKEYS = {
     /** Indicates whether we should record troubleshoot data or not */
     SHOULD_RECORD_TROUBLESHOOT_DATA: 'shouldRecordTroubleshootData',
 
+    /** Timestamp when troubleshoot recording was started (for auto-off after 10 minutes) */
+    TROUBLESHOOT_RECORDING_START_TIME: 'troubleshootRecordingStartTime',
+
     /** Indicates whether we should mask fragile user data while exporting onyx state or not */
     SHOULD_MASK_ONYX_STATE: 'shouldMaskOnyxState',
 
@@ -1287,6 +1290,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LOGS]: OnyxTypes.CapturedLogs;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
     [ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA]: boolean;
+    [ONYXKEYS.TROUBLESHOOT_RECORDING_START_TIME]: number | null;
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
     [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: boolean;
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;

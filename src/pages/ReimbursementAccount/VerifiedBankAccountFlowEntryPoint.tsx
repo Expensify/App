@@ -4,7 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import {Bank, Connect, RotateLeft} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {Connect, RotateLeft} from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -91,7 +92,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Lock']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Lock', 'Bank']);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
@@ -263,7 +264,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
                                     <MenuItem
                                         title={translate('bankAccount.connectOnlineWithPlaid')}
-                                        icon={Bank}
+                                        icon={expensifyIcons.Bank}
                                         disabled={!!isPlaidDisabled}
                                         onPress={handleConnectPlaid}
                                         shouldShowRightIcon
