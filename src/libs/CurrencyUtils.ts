@@ -210,7 +210,7 @@ function sanitizeCurrencyCode(currencyCode: string): string {
 }
 
 /**
- * Checks if a "symbol" is effectively just the ISO currency code (e.g. "CLP").
+ * Checks if a "symbol" is effectively just the ISO currency code (e.g. "TZS").
  */
 function isCurrencyCodeLikeSymbol(symbol?: string, currencyCode?: string): boolean {
     if (!symbol || !currencyCode) {
