@@ -374,7 +374,11 @@ describe('ReportUtils', () => {
         });
         return waitForBatchedUpdates();
     });
-    beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+    beforeEach(async () => {
+        const loadResult = IntlStore.load(CONST.LOCALES.DEFAULT);
+        await (loadResult instanceof Promise ? loadResult : Promise.resolve());
+        return waitForBatchedUpdates();
+    });
 
     describe('getIOUReportActionDisplayMessage', () => {
         const iouReportID = '1234567890';
@@ -774,9 +778,9 @@ describe('ReportUtils', () => {
                 const allReportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`]: reportNameValuePairs};
                 expect(computeReportName(baseAdminsRoom, undefined, undefined, undefined, allReportNameValuePairs)).toBe('#admins (archived)');
 
-                return IntlStore.load(CONST.LOCALES.ES).then(() =>
-                    expect(computeReportName(baseAdminsRoom, undefined, undefined, undefined, allReportNameValuePairs)).toBe('#admins (archivado)'),
-                );
+                const loadResult = IntlStore.load(CONST.LOCALES.ES);
+                await (loadResult instanceof Promise ? loadResult : Promise.resolve());
+                expect(computeReportName(baseAdminsRoom, undefined, undefined, undefined, allReportNameValuePairs)).toBe('#admins (archivado)');
             });
         });
 
@@ -809,9 +813,9 @@ describe('ReportUtils', () => {
                 const allReportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`]: reportNameValuePairs};
                 expect(computeReportName(archivedPolicyRoom, undefined, undefined, undefined, allReportNameValuePairs)).toBe('#VikingsChat (archived)');
 
-                return IntlStore.load(CONST.LOCALES.ES).then(() =>
-                    expect(computeReportName(archivedPolicyRoom, undefined, undefined, undefined, allReportNameValuePairs)).toBe('#VikingsChat (archivado)'),
-                );
+                const loadResult = IntlStore.load(CONST.LOCALES.ES);
+                await (loadResult instanceof Promise ? loadResult : Promise.resolve());
+                expect(computeReportName(archivedPolicyRoom, undefined, undefined, undefined, allReportNameValuePairs)).toBe('#VikingsChat (archivado)');
             });
         });
 
@@ -894,9 +898,9 @@ describe('ReportUtils', () => {
                     const allReportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`]: reportNameValuePairs};
                     expect(computeReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return IntlStore.load(CONST.LOCALES.ES).then(() =>
-                        expect(computeReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
-                    );
+                    const loadResult = IntlStore.load(CONST.LOCALES.ES);
+                    await (loadResult instanceof Promise ? loadResult : Promise.resolve());
+                    expect(computeReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(`Ragnar Lothbrok's gastos (archivado)`);
                 });
 
                 test('as admin', async () => {
@@ -910,9 +914,9 @@ describe('ReportUtils', () => {
                     const allReportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`]: reportNameValuePairs};
                     expect(computeReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return IntlStore.load(CONST.LOCALES.ES).then(() =>
-                        expect(computeReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
-                    );
+                    const loadResult = IntlStore.load(CONST.LOCALES.ES);
+                    await (loadResult instanceof Promise ? loadResult : Promise.resolve());
+                    expect(computeReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(`Ragnar Lothbrok's gastos (archivado)`);
                 });
             });
         });

@@ -1205,22 +1205,8 @@ Onyx.connectWithoutView({
     callback: (value) => (cachedSelfDMReportID = value),
 });
 
-let hiddenTranslation = '';
-let unavailableTranslation = '';
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
-    callback: (value) => {
-        if (value ?? true) {
-            return;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        hiddenTranslation = translateLocal('common.hidden');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        unavailableTranslation = translateLocal('workspace.common.unavailable');
-    },
-});
+const hiddenTranslation = '';
+const unavailableTranslation = '';
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
