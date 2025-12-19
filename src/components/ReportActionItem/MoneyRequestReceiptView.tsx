@@ -260,6 +260,7 @@ function MoneyRequestReceiptView({
         errorsWithoutReportCreation,
         reportCreationError,
         isInNarrowPaneModal,
+        transactionAndReportActionErrors,
     ]);
 
     let receiptStyle: StyleProp<ViewStyle>;
