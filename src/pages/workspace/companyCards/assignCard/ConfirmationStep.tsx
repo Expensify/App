@@ -14,11 +14,9 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
-import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -64,23 +62,15 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const cardholderEmail = data?.email ?? '';
     const cardholderAccountID = cardholder?.accountID;
 
-    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
-
     useEffect(() => {
         if (!assignCard?.isAssignmentFinished) {
             return;
         }
 
-        if (backTo) {
-            Navigation.goBack(backTo);
-        } else if (!shouldUseBackToParam && route.params?.backTo) {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-        } else {
-            Navigation.dismissModal();
-        }
+        Navigation.dismissModal();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard?.isAssignmentFinished, backTo, policyID, shouldUseBackToParam, route.params?.backTo, currentFullScreenRoute?.state?.routes]);
+    }, [assignCard?.isAssignmentFinished]);
 
     const submit = () => {
         if (!policyID) {
