@@ -19,7 +19,7 @@ function SearchFiltersAttendeePage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersAttendeePage.displayName}
+            testID="SearchFiltersAttendeePage"
             includeSafeAreaPaddingBottom
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
@@ -44,7 +44,5 @@ function SearchFiltersAttendeePage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersAttendeePage.displayName = 'SearchFiltersAttendeePage';
 
 export default SearchFiltersAttendeePage;

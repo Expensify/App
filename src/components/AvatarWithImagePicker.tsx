@@ -100,10 +100,10 @@ function AvatarWithImagePicker({
     disabled = false,
     onViewPhotoPress,
     enablePreview = false,
-    editIcon = Expensicons.Pencil,
+    editIcon,
     name = '',
 }: AvatarWithImagePickerProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Upload'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Upload']);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
@@ -266,7 +266,7 @@ function AvatarWithImagePicker({
                                         fallbackIcon={fallbackIcon}
                                         anchorRef={anchorRef}
                                         DefaultAvatar={DefaultAvatar}
-                                        editIcon={editIcon}
+                                        editIcon={editIcon ?? icons.Pencil}
                                         size={size}
                                         type={type}
                                         disabled={disabled}
@@ -319,7 +319,5 @@ function AvatarWithImagePicker({
         </View>
     );
 }
-
-AvatarWithImagePicker.displayName = 'AvatarWithImagePicker';
 
 export default AvatarWithImagePicker;

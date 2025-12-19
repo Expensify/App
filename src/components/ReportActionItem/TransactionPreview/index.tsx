@@ -93,7 +93,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     // See description of `transactionRawAmount` prop for more context
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionRawAmount = (Number(transaction?.modifiedAmount) || transaction?.amount) ?? 0;
+    const transactionRawAmount = (transaction?.modifiedAmount || transaction?.amount) ?? 0;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
@@ -110,6 +110,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                 shouldUseHapticsOnLongPress
                 accessibilityLabel={isBillSplit ? translate('iou.split') : translate(showCashOrCardTranslation)}
                 accessibilityHint={convertToDisplayString(requestAmount, requestCurrency)}
+                sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_PREVIEW.CARD}
             >
                 <TransactionPreviewContent
                     /* eslint-disable-next-line react/jsx-props-no-spreading */
@@ -157,7 +158,5 @@ function TransactionPreview(props: TransactionPreviewProps) {
         />
     );
 }
-
-TransactionPreview.displayName = 'TransactionPreview';
 
 export default TransactionPreview;

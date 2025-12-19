@@ -5,9 +5,9 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
-import SelectionList from '@components/SelectionListWithSections';
-import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -76,7 +76,7 @@ function SearchFiltersIsPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersIsPage.displayName}
+            testID="SearchFiltersIsPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -89,10 +89,10 @@ function SearchFiltersIsPage() {
             />
             <View style={[styles.flex1]}>
                 <SelectionList
-                    shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
+                    data={listData}
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
+                    shouldSingleExecuteRowSelect
                 />
             </View>
             <FixedFooter style={styles.mtAuto}>
@@ -104,7 +104,5 @@ function SearchFiltersIsPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersIsPage.displayName = 'SearchFiltersIsPage';
 
 export default SearchFiltersIsPage;

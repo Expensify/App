@@ -82,6 +82,7 @@ function BaseTextInput({
     iconContainerStyle,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
+    sentryLabel,
     ...inputProps
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
@@ -313,6 +314,7 @@ function BaseTextInput({
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
+                    sentryLabel={sentryLabel}
                 >
                     <View
                         style={[
@@ -373,7 +375,13 @@ function BaseTextInput({
                                             setIsPrefixCharacterPaddingCalculated(true);
                                         }}
                                         tabIndex={-1}
-                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
+                                        style={[
+                                            styles.textInputPrefix,
+                                            !hasLabel && styles.pv0,
+                                            styles.pointerEventsNone,
+                                            inputProps.disabled && shouldUseDisabledStyles && styles.textSupporting,
+                                            prefixStyle,
+                                        ]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         shouldUseDefaultLineHeight={shouldUseDefaultLineHeightForPrefix}
                                     >
@@ -465,6 +473,7 @@ function BaseTextInput({
                                             onClearInput?.();
                                         }}
                                         style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
+                                        sentryLabel={sentryLabel ? `${sentryLabel}-ClearButton` : undefined}
                                     />
                                 </View>
                             )}
@@ -536,7 +545,5 @@ function BaseTextInput({
         </>
     );
 }
-
-BaseTextInput.displayName = 'BaseTextInput';
 
 export default BaseTextInput;

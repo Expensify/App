@@ -15,6 +15,4 @@ function OnboardingWorkEmail(props: OnboardingWorkEmailProps) {
     );
 }
 
-OnboardingWorkEmail.displayName = 'OnboardingWorkEmail';
-
 export default OnboardingWorkEmail;

@@ -39,6 +39,7 @@ import {
     allHavePendingRTERViolation,
     getTransactionViolations,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    hasSmartScanFailedViolation,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
@@ -75,7 +76,15 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
 }
 
-function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs) {
+function isSubmitAction(
+    report: Report,
+    reportTransactions: Transaction[],
+    policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
+    violations?: OnyxCollection<TransactionViolation[]>,
+    currentUserEmail?: string,
+    currentUserAccountID?: number,
+) {
     if (isArchivedReport(reportNameValuePairs)) {
         return false;
     }
@@ -93,6 +102,12 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 
     if (isAnyReceiptBeingScanned) {
         return false;
+    }
+
+    if (violations && currentUserEmail && currentUserAccountID !== undefined) {
+        if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+            return false;
+        }
     }
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
@@ -146,6 +161,8 @@ function isPrimaryPayAction(
     reportNameValuePairs?: ReportNameValuePairs,
     isChatReportArchived?: boolean,
     invoiceReceiverPolicy?: Policy,
+    reportActions?: ReportAction[],
+    isSecondaryAction?: boolean,
 ) {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -156,6 +173,9 @@ function isPrimaryPayAction(
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
     const isProcessingReport = isProcessingReportUtils(report);
+    const isExported = isExportedUtil(reportActions);
+    const hasExportError = hasExportErrorUtil(reportActions, report);
+    const didExportFail = !isExported && hasExportError;
 
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
@@ -164,7 +184,7 @@ function isPrimaryPayAction(
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && reimbursableSpend !== 0) {
-        return true;
+        return isSecondaryAction ?? !didExportFail;
     }
 
     if (!isProcessingReport) {
@@ -397,7 +417,8 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     const isPayActionWithAllExpensesHeld =
-        isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
+        isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions) &&
+        hasOnlyHeldExpenses(report?.reportID);
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy);
 
     if (isMarkAsCashAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
@@ -419,11 +440,11 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     if (isPrimaryMarkAsResolvedAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, violations, currentUserEmail, currentUserAccountID)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
-    if (isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy)) {
+    if (isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
@@ -493,6 +514,8 @@ export {
     isAddExpenseAction,
     isPrimaryPayAction,
     isExportAction,
+    isApproveAction,
+    isSubmitAction,
     isMarkAsResolvedAction,
     isPrimaryMarkAsResolvedAction,
     getAllExpensesToHoldIfApplicable,

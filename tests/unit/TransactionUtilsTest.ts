@@ -591,7 +591,7 @@ describe('TransactionUtils', () => {
         it('should return (none) if transaction has no merchant', () => {
             const transaction = generateTransaction();
             const merchant = TransactionUtils.getMerchant(transaction);
-            expect(merchant).toBe('Expense');
+            expect(merchant).toBe('(none)');
         });
 
         it('should return modified merchant if transaction has modified merchant', () => {
@@ -1332,6 +1332,58 @@ describe('TransactionUtils', () => {
             // When modifiedAttendees is empty array and no report owner fallback applies
             expect(result.length).toBe(1);
             expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+        });
+    });
+
+    describe('shouldReuseInitialTransaction', () => {
+        const initialTransaction = generateTransaction({
+            transactionID: '1',
+            receipt: {},
+        });
+
+        it('should return false if initialTransaction is missing', () => {
+            expect(TransactionUtils.shouldReuseInitialTransaction(undefined, true, 0, true, [])).toBe(false);
+        });
+
+        it('should return true if shouldAcceptMultipleFiles is false regardless of index', () => {
+            expect(TransactionUtils.shouldReuseInitialTransaction(initialTransaction, false, 1, true, [])).toBe(true);
+        });
+
+        it('should return false if index is not 0', () => {
+            expect(TransactionUtils.shouldReuseInitialTransaction(initialTransaction, true, 1, true, [])).toBe(false);
+        });
+
+        it('should return true if isMultiScanEnabled is false', () => {
+            expect(TransactionUtils.shouldReuseInitialTransaction(initialTransaction, true, 0, false, [])).toBe(true);
+        });
+
+        it('should return true if isMultiScanEnabled is true, transactions length is 1, and initialTransaction has no receipt source', () => {
+            const transactionWithNoReceiptSource = generateTransaction({
+                ...initialTransaction,
+                receipt: {source: ''},
+            });
+            expect(TransactionUtils.shouldReuseInitialTransaction(transactionWithNoReceiptSource, true, 0, true, [initialTransaction])).toBe(true);
+        });
+
+        it('should return true if isMultiScanEnabled is true, transactions length is 1, and initialTransaction is a test receipt', () => {
+            const testReceiptTransaction = generateTransaction({
+                ...initialTransaction,
+                receipt: {source: 'source', isTestReceipt: true},
+            });
+            expect(TransactionUtils.shouldReuseInitialTransaction(testReceiptTransaction, true, 0, true, [initialTransaction])).toBe(true);
+        });
+
+        it('should return false if isMultiScanEnabled is true and transactions length is not 1', () => {
+            expect(TransactionUtils.shouldReuseInitialTransaction(initialTransaction, true, 0, true, [])).toBe(false);
+            expect(TransactionUtils.shouldReuseInitialTransaction(initialTransaction, true, 0, true, [initialTransaction, initialTransaction])).toBe(false);
+        });
+
+        it('should return false if isMultiScanEnabled is true, transactions length is 1, and initialTransaction has a receipt source and is not a test receipt', () => {
+            const transactionWithReceiptSource = generateTransaction({
+                ...initialTransaction,
+                receipt: {source: 'source'},
+            });
+            expect(TransactionUtils.shouldReuseInitialTransaction(transactionWithReceiptSource, true, 0, true, [initialTransaction])).toBe(false);
         });
     });
 });

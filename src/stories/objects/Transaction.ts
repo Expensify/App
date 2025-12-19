@@ -20,7 +20,7 @@ const transaction: Transaction & {mcc: string; modifiedMCC: string} = {
     managedCard: false,
     mcc: '',
     merchant: "Mario's",
-    modifiedAmount: '',
+    modifiedAmount: 0,
     modifiedCreated: '',
     modifiedCurrency: '',
     modifiedMCC: '',
