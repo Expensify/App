@@ -1,11 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,6 +20,7 @@ function SetupMethod() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
+    const icons = useMemoizedLazyExpensifyIcons(['Bank']);
     const illustrations = useMemoizedLazyIllustrations(['MoneyWings']);
 
     return (
@@ -39,7 +39,7 @@ function SetupMethod() {
                     </View>
                 )}
                 <Button
-                    icon={Expensicons.Bank}
+                    icon={icons.Bank}
                     text={translate('bankAccount.addBankAccount')}
                     onPress={() => {
                         openPersonalBankAccountSetupWithPlaid();
