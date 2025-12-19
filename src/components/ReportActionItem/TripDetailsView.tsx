@@ -282,7 +282,5 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
     );
 }
 
-TripDetailsView.displayName = 'TripDetailsView';
-
 export default TripDetailsView;
 export {ReservationView};

@@ -174,6 +174,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     SpreadCategoriesParams,
@@ -191,7 +192,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -596,7 +596,7 @@ const translations: TranslationDeepObject<typeof en> = {
         filterLogs: 'Filtruj logi',
         network: 'Sieć',
         reportID: 'ID raportu',
-        longID: 'Długi identyfikator',
+        longReportID: 'Długi identyfikator raportu',
         withdrawalID: 'ID wypłaty',
         bankAccounts: 'Konta bankowe',
         chooseFile: 'Wybierz plik',
@@ -692,6 +692,10 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Wymagane działanie',
         duplicate: 'Duplikat',
         duplicated: 'Zduplikowano',
+        exchangeRate: 'Kurs wymiany',
+        reimbursableTotal: 'Łączna kwota podlegająca zwrotowi',
+        nonReimbursableTotal: 'Suma niepodlegająca zwrotowi',
+        originalAmount: 'Kwota pierwotna',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1033,6 +1037,7 @@ const translations: TranslationDeepObject<typeof en> = {
         manual: 'Ręczny',
         scan: 'Skanuj',
         map: 'Mapa',
+        gps: 'GPS',
     },
     spreadsheet: {
         upload: 'Prześlij arkusz kalkulacyjny',
@@ -1127,6 +1132,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Kwota',
+        percent: 'Procent',
         taxAmount: 'Kwota podatku',
         taxRate: 'Stawka podatku',
         approve: ({
@@ -1141,6 +1147,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Podziel',
         splitExpense: 'Podziel wydatki',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} od ${merchant}`,
+        splitByPercentage: 'Podziel procentowo',
         addSplit: 'Dodaj podział',
         makeSplitsEven: 'Podziel równo',
         editSplits: 'Edytuj podziały',
@@ -1337,12 +1344,6 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} wysłano${comment ? `dla ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `przeniósł wydatek z przestrzeni osobistej do ${workspaceName ?? `czat z ${reportName}`}`,
         movedToPersonalSpace: 'przeniesiono wydatek do przestrzeni osobistej',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'jeden' : 'a';
-            const tag = policyTagListName ?? 'tag';
-            return `Wybierz ${article} ${tag}, aby lepiej zorganizować swoje wydatki.`;
-        },
-        categorySelection: 'Wybierz kategorię, aby lepiej uporządkować swoje wydatki.',
         error: {
             invalidCategoryLength: 'Nazwa kategorii przekracza 255 znaków. Skróć ją lub wybierz inną kategorię.',
             invalidTagLength: 'Nazwa tagu przekracza 255 znaków. Skróć ją lub wybierz inny tag.',
@@ -1374,6 +1375,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: 'Ilość musi być większa niż zero',
             invalidSubrateLength: 'Musi istnieć co najmniej jedna podstawka',
             invalidRate: 'Stawka nie jest prawidłowa dla tego przestrzeni roboczej. Wybierz dostępną stawkę z tej przestrzeni roboczej.',
+            endDateBeforeStartDate: 'Data zakończenia nie może być wcześniejsza niż data rozpoczęcia',
+            endDateSameAsStartDate: 'Data zakończenia nie może być taka sama jak data rozpoczęcia',
         },
         dismissReceiptError: 'Odrzuć błąd',
         dismissReceiptErrorConfirmation: 'Uwaga! Odrzucenie tego błędu spowoduje całkowite usunięcie przesłanego paragonu. Czy na pewno chcesz kontynuować?',
@@ -1519,6 +1522,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Wybierz przestrzeń roboczą',
+        date: 'Data',
+        splitDates: 'Podziel daty',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} do ${endDate} (${count} dni)`,
+        splitByDate: 'Podziel według daty',
     },
     transactionMerge: {
         listPage: {
@@ -2228,16 +2235,16 @@ ${amount} dla ${merchant} - ${date}`,
     workflowsPage: {
         workflowTitle: 'Wydatki',
         workflowDescription: 'Skonfiguruj proces od momentu poniesienia wydatku, obejmujący akceptację i płatność.',
-        submissionFrequency: 'Częstotliwość zgłoszeń',
+        submissionFrequency: 'Zgłoszenia',
         submissionFrequencyDescription: 'Wybierz niestandardowy harmonogram przesyłania wydatków.',
         submissionFrequencyDateOfMonth: 'Dzień miesiąca',
         disableApprovalPromptDescription: 'Wyłączenie zatwierdzeń usunie wszystkie istniejące przepływy pracy zatwierdzania.',
-        addApprovalsTitle: 'Dodaj zatwierdzenia',
+        addApprovalsTitle: 'Zatwierdzenia',
         addApprovalButton: 'Dodaj proces zatwierdzania',
         addApprovalTip: 'Ten domyślny przepływ pracy ma zastosowanie do wszystkich członków, chyba że istnieje bardziej szczegółowy przepływ pracy.',
         approver: 'Akceptujący',
         addApprovalsDescription: 'Wymagaj dodatkowej akceptacji przed autoryzacją płatności.',
-        makeOrTrackPaymentsTitle: 'Dokonuj lub śledź płatności',
+        makeOrTrackPaymentsTitle: 'Płatności',
         makeOrTrackPaymentsDescription: 'Dodaj upoważnioną osobę dokonującą płatności w Expensify lub śledź płatności dokonane gdzie indziej.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>W tym obszarze roboczym włączono niestandardowy proces zatwierdzania. Aby przejrzeć lub zmienić ten proces, skontaktuj się ze swoim <account-manager-link>Opiekunem klienta</account-manager-link> lub <concierge-link>Concierge</concierge-link>.</muted-text-label>',
@@ -6160,6 +6167,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 title: 'Zasady kategorii',
                 approver: 'Akceptujący',
                 requireDescription: 'Wymagaj opisu',
+                requireFields: 'Wymagaj pól',
+                requiredFieldsTitle: 'Wymagane pola',
+                requiredFieldsDescription: (categoryName: string) => `To będzie miało zastosowanie do wszystkich wydatków skategoryzowanych jako <strong>${categoryName}</strong>.`,
+                requireAttendees: 'Wymagaj uczestników',
                 descriptionHint: 'Podpowiedź opisu',
                 descriptionHintDescription: (categoryName: string) =>
                     `Przypominaj pracownikom o podaniu dodatkowych informacji dotyczących wydatków w kategorii „${categoryName}”. Ta podpowiedź pojawia się w polu opisu przy wydatkach.`,
@@ -6775,6 +6786,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             title: 'Utwórz eksport',
             description: 'Uff, to całkiem sporo pozycji! Spakujemy je, a Concierge wkrótce wyśle Ci plik.',
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Zaznacz wszystkie pasujące elementy',
             allMatchingItemsSelected: 'Wybrano wszystkie pasujące elementy',
@@ -7206,6 +7218,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data starsza niż ${maxAge} dni`,
         missingCategory: 'Brak kategorii',
         missingComment: 'Opis jest wymagany dla wybranej kategorii',
+        missingAttendees: 'Wymaganych jest wielu uczestników dla tej kategorii',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Brakujące ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7920,7 +7933,12 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             subtitle: 'Wymagaj, aby członkowie Twojej domeny logowali się przez Single Sign-On (SSO), ograniczaj tworzenie obszarów roboczych i nie tylko.',
             enable: 'Włącz',
         },
-        admins: {title: 'Administratorzy', findAdmin: 'Znajdź administratora'},
+        admins: {title: 'Administratorzy', findAdmin: 'Znajdź administratora', primaryContact: 'Główny kontakt', addPrimaryContact: 'Dodaj główny kontakt', settings: 'Ustawienia'},
+    },
+    desktopAppRetiredPage: {
+        title: 'Aplikacja desktopowa została wycofana',
+        body: 'Nowa aplikacja desktopowa Expensify na Maca została wycofana. Od teraz korzystaj z aplikacji webowej, aby uzyskać dostęp do swojego konta.',
+        goToWeb: 'Przejdź do sieci',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

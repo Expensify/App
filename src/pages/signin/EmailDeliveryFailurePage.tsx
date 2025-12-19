@@ -63,6 +63,4 @@ function EmailDeliveryFailurePage() {
     );
 }
 
-EmailDeliveryFailurePage.displayName = 'EmailDeliveryFailurePage';
-
 export default EmailDeliveryFailurePage;

@@ -758,6 +758,17 @@ const ROUTES = {
             return getUrlWithBackToParam(`create/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
         },
     },
+    SPLIT_EXPENSE_CREATE_DATE_RANGE: {
+        route: 'create/split-expense/create-date-range/:reportID/:transactionID/:splitExpenseTransactionID?',
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, backTo?: string) => {
+            if (!reportID || !transactionID) {
+                Log.warn(`Invalid ${reportID}(reportID) or ${transactionID}(transactionID) is used to build the SPLIT_EXPENSE_CREATE_DATE_RANGE route`);
+            }
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`create/split-expense/create-date-range/${reportID}/${transactionID}`, backTo);
+        },
+    },
     SPLIT_EXPENSE_EDIT: {
         route: 'edit/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
         getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
@@ -1271,6 +1282,11 @@ const ROUTES = {
         route: 'distance-manual',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-manual` as const,
+    },
+    DISTANCE_REQUEST_CREATE_TAB_GPS: {
+        route: 'distance-gps',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-gps` as const,
     },
     DISTANCE_REQUEST_CREATE_TAB_ODOMETER: {
         route: 'distance-odometer',
@@ -1943,6 +1959,10 @@ const ROUTES = {
     WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
         route: 'workspaces/:policyID/category/:categoryName/require-receipts-over',
         getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
+    },
+    WORKSPACE_CATEGORY_REQUIRED_FIELDS: {
+        route: 'workspaces/:policyID/category/:categoryName/required-fields',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/required-fields` as const,
     },
     WORKSPACE_CATEGORY_APPROVER: {
         route: 'workspaces/:policyID/category/:categoryName/approver',
@@ -3472,6 +3492,18 @@ const ROUTES = {
     DOMAIN_ADMINS: {
         route: 'domain/:domainAccountID/admins',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins` as const,
+    },
+    DOMAIN_ADMIN_DETAILS: {
+        route: 'domain/:domainAccountID/admins/:accountID',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}` as const,
+    },
+    DOMAIN_ADMINS_SETTINGS: {
+        route: 'domain/:domainAccountID/admins/settings',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings` as const,
+    },
+    DOMAIN_ADD_PRIMARY_CONTACT: {
+        route: 'domain/:domainAccountID/admins/settings/primary-contact',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings/primary-contact` as const,
     },
 } as const;
 

@@ -1,4 +1,5 @@
 import {format, parseISO} from 'date-fns';
+import {Str} from 'expensify-common';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -110,7 +111,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceCompanyCardDetailsPage.displayName}
+                testID="WorkspaceCompanyCardDetailsPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.moreFeatures.companyCards.cardDetails')}
@@ -151,7 +152,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         iconStyles={styles.mt1}
                         icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
-                        description={cardholder?.login}
+                        description={Str.removeSMSDomain(cardholder?.login ?? '')}
                         interactive={false}
                     />
                     <MenuItemWithTopDescription
@@ -255,7 +256,5 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCompanyCardDetailsPage.displayName = 'WorkspaceCompanyCardDetailsPage';
 
 export default WorkspaceCompanyCardDetailsPage;

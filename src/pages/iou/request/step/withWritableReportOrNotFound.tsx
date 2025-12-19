@@ -53,8 +53,9 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.EDIT_REPORT
     | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP
-    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL
-    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER;
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_GPS
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL;
 
 type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 

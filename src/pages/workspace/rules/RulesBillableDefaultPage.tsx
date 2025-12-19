@@ -67,7 +67,7 @@ function RulesBillableDefaultPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesBillableDefaultPage.displayName}
+                testID="RulesBillableDefaultPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.individualExpenseRules.billableDefault')}
@@ -91,7 +91,5 @@ function RulesBillableDefaultPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesBillableDefaultPage.displayName = 'RulesBillableDefaultPage';
 
 export default RulesBillableDefaultPage;

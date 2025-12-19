@@ -75,6 +75,18 @@ type Comment = {
     /** Type of the transaction */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 
+    /** Contains information pertaining to time tracking */
+    units?: {
+        /** Count of the unit */
+        count?: number;
+
+        /** Rate of the unit in cents */
+        rate?: number;
+
+        /** Unit of the unit (e.g. 'h' for hours) */
+        unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
+    };
+
     /** In custom unit transactions this holds the information of the custom unit */
     customUnit?: TransactionCustomUnit;
 
@@ -92,6 +104,12 @@ type Comment = {
 
     /** Total that the user currently owes for splitExpenses */
     splitExpensesTotal?: number;
+
+    /** Start date for splits */
+    splitsStartDate?: string;
+
+    /** End date for splits */
+    splitsEndDate?: string;
 
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
@@ -450,6 +468,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
         groupCurrency?: string;
+
+        /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
+        groupExchangeRate?: number;
 
         /** Used during the creation flow before the transaction is saved to the server */
         iouRequestType?: IOURequestType;

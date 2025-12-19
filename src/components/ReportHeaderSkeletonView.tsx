@@ -74,6 +74,4 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     );
 }
 
-ReportHeaderSkeletonView.displayName = 'ReportHeaderSkeletonView';
-
 export default ReportHeaderSkeletonView;
