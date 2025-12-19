@@ -8,8 +8,8 @@ type AgentZeroStatusState = {
 };
 
 const WAITING_LABEL = 'Concierge is waiting...';
-const INITIAL_FILLER_DELAY_MS = 1200;
-const MAX_FILLER_DELAY_MS = 12000;
+const INITIAL_FILLER_DELAY_MS = 4000;
+const MAX_FILLER_DELAY_MS = 8000;
 const BACKOFF_MULTIPLIER = 1.8;
 const JITTER_RATIO = 0.25; // +/-25% jitter to keep timers from feeling scripted
 
