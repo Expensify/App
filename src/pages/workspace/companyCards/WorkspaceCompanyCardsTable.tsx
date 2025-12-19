@@ -46,7 +46,15 @@ type WorkspaceCompanyCardsTableProps = {
     CardFeedIcon?: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer, CardFeedIcon}: WorkspaceCompanyCardsTableProps) {
+function WorkspaceCompanyCardsTable({
+    selectedFeed,
+    policyID,
+    domainOrWorkspaceAccountID,
+    onAssignCard,
+    isAssigningCardDisabled,
+    shouldShowGBDisclaimer,
+    CardFeedIcon,
+}: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
@@ -118,6 +126,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
             key={`${item.cardName}_${index}`}
             item={item}
             policyID={policyID}
+            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
             CardFeedIcon={CardFeedIcon}
             isPlaidCardFeed={isPlaidCardFeed}
             onAssignCard={onAssignCard}
