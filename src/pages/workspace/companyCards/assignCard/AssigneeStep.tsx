@@ -27,24 +27,26 @@ import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+import type {AssignCardData} from '@src/types/onyx/AssignCard';
 
 type AssigneeStepProps = {
-    /** The policy that the card will be issued under */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
     /** Route params */
-    route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD>;
+    route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE>;
 };
 
-function AssigneeStep({policy, route}: AssigneeStepProps) {
+function AssigneeStep({route}: AssigneeStepProps) {
     const policyID = route.params.policyID;
+    const feed = route.params.feed;
+    const cardID = route.params.cardID;
+    const backTo = route.params?.backTo;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -73,7 +75,6 @@ function AssigneeStep({policy, route}: AssigneeStepProps) {
     const isEditing = assignCard?.isEditing;
 
     const submit = (assignee: ListItem) => {
-        let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
         const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
         const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
         const data: Partial<AssignCardData> = {
