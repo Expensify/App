@@ -12,12 +12,12 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetFailedWorkspaceCompanyCardAssignment} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeedName, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
+import {getCompanyCardFeedWithDomainID, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeedBankName, FailedCompanyCardAssignment, PersonalDetails} from '@src/types/onyx';
+import type {Card, FailedCompanyCardAssignment, PersonalDetails} from '@src/types/onyx';
 
 type WorkspaceCompanyCardTableItemData = {
     /** Card number */
@@ -140,9 +140,9 @@ function WorkspaceCompanyCardTableItem({
                         return;
                     }
 
-                    const feed = getCompanyCardFeedName(assignedCard?.bank as CompanyCardFeedBankName, assignedCard.fundID);
+                    const feedName = getCompanyCardFeedWithDomainID(assignedCard?.bank, assignedCard.fundID);
 
-                    return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, assignedCard.cardID.toString(), feed));
+                    return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, assignedCard.cardID.toString(), feedName));
                 }}
             >
                 {({hovered}) => (
