@@ -72,7 +72,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     alternateNumberOfSupportedLines?: number;
 
     /** Array of selected item keys */
-    selectedItems?: string[];
+    selectedItems?: readonly string[];
 
     style?: {
         /** Styles for the list */

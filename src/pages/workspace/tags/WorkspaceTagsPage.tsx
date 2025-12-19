@@ -226,7 +226,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 }
                 return {
                     value: policyTagList.name,
-                    orderWeight: 2,
+                    orderWeight: policyTagList.orderWeight,
                     text: getCleanedTagName(policyTagList.name),
                     alternateText: !hasDependentTags ? translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length}) : '',
                     keyForList: getCleanedTagName(policyTagList.name),
