@@ -88,6 +88,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
     const [footerHeight, setFooterHeight] = useState(0);
 
+    const cardFeedIcon = useMemo(() => <CardFeedIcon selectedFeed={undefined} />, []);
+
     const settlementCurrency = useCurrencyForExpensifyCard({policyID});
 
     const allCards = useMemo(() => {
@@ -234,7 +236,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 <View style={[styles.w100, styles.ph5, styles.pb3, !shouldChangeLayout && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
                     <FeedSelector
                         onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID))}
-                        CardFeedIcon={<CardFeedIcon selectedFeed={undefined} />}
+                        CardFeedIcon={cardFeedIcon}
                         feedName={translate('workspace.common.expensifyCard')}
                         supportingText={getDescriptionForPolicyDomainCard(cardSettings?.domainName ?? '')}
                     />
