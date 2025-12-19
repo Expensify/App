@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
