@@ -3,7 +3,7 @@ import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+// import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -38,7 +38,7 @@ function MigratedUserWelcomeModal() {
     const [isModalDisabled, setIsModalDisabled] = useState(true);
     const route = useRoute<PlatformStackRouteProp<MigratedUserModalNavigatorParamList, typeof SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT>>();
     const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
-    const illustrations = useMemoizedLazyIllustrations(['ExpensifyMobileApp'] as const);
+    // const illustrations = useMemoizedLazyIllustrations(['MagnifyingGlassReceipt', 'ConciergeBot', 'ChatBubbles']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
     const ExpensifyFeatures = useMemo<FeatureListItem[]>(
@@ -56,7 +56,7 @@ function MigratedUserWelcomeModal() {
                 translationKey: 'migratedUserWelcomeModal.features.chat',
             },
         ],
-        [illustrations.ExpensifyMobileApp],
+        [],
     );
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
@@ -138,5 +138,4 @@ function MigratedUserWelcomeModal() {
     );
 }
 
-MigratedUserWelcomeModal.displayName = 'MigratedUserWelcomeModal';
 export default MigratedUserWelcomeModal;

@@ -359,7 +359,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.componentBorderRadiusSmall,
-            height: 16,
+            minHeight: 16,
         },
 
         reportStatusText: {
@@ -1251,6 +1251,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
+        removeSpacing: {
+            marginVertical: 0,
+            paddingHorizontal: 0,
+        },
+
         outlinedButton: {
             backgroundColor: 'transparent',
             borderColor: theme.border,
@@ -1259,6 +1264,20 @@ const staticStyles = (theme: ThemeColors) =>
 
         optionRowAmountInput: {
             textAlign: 'right',
+        },
+
+        optionRowAmountMobileInputContainer: {
+            width: variables.splitExpenseAmountMobileWidth,
+        },
+
+        optionRowPercentInputContainer: {
+            width: variables.splitExpensePercentageMobileWidth,
+        },
+
+        optionRowPercentInput: {
+            width: variables.splitExpensePercentageWidth,
+            textAlign: 'right',
+            marginRight: 2,
         },
 
         textInputLabelContainer: {
@@ -1448,6 +1467,10 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             color: theme.textSupporting,
+        },
+
+        lhUndefined: {
+            lineHeight: undefined,
         },
 
         lh14: {
@@ -1869,10 +1892,14 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
-        emptyWorkspaceListIllustrationStyle: {
+        emptyWorkspaceListLottieIllustrationStyle: {
             marginTop: 12,
             marginBottom: -20,
             height: '100%',
+        },
+        emptyWorkspaceListStaticIllustrationStyle: {
+            width: 203,
+            height: 166,
         },
 
         appContent: {
@@ -4109,8 +4136,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 450,
         },
 
+        textMicroSupportingPadding: {
+            padding: variables.paddingSmall,
+        },
+
         tabSelectorButton: {
-            height: variables.tabSelectorButtonHeight,
+            minHeight: variables.tabSelectorButtonHeight,
             padding: variables.tabSelectorButtonPadding,
             flexDirection: 'row',
             alignItems: 'center',
@@ -5014,6 +5045,15 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        desktopAppRetiredIllustration: {
+            width: variables.desktopAppRetiredIllustrationW,
+            height: variables.desktopAppRetiredIllustrationH,
+        },
+
+        desktopAppRetiredViewTextContainer: {
+            width: variables.desktopAppRetiredViewContainerWidth,
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
@@ -5161,11 +5201,21 @@ const staticStyles = (theme: ThemeColors) =>
             ...display.dFlex,
         },
 
+        emptyStateFolderStaticIllustration: {
+            width: 184,
+            height: 112,
+        },
+
         emptyStateFireworksWebStyles: {
             width: 250,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
             ...display.dFlex,
+        },
+
+        emptyStateFireworksStaticIllustration: {
+            width: 164,
+            height: 148,
         },
 
         tripEmptyStateLottieWebView: {
@@ -5580,7 +5630,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             paddingBottom: bottomSafeAreaOffset,
         }),
 
-        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,
             marginRight: 4,
@@ -5888,10 +5938,10 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {height};
         },
 
-        getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean) => {
+        getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean, isSearchable = true) => {
             const BUTTON_HEIGHT = 40;
-            const SEARCHBAR_HEIGHT = 50;
-            const SEARCHBAR_MARGIN = 14;
+            const SEARCHBAR_HEIGHT = isSearchable ? 50 : 0;
+            const SEARCHBAR_MARGIN = isSearchable ? 14 : 0;
             const PADDING = 44 - (shouldUseNarrowLayout ? 32 : 0);
             const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_MARGIN + BUTTON_HEIGHT + PADDING;
 

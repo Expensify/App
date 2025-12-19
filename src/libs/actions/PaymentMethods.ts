@@ -217,6 +217,7 @@ function addSubscriptionPaymentCard(
         addressZip: string;
         currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
     },
+    fundList: OnyxEntry<FundList>,
 ) {
     const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
 
@@ -266,7 +267,7 @@ function addSubscriptionPaymentCard(
             failureData,
         });
     }
-    if (getCardForSubscriptionBilling()) {
+    if (getCardForSubscriptionBilling(fundList)) {
         Log.info(`[GTM] Not logging ${CONST.ANALYTICS.EVENT.PAID_ADOPTION} because a card was already added`);
     } else {
         GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);

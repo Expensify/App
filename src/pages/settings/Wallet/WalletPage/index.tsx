@@ -67,8 +67,8 @@ function WalletPage() {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe']);
+    const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet']);
     const walletIllustration = useWalletSectionIllustration();
 
     const theme = useTheme();
@@ -422,7 +422,7 @@ function WalletPage() {
     if (isLoadingApp) {
         return (
             <ScreenWrapper
-                testID={WalletPage.displayName}
+                testID="WalletPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
                 {headerWithBackButton}
@@ -435,7 +435,7 @@ function WalletPage() {
 
     return (
         <ScreenWrapper
-            testID={WalletPage.displayName}
+            testID="WalletPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             {headerWithBackButton}
@@ -637,7 +637,5 @@ function WalletPage() {
         </ScreenWrapper>
     );
 }
-
-WalletPage.displayName = 'WalletPage';
 
 export default WalletPage;

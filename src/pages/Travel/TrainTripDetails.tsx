@@ -19,10 +19,10 @@ type TrainTripDetailsProps = {
 
 function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps) {
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
 
-    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
-    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
+    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
+    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
     const trainRouteDescription = `${reservation.start.longName} (${reservation.start.shortName}) ${translate('common.conjunctionTo')} ${reservation.end.longName} (${
         reservation.end.shortName
     })`;
@@ -108,7 +108,5 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
         </>
     );
 }
-
-TrainTripDetails.displayName = 'TrainTripDetails';
 
 export default TrainTripDetails;

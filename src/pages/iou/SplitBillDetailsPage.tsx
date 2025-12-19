@@ -16,7 +16,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeSplitBill, setDraftSplitTransaction} from '@libs/actions/IOU';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
@@ -39,7 +38,7 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & Plat
 
 function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
 
@@ -86,7 +85,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
         created: splitCreated,
         category: splitCategory,
         billable: splitBillable,
-    } = getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction, undefined, undefined, undefined, undefined, undefined, preferredLocale) ?? {};
+    } = getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
 
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
@@ -94,7 +93,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, transactionViolations]);
 
     return (
-        <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
+        <ScreenWrapper testID="SplitBillDetailsPage">
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
@@ -134,7 +133,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 isReadOnly={!isEditingSplitBill}
                                 shouldShowSmartScanFields
                                 receiptPath={transaction?.receipt?.source}
-                                receiptFilename={getReceiptFilenameFromTransaction(transaction)}
+                                receiptFilename={transaction?.receipt?.filename}
                                 isDistanceRequest={isDistanceRequest}
                                 isManualDistanceRequest={isManualDistanceRequest}
                                 isEditingSplitBill={isEditingSplitBill}
@@ -158,7 +157,5 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
         </ScreenWrapper>
     );
 }
-
-SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 
 export default withReportAndReportActionOrNotFound(SplitBillDetailsPage);

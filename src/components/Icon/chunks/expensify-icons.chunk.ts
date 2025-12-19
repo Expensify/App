@@ -49,10 +49,12 @@ import Checkbox from '@assets/images/checkbox.svg';
 import CheckmarkCircle from '@assets/images/checkmark-circle.svg';
 import Checkmark from '@assets/images/checkmark.svg';
 import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
+import Clock from '@assets/images/clock.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
+import Columns from '@assets/images/columns.svg';
 import CommentBubbles from '@assets/images/comment-bubbles.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
@@ -109,6 +111,8 @@ import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
+import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
@@ -125,6 +129,7 @@ import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
 import Uber from '@assets/images/integrationicons/uber.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
+import ZenefitsSquare from '@assets/images/integrationicons/zenefits-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
@@ -158,6 +163,7 @@ import Offline from '@assets/images/offline.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
 import Pencil from '@assets/images/pencil.svg';
+import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
 import Plane from '@assets/images/plane.svg';
@@ -246,6 +252,7 @@ const Expensicons = {
     Bank,
     CircularArrowBackwards,
     Bill,
+    BillComSquare,
     Bell,
     Binoculars,
     Bolt,
@@ -257,13 +264,16 @@ const Expensicons = {
     Camera,
     Car,
     Cash,
+    CertiniaSquare,
     ChatBubble,
     ChatBubbles,
     Checkbox,
     Checkmark,
     Close,
+    Clock,
     ClosedSign,
     Collapse,
+    Columns,
     CommentBubbles,
     Concierge,
     ConciergeAvatar,
@@ -355,6 +365,7 @@ const Expensicons = {
     Paperclip,
     Pause,
     Pencil,
+    Percent,
     Phone,
     Pin,
     Play,
@@ -387,6 +398,7 @@ const Expensicons = {
     ThreeDots,
     Transfer,
     Trashcan,
+    ZenefitsSquare,
     Uber,
     Unlock,
     UpArrow,

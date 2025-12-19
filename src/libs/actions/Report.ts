@@ -7,7 +7,7 @@ import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, O
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as API from '@libs/API';
@@ -292,14 +292,6 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.CONCIERGE_REPORT_ID,
     callback: (value) => (conciergeReportID = value),
-});
-
-let preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE;
-Onyx.connect({
-    key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    callback: (value) => {
-        preferredSkinTone = EmojiUtils.getPreferredSkinToneIndex(value);
-    },
 });
 
 // map of reportID to all reportActions for that report
@@ -1187,7 +1179,11 @@ function openReport(
                 onboardingMessage.tasks = updatedTasks;
             }
 
-            const onboardingData = prepareOnboardingOnyxData(introSelected, choice, onboardingMessage);
+            const onboardingData = prepareOnboardingOnyxData({
+                introSelected,
+                engagementChoice: choice,
+                onboardingMessage,
+            });
 
             if (onboardingData) {
                 optimisticData.push(...onboardingData.optimisticData, {
@@ -1487,17 +1483,15 @@ function navigateToAndOpenReport(
     const report = isEmptyObject(chat) ? newChat : chat;
 
     if (shouldDismissModal) {
-        Navigation.onModalDismissedOnce(() => {
-            Navigation.onModalDismissedOnce(() => {
+        Navigation.dismissModal({
+            callback: () => {
                 if (!report?.reportID) {
                     return;
                 }
 
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-            });
+            },
         });
-
-        Navigation.dismissModal();
     } else if (report?.reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
     }
@@ -3052,6 +3046,7 @@ function createNewReport(
     isASAPSubmitBetaEnabled: boolean,
     policyID?: string,
     shouldNotifyNewAction = false,
+    shouldDismissEmptyReportsConfirmation?: boolean,
 ) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -3070,9 +3065,21 @@ function createNewReport(
         isASAPSubmitBetaEnabled,
     );
 
+    if (shouldDismissEmptyReportsConfirmation) {
+        Onyx.merge(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, true);
+    }
+
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
-        {reportName: optimisticReportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID, reportPreviewReportActionID},
+        {
+            reportName: optimisticReportName,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID,
+            reportID: optimisticReportID,
+            reportActionID,
+            reportPreviewReportActionID,
+            ...(shouldDismissEmptyReportsConfirmation ? {shouldDismissEmptyReportsConfirmation} : {}),
+        },
         {optimisticData, successData, failureData},
     );
     if (shouldNotifyNewAction) {
@@ -3465,7 +3472,7 @@ function clearIOUError(reportID: string | undefined) {
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  */
-function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: string | number = preferredSkinTone) {
+function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, skinTone: number) {
     const createdAt = timezoneFormat(toZonedTime(new Date(), 'UTC'), CONST.DATE.FNS_DB_FORMAT_STRING);
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3478,7 +3485,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
-                                [skinTone ?? CONST.EMOJI_DEFAULT_SKIN_TONE]: createdAt,
+                                [skinTone]: createdAt,
                             },
                         },
                     },
@@ -3559,7 +3566,7 @@ function toggleEmojiReaction(
     reportAction: ReportAction,
     reactionObject: Emoji,
     existingReactions: OnyxEntry<ReportActionReactions>,
-    paramSkinTone: number = preferredSkinTone,
+    paramSkinTone: number,
     ignoreSkinToneOnCompare = false,
 ) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -3580,7 +3587,7 @@ function toggleEmojiReaction(
     const existingReactionObject = existingReactions?.[emoji.name];
 
     // Only use skin tone if emoji supports it
-    const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
+    const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;
 
     if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji);
@@ -3950,6 +3957,13 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
+}
+
+/** Invites people to a room via concierge whisper */
+function inviteToRoomAction(reportID: string, ancestors: Ancestor[], inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, timezoneParam: Timezone) {
+    const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
+
+    addComment(reportID, reportID, ancestors, inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, false);
 }
 
 function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
@@ -4338,6 +4352,7 @@ function completeOnboarding({
     selectedInterestedFeatures = [],
     shouldSkipTestDriveModal,
     isInvitedAccountant,
+    onboardingPurposeSelected,
 }: {
     engagementChoice: OnboardingPurpose;
     onboardingMessage: OnboardingMessage;
@@ -4352,8 +4367,9 @@ function completeOnboarding({
     selectedInterestedFeatures?: string[];
     shouldSkipTestDriveModal?: boolean;
     isInvitedAccountant?: boolean;
+    onboardingPurposeSelected?: OnboardingPurpose;
 }) {
-    const onboardingData = prepareOnboardingOnyxData(
+    const onboardingData = prepareOnboardingOnyxData({
         introSelected,
         engagementChoice,
         onboardingMessage,
@@ -4364,7 +4380,8 @@ function completeOnboarding({
         companySize,
         selectedInterestedFeatures,
         isInvitedAccountant,
-    );
+        onboardingPurposeSelected,
+    });
     if (!onboardingData) {
         return;
     }
@@ -4831,7 +4848,7 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
 
-function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void) {
+function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     let reportIDParam = reportID;
     const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
@@ -4852,7 +4869,7 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
         }
     }
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function exportReportToPDF({reportID}: ExportReportPDFParams) {
@@ -4878,14 +4895,14 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
     API.write(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, params, {optimisticData, failureData});
 }
 
-function downloadReportPDF(fileName: string, reportName: string) {
+function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate) {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `${reportName}.pdf`;
     setDownload(fileName, true);
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
         currentUserEmail ?? '',
     )}`;
-    fileDownload(addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
+    fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
 }
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
@@ -5738,7 +5755,7 @@ function buildOptimisticChangePolicyData(
         });
     }
 
-    if (newStatusNum) {
+    if (newStatusNum != null && newStatusNum !== undefined) {
         // buildOptimisticNextStep is used in parallel
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
@@ -6275,6 +6292,7 @@ export {
     inviteToGroupChat,
     buildInviteToRoomOnyxData,
     inviteToRoom,
+    inviteToRoomAction,
     joinRoom,
     leaveGroupChat,
     leaveRoom,

@@ -4,11 +4,11 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {Choice} from '@components/RadioButtons';
 import SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,6 +40,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [shouldHideSkipAnswer, setShouldHideSkipAnswer] = useState(false);
@@ -131,10 +132,11 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                             chooseAnswer(SafeString(value));
                         }}
                         onInputChange={() => {}}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
                         <Icon
-                            src={Expensicons.QuestionMark}
+                            src={icons.QuestionMark}
                             width={12}
                             height={12}
                             fill={theme.icon}
@@ -151,7 +153,5 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
         </View>
     );
 }
-
-IdologyQuestions.displayName = 'IdologyQuestions';
 
 export default IdologyQuestions;

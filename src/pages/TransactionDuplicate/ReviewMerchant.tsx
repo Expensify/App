@@ -34,7 +34,7 @@ function ReviewMerchant() {
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reviewDuplicates?.reportID)}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`, {canBeMissing: true});
 
-    const compareResult = compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicates?.reportID, undefined, policyCategories);
+    const compareResult = compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicatesReport, undefined, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
         Object.keys(compareResult.change ?? {}),
@@ -63,7 +63,7 @@ function ReviewMerchant() {
     };
 
     return (
-        <ScreenWrapper testID={ReviewMerchant.displayName}>
+        <ScreenWrapper testID="ReviewMerchant">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
@@ -78,7 +78,5 @@ function ReviewMerchant() {
         </ScreenWrapper>
     );
 }
-
-ReviewMerchant.displayName = 'ReviewMerchant';
 
 export default ReviewMerchant;

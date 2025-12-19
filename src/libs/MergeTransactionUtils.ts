@@ -8,7 +8,6 @@ import type {MergeTransaction, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import {convertToDisplayString} from './CurrencyUtils';
-import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransaction';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
@@ -66,7 +65,7 @@ function getMergeFieldErrorText(translate: LocaleContextProps['translate'], merg
  */
 function fillMissingReceiptSource(transaction: Transaction) {
     // If receipt.source already exists, no need to modify
-    if (!transaction.receipt || !!transaction.receipt?.source || !getReceiptFilenameFromTransaction(transaction)) {
+    if (!transaction.receipt || !!transaction.receipt.source || !transaction.receipt.filename) {
         return transaction;
     }
 
@@ -74,7 +73,7 @@ function fillMissingReceiptSource(transaction: Transaction) {
         ...transaction,
         receipt: {
             ...transaction.receipt,
-            source: `${RECEIPT_SOURCE_URL}${getReceiptFilenameFromTransaction(transaction)}`,
+            source: `${RECEIPT_SOURCE_URL}${transaction.receipt.filename}`,
         },
     };
 }
