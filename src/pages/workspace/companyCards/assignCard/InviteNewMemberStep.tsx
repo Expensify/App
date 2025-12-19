@@ -90,7 +90,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             });
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
         }
-    }, [isEditing, assignCard?.data, filteredCardList, policyID, feed, cardID]);
+    }, [assignCard?.data, filteredCardList, policyID, feed, cardID]);
 
     // If the currently inviting member is already a member of the policy then we should just call goToNextStep
     // See https://github.com/Expensify/App/issues/74256 for more details
