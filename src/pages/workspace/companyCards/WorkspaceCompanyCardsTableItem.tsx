@@ -97,7 +97,7 @@ function WorkspaceCompanyCardTableItem({
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const cardFeedIcon = !plaidIconUrl && getCardFeedIcon(selectedFeed as CompanyCardFeed, illustrations, companyCardFeedIcons) : null;
+    const cardFeedIcon = !plaidIconUrl && getCardFeedIcon(selectedFeed as CompanyCardFeed, illustrations, companyCardFeedIcons);
 
     const {failedCompanyCardAssignment} = item;
     let {cardName, customCardName, cardholder, assignedCard, isAssigned, isCardDeleted} = item;
